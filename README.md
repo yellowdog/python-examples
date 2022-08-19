@@ -53,14 +53,14 @@ Optionally, a worker tag may also be set. The scheduler will also use this when 
 yda.workerTag: "BASH-TEST"
 ```
 
-The `WORKER_TAGS` value in the `TOML` file can be omitted, to avoid `workerTag` matching.
+The `WORKER_TAGS` property in the `TOML` file can be omitted, to avoid `workerTag` matching.
 
 When the script is run, it will report on the work submitted and provide links to the objects created in the YellowDog portal, where Task execution can be tracked, e.g.:
 
 ```shell
 (yellowdog) pwt@pwt-mbp-14 scripts % ./submit.py 
 2022-07-13 13:08:15 : ID = BASH-TEST_Task_220713T120815-4F9
-2022-07-13 13:08:16 : Uploaded file 'test_bash_script.sh' to YDOS: https://portal.yellowdog.co/#/objects/HPECIRRUS/BASH-TEST_Task_220713T120815-4F9%2FINPUT%2Ftest_script.sh?object=true
+2022-07-13 13:08:16 : Uploaded file 'test_bash_script.sh' to YDOS: https://portal.yellowdog.co/#/objects/MY_NAMESPACE/BASH-TEST_Task_220713T120815-4F9%2FINPUT%2Ftest_script.sh?object=true
 2022-07-13 13:08:16 : Added WORK REQUIREMENT (https://portal.yellowdog.co/#/work/ydid:workreq:000000:14e5ef6d-8015-4b0a-9e1b-e9d517b78a5b)
 2022-07-13 13:08:17 : Added Task 'TASK_1' to Work Requirement Task Group 'OUTPUT'
 2022-07-13 13:08:17 : Done
@@ -69,7 +69,7 @@ When the script is run, it will report on the work submitted and provide links t
 
 The submitted Work Requirement will appear in the **Work** tab of the YellowDog Portal. From here the Work Requirement, the Task Group and the Tasks can be inspected and managed.
 
-When the Task is complete, the console output will be available in the `Objects` section of the Portal, in Namespace `HPECIRRUS`, in a folder following the naming convention: `BASH-TEST_Task_<UniqueID>/OUTPUT/TASK_<N>`, in file `taskoutput.txt`.
+When the Task is complete, the console output will be available in the `Objects` section of the Portal, in the specified Namespace, in a folder following the naming convention: `BASH-TEST_Task_<UniqueID>/OUTPUT/TASK_<N>`, in file `taskoutput.txt`.
 
 The agent determines whether a Task has succeeded using the exit code from what it runs. In this case that's the exit code from running the Bash script.
 
