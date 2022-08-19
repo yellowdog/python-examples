@@ -47,7 +47,7 @@ yda.taskTypes:
     run: "/bin/bash"
 ```
 
-Optionally, a worker tag may also be set. The scheduler will also use this when matching Tasks to Workers -- i.e., if worker tags are specified by the Task, one of those tags must be present in the Worket configuration.
+Optionally, a worker tag may also be set. The scheduler will also use this when matching Tasks to Workers -- i.e., if worker tags are specified by the Task, one of those tags must be present in the Worker configuration.
 
 ```yaml
 yda.workerTag: "BASH-TEST"
