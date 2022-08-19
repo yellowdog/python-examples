@@ -1,0 +1,32 @@
+# YellowDog Application Key and Secret
+KEY = "<INSERT Key HERE>"
+SECRET = "<INSERT Secret HERE>"
+
+# Namespace (for grouping resources)
+NAMESPACE = "MY_NAMESPACE"
+
+# A name to identify this workload within the namespace
+NAME_TAG = "MY_NAME_TAG"
+
+# Worker tags: list of tags to match the tags associated with Workers
+# Can be empty (or omitted)
+WORKER_TAGS = ["MY_WORKER_TAG"]
+
+# Bash script file (stored locally), additional arguments, and env. vars
+BASH_SCRIPT = "test_bash_script.sh"
+ARGS = []      # List of strings
+BASH_ENV = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
+
+# List of local input files required for the task
+# These will be uploaded to the YellowDog Object Store
+INPUT_FILES = []
+
+# List of output files to be uploaded back to the YellowDog Object Store
+# after Task execution
+OUTPUT_FILES = []
+
+# The number of times a Task is retried if it fails
+MAX_RETRIES = 5
+
+# Number of Tasks to submit
+TASK_COUNT = 1

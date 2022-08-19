@@ -1,0 +1,49 @@
+# YellowDog Platform URL
+yda.services-schema.default-url: "https://portal.yellowdog.co/api/"
+
+# Configured Worker Pool token, obtained from the 'Add Configured Worker Pool'
+# button found in the 'Workers' tab of the YellowDog Portal
+yda.token: "<INSERT Token HERE>"
+
+# Host properties
+# (Property 'provider' must be "ON_PREMISE" for configured worker pools)
+yda.provider: "ON_PREMISE"
+yda.region: ""
+yda.instanceId: "host_01"
+yda.instanceType: ""
+yda.ram: 16.0
+yda.vcpus: 10.0
+yda.hostname: "host_01"
+# yda.privateIpAddress: 
+# yda.publicIpAddress: 
+
+yda.sourceName: "Example Source Name"
+
+# Number of workers
+yda.createWorkers:
+  targetType: "PER_NODE"
+  targetCount: 2
+
+# Tasks type(s) that can be run by the workers on this host
+yda.taskTypes:
+  - name: "bash"
+    run: "/bin/bash"
+
+# Optional tag used to match tasks with workers
+yda.workerTag: "BASH-TEST"
+
+# Availability schedule
+# (Schedule format is cron, but with an additional first field representing seconds)
+yda.schedule: 
+  enabled: false 
+  startup: 
+    - "0 0 18 * * MON-FRI" 
+  shutdown: 
+    - "0 0 7 * * MON-FRI" 
+
+# Other available properties; not used for now
+# yda.retryInitialIntervalMillis: 10000
+# yda.retryMaxIntervalMillis: 10000
+# yda.outputSources: 
+#  - name: "my_output_1"
+#    path: "/outputs/files/"
