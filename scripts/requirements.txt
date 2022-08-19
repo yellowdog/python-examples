@@ -1,2 +1,2 @@
-yellowdog-sdk >= 3.6
+yellowdog-sdk >= 3.6.11
 toml

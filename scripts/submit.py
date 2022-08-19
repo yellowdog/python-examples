@@ -64,9 +64,7 @@ def upload_file(filename: str):
     session.start()
     # Wait for upload to complete
     session = session.when_status_matches(lambda status: status.is_finished()).result()
-    uploaded_pathname = unique_upload_pathname(
-        filename, urlencode_forward_slash=True
-    )
+    uploaded_pathname = unique_upload_pathname(filename, urlencode_forward_slash=True)
     if session.status != FileTransferStatus.Completed:
         print_log(f"Failed to upload file: {filename}")
     else:
