@@ -51,32 +51,36 @@ def load_config() -> Config:
     except IndexError:
         config_file = "config.toml"
 
-    print_log(f"Loading configuration from: '{config_file}'")
+    print_log(f"Loading configuration data from: '{config_file}'")
     try:
         with open(config_file, "r") as f:
             config = load(f)
     except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
-        print_log(f"Unable to load configuration: {e}")
+        print_log(f"Unable to load configuration data: {e}")
         exit(1)
 
-    return Config(
-        # Required configuration values
-        key=config["KEY"],
-        secret=config["SECRET"],
-        namespace=config["NAMESPACE"],
-        name_tag=config["NAME_TAG"],
-        bash_script=config["BASH_SCRIPT"],
-        # Optional configuration values
-        url=config.get("URL", "https://portal.yellowdog.co/api"),
-        worker_tags=config.get("WORKER_TAGS", []),
-        task_type=config.get("TASK_TYPE", "bash"),
-        args=config.get("ARGS", []),
-        env=config.get("ENV", {}),
-        input_files=config.get("INPUT_FILES", []),
-        output_files=config.get("OUTPUT_FILES", []),
-        max_retries=config.get("MAX_RETRIES", 1),
-        task_count=config.get("TASK_COUNT", 1),
-    )
+    try:
+        return Config(
+            # Required configuration values
+            key=config["KEY"],
+            secret=config["SECRET"],
+            namespace=config["NAMESPACE"],
+            name_tag=config["NAME_TAG"],
+            bash_script=config["BASH_SCRIPT"],
+            # Optional configuration values
+            url=config.get("URL", "https://portal.yellowdog.co/api"),
+            worker_tags=config.get("WORKER_TAGS", []),
+            task_type=config.get("TASK_TYPE", "bash"),
+            args=config.get("ARGS", []),
+            env=config.get("ENV", {}),
+            input_files=config.get("INPUT_FILES", []),
+            output_files=config.get("OUTPUT_FILES", []),
+            max_retries=config.get("MAX_RETRIES", 1),
+            task_count=config.get("TASK_COUNT", 1),
+        )
+    except KeyError as e:
+        print_log(f"Missing configuration data: {e}")
+        exit(0)
 
 
 def print_log(log_message: str):

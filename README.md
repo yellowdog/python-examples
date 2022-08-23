@@ -83,16 +83,16 @@ ENV = {E1 = "one", E2 = "two"}
 
 **Multiple Bash Script Executions**
 
-It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g. to test operation across multiple simultaneous Workers. This can be done using the `TASK_COUNT` field in the `config.toml` file. All Tasks will be identical and will be submitted as part of the same Work Requirement.
+It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `TASK_COUNT` field in the `config.toml` file. All Tasks will be identical and will be submitted as part of the same Work Requirement.
 
 ### The `cancel.py` script
 
-The script is run using `python cancel.py` or `./cancel.py`. This script cancels any active Work Requirements, including any pending and incomplete Tasks they contain. 
+The script is run using `python cancel.py` or `./cancel.py`. This script cancels any active Work Requirements, including any pending and Tasks they contain. 
 
 The `NAMESPACE` and `NAME_TAG` values in the `config.toml` file are used to identify which Work Requirements to cancel.
 
 ### The `delete.py` script
 
-The script is run using `python delete.py` or `./delete.py`. This script cleans up any objects uploaded to the YellowDog Object Store.
+The script is run using `python delete.py` or `./delete.py`. This script deletes any objects created in the YellowDog Object Store.
 
 The `NAMESPACE` and `NAME_TAG` values in the `config.toml` file are used to identify which objects to delete.
