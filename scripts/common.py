@@ -60,14 +60,16 @@ def load_config() -> Config:
         exit(1)
 
     return Config(
-        url=config.get("URL", "https://portal.yellowdog.co/api"),
+        # Required configuration values
         key=config["KEY"],
         secret=config["SECRET"],
         namespace=config["NAMESPACE"],
         name_tag=config["NAME_TAG"],
+        bash_script=config["BASH_SCRIPT"],
+        # Optional configuration values
+        url=config.get("URL", "https://portal.yellowdog.co/api"),
         worker_tags=config.get("WORKER_TAGS", []),
         task_type=config.get("TASK_TYPE", "bash"),
-        bash_script=config["BASH_SCRIPT"],
         args=config.get("ARGS", []),
         env=config.get("ENV", {}),
         input_files=config.get("INPUT_FILES", []),
