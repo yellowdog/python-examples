@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from uuid import uuid4
 
-import toml
+from toml import TomlDecodeError, load
 from yellowdog_client.model import (
     ComputeRequirement,
     ConfiguredWorkerPool,
@@ -43,13 +43,22 @@ def load_config() -> Config:
     Allow the optional use of a config file supplied on the command line.
     Supply defaults where possible.
     """
+
+    # Check for supplied configuration filename as first command line
+    # parameter
     try:
         config_file = sys.argv[1]
     except IndexError:
         config_file = "config.toml"
-    # Load configuration from the config file
-    with open(config_file, "r") as f:
-        config = toml.load(f)
+
+    print_log(f"Loading configuration from: '{config_file}'")
+    try:
+        with open(config_file, "r") as f:
+            config = load(f)
+    except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
+        print_log(f"Unable to load configuration: {e}")
+        exit(1)
+
     return Config(
         url=config.get("URL", "https://portal.yellowdog.co/api"),
         key=config["KEY"],

@@ -44,7 +44,7 @@ def main():
         CONFIG.input_files.append(CONFIG.bash_script)
     for file in CONFIG.input_files:
         upload_file(file)
-    submit_task()
+    submit_tasks()
     CLIENT.close()
     print_log("Done")
 
@@ -74,9 +74,9 @@ def upload_file(filename: str):
         print_log(f"Uploaded file '{filename}' to YDOS: {link_}")
 
 
-def submit_task():
+def submit_tasks():
     """
-    Creates the YD Task Group and Work Requirement, and adds the Task to be
+    Creates the YD Task Group and Work Requirement, and adds the Tasks to be
     executed.
     """
     task_group_name = "OUTPUT"
@@ -111,14 +111,15 @@ def submit_task():
     ]
     # Add the console output file
     output_files.append(TaskOutput.from_task_process())
-    zfill_len = len(str(CONFIG.task_count))
     arguments_list = [unique_upload_pathname(CONFIG.bash_script)] + CONFIG.args
+    # Determine batching of Tasks if required
     num_task_batches: int = ceil(CONFIG.task_count / TASK_BATCH_SIZE)
     if num_task_batches > 1:
         print_log(
             "Adding Tasks to Work Requirement Task Group in "
             f"{num_task_batches} batches"
         )
+    zfill_len = len(str(CONFIG.task_count))
     for batch_number in range(num_task_batches):
         task_list = []
         for task_number in range(
