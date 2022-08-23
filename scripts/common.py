@@ -60,7 +60,7 @@ def load_config() -> Config:
         task_type=config.get("TASK_TYPE", "bash"),
         bash_script=config["BASH_SCRIPT"],
         args=config.get("ARGS", []),
-        env=config.get("BASH_ENV", {}),
+        env=config.get("ENV", {}),
         input_files=config.get("INPUT_FILES", []),
         output_files=config.get("OUTPUT_FILES", []),
         max_retries=config.get("MAX_RETRIES", 1),

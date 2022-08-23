@@ -15,7 +15,7 @@ WORKER_TAGS = ["MY_WORKER_TAG"]
 # Bash script file (stored locally), additional arguments, and env. vars
 BASH_SCRIPT = "test_bash_script.sh"
 ARGS = []      # List of strings
-BASH_ENV = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
+ENV = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
 
 # List of local input files required for the task
 # These will be uploaded to the YellowDog Object Store

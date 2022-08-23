@@ -75,10 +75,10 @@ The agent determines whether a Task has succeeded using the exit code from what 
 
 **Bash Script Arguments and Environment**
 
-The Bash script can optionally be supplied with command line arguments and environment variables using the `ARGS` and `BASH_ENV` fields in `config.toml`, e.g.:
+The Bash script can optionally be supplied with command line arguments and environment variables using the `ARGS` and `ENV` fields in `config.toml`, e.g.:
 ```toml
 ARGS = ["foo", "bar=5"]
-BASH_ENV = {E1 = "one", E2 = "two"}
+ENV = {E1 = "one", E2 = "two"}
 ```
 
 **Multiple Bash Script Executions**
