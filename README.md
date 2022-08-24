@@ -27,7 +27,7 @@ The default name for the `TOML` configuration script is `config.toml`. To use al
 3. In the **Accounts** section under the **Applications** tab of the [YellowDog Portal](https://portal.yellowdog.co/#/account/applications), use the **Add Application** button to create a new Application, and make a note of its **Key** and **Secret** (these will only be shown once).
 
 
-4. Copy `config.toml.template` to `config.toml` and populate the `KEY` and `SECRET` fields using the values obtained above. These allow the Python scripts to connect to the YellowDog Platform. Modify `WORKER_TAGS` to include one or more tags declared by your YellowDog workers.
+4. Copy `config.toml.template` to `config.toml` and populate the `KEY` and `SECRET` properties using the values obtained above. These allow the Python scripts to connect to the YellowDog Platform. Modify the `NAMESPACE` (for grouping YellowDog objects) and `NAME_TAG` (used for naming objects) properties as required. Optionally, modify the `WORKER_TAGS` property to include one or more tags declared by your YellowDog workers.
 
 ### The `submit.py` script
 
