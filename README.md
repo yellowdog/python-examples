@@ -28,7 +28,9 @@ The environment variable is overridden if a filename is supplied on the command 
 
 ### Prerequisites
 
-1. You'll need a YellowDog Platform Account.
+To **submit work requirements** to YellodDog, you'll need the following:
+
+1. A YellowDog Platform Account.
 
 
 2. Running the scripts requires a Python 3.7+ environment with the required dependencies installed: `pip install -U -r requirements.txt`.
@@ -37,7 +39,17 @@ The environment variable is overridden if a filename is supplied on the command 
 3. In the **Accounts** section under the **Applications** tab of the [YellowDog Portal](https://portal.yellowdog.co/#/account/applications), use the **Add Application** button to create a new Application, and make a note of its **Key** and **Secret** (these will only be shown once).
 
 
-4. Copy `config.toml.template` to `config.toml` and populate the `KEY` and `SECRET` properties using the values obtained above. These allow the Python scripts to connect to the YellowDog Platform. Modify the `NAMESPACE` (for grouping YellowDog objects) and `NAME_TAG` (used for naming objects) properties as required. Optionally, modify the `WORKER_TAGS` property to include one or more tags declared by your YellowDog workers.
+4. Copy `config.toml.template` to `config.toml` and in the `COMMON` section populate the `KEY` and `SECRET` properties using the values obtained above. These allow the Python scripts to connect to the YellowDog Platform. Modify the `NAMESPACE` (for grouping YellowDog objects) and `NAME_TAG` (used for naming objects) properties as required. In the `WORK_REQUIREMENT` section, optionally modify the `WORKER_TAGS` property to include one or more tags declared by your YellowDog workers.
+
+To **provision worker pools**, you'll also need:
+
+5. A **Keyring** created via the YellowDog Portal, with access to Cloud Provider credentials as required.
+
+
+6. One or more **Compute Sources** defined, and a **Compute Requirement Template** created.
+
+
+7. In your `config.toml` file, populate the `WORKER_POOL` section, including using the `TEMPLATE_ID` from the Compute Requirement Template above.
 
 ### The `submit.py` script
 
@@ -107,3 +119,15 @@ The `NAMESPACE` and `NAME_TAG` values in the `config.toml` file are used to iden
 The script is run using `python delete.py` or `./delete.py`. This script deletes any objects created in the YellowDog Object Store.
 
 The `NAMESPACE` and `NAME_TAG` values in the `config.toml` file are used to identify which objects to delete.
+
+### The `provision.py` script
+
+The script is run using `python provision.py` or `./provision.py`. This script provisions a new Worker Pool according to the specifications in the `WORKER_POOL` section of the configuration file.
+
+### The `shutdown.py` script
+
+The script is run using `python shutdown.py` or `./shutdown.py`. This script shuts down Worker Pools that match the `NAMESPACE` and `NAME_TAG` found in the configuration file. All remaining work will be cancelled, but currently executing Tasks will be allowed to complete, after which the Compute Requirement will be terminated.
+
+### The `terminate.py` script
+
+The script is run using `python terminate.py` or `./terminate.py`. This script immediately terminates Compute Requirements that match the `NAMESPACE` and `NAME_TAG` found in the configuration file. Any executing Tasks will be terminated immediately, and the Worker Pool will be shut down.

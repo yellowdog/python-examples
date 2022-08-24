@@ -43,19 +43,30 @@ class ConfigWorkRequirement:
 
 
 @dataclass
+class ConfigWorkRequirement:
+    worker_tags: List[str]
+    task_type: str
+    bash_script: str
+    args: List[str]
+    env: Dict
+    input_files: List[str]
+    output_files: List[str]
+    max_retries: int
+    task_count: int
+
+
+@dataclass
 class ConfigWorkerPool:
+    template_id: str
     initial_nodes: int
     min_nodes: int
     max_nodes: int
+    worker_tag: Optional[str]
     workers_per_node: int
-    task_count: int
-    task_index_start: int
-    max_retries: int
     auto_shutdown: bool
     auto_shutdown_delay: float
     auto_scaling_idle_delay: Optional[float]
     node_boot_time_limit: Optional[float]
-    tasks_batch_size: int
     compute_requirement_batch_size: int
 
 
@@ -128,6 +139,33 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             output_files=wr_section.get("OUTPUT_FILES", []),
             max_retries=wr_section.get("MAX_RETRIES", 1),
             task_count=wr_section.get("TASK_COUNT", 1),
+        )
+    except KeyError as e:
+        print_log(f"Missing configuration data: {e}")
+        exit(0)
+
+
+def load_config_worker_pool() -> ConfigWorkerPool:
+    try:
+        wp_section = CONFIG_TOML["WORKER_POOL"]
+        return ConfigWorkerPool(
+            # Required configuration values
+            template_id=wp_section["TEMPLATE_ID"],
+            # Optional configuration values
+            initial_nodes=wp_section.get("INITIAL_NODES", 1),
+            min_nodes=wp_section.get("MIN_NODES", 0),
+            max_nodes=wp_section.get(
+                "MAX_NODES", max(1, wp_section.get("INITIAL_NODES", 1))
+            ),
+            worker_tag=wp_section.get("WORKER_TAG", None),
+            workers_per_node=wp_section.get("WORKERS_PER_NODE", 1),
+            auto_shutdown=wp_section.get("AUTO_SHUTDOWN", True),
+            auto_shutdown_delay=wp_section.get("AUTO_SHUTDOWN_DELAY", 10),
+            auto_scaling_idle_delay=wp_section.get("AUTO_SCALING_IDLE_DELAY", 10),
+            node_boot_time_limit=wp_section.get("NODE_BOOT_TIME_LIMIT", 10),
+            compute_requirement_batch_size=wp_section.get(
+                "COMPUTE_REQUIREMENT_BATCH_SIZE", 2000
+            ),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
