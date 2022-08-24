@@ -18,9 +18,13 @@ The default name for the `TOML` configuration script is `config.toml`. To use al
 
 `./submit.py my_config.toml`
 
-Alternatively, the name of the configuration file can be set in the environment variable `YD_CONF` and this will be used by all the scripts:
+Alternatively, the name of the configuration file can be set in the environment variable `YD_CONF` and this file will be used by all the scripts.
 
 `export YD_CONF="my_config.toml"`
+
+The environment variable is overridden if a filename is supplied on the command line, i.e., the precedence order is:
+
+`command line > YD_CONF setting > default ('config.toml')`
 
 ### Prerequisites
 
