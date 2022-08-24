@@ -21,17 +21,28 @@ from yellowdog_client.model import (
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
-from common import Config, generate_id, link, link_entity, load_config, print_log
+from common import (
+    ConfigCommon,
+    ConfigWorkRequirement,
+    generate_id,
+    link,
+    link_entity,
+    load_config_common,
+    load_config_work_requirement,
+    print_log,
+)
 
 # Import the configuration from the TOML file
-CONFIG: Config = load_config()
+CONFIG_COMMON: ConfigCommon = load_config_common()
+CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 
 # Initialise the client for interaction with the YellowDog Platform
 CLIENT = PlatformClient.create(
-    ServicesSchema(defaultUrl=CONFIG.url), ApiKey(CONFIG.key, CONFIG.secret)
+    ServicesSchema(defaultUrl=CONFIG_COMMON.url),
+    ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
-ID = generate_id(CONFIG.name_tag + "_Task")
+ID = generate_id(CONFIG_COMMON.name_tag + "_Task")
 
 TASK_BATCH_SIZE = 2000
 
@@ -40,9 +51,9 @@ INPUT_FOLDER_NAME = "INPUT"
 
 def main():
     print_log(f"ID = {ID}")
-    if CONFIG.bash_script not in CONFIG.input_files:
-        CONFIG.input_files.append(CONFIG.bash_script)
-    for file in CONFIG.input_files:
+    if CONFIG_WR.bash_script not in CONFIG_WR.input_files:
+        CONFIG_WR.input_files.append(CONFIG_WR.bash_script)
+    for file in CONFIG_WR.input_files:
         upload_file(file)
     submit_tasks()
     CLIENT.close()
@@ -57,7 +68,7 @@ def upload_file(filename: str):
     dest_filename = unique_upload_pathname(filename)
     CLIENT.object_store_client.start_transfers()
     session = CLIENT.object_store_client.create_upload_session(
-        CONFIG.namespace,
+        CONFIG_COMMON.namespace,
         str(pathname),
         destination_file_name=dest_filename,
     )
@@ -69,7 +80,8 @@ def upload_file(filename: str):
         print_log(f"Failed to upload file: {filename}")
     else:
         link_ = link(
-            CONFIG.url, f"#/objects/{CONFIG.namespace}/{uploaded_pathname}?object=true"
+            CONFIG_COMMON.url,
+            f"#/objects/{CONFIG_COMMON.namespace}/{uploaded_pathname}?object=true",
         )
         print_log(f"Uploaded file '{filename}' to YDOS: {link_}")
 
@@ -84,62 +96,62 @@ def submit_tasks():
 
     # Define the properties of the Task Group
     run_specification = RunSpecification(
-        taskTypes=[CONFIG.task_type],
-        maximumTaskRetries=CONFIG.max_retries,
-        workerTags=CONFIG.worker_tags,
+        taskTypes=[CONFIG_WR.task_type],
+        maximumTaskRetries=CONFIG_WR.max_retries,
+        workerTags=CONFIG_WR.worker_tags,
     )
     # Create the Task Group object
     task_group = TaskGroup(name=task_group_name, runSpecification=run_specification)
     # Create the Work Requirement containing the Task Group
     work_requirement = CLIENT.work_client.add_work_requirement(
         WorkRequirement(
-            namespace=CONFIG.namespace,
+            namespace=CONFIG_COMMON.namespace,
             name=ID,
             taskGroups=[task_group],
-            tag=CONFIG.name_tag,
+            tag=CONFIG_COMMON.name_tag,
         )
     )
-    print_log(f"Added {link_entity(CONFIG.url, work_requirement)}")
+    print_log(f"Added {link_entity(CONFIG_COMMON.url, work_requirement)}")
     # Define the Task for running the Bash script
     input_files = [
         TaskInput.from_task_namespace(unique_upload_pathname(file), required=True)
-        for file in CONFIG.input_files
+        for file in CONFIG_WR.input_files
     ]
     output_files = [
         TaskOutput.from_worker_directory(output_file)
-        for output_file in CONFIG.output_files
+        for output_file in CONFIG_WR.output_files
     ]
     # Add the console output file
     output_files.append(TaskOutput.from_task_process())
-    arguments_list = [unique_upload_pathname(CONFIG.bash_script)] + CONFIG.args
+    arguments_list = [unique_upload_pathname(CONFIG_WR.bash_script)] + CONFIG_WR.args
     # Determine batching of Tasks if required
-    num_task_batches: int = ceil(CONFIG.task_count / TASK_BATCH_SIZE)
+    num_task_batches: int = ceil(CONFIG_WR.task_count / TASK_BATCH_SIZE)
     if num_task_batches > 1:
         print_log(
             "Adding Tasks to Work Requirement Task Group in "
             f"{num_task_batches} batches"
         )
-    zfill_len = len(str(CONFIG.task_count))
+    zfill_len = len(str(CONFIG_WR.task_count))
     for batch_number in range(num_task_batches):
         task_list = []
         for task_number in range(
             (TASK_BATCH_SIZE * batch_number) + 1,
-            min(TASK_BATCH_SIZE * (batch_number + 1), CONFIG.task_count) + 1,
+            min(TASK_BATCH_SIZE * (batch_number + 1), CONFIG_WR.task_count) + 1,
         ):
             task_name_numbered = task_name_prefix + str(task_number).zfill(zfill_len)
             task_list.append(
                 Task(
                     name=task_name_numbered,
-                    taskType=CONFIG.task_type,
+                    taskType=CONFIG_WR.task_type,
                     inputs=input_files,
                     arguments=arguments_list,
-                    environment=CONFIG.env,
+                    environment=CONFIG_WR.env,
                     outputs=output_files,
                 )
             )
         # Add the Tasks to the Task Group
         CLIENT.work_client.add_tasks_to_task_group_by_name(
-            CONFIG.namespace, work_requirement.name, task_group_name, task_list
+            CONFIG_COMMON.namespace, work_requirement.name, task_group_name, task_list
         )
         if num_task_batches > 1:
             print_log(
@@ -148,7 +160,7 @@ def submit_tasks():
                 f"Task(s) to Work Requirement Task Group '{task_group_name}'"
             )
     print_log(
-        f"Added {CONFIG.task_count} Task(s) to Work Requirement Task Group "
+        f"Added {CONFIG_WR.task_count} Task(s) to Work Requirement Task Group "
         f"'{task_group_name}'"
     )
 

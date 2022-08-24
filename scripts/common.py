@@ -20,12 +20,16 @@ from yellowdog_client.model import (
 
 
 @dataclass
-class Config:
+class ConfigCommon:
     url: str
     key: str
     secret: str
     namespace: str
     name_tag: str
+
+
+@dataclass
+class ConfigWorkRequirement:
     worker_tags: List[str]
     task_type: str
     bash_script: str
@@ -37,55 +41,78 @@ class Config:
     task_count: int
 
 
-def load_config() -> Config:
-    """
-    Load the config from a TOML file.
-    Allow the optional use of a config file supplied on the command line.
-    Supply defaults where possible.
-    """
+@dataclass
+class ConfigWorkerPool:
+    initial_nodes: int
+    min_nodes: int
+    max_nodes: int
+    workers_per_node: int
+    task_count: int
+    task_index_start: int
+    max_retries: int
+    auto_shutdown: bool
+    auto_shutdown_delay: float
+    auto_scaling_idle_delay: Optional[float]
+    node_boot_time_limit: Optional[float]
+    tasks_batch_size: int
+    compute_requirement_batch_size: int
 
-    # Check for supplied configuration filename as first command line
-    # parameter
-    try:
-        config_file = sys.argv[1]
-    except IndexError:
-        config_file = "config.toml"
 
-    print_log(f"Loading configuration data from: '{config_file}'")
-    try:
-        with open(config_file, "r") as f:
-            config = load(f)
-    except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
-        print_log(f"Unable to load configuration data: {e}")
-        exit(1)
+def print_log(log_message: str):
+    """Placeholder for more sophisticated logging."""
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ":", log_message)
 
+
+# Load the config from a TOML file.
+# Allow the optional use of a config file supplied on the command line.
+# Supply defaults where possible.
+try:
+    config_file = sys.argv[1]
+except IndexError:
+    config_file = "config.toml"
+print_log(f"Loading configuration data from: '{config_file}'")
+try:
+    with open(config_file, "r") as f:
+        CONFIG_TOML: Dict = load(f)
+except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
+    print_log(f"Unable to load configuration data: {e}")
+    exit(1)
+
+
+def load_config_common() -> ConfigCommon:
     try:
-        return Config(
+        return ConfigCommon(
             # Required configuration values
-            key=config["KEY"],
-            secret=config["SECRET"],
-            namespace=config["NAMESPACE"],
-            name_tag=config["NAME_TAG"],
-            bash_script=config["BASH_SCRIPT"],
+            key=CONFIG_TOML["KEY"],
+            secret=CONFIG_TOML["SECRET"],
+            namespace=CONFIG_TOML["NAMESPACE"],
+            name_tag=CONFIG_TOML["NAME_TAG"],
             # Optional configuration values
-            url=config.get("URL", "https://portal.yellowdog.co/api"),
-            worker_tags=config.get("WORKER_TAGS", []),
-            task_type=config.get("TASK_TYPE", "bash"),
-            args=config.get("ARGS", []),
-            env=config.get("ENV", {}),
-            input_files=config.get("INPUT_FILES", []),
-            output_files=config.get("OUTPUT_FILES", []),
-            max_retries=config.get("MAX_RETRIES", 1),
-            task_count=config.get("TASK_COUNT", 1),
+            url=CONFIG_TOML.get("URL", "https://portal.yellowdog.co/api"),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
         exit(0)
 
 
-def print_log(log_message: str):
-    """Placeholder for more sophisticated logging."""
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ":", log_message)
+def load_config_work_requirement() -> ConfigWorkRequirement:
+    try:
+        return ConfigWorkRequirement(
+            # Required configuration values
+            bash_script=CONFIG_TOML["BASH_SCRIPT"],
+            # Optional configuration values
+            worker_tags=CONFIG_TOML.get("WORKER_TAGS", []),
+            task_type=CONFIG_TOML.get("TASK_TYPE", "bash"),
+            args=CONFIG_TOML.get("ARGS", []),
+            env=CONFIG_TOML.get("ENV", {}),
+            input_files=CONFIG_TOML.get("INPUT_FILES", []),
+            output_files=CONFIG_TOML.get("OUTPUT_FILES", []),
+            max_retries=CONFIG_TOML.get("MAX_RETRIES", 1),
+            task_count=CONFIG_TOML.get("TASK_COUNT", 1),
+        )
+    except KeyError as e:
+        print_log(f"Missing configuration data: {e}")
+        exit(0)
 
 
 def generate_id(prefix: str) -> str:

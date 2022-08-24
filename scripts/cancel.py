@@ -16,10 +16,10 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from common import Config, link, link_entity, load_config, print_log
+from common import ConfigCommon, link_entity, load_config_common, print_log
 
 # Import the configuration from the TOML file
-CONFIG: Config = load_config()
+CONFIG: ConfigCommon = load_config_common()
 
 CLIENT = PlatformClient.create(
     ServicesSchema(defaultUrl=CONFIG.url), ApiKey(CONFIG.key, CONFIG.secret)
