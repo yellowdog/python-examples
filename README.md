@@ -10,11 +10,17 @@ The Python scripts are contained in the [scripts](/scripts) directory. They use 
 
 The instructions below assume that all required files are situated in the [scripts](/scripts) directory and that all commands are run from this directory.
 
+### Script Configuration
+
 Script operation is configured using a simple `TOML` configuration file. A [template configuration file](scripts/config.toml.template) is provided.
 
 The default name for the `TOML` configuration script is `config.toml`. To use alternative `TOML` files, simply supply the filename as the first parameter to the Python script, e.g.:
 
 `./submit.py my_config.toml`
+
+Alternatively, the name of the configuration file can be set in the environment variable `YD_CONF` and this will be used by all the scripts:
+
+`export YD_CONF="my_config.toml"`
 
 ### Prerequisites
 

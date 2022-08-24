@@ -6,6 +6,7 @@ import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime
+from os import getenv
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -64,12 +65,13 @@ def print_log(log_message: str):
 
 
 # Load the config from a TOML file.
-# Allow the optional use of a config file supplied on the command line.
-# Supply defaults where possible.
+# Allow the optional use of a config file supplied on the command line;
+# otherwise look for the YD_CONF environment variable, else use the default
 try:
     config_file = sys.argv[1]
 except IndexError:
-    config_file = "config.toml"
+    config_file = getenv("YD_CONF", "config.toml")
+
 print_log(f"Loading configuration data from: '{config_file}'")
 try:
     with open(config_file, "r") as f:
