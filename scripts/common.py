@@ -81,14 +81,15 @@ except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
 
 def load_config_common() -> ConfigCommon:
     try:
+        common_section = CONFIG_TOML["COMMON"]
         return ConfigCommon(
             # Required configuration values
-            key=CONFIG_TOML["KEY"],
-            secret=CONFIG_TOML["SECRET"],
-            namespace=CONFIG_TOML["NAMESPACE"],
-            name_tag=CONFIG_TOML["NAME_TAG"],
+            key=common_section["KEY"],
+            secret=common_section["SECRET"],
+            namespace=common_section["NAMESPACE"],
+            name_tag=common_section["NAME_TAG"],
             # Optional configuration values
-            url=CONFIG_TOML.get("URL", "https://portal.yellowdog.co/api"),
+            url=common_section.get("URL", "https://portal.yellowdog.co/api"),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
@@ -97,18 +98,19 @@ def load_config_common() -> ConfigCommon:
 
 def load_config_work_requirement() -> ConfigWorkRequirement:
     try:
+        wr_section = CONFIG_TOML["WORK_REQUIREMENT"]
         return ConfigWorkRequirement(
             # Required configuration values
-            bash_script=CONFIG_TOML["BASH_SCRIPT"],
+            bash_script=wr_section["BASH_SCRIPT"],
             # Optional configuration values
-            worker_tags=CONFIG_TOML.get("WORKER_TAGS", []),
-            task_type=CONFIG_TOML.get("TASK_TYPE", "bash"),
-            args=CONFIG_TOML.get("ARGS", []),
-            env=CONFIG_TOML.get("ENV", {}),
-            input_files=CONFIG_TOML.get("INPUT_FILES", []),
-            output_files=CONFIG_TOML.get("OUTPUT_FILES", []),
-            max_retries=CONFIG_TOML.get("MAX_RETRIES", 1),
-            task_count=CONFIG_TOML.get("TASK_COUNT", 1),
+            worker_tags=wr_section.get("WORKER_TAGS", []),
+            task_type=wr_section.get("TASK_TYPE", "bash"),
+            args=wr_section.get("ARGS", []),
+            env=wr_section.get("ENV", {}),
+            input_files=wr_section.get("INPUT_FILES", []),
+            output_files=wr_section.get("OUTPUT_FILES", []),
+            max_retries=wr_section.get("MAX_RETRIES", 1),
+            task_count=wr_section.get("TASK_COUNT", 1),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")

@@ -1,32 +1,48 @@
-# YellowDog Application Key and Secret
-KEY = "<INSERT Key HERE>"
-SECRET = "<INSERT Secret HERE>"
+[COMMON]  ######################################################################
 
-# Namespace (for grouping resources)
-NAMESPACE = "MY_NAMESPACE"
+    # YellowDog Application Key and Secret
+    # Required
+    KEY = "<INSERT Key HERE>"
+    SECRET = "<INSERT Secret HERE>"
 
-# A name to identify this workload within the namespace
-NAME_TAG = "MY_NAME_TAG"
+    # Namespace (for grouping resources)
+    # Required
+    NAMESPACE = "MY_NAMESPACE"
 
-# Worker tags: list of tags to match the tags associated with Workers
-# Can be empty (or omitted)
-WORKER_TAGS = ["MY_WORKER_TAG"]
+    # A name to identify this workload within the namespace
+    # Required
+    NAME_TAG = "MY_NAME_TAG"
 
-# Bash script file (stored locally), additional arguments, and env. vars
-BASH_SCRIPT = "test_bash_script.sh"
-ARGS = []      # List of strings
-ENV = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
+[WORK_REQUIREMENT]  ############################################################
 
-# List of local input files required for the task
-# These will be uploaded to the YellowDog Object Store
-INPUT_FILES = []
+    # Bash script file (stored locally) to be executed
+    # Required
+    BASH_SCRIPT = "test_bash_script.sh"
 
-# List of output files to be uploaded back to the YellowDog Object Store
-# after Task execution
-OUTPUT_FILES = []
+    # Arguments and environment to pass to the Bash script
+    # Optional
+    # ARGS = [] # List of strings
+    # ENV = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
 
-# The number of times a Task is retried if it fails
-MAX_RETRIES = 5
+    # Worker tags: list of tags (strings)to match the tags associated
+    # with Workers
+    # Optional
+    # WORKER_TAGS = []
 
-# Number of Tasks to submit
-TASK_COUNT = 1
+    # List of local input files required for the task
+    # These will be uploaded to the YellowDog Object Store
+    # Optional
+    # INPUT_FILES = []
+
+    # List of output files to be uploaded back to the YellowDog Object Store
+    # after Task execution
+    # Optional
+    # OUTPUT_FILES = []
+
+    # The number of times a Task is retried if it fails
+    # Optional
+    # MAX_RETRIES = 0
+
+    # Number of times to submit the task
+    # Optional
+    # TASK_COUNT = 1

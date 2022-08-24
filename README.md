@@ -59,6 +59,7 @@ When the script is run, it will report on the work submitted and provide links t
 
 ```shell
 (yellowdog) pwt@pwt-mbp-14 scripts % ./submit.py 
+2022-07-13 13:08:15 : Loading configuration data from: 'config.toml'
 2022-07-13 13:08:15 : ID = BASH-TEST_Task_220713T120815-4F9
 2022-07-13 13:08:16 : Uploaded file 'test_bash_script.sh' to YDOS: https://portal.yellowdog.co/#/objects/MY_NAMESPACE/BASH-TEST_Task_220713T120815-4F9%2FINPUT%2Ftest_script.sh?object=true
 2022-07-13 13:08:16 : Added WORK REQUIREMENT (https://portal.yellowdog.co/#/work/ydid:workreq:000000:14e5ef6d-8015-4b0a-9e1b-e9d517b78a5b)
