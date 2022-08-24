@@ -84,6 +84,10 @@ except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
 def load_config_common() -> ConfigCommon:
     try:
         common_section = CONFIG_TOML["COMMON"]
+        # Check for IMPORT directive
+        common_section_import_file = common_section.get("IMPORT", None)
+        if common_section_import_file is not None:
+            common_section = import_toml(common_section_import_file)
         return ConfigCommon(
             # Required configuration values
             key=common_section["KEY"],
@@ -96,6 +100,17 @@ def load_config_common() -> ConfigCommon:
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
         exit(0)
+
+
+def import_toml(filename: str) -> Dict:
+    print_log(f"Loading imported common configuration data from: '{filename}'")
+    try:
+        with open(filename, "r") as f:
+            common_config: Dict = load(f)
+            return common_config["COMMON"]
+    except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
+        print_log(f"Unable to load imported common configuration data: {e}")
+        exit(1)
 
 
 def load_config_work_requirement() -> ConfigWorkRequirement:
