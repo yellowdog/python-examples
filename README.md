@@ -87,7 +87,7 @@ It's sometimes useful for testing to be able to generate multiple Tasks in a sin
 
 ### The `cancel.py` script
 
-The script is run using `python cancel.py` or `./cancel.py`. This script cancels any active Work Requirements, including any pending and Tasks they contain. 
+The script is run using `python cancel.py` or `./cancel.py`. This script cancels any active Work Requirements, including any pending Task Groups and Tasks they contain. 
 
 The `NAMESPACE` and `NAME_TAG` values in the `config.toml` file are used to identify which Work Requirements to cancel.
 
