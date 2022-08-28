@@ -25,17 +25,20 @@
     # ENV = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
 
     # Worker tags: list of tags (strings)to match the tags associated
-    # with Workers
+    # with Workers.
+    # A list of strings.
     # Optional
     # WORKER_TAGS = []
 
     # List of local input files required for the task
     # These will be uploaded to the YellowDog Object Store
+    # A list of strings
     # Optional
     # INPUT_FILES = []
 
     # List of output files to be uploaded back to the YellowDog Object Store
     # after Task execution
+    # A list of strings
     # Optional
     # OUTPUT_FILES = []
 
@@ -76,14 +79,16 @@
     # Optional
     # AUTO_SHUTDOWN = true
 
-    # The delay before the Worker Pool is shut down if AUTO_SHUTDOWN is true
+    # The delay in minutes before the Worker Pool is shut down
+    # if AUTO_SHUTDOWN is true
     # Optional
     # AUTO_SHUTDOWN_DELAY = 10
 
-    # The delay before idle nodes are shut down due to auto-scaling
+    # The delay in minutes before idle nodes are shut down due to auto-scaling
     # Optional
     # AUTO_SCALING_IDLE_DELAY = 10
 
-    # The time to allow for a node to boot before it is terminated
+    # The time in minutes to allow for a node to boot and register its
+    # worker(s) before it is terminated
     # Optional
     # NODE_BOOT_TIME_LIMIT = 10
