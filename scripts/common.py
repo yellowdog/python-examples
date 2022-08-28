@@ -43,19 +43,6 @@ class ConfigWorkRequirement:
 
 
 @dataclass
-class ConfigWorkRequirement:
-    worker_tags: List[str]
-    task_type: str
-    bash_script: str
-    args: List[str]
-    env: Dict
-    input_files: List[str]
-    output_files: List[str]
-    max_retries: int
-    task_count: int
-
-
-@dataclass
 class ConfigWorkerPool:
     template_id: str
     initial_nodes: int
