@@ -2,9 +2,9 @@
 
 This repository contains minimal example Python scripts for submitting work to the YellowDog Platform, cancelling work, and cleaning up the YellowDog Object Store.
 
-It also provides scripts for provisioning Provisioned Worker Pools, shutting down Worker Pools, and terminating the Compute Requirements provising those Worker Pools.
+It also provides scripts for provisioning Provisioned Worker Pools, shutting down Worker Pools, and terminating the Compute Requirements providing those Worker Pools.
 
-In addition, a template [on-premise configuration](agent/application.yaml.template) is provided to to use when deploying the YellowDog agent in Configured Worker Pools.
+In addition, a template [on-premise configuration](agent/application.yaml.template) is provided to use when deploying the YellowDog agent in Configured Worker Pools.
 
 ## Scripts
 
@@ -30,7 +30,7 @@ The environment variable is overridden if a filename is supplied on the command 
 
 ### Prerequisites
 
-To **submit work requirements** to YellodDog, you'll need the following:
+To **submit work requirements** to YellowDog, you'll need the following:
 
 1. A YellowDog Platform Account.
 
