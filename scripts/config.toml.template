@@ -5,11 +5,13 @@
     KEY = "<INSERT Key HERE>"
     SECRET = "<INSERT Secret HERE>"
 
-    # A namespace for grouping resources
+    # A namespace for grouping YellowDog objects, e.g., the name of an
+    # overall project for which YellowDog is being used
     # Required
     NAMESPACE = "MY_NAMESPACE"
 
-    # A name tag to identify these resources within the namespace
+    # A name tag to sub-divide objects within the namespace, e.g., to
+    # tag a given set of tasks, nodes and data objects
     # Required
     NAME_TAG = "MY_NAME_TAG"
 
