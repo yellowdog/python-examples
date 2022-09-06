@@ -6,7 +6,8 @@ yda.services-schema.default-url: "https://portal.yellowdog.co/api/"
 yda.token: "<INSERT Token HERE>"
 
 # Host properties
-# (Property 'provider' must be "ON_PREMISE" for configured worker pools)
+# Property 'yda.provider' must be "ON_PREMISE" for Configured Worker Pools
+# Property 'yda.instanceId' must be unique within this Worker Pool
 yda.provider: "ON_PREMISE"
 yda.region: ""
 yda.instanceId: "host_01"
@@ -20,6 +21,7 @@ yda.hostname: "host_01"
 yda.sourceName: "Example Source Name"
 
 # Number of workers
+# Can be "PER_NODE" or "PER_VCPU"
 yda.createWorkers:
   targetType: "PER_NODE"
   targetCount: 2
@@ -29,7 +31,7 @@ yda.taskTypes:
   - name: "bash"
     run: "/bin/bash"
 
-# Optional tag used to match tasks with workers
+# Optional tag used to match with workerTags in Task Groups
 yda.workerTag: "BASH-TEST"
 
 # Availability schedule
