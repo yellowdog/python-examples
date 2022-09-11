@@ -21,7 +21,8 @@ yda.hostname: "host_01"
 yda.sourceName: "Example Source Name"
 
 # Number of workers
-# Can be "PER_NODE" or "PER_VCPU"
+# 'targetType' can be "PER_NODE" or "PER_VCPU"
+# 'targetCount' can be a float: e.g:, 0.5 workers per vCPU
 yda.createWorkers:
   targetType: "PER_NODE"
   targetCount: 2

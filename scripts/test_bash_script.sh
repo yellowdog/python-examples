@@ -24,6 +24,6 @@ then
   echo
 fi
 echo "Script Directory:" $(dirname $(readlink -f $0))
-sleep 10
+sleep 3
 echo
-echo "Slept 5s ... done"
+echo "Slept 3s ... done"

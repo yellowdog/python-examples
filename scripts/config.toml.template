@@ -26,8 +26,8 @@
     # ARGS = [] # List of strings
     # ENV = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
 
-    # Worker tags: list of tags (strings)to match the tags associated
-    # with Workers.
+    # Worker tags: list of tags (strings) to match the tags associated
+    # with Workers
     # A list of strings.
     # Optional
     # WORKER_TAGS = []
@@ -75,6 +75,10 @@
     # The number of Workers to create on each node
     # Optional
     # WORKERS_PER_NODE = 1
+
+    # The Worker Tag to associate with the Worker(s)
+    # Optional
+    # WORKER_TAG = "MY_WORKER_TAG"
 
     # Whether the Worker Pool and its associated Compute Requirement should
     # be shut down when all workers on all workers on all nodes are idle
