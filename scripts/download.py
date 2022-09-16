@@ -17,6 +17,7 @@ from yellowdog_client.model import (
 )
 from yellowdog_client.object_store.download.abstracts.abstract_download_batch_builder import (
     AbstractDownloadBatchBuilder,
+    AbstractTransferBatch,
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
@@ -55,12 +56,14 @@ def main():
             download_batch_builder.find_source_objects(
                 namespace=CONFIG.namespace, object_name_pattern=f"{object_path.name}*"
             )
-            download_batch = download_batch_builder.get_batch_if_objects_found()
+            download_batch: AbstractTransferBatch = (
+                download_batch_builder.get_batch_if_objects_found()
+            )
             if download_batch is None:
                 print_log(f"No Objects found in Object Path {object_path.displayName}")
                 continue
             download_batch.start()
-            future = download_batch.when_status_matches(
+            future: futures.Future = download_batch.when_status_matches(
                 lambda status: status == FileTransferStatus.Completed
             )
             CLIENT.object_store_client.start_transfers()
