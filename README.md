@@ -116,6 +116,12 @@ The script is run using `python cancel.py` or `./cancel.py`. This script cancels
 
 The `NAMESPACE` and `NAME_TAG` values in the `config.toml` file are used to identify which Work Requirements to cancel.
 
+### The `download.py` script
+
+The script is run using `python download.py` or `./download.py`. This script downloads any objects created in the YellowDog Object Store.
+
+The `NAMESPACE` and `NAME_TAG` values are used to determine which objects to download. Objects will be downloaded to a directory with the same name as `NAMESPACE`. If a directory already exists, directories with names `<NAMESPACE>.01`, etc., will be created.
+
 ### The `delete.py` script
 
 The script is run using `python delete.py` or `./delete.py`. This script deletes any objects created in the YellowDog Object Store.
