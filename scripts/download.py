@@ -47,11 +47,11 @@ def main():
     if len(object_paths_to_download) != 0:
         print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
         download_dir: str = _create_download_directory(CONFIG.namespace)
-        download_batch_builder: AbstractDownloadBatchBuilder = (
-            CLIENT.object_store_client.build_download_batch()
-        )
-        download_batch_builder.destination_folder = download_dir
         for object_path in object_paths_to_download:
+            download_batch_builder: AbstractDownloadBatchBuilder = (
+                CLIENT.object_store_client.build_download_batch()
+            )
+            download_batch_builder.destination_folder = download_dir
             download_batch_builder.find_source_objects(
                 namespace=CONFIG.namespace, object_name_pattern=f"{object_path.name}*"
             )
