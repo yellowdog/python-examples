@@ -251,53 +251,66 @@ def _submit_work_requirement_from_json():
     for tg_number, task_group in enumerate(task_groups):
         tasks = tasks_data[TASK_GROUPS][tg_number][TASKS]
         num_tasks = len(tasks)
-        tasks_list: List[Task] = []
-        for task_number, task in enumerate(tasks):
-            task_name = task.get(
-                NAME, "Task_" + str(task_number).zfill(len(str(num_tasks)))
+        num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
+        if num_task_batches > 1:
+            print_log(
+                f"Adding Tasks to Task Group {task_group.name} in "
+                f"{num_task_batches} batches"
             )
-            bash_script = task.get(
-                BASH_SCRIPT,
-                tasks_data[TASK_GROUPS][tg_number].get(
-                    BASH_SCRIPT, CONFIG_WR.bash_script
-                ),
+        for batch_number in range(num_task_batches):
+            tasks_list: List[Task] = []
+            for task_number in range(
+                (TASK_BATCH_SIZE * batch_number),
+                min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
+            ):
+                task = tasks[task_number]
+                task_name = task.get(
+                    NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
+                )
+                bash_script = task.get(
+                    BASH_SCRIPT,
+                    tasks_data[TASK_GROUPS][tg_number].get(
+                        BASH_SCRIPT, CONFIG_WR.bash_script
+                    ),
+                )
+                arguments_list = [unique_upload_pathname(bash_script)] + task.get(
+                    ARGS, []
+                )
+                input_files = [
+                    TaskInput.from_task_namespace(
+                        unique_upload_pathname(file), required=True
+                    )
+                    for file in task.get(
+                        INPUT_FILES,
+                        tasks_data[TASK_GROUPS][tg_number].get(INPUT_FILES, []),
+                    )
+                    + [bash_script]
+                ]
+                output_files = [
+                    TaskOutput.from_worker_directory(file)
+                    for file in task.get(
+                        OUTPUT_FILES,
+                        tasks_data[TASK_GROUPS][tg_number].get(OUTPUT_FILES, []),
+                    )
+                ]
+                output_files.append(TaskOutput.from_task_process())
+                tasks_list.append(
+                    Task(
+                        name=task_name,
+                        taskType="bash",
+                        arguments=arguments_list,
+                        inputs=input_files,
+                        environment=task.get(ENV, {}),
+                        outputs=output_files,
+                    )
+                )
+            CLIENT.work_client.add_tasks_to_task_group_by_name(
+                CONFIG_COMMON.namespace,
+                work_requirement.name,
+                task_group.name,
+                tasks_list,
             )
-            arguments_list = [unique_upload_pathname(bash_script)] + task.get(ARGS, [])
-            input_files = [
-                TaskInput.from_task_namespace(
-                    unique_upload_pathname(file), required=True
-                )
-                for file in task.get(
-                    INPUT_FILES,
-                    tasks_data[TASK_GROUPS][tg_number].get(INPUT_FILES, []),
-                )
-                + [bash_script]
-            ]
-            output_files = [
-                TaskOutput.from_worker_directory(file)
-                for file in task.get(
-                    OUTPUT_FILES,
-                    tasks_data[TASK_GROUPS][tg_number].get(OUTPUT_FILES, []),
-                )
-            ]
-            output_files.append(TaskOutput.from_task_process())
-            tasks_list.append(
-                Task(
-                    name=task_name,
-                    taskType="bash",
-                    arguments=arguments_list,
-                    inputs=input_files,
-                    environment=task.get(ENV, {}),
-                    outputs=output_files,
-                )
-            )
-        CLIENT.work_client.add_tasks_to_task_group_by_name(
-            CONFIG_COMMON.namespace,
-            work_requirement.name,
-            task_group.name,
-            tasks_list,
-        )
-        print_log(f"Added {len(tasks_list)} Tasks to Task Group {task_group.name}")
+            print_log(f"Added {len(tasks_list)} Tasks to Task Group {task_group.name}")
 
 
 # Entry point
