@@ -45,7 +45,7 @@ CLIENT = PlatformClient.create(
     ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
-ID = generate_id(CONFIG_COMMON.name_tag + "_Task")
+ID = generate_id(CONFIG_COMMON.name_tag + "_WR")
 
 TASK_BATCH_SIZE = 2000
 
