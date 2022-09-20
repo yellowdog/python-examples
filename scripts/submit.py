@@ -219,7 +219,7 @@ def _submit_work_requirement_from_json():
 
         # Create the Task Group
         task_group_name = task_group_data.get(
-            NAME, "TaskGroup_" + str(tg_number).zfill(len(str(num_task_groups)))
+            NAME, "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups)))
         )
         run_specification = RunSpecification(
             taskTypes=[CONFIG_WR.task_type],
