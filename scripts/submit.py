@@ -234,7 +234,7 @@ def _submit_work_requirement_from_json():
                 name=task_group_name,
                 runSpecification=run_specification,
                 dependentOn=task_group_data.get(DEPENDS_ON, None),
-                autoFail=task_group_data.get(AUTOFAIL, True),
+                autoFail=task_group_data.get(AUTO_FAIL, True),
             )
         )
 
