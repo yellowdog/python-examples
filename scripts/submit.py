@@ -263,18 +263,17 @@ def _submit_work_requirement_from_json():
                 (TASK_BATCH_SIZE * batch_number),
                 min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
             ):
+                task_group_data = tasks_data[TASK_GROUPS][tg_number]
                 task = tasks[task_number]
                 task_name = task.get(
                     NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
                 )
                 bash_script = task.get(
                     BASH_SCRIPT,
-                    tasks_data[TASK_GROUPS][tg_number].get(
-                        BASH_SCRIPT, CONFIG_WR.bash_script
-                    ),
+                    task_group_data.get(BASH_SCRIPT, CONFIG_WR.bash_script),
                 )
                 arguments_list = [unique_upload_pathname(bash_script)] + task.get(
-                    ARGS, []
+                    ARGS, task_group_data.get(ARGS, CONFIG_WR.args)
                 )
                 input_files = [
                     TaskInput.from_task_namespace(
@@ -282,7 +281,7 @@ def _submit_work_requirement_from_json():
                     )
                     for file in task.get(
                         INPUT_FILES,
-                        tasks_data[TASK_GROUPS][tg_number].get(INPUT_FILES, []),
+                        task_group_data.get(INPUT_FILES, []),
                     )
                     + [bash_script]
                 ]
@@ -290,7 +289,7 @@ def _submit_work_requirement_from_json():
                     TaskOutput.from_worker_directory(file)
                     for file in task.get(
                         OUTPUT_FILES,
-                        tasks_data[TASK_GROUPS][tg_number].get(OUTPUT_FILES, []),
+                        task_group_data.get(OUTPUT_FILES, []),
                     )
                 ]
                 output_files.append(TaskOutput.from_task_process())
@@ -300,7 +299,9 @@ def _submit_work_requirement_from_json():
                         taskType="bash",
                         arguments=arguments_list,
                         inputs=input_files,
-                        environment=task.get(ENV, {}),
+                        environment=task.get(
+                            ENV, task_group_data.get(ENV, CONFIG_WR.env)
+                        ),
                         outputs=output_files,
                     )
                 )
