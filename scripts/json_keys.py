@@ -3,6 +3,7 @@ Strings used for keys in the JSON input file.
 """
 
 ARGS = "args"
+AUTOFAIL = "auto_fail"
 BASH_SCRIPT = "bash_script"
 DEPENDS_ON = "depends_on"
 ENV = "env"
