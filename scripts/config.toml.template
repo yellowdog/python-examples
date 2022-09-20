@@ -52,6 +52,11 @@
     # Optional
     # TASK_COUNT = 1
 
+    # Name of a JSON file containing a sequence of records containing the
+    # values of 'ARGS' and 'ENV' for a sequence of Tasks
+    # Optional
+    # TASKS_DATA = "my_tasks.json"
+
 [WORKER_POOL]  #################################################################
 
     # The Compute Requirement Template to use

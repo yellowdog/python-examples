@@ -106,9 +106,40 @@ ARGS = ["foo", "bar=5"]
 ENV = {E1 = "one", E2 = "two"}
 ```
 
-**Multiple Bash Script Executions**
+**Multiple Bash Script Executions using Identical `ARGS` and `ENV` for all Tasks**
 
-It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `TASK_COUNT` field in the `config.toml` file. All Tasks will be identical and will be submitted as part of the same Work Requirement.
+It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `TASK_COUNT` field in the `config.toml` file.
+
+**Multiple Bash Script Executions using Varying `ARGS` and `ENV` for each Task**
+
+To run multiple Tasks with different settings for each Task, the `ARGS` and `ENV` values can be set in a JSON file, as shown in the following example:
+
+```json
+{
+  "task_groups": [
+    {
+      "tasks": [
+        {
+          "args": ["a1", "a2"],
+          "env": {"e1": "E1", "e2": "E2", "e3": "E3"}
+        },
+        {
+          "args": ["a3", "a4"],
+          "env": {"e4": "E4", "e5": "E5", "e6": "E6"}
+        },
+        {
+          "args": ["a5", "a6"],
+          "env": {"e7": "E7", "e8": "E8", "e9": "E9"}
+        }
+      ]
+    }
+  ]
+}
+```
+
+The name of the JSON file is supplied in the `TASKS_DATA` property in the `WORK_REQUIREMENT` section of the `config.toml` file.
+
+When `TASKS_DATA` is set, values of the `ARGS` and `ENV` properties in the `config.toml` file are ignored.
 
 ### The `cancel.py` script
 
