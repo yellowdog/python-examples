@@ -33,6 +33,7 @@ from common import (
     load_config_work_requirement,
     print_log,
 )
+from json_keys import *
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
@@ -193,23 +194,21 @@ def _submit_work_requirement_from_json():
             print_log(f"Error loading JSON tasks data: {e}")
             return
 
-    num_task_groups = len(tasks_data["task_groups"])
+    num_task_groups = len(tasks_data[TASK_GROUPS])
 
     uploaded_files = []
     task_groups: List[TaskGroup] = []
-    for tg_number, task_group_data in enumerate(tasks_data["task_groups"]):
+    for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
         # Accumulate input files
         input_files = []
-        for task in task_group_data["tasks"]:
+        for task in task_group_data[TASKS]:
             input_files += [
                 task.get(
-                    "bash_script",
-                    task_group_data.get("bash_script", CONFIG_WR.bash_script),
+                    BASH_SCRIPT,
+                    task_group_data.get(BASH_SCRIPT, CONFIG_WR.bash_script),
                 )
             ]
-            input_files += task.get(
-                "input_files", task_group_data.get("input_files", [])
-            )
+            input_files += task.get(INPUT_FILES, task_group_data.get(INPUT_FILES, []))
         # Deduplicate
         input_files = sorted(list(set(input_files)))
         # Upload
@@ -220,21 +219,19 @@ def _submit_work_requirement_from_json():
 
         # Create the Task Group
         task_group_name = task_group_data.get(
-            "name", "TaskGroup_" + str(tg_number).zfill(len(str(num_task_groups)))
+            NAME, "TaskGroup_" + str(tg_number).zfill(len(str(num_task_groups)))
         )
         run_specification = RunSpecification(
             taskTypes=[CONFIG_WR.task_type],
-            maximumTaskRetries=task_group_data.get(
-                "max_retries", CONFIG_WR.max_retries
-            ),
-            workerTags=task_group_data.get("worker_tags", CONFIG_WR.worker_tags),
+            maximumTaskRetries=task_group_data.get(MAX_RETRIES, CONFIG_WR.max_retries),
+            workerTags=task_group_data.get(WORKER_TAGS, CONFIG_WR.worker_tags),
             exclusiveWorkers=False,
         )
         task_groups.append(
             TaskGroup(
                 name=task_group_name,
                 runSpecification=run_specification,
-                dependentOn=task_group_data.get("depends_on", None),
+                dependentOn=task_group_data.get(DEPENDS_ON, None),
                 autoFail=False,
             )
         )
@@ -252,37 +249,35 @@ def _submit_work_requirement_from_json():
 
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
-        tasks = tasks_data["task_groups"][tg_number]["tasks"]
+        tasks = tasks_data[TASK_GROUPS][tg_number][TASKS]
         num_tasks = len(tasks)
         tasks_list: List[Task] = []
         for task_number, task in enumerate(tasks):
             task_name = task.get(
-                "name", "Task_" + str(task_number).zfill(len(str(num_tasks)))
+                NAME, "Task_" + str(task_number).zfill(len(str(num_tasks)))
             )
             bash_script = task.get(
-                "bash_script",
-                tasks_data["task_groups"][tg_number].get(
-                    "bash_script", CONFIG_WR.bash_script
+                BASH_SCRIPT,
+                tasks_data[TASK_GROUPS][tg_number].get(
+                    BASH_SCRIPT, CONFIG_WR.bash_script
                 ),
             )
-            arguments_list = [unique_upload_pathname(bash_script)] + task.get(
-                "args", []
-            )
+            arguments_list = [unique_upload_pathname(bash_script)] + task.get(ARGS, [])
             input_files = [
                 TaskInput.from_task_namespace(
                     unique_upload_pathname(file), required=True
                 )
                 for file in task.get(
-                    "input_files",
-                    tasks_data["task_groups"][tg_number].get("input_files", []),
+                    INPUT_FILES,
+                    tasks_data[TASK_GROUPS][tg_number].get(INPUT_FILES, []),
                 )
                 + [bash_script]
             ]
             output_files = [
                 TaskOutput.from_worker_directory(file)
                 for file in task.get(
-                    "output_files",
-                    tasks_data["task_groups"][tg_number].get("output_files", []),
+                    OUTPUT_FILES,
+                    tasks_data[TASK_GROUPS][tg_number].get(OUTPUT_FILES, []),
                 )
             ]
             output_files.append(TaskOutput.from_task_process())
@@ -292,7 +287,7 @@ def _submit_work_requirement_from_json():
                     taskType="bash",
                     arguments=arguments_list,
                     inputs=input_files,
-                    environment=task.get("env", {}),
+                    environment=task.get(ENV, {}),
                     outputs=output_files,
                 )
             )
