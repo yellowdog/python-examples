@@ -208,7 +208,9 @@ def _submit_work_requirement_from_json():
                     task_group_data.get(BASH_SCRIPT, CONFIG_WR.bash_script),
                 )
             ]
-            input_files += task.get(INPUT_FILES, task_group_data.get(INPUT_FILES, []))
+            input_files += task.get(
+                INPUT_FILES, task_group_data.get(INPUT_FILES, CONFIG_WR.input_files)
+            )
         # Deduplicate
         input_files = sorted(list(set(input_files)))
         # Upload
@@ -281,7 +283,7 @@ def _submit_work_requirement_from_json():
                     )
                     for file in task.get(
                         INPUT_FILES,
-                        task_group_data.get(INPUT_FILES, []),
+                        task_group_data.get(INPUT_FILES, CONFIG_WR.input_files),
                     )
                     + [bash_script]
                 ]
@@ -289,7 +291,7 @@ def _submit_work_requirement_from_json():
                     TaskOutput.from_worker_directory(file)
                     for file in task.get(
                         OUTPUT_FILES,
-                        task_group_data.get(OUTPUT_FILES, []),
+                        task_group_data.get(OUTPUT_FILES, CONFIG_WR.output_files),
                     )
                 ]
                 output_files.append(TaskOutput.from_task_process())
