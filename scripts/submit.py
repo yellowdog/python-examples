@@ -5,8 +5,10 @@ A minimal, example script to submit a Bash script task. No error-checking is
 performed.
 """
 
+from json import load
 from math import ceil
 from pathlib import Path
+from typing import List
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
@@ -51,11 +53,14 @@ INPUT_FOLDER_NAME = "INPUT"
 
 def main():
     print_log(f"ID = {ID}")
-    if CONFIG_WR.bash_script not in CONFIG_WR.input_files:
-        CONFIG_WR.input_files.append(CONFIG_WR.bash_script)
-    for file in CONFIG_WR.input_files:
-        upload_file(file)
-    submit_tasks()
+    if CONFIG_WR.tasks_data_file is not None:
+        _submit_work_requirement_from_json()
+    else:
+        if CONFIG_WR.bash_script not in CONFIG_WR.input_files:
+            CONFIG_WR.input_files.append(CONFIG_WR.bash_script)
+        for file in CONFIG_WR.input_files:
+            upload_file(file)
+        submit_tasks()
     CLIENT.close()
     print_log("Done")
 
@@ -174,6 +179,130 @@ def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False)
     if urlencode_forward_slash is True:
         filename = filename.replace("/", forward_slash)
     return ID + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
+
+
+def _submit_work_requirement_from_json():
+    """
+    Submit a Work Requirement defined in a JSON file.
+    """
+    # Load data
+    with open(CONFIG_WR.tasks_data_file, "r") as f:
+        try:
+            tasks_data = load(f)
+        except Exception as e:
+            print_log(f"Error loading JSON tasks data: {e}")
+            return
+
+    num_task_groups = len(tasks_data["task_groups"])
+
+    uploaded_files = []
+    task_groups: List[TaskGroup] = []
+    for tg_number, task_group_data in enumerate(tasks_data["task_groups"]):
+        # Accumulate input files
+        input_files = []
+        for task in task_group_data["tasks"]:
+            input_files += [
+                task.get(
+                    "bash_script",
+                    task_group_data.get("bash_script", CONFIG_WR.bash_script),
+                )
+            ]
+            input_files += task.get(
+                "input_files", task_group_data.get("input_files", [])
+            )
+        # Deduplicate
+        input_files = sorted(list(set(input_files)))
+        # Upload
+        for input_file in input_files:
+            if input_file not in uploaded_files:
+                upload_file(input_file)
+                uploaded_files.append(input_file)
+
+        # Create the Task Group
+        task_group_name = task_group_data.get(
+            "name", "TaskGroup_" + str(tg_number).zfill(len(str(num_task_groups)))
+        )
+        run_specification = RunSpecification(
+            taskTypes=[CONFIG_WR.task_type],
+            maximumTaskRetries=task_group_data.get(
+                "max_retries", CONFIG_WR.max_retries
+            ),
+            workerTags=task_group_data.get("worker_tags", CONFIG_WR.worker_tags),
+            exclusiveWorkers=False,
+        )
+        task_groups.append(
+            TaskGroup(
+                name=task_group_name,
+                runSpecification=run_specification,
+                dependentOn=task_group_data.get("depends_on", None),
+                autoFail=False,
+            )
+        )
+
+    # Create the Work Requirement
+    work_requirement = CLIENT.work_client.add_work_requirement(
+        WorkRequirement(
+            namespace=CONFIG_COMMON.namespace,
+            name=ID,
+            taskGroups=task_groups,
+            tag=CONFIG_COMMON.name_tag,
+        )
+    )
+    print_log(f"Added {link_entity(CONFIG_COMMON.url, work_requirement)}")
+
+    # Add Tasks to their Task Groups
+    for tg_number, task_group in enumerate(task_groups):
+        tasks = tasks_data["task_groups"][tg_number]["tasks"]
+        num_tasks = len(tasks)
+        tasks_list: List[Task] = []
+        for task_number, task in enumerate(tasks):
+            task_name = task.get(
+                "name", "Task_" + str(task_number).zfill(len(str(num_tasks)))
+            )
+            bash_script = task.get(
+                "bash_script",
+                tasks_data["task_groups"][tg_number].get(
+                    "bash_script", CONFIG_WR.bash_script
+                ),
+            )
+            arguments_list = [unique_upload_pathname(bash_script)] + task.get(
+                "args", []
+            )
+            input_files = [
+                TaskInput.from_task_namespace(
+                    unique_upload_pathname(file), required=True
+                )
+                for file in task.get(
+                    "input_files",
+                    tasks_data["task_groups"][tg_number].get("input_files", []),
+                )
+                + [bash_script]
+            ]
+            output_files = [
+                TaskOutput.from_worker_directory(file)
+                for file in task.get(
+                    "output_files",
+                    tasks_data["task_groups"][tg_number].get("output_files", []),
+                )
+            ]
+            output_files.append(TaskOutput.from_task_process())
+            tasks_list.append(
+                Task(
+                    name=task_name,
+                    taskType="bash",
+                    arguments=arguments_list,
+                    inputs=input_files,
+                    environment=task.get("env", {}),
+                    outputs=output_files,
+                )
+            )
+        CLIENT.work_client.add_tasks_to_task_group_by_name(
+            CONFIG_COMMON.namespace,
+            work_requirement.name,
+            task_group.name,
+            tasks_list,
+        )
+        print_log(f"Added {len(tasks_list)} Tasks to Task Group {task_group.name}")
 
 
 # Entry point

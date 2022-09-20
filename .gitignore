@@ -6,3 +6,4 @@ venv/
 *.yaml
 Data/
 .DS_Store
+*.json

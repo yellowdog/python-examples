@@ -36,6 +36,7 @@ class ConfigWorkRequirement:
     bash_script: str
     args: List[str]
     env: Dict
+    tasks_data_file: Optional[str]
     input_files: List[str]
     output_files: List[str]
     max_retries: int
@@ -122,6 +123,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             task_type=wr_section.get("TASK_TYPE", "bash"),
             args=wr_section.get("ARGS", []),
             env=wr_section.get("ENV", {}),
+            tasks_data_file=wr_section.get("TASKS_DATA", None),
             input_files=wr_section.get("INPUT_FILES", []),
             output_files=wr_section.get("OUTPUT_FILES", []),
             max_retries=wr_section.get("MAX_RETRIES", 1),
