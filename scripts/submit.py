@@ -225,7 +225,7 @@ def _submit_work_requirement_from_json():
             taskTypes=[CONFIG_WR.task_type],
             maximumTaskRetries=task_group_data.get(MAX_RETRIES, CONFIG_WR.max_retries),
             workerTags=task_group_data.get(WORKER_TAGS, CONFIG_WR.worker_tags),
-            exclusiveWorkers=False,
+            exclusiveWorkers=task_group_data.get(EXC_WORKERS, False),
         )
         task_groups.append(
             TaskGroup(
