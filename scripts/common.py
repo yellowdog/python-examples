@@ -41,6 +41,7 @@ class ConfigWorkRequirement:
     output_files: List[str]
     max_retries: int
     task_count: int
+    exclusive_workers: bool
 
 
 @dataclass
@@ -128,6 +129,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             output_files=wr_section.get("OUTPUT_FILES", []),
             max_retries=wr_section.get("MAX_RETRIES", 1),
             task_count=wr_section.get("TASK_COUNT", 1),
+            exclusive_workers=wr_section.get("EXCLUSIVE_WORKERS", False),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")

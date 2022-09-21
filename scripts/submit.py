@@ -147,7 +147,9 @@ def _submit_work_requirement(
             taskTypes=[CONFIG_WR.task_type],
             maximumTaskRetries=task_group_data.get(MAX_RETRIES, CONFIG_WR.max_retries),
             workerTags=task_group_data.get(WORKER_TAGS, CONFIG_WR.worker_tags),
-            exclusiveWorkers=task_group_data.get(EXC_WORKERS, False),
+            exclusiveWorkers=task_group_data.get(
+                EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers
+            ),
         )
         task_groups.append(
             TaskGroup(
@@ -240,7 +242,7 @@ def _submit_work_requirement(
                     f"Added {len(tasks_list):,d} "
                     f"Task(s) to Work Requirement Task Group {task_group.name}"
                 )
-        print_log(f"Added {len(tasks_list)} Tasks to Task Group {task_group.name}")
+        print_log(f"Added {len(tasks_list)} Task(s) to Task Group {task_group.name}")
 
 
 # Entry point
