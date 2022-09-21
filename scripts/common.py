@@ -11,7 +11,8 @@ from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from uuid import uuid4
 
-from toml import TomlDecodeError, load
+from toml import TomlDecodeError
+from toml import load as toml_load
 from yellowdog_client.model import (
     ComputeRequirement,
     ConfiguredWorkerPool,
@@ -33,7 +34,8 @@ class ConfigCommon:
 class ConfigWorkRequirement:
     worker_tags: List[str]
     task_type: str
-    bash_script: str
+    bash_script: Optional[str]
+    executable: Optional[str]
     args: List[str]
     env: Dict
     tasks_data_file: Optional[str]
@@ -42,6 +44,8 @@ class ConfigWorkRequirement:
     max_retries: int
     task_count: int
     exclusive_workers: bool
+    container_username: Optional[str]
+    container_password: Optional[str]
 
 
 @dataclass
@@ -75,7 +79,7 @@ except IndexError:
 print_log(f"Loading configuration data from: '{config_file}'")
 try:
     with open(config_file, "r") as f:
-        CONFIG_TOML: Dict = load(f)
+        CONFIG_TOML: Dict = toml_load(f)
 except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
     print_log(f"Unable to load configuration data: {e}")
     exit(1)
@@ -106,7 +110,7 @@ def import_toml(filename: str) -> Dict:
     print_log(f"Loading imported common configuration data from: '{filename}'")
     try:
         with open(filename, "r") as f:
-            common_config: Dict = load(f)
+            common_config: Dict = toml_load(f)
             return common_config["COMMON"]
     except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
         print_log(f"Unable to load imported common configuration data: {e}")
@@ -117,9 +121,10 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
     try:
         wr_section = CONFIG_TOML["WORK_REQUIREMENT"]
         return ConfigWorkRequirement(
-            # Required configuration values
-            bash_script=wr_section["BASH_SCRIPT"],
-            # Optional configuration values
+            bash_script=wr_section.get("BASH_SCRIPT", None),  # Deprecated
+            executable=wr_section.get(
+                "EXECUTABLE", wr_section.get("BASH_SCRIPT", None)
+            ),
             worker_tags=wr_section.get("WORKER_TAGS", []),
             task_type=wr_section.get("TASK_TYPE", "bash"),
             args=wr_section.get("ARGS", []),
@@ -130,6 +135,8 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             max_retries=wr_section.get("MAX_RETRIES", 1),
             task_count=wr_section.get("TASK_COUNT", 1),
             exclusive_workers=wr_section.get("EXCLUSIVE_WORKERS", False),
+            container_username=wr_section.get("CONTAINER_USERNAME", None),
+            container_password=wr_section.get("CONTAINER_PASSWORD", None),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")

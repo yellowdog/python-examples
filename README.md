@@ -57,13 +57,13 @@ To **provision worker pools**, you'll also need:
 
 The script is run using `python submit.py` or `./submit.py`. Its purpose is to submit work to YellowDog in the form of a **Work Requirement**. YellowDog will match the **Task Group** within the Work Requirement to suitable **Workers**, and submit **Tasks** to those Workers.
 
-Each submitted Task in this example takes the form of a Bash script that will be collected by the YellowDog agent and run by one of its Worker threads.
+Each submitted Task in this example takes the form of a Bash script that will be collected by the YellowDog agent and run by one of its Worker threads, or a Docker container image to be run.
 
-The console output of the script will be returned to the YellowDog Object Store when the Task is complete.
+The console output will be returned to the YellowDog Object Store when the Task is complete.
 
 An example Bash script `test_bash_script.sh` is provided and referred to in `config.toml.template`.
 
-**Important**: The **`application.yaml`** Agent configuration file on the YellowDog worker nodes must provide a `taskType` of `bash`, to allow Bash Tasks to be matched to suitable Workers by the YellowDog scheduler.
+**Important**: The **`application.yaml`** Agent configuration file on the YellowDog worker nodes must provide a `taskType` of `bash` and/or `docker`, to allow Bash Tasks and/or Docker container images to be matched to suitable Workers by the YellowDog scheduler, e.g.:
 
 ```yaml
 yda.taskTypes:
@@ -74,7 +74,7 @@ yda.taskTypes:
 Optionally, a worker tag may also be set. The scheduler will also use this when matching Tasks to Workers -- i.e., if worker tags are specified by the Task, one of those tags must be present in the Worker configuration.
 
 ```yaml
-yda.workerTag: "BASH-TEST"
+yda.workerTag: "MY-TEST"
 ```
 
 The `WORKER_TAGS` property in the `TOML` file can be omitted, to avoid `workerTag` matching.
@@ -94,23 +94,23 @@ When the script is run, it will report on the work submitted and provide links t
 
 The submitted Work Requirement will appear in the **Work** tab of the YellowDog Portal. From here the Work Requirement, the Task Group and the Tasks can be inspected and managed.
 
-When the Task is complete, the console output will be available in the `Objects` section of the Portal, in the specified Namespace, in a folder following the naming convention: `BASH-TEST_Task_<UniqueID>/OUTPUT/TASK_<N>`, in file `taskoutput.txt`.
+When the Task is complete, the console output `taskoutput.txt` will be available in the `Objects` section of the Portal, in a folder within the specified Namespace.
 
 The agent determines whether a Task has succeeded using the exit code from what it runs. In this case that's the exit code from running the Bash script.
 
 **Bash Script Arguments and Environment**
 
-The Bash script can optionally be supplied with command line arguments and environment variables using the `ARGS` and `ENV` fields in `config.toml`, e.g.:
+The Bash script or Docker Container can optionally be supplied with command line arguments and environment variables using the `ARGS` and `ENV` fields in `config.toml`, e.g.:
 ```toml
 ARGS = ["foo", "bar=5"]
 ENV = {E1 = "one", E2 = "two"}
 ```
 
-**Multiple Bash Script Executions using Identical `ARGS` and `ENV` for all Tasks**
+**Multiple Task Executions using Identical `ARGS` and `ENV` for all Tasks**
 
 It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `TASK_COUNT` field in the `config.toml` file.
 
-**Multiple Bash Script Executions using Varying `ARGS` and `ENV` for each Task**
+**Multiple Task Executions using Varying `ARGS` and `ENV` for each Task**
 
 To run multiple Tasks with different settings for each Task, the `ARGS` and `ENV` values can be set in a JSON file, as shown in the following example:
 

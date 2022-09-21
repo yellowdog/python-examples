@@ -17,18 +17,31 @@
 
 [WORK_REQUIREMENT]  ############################################################
 
-    # Bash script file (stored locally) to be executed
-    # Required
-    BASH_SCRIPT = "test_bash_script.sh"
+    # The task type of the task to be performed
+    # Must be 'bash' or 'docker'
+    # Optional
+    # TASK_TYPE = "bash"
 
-    # Arguments and environment to pass to the Bash script
+    # In the case of the 'bash' task type, this is the locally-stored Bash
+    # script to be executed
+    # In the case of the 'docker' task type, this is the container image
+    # Required
+    EXECUTABLE = "test_bash_script.sh"
+
+    # The Docker Hub username and password, for private Docker Hub repositories
+    # Only applicable to the 'docker' task type
+    # Optional
+    # CONTAINER_USERNAME = ""
+    # CONTAINER_PASSWORD = ""
+
+    # Arguments and environment to pass to the task executable
     # Optional
     # ARGS = [] # List of strings
     # ENV = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
 
     # Worker tags: list of tags (strings) to match the tags associated
     # with Workers
-    # A list of strings.
+    # A list of strings
     # Optional
     # WORKER_TAGS = []
 

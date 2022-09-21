@@ -1,8 +1,8 @@
 #!python3
 
 """
-A minimal, example script to submit a Bash script task. No error-checking is
-performed.
+A minimal, example script to submit Work Requirements.
+Little error-checking is performed.
 """
 
 from json import JSONDecodeError, load
@@ -58,10 +58,10 @@ def main():
         if CONFIG_WR.tasks_data_file is not None:
             with open(CONFIG_WR.tasks_data_file, "r") as f:
                 tasks_data = load(f)
-            _submit_work_requirement(tasks_data=tasks_data)
+            submit_work_requirement(tasks_data=tasks_data)
         else:
             task_count = CONFIG_WR.task_count
-            _submit_work_requirement(task_count=task_count)
+            submit_work_requirement(task_count=task_count)
         print_log("Done")
     except (JSONDecodeError, FileNotFoundError) as e:
         print_log(f"Error: {e}")
@@ -106,7 +106,7 @@ def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False)
     return ID + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
 
 
-def _submit_work_requirement(
+def submit_work_requirement(
     tasks_data: Optional[Dict] = None, task_count: Optional[int] = None
 ):
     """
@@ -119,18 +119,17 @@ def _submit_work_requirement(
     uploaded_files = []
     task_groups: List[TaskGroup] = []
     for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
-        # Accumulate input files
+        # Accumulate input files and task types
         input_files = []
+        task_types_from_tasks = set()
         for task in task_group_data[TASKS]:
-            input_files += [
-                task.get(
-                    BASH_SCRIPT,
-                    task_group_data.get(BASH_SCRIPT, CONFIG_WR.bash_script),
-                )
-            ]
             input_files += task.get(
                 INPUT_FILES, task_group_data.get(INPUT_FILES, CONFIG_WR.input_files)
             )
+            try:
+                task_types_from_tasks.add(task[TASK_TYPE])
+            except KeyError:
+                pass
         # Deduplicate
         input_files = sorted(list(set(input_files)))
         # Upload
@@ -143,8 +142,13 @@ def _submit_work_requirement(
         task_group_name = task_group_data.get(
             NAME, "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups)))
         )
+        task_types: List = list(
+            set(task_group_data.get(TASK_TYPES, [CONFIG_WR.task_type])).union(
+                task_types_from_tasks
+            )
+        )
         run_specification = RunSpecification(
-            taskTypes=[CONFIG_WR.task_type],
+            taskTypes=task_types,
             maximumTaskRetries=task_group_data.get(MAX_RETRIES, CONFIG_WR.max_retries),
             workerTags=task_group_data.get(WORKER_TAGS, CONFIG_WR.worker_tags),
             exclusiveWorkers=task_group_data.get(
@@ -193,13 +197,14 @@ def _submit_work_requirement(
                 task_name = task.get(
                     NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
                 )
-                bash_script = task.get(
-                    BASH_SCRIPT,
-                    task_group_data.get(BASH_SCRIPT, CONFIG_WR.bash_script),
+                executable = task.get(
+                    EXECUTABLE,
+                    task_group_data.get(EXECUTABLE, CONFIG_WR.executable),
                 )
-                arguments_list = [unique_upload_pathname(bash_script)] + task.get(
+                arguments_list = task.get(
                     ARGS, task_group_data.get(ARGS, CONFIG_WR.args)
                 )
+                env = task.get(ENV, task_group_data.get(ENV, CONFIG_WR.env))
                 input_files = [
                     TaskInput.from_task_namespace(
                         unique_upload_pathname(file), required=True
@@ -208,7 +213,6 @@ def _submit_work_requirement(
                         INPUT_FILES,
                         task_group_data.get(INPUT_FILES, CONFIG_WR.input_files),
                     )
-                    + [bash_script]
                 ]
                 output_files = [
                     TaskOutput.from_worker_directory(file)
@@ -219,15 +223,15 @@ def _submit_work_requirement(
                 ]
                 output_files.append(TaskOutput.from_task_process())
                 tasks_list.append(
-                    Task(
+                    create_task(
                         name=task_name,
-                        taskType="bash",
-                        arguments=arguments_list,
+                        task_type=task.get(TASK_TYPE, CONFIG_WR.task_type),
+                        executable=executable,
+                        args=arguments_list,
+                        env=env,
                         inputs=input_files,
-                        environment=task.get(
-                            ENV, task_group_data.get(ENV, CONFIG_WR.env)
-                        ),
                         outputs=output_files,
+                        uploaded_files=uploaded_files,
                     )
                 )
             CLIENT.work_client.add_tasks_to_task_group_by_name(
@@ -243,6 +247,61 @@ def _submit_work_requirement(
                     f"Task(s) to Work Requirement Task Group {task_group.name}"
                 )
         print_log(f"Added {len(tasks_list)} Task(s) to Task Group {task_group.name}")
+
+
+def create_task(
+    name: str,
+    task_type: str,
+    executable: str,
+    args: List[str],
+    env: Dict[str, str],
+    inputs: Optional[List[TaskInput]],
+    outputs: Optional[List[TaskOutput]],
+    uploaded_files: List[str],
+) -> Task:
+    """
+    Create a Task object, handling variations for different Task Types
+    """
+    if task_type == "bash":
+        args = [unique_upload_pathname(executable)] + args
+        if executable not in uploaded_files:
+            upload_file(executable)
+            uploaded_files.append(executable)
+        inputs.append(
+            TaskInput.from_task_namespace(
+                unique_upload_pathname(executable), required=True
+            )
+        )
+
+    elif task_type == "docker":
+        env_string = ""
+        for _, (key, value) in enumerate(env.items()):
+            env_string += f" --env {key}={value}"
+        env_string += f" --env TASK_NAME={name}"
+        args = [env_string, executable] + args
+        env = (
+            {
+                "DOCKER_USERNAME": CONFIG_WR.container_username,
+                "DOCKER_PASSWORD": CONFIG_WR.container_password,
+            }
+            if CONFIG_WR.container_username is not None
+            and CONFIG_WR.container_password is not None
+            else {}
+        )
+
+    else:
+        raise Exception(
+            f"Error: TASK_TYPE must be one of 'bash' or 'docker', not '{task_type}'"
+        )
+
+    return Task(
+        name=name,
+        taskType=task_type,
+        arguments=args,
+        inputs=inputs,
+        environment=env,
+        outputs=outputs,
+    )
 
 
 # Entry point
