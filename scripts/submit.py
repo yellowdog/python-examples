@@ -112,6 +112,7 @@ def submit_work_requirement(
     """
     Submit a Work Requirement defined in a tasks_data dictionary.
     """
+    # Create a default tasks_data dictionary if required
     tasks_data = {TASK_GROUPS: [{TASKS: [{}]}]} if tasks_data is None else tasks_data
 
     num_task_groups = len(tasks_data[TASK_GROUPS])
@@ -222,10 +223,19 @@ def submit_work_requirement(
                     )
                 ]
                 output_files.append(TaskOutput.from_task_process())
+                # If there's no task type in the task definition, and
+                # there's only one task type at the task group level, use it
+                try:
+                    task_type = task[TASK_TYPE]
+                except KeyError:
+                    if len(task_group.runSpecification.taskTypes) == 1:
+                        task_type = task_group.runSpecification.taskTypes[0]
+                    else:
+                        task_type = CONFIG_WR.task_type
                 tasks_list.append(
                     create_task(
                         name=task_name,
-                        task_type=task.get(TASK_TYPE, CONFIG_WR.task_type),
+                        task_type=task_type,
                         executable=executable,
                         args=arguments_list,
                         env=env,
