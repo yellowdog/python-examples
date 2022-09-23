@@ -1,6 +1,6 @@
 # Introduction
 
-This repository contains minimal example Python scripts for submitting work to the YellowDog Platform, cancelling work, and cleaning up the YellowDog Object Store.
+This repository contains simple example Python scripts for submitting work to the YellowDog Platform, cancelling work, and cleaning up the YellowDog Object Store.
 
 It also provides scripts for provisioning Provisioned Worker Pools, shutting down Worker Pools, and terminating the Compute Requirements providing those Worker Pools.
 

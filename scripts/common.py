@@ -81,7 +81,7 @@ try:
     with open(config_file, "r") as f:
         CONFIG_TOML: Dict = toml_load(f)
 except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
-    print_log(f"Unable to load configuration data: {e}")
+    print_log(f"Unable to load configuration data from '{config_file}': {e}")
     exit(1)
 
 

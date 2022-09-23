@@ -64,7 +64,7 @@ def main():
             submit_work_requirement(task_count=task_count)
         print_log("Done")
     except (JSONDecodeError, FileNotFoundError) as e:
-        print_log(f"Error: {e}")
+        print_log(f"Error: '{CONFIG_WR.tasks_data_file}': {e}")
     finally:
         CLIENT.close()
 
@@ -183,7 +183,7 @@ def submit_work_requirement(
         tasks_list: List[Task] = []
         if num_task_batches > 1:
             print_log(
-                f"Adding Tasks to Task Group {task_group.name} in "
+                f"Adding Tasks to Task Group '{task_group.name}' in "
                 f"{num_task_batches} batches"
             )
         for batch_number in range(num_task_batches):
@@ -244,9 +244,9 @@ def submit_work_requirement(
                 print_log(
                     f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} : "
                     f"Added {len(tasks_list):,d} "
-                    f"Task(s) to Work Requirement Task Group {task_group.name}"
+                    f"Task(s) to Work Requirement Task Group '{task_group.name}'"
                 )
-        print_log(f"Added {len(tasks_list)} Task(s) to Task Group {task_group.name}")
+        print_log(f"Added {len(tasks_list)} Task(s) to Task Group '{task_group.name}'")
 
 
 def create_task(
