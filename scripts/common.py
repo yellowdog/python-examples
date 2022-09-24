@@ -32,7 +32,7 @@ class ConfigCommon:
 
 @dataclass
 class ConfigWorkRequirement:
-    worker_tags: List[str]
+    worker_tags: Optional[List[str]]
     task_type: str
     bash_script: Optional[str]
     executable: Optional[str]
@@ -43,7 +43,7 @@ class ConfigWorkRequirement:
     output_files: List[str]
     max_retries: int
     task_count: int
-    exclusive_workers: bool
+    exclusive_workers: Optional[bool]
     container_username: Optional[str]
     container_password: Optional[str]
     instance_types: Optional[List[str]]
@@ -136,16 +136,16 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             executable=wr_section.get(
                 "EXECUTABLE", wr_section.get("BASH_SCRIPT", None)
             ),
-            worker_tags=wr_section.get("WORKER_TAGS", []),
+            worker_tags=wr_section.get("WORKER_TAGS", None),
             task_type=wr_section.get("TASK_TYPE", "bash"),
             args=wr_section.get("ARGS", []),
             env=wr_section.get("ENV", {}),
             tasks_data_file=wr_section.get("TASKS_DATA", None),
             input_files=wr_section.get("INPUT_FILES", []),
             output_files=wr_section.get("OUTPUT_FILES", []),
-            max_retries=wr_section.get("MAX_RETRIES", 1),
+            max_retries=wr_section.get("MAX_RETRIES", 0),
             task_count=wr_section.get("TASK_COUNT", 1),
-            exclusive_workers=wr_section.get("EXCLUSIVE_WORKERS", False),
+            exclusive_workers=wr_section.get("EXCLUSIVE_WORKERS", None),
             container_username=wr_section.get("CONTAINER_USERNAME", None),
             container_password=wr_section.get("CONTAINER_PASSWORD", None),
             instance_types=wr_section.get("INSTANCE_TYPES", None),
