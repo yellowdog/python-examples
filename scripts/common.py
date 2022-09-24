@@ -46,6 +46,17 @@ class ConfigWorkRequirement:
     exclusive_workers: bool
     container_username: Optional[str]
     container_password: Optional[str]
+    instance_types: Optional[List[str]]
+    vcpus: Optional[List[float]]
+    ram: Optional[List[float]]
+    min_workers: Optional[int]
+    max_workers: Optional[int]
+    tasks_per_worker: Optional[int]
+    providers: Optional[List[str]]
+    regions: Optional[List[str]]
+    priority: float
+    fulfil_on_submit: bool
+    completed_task_ttl: Optional[float]  # In minutes
 
 
 @dataclass
@@ -137,6 +148,17 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             exclusive_workers=wr_section.get("EXCLUSIVE_WORKERS", False),
             container_username=wr_section.get("CONTAINER_USERNAME", None),
             container_password=wr_section.get("CONTAINER_PASSWORD", None),
+            instance_types=wr_section.get("INSTANCE_TYPES", None),
+            vcpus=wr_section.get("VCPUS", None),
+            ram=wr_section.get("RAM", None),
+            min_workers=wr_section.get("MIN_WORKERS", None),
+            max_workers=wr_section.get("MAX_WORKERS", None),
+            tasks_per_worker=wr_section.get("TASKS_PER_WORKER", None),
+            providers=wr_section.get("PROVIDERS", None),
+            regions=wr_section.get("REGIONS", None),
+            priority=wr_section.get("PRIORITY", 0.0),
+            fulfil_on_submit=wr_section.get("FULFIL_ON_SUBMIT", False),
+            completed_task_ttl=wr_section.get("COMPLETED_TASK_TTL", None),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")

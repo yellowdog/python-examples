@@ -5,6 +5,7 @@ A minimal, example script to submit Work Requirements.
 Little error-checking is performed.
 """
 
+from datetime import timedelta
 from json import JSONDecodeError, load
 from math import ceil
 from pathlib import Path
@@ -13,6 +14,8 @@ from typing import Dict, List, Optional
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
     ApiKey,
+    CloudProvider,
+    DoubleRange,
     RunSpecification,
     ServicesSchema,
     Task,
@@ -111,6 +114,7 @@ def submit_work_requirement(
 ):
     """
     Submit a Work Requirement defined in a tasks_data dictionary.
+    Supply either tasks_data or task_count.
     """
     # Create a default tasks_data dictionary if required
     tasks_data = {TASK_GROUPS: [{TASKS: [{}]}]} if tasks_data is None else tasks_data
@@ -120,7 +124,7 @@ def submit_work_requirement(
     uploaded_files = []
     task_groups: List[TaskGroup] = []
     for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
-        # Accumulate input files and task types
+        # Gather input files and task types
         input_files = []
         task_types_from_tasks = set()
         for task in task_group_data[TASKS]:
@@ -139,14 +143,35 @@ def submit_work_requirement(
                 upload_file(input_file)
                 uploaded_files.append(input_file)
 
-        # Create the Task Group
+        # Build the Task Group
         task_group_name = task_group_data.get(
             NAME, "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups)))
         )
+        # Assemble the RunSpecification for the Task Group
         task_types: List = list(
             set(task_group_data.get(TASK_TYPES, [CONFIG_WR.task_type])).union(
                 task_types_from_tasks
             )
+        )
+        vcpus_data: Optional[List[float]] = task_group_data.get(VCPUS, CONFIG_WR.vcpus)
+        vcpus = (
+            None
+            if vcpus_data is None
+            else DoubleRange(float(vcpus_data[0]), float(vcpus_data[1]))
+        )
+        ram_data: Optional[List[float]] = task_group_data.get(RAM, CONFIG_WR.ram)
+        ram = (
+            None
+            if ram_data is None
+            else DoubleRange(float(ram_data[0]), float(ram_data[1]))
+        )
+        providers_data: Optional[List[str]] = task_group_data.get(
+            PROVIDERS, CONFIG_WR.providers
+        )
+        providers: Optional[List[CloudProvider]] = (
+            None
+            if providers_data is None
+            else [CloudProvider(provider) for provider in providers_data]
         )
         run_specification = RunSpecification(
             taskTypes=task_types,
@@ -155,6 +180,24 @@ def submit_work_requirement(
             exclusiveWorkers=task_group_data.get(
                 EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers
             ),
+            instanceTypes=task_group_data.get(INSTANCE_TYPES, CONFIG_WR.instance_types),
+            vcpus=vcpus,
+            ram=ram,
+            minWorkers=task_group_data.get(MIN_WORKERS, CONFIG_WR.min_workers),
+            maxWorkers=task_group_data.get(MAX_WORKERS, CONFIG_WR.max_workers),
+            tasksPerWorker=task_group_data.get(
+                TASKS_PER_WORKER, CONFIG_WR.tasks_per_worker
+            ),
+            providers=providers,
+            regions=task_group_data.get(REGIONS, CONFIG_WR.regions),
+        )
+
+        # Create the TaskGroup and add it to the list
+        ctttl_data = task_group_data.get(
+            COMPLETED_TASK_TTL, CONFIG_WR.completed_task_ttl
+        )
+        completed_task_ttl = (
+            None if ctttl_data is None else timedelta(minutes=ctttl_data)
         )
         task_groups.append(
             TaskGroup(
@@ -162,6 +205,9 @@ def submit_work_requirement(
                 runSpecification=run_specification,
                 dependentOn=task_group_data.get(DEPENDS_ON, None),
                 autoFail=task_group_data.get(AUTO_FAIL, True),
+                autoComplete=True,
+                priority=task_group_data.get(PRIORITY, 0.0),
+                completedTaskTtl=completed_task_ttl,
             )
         )
 
@@ -172,6 +218,8 @@ def submit_work_requirement(
             name=ID,
             taskGroups=task_groups,
             tag=CONFIG_COMMON.name_tag,
+            priority=CONFIG_WR.priority,
+            fulfilOnSubmit=CONFIG_WR.fulfil_on_submit,
         )
     )
     print_log(f"Added {link_entity(CONFIG_COMMON.url, work_requirement)}")
@@ -188,7 +236,7 @@ def submit_work_requirement(
                 f"{num_task_batches} batches"
             )
         for batch_number in range(num_task_batches):
-            tasks_list: List[Task] = []
+            tasks_list.clear()
             for task_number in range(
                 (TASK_BATCH_SIZE * batch_number),
                 min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
