@@ -134,7 +134,10 @@ def submit_work_requirement(
         task_types_from_tasks = set()
         for task in task_group_data[TASKS]:
             input_files += task.get(
-                INPUT_FILES, task_group_data.get(INPUT_FILES, CONFIG_WR.input_files)
+                INPUT_FILES,
+                task_group_data.get(
+                    INPUT_FILES, tasks_data.get(INPUT_FILES, CONFIG_WR.input_files)
+                ),
             )
             try:
                 task_types_from_tasks.add(task[TASK_TYPE])
