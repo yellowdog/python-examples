@@ -57,6 +57,7 @@ class ConfigWorkRequirement:
     priority: float
     fulfil_on_submit: bool
     completed_task_ttl: Optional[float]  # In minutes
+    auto_fail: bool
 
 
 @dataclass
@@ -159,6 +160,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             priority=wr_section.get("PRIORITY", 0.0),
             fulfil_on_submit=wr_section.get("FULFIL_ON_SUBMIT", False),
             completed_task_ttl=wr_section.get("COMPLETED_TASK_TTL", None),
+            auto_fail=wr_section.get("AUTO_FAIL", True),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")

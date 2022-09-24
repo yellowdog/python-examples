@@ -115,6 +115,11 @@ def submit_work_requirement(
     """
     Submit a Work Requirement defined in a tasks_data dictionary.
     Supply either tasks_data or task_count.
+
+    The general principle with configuration properties is that a property set
+    at a lower level will override its setting at higher levels, so:
+
+    Task > Task Group > Top-Level JSON Property > TOML config file
     """
     # Create a default tasks_data dictionary if required
     tasks_data = {TASK_GROUPS: [{TASKS: [{}]}]} if tasks_data is None else tasks_data
@@ -220,7 +225,9 @@ def submit_work_requirement(
                 name=task_group_name,
                 runSpecification=run_specification,
                 dependentOn=task_group_data.get(DEPENDS_ON, None),
-                autoFail=task_group_data.get(AUTO_FAIL, True),
+                autoFail=task_group_data.get(
+                    AUTO_FAIL, tasks_data.get(AUTO_FAIL, CONFIG_WR.auto_fail)
+                ),
                 autoComplete=True,
                 priority=task_group_data.get(PRIORITY, 0.0),
                 completedTaskTtl=completed_task_ttl,
