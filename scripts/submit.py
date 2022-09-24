@@ -149,24 +149,30 @@ def submit_work_requirement(
         )
         # Assemble the RunSpecification for the Task Group
         task_types: List = list(
-            set(task_group_data.get(TASK_TYPES, [CONFIG_WR.task_type])).union(
-                task_types_from_tasks
-            )
+            set(
+                task_group_data.get(
+                    TASK_TYPES, tasks_data.get(TASK_TYPES, [CONFIG_WR.task_type])
+                )
+            ).union(task_types_from_tasks)
         )
-        vcpus_data: Optional[List[float]] = task_group_data.get(VCPUS, CONFIG_WR.vcpus)
+        vcpus_data: Optional[List[float]] = task_group_data.get(
+            VCPUS, tasks_data.get(VCPUS, CONFIG_WR.vcpus)
+        )
         vcpus = (
             None
             if vcpus_data is None
             else DoubleRange(float(vcpus_data[0]), float(vcpus_data[1]))
         )
-        ram_data: Optional[List[float]] = task_group_data.get(RAM, CONFIG_WR.ram)
+        ram_data: Optional[List[float]] = task_group_data.get(
+            RAM, tasks_data.get(RAM, CONFIG_WR.ram)
+        )
         ram = (
             None
             if ram_data is None
             else DoubleRange(float(ram_data[0]), float(ram_data[1]))
         )
         providers_data: Optional[List[str]] = task_group_data.get(
-            PROVIDERS, CONFIG_WR.providers
+            PROVIDERS, tasks_data.get(PROVIDERS, CONFIG_WR.providers)
         )
         providers: Optional[List[CloudProvider]] = (
             None
@@ -175,12 +181,19 @@ def submit_work_requirement(
         )
         run_specification = RunSpecification(
             taskTypes=task_types,
-            maximumTaskRetries=task_group_data.get(MAX_RETRIES, CONFIG_WR.max_retries),
-            workerTags=task_group_data.get(WORKER_TAGS, CONFIG_WR.worker_tags),
-            exclusiveWorkers=task_group_data.get(
-                EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers
+            maximumTaskRetries=task_group_data.get(
+                MAX_RETRIES, tasks_data.get(MAX_RETRIES, CONFIG_WR.max_retries)
             ),
-            instanceTypes=task_group_data.get(INSTANCE_TYPES, CONFIG_WR.instance_types),
+            workerTags=task_group_data.get(
+                WORKER_TAGS, tasks_data.get(WORKER_TAGS, CONFIG_WR.worker_tags)
+            ),
+            exclusiveWorkers=task_group_data.get(
+                EXCLUSIVE_WORKERS,
+                tasks_data.get(EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers),
+            ),
+            instanceTypes=task_group_data.get(
+                INSTANCE_TYPES, tasks_data.get(INSTANCE_TYPES, CONFIG_WR.instance_types)
+            ),
             vcpus=vcpus,
             ram=ram,
             minWorkers=task_group_data.get(MIN_WORKERS, CONFIG_WR.min_workers),
@@ -189,12 +202,15 @@ def submit_work_requirement(
                 TASKS_PER_WORKER, CONFIG_WR.tasks_per_worker
             ),
             providers=providers,
-            regions=task_group_data.get(REGIONS, CONFIG_WR.regions),
+            regions=task_group_data.get(
+                REGIONS, tasks_data.get(REGIONS, CONFIG_WR.regions)
+            ),
         )
 
         # Create the TaskGroup and add it to the list
         ctttl_data = task_group_data.get(
-            COMPLETED_TASK_TTL, CONFIG_WR.completed_task_ttl
+            COMPLETED_TASK_TTL,
+            tasks_data.get(COMPLETED_TASK_TTL, CONFIG_WR.completed_task_ttl),
         )
         completed_task_ttl = (
             None if ctttl_data is None else timedelta(minutes=ctttl_data)
@@ -210,7 +226,6 @@ def submit_work_requirement(
                 completedTaskTtl=completed_task_ttl,
             )
         )
-
     # Create the Work Requirement
     work_requirement = CLIENT.work_client.add_work_requirement(
         WorkRequirement(
@@ -248,26 +263,37 @@ def submit_work_requirement(
                 )
                 executable = task.get(
                     EXECUTABLE,
-                    task_group_data.get(EXECUTABLE, CONFIG_WR.executable),
+                    task_group_data.get(
+                        EXECUTABLE, tasks_data.get(EXECUTABLE, CONFIG_WR.executable)
+                    ),
                 )
                 arguments_list = task.get(
-                    ARGS, task_group_data.get(ARGS, CONFIG_WR.args)
+                    ARGS,
+                    tasks_data.get(ARGS, task_group_data.get(ARGS, CONFIG_WR.args)),
                 )
-                env = task.get(ENV, task_group_data.get(ENV, CONFIG_WR.env))
+                env = task.get(
+                    ENV, task_group_data.get(ENV, tasks_data.get(ENV, CONFIG_WR.env))
+                )
                 input_files = [
                     TaskInput.from_task_namespace(
                         unique_upload_pathname(file), required=True
                     )
                     for file in task.get(
                         INPUT_FILES,
-                        task_group_data.get(INPUT_FILES, CONFIG_WR.input_files),
+                        task_group_data.get(
+                            INPUT_FILES,
+                            tasks_data.get(INPUT_FILES, CONFIG_WR.input_files),
+                        ),
                     )
                 ]
                 output_files = [
                     TaskOutput.from_worker_directory(file)
                     for file in task.get(
                         OUTPUT_FILES,
-                        task_group_data.get(OUTPUT_FILES, CONFIG_WR.output_files),
+                        task_group_data.get(
+                            OUTPUT_FILES,
+                            tasks_data.get(OUTPUT_FILES, CONFIG_WR.output_files),
+                        ),
                     )
                 ]
                 output_files.append(TaskOutput.from_task_process())
