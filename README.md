@@ -100,7 +100,7 @@ The agent determines whether a Task has succeeded using the exit code from what 
 
 **Bash Script Arguments and Environment**
 
-The Bash script or Docker Container can optionally be supplied with command line arguments and environment variables using the `ARGS` and `ENV` fields in `config.toml`, e.g.:
+The Bash script or Docker container can optionally be supplied with command line arguments and environment variables using the `ARGS` and `ENV` fields in `config.toml`, e.g.:
 ```toml
 ARGS = ["foo", "bar=5"]
 ENV = {E1 = "one", E2 = "two"}
@@ -108,11 +108,11 @@ ENV = {E1 = "one", E2 = "two"}
 
 **Multiple Task Executions using Identical `ARGS` and `ENV` for all Tasks**
 
-It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `TASK_COUNT` field in the `config.toml` file.
+It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `TASK_COUNT` property in the `config.toml` file.
 
 **Multiple Task Executions using Varying `ARGS` and `ENV` for each Task**
 
-To run multiple Tasks with different settings for each Task, the `ARGS` and `ENV` values can be set in a JSON file, as shown in the following example:
+To run multiple Tasks with different settings for each Task, the `ARGS` and `ENV` properties can be set in a JSON file, as shown in the following example:
 
 ```json
 {
@@ -139,7 +139,7 @@ To run multiple Tasks with different settings for each Task, the `ARGS` and `ENV
 
 The name of the JSON file is supplied in the `TASKS_DATA` property in the `WORK_REQUIREMENT` section of the `config.toml` file.
 
-When `TASKS_DATA` is set, values of the `ARGS` and `ENV` properties in the `config.toml` file are ignored.
+When `TASKS_DATA` is set, values of the `ARGS` and `ENV` properties in the `config.toml` file are overridden on a per-task basis, and the `TASK_COUNT` property is ignored.
 
 ### The `cancel.py` script
 

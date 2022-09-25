@@ -156,6 +156,8 @@ def submit_work_requirement(
             NAME, "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups)))
         )
         # Assemble the RunSpecification for the Task Group
+        # task_types can be automatically created/augmented by the task_types
+        # specified in the Tasks
         task_types: List = list(
             set(
                 task_group_data.get(
@@ -236,6 +238,8 @@ def submit_work_requirement(
                 completedTaskTtl=completed_task_ttl,
             )
         )
+        print_log(f"Generated Task Group '{task_group_name}'")
+
     # Create the Work Requirement
     work_requirement = CLIENT.work_client.add_work_requirement(
         WorkRequirement(
@@ -247,7 +251,7 @@ def submit_work_requirement(
             fulfilOnSubmit=CONFIG_WR.fulfil_on_submit,
         )
     )
-    print_log(f"Added {link_entity(CONFIG_COMMON.url, work_requirement)}")
+    print_log(f"Created {link_entity(CONFIG_COMMON.url, work_requirement)}")
 
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
