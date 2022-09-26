@@ -84,7 +84,10 @@ def print_log(log_message: str):
 # Allow the optional use of a config file supplied on the command line;
 # otherwise look for the YD_CONF environment variable, else use the default
 try:
-    config_file = sys.argv[1]
+    if sys.argv[1].lower().endswith(".toml"):
+        config_file = sys.argv[1]
+    elif sys.argv[2].lower().endswith(".toml"):
+        config_file = sys.argv[2]
 except IndexError:
     config_file = getenv("YD_CONF", "config.toml")
 

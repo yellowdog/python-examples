@@ -9,6 +9,7 @@ from datetime import timedelta
 from json import JSONDecodeError, load
 from math import ceil
 from pathlib import Path
+from sys import argv
 from typing import Dict, List, Optional
 
 from yellowdog_client import PlatformClient
@@ -57,10 +58,22 @@ INPUT_FOLDER_NAME = "INPUTS"
 
 def main():
     print_log(f"ID = {ID}")
+    # Is the JSON file specified on the command line as the first or second
+    # parameter?
+    json_file = None
     try:
-        if CONFIG_WR.tasks_data_file is not None:
-            with open(CONFIG_WR.tasks_data_file, "r") as f:
+        if argv[1].lower().endswith(".json"):
+            json_file = argv[1]
+        elif argv[2].lower().endswith(".json"):
+            json_file = argv[2]
+    except IndexError:
+        json_file = CONFIG_WR.tasks_data_file
+
+    try:
+        if json_file is not None:
+            with open(json_file, "r") as f:
                 tasks_data = load(f)
+                print_log(f"Loading Work Requirement data from: '{json_file}'")
             submit_work_requirement(tasks_data=tasks_data)
         else:
             task_count = CONFIG_WR.task_count
