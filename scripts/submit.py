@@ -242,7 +242,7 @@ def submit_work_requirement(
             TaskGroup(
                 name=task_group_name,
                 runSpecification=run_specification,
-                dependentOn=task_group_data.get(DEPENDS_ON, None),
+                dependentOn=task_group_data.get(DEPENDENT_ON, None),
                 autoFail=task_group_data.get(
                     AUTO_FAIL, tasks_data.get(AUTO_FAIL, CONFIG_WR.auto_fail)
                 ),
