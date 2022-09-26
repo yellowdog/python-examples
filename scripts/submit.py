@@ -69,20 +69,20 @@ def main():
     except IndexError:
         json_file = CONFIG_WR.tasks_data_file
 
-    try:
-        if json_file is not None:
+    if json_file is not None:
+        try:
             with open(json_file, "r") as f:
                 tasks_data = load(f)
-                print_log(f"Loading Work Requirement data from: '{json_file}'")
+            print_log(f"Loading Work Requirement data from: '{json_file}'")
             submit_work_requirement(tasks_data=tasks_data)
-        else:
-            task_count = CONFIG_WR.task_count
-            submit_work_requirement(task_count=task_count)
-        print_log("Done")
-    except (JSONDecodeError, FileNotFoundError) as e:
-        print_log(f"Error: '{CONFIG_WR.tasks_data_file}': {e}")
-    finally:
-        CLIENT.close()
+        except (JSONDecodeError, FileNotFoundError) as e:
+            print_log(f"Error: '{CONFIG_WR.tasks_data_file}': {e}")
+    else:
+        task_count = CONFIG_WR.task_count
+        submit_work_requirement(task_count=task_count)
+
+    print_log("Done")
+    CLIENT.close()
 
 
 def upload_file(filename: str):
