@@ -57,7 +57,6 @@ INPUT_FOLDER_NAME = "INPUTS"
 
 
 def main():
-    print_log(f"ID = {ID}")
     # Is the JSON file specified on the command line as the first or second
     # parameter?
     json_file = None
@@ -254,17 +253,22 @@ def submit_work_requirement(
         print_log(f"Generated Task Group '{task_group_name}'")
 
     # Create the Work Requirement
+    wr_name = tasks_data.get(NAME, CONFIG_WR.wr_name)
     work_requirement = CLIENT.work_client.add_work_requirement(
         WorkRequirement(
             namespace=CONFIG_COMMON.namespace,
-            name=ID,
+            name=ID if wr_name is None else wr_name,
             taskGroups=task_groups,
             tag=CONFIG_COMMON.name_tag,
             priority=CONFIG_WR.priority,
             fulfilOnSubmit=CONFIG_WR.fulfil_on_submit,
         )
     )
-    print_log(f"Created {link_entity(CONFIG_COMMON.url, work_requirement)}")
+    print_log(
+        f"Created "
+        f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
+        f"({work_requirement.name})"
+    )
 
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):

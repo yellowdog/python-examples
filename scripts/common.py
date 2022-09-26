@@ -58,6 +58,7 @@ class ConfigWorkRequirement:
     fulfil_on_submit: bool
     completed_task_ttl: Optional[float]  # In minutes
     auto_fail: bool
+    wr_name: Optional[str]
 
 
 @dataclass
@@ -164,6 +165,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             fulfil_on_submit=wr_section.get("FULFIL_ON_SUBMIT", False),
             completed_task_ttl=wr_section.get("COMPLETED_TASK_TTL", None),
             auto_fail=wr_section.get("AUTO_FAIL", True),
+            wr_name=wr_section.get("NAME", None),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
