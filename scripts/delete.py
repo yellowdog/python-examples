@@ -26,9 +26,10 @@ CLIENT = PlatformClient.create(
 
 
 def main():
+    tag = "WR_" + CONFIG.name_tag
     print_log(
         f"Deleting Object Paths in NAMESPACE={CONFIG.namespace} with "
-        f"names starting with NAME_TAG={CONFIG.name_tag}"
+        f"names starting with NAME_TAG={tag}"
     )
     object_paths: List[
         ObjectPath
@@ -37,7 +38,7 @@ def main():
     )
     object_paths_to_delete: List[ObjectPath] = []
     for object_path in object_paths:
-        if object_path.name.startswith(CONFIG.name_tag):
+        if object_path.name.startswith(tag):
             object_paths_to_delete.append(object_path)
     if len(object_paths_to_delete) != 0:
         print_log(f"{len(object_paths_to_delete)} Object Path(s) to Delete")
