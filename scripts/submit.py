@@ -377,6 +377,12 @@ def create_task(
     """
     Create a Task object, handling variations for different Task Types
     """
+    valid_task_types = ["bash", "docker"]
+    if task_type not in valid_task_types:
+        raise Exception(
+            f"Error: TASK_TYPE must be one of {valid_task_types}, not '{task_type}'"
+        )
+
     if task_type == "bash":
         args = [unique_upload_pathname(executable)] + args
         if executable not in uploaded_files:
@@ -402,11 +408,6 @@ def create_task(
             if CONFIG_WR.container_username is not None
             and CONFIG_WR.container_password is not None
             else {}
-        )
-
-    else:
-        raise Exception(
-            f"Error: TASK_TYPE must be one of 'bash' or 'docker', not '{task_type}'"
         )
 
     return Task(
