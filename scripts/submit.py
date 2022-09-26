@@ -49,10 +49,8 @@ CLIENT = PlatformClient.create(
     ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
-ID = generate_id(CONFIG_COMMON.name_tag + "_WR")
-
+ID = generate_id("WR_" + CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
-
 INPUT_FOLDER_NAME = "INPUTS"
 
 
@@ -398,7 +396,7 @@ def create_task(
         env_string = ""
         for _, (key, value) in enumerate(env.items()):
             env_string += f" --env {key}={value}"
-        env_string += f" --env TASK_NAME={name}"
+        env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
         args = [env_string, executable] + args
         env = (
             {
