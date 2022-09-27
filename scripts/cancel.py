@@ -63,5 +63,9 @@ def main():
 
 # Entry point
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print_log(f"Error: {e}")
+        exit(1)
     exit(0)
