@@ -37,7 +37,7 @@ from common import (
     load_config_work_requirement,
     print_log,
 )
-from json_keys import *
+from config_keys import *
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()

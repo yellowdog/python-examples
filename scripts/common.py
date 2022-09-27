@@ -20,6 +20,8 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
+from config_keys import *
+
 
 @dataclass
 class ConfigCommon:
@@ -81,6 +83,18 @@ def print_log(log_message: str):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ":", log_message)
 
 
+def convert_config_keys_to_lower(data: Dict, recursion_level: int = 1) -> Dict:
+    """
+    Convert the section name and its config contents to lower case; two
+    levels deep only to avoid altering user data
+    """
+    converted = {key.lower(): value for key, value in data.items()}
+    for k, v in converted.items():
+        if isinstance(v, dict):
+            converted[k] = {key.lower(): value for key, value in v.items()}
+    return converted
+
+
 # Load the config from a TOML file.
 # Allow the optional use of a config file supplied on the command line;
 # otherwise look for the YD_CONF environment variable, else use the default
@@ -95,7 +109,7 @@ except IndexError:
 print_log(f"Loading configuration data from: '{config_file}'")
 try:
     with open(config_file, "r") as f:
-        CONFIG_TOML: Dict = toml_load(f)
+        CONFIG_TOML: Dict = convert_config_keys_to_lower(toml_load(f))
 except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
     print_log(f"Unable to load configuration data from '{config_file}': {e}")
     exit(1)
@@ -103,19 +117,19 @@ except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
 
 def load_config_common() -> ConfigCommon:
     try:
-        common_section = CONFIG_TOML["COMMON"]
+        common_section = CONFIG_TOML[COMMON_SECTION]
         # Check for IMPORT directive
-        common_section_import_file = common_section.get("IMPORT", None)
+        common_section_import_file = common_section.get(IMPORT, None)
         if common_section_import_file is not None:
             common_section = import_toml(common_section_import_file)
         return ConfigCommon(
             # Required configuration values
-            key=common_section["KEY"],
-            secret=common_section["SECRET"],
-            namespace=common_section["NAMESPACE"],
-            name_tag=common_section["NAME_TAG"],
+            key=common_section[KEY],
+            secret=common_section[SECRET],
+            namespace=common_section[NAMESPACE],
+            name_tag=common_section[NAME_TAG],
             # Optional configuration values
-            url=common_section.get("URL", "https://portal.yellowdog.co/api"),
+            url=common_section.get(URL, "https://portal.yellowdog.co/api"),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
@@ -126,8 +140,8 @@ def import_toml(filename: str) -> Dict:
     print_log(f"Loading imported common configuration data from: '{filename}'")
     try:
         with open(filename, "r") as f:
-            common_config: Dict = toml_load(f)
-            return common_config["COMMON"]
+            common_config: Dict = convert_config_keys_to_lower(toml_load(f))
+            return common_config[COMMON_SECTION]
     except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
         print_log(f"Unable to load imported common configuration data: {e}")
         exit(1)
@@ -135,37 +149,35 @@ def import_toml(filename: str) -> Dict:
 
 def load_config_work_requirement() -> ConfigWorkRequirement:
     try:
-        wr_section = CONFIG_TOML["WORK_REQUIREMENT"]
+        wr_section = CONFIG_TOML[WORK_REQUIREMENT_SECTION]
         return ConfigWorkRequirement(
-            bash_script=wr_section.get("BASH_SCRIPT", None),  # Deprecated
-            executable=wr_section.get(
-                "EXECUTABLE", wr_section.get("BASH_SCRIPT", None)
-            ),
-            worker_tags=wr_section.get("WORKER_TAGS", None),
-            task_type=wr_section.get("TASK_TYPE", "bash"),
-            args=wr_section.get("ARGS", []),
-            env=wr_section.get("ENV", {}),
-            tasks_data_file=wr_section.get("TASKS_DATA", None),
-            input_files=wr_section.get("INPUT_FILES", []),
-            output_files=wr_section.get("OUTPUT_FILES", []),
-            max_retries=wr_section.get("MAX_RETRIES", 0),
-            task_count=wr_section.get("TASK_COUNT", 1),
-            exclusive_workers=wr_section.get("EXCLUSIVE_WORKERS", None),
-            container_username=wr_section.get("CONTAINER_USERNAME", None),
-            container_password=wr_section.get("CONTAINER_PASSWORD", None),
-            instance_types=wr_section.get("INSTANCE_TYPES", None),
-            vcpus=wr_section.get("VCPUS", None),
-            ram=wr_section.get("RAM", None),
-            min_workers=wr_section.get("MIN_WORKERS", None),
-            max_workers=wr_section.get("MAX_WORKERS", None),
-            tasks_per_worker=wr_section.get("TASKS_PER_WORKER", None),
-            providers=wr_section.get("PROVIDERS", None),
-            regions=wr_section.get("REGIONS", None),
-            priority=wr_section.get("PRIORITY", 0.0),
-            fulfil_on_submit=wr_section.get("FULFIL_ON_SUBMIT", False),
-            completed_task_ttl=wr_section.get("COMPLETED_TASK_TTL", None),
-            auto_fail=wr_section.get("AUTO_FAIL", True),
-            wr_name=wr_section.get("NAME", None),
+            bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
+            executable=wr_section.get(EXECUTABLE, wr_section.get(BASH_SCRIPT, None)),
+            worker_tags=wr_section.get(WORKER_TAGS, None),
+            task_type=wr_section.get(TASK_TYPE, "bash"),
+            args=wr_section.get(ARGS, []),
+            env=wr_section.get(ENV, {}),
+            tasks_data_file=wr_section.get(TASKS_DATA, None),
+            input_files=wr_section.get(INPUT_FILES, []),
+            output_files=wr_section.get(OUTPUT_FILES, []),
+            max_retries=wr_section.get(MAX_RETRIES, 0),
+            task_count=wr_section.get(TASK_COUNT, 1),
+            exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
+            container_username=wr_section.get(CONTAINER_USERNAME, None),
+            container_password=wr_section.get(CONTAINER_PASSWORD, None),
+            instance_types=wr_section.get(INSTANCE_TYPES, None),
+            vcpus=wr_section.get(VCPUS, None),
+            ram=wr_section.get(RAM, None),
+            min_workers=wr_section.get(MIN_WORKERS, None),
+            max_workers=wr_section.get(MAX_WORKERS, None),
+            tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
+            providers=wr_section.get(PROVIDERS, None),
+            regions=wr_section.get(REGIONS, None),
+            priority=wr_section.get(PRIORITY, 0.0),
+            fulfil_on_submit=wr_section.get(FULFIL_ON_SUBMIT, False),
+            completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
+            auto_fail=wr_section.get(AUTO_FAIL, True),
+            wr_name=wr_section.get(NAME, None),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
@@ -174,24 +186,24 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
 
 def load_config_worker_pool() -> ConfigWorkerPool:
     try:
-        wp_section = CONFIG_TOML["WORKER_POOL"]
+        wp_section = CONFIG_TOML[WORKER_POOL_SECTION]
         return ConfigWorkerPool(
             # Required configuration values
-            template_id=wp_section["TEMPLATE_ID"],
+            template_id=wp_section[TEMPLATE_ID],
             # Optional configuration values
-            initial_nodes=wp_section.get("INITIAL_NODES", 1),
-            min_nodes=wp_section.get("MIN_NODES", 0),
+            initial_nodes=wp_section.get(INITIAL_NODES, 1),
+            min_nodes=wp_section.get(MIN_NODES, 0),
             max_nodes=wp_section.get(
-                "MAX_NODES", max(1, wp_section.get("INITIAL_NODES", 1))
+                MAX_NODES, max(1, wp_section.get(INITIAL_NODES, 1))
             ),
-            worker_tag=wp_section.get("WORKER_TAG", None),
-            workers_per_node=wp_section.get("WORKERS_PER_NODE", 1),
-            auto_shutdown=wp_section.get("AUTO_SHUTDOWN", True),
-            auto_shutdown_delay=wp_section.get("AUTO_SHUTDOWN_DELAY", 10),
-            auto_scaling_idle_delay=wp_section.get("AUTO_SCALING_IDLE_DELAY", 10),
-            node_boot_time_limit=wp_section.get("NODE_BOOT_TIME_LIMIT", 10),
+            worker_tag=wp_section.get(WORKER_TAG, None),
+            workers_per_node=wp_section.get(WORKERS_PER_NODE, 1),
+            auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
+            auto_shutdown_delay=wp_section.get(AUTO_SHUTDOWN_DELAY, 10),
+            auto_scaling_idle_delay=wp_section.get(AUTO_SCALING_IDLE_DELAY, 10),
+            node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
             compute_requirement_batch_size=wp_section.get(
-                "COMPUTE_REQUIREMENT_BATCH_SIZE", 2000
+                COMPUTE_REQUIREMENT_BATCH_SIZE, 2000
             ),
         )
     except KeyError as e:
