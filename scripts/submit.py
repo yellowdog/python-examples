@@ -337,6 +337,9 @@ def submit_work_requirement(
                         task_type = CONFIG_WR.task_type
                 tasks_list.append(
                     create_task(
+                        tasks_data=tasks_data,
+                        task_group_data=task_group_data,
+                        task_data=task,
                         name=task_name,
                         task_type=task_type,
                         executable=executable,
@@ -365,6 +368,9 @@ def submit_work_requirement(
 
 
 def create_task(
+    tasks_data: Dict,
+    task_group_data: Dict,
+    task_data: Dict,
     name: str,
     task_type: str,
     executable: str,
@@ -400,13 +406,26 @@ def create_task(
             env_string += f" --env {key}={value}"
         env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
         args = [env_string, executable] + args
+        docker_username = task_data.get(
+            CONTAINER_USERNAME,
+            task_group_data.get(
+                CONTAINER_USERNAME,
+                tasks_data.get(CONTAINER_USERNAME, CONFIG_WR.container_username),
+            ),
+        )
+        docker_password = task_data.get(
+            CONTAINER_PASSWORD,
+            task_group_data.get(
+                CONTAINER_PASSWORD,
+                tasks_data.get(CONTAINER_PASSWORD, CONFIG_WR.container_password),
+            ),
+        )
         env = (
             {
-                "DOCKER_USERNAME": CONFIG_WR.container_username,
-                "DOCKER_PASSWORD": CONFIG_WR.container_password,
+                "DOCKER_USERNAME": docker_username,
+                "DOCKER_PASSWORD": docker_password,
             }
-            if CONFIG_WR.container_username is not None
-            and CONFIG_WR.container_password is not None
+            if docker_username is not None and docker_password is not None
             else {}
         )
 
