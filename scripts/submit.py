@@ -359,7 +359,9 @@ def submit_work_requirement(
                     f"Added {len(tasks_list):,d} "
                     f"Task(s) to Work Requirement Task Group '{task_group.name}'"
                 )
-        print_log(f"Added {len(tasks_list)} Task(s) to Task Group '{task_group.name}'")
+        print_log(
+            f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'"
+        )
 
 
 def create_task(
