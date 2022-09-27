@@ -89,7 +89,7 @@ def create_worker_pool():
             AllNodesInactiveShutdownCondition(delay=shutdown_delay),
             UnclaimedAfterStartupShutdownCondition(delay=shutdown_delay),
             NodeActionFailedShutdownCondition(delay=shutdown_delay),
-            NoRegisteredWorkersShutdownCondition(),
+            # NoRegisteredWorkersShutdownCondition(),
         ]
     else:
         auto_shutdown_conditions = []
