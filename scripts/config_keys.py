@@ -29,8 +29,8 @@ TASK_TYPE = "task_type"  # String
 TASK_TYPES = "task_types"  # List of Strings
 VCPUS = "vcpus"  # List of two Floats
 WORKER_TAGS = "worker_tags"  # List of Strings
-CONTAINER_USERNAME = "container_username"  # String
-CONTAINER_PASSWORD = "container_password"  # String
+DOCKER_USERNAME = "docker_username"  # String
+DOCKER_PASSWORD = "docker_password"  # String
 
 # Used in TOML files only for Work Requirements
 TASKS_DATA = "tasks_data"  # Integer

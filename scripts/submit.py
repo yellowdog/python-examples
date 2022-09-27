@@ -407,17 +407,17 @@ def create_task(
         env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
         args = [env_string, executable] + args
         docker_username = task_data.get(
-            CONTAINER_USERNAME,
+            DOCKER_USERNAME,
             task_group_data.get(
-                CONTAINER_USERNAME,
-                tasks_data.get(CONTAINER_USERNAME, CONFIG_WR.container_username),
+                DOCKER_USERNAME,
+                tasks_data.get(DOCKER_USERNAME, CONFIG_WR.docker_username),
             ),
         )
         docker_password = task_data.get(
-            CONTAINER_PASSWORD,
+            DOCKER_PASSWORD,
             task_group_data.get(
-                CONTAINER_PASSWORD,
-                tasks_data.get(CONTAINER_PASSWORD, CONFIG_WR.container_password),
+                DOCKER_PASSWORD,
+                tasks_data.get(DOCKER_PASSWORD, CONFIG_WR.docker_password),
             ),
         )
         env = (

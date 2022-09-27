@@ -46,8 +46,8 @@ class ConfigWorkRequirement:
     max_retries: int
     task_count: int
     exclusive_workers: Optional[bool]
-    container_username: Optional[str]
-    container_password: Optional[str]
+    docker_username: Optional[str]
+    docker_password: Optional[str]
     instance_types: Optional[List[str]]
     vcpus: Optional[List[float]]
     ram: Optional[List[float]]
@@ -163,8 +163,8 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             max_retries=wr_section.get(MAX_RETRIES, 0),
             task_count=wr_section.get(TASK_COUNT, 1),
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
-            container_username=wr_section.get(CONTAINER_USERNAME, None),
-            container_password=wr_section.get(CONTAINER_PASSWORD, None),
+            docker_username=wr_section.get(DOCKER_USERNAME, None),
+            docker_password=wr_section.get(DOCKER_PASSWORD, None),
             instance_types=wr_section.get(INSTANCE_TYPES, None),
             vcpus=wr_section.get(VCPUS, None),
             ram=wr_section.get(RAM, None),
