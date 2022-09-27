@@ -83,7 +83,7 @@ def print_log(log_message: str):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ":", log_message)
 
 
-def convert_config_keys_to_lower(data: Dict, recursion_level: int = 1) -> Dict:
+def convert_config_keys_to_lower(data: Dict) -> Dict:
     """
     Convert the section name and its config contents to lower case; two
     levels deep only to avoid altering user data
