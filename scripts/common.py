@@ -95,6 +95,23 @@ def convert_config_keys_to_lower(data: Dict) -> Dict:
     return converted
 
 
+def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
+    """
+    Look through the keys in the dictionary from the
+    TOML load and check they're in the list of valid keys.
+    Return the list of invalid keys, or None.
+    """
+    invalid_keys = []
+    for k1, v1 in data.items():
+        if k1 not in ALL_KEYS:
+            invalid_keys.append(k1)
+        if isinstance(v1, dict):
+            for k2, _ in v1.items():
+                if k2 not in ALL_KEYS:
+                    invalid_keys.append(k2)
+    return None if len(invalid_keys) == 0 else invalid_keys
+
+
 # Load the config from a TOML file.
 # Allow the optional use of a config file supplied on the command line;
 # otherwise look for the YD_CONF environment variable, else use the default
@@ -110,6 +127,12 @@ print_log(f"Loading configuration data from: '{config_file}'")
 try:
     with open(config_file, "r") as f:
         CONFIG_TOML: Dict = convert_config_keys_to_lower(toml_load(f))
+        invalid_keys = check_for_invalid_keys(CONFIG_TOML)
+        if invalid_keys is not None:
+            print_log(
+                f"Error: Invalid properties in '{config_file}': {invalid_keys}"
+            )
+            exit(1)
 except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
     print_log(f"Unable to load configuration data from '{config_file}': {e}")
     exit(1)
