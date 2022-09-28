@@ -402,7 +402,7 @@ def create_task(
 
     elif task_type == "docker":
         env_string = ""
-        for _, (key, value) in enumerate(env.items()):
+        for key, value in env.items():
             env_string += f" --env {key}={value}"
         env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
         args = [env_string, executable] + args
