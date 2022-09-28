@@ -65,10 +65,10 @@
     # Optional
     # TASK_COUNT = 1
 
-    # Name of a JSON file containing a sequence of records containing the
-    # values of 'ARGS' and 'ENV' for a sequence of Tasks
+    # Name of a JSON file containing the description of a Work
+    # Requirement
     # Optional
-    # TASKS_DATA = "my_tasks.json"
+    # WR_DATA = "my_tasks.json"
 
 [WORKER_POOL]  #################################################################
 

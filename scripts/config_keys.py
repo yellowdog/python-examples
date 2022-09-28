@@ -7,6 +7,8 @@ ARGS = "args"  # List
 AUTO_FAIL = "auto_fail"  # Boolean
 COMPLETED_TASK_TTL = "completed_task_ttl"  # Float
 DEPENDENT_ON = "dependent_on"  # String
+DOCKER_PASSWORD = "docker_password"  # String
+DOCKER_USERNAME = "docker_username"  # String
 ENV = "env"  # Dictionary
 EXCLUSIVE_WORKERS = "exclusive_workers"  # Boolean
 EXECUTABLE = "executable"  # String
@@ -29,13 +31,11 @@ TASK_TYPE = "task_type"  # String
 TASK_TYPES = "task_types"  # List of Strings
 VCPUS = "vcpus"  # List of two Floats
 WORKER_TAGS = "worker_tags"  # List of Strings
-DOCKER_USERNAME = "docker_username"  # String
-DOCKER_PASSWORD = "docker_password"  # String
 
 # Used in TOML files only for Work Requirements
-TASKS_DATA = "tasks_data"  # Integer
 TASK_COUNT = "task_count"  # Integer
 WORK_REQUIREMENT_SECTION = "work_requirement"  # String
+WR_DATA = "wr_data"  # Integer
 
 # Common Section
 COMMON_SECTION = "common"
