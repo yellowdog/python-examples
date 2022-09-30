@@ -99,6 +99,7 @@ def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
     """
     Look through the keys in the dictionary from the
     TOML load and check they're in the list of valid keys.
+    Assumes a two-level containment structure.
     Return the list of invalid keys, or None.
     """
     invalid_keys = []
