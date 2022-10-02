@@ -134,14 +134,22 @@ def submit_work_requirement(
     # Create a default tasks_data dictionary if required
     tasks_data = {TASK_GROUPS: [{TASKS: [{}]}]} if tasks_data is None else tasks_data
 
-    num_task_groups = len(tasks_data[TASK_GROUPS])
+    # Remap 'task_type' at WR level to 'task_types' if 'task_types' is empty
+    if tasks_data.get(TASK_TYPE, None) is not None:
+        if tasks_data.get(TASK_TYPES, None) is None:
+            tasks_data[TASK_TYPES] = [tasks_data[TASK_TYPE]]
 
+    num_task_groups = len(tasks_data[TASK_GROUPS])
     uploaded_files = []
     task_groups: List[TaskGroup] = []
     for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
+        # Remap 'task_type' to 'task_types' in Task Groups if 'task_types is empty
+        if task_group_data.get(TASK_TYPE, None) is not None:
+            if task_group_data.get(TASK_TYPES, None) is None:
+                task_group_data[TASK_TYPES] = [task_group_data[TASK_TYPE]]
+        task_types_from_tasks = set()
         # Gather input files and task types
         input_files = []
-        task_types_from_tasks = set()
         for task in task_group_data[TASKS]:
             input_files += task.get(
                 INPUT_FILES,
