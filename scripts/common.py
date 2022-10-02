@@ -130,9 +130,7 @@ try:
         CONFIG_TOML: Dict = convert_config_keys_to_lower(toml_load(f))
         invalid_keys = check_for_invalid_keys(CONFIG_TOML)
         if invalid_keys is not None:
-            print_log(
-                f"Error: Invalid properties in '{config_file}': {invalid_keys}"
-            )
+            print_log(f"Error: Invalid properties in '{config_file}': {invalid_keys}")
             exit(1)
 except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
     print_log(f"Unable to load configuration data from '{config_file}': {e}")
@@ -174,33 +172,40 @@ def import_toml(filename: str) -> Dict:
 def load_config_work_requirement() -> ConfigWorkRequirement:
     try:
         wr_section = CONFIG_TOML[WORK_REQUIREMENT_SECTION]
+        worker_tags = wr_section.get(WORKER_TAGS, None)
+        # Allow WORKER_TAG if WORKER_TAGS is empty
+        if worker_tags is None:
+            try:
+                worker_tags = [wr_section[WORKER_TAG]]
+            except KeyError:
+                pass
         return ConfigWorkRequirement(
-            bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
-            executable=wr_section.get(EXECUTABLE, wr_section.get(BASH_SCRIPT, None)),
-            worker_tags=wr_section.get(WORKER_TAGS, None),
-            task_type=wr_section.get(TASK_TYPE, "bash"),
             args=wr_section.get(ARGS, []),
-            env=wr_section.get(ENV, {}),
-            tasks_data_file=wr_section.get(WR_DATA, None),
-            input_files=wr_section.get(INPUT_FILES, []),
-            output_files=wr_section.get(OUTPUT_FILES, []),
-            max_retries=wr_section.get(MAX_RETRIES, 0),
-            task_count=wr_section.get(TASK_COUNT, 1),
-            exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
-            docker_username=wr_section.get(DOCKER_USERNAME, None),
-            docker_password=wr_section.get(DOCKER_PASSWORD, None),
-            instance_types=wr_section.get(INSTANCE_TYPES, None),
-            vcpus=wr_section.get(VCPUS, None),
-            ram=wr_section.get(RAM, None),
-            min_workers=wr_section.get(MIN_WORKERS, None),
-            max_workers=wr_section.get(MAX_WORKERS, None),
-            tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
-            providers=wr_section.get(PROVIDERS, None),
-            regions=wr_section.get(REGIONS, None),
-            priority=wr_section.get(PRIORITY, 0.0),
-            fulfil_on_submit=wr_section.get(FULFIL_ON_SUBMIT, False),
-            completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             auto_fail=wr_section.get(AUTO_FAIL, True),
+            bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
+            completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
+            docker_password=wr_section.get(DOCKER_PASSWORD, None),
+            docker_username=wr_section.get(DOCKER_USERNAME, None),
+            env=wr_section.get(ENV, {}),
+            exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
+            executable=wr_section.get(EXECUTABLE, wr_section.get(BASH_SCRIPT, None)),
+            fulfil_on_submit=wr_section.get(FULFIL_ON_SUBMIT, False),
+            input_files=wr_section.get(INPUT_FILES, []),
+            instance_types=wr_section.get(INSTANCE_TYPES, None),
+            max_retries=wr_section.get(MAX_RETRIES, 0),
+            max_workers=wr_section.get(MAX_WORKERS, None),
+            min_workers=wr_section.get(MIN_WORKERS, None),
+            output_files=wr_section.get(OUTPUT_FILES, []),
+            priority=wr_section.get(PRIORITY, 0.0),
+            providers=wr_section.get(PROVIDERS, None),
+            ram=wr_section.get(RAM, None),
+            regions=wr_section.get(REGIONS, None),
+            task_count=wr_section.get(TASK_COUNT, 1),
+            task_type=wr_section.get(TASK_TYPE, "bash"),
+            tasks_data_file=wr_section.get(WR_DATA, None),
+            tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
+            vcpus=wr_section.get(VCPUS, None),
+            worker_tags=worker_tags,
             wr_name=wr_section.get(NAME, None),
         )
     except KeyError as e:
