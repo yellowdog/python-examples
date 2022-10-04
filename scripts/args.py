@@ -28,13 +28,13 @@ class CLIParser:
             help="Supply the configuration file in TOML format",
             metavar="config_file.toml",
         )
-        # parser.add_argument(
-        #     "--work-req",
-        #     "-w",
-        #     type=str,
-        #     required=False,
-        #     help="Supply the Work Requirement definition file in JSON format",
-        #     metavar="work_requirement.json",
+        parser.add_argument(
+            "--work-req",
+            "-w",
+            type=str,
+            required=False,
+            help="Supply the Work Requirement definition file in JSON format",
+            metavar="work_requirement.json",
         )
         # parser.add_argument(
         #     "--worker-pool", "-p",
@@ -49,13 +49,13 @@ class CLIParser:
     def config_file(self) -> Optional[str]:
         return self.args.config
 
-    # @property
-    # def work_req_file(self) -> Optional[str]:
-    #     return self.args.work_req
+    @property
+    def work_req_file(self) -> Optional[str]:
+        return self.args.work_req
 
 
 if __name__ == "__main__":
     # Standalone testing
     args = CLIParser()
     print("config file =", args.config_file)
-    # print("work requirement file =", args.work_req_file)
+    print("work requirement file =", args.work_req_file)

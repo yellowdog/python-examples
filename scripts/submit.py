@@ -28,6 +28,7 @@ from yellowdog_client.model import (
 from yellowdog_client.object_store.model import FileTransferStatus
 
 from common import (
+    ARGS_PARSER,
     ConfigCommon,
     ConfigWorkRequirement,
     generate_id,
@@ -55,22 +56,16 @@ INPUT_FOLDER_NAME = "INPUTS"
 
 
 def main():
-    # Is the JSON file specified on the command line as the first or second
-    # parameter?
-    json_file = None
-    try:
-        if argv[1].lower().endswith(".json"):
-            json_file = argv[1]
-        elif argv[2].lower().endswith(".json"):
-            json_file = argv[2]
-    except IndexError:
-        json_file = CONFIG_WR.tasks_data_file
-
-    if json_file is not None:
+    wr_json_file = (
+        CONFIG_WR.tasks_data_file
+        if ARGS_PARSER.work_req_file is None
+        else ARGS_PARSER.work_req_file
+    )
+    if wr_json_file is not None:
         try:
-            with open(json_file, "r") as f:
+            with open(wr_json_file, "r") as f:
                 tasks_data = load(f)
-            print_log(f"Loading Work Requirement data from: '{json_file}'")
+            print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
             submit_work_requirement(tasks_data=tasks_data)
         except (JSONDecodeError, FileNotFoundError) as e:
             print_log(f"Error: '{CONFIG_WR.tasks_data_file}': {e}")

@@ -137,7 +137,7 @@ To run multiple Tasks with different settings for each Task, the `ARGS` and `ENV
 }
 ```
 
-The name of the JSON file is supplied in the `TASKS_DATA` property in the `WORK_REQUIREMENT` section of the `config.toml` file.
+The name of the JSON file is supplied in the `TASKS_DATA` property in the `WORK_REQUIREMENT` section of the `config.toml` file, or can be supplied on the command line using the `--work-req` or `-w` option. A JSON filename supplied on the command line takes precedence over one set in the `config.toml` file.
 
 When `TASKS_DATA` is set, values of the `ARGS` and `ENV` properties in the `config.toml` file are overridden on a per-task basis, and the `TASK_COUNT` property is ignored.
 
