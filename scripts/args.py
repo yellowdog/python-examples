@@ -17,9 +17,7 @@ class CLIParser:
         line arguments.
         """
 
-        parser = argparse.ArgumentParser(
-            prog=sys.argv[0],
-        )
+        parser = argparse.ArgumentParser()
         parser.add_argument(
             "--config",
             "-c",
@@ -28,14 +26,15 @@ class CLIParser:
             help="Supply the configuration file in TOML format",
             metavar="config_file.toml",
         )
-        parser.add_argument(
-            "--work-req",
-            "-w",
-            type=str,
-            required=False,
-            help="Supply the Work Requirement definition file in JSON format",
-            metavar="work_requirement.json",
-        )
+        if any(module in sys.argv[0] for module in ["submit", "args"]):
+            parser.add_argument(
+                "--work-req",
+                "-w",
+                type=str,
+                required=False,
+                help="Supply the Work Requirement definition file in JSON format",
+                metavar="work_requirement.json",
+            )
         # parser.add_argument(
         #     "--worker-pool", "-p",
         #     type=str,
@@ -57,5 +56,11 @@ class CLIParser:
 if __name__ == "__main__":
     # Standalone testing
     args = CLIParser()
-    print("config file =", args.config_file)
-    print("work requirement file =", args.work_req_file)
+    try:
+        print("config file =", args.config_file)
+    except:
+        pass
+    try:
+        print("work requirement file =", args.work_req_file)
+    except:
+        pass
