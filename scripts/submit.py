@@ -68,7 +68,7 @@ def main():
             print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
             submit_work_requirement(tasks_data=tasks_data)
         except (JSONDecodeError, FileNotFoundError) as e:
-            print_log(f"Error: '{CONFIG_WR.tasks_data_file}': {e}")
+            print_log(f"Error: '{wr_json_file}': {e}")
     else:
         task_count = CONFIG_WR.task_count
         submit_work_requirement(task_count=task_count)
