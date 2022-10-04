@@ -36,12 +36,13 @@ class CLIParser:
             help="Supply the Work Requirement definition file in JSON format",
             metavar="work_requirement.json",
         )
-        # parser.add_argument(
-        #     "--worker-pool", "-p",
-        #     type=str,
-        #     required=False,
-        #     help="The Worker Pool definition file in JSON format",
-        # )
+        parser.add_argument(
+            "--worker-pool",
+            "-p",
+            type=str,
+            required=False,
+            help="The Worker Pool definition file in JSON format",
+        )
 
         self.args = parser.parse_args()
 
@@ -52,6 +53,10 @@ class CLIParser:
     @property
     def work_req_file(self) -> Optional[str]:
         return self.args.work_req
+
+    @property
+    def worker_pool_file(self) -> Optional[str]:
+        return self.args.worker_pool
 
 
 if __name__ == "__main__":

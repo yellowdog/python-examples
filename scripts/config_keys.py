@@ -57,9 +57,31 @@ MIN_NODES = "min_nodes"  # Integer
 NODE_BOOT_TIME_LIMIT = "node_boot_time_limit"  # Float
 TEMPLATE_ID = "template_id"  # String
 WORKERS_PER_NODE = "workers_per_node"  # Integer
-WORKER_POOL_SECTION = "worker_pool"  # String
+WORKER_POOL = "worker_pool"  # String
 WORKER_TAG = "worker_tag"  # String
+WP_DATA = "wp_data"
 WP_NAME = "name"  # String
+
+# Keys in Worker Pool JSON
+COMPUTE_REQUIREMENT = "compute_requirement"
+IMAGES_ID = "images_id"  # String
+USER_DATA = "user_data"  # String
+MAINTAIN_INSTANCE_COUNT = "maintain_instance_count"  # Boolean
+CREATE_NODE_WORKERS = "create_node_workers"  # List[Integer, String]
+AUTO_SHUTDOWN_CONDITIONS = "auto_shutdown_conditions"  # List
+ALL_NODES_INACTIVE = "all_nodes_inactive"  # Integer
+ALL_WORKERS_RELEASED = "all_workers_released"  # Integer
+UNCLAIMED_AFTER_STARTUP = "unclaimed_after_startup"  # Integer
+NODE_ACTION_FAILED = "node_action_failed"  # Integer
+NO_REGISTERED_WORKERS = "no-registered_workers"  # Boolean
+NODE_TYPES = "node_types"  # List
+COUNT = "count"  # Integer
+MIN = "min"  # Integer
+SOURCE_NAMES = "source_names"  # List
+SLOT_NUMBERING = "slot_numbering"  # String
+NODE_ACTION_GROUPS = "node_action_groups"  # List
+NODE_ACTION_GROUP = "node_action-group"  # Dict
+NODE_ACTIONS = "node_actions"  # List
 
 # Legacy
 BASH_SCRIPT = "bash_script"  # String
@@ -110,10 +132,11 @@ ALL_KEYS = [
     URL,
     VCPUS,
     WORKERS_PER_NODE,
-    WORKER_POOL_SECTION,
+    WORKER_POOL,
     WORKER_TAG,
     WORKER_TAGS,
     WORK_REQUIREMENT_SECTION,
+    WP_DATA,
     WP_NAME,
     WR_DATA,
     WR_NAME,

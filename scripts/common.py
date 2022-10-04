@@ -78,6 +78,7 @@ class ConfigWorkerPool:
     auto_scaling_idle_delay: Optional[float]
     node_boot_time_limit: Optional[float]
     compute_requirement_batch_size: int
+    worker_pool_data_file: Optional[str]
 
 
 def print_log(log_message: str):
@@ -215,7 +216,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
 
 def load_config_worker_pool() -> ConfigWorkerPool:
     try:
-        wp_section = CONFIG_TOML[WORKER_POOL_SECTION]
+        wp_section = CONFIG_TOML[WORKER_POOL]
         return ConfigWorkerPool(
             template_id=wp_section[TEMPLATE_ID],
             name=wp_section.get(WP_NAME, None),
@@ -233,6 +234,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             compute_requirement_batch_size=wp_section.get(
                 COMPUTE_REQUIREMENT_BATCH_SIZE, 2000
             ),
+            worker_pool_data_file=wp_section.get(WP_DATA, None),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")

@@ -7,8 +7,9 @@ Little error checking is performed.
 
 from dataclasses import dataclass
 from datetime import timedelta
+from json import JSONDecodeError, load
 from math import ceil, floor
-from typing import List
+from typing import Dict, List
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
@@ -25,6 +26,7 @@ from yellowdog_client.model import (
 )
 
 from common import (
+    ARGS_PARSER,
     ConfigCommon,
     ConfigWorkerPool,
     generate_id,
@@ -58,23 +60,38 @@ CLIENT = PlatformClient.create(
 
 
 def main():
-    """
-    The main, high-level program flow.
-    """
-    if not (
-        CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
-        and CONFIG_WP.max_nodes > 0
-    ):
-        print_log(
-            "Please ensure that MIN_NODES <= INITIAL_NODES <= MAX_NODES"
-            " and MAX_NODES >= 1"
-        )
+    wp_json_file = (
+        CONFIG_WP.worker_pool_data_file
+        if ARGS_PARSER.worker_pool_file is None
+        else ARGS_PARSER.worker_pool_file
+    )
+    if wp_json_file is not None:
+        print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
+        try:
+            with open(wp_json_file, "r") as f:
+                wp_data = load(f)
+                create_worker_pool_from_json(wp_data)
+        except (JSONDecodeError, FileNotFoundError) as e:
+            print_log(f"Error: '{wp_json_file}': {e}")
     else:
-        # Create the worker pool
-        create_worker_pool()
+        if not (
+            CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
+            and CONFIG_WP.max_nodes > 0
+        ):
+            print_log(
+                "Please ensure that MIN_NODES <= INITIAL_NODES <= MAX_NODES"
+                " and MAX_NODES >= 1"
+            )
+        else:
+            # Create the worker pool
+            create_worker_pool()
 
     # Clean up
     CLIENT.close()
+
+
+def create_worker_pool_from_json(wp_data: Dict) -> None:
+    pass
 
 
 def create_worker_pool():
