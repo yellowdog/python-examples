@@ -67,6 +67,7 @@ class ConfigWorkRequirement:
 @dataclass
 class ConfigWorkerPool:
     template_id: str
+    name: Optional[str]
     initial_nodes: int
     min_nodes: int
     max_nodes: int
@@ -205,7 +206,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
             vcpus=wr_section.get(VCPUS, None),
             worker_tags=worker_tags,
-            wr_name=wr_section.get(NAME, None),
+            wr_name=wr_section.get(WR_NAME, None),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
@@ -216,9 +217,8 @@ def load_config_worker_pool() -> ConfigWorkerPool:
     try:
         wp_section = CONFIG_TOML[WORKER_POOL_SECTION]
         return ConfigWorkerPool(
-            # Required configuration values
             template_id=wp_section[TEMPLATE_ID],
-            # Optional configuration values
+            name=wp_section.get(WP_NAME, None),
             initial_nodes=wp_section.get(INITIAL_NODES, 1),
             min_nodes=wp_section.get(MIN_NODES, 0),
             max_nodes=wp_section.get(

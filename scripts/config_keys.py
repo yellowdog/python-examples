@@ -18,7 +18,6 @@ INSTANCE_TYPES = "instance_types"  # List of Strings
 MAX_RETRIES = "max_retries"  # Integer
 MAX_WORKERS = "max_workers"  # Integer
 MIN_WORKERS = "min_workers"  # Integer
-NAME = "name"  # String
 OUTPUT_FILES = "output_files"  # List of Strings
 PRIORITY = "priority"  # Float
 PROVIDERS = "providers"  # List of Strings
@@ -31,6 +30,7 @@ TASK_TYPE = "task_type"  # String
 TASK_TYPES = "task_types"  # List of Strings
 VCPUS = "vcpus"  # List of two Floats
 WORKER_TAGS = "worker_tags"  # List of Strings
+WR_NAME = "name"  # String
 
 # Used in TOML files only for Work Requirements
 TASK_COUNT = "task_count"  # Integer
@@ -59,6 +59,7 @@ TEMPLATE_ID = "template_id"  # String
 WORKERS_PER_NODE = "workers_per_node"  # Integer
 WORKER_POOL_SECTION = "worker_pool"  # String
 WORKER_TAG = "worker_tag"  # String
+WP_NAME = "name"  # String
 
 # Legacy
 BASH_SCRIPT = "bash_script"  # String
@@ -66,53 +67,54 @@ BASH_SCRIPT = "bash_script"  # String
 ALL_KEYS = [
     ARGS,
     AUTO_FAIL,
+    AUTO_SCALING_IDLE_DELAY,
+    AUTO_SHUTDOWN,
+    AUTO_SHUTDOWN_DELAY,
+    BASH_SCRIPT,
+    COMMON_SECTION,
     COMPLETED_TASK_TTL,
+    COMPUTE_REQUIREMENT_BATCH_SIZE,
     DEPENDENT_ON,
+    DOCKER_PASSWORD,
+    DOCKER_USERNAME,
     ENV,
     EXCLUSIVE_WORKERS,
     EXECUTABLE,
     FULFIL_ON_SUBMIT,
+    IMPORT,
+    INITIAL_NODES,
     INPUT_FILES,
     INSTANCE_TYPES,
+    KEY,
+    MAX_NODES,
     MAX_RETRIES,
     MAX_WORKERS,
+    MIN_NODES,
     MIN_WORKERS,
-    NAME,
+    NAMESPACE,
+    NAME_TAG,
+    NODE_BOOT_TIME_LIMIT,
     OUTPUT_FILES,
     PRIORITY,
     PROVIDERS,
     RAM,
     REGIONS,
+    SECRET,
     TASKS,
     TASKS_PER_WORKER,
+    TASK_COUNT,
     TASK_GROUPS,
     TASK_TYPE,
     TASK_TYPES,
-    VCPUS,
-    WORKER_TAGS,
-    DOCKER_USERNAME,
-    DOCKER_PASSWORD,
-    TASK_COUNT,
-    WORK_REQUIREMENT_SECTION,
-    WR_DATA,
-    COMMON_SECTION,
-    KEY,
-    NAMESPACE,
-    NAME_TAG,
-    SECRET,
-    URL,
-    AUTO_SCALING_IDLE_DELAY,
-    AUTO_SHUTDOWN,
-    AUTO_SHUTDOWN_DELAY,
-    COMPUTE_REQUIREMENT_BATCH_SIZE,
-    IMPORT,
-    INITIAL_NODES,
-    MAX_NODES,
-    MIN_NODES,
-    NODE_BOOT_TIME_LIMIT,
     TEMPLATE_ID,
+    URL,
+    VCPUS,
     WORKERS_PER_NODE,
     WORKER_POOL_SECTION,
     WORKER_TAG,
-    BASH_SCRIPT,
+    WORKER_TAGS,
+    WORK_REQUIREMENT_SECTION,
+    WP_NAME,
+    WR_DATA,
+    WR_NAME,
 ]

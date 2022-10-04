@@ -1,8 +1,8 @@
 #!python3
 
 """
-A minimal, example script to create compute resources using the YD platform.
-No error checking is performed.
+An example script to create compute resources using the YD platform.
+Little error checking is performed.
 """
 
 from dataclasses import dataclass

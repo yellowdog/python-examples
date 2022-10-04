@@ -166,7 +166,7 @@ def submit_work_requirement(
 
         # Build the Task Group
         task_group_name = task_group_data.get(
-            NAME, "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups)))
+            WR_NAME, "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups)))
         )
         # Assemble the RunSpecification for the Task Group
         # task_types can be automatically created/augmented by the task_types
@@ -254,7 +254,7 @@ def submit_work_requirement(
         print_log(f"Generated Task Group '{task_group_name}'")
 
     # Create the Work Requirement
-    wr_name = tasks_data.get(NAME, CONFIG_WR.wr_name)
+    wr_name = tasks_data.get(WR_NAME, CONFIG_WR.wr_name)
     work_requirement = CLIENT.work_client.add_work_requirement(
         WorkRequirement(
             namespace=CONFIG_COMMON.namespace,
@@ -291,7 +291,7 @@ def submit_work_requirement(
                 task_group_data = tasks_data[TASK_GROUPS][tg_number]
                 task = tasks[task_number] if task_count is None else tasks[0]
                 task_name = task.get(
-                    NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
+                    WR_NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
                 )
                 executable = task.get(
                     EXECUTABLE,
