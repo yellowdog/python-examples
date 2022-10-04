@@ -20,6 +20,7 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
+from args import CLIParser
 from config_keys import *
 
 
@@ -113,16 +114,14 @@ def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
     return None if len(invalid_keys) == 0 else invalid_keys
 
 
-# Load the config from a TOML file.
-# Allow the optional use of a config file supplied on the command line;
-# otherwise look for the YD_CONF environment variable, else use the default
-try:
-    if sys.argv[1].lower().endswith(".toml"):
-        config_file = sys.argv[1]
-    elif sys.argv[2].lower().endswith(".toml"):
-        config_file = sys.argv[2]
-except IndexError:
-    config_file = getenv("YD_CONF", "config.toml")
+ARGS_PARSER: CLIParser = CLIParser()
+
+# CLI > YD_CONF > 'config.toml'
+config_file = (
+    getenv("YD_CONF", "config.toml")
+    if ARGS_PARSER.config_file is None
+    else ARGS_PARSER.config_file
+)
 
 print_log(f"Loading configuration data from: '{config_file}'")
 try:

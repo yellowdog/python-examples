@@ -16,9 +16,9 @@ The instructions below assume that all required files are situated in the [scrip
 
 Script operation is configured using a simple `TOML` configuration file. A [template configuration file](scripts/config.toml.template) is provided.
 
-The default name for the `TOML` configuration script is `config.toml`. To use alternative `TOML` files, simply supply the filename as the first parameter to the Python script, e.g.:
+The default name for the `TOML` configuration script is `config.toml`. To use alternative `TOML` files, simply supply the filename on the command line using the `--config` (or `-c`) option, e.g.:
 
-`./submit.py my_config.toml`
+`./submit.py --config my_config.toml` or `./submit.py -c my_config.toml`
 
 Alternatively, the name of the configuration file can be set in the environment variable `YD_CONF` and this file will be used by all the scripts.
 
