@@ -62,10 +62,10 @@ def main():
         else ARGS_PARSER.work_req_file
     )
     if wr_json_file is not None:
+        print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
         try:
             with open(wr_json_file, "r") as f:
                 tasks_data = load(f)
-            print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
             submit_work_requirement(tasks_data=tasks_data)
         except (JSONDecodeError, FileNotFoundError) as e:
             print_log(f"Error: '{wr_json_file}': {e}")
