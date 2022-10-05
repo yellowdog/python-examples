@@ -26,7 +26,7 @@ class CLIParser:
             help="Supply the configuration file in TOML format",
             metavar="config_file.toml",
         )
-        if any(module in sys.argv[0] for module in ["submit", "args"]):
+        if any(module in sys.argv[0] for module in ["submit", "args", "which_config"]):
             parser.add_argument(
                 "--work-req",
                 "-w",
