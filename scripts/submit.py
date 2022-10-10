@@ -318,6 +318,11 @@ def submit_work_requirement(
                         ),
                     )
                 ]
+                intermediate_files = [
+                    TaskInput.from_task_namespace(f"{ID}/{file}", required=True)
+                    for file in task.get(INTERMEDIATE_FILES, [])
+                ]
+                input_files += intermediate_files
                 output_files = [
                     TaskOutput.from_worker_directory(file)
                     for file in task.get(
