@@ -216,7 +216,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
 
 def load_config_worker_pool() -> ConfigWorkerPool:
     try:
-        wp_section = CONFIG_TOML[WORKER_POOL]
+        wp_section = CONFIG_TOML[WORKER_POOL_SECTION]
         return ConfigWorkerPool(
             template_id=wp_section[TEMPLATE_ID],
             name=wp_section.get(WP_NAME, None),
