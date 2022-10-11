@@ -11,6 +11,7 @@ from json import JSONDecodeError, load
 from math import ceil, floor
 from typing import Dict, List
 
+import requests
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
     AllNodesInactiveShutdownCondition,
@@ -70,6 +71,19 @@ def main():
         try:
             with open(wp_json_file, "r") as f:
                 wp_data = load(f)
+                name = generate_id("WP")
+                print_log("Overwriting the Worker Pool NAME, NAMESPACE and NAME_TAG as:")
+                print_log(
+                    f"NAME: {name} | NAMESPACE: {CONFIG_COMMON.namespace} "
+                    f"| NAME_TAG: {CONFIG_COMMON.name_tag}"
+                )
+                wp_data["requirementTemplateUsage"]["requirementName"] = name
+                wp_data["requirementTemplateUsage"][
+                    "requirementNamespace"
+                ] = CONFIG_COMMON.namespace
+                wp_data["requirementTemplateUsage"][
+                    "requirementTag"
+                ] = CONFIG_COMMON.name_tag
                 create_worker_pool_from_json(wp_data)
         except (JSONDecodeError, FileNotFoundError) as e:
             print_log(f"Error: '{wp_json_file}': {e}")
@@ -91,7 +105,20 @@ def main():
 
 
 def create_worker_pool_from_json(wp_data: Dict) -> None:
-    pass
+    """
+    Directly create the Worker Pool using the YellowDog REST API
+    """
+    response = requests.post(
+        url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+        json=wp_data,
+    )
+    wp_name = wp_data["requirementTemplateUsage"]["requirementName"]
+    if response.status_code == 200:
+        print_log(f"Provisioned Worker Pool '{wp_name}'")
+    else:
+        print_log(f"Failed to provision Worker Pool '{wp_name}'")
+        print_log(f"Error: {response.text}")
 
 
 def create_worker_pool():
