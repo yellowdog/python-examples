@@ -50,7 +50,7 @@ CLIENT = PlatformClient.create(
     ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
-ID = generate_id("WR_" + CONFIG_COMMON.name_tag)
+WR_NAME = generate_id("WR_" + CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
 INPUT_FOLDER_NAME = "INPUTS"
 
@@ -111,7 +111,7 @@ def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False)
     forward_slash = "%2F" if urlencode_forward_slash else "/"
     if urlencode_forward_slash is True:
         filename = filename.replace("/", forward_slash)
-    return ID + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
+    return WR_NAME + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
 
 
 def submit_work_requirement(
@@ -133,6 +133,13 @@ def submit_work_requirement(
     if tasks_data.get(TASK_TYPE, None) is not None:
         if tasks_data.get(TASK_TYPES, None) is None:
             tasks_data[TASK_TYPES] = [tasks_data[TASK_TYPE]]
+
+    # Overwrite the WR name?
+    try:
+        global WR_NAME
+        WR_NAME = f"WR_{CONFIG_COMMON.name_tag}__{tasks_data[NAME]}"
+    except:
+        pass
 
     num_task_groups = len(tasks_data[TASK_GROUPS])
     uploaded_files = []
@@ -254,11 +261,10 @@ def submit_work_requirement(
         print_log(f"Generated Task Group '{task_group_name}'")
 
     # Create the Work Requirement
-    wr_name = tasks_data.get(NAME, CONFIG_WR.wr_name)
     work_requirement = CLIENT.work_client.add_work_requirement(
         WorkRequirement(
             namespace=CONFIG_COMMON.namespace,
-            name=ID if wr_name is None else wr_name,
+            name=WR_NAME,
             taskGroups=task_groups,
             tag=CONFIG_COMMON.name_tag,
             priority=CONFIG_WR.priority,
@@ -319,7 +325,7 @@ def submit_work_requirement(
                     )
                 ]
                 intermediate_files = [
-                    TaskInput.from_task_namespace(f"{ID}/{file}", required=True)
+                    TaskInput.from_task_namespace(f"{WR_NAME}/{file}", required=True)
                     for file in task.get(INTERMEDIATE_FILES, [])
                 ]
                 input_files += intermediate_files
