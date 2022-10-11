@@ -9,7 +9,6 @@ from datetime import timedelta
 from json import JSONDecodeError, load
 from math import ceil
 from pathlib import Path
-from sys import argv
 from typing import Dict, List, Optional
 
 from yellowdog_client import PlatformClient
@@ -50,7 +49,7 @@ CLIENT = PlatformClient.create(
     ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
-WR_NAME = generate_id("WR_" + CONFIG_COMMON.name_tag)
+WREQ_NAME = generate_id("WR_" + CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
 INPUT_FOLDER_NAME = "INPUTS"
 
@@ -111,7 +110,7 @@ def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False)
     forward_slash = "%2F" if urlencode_forward_slash else "/"
     if urlencode_forward_slash is True:
         filename = filename.replace("/", forward_slash)
-    return WR_NAME + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
+    return WREQ_NAME + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
 
 
 def submit_work_requirement(
@@ -136,8 +135,8 @@ def submit_work_requirement(
 
     # Overwrite the WR name?
     try:
-        global WR_NAME
-        WR_NAME = f"WR_{CONFIG_COMMON.name_tag}__{tasks_data[NAME]}"
+        global WREQ_NAME
+        WREQ_NAME = f"WR_{CONFIG_COMMON.name_tag}__{tasks_data[WR_NAME]}"
     except:
         pass
 
@@ -173,7 +172,8 @@ def submit_work_requirement(
 
         # Build the Task Group
         task_group_name = task_group_data.get(
-            NAME, "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups)))
+            NAME,
+            "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups))),
         )
         # Assemble the RunSpecification for the Task Group
         # task_types can be automatically created/augmented by the task_types
@@ -264,7 +264,7 @@ def submit_work_requirement(
     work_requirement = CLIENT.work_client.add_work_requirement(
         WorkRequirement(
             namespace=CONFIG_COMMON.namespace,
-            name=WR_NAME,
+            name=WREQ_NAME,
             taskGroups=task_groups,
             tag=CONFIG_COMMON.name_tag,
             priority=CONFIG_WR.priority,
@@ -297,7 +297,7 @@ def submit_work_requirement(
                 task_group_data = tasks_data[TASK_GROUPS][tg_number]
                 task = tasks[task_number] if task_count is None else tasks[0]
                 task_name = task.get(
-                    NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
+                    WREQ_NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
                 )
                 executable = task.get(
                     EXECUTABLE,
@@ -325,7 +325,7 @@ def submit_work_requirement(
                     )
                 ]
                 intermediate_files = [
-                    TaskInput.from_task_namespace(f"{WR_NAME}/{file}", required=True)
+                    TaskInput.from_task_namespace(f"{WREQ_NAME}/{file}", required=True)
                     for file in task.get(INTERMEDIATE_FILES, [])
                 ]
                 input_files += intermediate_files

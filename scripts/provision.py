@@ -1,15 +1,17 @@
 #!python3
 
 """
-A minimal, example script to create compute resources using the YD platform.
-No error checking is performed.
+An example script to create compute resources using the YD platform.
+Little error checking is performed.
 """
 
 from dataclasses import dataclass
 from datetime import timedelta
+from json import JSONDecodeError, load
 from math import ceil, floor
-from typing import List
+from typing import Dict, List
 
+import requests
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
     AllNodesInactiveShutdownCondition,
@@ -25,6 +27,7 @@ from yellowdog_client.model import (
 )
 
 from common import (
+    ARGS_PARSER,
     ConfigCommon,
     ConfigWorkerPool,
     generate_id,
@@ -58,23 +61,66 @@ CLIENT = PlatformClient.create(
 
 
 def main():
-    """
-    The main, high-level program flow.
-    """
-    if not (
-        CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
-        and CONFIG_WP.max_nodes > 0
-    ):
-        print_log(
-            "Please ensure that MIN_NODES <= INITIAL_NODES <= MAX_NODES"
-            " and MAX_NODES >= 1"
-        )
+    wp_json_file = (
+        CONFIG_WP.worker_pool_data_file
+        if ARGS_PARSER.worker_pool_file is None
+        else ARGS_PARSER.worker_pool_file
+    )
+    if wp_json_file is not None:
+        print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
+        try:
+            with open(wp_json_file, "r") as f:
+                wp_data = load(f)
+                name = generate_id("WP")
+                print_log(
+                    "Overwriting the Worker Pool NAME, NAMESPACE and NAME_TAG as:"
+                )
+                print_log(
+                    f"NAME: {name} | NAMESPACE: {CONFIG_COMMON.namespace} "
+                    f"| NAME_TAG: {CONFIG_COMMON.name_tag}"
+                )
+                wp_data["requirementTemplateUsage"]["requirementName"] = name
+                wp_data["requirementTemplateUsage"][
+                    "requirementNamespace"
+                ] = CONFIG_COMMON.namespace
+                wp_data["requirementTemplateUsage"][
+                    "requirementTag"
+                ] = CONFIG_COMMON.name_tag
+                create_worker_pool_from_json(wp_data)
+        except (JSONDecodeError, FileNotFoundError) as e:
+            print_log(f"Error: '{wp_json_file}': {e}")
     else:
-        # Create the worker pool
-        create_worker_pool()
+        if not (
+            CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
+            and CONFIG_WP.max_nodes > 0
+        ):
+            print_log(
+                "Please ensure that MIN_NODES <= INITIAL_NODES <= MAX_NODES"
+                " and MAX_NODES >= 1"
+            )
+        else:
+            # Create the worker pool
+            create_worker_pool()
 
     # Clean up
     CLIENT.close()
+
+
+def create_worker_pool_from_json(wp_data: Dict) -> None:
+    """
+    Directly create the Worker Pool using the YellowDog REST API
+    """
+    response = requests.post(
+        url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+        json=wp_data,
+    )
+    wp_name = wp_data["requirementTemplateUsage"]["requirementName"]
+    if response.status_code == 200:
+        print_log(f"Provisioned Worker Pool '{wp_name}'")
+    else:
+        print_log(f"Failed to provision Worker Pool '{wp_name}'")
+        print_log(f"Error: {response.text}")
 
 
 def create_worker_pool():
