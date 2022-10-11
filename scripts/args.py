@@ -64,3 +64,4 @@ if __name__ == "__main__":
     args = CLIParser()
     print("config file =", args.config_file)
     print("work requirement file =", args.work_req_file)
+    print("worker_pool_file =", args.worker_pool_file)

@@ -144,3 +144,10 @@
     # Optional
     # --------------------------------------------------------------------------
     # node_boot_time_limit = 10
+
+    # Name of a JSON file containing the full description of a Worker Pool
+    # The specification will overwrite all values in this file except for
+    # the namespace and name_tag.
+    # Optional
+    # --------------------------------------------------------------------------
+    # wp_data = "my_worker_pool.json"
