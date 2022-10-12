@@ -169,9 +169,15 @@ def import_toml(filename: str) -> Dict:
         exit(1)
 
 
-def load_config_work_requirement() -> ConfigWorkRequirement:
+def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
+    """
+    Load the configuration data for a Work Requirement
+    """
     try:
         wr_section = CONFIG_TOML[WORK_REQUIREMENT_SECTION]
+    except KeyError:
+        return None
+    try:
         worker_tags = wr_section.get(WORKER_TAGS, None)
         # Allow WORKER_TAG if WORKER_TAGS is empty
         if worker_tags is None:
@@ -213,9 +219,15 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         exit(0)
 
 
-def load_config_worker_pool() -> ConfigWorkerPool:
+def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
+    """
+    Load the configuration data for a Worker Pool
+    """
     try:
         wp_section = CONFIG_TOML[WORKER_POOL_SECTION]
+    except KeyError:
+        return None
+    try:
         return ConfigWorkerPool(
             template_id=wp_section.get(TEMPLATE_ID, None),
             name=wp_section.get(WP_NAME, None),

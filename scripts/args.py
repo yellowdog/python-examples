@@ -18,6 +18,7 @@ class CLIParser:
         """
 
         parser = argparse.ArgumentParser()
+
         parser.add_argument(
             "--config",
             "-c",

@@ -50,9 +50,6 @@ class WPBatch:
 CONFIG_COMMON: ConfigCommon = load_config_common()
 CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
 
-# The maximum number of nodes in an individual compute requirement
-MAX_CR_BATCH_SIZE = CONFIG_WP.compute_requirement_batch_size
-
 # Initialise the client
 CLIENT = PlatformClient.create(
     ServicesSchema(defaultUrl=CONFIG_COMMON.url),
@@ -157,7 +154,7 @@ def create_worker_pool():
         f"MAX_NODES: {CONFIG_WP.max_nodes:,d})"
     )
     batches: List[WPBatch] = _allocate_nodes_to_batches(
-        MAX_CR_BATCH_SIZE,
+        CONFIG_WP.compute_requirement_batch_size,
         CONFIG_WP.initial_nodes,
         CONFIG_WP.min_nodes,
         CONFIG_WP.max_nodes,
