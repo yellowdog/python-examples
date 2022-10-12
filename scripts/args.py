@@ -47,7 +47,7 @@ class CLIParser:
                 type=str,
                 required=False,
                 help="The Worker Pool definition file in JSON format",
-                metavar="WORKER_POOL.json"
+                metavar="WORKER_POOL.json",
             )
 
         self.args = parser.parse_args()

@@ -91,10 +91,12 @@ def upload_file(filename: str):
     session.start()
     # Wait for upload to complete
     session = session.when_status_matches(lambda status: status.is_finished()).result()
-    uploaded_pathname = unique_upload_pathname(filename, urlencode_forward_slash=True)
     if session.status != FileTransferStatus.Completed:
         print_log(f"Failed to upload file: {filename}")
     else:
+        uploaded_pathname = unique_upload_pathname(
+            filename, urlencode_forward_slash=True
+        )
         link_ = link(
             CONFIG_COMMON.url,
             f"#/objects/{CONFIG_COMMON.namespace}/{uploaded_pathname}?object=true",
@@ -144,7 +146,7 @@ def submit_work_requirement(
     uploaded_files = []
     task_groups: List[TaskGroup] = []
     for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
-        # Remap 'task_type' to 'task_types' in Task Groups if 'task_types is empty
+        # Remap 'task_type' to 'task_types' in Task Groups if 'task_types' is empty
         if task_group_data.get(TASK_TYPE, None) is not None:
             if task_group_data.get(TASK_TYPES, None) is None:
                 task_group_data[TASK_TYPES] = [task_group_data[TASK_TYPE]]
