@@ -98,7 +98,7 @@ When the Task is complete, the console output `taskoutput.txt` will be available
 
 The agent determines whether a Task has succeeded using the exit code from what it runs. In this case that's the exit code from running the Bash script.
 
-**Bash Script Arguments and Environment**
+#### Bash Script Arguments and Environment
 
 The Bash script or Docker container can optionally be supplied with command line arguments and environment variables using the `args` and `env` fields in `config.toml`, e.g.:
 ```toml
@@ -106,11 +106,11 @@ args = ["foo", "bar=5"]
 env = {E1 = "one", E2 = "two"}
 ```
 
-**Multiple Task Executions using Identical `args` and `env` for all Tasks**
+#### Multiple Task Executions using Identical `args` and `env` for all Tasks
 
 It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `task_count` property in the `config.toml` file.
 
-**Multiple Task Executions using Varying `args` and `env` for each Task**
+#### Multiple Task Executions using Varying `args` and `env` for each Task
 
 To run multiple Tasks with different settings for each Task, the `args` and `env` properties can be set in a JSON file, as shown in the following example:
 
