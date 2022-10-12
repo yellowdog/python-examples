@@ -30,7 +30,7 @@ class CLIParser:
         if any(module in sys.argv[0] for module in ["submit", "args", "which_config"]):
             parser.add_argument(
                 "--work-req",
-                "-w",
+                "-r",
                 type=str,
                 required=False,
                 help="Supply the Work Requirement definition file in JSON format",
