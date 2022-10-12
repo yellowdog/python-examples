@@ -23,28 +23,30 @@ class CLIParser:
             "-c",
             required=False,
             type=str,
-            help="Supply the configuration file in TOML format",
-            metavar="config_file.toml",
+            help="The configuration file in TOML format",
+            metavar="CONFIG_FILE.toml",
         )
 
-        if any(module in sys.argv[0] for module in ["submit", "args", "which_config"]):
+        all_options_modules = ["args", "which_config"]
+
+        if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
             parser.add_argument(
                 "--work-req",
                 "-r",
                 type=str,
                 required=False,
-                help="Supply the Work Requirement definition file in JSON format",
-                metavar="work_requirement.json",
+                help="The Work Requirement definition file in JSON format",
+                metavar="WORK_REQUIREMENT.json",
             )
-        if any(
-            module in sys.argv[0] for module in ["provision", "args", "which_config"]
-        ):
+
+        if any(module in sys.argv[0] for module in ["provision"] + all_options_modules):
             parser.add_argument(
                 "--worker-pool",
                 "-p",
                 type=str,
                 required=False,
                 help="The Worker Pool definition file in JSON format",
+                metavar="WORKER_POOL.json"
             )
 
         self.args = parser.parse_args()
@@ -65,15 +67,6 @@ class CLIParser:
 if __name__ == "__main__":
     # Standalone testing
     args = CLIParser()
-    try:
-        print("config file =", args.config_file)
-    except:
-        pass
-    try:
-        print("work requirement file =", args.work_req_file)
-    except:
-        pass
-    try:
-        print("worker pool file =", args.worker_pool_file)
-    except:
-        pass
+    print("config file =", args.config_file)
+    print("work requirement file =", args.work_req_file)
+    print("worker pool file =", args.worker_pool_file)
