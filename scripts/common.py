@@ -65,7 +65,7 @@ class ConfigWorkRequirement:
 
 @dataclass
 class ConfigWorkerPool:
-    template_id: str
+    template_id: Optional[str]
     name: Optional[str]
     initial_nodes: int
     min_nodes: int
@@ -217,7 +217,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
     try:
         wp_section = CONFIG_TOML[WORKER_POOL_SECTION]
         return ConfigWorkerPool(
-            template_id=wp_section[TEMPLATE_ID],
+            template_id=wp_section.get(TEMPLATE_ID, None),
             name=wp_section.get(WP_NAME, None),
             initial_nodes=wp_section.get(INITIAL_NODES, 1),
             min_nodes=wp_section.get(MIN_NODES, 0),
