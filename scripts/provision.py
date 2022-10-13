@@ -71,9 +71,7 @@ def main():
                 name = generate_id("WP")
                 print_log(
                     "Overwriting the Worker Pool NAME, NAMESPACE and NAME_TAG as:"
-                )
-                print_log(
-                    f"NAME: {name} | NAMESPACE: {CONFIG_COMMON.namespace} "
+                    f" NAME: {name} | NAMESPACE: {CONFIG_COMMON.namespace} "
                     f"| NAME_TAG: {CONFIG_COMMON.name_tag}"
                 )
                 wp_data["requirementTemplateUsage"]["requirementName"] = name
