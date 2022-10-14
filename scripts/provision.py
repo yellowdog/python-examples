@@ -11,7 +11,7 @@ from json import JSONDecodeError, load
 from math import ceil, floor
 from typing import Dict, List
 
-import requests
+from requests import post as requests_post
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
     AllNodesInactiveShutdownCondition,
@@ -65,56 +65,48 @@ def main():
     )
     if wp_json_file is not None:
         print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
-        try:
-            with open(wp_json_file, "r") as f:
-                wp_data = load(f)
-                name = generate_id("WP")
-                print_log(
-                    "Overwriting the Worker Pool NAME, NAMESPACE and NAME_TAG as:"
-                    f" NAME: {name} | NAMESPACE: {CONFIG_COMMON.namespace} "
-                    f"| NAME_TAG: {CONFIG_COMMON.name_tag}"
-                )
-                wp_data["requirementTemplateUsage"]["requirementName"] = name
-                wp_data["requirementTemplateUsage"][
-                    "requirementNamespace"
-                ] = CONFIG_COMMON.namespace
-                wp_data["requirementTemplateUsage"][
-                    "requirementTag"
-                ] = CONFIG_COMMON.name_tag
-                create_worker_pool_from_json(wp_data)
-        except (JSONDecodeError, FileNotFoundError) as e:
-            print_log(f"Error: '{wp_json_file}': {e}")
+        create_worker_pool_from_json(wp_json_file)
     else:
-        if not (
-            CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
-            and CONFIG_WP.max_nodes > 0
-        ):
-            print_log(
-                "Please ensure that MIN_NODES <= INITIAL_NODES <= MAX_NODES"
-                " and MAX_NODES >= 1"
-            )
-        else:
-            # Create the worker pool
-            create_worker_pool()
+        create_worker_pool()
 
     # Clean up
     CLIENT.close()
 
 
-def create_worker_pool_from_json(wp_data: Dict) -> None:
+def create_worker_pool_from_json(wp_json_file: str) -> None:
     """
     Directly create the Worker Pool using the YellowDog REST API
     """
-    response = requests.post(
+    # Load the JSON data
+    try:
+        with open(wp_json_file, "r") as f:
+            wp_data = load(f)
+    except (JSONDecodeError, FileNotFoundError) as e:
+        print_log(f"Error: '{wp_json_file}': {e}")
+        return
+
+    # Insert (or overwrite) top-level values
+    name = generate_id("WP")
+    print_log(
+        f"Applying Worker Pool NAME: '{name}', "
+        f"NAMESPACE: '{CONFIG_COMMON.namespace}', "
+        f"and NAME_TAG: '{CONFIG_COMMON.name_tag}'"
+    )
+    reqt_template_usage: Dict = wp_data["requirementTemplateUsage"]
+    reqt_template_usage["requirementName"] = name
+    reqt_template_usage["requirementNamespace"] = CONFIG_COMMON.namespace
+    reqt_template_usage["requirementTag"] = CONFIG_COMMON.name_tag
+
+    response = requests_post(
         url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
         headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
         json=wp_data,
     )
-    wp_name = wp_data["requirementTemplateUsage"]["requirementName"]
+
     if response.status_code == 200:
-        print_log(f"Provisioned Worker Pool '{wp_name}'")
+        print_log(f"Provisioned Worker Pool '{name}'")
     else:
-        print_log(f"Failed to provision Worker Pool '{wp_name}'")
+        print_log(f"Failed to provision Worker Pool '{name}'")
         print_log(f"Error: {response.text}")
 
 
@@ -122,6 +114,17 @@ def create_worker_pool():
     """
     Create the Worker Pool
     """
+    # Check for well-configured node quantities
+    if not (
+            CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
+            and CONFIG_WP.max_nodes > 0
+    ):
+        print_log(
+            "Please ensure that MIN_NODES <= INITIAL_NODES <= MAX_NODES"
+            " and MAX_NODES >= 1"
+        )
+        return
+
     # Set the Worker Pool auto-shutdown conditions
     if CONFIG_WP.auto_shutdown:
         shutdown_delay = timedelta(minutes=CONFIG_WP.auto_shutdown_delay)
@@ -144,6 +147,7 @@ def create_worker_pool():
         if CONFIG_WP.node_boot_time_limit is None
         else timedelta(minutes=CONFIG_WP.node_boot_time_limit)
     )
+
     # Create the Worker Pool
     print_log(
         f"Provisioning {CONFIG_WP.initial_nodes:,d} node(s) "
