@@ -1,12 +1,7 @@
 """
-Configuration keys
+Configuration key strings
 """
 
-# Used in TOML and JSON files for Work Requirements
-
-# Common Section
-# Used in TOML files only for Work Requirements
-# Worker Pool Section
 ARGS = "args"  # List
 AUTO_FAIL = "auto_fail"  # Boolean
 AUTO_SCALING_IDLE_DELAY = "auto_scaling_idle_delay"  # Float
