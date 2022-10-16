@@ -2,7 +2,6 @@
 
 """
 An example script to create compute resources using the YD platform.
-Little error checking is performed.
 """
 
 from dataclasses import dataclass
@@ -85,17 +84,27 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         print_log(f"Error: '{wp_json_file}': {e}")
         return
 
-    # Insert (or overwrite) top-level values
-    name = generate_id("WP")
-    print_log(
-        f"Applying Worker Pool NAME: '{name}', "
-        f"NAMESPACE: '{CONFIG_COMMON.namespace}', "
-        f"and NAME_TAG: '{CONFIG_COMMON.name_tag}'"
-    )
-    reqt_template_usage: Dict = wp_data["requirementTemplateUsage"]
-    reqt_template_usage["requirementName"] = name
-    reqt_template_usage["requirementNamespace"] = CONFIG_COMMON.namespace
-    reqt_template_usage["requirementTag"] = CONFIG_COMMON.name_tag
+    # Some values are configurable via the TOML configuration file;
+    # values in the JSON file override values in the TOML file
+    try:
+        reqt_template_usage: Dict = wp_data["requirementTemplateUsage"]
+        for key, value in [
+            ("requirementName", generate_id("WP")),  # Generate a default name
+            ("requirementNamespace", CONFIG_COMMON.namespace),
+            ("requirementTag", CONFIG_COMMON.name_tag),
+            ("templateId", CONFIG_WP.template_id),
+        ]:
+            if reqt_template_usage.get(key) is None:
+                print_log(f"Setting 'requirementTemplateUsage.{key}': '{value}'")
+                reqt_template_usage[key] = value
+        if wp_data["provisionedProperties"].get("workerTag") is None:
+            print_log(
+                f"Setting 'provisionedProperties.workerTag': '{CONFIG_WP.worker_tag}'"
+            )
+            wp_data["provisionedProperties"]["workerTag"] = CONFIG_WP.worker_tag
+    except KeyError as e:
+        print_log(f"Missing key error in JSON Worker Pool definition: {e}")
+        return
 
     response = requests_post(
         url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
@@ -116,8 +125,8 @@ def create_worker_pool():
     """
     # Check for well-configured node quantities
     if not (
-            CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
-            and CONFIG_WP.max_nodes > 0
+        CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
+        and CONFIG_WP.max_nodes > 0
     ):
         print_log(
             "Please ensure that MIN_NODES <= INITIAL_NODES <= MAX_NODES"
