@@ -3,7 +3,7 @@ Common utility functions
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from os import getenv
 from typing import Dict, List, Optional
@@ -34,33 +34,33 @@ class ConfigCommon:
 
 @dataclass
 class ConfigWorkRequirement:
-    worker_tags: Optional[List[str]]
-    task_type: str
-    bash_script: Optional[str]
-    executable: Optional[str]
-    args: List[str]
-    env: Dict
-    tasks_data_file: Optional[str]
-    input_files: List[str]
-    output_files: List[str]
-    max_retries: int
-    task_count: int
-    exclusive_workers: Optional[bool]
-    docker_username: Optional[str]
-    docker_password: Optional[str]
-    instance_types: Optional[List[str]]
-    vcpus: Optional[List[float]]
-    ram: Optional[List[float]]
-    min_workers: Optional[int]
-    max_workers: Optional[int]
-    tasks_per_worker: Optional[int]
-    providers: Optional[List[str]]
-    regions: Optional[List[str]]
-    priority: float
-    fulfil_on_submit: bool
-    completed_task_ttl: Optional[float]  # In minutes
-    auto_fail: bool
-    wr_name: Optional[str]
+    args: List[str] = field(default_factory=list)
+    auto_fail: bool = True
+    bash_script: Optional[str] = None
+    completed_task_ttl: Optional[float] = None  # In minutes
+    docker_password: Optional[str] = None
+    docker_username: Optional[str] = None
+    env: Dict = field(default_factory=dict)
+    exclusive_workers: Optional[bool] = None
+    executable: Optional[str] = None
+    fulfil_on_submit: bool = False
+    input_files: List[str] = field(default_factory=list)
+    instance_types: Optional[List[str]] = None
+    max_retries: int = 0
+    max_workers: Optional[int] = None
+    min_workers: Optional[int] = None
+    output_files: List[str] = field(default_factory=list)
+    priority: float = 0.0
+    providers: Optional[List[str]] = None
+    ram: Optional[List[float]] = None
+    regions: Optional[List[str]] = None
+    task_count: int = 1
+    task_type: str = "bash"
+    tasks_data_file: Optional[str] = None
+    tasks_per_worker: Optional[int] = None
+    vcpus: Optional[List[float]] = None
+    worker_tags: Optional[List[str]] = None
+    wr_name: Optional[str] = None
 
 
 @dataclass
@@ -176,7 +176,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
     try:
         wr_section = CONFIG_TOML[WORK_REQUIREMENT_SECTION]
     except KeyError:
-        return None
+        return ConfigWorkRequirement()
     try:
         worker_tags = wr_section.get(WORKER_TAGS, None)
         # Allow WORKER_TAG if WORKER_TAGS is empty
