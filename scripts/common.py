@@ -63,21 +63,24 @@ class ConfigWorkRequirement:
     wr_name: Optional[str] = None
 
 
+CR_BATCH_SIZE = 2000
+
+
 @dataclass
 class ConfigWorkerPool:
-    template_id: Optional[str]
-    name: Optional[str]
-    initial_nodes: int
-    min_nodes: int
-    max_nodes: int
-    worker_tag: Optional[str]
-    workers_per_node: int
-    auto_shutdown: bool
-    auto_shutdown_delay: float
-    auto_scaling_idle_delay: Optional[float]
-    node_boot_time_limit: Optional[float]
-    compute_requirement_batch_size: int
-    worker_pool_data_file: Optional[str]
+    auto_scaling_idle_delay: float = 10
+    auto_shutdown: bool = True
+    auto_shutdown_delay: float = 10
+    compute_requirement_batch_size: int = CR_BATCH_SIZE
+    initial_nodes: int = 0
+    max_nodes: int = 0
+    min_nodes: int = 0
+    name: Optional[str] = None
+    node_boot_time_limit: float = 10
+    template_id: Optional[str] = None
+    worker_pool_data_file: Optional[str] = None
+    worker_tag: Optional[str] = None
+    workers_per_node: int = 1
 
 
 def print_log(log_message: str):
@@ -226,26 +229,26 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     try:
         wp_section = CONFIG_TOML[WORKER_POOL_SECTION]
     except KeyError:
-        return None
+        return ConfigWorkerPool()
     try:
         return ConfigWorkerPool(
-            template_id=wp_section.get(TEMPLATE_ID, None),
-            name=wp_section.get(WP_NAME, None),
+            auto_scaling_idle_delay=wp_section.get(AUTO_SCALING_IDLE_DELAY, 10),
+            auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
+            auto_shutdown_delay=wp_section.get(AUTO_SHUTDOWN_DELAY, 10),
+            compute_requirement_batch_size=wp_section.get(
+                COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE
+            ),
             initial_nodes=wp_section.get(INITIAL_NODES, 1),
-            min_nodes=wp_section.get(MIN_NODES, 0),
             max_nodes=wp_section.get(
                 MAX_NODES, max(1, wp_section.get(INITIAL_NODES, 1))
             ),
+            min_nodes=wp_section.get(MIN_NODES, 0),
+            name=wp_section.get(WP_NAME, None),
+            node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
+            template_id=wp_section.get(TEMPLATE_ID, None),
+            worker_pool_data_file=wp_section.get(WP_DATA, None),
             worker_tag=wp_section.get(WORKER_TAG, None),
             workers_per_node=wp_section.get(WORKERS_PER_NODE, 1),
-            auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
-            auto_shutdown_delay=wp_section.get(AUTO_SHUTDOWN_DELAY, 10),
-            auto_scaling_idle_delay=wp_section.get(AUTO_SCALING_IDLE_DELAY, 10),
-            node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
-            compute_requirement_batch_size=wp_section.get(
-                COMPUTE_REQUIREMENT_BATCH_SIZE, 2000
-            ),
-            worker_pool_data_file=wp_section.get(WP_DATA, None),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
