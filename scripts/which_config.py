@@ -1,7 +1,8 @@
 #!python3
 
 """
-Simple script to read in and report the TOML config. file that wil be used.
+Simple script to read in and report the TOML configuration file that
+will be used.
 """
 
 from common import (

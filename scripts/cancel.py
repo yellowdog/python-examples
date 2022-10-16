@@ -1,8 +1,7 @@
 #!python3
 
 """
-A minimal, example script to cancel Work Requirements. No error-checking
-is performed.
+An example script to cancel Work Requirements.
 """
 
 from typing import List

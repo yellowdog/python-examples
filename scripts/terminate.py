@@ -1,8 +1,7 @@
 #!python3
 
 """
-A minimal, example script to terminate Compute Requirements. No error-checking
-is performed.
+An example script to terminate Compute Requirements.
 """
 
 from typing import List

@@ -1,8 +1,7 @@
 #!python3
 
 """
-A minimal, example script to delete YDOS objects. No error-checking is
-performed.
+An example script to delete YellowDog Object Store items.
 """
 
 from typing import List
