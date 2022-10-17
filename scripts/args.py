@@ -11,12 +11,10 @@ from typing import Optional
 
 class CLIParser:
     def __init__(self):
-
         """
         Create the argument parser, and parse the command
         line arguments.
         """
-
         parser = argparse.ArgumentParser()
 
         parser.add_argument(
@@ -24,7 +22,7 @@ class CLIParser:
             "-c",
             required=False,
             type=str,
-            help="The configuration file in TOML format",
+            help="script configuration file in TOML format (default is 'config.toml')",
             metavar="CONFIG_FILE.toml",
         )
 
@@ -36,8 +34,15 @@ class CLIParser:
                 "-r",
                 type=str,
                 required=False,
-                help="The Work Requirement definition file in JSON format",
+                help="work requirement definition file in JSON format",
                 metavar="WORK_REQUIREMENT.json",
+            )
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help="follow the work requirement's progress to completion",
             )
 
         if any(module in sys.argv[0] for module in ["provision"] + all_options_modules):
@@ -46,7 +51,7 @@ class CLIParser:
                 "-p",
                 type=str,
                 required=False,
-                help="The Worker Pool definition file in JSON format",
+                help="worker pool definition file in JSON format",
                 metavar="WORKER_POOL.json",
             )
 
@@ -64,6 +69,10 @@ class CLIParser:
     def worker_pool_file(self) -> Optional[str]:
         return self.args.worker_pool
 
+    @property
+    def follow(self) -> Optional[bool]:
+        return self.args.follow
+
 
 if __name__ == "__main__":
     # Standalone testing
@@ -71,3 +80,4 @@ if __name__ == "__main__":
     print("config file =", args.config_file)
     print("work requirement file =", args.work_req_file)
     print("worker pool file =", args.worker_pool_file)
+    print("follow =", args.follow)

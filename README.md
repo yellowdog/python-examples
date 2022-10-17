@@ -96,6 +96,8 @@ The submitted Work Requirement will appear in the **Work** tab of the YellowDog 
 
 When the Task is complete, the console output `taskoutput.txt` will be available in the `Objects` section of the Portal, in a folder within the specified Namespace.
 
+The `submit.py` script can be supplied with the `--follow` or `-f` flag, which follows the progress of the Work Requirement to completion, reporting on its progress as it runs.
+
 The agent determines whether a Task has succeeded using the exit code from what it runs. In this case that's the exit code from running the Bash script.
 
 #### Bash Script Arguments and Environment

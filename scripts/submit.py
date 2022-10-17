@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from yellowdog_client import PlatformClient
+from yellowdog_client.common.server_sent_events import (
+    DelegatedSubscriptionEventListener,
+)
 from yellowdog_client.model import (
     ApiKey,
     CloudProvider,
@@ -21,7 +24,9 @@ from yellowdog_client.model import (
     TaskGroup,
     TaskInput,
     TaskOutput,
+    TaskStatus,
     WorkRequirement,
+    WorkRequirementStatus,
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
@@ -381,6 +386,9 @@ def submit_work_requirement(
             f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'"
         )
 
+    if ARGS_PARSER.follow:
+        follow_progress(work_requirement)
+
 
 def create_task(
     tasks_data: Dict,
@@ -451,6 +459,33 @@ def create_task(
         inputs=inputs,
         environment=env,
         outputs=outputs,
+    )
+
+
+def follow_progress(work_requirement: WorkRequirement) -> None:
+    """
+    Follow and report the progress of a Work Requirement
+    """
+    listener = DelegatedSubscriptionEventListener(on_update)
+    CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
+    work_requirement = (
+        CLIENT.work_client.get_work_requirement_helper(work_requirement)
+        .when_requirement_matches(lambda wr: wr.status.is_finished())
+        .result()
+    )
+    if work_requirement.status != WorkRequirementStatus.COMPLETED:
+        print_log(f"Work Requirement did not complete: {work_requirement.status}")
+
+
+def on_update(work_req: WorkRequirement):
+    completed = 0
+    total = 0
+    for task_group in work_req.taskGroups:
+        completed += task_group.taskSummary.statusCounts[TaskStatus.COMPLETED]
+        total += task_group.taskSummary.taskCount
+    print_log(
+        f"WORK REQUIREMENT is {work_req.status} with {completed}/{total} "
+        f"COMPLETED TASKS"
     )
 
 
