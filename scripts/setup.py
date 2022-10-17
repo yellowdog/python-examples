@@ -32,6 +32,7 @@ setuptools.setup(
         "shutdown",
         "submit",
         "terminate",
+        "version",
         "which_config",
     ],
     classifiers=[
@@ -51,6 +52,7 @@ setuptools.setup(
             "yd-shutdown=shutdown:main",
             "yd-submit=submit:main",
             "yd-terminate=terminate:main",
+            "yd-version=version:main",
             "yd-which-config=which_config:main",
         ]
     },
