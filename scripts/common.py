@@ -5,11 +5,13 @@ Common utility functions
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
+from getpass import getuser
 from os import getenv
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from uuid import uuid4
 
+from chevron import render as chevron_render
 from toml import TomlDecodeError
 from toml import load as toml_load
 from yellowdog_client.model import (
@@ -118,6 +120,19 @@ def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
     return None if len(invalid_keys) == 0 else invalid_keys
 
 
+MUSTACHE_SUBSTITUTIONS = {
+    "username": getuser().replace(" ", "_"),
+    "date": datetime.utcnow().strftime("%y%m%d"),
+}
+
+
+def mustache_substitution(input_string: str) -> str:
+    """
+    Apply Mustache substitutions
+    """
+    return chevron_render(input_string, MUSTACHE_SUBSTITUTIONS)
+
+
 ARGS_PARSER: CLIParser = CLIParser()
 
 # CLI > YD_CONF > 'config.toml'
@@ -151,8 +166,8 @@ def load_config_common() -> ConfigCommon:
             # Required configuration values
             key=common_section[KEY],
             secret=common_section[SECRET],
-            namespace=common_section[NAMESPACE],
-            name_tag=common_section[NAME_TAG],
+            namespace=mustache_substitution(common_section[NAMESPACE]),
+            name_tag=mustache_substitution(common_section[NAME_TAG]),
             # Optional configuration values
             url=common_section.get(URL, "https://portal.yellowdog.co/api"),
         )
@@ -188,6 +203,9 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
                 worker_tags = [wr_section[WORKER_TAG]]
             except KeyError:
                 pass
+        if worker_tags is not None:
+            for index, worker_tag in enumerate(worker_tags):
+                worker_tags[index] = mustache_substitution(worker_tag)
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),
             auto_fail=wr_section.get(AUTO_FAIL, True),
@@ -231,6 +249,9 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     except KeyError:
         return ConfigWorkerPool()
     try:
+        worker_tag = wp_section.get(WORKER_TAG, None)
+        if worker_tag is not None:
+            worker_tag = mustache_substitution(worker_tag)
         return ConfigWorkerPool(
             auto_scaling_idle_delay=wp_section.get(AUTO_SCALING_IDLE_DELAY, 10),
             auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
@@ -247,7 +268,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
             template_id=wp_section.get(TEMPLATE_ID, None),
             worker_pool_data_file=wp_section.get(WP_DATA, None),
-            worker_tag=wp_section.get(WORKER_TAG, None),
+            worker_tag=worker_tag,
             workers_per_node=wp_section.get(WORKERS_PER_NODE, 1),
         )
     except KeyError as e:
