@@ -65,6 +65,8 @@ def main():
     if wp_json_file is not None:
         print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
         create_worker_pool_from_json(wp_json_file)
+    elif CONFIG_WP.template_id is None:
+        print_log("Error: No template_id supplied")
     else:
         create_worker_pool()
 

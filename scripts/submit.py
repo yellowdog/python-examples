@@ -72,6 +72,8 @@ def main():
             submit_work_requirement(tasks_data=tasks_data)
         except (JSONDecodeError, FileNotFoundError) as e:
             print_log(f"Error: '{wr_json_file}': {e}")
+    elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
+        print_log("Error: no work requirement (executable) defined")
     else:
         task_count = CONFIG_WR.task_count
         submit_work_requirement(task_count=task_count)
