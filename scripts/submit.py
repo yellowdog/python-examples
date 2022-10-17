@@ -468,16 +468,23 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     """
     listener = DelegatedSubscriptionEventListener(on_update)
     CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
-    work_requirement = (
-        CLIENT.work_client.get_work_requirement_helper(work_requirement)
-        .when_requirement_matches(lambda wr: wr.status.is_finished())
-        .result()
-    )
+    try:
+        work_requirement = (
+            CLIENT.work_client.get_work_requirement_helper(work_requirement)
+            .when_requirement_matches(lambda wr: wr.status.is_finished())
+            .result()
+        )
+    except (KeyboardInterrupt, Exception) as e:
+        print_log(f"Exiting {e}")
+        return
     if work_requirement.status != WorkRequirementStatus.COMPLETED:
         print_log(f"Work Requirement did not complete: {work_requirement.status}")
 
 
 def on_update(work_req: WorkRequirement):
+    """
+    Print status messages on Work Requirement update
+    """
     completed = 0
     total = 0
     for task_group in work_req.taskGroups:
