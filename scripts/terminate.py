@@ -1,4 +1,4 @@
-#!python3
+#!/usr/bin/env python3
 
 """
 An example script to terminate Compute Requirements.
