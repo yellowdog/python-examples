@@ -1,7 +1,7 @@
 #!python3
 
 """
-An example script to submit Work Requirements.
+An example script to submit a Work Requirement.
 """
 
 from datetime import timedelta

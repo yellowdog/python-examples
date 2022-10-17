@@ -1,8 +1,7 @@
 #!python3
 
 """
-A minimal, example script to shut down Worker Pools. No error-checking
-is performed.
+An example script to shut down Provisioned Worker Pools.
 """
 
 from typing import List

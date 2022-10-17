@@ -1,7 +1,7 @@
 #!python3
 
 """
-An example script to download YellowDog Object Store objects to local storage.
+An example script to download YellowDog Object Store objects.
 """
 
 from concurrent import futures

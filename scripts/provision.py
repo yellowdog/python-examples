@@ -1,7 +1,7 @@
 #!python3
 
 """
-An example script to create compute resources using the YD platform.
+An example script to Provision a Worker Pool.
 """
 
 from dataclasses import dataclass
