@@ -132,8 +132,8 @@ def create_worker_pool():
         and CONFIG_WP.max_nodes > 0
     ):
         print_log(
-            "Please ensure that MIN_NODES <= INITIAL_NODES <= MAX_NODES"
-            " and MAX_NODES >= 1"
+            "Please ensure that minNodes <= targetInstanceCount <= maxNodes"
+            " and maxNodes >= 1"
         )
         return
 
@@ -164,8 +164,8 @@ def create_worker_pool():
     print_log(
         f"Provisioning {CONFIG_WP.initial_nodes:,d} node(s) "
         f"with {CONFIG_WP.workers_per_node:,d} worker(s) per node "
-        f"(MIN_NODES: {CONFIG_WP.min_nodes:,d}, "
-        f"MAX_NODES: {CONFIG_WP.max_nodes:,d})"
+        f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
+        f"maxNodes: {CONFIG_WP.max_nodes:,d})"
     )
     batches: List[WPBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
@@ -182,8 +182,8 @@ def create_worker_pool():
             print_log(
                 f"Creating Worker Pool {batch_number + 1} "
                 f"with {batches[batch_number].initial_nodes:,d} nodes(s) "
-                f"(MIN_NODES: {batches[batch_number].min_nodes:,d}, "
-                f"MAX_NODES: {batches[batch_number].max_nodes:,d})"
+                f"(minNodes: {batches[batch_number].min_nodes:,d}, "
+                f"maxNodes: {batches[batch_number].max_nodes:,d})"
             )
         try:
             worker_pool = CLIENT.worker_pool_client.provision_worker_pool(

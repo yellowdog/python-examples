@@ -1,16 +1,15 @@
 #
 # A template for creating TOML configuration files for the YellowDog Python
-# script examples. TOML key names are case insensitive, but lower case is the
-# default.
+# script examples. TOML key names are case sensitive.
 #
 
 [common]  ######################################################################
 
-    # YellowDog Application Key and Secret
+    # YellowDog Application key and secret
     # Required
     # --------------------------------------------------------------------------
-    key = "<INSERT Key HERE>"
-    secret = "<INSERT Secret HERE>"
+    key = "<INSERT-KEY-HERE>"
+    secret = "<INSERT-SECRET-HERE>"
 
     # A namespace for grouping YellowDog objects, e.g., the name of an
     # overall project for which YellowDog is being used
@@ -22,132 +21,132 @@
     # tag a given set of tasks, nodes and data objects
     # Required
     # --------------------------------------------------------------------------
-    name_tag = "MY_NAME_TAG"
+    tag = "MY_NAME_TAG"
 
-[work_requirement]  ############################################################
+[workRequirement]  ############################################################
 
     # The task type of the task to be performed
     # Must be 'bash' or 'docker'
     # Optional
     # --------------------------------------------------------------------------
-    # task_type = "bash"
+    # taskType = "bash"
 
     # In the case of the 'bash' task type, this is the locally-stored Bash
     # script to be executed
     # In the case of the 'docker' task type, this is the container image
     # Required
     # --------------------------------------------------------------------------        
-    executable = "test_bash_script.sh"
+    executable = "test_bashScript.sh"
 
     # The Docker Hub username and password, for private Docker Hub repositories
     # Only applicable to the 'docker' task type
     # Optional
     # --------------------------------------------------------------------------
-    # docker_username = ""
-    # docker_password = ""
+    # dockerUsername = ""
+    # dockerPassword = ""
 
     # Arguments and environment to pass to the task executable
     # Optional
     # --------------------------------------------------------------------------
-    # args = [] # List of strings
-    # env = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
+    # arguments = [] # List of strings
+    # environment = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
 
     # Worker tags: list of tags (strings) to match the tags associated
     # with Workers
     # A list of strings
     # Optional
     # --------------------------------------------------------------------------
-    # worker_tags = []
+    # workerTags = []
 
     # List of local input files required for the task
     # These will be uploaded to the YellowDog Object Store
     # A list of strings
     # Optional
     # --------------------------------------------------------------------------
-    # input_files = []
+    # inputs = []
 
     # List of output files to be uploaded back to the YellowDog Object Store
     # after Task execution
     # A list of strings
     # Optional
     # --------------------------------------------------------------------------
-    # output_files = []
+    # outputs = []
 
     # The number of times a Task is retried if it fails
     # Optional
     # --------------------------------------------------------------------------
-    # max_retries = 0
+    # maximumTaskRetries = 0
 
     # Number of times to submit the task
     # Optional
     # --------------------------------------------------------------------------
-    # task_count = 1
+    # taskCount = 1
 
-    # Name of a JSON file containing the description of a Work
+    # The name of a JSON file containing the description of a Work
     # Requirement
     # Optional
     # --------------------------------------------------------------------------
-    # wr_data = "my_tasks.json"
+    # workRequirementData = "my_tasks.json"
 
-[worker_pool]  #################################################################
+[workerPool]  #################################################################
 
     # The Compute Requirement Template to use
     # Required
     # --------------------------------------------------------------------------
-    template_id = ""
+    templateId = ""
 
     # The initial number of nodes to provision in the Worker Pool
     # Optional
     # --------------------------------------------------------------------------
-    # initial_nodes = 1
+    # targetInstanceCount = 1
 
     # The minimum number of nodes down to which the Worker Pool can be
     # auto-scaled
     # Optional
     # --------------------------------------------------------------------------
-    # min_nodes = 0
+    # minNodes = 0
 
     # The maximum number of nodes up to which the Worker Pool can be
     # auto-scaled
-    # Optional: Set to the greater of INITIAL_NODES and 1 by default
-    # max_nodes = 1
+    # Optional: Is set to the greater of targetInstanceCount and 1 by default
+    # maxNodes = 1
 
     # The number of Workers to create on each node
     # Optional
     # --------------------------------------------------------------------------
-    # workers_per_node = 1
+    # workersPerNode = 1
 
     # The Worker Tag to associate with the Worker(s)
     # Optional
     # --------------------------------------------------------------------------
-    # worker_tag = "MY_WORKER_TAG"
+    # workerTag = "My_Worker_Tag"
 
     # Whether the Worker Pool and its associated Compute Requirement should
     # be shut down when all workers on all workers on all nodes are idle
     # Optional
     # --------------------------------------------------------------------------
-    # auto_shutdown = true
+    # autoShutdown = true
 
     # The delay in minutes before the Worker Pool is shut down
-    # if auto_shutdown is true
+    # if autoShutdown is true
     # Optional
     # --------------------------------------------------------------------------
-    # auto_shutdown_delay = 10
+    # autoShutdown_delay = 10
 
     # The delay in minutes before idle nodes are shut down due to auto-scaling
     # Optional
     # --------------------------------------------------------------------------
-    # auto_scaling_idle_delay = 10
+    # autoscalingIdleDelay = 10
 
     # The time in minutes to allow for a node to boot and register its
     # worker(s) before it is terminated
     # Optional
     # --------------------------------------------------------------------------
-    # node_boot_time_limit = 10
+    # nodeBootTimeLimit = 10
 
-    # Name of a JSON file containing the full description of a Worker Pool
+    # name of a JSON file containing the full description of a Worker Pool
     # The specification will overwrite all values in this file except for
-    # the namespace and name_tag.
+    # the namespace and tag.
     # Optional
     # --------------------------------------------------------------------------
-    # wp_data = "my_worker_pool.json"
+    # workerPoolData = "my_worker_pool.json"

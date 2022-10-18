@@ -28,7 +28,7 @@ CLIENT = PlatformClient.create(
 def main():
     print_log(
         f"Cancelling Work Requirements matching NAMESPACE={CONFIG.namespace} "
-        f"and with NAME_TAG={CONFIG.name_tag}"
+        f"and with TAG={CONFIG.name_tag}"
     )
     work_requirement_summaries: List[
         WorkRequirementSummary

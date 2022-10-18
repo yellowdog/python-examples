@@ -28,7 +28,7 @@ def main():
     tag = "WR_" + CONFIG.name_tag
     print_log(
         f"Deleting Object Paths in NAMESPACE={CONFIG.namespace} with "
-        f"names starting with NAME_TAG={tag}"
+        f"names starting with TAG={tag}"
     )
     object_paths: List[
         ObjectPath

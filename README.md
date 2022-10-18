@@ -41,7 +41,7 @@ To **submit work requirements** to YellowDog, you'll need the following:
 3. In the **Accounts** section under the **Applications** tab of the [YellowDog Portal](https://portal.yellowdog.co/#/account/applications), use the **Add Application** button to create a new Application, and make a note of its **Key** and **Secret** (these will only be shown once).
 
 
-4. Copy `config.toml.template` to `config.toml` and in the `common` section populate the `key` and `secret` properties using the values obtained above. These allow the Python scripts to connect to the YellowDog Platform. Modify the `namespace` (for grouping YellowDog objects) and `name_tag` (used for naming objects) properties as required. In the `work_requirement` section, optionally modify the `worker_tags` property to include one or more tags declared by your YellowDog workers.
+4. Copy `config.toml.template` to `config.toml` and in the `common` section populate the `key` and `secret` properties using the values obtained above. These allow the Python scripts to connect to the YellowDog Platform. Modify the `namespace` (for grouping YellowDog objects) and `tag` (used for naming objects) properties as required. In the `workRequirement` section, optionally modify the `workerTags` property to include one or more tags declared by your YellowDog workers.
 
 To **provision worker pools**, you'll also need:
 
@@ -51,7 +51,7 @@ To **provision worker pools**, you'll also need:
 6. One or more **Compute Sources** defined, and a **Compute Requirement Template** created. The images used by instances must include the YellowDog agent, configured with the Task Type(s) and Worker Tag required by the Work Requirements to be submitted.
 
 
-7. In your `config.toml` file, populate the `worker_pool` section, including using the `template_id` from the Compute Requirement Template above.
+7. In your `config.toml` file, populate the `workerPool` section, including using the `templateId` from the Compute Requirement Template above.
 
 ### The `submit.py` script
 
@@ -77,7 +77,7 @@ Optionally, a worker tag may also be set. The scheduler will also use this when 
 yda.workerTag: "MY-TEST"
 ```
 
-The `worker_tags` property in the `TOML` file can be omitted, to avoid `workerTag` matching.
+The `workerTags` property in the `TOML` file can be omitted, to avoid `workerTag` matching.
 
 When the script is run, it will report on the work submitted and provide links to the objects created in the YellowDog portal, where Task execution can be tracked, e.g.:
 
@@ -102,19 +102,19 @@ The agent determines whether a Task has succeeded using the exit code from what 
 
 #### Bash Script Arguments and Environment
 
-The Bash script or Docker container can optionally be supplied with command line arguments and environment variables using the `args` and `env` fields in `config.toml`, e.g.:
+The Bash script or Docker container can optionally be supplied with command line arguments and environment variables using the `arguments` and `environment` fields in `config.toml`, e.g.:
 ```toml
-args = ["foo", "bar=5"]
-env = {E1 = "one", E2 = "two"}
+arguments = ["foo", "bar=5"]
+environment = {E1 = "one", E2 = "two"}
 ```
 
-#### Multiple Task Executions using Identical `args` and `env` for all Tasks
+#### Multiple Task Executions using Identical `arguments` and `environment` for all Tasks
 
-It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `task_count` property in the `config.toml` file.
+It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `taskCount` property in the `config.toml` file.
 
-#### Multiple Task Executions using Varying `args` and `env` for each Task
+#### Multiple Task Executions using Varying `arguments` and `environment` for each Task
 
-To run multiple Tasks with different settings for each Task, the `args` and `env` properties can be set in a JSON file, as shown in the following example:
+To run multiple Tasks with different settings for each Task, the `arguments` and `environment` properties can be set in a JSON file, as shown in the following example:
 
 ```json
 {
@@ -122,16 +122,16 @@ To run multiple Tasks with different settings for each Task, the `args` and `env
     {
       "tasks": [
         {
-          "args": ["a1", "a2"],
-          "env": {"e1": "E1", "e2": "E2", "e3": "E3"}
+          "arguments": ["a1", "a2"],
+          "environment": {"e1": "E1", "e2": "E2", "e3": "E3"}
         },
         {
-          "args": ["a3", "a4"],
-          "env": {"e4": "E4", "e5": "E5", "e6": "E6"}
+          "arguments": ["a3", "a4"],
+          "environment": {"e4": "E4", "e5": "E5", "e6": "E6"}
         },
         {
-          "args": ["a5", "a6"],
-          "env": {"e7": "E7", "e8": "E8", "e9": "E9"}
+          "arguments": ["a5", "a6"],
+          "environment": {"e7": "E7", "e8": "E8", "e9": "E9"}
         }
       ]
     }
@@ -139,36 +139,36 @@ To run multiple Tasks with different settings for each Task, the `args` and `env
 }
 ```
 
-The name of the JSON file is supplied in the `tasks_data` property in the `work_requirement` section of the `config.toml` file, or can be supplied on the command line using the `--work-req` or `-r` option. A JSON filename supplied on the command line takes precedence over one set in the `config.toml` file.
+The name of the JSON file is supplied in the `workRequirementData` property in the `workRequirement` section of the `config.toml` file, or can be supplied on the command line using the `--work-req` or `-r` option. A JSON filename supplied on the command line takes precedence over one set in the `config.toml` file.
 
-When `tasks_data` is set, values of the `args` and `env` properties in the `config.toml` file are overridden on a per-task basis, and the `task_count` property is ignored.
+When `workRequirementData` is set, values of the `arguments` and `environment` properties in the `config.toml` file are overridden on a per-task basis, and the `taskCount` property is ignored.
 
 ### The `cancel.py` script
 
 The script is run using `python cancel.py` or `./cancel.py`. This script cancels any active Work Requirements, including any pending Task Groups and Tasks they contain. 
 
-The `namespace` and `name_tag` values in the `config.toml` file are used to identify which Work Requirements to cancel.
+The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to cancel.
 
 ### The `download.py` script
 
 The script is run using `python download.py` or `./download.py`. This script downloads any objects created in the YellowDog Object Store.
 
-The `namespace` and `name_tag` values are used to determine which objects to download. Objects will be downloaded to a directory with the same name as `namespace`. If a directory already exists, directories with names `<namespace>.01`, etc., will be created.
+The `namespace` and `tag` values are used to determine which objects to download. Objects will be downloaded to a directory with the same name as `namespace`. If a directory already exists, directories with names `<namespace>.01`, etc., will be created.
 
 ### The `delete.py` script
 
 The script is run using `python delete.py` or `./delete.py`. This script deletes any objects created in the YellowDog Object Store.
 
-The `namespace` and `name_tag` values in the `config.toml` file are used to identify which objects to delete.
+The `namespace` and `tag` values in the `config.toml` file are used to identify which objects to delete.
 
 ### The `provision.py` script
 
-The script is run using `python provision.py` or `./provision.py`. This script provisions a new Worker Pool according to the specifications in the `worker_pool` section of the configuration file.
+The script is run using `python provision.py` or `./provision.py`. This script provisions a new Worker Pool according to the specifications in the `workerPool` section of the configuration file.
 
 ### The `shutdown.py` script
 
-The script is run using `python shutdown.py` or `./shutdown.py`. This script shuts down Worker Pools that match the `namespace` and `name_tag` found in the configuration file. All remaining work will be cancelled, but currently executing Tasks will be allowed to complete, after which the Compute Requirement will be terminated.
+The script is run using `python shutdown.py` or `./shutdown.py`. This script shuts down Worker Pools that match the `namespace` and `tag` found in the configuration file. All remaining work will be cancelled, but currently executing Tasks will be allowed to complete, after which the Compute Requirement will be terminated.
 
 ### The `terminate.py` script
 
-The script is run using `python terminate.py` or `./terminate.py`. This script immediately terminates Compute Requirements that match the `namespace` and `name_tag` found in the configuration file. Any executing Tasks will be terminated immediately, and the Worker Pool will be shut down.
+The script is run using `python terminate.py` or `./terminate.py`. This script immediately terminates Compute Requirements that match the `namespace` and `tag` found in the configuration file. Any executing Tasks will be terminated immediately, and the Worker Pool will be shut down.

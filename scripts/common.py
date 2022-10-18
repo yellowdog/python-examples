@@ -90,18 +90,6 @@ def print_log(log_message: str):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ":", log_message)
 
 
-def convert_config_keys_to_lower(data: Dict) -> Dict:
-    """
-    Convert the section name and its config contents to lower case; two
-    levels deep only to avoid altering user data
-    """
-    converted = {key.lower(): value for key, value in data.items()}
-    for k, v in converted.items():
-        if isinstance(v, dict):
-            converted[k] = {key.lower(): value for key, value in v.items()}
-    return converted
-
-
 def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
     """
     Look through the keys in the dictionary from the
@@ -145,7 +133,7 @@ config_file = (
 print_log(f"Loading configuration data from: '{config_file}'")
 try:
     with open(config_file, "r") as f:
-        CONFIG_TOML: Dict = convert_config_keys_to_lower(toml_load(f))
+        CONFIG_TOML: Dict = toml_load(f)
         invalid_keys = check_for_invalid_keys(CONFIG_TOML)
         if invalid_keys is not None:
             print_log(f"Error: Invalid properties in '{config_file}': {invalid_keys}")
@@ -180,7 +168,7 @@ def import_toml(filename: str) -> Dict:
     print_log(f"Loading imported common configuration data from: '{filename}'")
     try:
         with open(filename, "r") as f:
-            common_config: Dict = convert_config_keys_to_lower(toml_load(f))
+            common_config: Dict = toml_load(f)
             return common_config[COMMON_SECTION]
     except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
         print_log(f"Unable to load imported common configuration data: {e}")
