@@ -6,7 +6,6 @@ ARGS = "arguments"  # List
 AUTO_FAIL = "autoFail"  # Boolean
 AUTO_SCALING_IDLE_DELAY = "autoscalingIdleDelay"  # Float
 AUTO_SHUTDOWN = "autoShutdown"  # Boolean
-AUTO_SHUTDOWN_DELAY = "autoShutdownDelay"  # Float
 COMMON_SECTION = "common"
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
