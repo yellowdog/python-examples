@@ -419,11 +419,11 @@ def create_task(
         if executable not in uploaded_files:
             upload_file(executable)
             uploaded_files.append(executable)
-            inputs.append(
-                TaskInput.from_task_namespace(
-                    unique_upload_pathname(executable), required=True
-                )
-            )
+        task_input = TaskInput.from_task_namespace(
+            unique_upload_pathname(executable), required=True
+        )
+        if task_input not in inputs:
+            inputs.append(task_input)
 
     elif task_type == "docker":
         env_string = ""
