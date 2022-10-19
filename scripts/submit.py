@@ -468,7 +468,7 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     """
     Follow and report the progress of a Work Requirement
     """
-    listener = DelegatedSubscriptionEventListener(on_update)
+    listener = DelegatedSubscriptionEventListener(on_update=on_update)
     CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
     try:
         work_requirement = (
