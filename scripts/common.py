@@ -267,7 +267,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
 def generate_id(prefix: str, max_length: int = 50) -> str:
     """
     Adds a combination of a UTC timestamp plus
-    a few random hex characters. Constrains length.
+    a few random hex characters. Checks length.
     """
     generated_id = (
         prefix
@@ -276,7 +276,8 @@ def generate_id(prefix: str, max_length: int = 50) -> str:
     )
     if len(generated_id) > max_length:
         print_log(
-            f"Error: Generated ID '{id}' would exceed maximum length ({max_length})"
+            f"Error: Generated ID '{generated_id}' would exceed "
+            f"maximum length ({max_length})"
         )
         exit(1)
     return generated_id
