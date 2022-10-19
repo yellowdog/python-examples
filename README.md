@@ -119,11 +119,11 @@ arguments = ["foo", "bar=5"]
 environment = {E1 = "one", E2 = "two"}
 ```
 
-#### Multiple Task Executions using Identical `arguments` and `environment` for all Tasks
+#### Multiple Task Executions Using Identical `arguments` and `environment` for all Tasks
 
 It's sometimes useful for testing to be able to generate multiple Tasks in a single `submit.py` invocation, e.g., to test operation across multiple simultaneous Workers. This can be done using the `taskCount` property in the `config.toml` file.
 
-#### Multiple Task Executions using Varying `arguments` and `environment` for each Task
+#### Multiple Task Executions Using Varying `arguments` and `environment` for each Task
 
 To run multiple Tasks with different settings for each Task, the `arguments` and `environment` properties can be set in a JSON file, as shown in the following example:
 
