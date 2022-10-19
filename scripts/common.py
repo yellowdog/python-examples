@@ -264,16 +264,22 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
         exit(0)
 
 
-def generate_id(prefix: str) -> str:
+def generate_id(prefix: str, max_length: int = 50) -> str:
     """
     Adds a combination of a UTC timestamp plus
-    a few random hex characters
+    a few random hex characters. Constrains length.
     """
-    return (
+    generated_id = (
         prefix
         + datetime.utcnow().strftime("_%y%m%dT%H%M%S-")
         + str(uuid4())[:3].upper()
     )
+    if len(generated_id) > max_length:
+        print_log(
+            f"Error: Generated ID '{id}' would exceed maximum length ({max_length})"
+        )
+        exit(1)
+    return generated_id
 
 
 # Utility functions for creating links to YD entities
