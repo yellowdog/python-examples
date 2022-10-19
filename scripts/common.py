@@ -109,7 +109,7 @@ def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
 
 
 MUSTACHE_SUBSTITUTIONS = {
-    "username": getuser().replace(" ", "_"),
+    "username": getuser().replace(" ", "_").upper(),
     "date": datetime.utcnow().strftime("%y%m%d"),
 }
 
