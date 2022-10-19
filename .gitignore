@@ -7,3 +7,6 @@ venv/
 Data/
 .DS_Store
 *.json
+/scripts/build/
+/scripts/yellowdog_python_examples.egg-info/
+/scripts/dist/

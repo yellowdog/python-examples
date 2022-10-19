@@ -12,17 +12,28 @@ The Python scripts are contained in the [scripts](/scripts) directory. They use 
 
 ### Script Installation
 
-Installing the Python scripts from this GitHub repository requires Git to be installed. It's recommended that installation is performed in a Python virtualenv (or similar) to isolate the installation from other Python environments. Python 3.7+ is required.
+**Requirements**:
 
-Installation is performed using `pip`:
+- Python 3.7 or later (including `pip` for package installation)
+- Git
+
+It's recommended that installation is performed in a Python virtualenv (or similar) to isolate the installation from other Python environments.
+
+**Install** the scripts using `pip`:
 
 ```shell
+pip install -U pip wheel
 pip install -U git+https://github.com/yellowdog/python-examples#subdirectory=scripts
 ```
 
-The same command can be used to update the scripts later.
+**Update** the scripts using:
 
-The installation places a number of `yd-*` commands on the PATH of the virtualenv.
+```shell
+pip uninstall -y yellowdog-python-examples
+pip install -U git+https://github.com/yellowdog/python-examples#subdirectory=scripts
+```
+
+The installation places a number of `yd-*` commands on the PATH of the virtualenv: `yd-delete`, `yd-download`, `yd-provision`, `yd-reformat-json`, `yd-shutdown`, `yd-submit`, `yd-terminate`, `yd-version`, and `yd-which-config`.
 
 ### Script Configuration
 

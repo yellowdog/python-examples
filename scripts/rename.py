@@ -78,7 +78,7 @@ for filename in sys.argv[1:]:
             print(f"Saved backup file to '{backup_filename}'")
     except Exception as e:
         print(f"Error writing '{backup_filename}': {e}")
-        exit(1)   # Don't continue if backup fails
+        exit(1)  # Don't continue if backup fails
     for rename in renames:
         compiled = re.compile(re.escape(rename[0]), re.IGNORECASE)
         contents = compiled.sub(rename[1], contents)
