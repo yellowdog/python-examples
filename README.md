@@ -19,7 +19,7 @@ The Python scripts are contained in the [scripts](/scripts) directory. They use 
 
 It's recommended that installation is performed in a Python virtualenv (or similar) to isolate the installation from other Python environments.
 
-**Install** the scripts using `pip`:
+**Install** the scripts using `pip` as follows:
 
 ```shell
 pip install -U pip wheel
