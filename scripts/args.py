@@ -61,7 +61,7 @@ class CLIParser:
         if (
             any(module in sys.argv[0] for module in ["submit"] + all_options_modules)
             and self.args.follow
-            and sys.version_info > (3, 10)
+            and sys.version_info >= (3, 10)
         ):
             print(
                 "The '--follow' ('-f') option is not currently supported "
