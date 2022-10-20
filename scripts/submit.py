@@ -7,6 +7,8 @@ An example script to submit a Work Requirement.
 from datetime import timedelta
 from json import JSONDecodeError, load
 from math import ceil
+from os import chdir
+from os.path import dirname
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -32,6 +34,7 @@ from yellowdog_client.object_store.model import FileTransferStatus
 
 from common import (
     ARGS_PARSER,
+    CONFIG_FILE_DIR,
     ConfigCommon,
     ConfigWorkRequirement,
     generate_id,
@@ -69,14 +72,18 @@ def main():
         try:
             with open(wr_json_file, "r") as f:
                 tasks_data = load(f)
-            submit_work_requirement(tasks_data=tasks_data)
         except (JSONDecodeError, FileNotFoundError) as e:
             print_log(f"Error: '{wr_json_file}': {e}")
+        submit_work_requirement(
+            directory_to_upload_from=dirname(wr_json_file), tasks_data=tasks_data
+        )
     elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
         print_log("Error: no work requirement (executable) defined")
     else:
         task_count = CONFIG_WR.task_count
-        submit_work_requirement(task_count=task_count)
+        submit_work_requirement(
+            directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
+        )
 
     print_log("Done")
     CLIENT.close()
@@ -122,7 +129,9 @@ def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False)
 
 
 def submit_work_requirement(
-    tasks_data: Optional[Dict] = None, task_count: Optional[int] = None
+    directory_to_upload_from: str,
+    tasks_data: Optional[Dict] = None,
+    task_count: Optional[int] = None,
 ):
     """
     Submit a Work Requirement defined in a tasks_data dictionary.
@@ -147,6 +156,9 @@ def submit_work_requirement(
         ID = f"WR_{CONFIG_COMMON.name_tag}__{tasks_data[WR_NAME]}"
     except:
         pass
+
+    if directory_to_upload_from != "":
+        chdir(directory_to_upload_from)
 
     num_task_groups = len(tasks_data[TASK_GROUPS])
     uploaded_files = []
