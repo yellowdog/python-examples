@@ -85,9 +85,14 @@ class ConfigWorkerPool:
     workers_per_node: int = 1
 
 
-def print_log(log_message: str):
+def print_log(log_message: str, flush: bool = True):
     """Placeholder for more sophisticated logging."""
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ":", log_message)
+    print(
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        ":",
+        log_message,
+        flush=flush,
+    )
 
 
 def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
