@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from getpass import getuser
 from os import getenv
+from os.path import abspath, dirname, join, normpath, relpath
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -136,6 +137,8 @@ config_file = (
 )
 
 print_log(f"Loading configuration data from: '{config_file}'")
+CONFIG_FILE_DIR = dirname(abspath(config_file))
+
 try:
     with open(config_file, "r") as f:
         CONFIG_TOML: Dict = toml_load(f)
@@ -199,6 +202,9 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         if worker_tags is not None:
             for index, worker_tag in enumerate(worker_tags):
                 worker_tags[index] = mustache_substitution(worker_tag)
+        tasks_data_file = wr_section.get(WR_DATA, None)
+        if tasks_data_file is not None:
+            tasks_data_file = pathname_relative_to_config_file(tasks_data_file)
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),
             auto_fail=wr_section.get(AUTO_FAIL, True),
@@ -222,7 +228,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             regions=wr_section.get(REGIONS, None),
             task_count=wr_section.get(TASK_COUNT, 1),
             task_type=wr_section.get(TASK_TYPE, "bash"),
-            tasks_data_file=wr_section.get(WR_DATA, None),
+            tasks_data_file=tasks_data_file,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
             vcpus=wr_section.get(VCPUS, None),
             worker_tags=worker_tags,
@@ -245,6 +251,11 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
         worker_tag = wp_section.get(WORKER_TAG, None)
         if worker_tag is not None:
             worker_tag = mustache_substitution(worker_tag)
+        worker_pool_data_file = wp_section.get(WP_DATA, None)
+        if worker_pool_data_file is not None:
+            worker_pool_data_file = pathname_relative_to_config_file(
+                worker_pool_data_file
+            )
         return ConfigWorkerPool(
             auto_scaling_idle_delay=wp_section.get(AUTO_SCALING_IDLE_DELAY, 10),
             auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
@@ -260,7 +271,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             name=wp_section.get(WP_NAME, None),
             node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
             template_id=wp_section.get(TEMPLATE_ID, None),
-            worker_pool_data_file=wp_section.get(WP_DATA, None),
+            worker_pool_data_file=worker_pool_data_file,
             worker_tag=worker_tag,
             workers_per_node=wp_section.get(WORKERS_PER_NODE, 1),
         )
@@ -286,6 +297,14 @@ def generate_id(prefix: str, max_length: int = 50) -> str:
         )
         exit(1)
     return generated_id
+
+
+def pathname_relative_to_config_file(file: str) -> str:
+    """
+    Find the pathname of a file relative to the location
+    of the config file
+    """
+    return normpath(relpath(join(CONFIG_FILE_DIR, file)))
 
 
 # Utility functions for creating links to YD entities
