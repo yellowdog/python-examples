@@ -12,8 +12,7 @@ from compact_json import CompactJSONEncoder
 
 
 def main():
-    for index in range(1, len(sys.argv)):
-        filename = sys.argv[index]
+    for filename in sys.argv[1:]:
         if not filename.lower().endswith("json"):
             print(f"Ignoring non-JSON file: '{filename}'")
             continue
@@ -29,7 +28,7 @@ def main():
                 f.write("\n")
             print(f"Reformatted: '{filename}'")
         except Exception as e:
-            print(f"Unable to write file: '{filename}'")
+            print(f"Unable to write file: '{filename}': {e}")
             continue
 
 
