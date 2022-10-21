@@ -16,6 +16,7 @@ setuptools.setup(
     description="YellowDog Python Example Scripts",
     url="https://github.com/yellowdog/python-examples",
     py_modules=[
+        "__init__",
         "args",
         "cancel",
         "common",
