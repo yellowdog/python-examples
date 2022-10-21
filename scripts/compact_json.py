@@ -61,10 +61,9 @@ class CompactJSONEncoder(json.JSONEncoder):
             o, float
         ):  # Use scientific notation for floats, where appropriate
             return format(o, "g")
-        elif isinstance(o, str):  # escape newlines
-            # o = o.replace("\n", "\\n")
-            # return f'"{o}"'
-            return json.dumps(o)
+        # elif isinstance(o, str):  # escape newlines
+        #     o = o.replace("\n", "\\n")
+        #     return f'"{o}"'
         else:
             return json.dumps(o)
 
