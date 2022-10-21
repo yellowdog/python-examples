@@ -29,8 +29,7 @@ pip install -U git+https://github.com/yellowdog/python-examples#subdirectory=scr
 **Update** the scripts using:
 
 ```shell
-pip uninstall -y yellowdog-python-examples
-pip install -U git+https://github.com/yellowdog/python-examples#subdirectory=scripts
+pip install -U --force-reinstall --no-deps git+https://github.com/yellowdog/python-examples#subdirectory=scripts
 ```
 
 The installation places a number of `yd-*` commands on the PATH of the virtualenv: `yd-delete`, `yd-download`, `yd-provision`, `yd-reformat-json`, `yd-shutdown`, `yd-submit`, `yd-terminate`, `yd-version`, and `yd-which-config`.
