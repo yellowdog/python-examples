@@ -122,6 +122,11 @@ def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False)
     Maps the local filename into a uniquely identified upload object
     in the YD Object Store. Optionally replaces forward slashes.
     """
+    # Rework the filename
+    double_dots = filename.count("..")  # Disambiguate relative paths
+    filename = filename.replace("../", "").replace("./", "").replace("//", "/")
+    filename = filename[1:] if filename[0] == "/" else filename
+    filename = str(double_dots) + "/" + filename if double_dots != 0 else filename
     forward_slash = "%2F" if urlencode_forward_slash else "/"
     if urlencode_forward_slash is True:
         filename = filename.replace("/", forward_slash)

@@ -58,16 +58,16 @@ class CLIParser:
         self.args = parser.parse_args()
 
         # Temporary ...
-        if (
-            any(module in sys.argv[0] for module in ["submit"] + all_options_modules)
-            and self.args.follow
-            and sys.version_info >= (3, 10)
-        ):
-            print(
-                "The '--follow' ('-f') option is not currently supported "
-                "for Python versions 3.10 and above"
-            )
-            exit(0)
+        # if (
+        #     any(module in sys.argv[0] for module in ["submit"] + all_options_modules)
+        #     and self.args.follow
+        #     and sys.version_info >= (3, 10)
+        # ):
+        #     print(
+        #         "The '--follow' ('-f') option is not currently supported "
+        #         "for Python versions 3.10 and above"
+        #     )
+        #     exit(0)
 
     @property
     def config_file(self) -> Optional[str]:
