@@ -32,52 +32,55 @@ CLIENT = PlatformClient.create(
 
 
 def main():
-    tag = "WR_" + CONFIG.name_tag
-    print_log(
-        f"Downloading all Objects in NAMESPACE={CONFIG.namespace} with "
-        f"names starting with TAG={tag}"
-    )
-    object_paths: List[
-        ObjectPath
-    ] = CLIENT.object_store_client.get_namespace_object_paths(
-        ObjectPathsRequest(CONFIG.namespace)
-    )
-    object_paths_to_download: List[ObjectPath] = []
-    for object_path in object_paths:
-        if object_path.name.startswith(tag):
-            object_paths_to_download.append(object_path)
-    if len(object_paths) == 0:
-        print_log("No Objects to download")
-        return
-    print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
-    download_dir: str = _create_download_directory(CONFIG.namespace)
-    for object_path in object_paths_to_download:
-        download_batch_builder: AbstractDownloadBatchBuilder = (
-            CLIENT.object_store_client.build_download_batch()
-        )
-        download_batch_builder.destination_folder = download_dir
-        download_batch_builder.find_source_objects(
-            namespace=CONFIG.namespace, object_name_pattern=f"{object_path.name}*"
-        )
-        download_batch: AbstractTransferBatch = (
-            download_batch_builder.get_batch_if_objects_found()
-        )
-        if download_batch is None:
-            print_log(f"No Objects found in Object Path {object_path.displayName}")
-            continue
-        download_batch.start()
-        future: futures.Future = download_batch.when_status_matches(
-            lambda status: status == FileTransferStatus.Completed
-        )
-        CLIENT.object_store_client.start_transfers()
-        futures.wait((future,))
-        print_log(f"Downloaded all Objects in {object_path.displayName}")
-    if len(object_paths_to_download) > 1:
+    try:
+        tag = "WR_" + CONFIG.name_tag
         print_log(
-            f"Downloaded all Objects in {len(object_paths_to_download)} Object Path(s)"
+            f"Downloading all Objects in NAMESPACE={CONFIG.namespace} with "
+            f"names starting with TAG={tag}"
         )
-    # Clean up
-    CLIENT.close()
+        object_paths: List[
+            ObjectPath
+        ] = CLIENT.object_store_client.get_namespace_object_paths(
+            ObjectPathsRequest(CONFIG.namespace)
+        )
+        object_paths_to_download: List[ObjectPath] = []
+        for object_path in object_paths:
+            if object_path.name.startswith(tag):
+                object_paths_to_download.append(object_path)
+        if len(object_paths) == 0:
+            print_log("No Objects to download")
+            return
+        print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
+        download_dir: str = _create_download_directory(CONFIG.namespace)
+        for object_path in object_paths_to_download:
+            download_batch_builder: AbstractDownloadBatchBuilder = (
+                CLIENT.object_store_client.build_download_batch()
+            )
+            download_batch_builder.destination_folder = download_dir
+            download_batch_builder.find_source_objects(
+                namespace=CONFIG.namespace, object_name_pattern=f"{object_path.name}*"
+            )
+            download_batch: AbstractTransferBatch = (
+                download_batch_builder.get_batch_if_objects_found()
+            )
+            if download_batch is None:
+                print_log(f"No Objects found in Object Path {object_path.displayName}")
+                continue
+            download_batch.start()
+            future: futures.Future = download_batch.when_status_matches(
+                lambda status: status == FileTransferStatus.Completed
+            )
+            CLIENT.object_store_client.start_transfers()
+            futures.wait((future,))
+            print_log(f"Downloaded all Objects in {object_path.displayName}")
+        if len(object_paths_to_download) > 1:
+            print_log(
+                f"Downloaded all Objects in {len(object_paths_to_download)} Object Path(s)"
+            )
+        # Clean up
+        CLIENT.close()
+    except Exception as e:
+        print_log(f"Error: {e}")
     print_log("Done")
 
 
@@ -104,4 +107,3 @@ def _create_download_directory(namespace: str) -> str:
 # Entry point
 if __name__ == "__main__":
     main()
-    exit(0)

@@ -8,7 +8,7 @@ from datetime import timedelta
 from json import JSONDecodeError, load
 from math import ceil
 from os import chdir
-from os.path import dirname
+from os.path import dirname, exists
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -62,31 +62,34 @@ INPUT_FOLDER_NAME = "INPUTS"
 
 
 def main():
-    wr_json_file = (
-        CONFIG_WR.tasks_data_file
-        if ARGS_PARSER.work_req_file is None
-        else ARGS_PARSER.work_req_file
-    )
-    if wr_json_file is not None:
-        print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
-        try:
-            with open(wr_json_file, "r") as f:
-                tasks_data = load(f)
-        except (JSONDecodeError, FileNotFoundError) as e:
-            print_log(f"Error: '{wr_json_file}': {e}")
-        submit_work_requirement(
-            directory_to_upload_from=dirname(wr_json_file), tasks_data=tasks_data
+    try:
+        wr_json_file = (
+            CONFIG_WR.tasks_data_file
+            if ARGS_PARSER.work_req_file is None
+            else ARGS_PARSER.work_req_file
         )
-    elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
-        print_log("Error: no work requirement (executable) defined")
-    else:
-        task_count = CONFIG_WR.task_count
-        submit_work_requirement(
-            directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
-        )
+        if wr_json_file is not None:
+            print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
+            try:
+                with open(wr_json_file, "r") as f:
+                    tasks_data = load(f)
+            except (JSONDecodeError, FileNotFoundError) as e:
+                print_log(f"Error: '{wr_json_file}': {e}")
+            submit_work_requirement(
+                directory_to_upload_from=dirname(wr_json_file), tasks_data=tasks_data
+            )
+        elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
+            print_log("Error: no work requirement (executable) defined")
+        else:
+            task_count = CONFIG_WR.task_count
+            submit_work_requirement(
+                directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
+            )
+        CLIENT.close()
+    except Exception as e:
+        print_log(f"Error: {e}")
 
     print_log("Done")
-    CLIENT.close()
 
 
 def upload_file(filename: str):
@@ -517,9 +520,4 @@ def on_update(work_req: WorkRequirement):
 
 # Entry point
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print_log(f"Error: {e}")
-        exit(1)
-    exit(0)
+    main()

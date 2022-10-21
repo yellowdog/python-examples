@@ -57,22 +57,27 @@ CLIENT = PlatformClient.create(
 
 
 def main():
-    wp_json_file = (
-        CONFIG_WP.worker_pool_data_file
-        if ARGS_PARSER.worker_pool_file is None
-        else ARGS_PARSER.worker_pool_file
-    )
-    if wp_json_file is not None:
-        print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
-        create_worker_pool_from_json(wp_json_file)
-    elif CONFIG_WP.template_id is None:
-        print_log("Error: No template_id supplied")
-    else:
-        create_worker_pool()
+    try:
+        wp_json_file = (
+            CONFIG_WP.worker_pool_data_file
+            if ARGS_PARSER.worker_pool_file is None
+            else ARGS_PARSER.worker_pool_file
+        )
+        if wp_json_file is not None:
+            print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
+            create_worker_pool_from_json(wp_json_file)
+        elif CONFIG_WP.template_id is None:
+            print_log("Error: No template_id supplied")
+        else:
+            create_worker_pool()
 
-    # Clean up
-    CLIENT.close()
+        # Clean up
+        CLIENT.close()
 
+    except Exception as e:
+        print_log(f"Error: {e}")
+
+    print_log("Done")
 
 def create_worker_pool_from_json(wp_json_file: str) -> None:
     """
@@ -273,9 +278,4 @@ def _allocate_nodes_to_batches(
 
 # Entry point
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print_log(f"Error: {e}")
-        exit(1)
-    exit(0)
+    main()
