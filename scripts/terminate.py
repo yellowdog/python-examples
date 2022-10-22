@@ -52,7 +52,9 @@ def main():
                     compute_summary.id
                 )
                 compute_requirement: ComputeRequirement = (
-                    CLIENT.compute_client.get_compute_requirement_by_id(compute_summary.id)
+                    CLIENT.compute_client.get_compute_requirement_by_id(
+                        compute_summary.id
+                    )
                 )
                 terminated_count += 1
                 print_log(

@@ -79,6 +79,7 @@ def main():
 
     print_log("Done")
 
+
 def create_worker_pool_from_json(wp_json_file: str) -> None:
     """
     Directly create the Worker Pool using the YellowDog REST API

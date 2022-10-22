@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-An example script to submit a Work Requirement.
+A script to submit a Work Requirement.
 """
 
 from datetime import timedelta
@@ -168,125 +168,15 @@ def submit_work_requirement(
     if directory_to_upload_from != "":
         chdir(directory_to_upload_from)
 
-    num_task_groups = len(tasks_data[TASK_GROUPS])
     uploaded_files = []
     task_groups: List[TaskGroup] = []
+    input_files_by_task_group: List[List[str]] = []
     for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
-        # Remap 'task_type' to 'task_types' in Task Groups if 'task_types' is empty
-        if task_group_data.get(TASK_TYPE, None) is not None:
-            if task_group_data.get(TASK_TYPES, None) is None:
-                task_group_data[TASK_TYPES] = [task_group_data[TASK_TYPE]]
-        task_types_from_tasks = set()
-        # Gather input files and task types
-        input_files = []
-        for task in task_group_data[TASKS]:
-            input_files += task.get(
-                INPUT_FILES,
-                task_group_data.get(
-                    INPUT_FILES, tasks_data.get(INPUT_FILES, CONFIG_WR.input_files)
-                ),
-            )
-            try:
-                task_types_from_tasks.add(task[TASK_TYPE])
-            except KeyError:
-                pass
-        # Deduplicate
-        input_files = sorted(list(set(input_files)))
-        # Upload
-        for input_file in input_files:
-            if input_file not in uploaded_files:
-                upload_file(input_file)
-                uploaded_files.append(input_file)
-
-        # Build the Task Group
-        task_group_name = task_group_data.get(
-            NAME,
-            "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups))),
+        task_group, input_files = create_task_group(
+            tg_number, tasks_data, task_group_data
         )
-        # Assemble the RunSpecification for the Task Group
-        # task_types can be automatically created/augmented by the task_types
-        # specified in the Tasks
-        task_types: List = list(
-            set(
-                task_group_data.get(
-                    TASK_TYPES, tasks_data.get(TASK_TYPES, [CONFIG_WR.task_type])
-                )
-            ).union(task_types_from_tasks)
-        )
-        vcpus_data: Optional[List[float]] = task_group_data.get(
-            VCPUS, tasks_data.get(VCPUS, CONFIG_WR.vcpus)
-        )
-        vcpus = (
-            None
-            if vcpus_data is None
-            else DoubleRange(float(vcpus_data[0]), float(vcpus_data[1]))
-        )
-        ram_data: Optional[List[float]] = task_group_data.get(
-            RAM, tasks_data.get(RAM, CONFIG_WR.ram)
-        )
-        ram = (
-            None
-            if ram_data is None
-            else DoubleRange(float(ram_data[0]), float(ram_data[1]))
-        )
-        providers_data: Optional[List[str]] = task_group_data.get(
-            PROVIDERS, tasks_data.get(PROVIDERS, CONFIG_WR.providers)
-        )
-        providers: Optional[List[CloudProvider]] = (
-            None
-            if providers_data is None
-            else [CloudProvider(provider) for provider in providers_data]
-        )
-        run_specification = RunSpecification(
-            taskTypes=task_types,
-            maximumTaskRetries=task_group_data.get(
-                MAX_RETRIES, tasks_data.get(MAX_RETRIES, CONFIG_WR.max_retries)
-            ),
-            workerTags=task_group_data.get(
-                WORKER_TAGS, tasks_data.get(WORKER_TAGS, CONFIG_WR.worker_tags)
-            ),
-            exclusiveWorkers=task_group_data.get(
-                EXCLUSIVE_WORKERS,
-                tasks_data.get(EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers),
-            ),
-            instanceTypes=task_group_data.get(
-                INSTANCE_TYPES, tasks_data.get(INSTANCE_TYPES, CONFIG_WR.instance_types)
-            ),
-            vcpus=vcpus,
-            ram=ram,
-            minWorkers=task_group_data.get(MIN_WORKERS, CONFIG_WR.min_workers),
-            maxWorkers=task_group_data.get(MAX_WORKERS, CONFIG_WR.max_workers),
-            tasksPerWorker=task_group_data.get(
-                TASKS_PER_WORKER, CONFIG_WR.tasks_per_worker
-            ),
-            providers=providers,
-            regions=task_group_data.get(
-                REGIONS, tasks_data.get(REGIONS, CONFIG_WR.regions)
-            ),
-        )
-
-        # Create the TaskGroup and add it to the list
-        ctttl_data = task_group_data.get(
-            COMPLETED_TASK_TTL,
-            tasks_data.get(COMPLETED_TASK_TTL, CONFIG_WR.completed_task_ttl),
-        )
-        completed_task_ttl = (
-            None if ctttl_data is None else timedelta(minutes=ctttl_data)
-        )
-        task_groups.append(
-            TaskGroup(
-                name=task_group_name,
-                runSpecification=run_specification,
-                dependentOn=task_group_data.get(DEPENDENT_ON, None),
-                autoFail=task_group_data.get(
-                    AUTO_FAIL, tasks_data.get(AUTO_FAIL, CONFIG_WR.auto_fail)
-                ),
-                autoComplete=True,
-                priority=task_group_data.get(PRIORITY, 0.0),
-                completedTaskTtl=completed_task_ttl,
-            )
-        )
-        print_log(f"Generated Task Group '{task_group_name}'")
+        task_groups.append(task_group)
+        input_files_by_task_group.append(input_files)
 
     # Create the Work Requirement
     work_requirement = CLIENT.work_client.add_work_requirement(
@@ -307,6 +197,15 @@ def submit_work_requirement(
 
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
+
+        # Upload files required by the Tasks in this Task Group
+        print_log(f"Uploading files for Task Group '{task_group.name}'")
+        for input_file in input_files_by_task_group[tg_number]:
+            if input_file not in uploaded_files:
+                upload_file(input_file)
+                uploaded_files.append(input_file)
+
+        # Determine Task batching
         tasks = tasks_data[TASK_GROUPS][tg_number][TASKS]
         num_tasks = len(tasks) if task_count is None else task_count
         num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
@@ -316,6 +215,7 @@ def submit_work_requirement(
                 f"Adding Tasks to Task Group '{task_group.name}' in "
                 f"{num_task_batches} batches"
             )
+
         for batch_number in range(num_task_batches):
             tasks_list.clear()
             for task_number in range(
@@ -410,6 +310,127 @@ def submit_work_requirement(
 
     if ARGS_PARSER.follow:
         follow_progress(work_requirement)
+
+
+def create_task_group(
+    tg_number: int, tasks_data: Dict, task_group_data: Dict
+) -> (TaskGroup, List[str]):
+    """
+    Create a Task Group and return the list of unique input files required by
+    the Tasks in the Task Group
+    """
+    # Remap 'task_type' to 'task_types' in the Task Group if 'task_types'
+    # is empty, as a convenience
+    if task_group_data.get(TASK_TYPE, None) is not None:
+        if task_group_data.get(TASK_TYPES, None) is None:
+            task_group_data[TASK_TYPES] = [task_group_data[TASK_TYPE]]
+    task_types_from_tasks = set()
+
+    # Gather input files and task types
+    input_files = []
+    for task in task_group_data[TASKS]:
+        input_files += task.get(
+            INPUT_FILES,
+            task_group_data.get(
+                INPUT_FILES, tasks_data.get(INPUT_FILES, CONFIG_WR.input_files)
+            ),
+        )
+        try:
+            task_types_from_tasks.add(task[TASK_TYPE])
+        except KeyError:
+            pass
+
+    # Deduplicate
+    input_files = sorted(list(set(input_files)))
+
+    # Name the Task Group
+    num_task_groups = len(tasks_data[TASK_GROUPS])
+    task_group_name = task_group_data.get(
+        NAME,
+        "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups))),
+    )
+
+    # Assemble the RunSpecification values for the Task Group
+    # task_types can be automatically added to by the task_types
+    # specified in the Tasks
+    task_types: List = list(
+        set(
+            task_group_data.get(
+                TASK_TYPES, tasks_data.get(TASK_TYPES, [CONFIG_WR.task_type])
+            )
+        ).union(task_types_from_tasks)
+    )
+    vcpus_data: Optional[List[float]] = task_group_data.get(
+        VCPUS, tasks_data.get(VCPUS, CONFIG_WR.vcpus)
+    )
+    vcpus = (
+        None
+        if vcpus_data is None
+        else DoubleRange(float(vcpus_data[0]), float(vcpus_data[1]))
+    )
+    ram_data: Optional[List[float]] = task_group_data.get(
+        RAM, tasks_data.get(RAM, CONFIG_WR.ram)
+    )
+    ram = (
+        None
+        if ram_data is None
+        else DoubleRange(float(ram_data[0]), float(ram_data[1]))
+    )
+    providers_data: Optional[List[str]] = task_group_data.get(
+        PROVIDERS, tasks_data.get(PROVIDERS, CONFIG_WR.providers)
+    )
+    providers: Optional[List[CloudProvider]] = (
+        None
+        if providers_data is None
+        else [CloudProvider(provider) for provider in providers_data]
+    )
+    run_specification = RunSpecification(
+        taskTypes=task_types,
+        maximumTaskRetries=task_group_data.get(
+            MAX_RETRIES, tasks_data.get(MAX_RETRIES, CONFIG_WR.max_retries)
+        ),
+        workerTags=task_group_data.get(
+            WORKER_TAGS, tasks_data.get(WORKER_TAGS, CONFIG_WR.worker_tags)
+        ),
+        exclusiveWorkers=task_group_data.get(
+            EXCLUSIVE_WORKERS,
+            tasks_data.get(EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers),
+        ),
+        instanceTypes=task_group_data.get(
+            INSTANCE_TYPES, tasks_data.get(INSTANCE_TYPES, CONFIG_WR.instance_types)
+        ),
+        vcpus=vcpus,
+        ram=ram,
+        minWorkers=task_group_data.get(MIN_WORKERS, CONFIG_WR.min_workers),
+        maxWorkers=task_group_data.get(MAX_WORKERS, CONFIG_WR.max_workers),
+        tasksPerWorker=task_group_data.get(
+            TASKS_PER_WORKER, CONFIG_WR.tasks_per_worker
+        ),
+        providers=providers,
+        regions=task_group_data.get(
+            REGIONS, tasks_data.get(REGIONS, CONFIG_WR.regions)
+        ),
+    )
+    ctttl_data = task_group_data.get(
+        COMPLETED_TASK_TTL,
+        tasks_data.get(COMPLETED_TASK_TTL, CONFIG_WR.completed_task_ttl),
+    )
+    completed_task_ttl = None if ctttl_data is None else timedelta(minutes=ctttl_data)
+
+    # Create the fully-populated Task Group
+    task_group = TaskGroup(
+        name=task_group_name,
+        runSpecification=run_specification,
+        dependentOn=task_group_data.get(DEPENDENT_ON, None),
+        autoFail=task_group_data.get(
+            AUTO_FAIL, tasks_data.get(AUTO_FAIL, CONFIG_WR.auto_fail)
+        ),
+        autoComplete=True,
+        priority=task_group_data.get(PRIORITY, 0.0),
+        completedTaskTtl=completed_task_ttl,
+    )
+    print_log(f"Generated Task Group '{task_group_name}'")
+    return task_group, input_files
 
 
 def create_task(
