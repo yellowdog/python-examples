@@ -165,10 +165,11 @@ def submit_work_requirement(
     except KeyError:
         pass
 
+    # Ensure we're in the correct directory for uploads
     if directory_to_upload_from != "":
         chdir(directory_to_upload_from)
 
-    uploaded_files = []
+    # Create the list of Task Groups
     task_groups: List[TaskGroup] = []
     input_files_by_task_group: List[List[str]] = []
     for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
@@ -195,6 +196,9 @@ def submit_work_requirement(
         f"({work_requirement.name})"
     )
 
+    # Keep track of uploaded files
+    uploaded_files = []
+
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
 
@@ -205,107 +209,14 @@ def submit_work_requirement(
                 upload_file(input_file)
                 uploaded_files.append(input_file)
 
-        # Determine Task batching
-        tasks = tasks_data[TASK_GROUPS][tg_number][TASKS]
-        num_tasks = len(tasks) if task_count is None else task_count
-        num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
-        tasks_list: List[Task] = []
-        if num_task_batches > 1:
-            print_log(
-                f"Adding Tasks to Task Group '{task_group.name}' in "
-                f"{num_task_batches} batches"
-            )
-
-        for batch_number in range(num_task_batches):
-            tasks_list.clear()
-            for task_number in range(
-                (TASK_BATCH_SIZE * batch_number),
-                min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
-            ):
-                task_group_data = tasks_data[TASK_GROUPS][tg_number]
-                task = tasks[task_number] if task_count is None else tasks[0]
-                task_name = task.get(
-                    NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
-                )
-                executable = task.get(
-                    EXECUTABLE,
-                    task_group_data.get(
-                        EXECUTABLE, tasks_data.get(EXECUTABLE, CONFIG_WR.executable)
-                    ),
-                )
-                arguments_list = task.get(
-                    ARGS,
-                    tasks_data.get(ARGS, task_group_data.get(ARGS, CONFIG_WR.args)),
-                )
-                env = task.get(
-                    ENV, task_group_data.get(ENV, tasks_data.get(ENV, CONFIG_WR.env))
-                )
-                input_files = [
-                    TaskInput.from_task_namespace(
-                        unique_upload_pathname(file), required=True
-                    )
-                    for file in task.get(
-                        INPUT_FILES,
-                        task_group_data.get(
-                            INPUT_FILES,
-                            tasks_data.get(INPUT_FILES, CONFIG_WR.input_files),
-                        ),
-                    )
-                ]
-                intermediate_files = [
-                    TaskInput.from_task_namespace(f"{ID}/{file}", required=True)
-                    for file in task.get(INTERMEDIATE_FILES, [])
-                ]
-                input_files += intermediate_files
-                output_files = [
-                    TaskOutput.from_worker_directory(file)
-                    for file in task.get(
-                        OUTPUT_FILES,
-                        task_group_data.get(
-                            OUTPUT_FILES,
-                            tasks_data.get(OUTPUT_FILES, CONFIG_WR.output_files),
-                        ),
-                    )
-                ]
-                output_files.append(TaskOutput.from_task_process())
-                # If there's no task type in the task definition, and
-                # there's only one task type at the task group level, use it
-                try:
-                    task_type = task[TASK_TYPE]
-                except KeyError:
-                    if len(task_group.runSpecification.taskTypes) == 1:
-                        task_type = task_group.runSpecification.taskTypes[0]
-                    else:
-                        task_type = CONFIG_WR.task_type
-                tasks_list.append(
-                    create_task(
-                        tasks_data=tasks_data,
-                        task_group_data=task_group_data,
-                        task_data=task,
-                        name=task_name,
-                        task_type=task_type,
-                        executable=executable,
-                        args=arguments_list,
-                        env=env,
-                        inputs=input_files,
-                        outputs=output_files,
-                        uploaded_files=uploaded_files,
-                    )
-                )
-            CLIENT.work_client.add_tasks_to_task_group_by_name(
-                CONFIG_COMMON.namespace,
-                work_requirement.name,
-                task_group.name,
-                tasks_list,
-            )
-            if num_task_batches > 1:
-                print_log(
-                    f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} : "
-                    f"Added {len(tasks_list):,d} "
-                    f"Task(s) to Work Requirement Task Group '{task_group.name}'"
-                )
-        print_log(
-            f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'"
+        # Add the Tasks
+        add_tasks_to_task_group(
+            tg_number,
+            task_group,
+            tasks_data,
+            task_count,
+            work_requirement,
+            uploaded_files,
         )
 
     if ARGS_PARSER.follow:
@@ -319,6 +230,7 @@ def create_task_group(
     Create a Task Group and return the list of unique input files required by
     the Tasks in the Task Group
     """
+
     # Remap 'task_type' to 'task_types' in the Task Group if 'task_types'
     # is empty, as a convenience
     if task_group_data.get(TASK_TYPE, None) is not None:
@@ -433,6 +345,155 @@ def create_task_group(
     return task_group, input_files
 
 
+def add_tasks_to_task_group(
+    tg_number: int,
+    task_group: TaskGroup,
+    tasks_data: Dict,
+    task_count: Optional[int],
+    work_requirement: WorkRequirement,
+    uploaded_files: List[str],
+) -> None:
+    """
+    Adds all the Tasks that comprise a given Task Group
+    """
+
+    # Determine Task batching
+    tasks = tasks_data[TASK_GROUPS][tg_number][TASKS]
+    num_tasks = len(tasks) if task_count is None else task_count
+    num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
+    tasks_list: List[Task] = []
+    if num_task_batches > 1:
+        print_log(
+            f"Adding Tasks to Task Group '{task_group.name}' in "
+            f"{num_task_batches} batches"
+        )
+
+    # Iterate through batches
+    for batch_number in range(num_task_batches):
+        tasks_list.clear()
+        for task_number in range(
+            (TASK_BATCH_SIZE * batch_number),
+            min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
+        ):
+            task_group_data = tasks_data[TASK_GROUPS][tg_number]
+            task = tasks[task_number] if task_count is None else tasks[0]
+            task_name = task.get(
+                NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
+            )
+            executable = task.get(
+                EXECUTABLE,
+                task_group_data.get(
+                    EXECUTABLE, tasks_data.get(EXECUTABLE, CONFIG_WR.executable)
+                ),
+            )
+            arguments_list = task.get(
+                ARGS,
+                tasks_data.get(ARGS, task_group_data.get(ARGS, CONFIG_WR.args)),
+            )
+            env = task.get(
+                ENV, task_group_data.get(ENV, tasks_data.get(ENV, CONFIG_WR.env))
+            )
+            input_files = [
+                TaskInput.from_task_namespace(
+                    unique_upload_pathname(file), required=True
+                )
+                for file in task.get(
+                    INPUT_FILES,
+                    task_group_data.get(
+                        INPUT_FILES,
+                        tasks_data.get(INPUT_FILES, CONFIG_WR.input_files),
+                    ),
+                )
+            ]
+            intermediate_files = [
+                TaskInput.from_task_namespace(f"{ID}/{file}", required=True)
+                for file in task.get(INTERMEDIATE_FILES, [])
+            ]
+            input_files += intermediate_files
+            output_files = [
+                TaskOutput.from_worker_directory(file)
+                for file in task.get(
+                    OUTPUT_FILES,
+                    task_group_data.get(
+                        OUTPUT_FILES,
+                        tasks_data.get(OUTPUT_FILES, CONFIG_WR.output_files),
+                    ),
+                )
+            ]
+            output_files.append(TaskOutput.from_task_process())
+            # If there's no task type in the task definition, and
+            # there's only one task type at the task group level, use it
+            try:
+                task_type = task[TASK_TYPE]
+            except KeyError:
+                if len(task_group.runSpecification.taskTypes) == 1:
+                    task_type = task_group.runSpecification.taskTypes[0]
+                else:
+                    task_type = CONFIG_WR.task_type
+            tasks_list.append(
+                create_task(
+                    tasks_data=tasks_data,
+                    task_group_data=task_group_data,
+                    task_data=task,
+                    name=task_name,
+                    task_type=task_type,
+                    executable=executable,
+                    args=arguments_list,
+                    env=env,
+                    inputs=input_files,
+                    outputs=output_files,
+                    uploaded_files=uploaded_files,
+                )
+            )
+        CLIENT.work_client.add_tasks_to_task_group_by_name(
+            CONFIG_COMMON.namespace,
+            work_requirement.name,
+            task_group.name,
+            tasks_list,
+        )
+        if num_task_batches > 1:
+            print_log(
+                f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} : "
+                f"Added {len(tasks_list):,d} "
+                f"Task(s) to Work Requirement Task Group '{task_group.name}'"
+            )
+    print_log(f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'")
+
+
+def follow_progress(work_requirement: WorkRequirement) -> None:
+    """
+    Follow and report the progress of a Work Requirement
+    """
+    listener = DelegatedSubscriptionEventListener(on_update=on_update)
+    CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
+    try:
+        work_requirement = (
+            CLIENT.work_client.get_work_requirement_helper(work_requirement)
+            .when_requirement_matches(lambda wr: wr.status.is_finished())
+            .result()
+        )
+    except (KeyboardInterrupt, Exception) as e:
+        print_log(f"Exiting {e}")
+        return
+    if work_requirement.status != WorkRequirementStatus.COMPLETED:
+        print_log(f"Work Requirement did not complete: {work_requirement.status}")
+
+
+def on_update(work_req: WorkRequirement):
+    """
+    Print status messages on Work Requirement update
+    """
+    completed = 0
+    total = 0
+    for task_group in work_req.taskGroups:
+        completed += task_group.taskSummary.statusCounts[TaskStatus.COMPLETED]
+        total += task_group.taskSummary.taskCount
+    print_log(
+        f"WORK REQUIREMENT is {work_req.status} with {completed}/{total} "
+        f"COMPLETED TASKS"
+    )
+
+
 def create_task(
     tasks_data: Dict,
     task_group_data: Dict,
@@ -447,7 +508,8 @@ def create_task(
     uploaded_files: List[str],
 ) -> Task:
     """
-    Create a Task object, handling variations for different Task Types
+    Create a Task object, handling variations for different Task Types.
+    This is where to define a new Task Type and to set up how it's run.
     """
     valid_task_types = ["bash", "docker"]
     if task_type not in valid_task_types:
@@ -502,40 +564,6 @@ def create_task(
         inputs=inputs,
         environment=env,
         outputs=outputs,
-    )
-
-
-def follow_progress(work_requirement: WorkRequirement) -> None:
-    """
-    Follow and report the progress of a Work Requirement
-    """
-    listener = DelegatedSubscriptionEventListener(on_update=on_update)
-    CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
-    try:
-        work_requirement = (
-            CLIENT.work_client.get_work_requirement_helper(work_requirement)
-            .when_requirement_matches(lambda wr: wr.status.is_finished())
-            .result()
-        )
-    except (KeyboardInterrupt, Exception) as e:
-        print_log(f"Exiting {e}")
-        return
-    if work_requirement.status != WorkRequirementStatus.COMPLETED:
-        print_log(f"Work Requirement did not complete: {work_requirement.status}")
-
-
-def on_update(work_req: WorkRequirement):
-    """
-    Print status messages on Work Requirement update
-    """
-    completed = 0
-    total = 0
-    for task_group in work_req.taskGroups:
-        completed += task_group.taskSummary.statusCounts[TaskStatus.COMPLETED]
-        total += task_group.taskSummary.taskCount
-    print_log(
-        f"WORK REQUIREMENT is {work_req.status} with {completed}/{total} "
-        f"COMPLETED TASKS"
     )
 
 
