@@ -162,7 +162,7 @@ def submit_work_requirement(
     try:
         global ID
         ID = f"WR_{CONFIG_COMMON.name_tag}__{tasks_data[WR_NAME]}"
-    except:
+    except KeyError:
         pass
 
     if directory_to_upload_from != "":
