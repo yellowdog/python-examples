@@ -20,6 +20,8 @@ from yellowdog_client.model import (
     ApiKey,
     CloudProvider,
     DoubleRange,
+    ObjectPath,
+    ObjectPathsRequest,
     RunSpecification,
     ServicesSchema,
     Task,
@@ -117,7 +119,7 @@ def upload_file(filename: str):
             CONFIG_COMMON.url,
             f"#/objects/{CONFIG_COMMON.namespace}/{uploaded_pathname}?object=true",
         )
-        print_log(f"Uploaded file '{filename}' to YDOS: {link_}")
+        print_log(f"Uploaded file '{filename}': {link_}")
 
 
 def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False) -> str:
@@ -126,7 +128,7 @@ def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False)
     in the YD Object Store. Optionally replaces forward slashes.
     """
     # Rework the filename
-    double_dots = filename.count("..")  # Disambiguate relative paths
+    double_dots = filename.count("..")  # Use to disambiguate relative paths
     filename = filename.replace("../", "").replace("./", "").replace("//", "/")
     filename = filename[1:] if filename[0] == "/" else filename
     filename = str(double_dots) + "/" + filename if double_dots != 0 else filename
@@ -201,23 +203,28 @@ def submit_work_requirement(
 
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
+        try:
+            # Upload files required by the Tasks in this Task Group
+            print_log(f"Uploading files for Task Group '{task_group.name}'")
+            for input_file in input_files_by_task_group[tg_number]:
+                if input_file not in uploaded_files:
+                    upload_file(input_file)
+                    uploaded_files.append(input_file)
 
-        # Upload files required by the Tasks in this Task Group
-        print_log(f"Uploading files for Task Group '{task_group.name}'")
-        for input_file in input_files_by_task_group[tg_number]:
-            if input_file not in uploaded_files:
-                upload_file(input_file)
-                uploaded_files.append(input_file)
+            # Add the Tasks
+            add_tasks_to_task_group(
+                tg_number,
+                task_group,
+                tasks_data,
+                task_count,
+                work_requirement,
+                uploaded_files,
+            )
 
-        # Add the Tasks
-        add_tasks_to_task_group(
-            tg_number,
-            task_group,
-            tasks_data,
-            task_count,
-            work_requirement,
-            uploaded_files,
-        )
+        except Exception as e:
+            print_log(f"Error: {e}")
+            cleanup_on_failure(work_requirement)
+            return
 
     if ARGS_PARSER.follow:
         follow_progress(work_requirement)
@@ -492,6 +499,37 @@ def on_update(work_req: WorkRequirement):
         f"WORK REQUIREMENT is {work_req.status} with {completed}/{total} "
         f"COMPLETED TASKS"
     )
+
+
+def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
+    """
+    Clean up the Work Requirement and any uploaded Objects on failure
+    """
+
+    def _delete_objects():
+        object_paths: List[
+            ObjectPath
+        ] = CLIENT.object_store_client.get_namespace_object_paths(
+            ObjectPathsRequest(CONFIG_COMMON.namespace)
+        )
+        object_paths_to_delete: List[ObjectPath] = []
+        for object_path in object_paths:
+            if work_requirement.name in object_path.name:
+                object_paths_to_delete.append(object_path)
+        if len(object_paths_to_delete) > 0:
+            CLIENT.object_store_client.delete_objects(
+                CONFIG_COMMON.namespace, object_paths=object_paths_to_delete
+            )
+            print_log(f"Deleted all Objects under '{work_requirement.name}'")
+        else:
+            print_log("No Objects to Delete")
+
+    try:
+        CLIENT.work_client.cancel_work_requirement(work_requirement)
+        print_log(f"Cancelled Work Requirement '{work_requirement.name}'")
+        _delete_objects()
+    except Exception as e:
+        print_log(f"Error: {e}")
 
 
 def create_task(
