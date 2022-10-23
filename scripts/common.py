@@ -40,6 +40,7 @@ class ConfigWorkRequirement:
     args: List[str] = field(default_factory=list)
     auto_fail: bool = True
     bash_script: Optional[str] = None
+    capture_taskoutput: bool = True
     completed_task_ttl: Optional[float] = None  # In minutes
     docker_password: Optional[str] = None
     docker_username: Optional[str] = None
@@ -209,6 +210,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             args=wr_section.get(ARGS, []),
             auto_fail=wr_section.get(AUTO_FAIL, True),
             bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
+            capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, True),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             docker_password=wr_section.get(DOCKER_PASSWORD, None),
             docker_username=wr_section.get(DOCKER_USERNAME, None),

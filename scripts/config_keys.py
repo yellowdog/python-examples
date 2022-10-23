@@ -7,6 +7,7 @@ AUTO_FAIL = "autoFail"  # Boolean
 AUTO_SCALING_IDLE_DELAY = "autoscalingIdleDelay"  # Float
 AUTO_SHUTDOWN = "autoShutdown"  # Boolean
 AUTO_SHUTDOWN_DELAY = "autoShutdownDelay"  # Float
+CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
 COMMON_SECTION = "common"
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
@@ -67,6 +68,7 @@ ALL_KEYS = [
     AUTO_SHUTDOWN,
     AUTO_SHUTDOWN_DELAY,
     BASH_SCRIPT,
+    CAPTURE_TASKOUTPUT,
     COMMON_SECTION,
     COMPLETED_TASK_TTL,
     COMPUTE_REQUIREMENT_BATCH_SIZE,

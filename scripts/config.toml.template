@@ -88,6 +88,12 @@
     # --------------------------------------------------------------------------
     # workRequirementData = "my_tasks.json"
 
+    # Whether to upload the process output of Task execution when the Task
+    # finishes
+    # Optional
+    # --------------------------------------------------------------------------
+    # captureTaskOutput = true
+
 [workerPool]  #################################################################
 
     # The Compute Requirement Template to use

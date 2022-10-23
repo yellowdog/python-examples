@@ -427,7 +427,14 @@ def add_tasks_to_task_group(
                     ),
                 )
             ]
-            output_files.append(TaskOutput.from_task_process())
+            if task.get(
+                CAPTURE_TASKOUTPUT,
+                task_group_data.get(
+                    CAPTURE_TASKOUTPUT,
+                    tasks_data.get(CAPTURE_TASKOUTPUT, CONFIG_WR.capture_taskoutput),
+                ),
+            ):
+                output_files.append(TaskOutput.from_task_process())
             # If there's no task type in the task definition, and
             # there's only one task type at the task group level, use it
             try:
