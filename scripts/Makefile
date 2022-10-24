@@ -5,7 +5,7 @@ TESTS =
 MANIFEST = ../LICENSE ../README.md requirements.txt
 BUILD_DIST = build dist yellowdog_python_examples.egg-info
 PYCACHE = __pycache__
-TOC = ../README.md.*
+TOC = README.md.*
 
 build: $(SRC) $(MANIFEST)
 	python setup.py sdist bdist_wheel

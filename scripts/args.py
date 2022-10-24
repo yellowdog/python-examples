@@ -22,7 +22,8 @@ class CLIParser:
             "-c",
             required=False,
             type=str,
-            help="script configuration file in TOML format (default is 'config.toml')",
+            help="script configuration file in TOML format; "
+            "(default is 'config.toml') in the current directory",
             metavar="CONFIG_FILE.toml",
         )
 

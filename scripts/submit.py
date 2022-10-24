@@ -345,7 +345,7 @@ def create_task_group(
             AUTO_FAIL, tasks_data.get(AUTO_FAIL, CONFIG_WR.auto_fail)
         ),
         autoComplete=True,
-        priority=task_group_data.get(PRIORITY, 0.0),
+        priority=task_group_data.get(PRIORITY, 0.0),  # Not inherited from WR
         completedTaskTtl=completed_task_ttl,
     )
     print_log(f"Generated Task Group '{task_group_name}'")
