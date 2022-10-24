@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from getpass import getuser
+from json import loads as json_loads
 from os import getenv
 from os.path import abspath, dirname, join, normpath, relpath
 from random import randint
@@ -318,6 +319,17 @@ def pathname_relative_to_config_file(file: str) -> str:
     of the config file
     """
     return normpath(relpath(join(CONFIG_FILE_DIR, file)))
+
+
+def load_json_file_with_mustache_substitutions(filename: str) -> Dict:
+    """
+    Takes a JSON filename and returns a dictionary with its mustache
+    substitutions processed. Currently only applicable to Work Requirement
+    submissions.
+    """
+    with open(filename, "r") as f:
+        contents = f.read()
+    return json_loads(mustache_substitution(contents))
 
 
 # Utility functions for creating links to YD entities
