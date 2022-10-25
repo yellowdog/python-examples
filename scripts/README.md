@@ -430,7 +430,7 @@ Examples will be provided at a later date.
 
 ##### TOML Properties in the `workerPool` Section
 
-Here's an example of the `workRequirement` section of a TOML configuration file, showing all the possible properties that can be set:
+Here's an example of the `workerPool` section of a TOML configuration file, showing all the possible properties that can be set:
 
 ```toml
 [workerPool]
