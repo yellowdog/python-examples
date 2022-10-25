@@ -27,7 +27,7 @@ class CLIParser:
             metavar="CONFIG_FILE.toml",
         )
 
-        all_options_modules = ["args", "which_config"]
+        all_options_modules = ["args", "which-config"]
 
         if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
             parser.add_argument(
