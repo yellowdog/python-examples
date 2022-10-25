@@ -27,6 +27,7 @@
          * [Examples](#examples-1)
             * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
    * [Command List](#command-list)
+      * [yd-submit](#yd-submit)
       * [yd-provision](#yd-provision)
       * [yd-cancel](#yd-cancel)
       * [yd-download](#yd-download)
@@ -34,7 +35,7 @@
       * [yd-shutdown](#yd-shutdown)
       * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Oct 25 15:08:58 BST 2022 -->
+<!-- Added by: pwt, at: Tue Oct 25 15:55:14 BST 2022 -->
 
 <!--te-->
 
@@ -166,7 +167,7 @@ A very simple example document is shown below with a top-level Work Requirement 
 
 ```
 
-To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file, or specify it on the command line using the `--work-req` or `-r` options (which will override any value set in the TOML file), e.g.
+To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file with the JSON filename, or specify it on the command line using the `--work-req` or `-r` options (which will override any value set in the TOML file), e.g.
 
 `yd-submit --config myconfig.toml --work-req my_workreq.json`
 
@@ -275,7 +276,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
 
 ##### JSON Properties at the Work Requirement Level
 
-Showing all possible properties at the Work Requirement level.
+Showing all possible properties at the Work Requirement level:
 
 ```json
 {
@@ -316,7 +317,7 @@ Showing all possible properties at the Work Requirement level.
 
 ##### JSON Properties at the Task Group Level
 
-Showing all possible properties at the Task Group level.
+Showing all possible properties at the Task Group level:
 
 ```json
 {
@@ -364,7 +365,7 @@ Showing all possible properties at the Task Group level.
 
 ##### JSON Properties at the Task Level
 
-Showing all possible properties at the Task level.
+Showing all possible properties at the Task level:
 
 ```json
 {
@@ -419,9 +420,11 @@ The name of the Worker Pool, if not supplied, is automatically generated using a
 
 **Experimental Feature**
 
-It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either using the command line with the `--worker-pool` or `-p` parameter with `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file. Command line specification takes priority over TOML specification. The JSON specification allows the creation of **Advanced Worker Pools**, with different node types and the ability to specify Node Actions.
+It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either using the command line with the `--worker-pool` or `-p` parameter with `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file with the JSON filename. Command line specification takes priority over TOML specification. The JSON specification allows the creation of **Advanced Worker Pools**, with different node types and the ability to specify Node Actions.
 
-When using a JSON document to specify the Worker Pool, the schema of the document is identical to that consumed by the YellowDog API for Worker Provisioning. Examples will be provided at a later date.
+When using a JSON document to specify the Worker Pool, the schema of the document is identical to that expected by the YellowDog API for Worker Provisioning.
+
+Examples will be provided at a later date.
 
 #### Examples
 
@@ -446,6 +449,14 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
 ```
 
 ## Command List
+
+### yd-submit
+
+The `yd-submit` command submits a new Work Requirement, according to the Work Requirement definition found in the `workRequirement` section of the TOML configuration file and/or the specification found in the Work Requirement JSON document.
+
+Once submitted, the Work Requirement will appear in the **Work** tab in the YellowDog Portal.
+
+The Work Requirement's progress can be tracked to completion by using the `--follow` (or `-f`) option when invoking `yd-submit`.
 
 ### yd-provision
 
