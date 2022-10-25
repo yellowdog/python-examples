@@ -188,8 +188,8 @@ def submit_work_requirement(
             name=ID,
             taskGroups=task_groups,
             tag=CONFIG_COMMON.name_tag,
-            priority=CONFIG_WR.priority,
-            fulfilOnSubmit=CONFIG_WR.fulfil_on_submit,
+            priority=tasks_data.get(PRIORITY, CONFIG_WR.priority),
+            fulfilOnSubmit=tasks_data.get(FULFIL_ON_SUBMIT, CONFIG_WR.fulfil_on_submit),
         )
     )
     print_log(
