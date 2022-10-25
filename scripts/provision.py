@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from json import JSONDecodeError, load
 from math import ceil, floor
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from requests import post as requests_post
 from yellowdog_client import PlatformClient
@@ -183,14 +183,18 @@ def create_worker_pool():
     if num_batches > 1:
         print_log(f"Batching into {num_batches} Compute Requirements")
     for batch_number in range(num_batches):
-        id = generate_id("WP")
+        id = generate_wp_batch_name(
+            name=CONFIG_WP.name, batch_number=batch_number, num_batches=num_batches
+        )
         if num_batches > 1:
             print_log(
-                f"Creating Worker Pool {batch_number + 1} "
+                f"Provisioning Worker Pool {batch_number + 1} '{id}'"
                 f"with {batches[batch_number].initial_nodes:,d} nodes(s) "
                 f"(minNodes: {batches[batch_number].min_nodes:,d}, "
                 f"maxNodes: {batches[batch_number].max_nodes:,d})"
             )
+        else:
+            print_log(f"Provisioning Worker Pool '{id}'")
         try:
             worker_pool = CLIENT.worker_pool_client.provision_worker_pool(
                 ComputeRequirementTemplateUsage(
@@ -275,6 +279,23 @@ def _allocate_nodes_to_batches(
         ):
             break
     return batches
+
+
+def generate_wp_batch_name(
+    name: Optional[str], batch_number: int, num_batches: int
+) -> str:
+    """
+    Generate the name of a Worker Pool
+    """
+
+    # Standard automatic name generation
+    if name is None:
+        return generate_id("WP")
+
+    # Use supplied name, with counter if multiple batches
+    if num_batches > 1:
+        name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
+    return name
 
 
 # Entry point
