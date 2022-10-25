@@ -5,16 +5,24 @@
 # from AWS Batch.
 #
 
-######## Run as root ########
+######## Run as root ###########################################################
 
 # Fail immediately on error; print script steps
 set -euxo pipefail
+
+# Set up Nexus credentials for YD Agent download
+# *** EDIT LOGIN NAME & PASSWORD BELOW ***
+cat > /root/.netrc << EOF
+machine nexus.yellowdog.tech
+    login     <insert_nexus_login_name>
+    password  <insert_nexus_password>
+EOF
 
 # Install Java 11 & set as default
 yum install -y java-11-amazon-corretto-headless && \
 alternatives --set java /usr/lib/jvm/java-11-amazon-corretto.x86_64/bin/java
 
-# Install AWS CLI to enable gathering ECR credentials
+# Install AWS CLI to enable gathering ECR credentials if required
 yum install -y unzip
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
@@ -29,26 +37,13 @@ mkdir -p /var/opt/yellowdog/agent/data/workers
 chown -R yd-agent:yd-agent /opt/yellowdog/agent
 chown -R yd-agent:yd-agent /var/opt/yellowdog/agent/data
 
-# Check for Nexus credentials and download the latest version of the agent
-if [ -e /root/.netrc ]
-then
+# Download the latest version of the YD Agent
 curl -Lno "/opt/yellowdog/agent/agent.jar" \
   "http://nexus.yellowdog.tech/service/rest/v1/search/assets/download?sort=version&repository=maven-public&maven.groupId=co.yellowdog.platform&maven.artifactId=agent&maven.extension=jar"
-else
-  cat <<EOM
-ERROR: /root/.netrc required to install YellowDog Agent. Please create as follows:
-
-machine nexus.yellowdog.tech
-    login <username>
-    password <password>
-
-EOM
-exit
-fi
 
 chown yd-agent:yd-agent /opt/yellowdog/agent/agent.jar
 
-# Set up the agent's config file
+# Set up the Agent's config file
 cat > /opt/yellowdog/agent/application.yaml << EOF
 yda.taskTypes:
   - name: "bash"
