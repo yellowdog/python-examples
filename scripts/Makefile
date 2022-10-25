@@ -27,23 +27,24 @@ isort: $(SRC)
 
 format: isort black
 
-mypy: $(SRC) $(TESTS)
-	mypy $(SRC) $(TESTS)
+#mypy: $(SRC) $(TESTS)
+#	mypy $(SRC) $(TESTS)
 
 #pypi_upload: clean build
 #	python -m twine upload --repository pypi dist/*
 
-pypi_test: clean build
-	python -m twine upload --repository testpypi dist/*
-
-pypi_check: build
-	twine check dist/*
+#pypi_test: clean build
+#	python -m twine upload --repository testpypi dist/*
+#
+#pypi_check: build
+#	twine check dist/*
 
 toc:
 	./gh-md-toc --insert README.md
 
 update:
-	pip install -U -r requirements.txt -r requirements-dev.txt
+	#pip install -U pip -r requirements.txt -r requirements-dev.txt
+	pip install -U pip -r requirements.txt
 
 no_op:
 	# Available targets are: build, clean, install, uninstall, black, pypi_upload, pypi_check
