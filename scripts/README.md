@@ -189,7 +189,7 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**) and *
 |:----------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:---------|:-----|
 | `arguments`           | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                  | Yes  | Yes | Yes      | Yes  |
 | `autoFail`            | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`true`.                                                                        | Yes  | Yes | Yes      |      |
-| `captureTaskOutput`   | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task Completion. Default: `true`.                                     | Yes  | Yes | Yes      | Yes  |
+| `captureTaskOutput`   | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                     | Yes  | Yes | Yes      | Yes  |
 | `completedTaskTtl`    | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                     | Yes  | Yes | Yes      |      |
 | `dependentOn`         | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"TG_1"`.                     |      |     | Yes      |      |
 | `dockerPassword`      | The password for DockerHub, used by the `docker` Task Type. E,g., `"my_password"`.                                                                                       | Yes  | Yes | Yes      | Yes  |
@@ -400,7 +400,7 @@ The following properties are available:
 | Property               | Description                                                                                            | Default        |
 |:-----------------------|:-------------------------------------------------------------------------------------------------------|:---------------|
 | `autoscalingIdleDelay` | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.           | `10.0` minutes |
-| `autoShutdown`         | Whether the Worker Pool is shut down after all nodes have bene idle for the `autoShutdownDelay`.       | `true`         |
+| `autoShutdown`         | Whether the Worker Pool is shut down after all nodes have been idle for the `autoShutdownDelay`.       | `true`         |
 | `autoShutdownDelay`    | The delay in minutes for which all nodes can be idle before the Worker Pool is shut down.              | `10.0` minutes |
 | `minNodes`             | The minimum number of nodes to which the Worker Pool can be scaled down.                               | `0`            |
 | `maxNodes`             | The maximum number of nodes to which the Worker Pool can be scaled up.                                 | `1`            |
