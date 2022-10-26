@@ -112,16 +112,16 @@ def abort_all_tasks() -> None:
             )
             tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
             for task in tasks:
-                print_log(
-                    f"Aborting Task '{task.name}' "
-                    f"in Task Group '{_task_group_name(wr_summary, task)}' "
-                    f"in Work Requirement '{wr_summary.name}'"
-                )
                 try:
                     CLIENT.work_client.cancel_task(task, abort=True)
+                    print_log(
+                        f"Aborting Task '{task.name}' "
+                        f"in Task Group '{_task_group_name(wr_summary, task)}' "
+                        f"in Work Requirement '{wr_summary.name}'"
+                    )
                 except Exception as e:
                     print_log(f"Error: {e}")
-                    # Continue processing
+                    continue
 
 
 # Entry point
