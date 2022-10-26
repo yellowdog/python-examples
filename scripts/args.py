@@ -56,6 +56,15 @@ class CLIParser:
                 metavar="WORKER_POOL.json",
             )
 
+        if any(module in sys.argv[0] for module in ["cancel"] + all_options_modules):
+            parser.add_argument(
+                "--abort",
+                "-a",
+                action="store_true",
+                required=False,
+                help="abort all running tasks with immediate effect",
+            )
+
         self.args = parser.parse_args()
 
         # Temporary ...
@@ -86,6 +95,10 @@ class CLIParser:
     def follow(self) -> Optional[bool]:
         return self.args.follow
 
+    @property
+    def abort(self) -> Optional[bool]:
+        return self.args.abort
+
 
 if __name__ == "__main__":
     # Standalone testing
@@ -94,3 +107,4 @@ if __name__ == "__main__":
     print("work requirement file =", args.work_req_file)
     print("worker pool file =", args.worker_pool_file)
     print("follow =", args.follow)
+    print("abort =", args.abort)

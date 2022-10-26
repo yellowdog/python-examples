@@ -10,12 +10,15 @@ from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
     ApiKey,
     ServicesSchema,
+    Task,
+    TaskSearch,
+    TaskStatus,
     WorkRequirement,
     WorkRequirementStatus,
     WorkRequirementSummary,
 )
 
-from common import ConfigCommon, link_entity, load_config_common, print_log
+from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
@@ -56,11 +59,49 @@ def main():
         if cancelled_count > 0:
             print_log(f"Cancelled {cancelled_count} Work Requirement(s)")
         else:
-            print_log("Nothing to cancel")
+            print_log("No Work Requirements to cancel")
+
+        if ARGS_PARSER.abort:
+            print_log("Aborting all currently running Tasks")
+            abort_all_tasks()
+
         CLIENT.close()
     except Exception as e:
         print_log(f"Exception: {e}")
     print_log("Done")
+
+
+def abort_all_tasks() -> None:
+    """
+    Abort all Tasks in CANCELLING Work Requirements.
+    """
+    for wr_summary in CLIENT.work_client.find_all_work_requirements():
+        if (
+            wr_summary.tag == CONFIG.name_tag
+            and wr_summary.namespace == CONFIG.namespace
+            and wr_summary.status
+            in [
+                WorkRequirementStatus.CANCELLING,
+            ]
+        ):
+            task_groups = CLIENT.work_client.get_work_requirement_by_id(
+                wr_summary.id
+            ).taskGroups
+            task_search = TaskSearch(
+                workRequirementId=wr_summary.id,
+                statuses=[TaskStatus.RUNNING],
+            )
+            tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
+            for task in tasks:
+                for task_group in task_groups:
+                    if task.taskGroupId == task_group.id:
+                        break
+                print_log(
+                    f"Aborting Task '{task.name}' in Work Requirement "
+                    f"'{wr_summary.name}' "
+                    f" in Task Group '{task_group.name}'"
+                )
+                CLIENT.work_client.cancel_task(task, abort=True)
 
 
 # Entry point

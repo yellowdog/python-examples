@@ -470,6 +470,8 @@ The `yd-cancel` command cancels any active Work Requirements, including any pend
 
 The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to cancel.
 
+By default, any Tasks that are currently running on Workers will continue to run to completion or until they fail. Tasks can be instructed to abort immediately by supplying the `--abort` or `-a` option to `yd-cancel`.
+
 ### yd-download
 
 The `yd-download` command downloads any objects created in the YellowDog Object Store.
