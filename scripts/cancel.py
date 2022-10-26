@@ -94,14 +94,12 @@ def abort_all_tasks() -> None:
         Helper function to find the Task Group Name for a given Task
         within a Work Requirement.
         """
-        task_group_name = ""
         for task_group in CLIENT.work_client.get_work_requirement_by_id(
             wr_summary.id
         ).taskGroups:
             if task.taskGroupId == task_group.id:
                 return task_group.name
-        else:
-            return task_group_name
+        return ""  # Shouldn't get here
 
     aborted_tasks = 0
     for wr_summary in CLIENT.work_client.find_all_work_requirements():
