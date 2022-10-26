@@ -8,6 +8,7 @@ from datetime import datetime
 from getpass import getuser
 from os import getenv
 from os.path import abspath, dirname, join, normpath, relpath
+from random import randint
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -116,11 +117,16 @@ def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
 
 
 UTCNOW = datetime.utcnow()
+RANDLIMIT = 0xFFF
 MUSTACHE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").upper(),
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S"),
     "datetime": UTCNOW.strftime("%y%m%d%H%M%S"),
+    "random": hex(randint(0, RANDLIMIT + 1))
+    .replace("0x", "")
+    .upper()
+    .zfill(len(hex(RANDLIMIT)) - 2),
 }
 
 
