@@ -65,6 +65,14 @@ class CLIParser:
                 help="abort all running tasks with immediate effect",
             )
 
+        if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
+            parser.add_argument(
+                "--no-mustache",
+                action="store_true",
+                required=False,
+                help="don't use Mustache template substitutions in JSON file processing",
+            )
+
         self.args = parser.parse_args()
 
         # Temporary ...
@@ -99,6 +107,10 @@ class CLIParser:
     def abort(self) -> Optional[bool]:
         return self.args.abort
 
+    @property
+    def no_mustache(self) -> Optional[bool]:
+        return self.args.no_mustache
+
 
 if __name__ == "__main__":
     # Standalone testing
@@ -108,3 +120,4 @@ if __name__ == "__main__":
     print("worker pool file =", args.worker_pool_file)
     print("follow =", args.follow)
     print("abort =", args.abort)
+    print("no-mustache", args.no_mustache)

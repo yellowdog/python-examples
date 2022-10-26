@@ -44,6 +44,7 @@ from common import (
     link_entity,
     load_config_common,
     load_config_work_requirement,
+    load_json_file,
     load_json_file_with_mustache_substitutions,
     print_log,
 )
@@ -74,7 +75,12 @@ def main():
         if wr_json_file is not None:
             print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
             try:
-                tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
+                if ARGS_PARSER.no_mustache:
+                    tasks_data = load_json_file(wr_json_file)
+                else:
+                    tasks_data = load_json_file_with_mustache_substitutions(
+                        wr_json_file
+                    )
                 submit_work_requirement(
                     directory_to_upload_from=dirname(wr_json_file),
                     tasks_data=tasks_data,

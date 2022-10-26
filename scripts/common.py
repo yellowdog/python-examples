@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from getpass import getuser
+from json import load as json_load
 from json import loads as json_loads
 from os import getenv
 from os.path import abspath, dirname, join, normpath, relpath
@@ -319,6 +320,14 @@ def pathname_relative_to_config_file(file: str) -> str:
     of the config file
     """
     return normpath(relpath(join(CONFIG_FILE_DIR, file)))
+
+
+def load_json_file(filename: str) -> Dict:
+    """
+    Load a JSON file into a dictionary.
+    """
+    with open(filename, "r") as f:
+        return json_load(f)
 
 
 def load_json_file_with_mustache_substitutions(filename: str) -> Dict:
