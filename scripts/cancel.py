@@ -38,6 +38,7 @@ def main():
             WorkRequirementSummary
         ] = CLIENT.work_client.find_all_work_requirements()
         cancelled_count = 0
+        cancelling_count = 0
         for work_summary in work_requirement_summaries:
             if (
                 work_summary.tag == CONFIG.name_tag
@@ -46,19 +47,28 @@ def main():
                 not in [
                     WorkRequirementStatus.COMPLETED,
                     WorkRequirementStatus.CANCELLED,
-                    WorkRequirementStatus.CANCELLING,
                     WorkRequirementStatus.FAILED,
                 ]
             ):
-                CLIENT.work_client.cancel_work_requirement_by_id(work_summary.id)
-                work_requirement: WorkRequirement = (
-                    CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
-                )
-                cancelled_count += 1
-                print_log(f"Cancelling {link_entity(CONFIG.url, work_requirement)}")
+                if work_summary.status != WorkRequirementStatus.CANCELLING:
+                    CLIENT.work_client.cancel_work_requirement_by_id(work_summary.id)
+                    work_requirement: WorkRequirement = (
+                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
+                    )
+                    cancelled_count += 1
+                    print_log(
+                        f"Cancelling {link_entity(CONFIG.url, work_requirement)} "
+                        f"({work_summary.name})"
+                    )
+                else:
+                    print_log(
+                        f"Work Requirement '{work_summary.name}' "
+                        f"is already cancelling"
+                    )
+                    cancelling_count += 1
         if cancelled_count > 0:
             print_log(f"Cancelled {cancelled_count} Work Requirement(s)")
-        else:
+        elif cancelling_count == 0:
             print_log("No Work Requirements to cancel")
 
         if ARGS_PARSER.abort:
@@ -75,33 +85,43 @@ def abort_all_tasks() -> None:
     """
     Abort all Tasks in CANCELLING Work Requirements.
     """
+
+    def _task_group_name(wr_summary: WorkRequirementSummary, task: Task) -> str:
+        """
+        Helper function to find the Task Group Name for a given Task
+        within a Work Requirement.
+        """
+        task_group_name = ""
+        for task_group in CLIENT.work_client.get_work_requirement_by_id(
+            wr_summary.id
+        ).taskGroups:
+            if task.taskGroupId == task_group.id:
+                return task_group.name
+        else:
+            return task_group_name
+
     for wr_summary in CLIENT.work_client.find_all_work_requirements():
         if (
             wr_summary.tag == CONFIG.name_tag
             and wr_summary.namespace == CONFIG.namespace
-            and wr_summary.status
-            in [
-                WorkRequirementStatus.CANCELLING,
-            ]
+            and wr_summary.status == WorkRequirementStatus.CANCELLING
         ):
-            task_groups = CLIENT.work_client.get_work_requirement_by_id(
-                wr_summary.id
-            ).taskGroups
             task_search = TaskSearch(
                 workRequirementId=wr_summary.id,
                 statuses=[TaskStatus.RUNNING],
             )
             tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
             for task in tasks:
-                for task_group in task_groups:
-                    if task.taskGroupId == task_group.id:
-                        break
                 print_log(
-                    f"Aborting Task '{task.name}' in Work Requirement "
-                    f"'{wr_summary.name}' "
-                    f" in Task Group '{task_group.name}'"
+                    f"Aborting Task '{task.name}' "
+                    f"in Task Group '{_task_group_name(wr_summary, task)}' "
+                    f"in Work Requirement '{wr_summary.name}'"
                 )
-                CLIENT.work_client.cancel_task(task, abort=True)
+                try:
+                    CLIENT.work_client.cancel_task(task, abort=True)
+                except Exception as e:
+                    print_log(f"Error: {e}")
+                    # Continue processing
 
 
 # Entry point
