@@ -129,6 +129,7 @@ def abort_all_tasks() -> None:
     else:
         print_log(f"Aborted {aborted_tasks} Task(s)")
 
+
 # Entry point
 if __name__ == "__main__":
     main()

@@ -5,10 +5,10 @@ A script to submit a Work Requirement.
 """
 
 from datetime import timedelta
-from json import JSONDecodeError, load
+from json import JSONDecodeError
 from math import ceil
 from os import chdir
-from os.path import dirname, exists
+from os.path import dirname
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -44,6 +44,7 @@ from common import (
     link_entity,
     load_config_common,
     load_config_work_requirement,
+    load_json_file_with_mustache_substitutions,
     print_log,
 )
 from config_keys import *
@@ -73,13 +74,13 @@ def main():
         if wr_json_file is not None:
             print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
             try:
-                with open(wr_json_file, "r") as f:
-                    tasks_data = load(f)
+                tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
+                submit_work_requirement(
+                    directory_to_upload_from=dirname(wr_json_file),
+                    tasks_data=tasks_data,
+                )
             except (JSONDecodeError, FileNotFoundError) as e:
                 print_log(f"Error: '{wr_json_file}': {e}")
-            submit_work_requirement(
-                directory_to_upload_from=dirname(wr_json_file), tasks_data=tasks_data
-            )
         elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
             print_log("Error: no work requirement (executable) defined")
         else:
