@@ -181,7 +181,7 @@ Overridden properties are also inherited. E.g., if a property is set at the Task
 
 #### Work Requirement Property Dictionary
 
-The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and Property `dependentOn` can only be set at the Task Group level.
+The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and property `dependentOn` can only be set at the Task Group level.
 
 All properties are optional except for **`taskType`** (or **`TaskTypes`**) and **`executable`**. Note that the currently supported Task Types are `bash` and `docker`.
 
@@ -327,7 +327,6 @@ Showing all possible properties at the Task Group level:
       "autoFail": false,
       "captureTaskOutput": true,
       "completedTaskTtl": 10,
-      "dependentOn": "First-Task-Group",
       "dockerPassword": "myPassword",
       "dockerUsername": "myUsername",
       "environment": {"MY_VAR": 100},
@@ -338,7 +337,7 @@ Showing all possible properties at the Task Group level:
       "maximumTaskRetries": 0,
       "maxWorkers": 1,
       "minWorkers": 1,
-      "name": "My-Task-Group",
+      "name": "First-Task-Group",
       "outputs": ["results.txt"],
       "priority": 0,
       "providers": ["AWS"],
