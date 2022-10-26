@@ -72,8 +72,11 @@ def main():
             print_log("No Work Requirements to cancel")
 
         if ARGS_PARSER.abort:
-            print_log("Aborting all currently running Tasks")
-            abort_all_tasks()
+            if cancelled_count == 0 and cancelling_count == 0:
+                print_log("No Tasks to abort")
+            else:
+                print_log("Aborting all currently running Tasks")
+                abort_all_tasks()
 
         CLIENT.close()
     except Exception as e:
