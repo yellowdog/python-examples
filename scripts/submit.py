@@ -483,7 +483,7 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     try:
         work_requirement = (
             CLIENT.work_client.get_work_requirement_helper(work_requirement)
-            .when_requirement_matches(lambda wr: wr.status.is_finished())
+            .when_requirement_matches(lambda wr: wr.status.finished)
             .result()
         )
     except (KeyboardInterrupt, Exception) as e:
