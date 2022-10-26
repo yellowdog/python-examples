@@ -14,7 +14,7 @@ from yellowdog_client.model import (
     ServicesSchema,
 )
 
-from common import ConfigCommon, load_config_common, print_log
+from common import ARGS_PARSER, ConfigCommon, load_config_common, print_log
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
@@ -26,7 +26,11 @@ CLIENT = PlatformClient.create(
 
 def main():
     try:
-        tag = "WR_" + CONFIG.name_tag
+        tag = (
+            "WR_" + CONFIG.name_tag
+            if ARGS_PARSER.tag_to_delete is None
+            else ARGS_PARSER.tag_to_delete
+        )
         print_log(
             f"Deleting Object Paths in NAMESPACE={CONFIG.namespace} with "
             f"names starting with TAG={tag}"

@@ -73,6 +73,16 @@ class CLIParser:
                 help="don't use Mustache template substitutions in JSON file processing",
             )
 
+        if any(module in sys.argv[0] for module in ["delete"] + all_options_modules):
+            parser.add_argument(
+                "--tag-to-delete",
+                "-t",
+                type=str,
+                required=False,
+                help="use a different TAG when determining which Object paths to delete",
+                metavar="OBJECT-TAG",
+            )
+
         self.args = parser.parse_args()
 
         # Temporary ...
@@ -111,6 +121,10 @@ class CLIParser:
     def no_mustache(self) -> Optional[bool]:
         return self.args.no_mustache
 
+    @property
+    def tag_to_delete(self) -> Optional[bool]:
+        return self.args.tag_to_delete
+
 
 if __name__ == "__main__":
     # Standalone testing
@@ -121,3 +135,4 @@ if __name__ == "__main__":
     print("follow =", args.follow)
     print("abort =", args.abort)
     print("no-mustache", args.no_mustache)
+    print("delete-tag =", args.tag_to_delete)
