@@ -115,16 +115,21 @@ def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
     return None if len(invalid_keys) == 0 else invalid_keys
 
 
+UTCNOW = datetime.utcnow()
 MUSTACHE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").upper(),
-    "date": datetime.utcnow().strftime("%y%m%d"),
+    "date": UTCNOW.strftime("%y%m%d"),
+    "time": UTCNOW.strftime("%H%M%S"),
+    "datetime": UTCNOW.strftime("%y%m%d%H%M%S"),
 }
 
 
-def mustache_substitution(input_string: str) -> str:
+def mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
     Apply Mustache substitutions
     """
+    if input_string is None:
+        return None
     return chevron_render(input_string, MUSTACHE_SUBSTITUTIONS)
 
 
@@ -234,7 +239,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
             vcpus=wr_section.get(VCPUS, None),
             worker_tags=worker_tags,
-            wr_name=wr_section.get(WR_NAME, None),
+            wr_name=mustache_substitution(wr_section.get(WR_NAME, None)),
         )
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
@@ -270,7 +275,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
                 MAX_NODES, max(1, wp_section.get(INITIAL_NODES, 1))
             ),
             min_nodes=wp_section.get(MIN_NODES, 0),
-            name=wp_section.get(WP_NAME, None),
+            name=mustache_substitution(wp_section.get(WP_NAME, None)),
             node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
             template_id=wp_section.get(TEMPLATE_ID, None),
             worker_pool_data_file=worker_pool_data_file,

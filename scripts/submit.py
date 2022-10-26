@@ -161,11 +161,8 @@ def submit_work_requirement(
             tasks_data[TASK_TYPES] = [tasks_data[TASK_TYPE]]
 
     # Overwrite the WR name?
-    try:
-        global ID
-        ID = f"WR_{CONFIG_COMMON.name_tag}__{tasks_data[WR_NAME]}"
-    except KeyError:
-        pass
+    global ID
+    ID = tasks_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
 
     # Ensure we're in the correct directory for uploads
     if directory_to_upload_from != "":
