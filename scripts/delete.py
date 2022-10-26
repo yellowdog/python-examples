@@ -26,19 +26,22 @@ CLIENT = PlatformClient.create(
 
 def main():
     try:
+        namespace = (
+            CONFIG.namespace if ARGS_PARSER.namespace is None else ARGS_PARSER.namespace
+        )
         tag = (
             "WR_" + CONFIG.name_tag
             if ARGS_PARSER.tag_to_delete is None
             else ARGS_PARSER.tag_to_delete
         )
         print_log(
-            f"Deleting Object Paths in NAMESPACE={CONFIG.namespace} with "
+            f"Deleting Object Paths in NAMESPACE={namespace} with "
             f"names starting with TAG={tag}"
         )
         object_paths: List[
             ObjectPath
         ] = CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(CONFIG.namespace)
+            ObjectPathsRequest(namespace)
         )
         object_paths_to_delete: List[ObjectPath] = []
         for object_path in object_paths:
@@ -47,7 +50,7 @@ def main():
         if len(object_paths_to_delete) != 0:
             print_log(f"{len(object_paths_to_delete)} Object Path(s) to Delete")
             CLIENT.object_store_client.delete_objects(
-                CONFIG.namespace, object_paths=object_paths_to_delete
+                namespace, object_paths=object_paths_to_delete
             )
             for object_path in object_paths_to_delete:
                 print_log(f"Deleted Object Path: {object_path.displayName}")

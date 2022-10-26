@@ -75,6 +75,16 @@ class CLIParser:
 
         if any(module in sys.argv[0] for module in ["delete"] + all_options_modules):
             parser.add_argument(
+                "--namespace",
+                "-n",
+                type=str,
+                required=False,
+                help="use a different namespace when determining which Object paths to delete",
+                metavar="MY-NAMESPACE",
+            )
+
+        if any(module in sys.argv[0] for module in ["delete"] + all_options_modules):
+            parser.add_argument(
                 "--tag-to-delete",
                 "-t",
                 type=str,
@@ -122,6 +132,10 @@ class CLIParser:
         return self.args.no_mustache
 
     @property
+    def namespace(self) -> Optional[bool]:
+        return self.args.namespace
+
+    @property
     def tag_to_delete(self) -> Optional[bool]:
         return self.args.tag_to_delete
 
@@ -135,4 +149,5 @@ if __name__ == "__main__":
     print("follow =", args.follow)
     print("abort =", args.abort)
     print("no-mustache", args.no_mustache)
+    print("namespace =", args.namespace)
     print("delete-tag =", args.tag_to_delete)
