@@ -13,7 +13,7 @@ class CLIParser:
     def __init__(self):
         """
         Create the argument parser, and parse the command
-        line arguments.
+        line arguments. Argument availability depends on module.
         """
         parser = argparse.ArgumentParser()
 
@@ -22,8 +22,8 @@ class CLIParser:
             "-c",
             required=False,
             type=str,
-            help="script configuration file in TOML format; "
-            "(default is 'config.toml') in the current directory",
+            help="configuration file in TOML format; "
+            "default is 'config.toml' in the current directory",
             metavar="CONFIG_FILE.toml",
         )
 
@@ -70,7 +70,7 @@ class CLIParser:
                 "--no-mustache",
                 action="store_true",
                 required=False,
-                help="don't use Mustache template substitutions in JSON file processing",
+                help="don't use Mustache substitutions in JSON file processing",
             )
 
         if any(module in sys.argv[0] for module in ["delete"] + all_options_modules):
