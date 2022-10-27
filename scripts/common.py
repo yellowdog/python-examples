@@ -132,7 +132,7 @@ MUSTACHE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").upper(),
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S"),
-    "datetime": UTCNOW.strftime("%y%m%d%H%M%S"),
+    "datetime": UTCNOW.strftime("%y%m%dT%H%M%S"),
     "random": hex(randint(0, RANDLIMIT + 1))
     .replace("0x", "")
     .upper()

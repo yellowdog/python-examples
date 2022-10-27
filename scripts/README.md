@@ -9,6 +9,7 @@
 * [Usage](#usage)
 * [Configuration](#configuration)
    * [Common Properties](#common-properties)
+      * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
       * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
    * [Work Requirement Properties](#work-requirement-properties)
       * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
@@ -22,6 +23,7 @@
          * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
          * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
          * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
+      * [Mustache Template Directives in Work Requirement Properties](#mustache-template-directives-in-work-requirement-properties)
    * [Worker Pool Properties](#worker-pool-properties)
       * [Automatic Properties](#automatic-properties-1)
       * [Worker Pool JSON File Structure](#worker-pool-json-file-structure)
@@ -36,7 +38,7 @@
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Thu Oct 27 20:10:25 BST 2022 -->
+<!-- Added by: pwt, at: Thu Oct 27 20:55:10 BST 2022 -->
 
 <!--te-->
 
@@ -146,7 +148,21 @@ An example `common` section is shown below:
 
 The indentation is optional in TOML files and is for readability only.
 
-Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `TESTING-ABC`. This can be helpful to disambiguate multiple users running with the same configuration data. The Mustache directive can also be used within the `namespace` value.
+### Mustache Template Directives in Common Properties
+
+Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `TESTING-ABC`. This can be helpful to disambiguate multiple users running with the same configuration data.
+
+Mustache directives can be used within the `namespace` and `tag` values in the `common` section (or when supplied as command line options or environment variables). The available Mustache directives are:
+
+| Directive      | Description                                    | Example of Substitution |
+|:---------------|:-----------------------------------------------|:------------------------|
+| `{{username}}` | The current user's login username, capitalised | JANESMITH               |
+| `{{date}}`     | The current date (UTC): YYYYMMDD               | 20221027                |
+| `{{time}}`     | The current time (UTC): HHMMSS                 | 163026                  |
+| `{{datetime}}` | Concatenation of the date and time above       | 20221027T163026         |
+| `{{random}}`   | A random, three digit hexadecimal number       | A1C                     |
+
+For the `date`, `time` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
 ### Specifying Common Properties using the Command Line or Environment Variables
 
@@ -168,7 +184,7 @@ The **environment variables** are as follows:
 - `YD_NAMESPACE`
 - `YD_TAG`
 
-When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in the configuration file.
+When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in a configuration file.
 
 If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
 
@@ -434,6 +450,12 @@ Showing all possible properties at the Task level:
   ]
 }
 ```
+
+### Mustache Template Directives in Work Requirement Properties
+
+Mustache template directives can be used within in any property value within the `workRequirement` section of the TOML file or a Work Requirement JSON file. See the description [above](#mustache-template-directives-in-common-properties) of the common properties for the available Mustache directives.
+
+To suppress all Mustache processing within a JSON file, `yd-submit` can be run with the `--no-mustache` option.
 
 ## Worker Pool Properties
 
