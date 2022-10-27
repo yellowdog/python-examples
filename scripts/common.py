@@ -172,26 +172,16 @@ def load_config_common() -> ConfigCommon:
         common_section_import_file = common_section.get(IMPORT, None)
         if common_section_import_file is not None:
             common_section = import_toml(common_section_import_file)
-        common_section[KEY] = (
-            ARGS_PARSER.key
-            if ARGS_PARSER.key is not None
-            else common_section[KEY]
-        )
-        common_section[SECRET] = (
-            ARGS_PARSER.secret
-            if ARGS_PARSER.secret is not None
-            else common_section[SECRET]
-        )
-        common_section[NAMESPACE] = (
-            ARGS_PARSER.namespace
-            if ARGS_PARSER.namespace is not None
-            else common_section[NAMESPACE]
-        )
-        common_section[NAME_TAG] = (
-            ARGS_PARSER.tag
-            if ARGS_PARSER.tag is not None
-            else common_section[NAME_TAG]
-        )
+        # Replace common section properties with command line overrides
+        for key_name, override in [
+            (KEY, ARGS_PARSER.key),
+            (SECRET, ARGS_PARSER.secret),
+            (NAMESPACE, ARGS_PARSER.namespace),
+            (NAME_TAG, ARGS_PARSER.tag),
+        ]:
+            common_section[key_name] = (
+                override if override is not None else common_section[key_name]
+            )
         return ConfigCommon(
             # Required configuration values
             key=common_section[KEY],
