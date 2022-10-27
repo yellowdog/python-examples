@@ -17,7 +17,7 @@ from uuid import uuid4
 
 from chevron import render as chevron_render
 from toml import TomlDecodeError
-from toml import load as toml_load
+from toml import loads as toml_loads
 from yellowdog_client.model import (
     ComputeRequirement,
     ConfiguredWorkerPool,
@@ -149,6 +149,17 @@ def mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     return chevron_render(input_string, MUSTACHE_SUBSTITUTIONS)
 
 
+def load_toml_file_with_mustache_substitutions(filename: str) -> Dict:
+    """
+    Takes a TOML filename and returns a dictionary with its mustache
+    substitutions processed.
+    """
+    with open(filename, "r") as f:
+        contents = f.read()
+    return toml_loads(mustache_substitution(contents))
+
+
+# The CLIParser class parses command line arguments on instantiation
 ARGS_PARSER: CLIParser = CLIParser()
 
 # CLI > YD_CONF > 'config.toml'
@@ -159,14 +170,13 @@ config_file = (
 )
 
 try:
-    with open(config_file, "r") as f:
-        CONFIG_TOML: Dict = toml_load(f)
-        invalid_keys = check_for_invalid_keys(CONFIG_TOML)
-        if invalid_keys is not None:
-            print_log(f"Error: Invalid properties in '{config_file}': {invalid_keys}")
-            exit(1)
-        print_log(f"Loading configuration data from: '{config_file}'")
-        CONFIG_FILE_DIR = dirname(abspath(config_file))
+    CONFIG_TOML: Dict = load_toml_file_with_mustache_substitutions(config_file)
+    invalid_keys = check_for_invalid_keys(CONFIG_TOML)
+    if invalid_keys is not None:
+        print_log(f"Error: Invalid properties in '{config_file}': {invalid_keys}")
+        exit(1)
+    print_log(f"Loading configuration data from: '{config_file}'")
+    CONFIG_FILE_DIR = dirname(abspath(config_file))
 
 except FileNotFoundError:
     # No config file, so create a stub config dictionary
@@ -228,9 +238,8 @@ def load_config_common() -> ConfigCommon:
 def import_toml(filename: str) -> Dict:
     print_log(f"Loading imported common configuration data from: '{filename}'")
     try:
-        with open(filename, "r") as f:
-            common_config: Dict = toml_load(f)
-            return common_config[COMMON_SECTION]
+        common_config: Dict = load_toml_file_with_mustache_substitutions(filename)
+        return common_config[COMMON_SECTION]
     except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
         print_log(f"Unable to load imported common configuration data: {e}")
         exit(1)

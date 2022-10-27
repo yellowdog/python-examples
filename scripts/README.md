@@ -453,7 +453,7 @@ Showing all possible properties at the Task level:
 
 ### Mustache Template Directives in Work Requirement Properties
 
-Mustache template directives can be used within in any property value within the `workRequirement` section of the TOML file or a Work Requirement JSON file. See the description [above](#mustache-template-directives-in-common-properties) of the common properties for the available Mustache directives.
+Mustache template directives can be used within in any property value within a TOML configuration file or a Work Requirement JSON file. See the description [above](#mustache-template-directives-in-common-properties) for the available Mustache directives.
 
 To suppress all Mustache processing within a JSON file, `yd-submit` can be run with the `--no-mustache` option.
 
