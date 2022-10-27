@@ -150,9 +150,6 @@ config_file = (
     else ARGS_PARSER.config_file
 )
 
-print_log(f"Loading configuration data from: '{config_file}'")
-CONFIG_FILE_DIR = dirname(abspath(config_file))
-
 try:
     with open(config_file, "r") as f:
         CONFIG_TOML: Dict = toml_load(f)

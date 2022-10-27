@@ -6,6 +6,7 @@ Class to parse command line arguments.
 
 import argparse
 import sys
+from datetime import datetime
 from typing import Optional
 
 
@@ -111,17 +112,19 @@ class CLIParser:
 
         self.args = parser.parse_args()
 
-        # Temporary ...
-        # if (
-        #     any(module in sys.argv[0] for module in ["submit"] + all_options_modules)
-        #     and self.args.follow
-        #     and sys.version_info >= (3, 10)
-        # ):
-        #     print(
-        #         "The '--follow' ('-f') option is not currently supported "
-        #         "for Python versions 3.10 and above"
-        #     )
-        #     exit(0)
+        # Temporary notification message while we figure out the problem
+        # with the use of concurrent futures
+        if (
+            any(module in sys.argv[0] for module in ["submit"] + all_options_modules)
+            and self.args.follow
+            and sys.version_info >= (3, 10)
+        ):
+            print(
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                ":",
+                "Note: the '--follow' ('-f') option is partially supported "
+                "for Python versions 3.10 and above",
+            )
 
     @property
     def config_file(self) -> Optional[str]:
@@ -134,6 +137,14 @@ class CLIParser:
     @property
     def secret(self) -> Optional[str]:
         return self.args.secret
+
+    @property
+    def namespace(self) -> Optional[bool]:
+        return self.args.namespace
+
+    @property
+    def tag(self) -> Optional[bool]:
+        return self.args.tag
 
     @property
     def work_req_file(self) -> Optional[str]:
@@ -155,14 +166,6 @@ class CLIParser:
     def no_mustache(self) -> Optional[bool]:
         return self.args.no_mustache
 
-    @property
-    def namespace(self) -> Optional[bool]:
-        return self.args.namespace
-
-    @property
-    def tag(self) -> Optional[bool]:
-        return self.args.tag
-
 
 if __name__ == "__main__":
     # Standalone testing
@@ -170,10 +173,10 @@ if __name__ == "__main__":
     print("config file =", args.config_file)
     print("key =", args.key)
     print("secret =", args.secret)
+    print("namespace =", args.namespace)
+    print("tag =", args.tag)
     print("work requirement file =", args.work_req_file)
     print("worker pool file =", args.worker_pool_file)
     print("follow =", args.follow)
     print("abort =", args.abort)
     print("no-mustache", args.no_mustache)
-    print("namespace =", args.namespace)
-    print("tag =", args.tag)
