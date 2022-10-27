@@ -64,6 +64,14 @@ class CLIParser:
             metavar="MY-TAG",
         )
 
+        parser.add_argument(
+            "--url",
+            type=str,
+            required=False,
+            help="the URL of the YellowDog Platform API",
+            metavar="https://portal.yellowdog.co/api",
+        )
+
         all_options_modules = ["args", "which-config"]
 
         if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
@@ -139,12 +147,16 @@ class CLIParser:
         return self.args.secret
 
     @property
-    def namespace(self) -> Optional[bool]:
+    def namespace(self) -> Optional[str]:
         return self.args.namespace
 
     @property
-    def tag(self) -> Optional[bool]:
+    def tag(self) -> Optional[str]:
         return self.args.tag
+
+    @property
+    def url(self) -> Optional[str]:
+        return self.args.url
 
     @property
     def work_req_file(self) -> Optional[str]:
@@ -174,6 +186,7 @@ if __name__ == "__main__":
     print("key =", args.key)
     print("secret =", args.secret)
     print("namespace =", args.namespace)
+    print("url =", args.url)
     print("tag =", args.tag)
     print("work requirement file =", args.work_req_file)
     print("worker pool file =", args.worker_pool_file)

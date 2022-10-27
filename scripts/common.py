@@ -43,6 +43,7 @@ YD_KEY = "YD_KEY"
 YD_SECRET = "YD_SECRET"
 YD_NAMESPACE = "YD_NAMESPACE"
 YD_TAG = "YD_TAG"
+YD_URL = "YD_URL"
 
 
 @dataclass
@@ -197,6 +198,7 @@ def load_config_common() -> ConfigCommon:
             (SECRET, ARGS_PARSER.secret, YD_SECRET),
             (NAMESPACE, ARGS_PARSER.namespace, YD_NAMESPACE),
             (NAME_TAG, ARGS_PARSER.tag, YD_TAG),
+            (URL, ARGS_PARSER.url, YD_URL),
         ]:
             if args_parser_value is not None:
                 common_section[key_name] = args_parser_value
