@@ -172,6 +172,16 @@ def load_config_common() -> ConfigCommon:
         common_section_import_file = common_section.get(IMPORT, None)
         if common_section_import_file is not None:
             common_section = import_toml(common_section_import_file)
+        common_section[NAMESPACE] = (
+            ARGS_PARSER.namespace
+            if ARGS_PARSER.namespace is not None
+            else common_section[NAMESPACE]
+        )
+        common_section[NAME_TAG] = (
+            ARGS_PARSER.tag
+            if ARGS_PARSER.tag is not None
+            else common_section[NAME_TAG]
+        )
         return ConfigCommon(
             # Required configuration values
             key=common_section[KEY],

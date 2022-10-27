@@ -27,6 +27,24 @@ class CLIParser:
             metavar="CONFIG_FILE.toml",
         )
 
+        parser.add_argument(
+            "--namespace",
+            "-n",
+            type=str,
+            required=False,
+            help="override the namespace set in the configuration file",
+            metavar="MY-NAMESPACE",
+        )
+
+        parser.add_argument(
+            "--tag",
+            "-t",
+            type=str,
+            required=False,
+            help="override the tag set in the configuration file",
+            metavar="MY-TAG",
+        )
+
         all_options_modules = ["args", "which-config"]
 
         if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
@@ -73,26 +91,6 @@ class CLIParser:
                 help="don't use Mustache substitutions in JSON file processing",
             )
 
-        if any(module in sys.argv[0] for module in ["delete"] + all_options_modules):
-            parser.add_argument(
-                "--namespace",
-                "-n",
-                type=str,
-                required=False,
-                help="use a different namespace when determining which Object paths to delete",
-                metavar="MY-NAMESPACE",
-            )
-
-        if any(module in sys.argv[0] for module in ["delete"] + all_options_modules):
-            parser.add_argument(
-                "--tag-to-delete",
-                "-t",
-                type=str,
-                required=False,
-                help="use a different TAG when determining which Object paths to delete",
-                metavar="OBJECT-TAG",
-            )
-
         self.args = parser.parse_args()
 
         # Temporary ...
@@ -136,8 +134,8 @@ class CLIParser:
         return self.args.namespace
 
     @property
-    def tag_to_delete(self) -> Optional[bool]:
-        return self.args.tag_to_delete
+    def tag(self) -> Optional[bool]:
+        return self.args.tag
 
 
 if __name__ == "__main__":
@@ -150,4 +148,4 @@ if __name__ == "__main__":
     print("abort =", args.abort)
     print("no-mustache", args.no_mustache)
     print("namespace =", args.namespace)
-    print("delete-tag =", args.tag_to_delete)
+    print("tag =", args.tag)
