@@ -60,7 +60,7 @@ CLIENT = PlatformClient.create(
     ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
-ID = generate_id("WR_" + CONFIG_COMMON.name_tag)
+ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
 INPUT_FOLDER_NAME = "INPUTS"
 

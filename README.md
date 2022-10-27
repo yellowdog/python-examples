@@ -14,10 +14,10 @@ To submit **Work Requirements** to YellowDog for processing by Configured Worker
 
 To create **Provisioned Worker Pools**, you'll need:
 
-3. A **Keyring** created via the YellowDog Portal, with access to Cloud Provider credentials as required.
+3. A **Keyring** created via the YellowDog Portal, with access to Cloud Provider credentials as required. The Application must be granted access to the Keyring.
 
 
-4. One or more **Compute Sources** defined, and a **Compute Requirement Template** created. The images used by instances must include the YellowDog agent, configured with the Task Type(s) and Worker Tag to match the Work Requirements to be submitted.
+4. One or more **Compute Sources** defined, and a **Compute Requirement Template** created. The images used by instances must include the YellowDog agent, configured with the Task Type(s) to match the Work Requirements to be submitted.
 
 To set up **Configured Worker Pools**, you'll need:
 

@@ -285,7 +285,7 @@ In addition to the inheritance mechanism, some properties are set automatically 
 
 #### Work Requirement, Task Group and Task Naming
 
-- The **Work Requirement** name is automatically set using a concatenation of `WR_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `WR_MYTAG_221024T155524-40A`.
+- The **Work Requirement** name is automatically set using a concatenation the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `MYTAG_221024T155524-40A`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `TaskGroup_1` (or `TaskGroup_01`, etc., for larger numbers of Task Groups).
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `Task_1` (or `Task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group.
 
