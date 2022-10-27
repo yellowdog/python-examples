@@ -1,7 +1,7 @@
 """
 Common utility functions
 """
-
+import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -160,6 +160,8 @@ try:
         if invalid_keys is not None:
             print_log(f"Error: Invalid properties in '{config_file}': {invalid_keys}")
             exit(1)
+        print_log(f"Loading configuration data from: '{config_file}'")
+        CONFIG_FILE_DIR = dirname(abspath(config_file))
 
 except FileNotFoundError:
     # If there's no config file, check that all the required properties have
@@ -177,6 +179,7 @@ except FileNotFoundError:
         exit(1)
     # No config file, so create a stub config dictionary
     CONFIG_TOML = {COMMON_SECTION: {}}
+    CONFIG_FILE_DIR = os.getcwd()
 
 except (PermissionError, TomlDecodeError) as e:
     print_log(f"Unable to load configuration data from '{config_file}': {e}")
@@ -191,15 +194,15 @@ def load_config_common() -> ConfigCommon:
         if common_section_import_file is not None:
             common_section = import_toml(common_section_import_file)
         # Replace common section properties with command line overrides
-        for key_name, override in [
+        for key_name, args_parser_value in [
             (KEY, ARGS_PARSER.key),
             (SECRET, ARGS_PARSER.secret),
             (NAMESPACE, ARGS_PARSER.namespace),
             (NAME_TAG, ARGS_PARSER.tag),
         ]:
-            common_section[key_name] = (
-                override if override is not None else common_section[key_name]
-            )
+            if args_parser_value is not None:
+                common_section[key_name] = args_parser_value
+                print_log(f"Using '{key_name}' provided on command line")
         return ConfigCommon(
             # Required configuration values
             key=common_section[KEY],
@@ -329,9 +332,7 @@ def generate_id(prefix: str, max_length: int = 50) -> str:
     a few random hex characters. Checks length.
     """
     generated_id = (
-        prefix
-        + datetime.utcnow().strftime("_%y%m%dT%H%M%S-")
-        + str(uuid4())[:3].upper()
+        prefix + UTCNOW.strftime("_%y%m%dT%H%M%S-") + str(uuid4())[:3].upper()
     )
     if len(generated_id) > max_length:
         print_log(
