@@ -2,44 +2,45 @@
 
 <!--ts-->
 * [YellowDog Python Scripts](#yellowdog-python-scripts)
-   * [Overview](#overview)
-   * [Installation](#installation)
-      * [Initial Installation](#initial-installation)
-      * [Update](#update)
-   * [Usage](#usage)
-   * [Configuration](#configuration)
-      * [Common Properties](#common-properties)
-      * [Work Requirement Properties](#work-requirement-properties)
-         * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
-         * [Property Inheritance](#property-inheritance)
-         * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
-         * [Automatic Properties](#automatic-properties)
-            * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
-            * [Task Types](#task-types)
-         * [Examples](#examples)
-            * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
-            * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
-            * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
-            * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
-      * [Worker Pool Properties](#worker-pool-properties)
-         * [Automatic Properties](#automatic-properties-1)
-         * [Worker Pool JSON File Structure](#worker-pool-json-file-structure)
-         * [Examples](#examples-1)
-            * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
-   * [Command List](#command-list)
-      * [yd-submit](#yd-submit)
-      * [yd-provision](#yd-provision)
-      * [yd-cancel](#yd-cancel)
-      * [yd-download](#yd-download)
-      * [yd-delete](#yd-delete)
-      * [yd-shutdown](#yd-shutdown)
-      * [yd-terminate](#yd-terminate)
+* [Overview](#overview)
+* [Installation](#installation)
+   * [Initial Installation](#initial-installation)
+   * [Update](#update)
+* [Usage](#usage)
+* [Configuration](#configuration)
+   * [Common Properties](#common-properties)
+      * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
+   * [Work Requirement Properties](#work-requirement-properties)
+      * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
+      * [Property Inheritance](#property-inheritance)
+      * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
+      * [Automatic Properties](#automatic-properties)
+         * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
+         * [Task Types](#task-types)
+      * [Examples](#examples)
+         * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
+         * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
+         * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
+         * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
+   * [Worker Pool Properties](#worker-pool-properties)
+      * [Automatic Properties](#automatic-properties-1)
+      * [Worker Pool JSON File Structure](#worker-pool-json-file-structure)
+      * [Examples](#examples-1)
+         * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
+* [Command List](#command-list)
+   * [yd-submit](#yd-submit)
+   * [yd-provision](#yd-provision)
+   * [yd-cancel](#yd-cancel)
+   * [yd-download](#yd-download)
+   * [yd-delete](#yd-delete)
+   * [yd-shutdown](#yd-shutdown)
+   * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Oct 25 15:55:14 BST 2022 -->
+<!-- Added by: pwt, at: Thu Oct 27 20:10:25 BST 2022 -->
 
 <!--te-->
 
-## Overview
+# Overview
 
 This repository contains a set of command line Python scripts for interacting with the YellowDog Platform. The scripts use the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/api.html), and support:
 
@@ -52,7 +53,7 @@ This repository contains a set of command line Python scripts for interacting wi
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
-## Installation
+# Installation
 
 Requirements for installation:
 
@@ -63,46 +64,66 @@ It's recommended that installation is performed in a Python virtual environment 
 
 At present, the scripts are installed and updated directly from this GitHub repository using `pip`. The installation process will put a number of commands prefixed with `yd-` on the PATH created by your virtual environment.
 
-### Initial Installation
+## Initial Installation
 
 ```shell
 pip install -U pip wheel
 pip install -U git+https://github.com/yellowdog/python-examples#subdirectory=scripts
 ```
 
-### Update
+## Update
 
 ```shell
 pip install -U --force-reinstall --no-deps git+https://github.com/yellowdog/python-examples#subdirectory=scripts
 ```
 
-## Usage
+# Usage
 
 Commands are run from the command line. Invoking the command with the `--help` or `-h` option will display the command line options applicable to a given command, e.g.:
 
 ```shell
 % yd-cancel --help
-usage: yd-cancel [-h] [--config CONFIG_FILE.toml]
+usage: yd-cancel [-h] [--config CONFIG_FILE.toml] [--key APP-KEY] [--secret APP-SECRET] [--namespace MY-NAMESPACE] [--tag MY-TAG] [--url https://portal.yellowdog.co/api] [--abort]
 
 optional arguments:
   -h, --help            show this help message and exit
   --config CONFIG_FILE.toml, -c CONFIG_FILE.toml
-                        script configuration file in TOML format; (default is 'config.toml' in the current directory)
+                        configuration file in TOML format; default is 'config.toml' in the current directory
+  --key APP-KEY, -k APP-KEY
+                        the YellowDog Application key
+  --secret APP-SECRET, -s APP-SECRET
+                        the YellowDog Application secret
+  --namespace MY-NAMESPACE, -n MY-NAMESPACE
+                        the namespace to use when creating and identifying entities
+  --tag MY-TAG, -t MY-TAG
+                        the tag to use for tagging and identifying entities
+  --url https://portal.yellowdog.co/api
+                        the URL of the YellowDog Platform API
+  --abort, -a           abort all running tasks with immediate effect
+
 ```
 
-## Configuration
+# Configuration
 
-The operation of all commands is configured using a TOML file. The file has a mandatory `common` section, and optional `workRequirement` and `workerPool` sections. There is a documented template TOML file provided in [config.toml.template](config.toml.template).
+By default, the operation of all commands is configured using a TOML configuration file.
 
-The configuration can be supplied to commands in three different ways:
+The configuration file has three possible sections:
+
+1. A `common` section that contains required security properties for interacting with the YellowDog platform, sets the Namespace in which YellowDog assets and objects are created, and a Tag that is used for tagging and naming assets and objects.
+2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
+3. A `workerPool` section that defines the properties of Provisoned Worker Pools to be created using the YellowDog platform. 
+
+There is a documented template TOML file provided in [config.toml.template](config.toml.template).
+
+The configuration filename can be supplied in three different ways:
 
 1. On the command line, using the `--config` or `-c` options, e.g.:<br>`yd-submit -c jobs/config_1.toml`
 2. Using the `YD_CONF` environment variable, e.g.: <br>`export YD_CONF="jobs/config_1.toml"`
-3. Using the default filename of `config.toml` in the current directory
+3. If neither of the above is supplied, the commands look for a `config.toml` file in the current directory
 
 The options above are shown in order of precedence, i.e., a filename supplied on the command line supersedes one set in `YD_CONF`, which supersedes the default.
 
-### Common Properties
+## Common Properties
 
 The `[common]` section of the configuration file contains the following mandatory properties:
 
@@ -127,13 +148,37 @@ The indentation is optional in TOML files and is for readability only.
 
 Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `TESTING-ABC`. This can be helpful to disambiguate multiple users running with the same configuration data. The Mustache directive can also be used within the `namespace` value.
 
-### Work Requirement Properties
+### Specifying Common Properties using the Command Line or Environment Variables
+
+All the common properties can be set using command line options, or in environment variables.
+
+The **command line options** are as follows:
+
+- `--key` or `-k`
+- `--secret` or `-s`
+- `--namespace` or `-n`
+- `--tag` or `-t`
+
+These options can also be listed by running a command with the `--help` or `-h` option.
+
+The **environment variables** are as follows:
+
+- `YD_KEY`
+- `YD_SECRET`
+- `YD_NAMESPACE`
+- `YD_TAG`
+
+When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in the configuration file.
+
+If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
+
+## Work Requirement Properties
 
 The `workRequirement` section of the configuration file is optional. It's used only by the `yd-submit` command, and controls the Work Requirement that is submitted to the Platform.
 
 The details of a Work Requirement to be submitted can be captured entirely within the TOML configuration file for simple examples. More complex examples capture the Work Requirement in a combination of the TOML file plus a JSON document, or in a JSON document only.
 
-#### Work Requirement JSON File Structure
+### Work Requirement JSON File Structure
 
 Work Requirements are represented in JSON documents using a containment hierarchy of a **Work Requirement** containing a **list of Task Groups**, containing a **list of Tasks**.
 
@@ -171,7 +216,7 @@ To specify the file containing the JSON document, either populate the `workRequi
 
 `yd-submit --config myconfig.toml --work-req my_workreq.json`
 
-#### Property Inheritance
+### Property Inheritance
 
 To simplify and optimise the definition of Work Requirements, there is a property inheritance mechanism. Properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
 
@@ -179,7 +224,7 @@ This means that a property set in the `workRequirement` section of the TOML file
 
 Overridden properties are also inherited. E.g., if a property is set at the Task Group level, it will be inherited by the Tasks in that Task Group unless explicitly overridden.
 
-#### Work Requirement Property Dictionary
+### Work Requirement Property Dictionary
 
 The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and property `dependentOn` can only be set at the Task Group level.
 
@@ -218,25 +263,25 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**) and *
 | `workerTags`          | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                             | Yes  | Yes | Yes      |      |
 | `workRequirementData` | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                 | Yes  |     |          |      |
 
-#### Automatic Properties
+### Automatic Properties
 
 In addition to the inheritance mechanism, some properties are set automatically by the `yd-submit` command, as a usage convenience.
 
-##### Work Requirement, Task Group and Task Naming
+#### Work Requirement, Task Group and Task Naming
 
 - The **Work Requirement** name is automatically set using a concatenation of `WR_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `WR_MYTAG_221024T155524-40A`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `TaskGroup_1` (or `TaskGroup_01`, etc., for larger numbers of Task Groups).
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `Task_1` (or `Task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group.
 
-##### Task Types
+#### Task Types
 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
 - If `taskType` is set at the Task level, then `taskTypes` is automatically populated for Task Groups level using the accumulated Task Types from the Tasks, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
 
-#### Examples
+### Examples
 
-##### TOML Properties in the `workRequirement` Section
+#### TOML Properties in the `workRequirement` Section
 
 Here's an example of the `workRequirement` section of a TOML configuration file, showing all the possible properties that can be set:
 
@@ -274,7 +319,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
 #   workRequirementData = "work_requirement.json"
 ```
 
-##### JSON Properties at the Work Requirement Level
+#### JSON Properties at the Work Requirement Level
 
 Showing all possible properties at the Work Requirement level:
 
@@ -315,7 +360,7 @@ Showing all possible properties at the Work Requirement level:
 }
 ```
 
-##### JSON Properties at the Task Group Level
+#### JSON Properties at the Task Group Level
 
 Showing all possible properties at the Task Group level:
 
@@ -362,7 +407,7 @@ Showing all possible properties at the Task Group level:
 }
 ```
 
-##### JSON Properties at the Task Level
+#### JSON Properties at the Task Level
 
 Showing all possible properties at the Task level:
 
@@ -390,7 +435,7 @@ Showing all possible properties at the Task level:
 }
 ```
 
-### Worker Pool Properties
+## Worker Pool Properties
 
 The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. The only mandatory property is the `templateId`. All other properties have defaults (or are not required).
 
@@ -411,11 +456,11 @@ The following properties are available:
 | `workerPoolData`       | The name of a file containing a JSON document defining a Worker Pool.                                  |                |
 | `workerTag`            | The Worker Tag to publish for the all of the Workers.                                                  |                |
 
-#### Automatic Properties
+### Automatic Properties
 
 The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `WP_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `WP_MYTAG_221024T155524-40A`.
 
-#### Worker Pool JSON File Structure
+### Worker Pool JSON File Structure
 
 **Experimental Feature**
 
@@ -425,9 +470,9 @@ When using a JSON document to specify the Worker Pool, the schema of the documen
 
 Examples will be provided at a later date.
 
-#### Examples
+### Examples
 
-##### TOML Properties in the `workerPool` Section
+#### TOML Properties in the `workerPool` Section
 
 Here's an example of the `workerPool` section of a TOML configuration file, showing all the possible properties that can be set:
 
@@ -447,9 +492,9 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
 #   workerPoolData = "worker_pool.json"
 ```
 
-## Command List
+# Command List
 
-### yd-submit
+## yd-submit
 
 The `yd-submit` command submits a new Work Requirement, according to the Work Requirement definition found in the `workRequirement` section of the TOML configuration file and/or the specification found in the Work Requirement JSON document.
 
@@ -457,13 +502,13 @@ Once submitted, the Work Requirement will appear in the **Work** tab in the Yell
 
 The Work Requirement's progress can be tracked to completion by using the `--follow` (or `-f`) option when invoking `yd-submit`.
 
-### yd-provision
+## yd-provision
 
 The `yd-provision` command provisions a new Worker Pool according to the specifications in the `workerPool` section of the TOML configuration file.
 
 Once provisioned, the Worker Pool will appear in the **Workers** tab in the YellowDog Portal, and its associated Compute Requirement will appear in the **Compute** tab.
 
-### yd-cancel
+## yd-cancel
 
 The `yd-cancel` command cancels any active Work Requirements, including any pending Task Groups and the Tasks they contain. 
 
@@ -471,22 +516,22 @@ The `namespace` and `tag` values in the `config.toml` file are used to identify 
 
 By default, any Tasks that are currently running on Workers will continue to run to completion or until they fail. Tasks can be instructed to abort immediately by supplying the `--abort` or `-a` option to `yd-cancel`.
 
-### yd-download
+## yd-download
 
 The `yd-download` command downloads any objects created in the YellowDog Object Store.
 
 The `namespace` and `tag` values are used to determine which objects to download. Objects will be downloaded to a directory with the same name as `namespace`. If a directory already exists, a new directory with name `<namespace>.01` (etc.) will be created.
 
-### yd-delete
+## yd-delete
 
 The `yd-delete` command deletes any objects created in the YellowDog Object Store.
 
 The `namespace` and `tag` values in the `config.toml` file are used to identify which objects to delete.
 
-### yd-shutdown
+## yd-shutdown
 
 The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and `tag` found in the configuration file. All remaining work will be cancelled, but currently executing Tasks will be allowed to complete, after which the Compute Requirement will be terminated.
 
-### yd-terminate
+## yd-terminate
 
 The `yd-terminate` command immediately terminates Compute Requirements that match the `namespace` and `tag` found in the configuration file. Any executing Tasks will be terminated immediately, and the Worker Pool will be shut down.
