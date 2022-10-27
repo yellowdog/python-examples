@@ -160,7 +160,25 @@ try:
         if invalid_keys is not None:
             print_log(f"Error: Invalid properties in '{config_file}': {invalid_keys}")
             exit(1)
-except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
+
+except FileNotFoundError:
+    # If there's no config file, check that all the required properties have
+    # been supplied on the command line
+    if (
+        ARGS_PARSER.key is None
+        or ARGS_PARSER.secret is None
+        or ARGS_PARSER.namespace is None
+        or ARGS_PARSER.tag is None
+    ):
+        print_log(
+            f"Configuration file '{config_file}' not found and "
+            f"required command line options missing"
+        )
+        exit(1)
+    # No config file, so create a stub config dictionary
+    CONFIG_TOML = {COMMON_SECTION: {}}
+
+except (PermissionError, TomlDecodeError) as e:
     print_log(f"Unable to load configuration data from '{config_file}': {e}")
     exit(1)
 
