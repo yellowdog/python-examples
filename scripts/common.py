@@ -38,6 +38,13 @@ class ConfigCommon:
     name_tag: str
 
 
+# Environment variable names for 'common' settings
+YD_KEY = "YD_KEY"
+YD_SECRET = "YD_SECRET"
+YD_NAMESPACE = "YD_NAMESPACE"
+YD_TAG = "YD_TAG"
+
+
 @dataclass
 class ConfigWorkRequirement:
     args: List[str] = field(default_factory=list)
@@ -161,19 +168,6 @@ try:
         CONFIG_FILE_DIR = dirname(abspath(config_file))
 
 except FileNotFoundError:
-    # If there's no config file, check that all the required properties have
-    # been supplied on the command line
-    if (
-        ARGS_PARSER.key is None
-        or ARGS_PARSER.secret is None
-        or ARGS_PARSER.namespace is None
-        or ARGS_PARSER.tag is None
-    ):
-        print_log(
-            f"Configuration file '{config_file}' not found and "
-            f"required command line options missing"
-        )
-        exit(1)
     # No config file, so create a stub config dictionary
     CONFIG_TOML = {COMMON_SECTION: {}}
     CONFIG_FILE_DIR = os.getcwd()
@@ -184,31 +178,46 @@ except (PermissionError, TomlDecodeError) as e:
 
 
 def load_config_common() -> ConfigCommon:
+    """
+    Load the configuration values for the 'common' section
+    """
     try:
         common_section = CONFIG_TOML[COMMON_SECTION]
-        # Check for IMPORT directive
+
+        # Check for IMPORT directive (common section in a separate file)
         common_section_import_file = common_section.get(IMPORT, None)
         if common_section_import_file is not None:
             common_section = import_toml(common_section_import_file)
-        # Replace common section properties with command line overrides
-        for key_name, args_parser_value in [
-            (KEY, ARGS_PARSER.key),
-            (SECRET, ARGS_PARSER.secret),
-            (NAMESPACE, ARGS_PARSER.namespace),
-            (NAME_TAG, ARGS_PARSER.tag),
+
+        # Replace common section properties with command line or
+        # environment variable overrides. Precedence is:
+        # command line > environment variable > config file
+        for key_name, args_parser_value, env_var_name in [
+            (KEY, ARGS_PARSER.key, YD_KEY),
+            (SECRET, ARGS_PARSER.secret, YD_SECRET),
+            (NAMESPACE, ARGS_PARSER.namespace, YD_NAMESPACE),
+            (NAME_TAG, ARGS_PARSER.tag, YD_TAG),
         ]:
             if args_parser_value is not None:
                 common_section[key_name] = args_parser_value
                 print_log(f"Using '{key_name}' provided on command line")
+            elif os.environ.get(env_var_name, None) is not None:
+                common_section[key_name] = os.environ[env_var_name]
+                print_log(
+                    f"Using value of '{env_var_name}' environment variable "
+                    f"for '{key_name}'"
+                )
+
         return ConfigCommon(
-            # Required configuration values
+            # Required
             key=common_section[KEY],
             secret=common_section[SECRET],
             namespace=mustache_substitution(common_section[NAMESPACE]),
             name_tag=mustache_substitution(common_section[NAME_TAG]),
-            # Optional configuration values
+            # Optional
             url=common_section.get(URL, "https://portal.yellowdog.co/api"),
         )
+
     except KeyError as e:
         print_log(f"Missing configuration data: {e}")
         exit(0)
