@@ -28,11 +28,29 @@ class CLIParser:
         )
 
         parser.add_argument(
+            "--key",
+            "-k",
+            type=str,
+            required=False,
+            help="the YellowDog Application key",
+            metavar="APP-KEY",
+        )
+
+        parser.add_argument(
+            "--secret",
+            "-s",
+            required=False,
+            type=str,
+            help="the YellowDog Application secret",
+            metavar="APP-SECRET",
+        )
+
+        parser.add_argument(
             "--namespace",
             "-n",
             type=str,
             required=False,
-            help="override the namespace set in the configuration file",
+            help="the namespace to use when creating and identifying entities",
             metavar="MY-NAMESPACE",
         )
 
@@ -41,7 +59,7 @@ class CLIParser:
             "-t",
             type=str,
             required=False,
-            help="override the tag set in the configuration file",
+            help="the tag to use for tagging and identifying entities",
             metavar="MY-TAG",
         )
 
@@ -110,6 +128,14 @@ class CLIParser:
         return self.args.config
 
     @property
+    def key(self) -> Optional[str]:
+        return self.args.key
+
+    @property
+    def secret(self) -> Optional[str]:
+        return self.args.secret
+
+    @property
     def work_req_file(self) -> Optional[str]:
         return self.args.work_req
 
@@ -142,6 +168,8 @@ if __name__ == "__main__":
     # Standalone testing
     args = CLIParser()
     print("config file =", args.config_file)
+    print("key =", args.key)
+    print("secret =", args.secret)
     print("work requirement file =", args.work_req_file)
     print("worker pool file =", args.worker_pool_file)
     print("follow =", args.follow)
