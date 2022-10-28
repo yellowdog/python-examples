@@ -415,6 +415,7 @@ Showing all possible properties at the Task Group level:
       "executable": "my-container",
       "inputs": ["app/main.py", "app/requirements.txt"],
       "instanceTypes": ["t3a.micro", "t3.micro"],
+      "intermediateInputs": [],
       "maximumTaskRetries": 0,
       "maxWorkers": 1,
       "minWorkers": 1,

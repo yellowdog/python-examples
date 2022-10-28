@@ -418,7 +418,9 @@ def add_tasks_to_task_group(
             ]
             intermediate_files = [
                 TaskInput.from_task_namespace(f"{ID}/{file}", required=True)
-                for file in task.get(INTERMEDIATE_FILES, [])
+                for file in task.get(
+                    INTERMEDIATE_FILES, task_group_data.get(INTERMEDIATE_FILES, [])
+                )
             ]
             input_files += intermediate_files
             output_files = [
