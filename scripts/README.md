@@ -164,6 +164,8 @@ Mustache directives can be used within the `namespace` and `tag` values in the `
 
 For the `date`, `time` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
+**User-defined Mustache substitutions** can be supplied via environment variables prefixed with `YD_SUB_`. For example, setting the environment variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A` when it is encountered during substitution processing.
+
 ### Specifying Common Properties using the Command Line or Environment Variables
 
 All the common properties can be set using command line options, or in environment variables.
