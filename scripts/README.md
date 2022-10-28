@@ -178,6 +178,8 @@ The **command line** option is `--mustache-substitution` (or `-m`). For example,
 
 For **environment variables**, setting the variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A`.
 
+Directives set on the command line take precedence over directives set in environment variables.
+
 This method can be used to override the default directives, e.g., setting `-m username="OtherUser"` will override the default `{{username}}` directive.
 
 ### Specifying Common Properties using the Command Line or Environment Variables
@@ -279,7 +281,7 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**) and *
 | `fulfilOnSubmit`      | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |          |      |
 | `inputs`              | The list of input files to be uploaded to the YellowDog Object Store, and downloaded to the node on which a Task will execute. E.g. `["a.sh", "b.sh"]`.                  | Yes  | Yes | Yes      | Yes  |
 | `instanceTypes`       | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes      |      |
-| `intermediateFiles`   | A list of output files from the execution of a previous Task to be downloaded for use by the current Task. E.g.: `["Task_Group_1/Task_1/results.txt"]`.                  |      |     | Yes      | Yes  |
+| `intermediateInputs`  | A list of output files from the execution of a previous Task to be downloaded for use by the current Task. E.g.: `["Task_Group_1/Task_1/results.txt"]`.                  |      |     | Yes      | Yes  |
 | `maximumTaskRetries`  | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                        | Yes  | Yes | Yes      | Yes  |
 | `maxWorkers`          | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                             | Yes  | Yes | Yes      |      |
 | `minWorkers`          | The minimum number of Workers that the associated Task Group requires. This many workers must be claimed before the associated Task Group will start working. E.g., `1`. | Yes  | Yes | Yes      |      |
