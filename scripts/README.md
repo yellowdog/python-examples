@@ -170,9 +170,11 @@ For the `date`, `time` and `random` directives, the same values will be used for
 
 #### User-Defined Mustache Directives
 
-Additional (static) Mustache substitutions can be supplied using environment variables prefixed with `YD_SUB_`.
+Additional (static) Mustache substitutions can be supplied using command line options or by setting environment variables prefixed with `YD_SUB_`.
 
-For example, setting the environment variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A` when it is encountered during substitution processing.
+The **command line** option is `--mustache-substitutions` (or `-m`). For example, `yd-submit -m project_code=PR-213-A,run_id=1234` will establish two new Mustache substitutions `{{project_code}}` and `{{run_id}}`, which will be substituted by `PR-213-A` and `1234` respectively.
+
+For **environment variables**, setting the variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A` when it is encountered during substitution processing.
 
 This method can also be used to override the default directives, e.g., setting `YD_MUS_username="OtherUser"` will override the default `{{username}}` directive.
 

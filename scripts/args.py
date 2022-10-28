@@ -7,7 +7,7 @@ Class to parse command line arguments.
 import argparse
 import sys
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 
 class CLIParser:
@@ -70,6 +70,15 @@ class CLIParser:
             required=False,
             help="the URL of the YellowDog Platform API",
             metavar="https://portal.yellowdog.co/api",
+        )
+
+        parser.add_argument(
+            "--mustache-substitutions",
+            "-m",
+            type=str,
+            required=False,
+            help="user-defined Mustache substitutions",
+            metavar="YD_SUB_var1=V1,YD_SUB_var2=V2",
         )
 
         all_options_modules = ["args", "which-config"]
@@ -159,6 +168,14 @@ class CLIParser:
         return self.args.url
 
     @property
+    def mustache_subs(self) -> Optional[List[str]]:
+        return (
+            None
+            if self.args.mustache_substitutions is None
+            else self.args.mustache_substitutions.split(",")
+        )
+
+    @property
     def work_req_file(self) -> Optional[str]:
         return self.args.work_req
 
@@ -187,6 +204,7 @@ if __name__ == "__main__":
     print("secret =", args.secret)
     print("namespace =", args.namespace)
     print("url =", args.url)
+    print("mustache substitutions =", args.mustache_subs)
     print("tag =", args.tag)
     print("work requirement file =", args.work_req_file)
     print("worker pool file =", args.worker_pool_file)

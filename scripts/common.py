@@ -136,13 +136,34 @@ MUSTACHE_SUBSTITUTIONS = {
     "random": hex(randint(0, RAND_SIZE + 1))[2:].upper().zfill(len(hex(RAND_SIZE)) - 2),
 }
 
+# The CLIParser class parses command line arguments on instantiation
+ARGS_PARSER: CLIParser = CLIParser()
 
-# Add user-defined Mustache substitutions, supplied in environment variables
+# Add user-defined Mustache substitutions
 # Can overwrite existing substitutions (above)
 USER_MUSTACHE_PREFIX = "YD_SUB_"
+
+# Environment variables
 for key, value in os.environ.items():
     if key.startswith(USER_MUSTACHE_PREFIX):
-        MUSTACHE_SUBSTITUTIONS[key[len(USER_MUSTACHE_PREFIX) :]] = value
+        key = key[len(USER_MUSTACHE_PREFIX) :]
+        MUSTACHE_SUBSTITUTIONS[key] = value
+        print_log(f"Adding user-defined Mustache substitution: '{key}' = '{value}'")
+
+# Command line (takes precedence over environment variables)
+if ARGS_PARSER.mustache_subs is not None:
+    for sub in ARGS_PARSER.mustache_subs:
+        key_value: List = sub.split("=")
+        if len(key_value) == 2:
+            MUSTACHE_SUBSTITUTIONS[key_value[0]] = key_value[1]
+            print_log(
+                f"Adding user-defined Mustache substitution: "
+                f"'{key_value[0]}' = '{key_value[1]}'"
+            )
+        else:
+            print_log(f"Error in Mustache substitution '{key_value[0]}'")
+            print_log("Exiting")
+            exit(1)
 
 
 def mustache_substitution(input_string: Optional[str]) -> Optional[str]:
@@ -163,9 +184,6 @@ def load_toml_file_with_mustache_substitutions(filename: str) -> Dict:
         contents = f.read()
     return toml_loads(mustache_substitution(contents))
 
-
-# The CLIParser class parses command line arguments on instantiation
-ARGS_PARSER: CLIParser = CLIParser()
 
 # CLI > YD_CONF > 'config.toml'
 config_file = (
