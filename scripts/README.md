@@ -131,13 +131,13 @@ The options above are shown in order of precedence, i.e., a filename supplied on
 
 The `[common]` section of the configuration file contains the following properties:
 
-| Property    | Description                                                                   |
-|:------------|:------------------------------------------------------------------------------|
-| `key`       | The **key** of the YellowDog Application under which the commands will run    |
-| `secret`    | The **secret** of the YellowDog Application under which the commands will run |
-| `namespace` | The **namespace** to be used to manage resources                              |
-| `tag`       | The **tag** to be used for tagging resources and naming objects               |
-| `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't used |
+| Property    | Description                                                                         |
+|:------------|:------------------------------------------------------------------------------------|
+| `key`       | The **key** of the YellowDog Application under which the commands will run          |
+| `secret`    | The **secret** of the YellowDog Application under which the commands will run       |
+| `namespace` | The **namespace** to be used to manage resources                                    |
+| `tag`       | The **tag** to be used for tagging resources and naming objects                     |
+| `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't to be used |
 
 An example `common` section is shown below:
 
@@ -172,13 +172,13 @@ For the `date`, `time` and `random` directives, the same values will be used for
 
 #### User-Defined Mustache Directives
 
-Additional (static) Mustache substitutions can be supplied using command line options or by setting environment variables prefixed with `YD_SUB_`.
+Additional (static) Mustache directives can be supplied using command line options or by setting environment variables prefixed with `YD_SUB_`.
 
-The **command line** option is `--mustache-substitutions` (or `-m`). For example, `yd-submit -m project_code=PR-213-A,run_id=1234` will establish two new Mustache substitutions `{{project_code}}` and `{{run_id}}`, which will be substituted by `PR-213-A` and `1234` respectively.
+The **command line** option is `--mustache-substitution` (or `-m`). For example, `yd-submit -m project_code=PR-213-A -m run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `PR-213-A` and `1234` respectively.
 
-For **environment variables**, setting the variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A` when it is encountered during substitution processing.
+For **environment variables**, setting the variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A`.
 
-This method can also be used to override the default directives, e.g., setting `YD_MUS_username="OtherUser"` will override the default `{{username}}` directive.
+This method can be used to override the default directives, e.g., setting `-m username="OtherUser"` will override the default `{{username}}` directive.
 
 ### Specifying Common Properties using the Command Line or Environment Variables
 

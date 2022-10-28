@@ -74,12 +74,13 @@ class CLIParser:
         )
 
         parser.add_argument(
-            "--mustache-substitutions",
+            "--mustache-substitution",
             "-m",
             type=str,
             required=False,
-            help="user-defined Mustache substitutions",
-            metavar="YD_SUB_var1=V1,YD_SUB_var2=V2",
+            action="append",
+            help="user-defined Mustache substitution; can be used multiple times",
+            metavar="var1=V1",
         )
 
         all_options_modules = ["args", "which-config"]
@@ -170,11 +171,7 @@ class CLIParser:
 
     @property
     def mustache_subs(self) -> Optional[List[str]]:
-        return (
-            None
-            if self.args.mustache_substitutions is None
-            else self.args.mustache_substitutions.split(",")
-        )
+        return self.args.mustache_substitution
 
     @property
     def work_req_file(self) -> Optional[str]:
