@@ -129,7 +129,7 @@ The options above are shown in order of precedence, i.e., a filename supplied on
 
 ## Common Properties
 
-The `[common]` section of the configuration file contains the following mandatory properties:
+The `[common]` section of the configuration file contains the following properties:
 
 | Property    | Description                                                                   |
 |:------------|:------------------------------------------------------------------------------|
@@ -137,6 +137,7 @@ The `[common]` section of the configuration file contains the following mandator
 | `secret`    | The **secret** of the YellowDog Application under which the commands will run |
 | `namespace` | The **namespace** to be used to manage resources                              |
 | `tag`       | The **tag** to be used for tagging resources and naming objects               |
+| `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't used |
 
 An example `common` section is shown below:
 
@@ -146,6 +147,7 @@ An example `common` section is shown below:
     secret = "qwertyuiopasdfghjklzxcvbnm1234567890qwertyu"
     namespace = "PROJECT-X"
     tag = "TESTING-{{username}}"
+    url = "https://portal.yellowdog.co/api"
 ```
 
 The indentation is optional in TOML files and is for readability only.
@@ -163,7 +165,7 @@ Mustache directives can be used within the `namespace` and `tag` values in the `
 | `{{username}}` | The current user's login username, capitalised, spaces replaced | JANE_SMITH              |
 | `{{date}}`     | The current date (UTC): YYYYMMDD                                | 20221027                |
 | `{{time}}`     | The current time (UTC): HHMMSS                                  | 163026                  |
-| `{{datetime}}` | Concatenation of the date and time above, with 'T' separator    | 20221027T163026         |
+| `{{datetime}}` | Concatenation of the date and time above, with a 'T' separator  | 20221027T163026         |
 | `{{random}}`   | A random, three digit hexadecimal number                        | A1C                     |
 
 For the `date`, `time` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
@@ -188,6 +190,7 @@ The **command line options** are as follows:
 - `--secret` or `-s`
 - `--namespace` or `-n`
 - `--tag` or `-t`
+- `--url` or `-u`
 
 These options can also be listed by running a command with the `--help` or `-h` option.
 
@@ -197,6 +200,7 @@ The **environment variables** are as follows:
 - `YD_SECRET`
 - `YD_NAMESPACE`
 - `YD_TAG`
+- `YD_URL`
 
 When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in a configuration file.
 
@@ -467,9 +471,9 @@ Showing all possible properties at the Task level:
 
 ### Mustache Template Directives in Work Requirement Properties
 
-Mustache template directives can be used within in any property value within a TOML configuration file or a Work Requirement JSON file. See the description [above](#mustache-template-directives-in-common-properties) for the available Mustache directives.
+Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives-in-common-properties) for more details on Mustache directives.
 
-To suppress all Mustache processing within a JSON file, `yd-submit` can be run with the `--no-mustache` option.
+To suppress all Mustache processing within a Work Requirement JSON file, `yd-submit` can be run with the `--no-mustache` option.
 
 ## Worker Pool Properties
 

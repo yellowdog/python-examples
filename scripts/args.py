@@ -66,6 +66,7 @@ class CLIParser:
 
         parser.add_argument(
             "--url",
+            "-u",
             type=str,
             required=False,
             help="the URL of the YellowDog Platform API",
