@@ -133,9 +133,7 @@ MUSTACHE_SUBSTITUTIONS = {
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S"),
     "datetime": UTCNOW.strftime("%y%m%dT%H%M%S"),
-    "random": hex(randint(0, RAND_SIZE + 1))[2:]
-    .upper()
-    .zfill(len(hex(RAND_SIZE)) - 2),
+    "random": hex(randint(0, RAND_SIZE + 1))[2:].upper().zfill(len(hex(RAND_SIZE)) - 2),
 }
 
 
@@ -144,7 +142,7 @@ MUSTACHE_SUBSTITUTIONS = {
 USER_MUSTACHE_PREFIX = "YD_SUB_"
 for key, value in os.environ.items():
     if key.startswith(USER_MUSTACHE_PREFIX):
-        MUSTACHE_SUBSTITUTIONS[key[len(USER_MUSTACHE_PREFIX):]] = value
+        MUSTACHE_SUBSTITUTIONS[key[len(USER_MUSTACHE_PREFIX) :]] = value
 
 
 def mustache_substitution(input_string: Optional[str]) -> Optional[str]:

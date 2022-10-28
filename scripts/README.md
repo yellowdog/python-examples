@@ -10,6 +10,8 @@
 * [Configuration](#configuration)
    * [Common Properties](#common-properties)
       * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
+         * [Default Mustache Directives](#default-mustache-directives)
+         * [User-defined Mustache Directives](#user-defined-mustache-directives)
       * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
    * [Work Requirement Properties](#work-requirement-properties)
       * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
@@ -38,7 +40,7 @@
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Thu Oct 27 20:55:10 BST 2022 -->
+<!-- Added by: pwt, at: Fri Oct 28 08:30:48 BST 2022 -->
 
 <!--te-->
 
@@ -152,19 +154,27 @@ The indentation is optional in TOML files and is for readability only.
 
 Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `TESTING-ABC`. This can be helpful to disambiguate multiple users running with the same configuration data.
 
-Mustache directives can be used within the `namespace` and `tag` values in the `common` section (or when supplied as command line options or environment variables). The available Mustache directives are:
+Mustache directives can be used within the `namespace` and `tag` values in the `common` section (or when supplied as command line options or environment variables).
 
-| Directive      | Description                                    | Example of Substitution |
-|:---------------|:-----------------------------------------------|:------------------------|
-| `{{username}}` | The current user's login username, capitalised | JANESMITH               |
-| `{{date}}`     | The current date (UTC): YYYYMMDD               | 20221027                |
-| `{{time}}`     | The current time (UTC): HHMMSS                 | 163026                  |
-| `{{datetime}}` | Concatenation of the date and time above       | 20221027T163026         |
-| `{{random}}`   | A random, three digit hexadecimal number       | A1C                     |
+#### Default Mustache Directives
+
+| Directive      | Description                                                     | Example of Substitution |
+|:---------------|:----------------------------------------------------------------|:------------------------|
+| `{{username}}` | The current user's login username, capitalised, spaces replaced | JANE_SMITH              |
+| `{{date}}`     | The current date (UTC): YYYYMMDD                                | 20221027                |
+| `{{time}}`     | The current time (UTC): HHMMSS                                  | 163026                  |
+| `{{datetime}}` | Concatenation of the date and time above, with 'T' separator    | 20221027T163026         |
+| `{{random}}`   | A random, three digit hexadecimal number                        | A1C                     |
 
 For the `date`, `time` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
-**User-defined Mustache substitutions** can be supplied via environment variables prefixed with `YD_SUB_`. For example, setting the environment variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A` when it is encountered during substitution processing.
+#### User-Defined Mustache Directives
+
+Additional (static) Mustache substitutions can be supplied using environment variables prefixed with `YD_SUB_`.
+
+For example, setting the environment variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A` when it is encountered during substitution processing.
+
+This method can also be used to override the default directives, e.g., setting `YD_MUS_username="OtherUser"` will override the default `{{username}}` directive.
 
 ### Specifying Common Properties using the Command Line or Environment Variables
 
