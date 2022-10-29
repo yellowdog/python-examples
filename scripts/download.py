@@ -33,7 +33,7 @@ CLIENT = PlatformClient.create(
 
 def main():
     try:
-        tag = "WR_" + CONFIG.name_tag
+        tag = CONFIG.name_tag
         print_log(
             f"Downloading all Objects in NAMESPACE={CONFIG.namespace} with "
             f"names starting with TAG={tag}"
@@ -47,7 +47,7 @@ def main():
         for object_path in object_paths:
             if object_path.name.startswith(tag):
                 object_paths_to_download.append(object_path)
-        if len(object_paths) == 0:
+        if len(object_paths_to_download) == 0:
             print_log("No Objects to download")
             return
         print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
