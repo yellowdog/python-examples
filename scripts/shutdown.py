@@ -17,7 +17,8 @@ from yellowdog_client.model import (
     WorkerPoolSummary,
 )
 
-from common import ConfigCommon, link_entity, load_config_common, print_log
+from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
+from selector import select
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
@@ -40,7 +41,20 @@ def main():
             WorkerPoolSummary
         ] = CLIENT.worker_pool_client.find_all_worker_pools()
         shutdown_count = 0
+
+        selected_worker_pool_summaries: List[WorkerPoolSummary] = []
         for worker_pool_summary in worker_pool_summaries:
+            if not (
+                "ProvisionedWorkerPool" not in worker_pool_summary.type
+                or worker_pool_summary.status
+                in [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
+            ):
+                selected_worker_pool_summaries.append(worker_pool_summary)
+
+        if len(selected_worker_pool_summaries) != 0 and ARGS_PARSER.items:
+            selected_worker_pool_summaries = select(selected_worker_pool_summaries)
+
+        for worker_pool_summary in selected_worker_pool_summaries:
             if (
                 "ProvisionedWorkerPool" not in worker_pool_summary.type
                 or worker_pool_summary.status

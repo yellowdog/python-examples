@@ -129,7 +129,10 @@ class CLIParser:
                 help="don't use Mustache substitutions in JSON file processing",
             )
 
-        if any(module in sys.argv[0] for module in ["cancel"] + all_options_modules):
+        if any(
+            module in sys.argv[0]
+            for module in ["cancel", "shutdown"] + all_options_modules
+        ):
             parser.add_argument(
                 "--items",
                 "-i",

@@ -2,9 +2,9 @@
 Interactive selection from a list of objects
 """
 
-from typing import List, Set
+from typing import List, Set, TypeVar
 
-from yellowdog_client.model import WorkRequirementSummary
+from yellowdog_client.model import WorkerPoolSummary, WorkRequirementSummary
 
 from common import print_log
 
@@ -13,8 +13,10 @@ try:
 except ImportError:
     pass
 
+Item = TypeVar("Item", WorkerPoolSummary, WorkRequirementSummary)
 
-def select(objects: List[WorkRequirementSummary]) -> List[WorkRequirementSummary]:
+
+def select(objects: List[Item]) -> List[Item]:
     """
     Manually select objects from a list. Return the list of selected objects.
     """
