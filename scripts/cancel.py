@@ -91,6 +91,8 @@ def main():
                 else:
                     print_log("Aborting all currently running Tasks")
                     abort_all_tasks(selected_work_requirement_summaries)
+        else:
+            print_log("No Work Requirements to cancel")
 
         CLIENT.close()
     except Exception as e:
