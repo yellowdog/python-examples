@@ -142,7 +142,7 @@ class CLIParser:
                 help="list available items and manually select",
             )
             parser.add_argument(
-                "--proceed-without-confirmation",
+                "--no-confirm",
                 "-y",
                 action="store_true",
                 required=False,
@@ -219,7 +219,7 @@ class CLIParser:
 
     @property
     def yes(self) -> Optional[bool]:
-        return self.args.proceed_without_confirmation
+        return self.args.no_confirm
 
 
 if __name__ == "__main__":
