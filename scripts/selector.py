@@ -2,6 +2,7 @@
 Interactive selection from a list of objects
 """
 
+from os import getenv
 from typing import List, Set, TypeVar
 
 from yellowdog_client.model import (
@@ -25,6 +26,10 @@ Item = TypeVar(
     WorkerPoolSummary,
     WorkRequirementSummary,
 )
+
+# Environment variable to use --proceed-without-confirmation by default
+# Set to any non-empty string
+YD_NO_CONFIRM = "YD_NO_CONFIRM"
 
 
 def select(objects: List[Item]) -> List[Item]:
@@ -87,10 +92,21 @@ def confirm(msg: str) -> bool:
     """
     Confirm an action.
     """
+    # Confirmed on the command line?
     if ARGS_PARSER.yes:
         print_log("Action proceeding without user confirmation")
         return True
 
+    # Confirmed using the environment variable?
+    yd_no_confirm = getenv(YD_NO_CONFIRM, "")
+    if yd_no_confirm != "":
+        print_log(
+            f"'{YD_NO_CONFIRM}={yd_no_confirm}': "
+            "Action proceeding without user confirmation"
+        )
+        return True
+
+    # Seek user confirmation
     response = input(f"{msg} (y/N): ")
 
     if response.lower() == "y":
