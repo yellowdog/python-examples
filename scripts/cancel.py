@@ -53,7 +53,7 @@ def main():
                 and work_summary.namespace == CONFIG.namespace
             ):
                 selected_work_requirement_summaries.append(work_summary)
-        if len(selected_work_requirement_summaries) != 0 and ARGS_PARSER.items:
+        if len(selected_work_requirement_summaries) != 0 and ARGS_PARSER.interactive:
             selected_work_requirement_summaries = select(
                 selected_work_requirement_summaries
             )

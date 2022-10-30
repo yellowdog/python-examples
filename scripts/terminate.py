@@ -53,7 +53,7 @@ def main():
             ):
                 selected_compute_requirement_summaries.append(compute_summary)
 
-        if len(selected_compute_requirement_summaries) != 0 and ARGS_PARSER.items:
+        if len(selected_compute_requirement_summaries) != 0 and ARGS_PARSER.interactive:
             selected_compute_requirement_summaries = select(
                 selected_compute_requirement_summaries
             )

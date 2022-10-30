@@ -214,11 +214,11 @@ class CLIParser:
         return self.args.no_mustache
 
     @property
-    def items(self) -> Optional[bool]:
+    def interactive(self) -> Optional[bool]:
         return self.args.interactive
 
     @property
-    def yes(self) -> Optional[bool]:
+    def no_confirm(self) -> Optional[bool]:
         return self.args.no_confirm
 
 
@@ -237,5 +237,5 @@ if __name__ == "__main__":
     print("follow =", args.follow)
     print("abort =", args.abort)
     print("no-mustache =", args.no_mustache)
-    print("interactive =", args.items)
-    print("proceed without confirmation =", args.yes)
+    print("interactive =", args.interactive)
+    print("proceed without confirmation =", args.no_confirm)

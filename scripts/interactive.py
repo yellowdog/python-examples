@@ -54,8 +54,7 @@ def select(objects: List[Item]) -> List[Item]:
     while True:
         print()
         selector_string = input(
-            "Please select items (e.g.: 1,2,4-7,9) "
-            "or Return for none: "
+            "Please select items (e.g.: 1,2,4-7,9) " "or Return for none: "
         )
         selector_list = selector_string.split(",")
         selector_set: Set[int] = set()
@@ -94,7 +93,7 @@ def confirmed(msg: str) -> bool:
     Confirm an action.
     """
     # Confirmed on the command line?
-    if ARGS_PARSER.yes:
+    if ARGS_PARSER.no_confirm:
         print_log("Action proceeding without user confirmation")
         return True
 
