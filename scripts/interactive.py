@@ -54,7 +54,7 @@ def select(objects: List[Item]) -> List[Item]:
     while True:
         print()
         selector_string = input(
-            "Please select items (e.g.: 1,2,4-7,9) " "or Return for none: "
+            "Please select items (e.g.: 1,2,4-7,9) or press <Return> for none: "
         )
         selector_list = selector_string.split(",")
         selector_set: Set[int] = set()
@@ -81,6 +81,9 @@ def select(objects: List[Item]) -> List[Item]:
             continue
         else:
             break
+
+    if len(selector_set) > 0:
+        print(f"Selected item number(s): {sorted(list(selector_set))}")
 
     returned_objects: List[Item] = []
     for item in selector_set:
