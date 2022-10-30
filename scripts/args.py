@@ -129,6 +129,15 @@ class CLIParser:
                 help="don't use Mustache substitutions in JSON file processing",
             )
 
+        if any(module in sys.argv[0] for module in ["cancel"] + all_options_modules):
+            parser.add_argument(
+                "--items",
+                "-i",
+                action="store_true",
+                required=False,
+                help="manually select items from a list",
+            )
+
         self.args = parser.parse_args()
 
         # Temporary notification message while we figure out the problem
@@ -193,6 +202,10 @@ class CLIParser:
     def no_mustache(self) -> Optional[bool]:
         return self.args.no_mustache
 
+    @property
+    def items(self) -> Optional[bool]:
+        return self.args.items
+
 
 if __name__ == "__main__":
     # Standalone testing
@@ -208,4 +221,5 @@ if __name__ == "__main__":
     print("worker pool file =", args.worker_pool_file)
     print("follow =", args.follow)
     print("abort =", args.abort)
-    print("no-mustache", args.no_mustache)
+    print("no-mustache =", args.no_mustache)
+    print("items =", args.items)

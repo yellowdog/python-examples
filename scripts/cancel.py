@@ -19,6 +19,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
+from selector import select
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
@@ -39,33 +40,41 @@ def main():
         ] = CLIENT.work_client.find_all_work_requirements()
         cancelled_count = 0
         cancelling_count = 0
+        selected_work_requirement_summaries: List[WorkRequirementSummary] = []
+        ignored_states = [
+            WorkRequirementStatus.COMPLETED,
+            WorkRequirementStatus.CANCELLED,
+            WorkRequirementStatus.FAILED,
+        ]
         for work_summary in work_requirement_summaries:
             if (
-                work_summary.tag == CONFIG.name_tag
+                work_summary.status not in ignored_states
+                and work_summary.tag == CONFIG.name_tag
                 and work_summary.namespace == CONFIG.namespace
-                and work_summary.status
-                not in [
-                    WorkRequirementStatus.COMPLETED,
-                    WorkRequirementStatus.CANCELLED,
-                    WorkRequirementStatus.FAILED,
-                ]
             ):
-                if work_summary.status != WorkRequirementStatus.CANCELLING:
-                    CLIENT.work_client.cancel_work_requirement_by_id(work_summary.id)
-                    work_requirement: WorkRequirement = (
-                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
-                    )
-                    cancelled_count += 1
-                    print_log(
-                        f"Cancelling {link_entity(CONFIG.url, work_requirement)} "
-                        f"({work_summary.name})"
-                    )
-                else:
-                    print_log(
-                        f"Work Requirement '{work_summary.name}' "
-                        f"is already cancelling"
-                    )
-                    cancelling_count += 1
+                selected_work_requirement_summaries.append(work_summary)
+        if len(selected_work_requirement_summaries) != 0 and ARGS_PARSER.items:
+            selected_work_requirement_summaries = select(
+                selected_work_requirement_summaries
+            )
+        for work_summary in selected_work_requirement_summaries:
+            if work_summary.status not in ignored_states + [
+                WorkRequirementStatus.CANCELLING
+            ]:
+                CLIENT.work_client.cancel_work_requirement_by_id(work_summary.id)
+                work_requirement: WorkRequirement = (
+                    CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
+                )
+                cancelled_count += 1
+                print_log(
+                    f"Cancelling {link_entity(CONFIG.url, work_requirement)} "
+                    f"({work_summary.name})"
+                )
+            elif work_summary.status == WorkRequirementStatus.CANCELLING:
+                print_log(
+                    f"Work Requirement '{work_summary.name}' " f"is already cancelling"
+                )
+                cancelling_count += 1
         if cancelled_count > 0:
             print_log(f"Cancelled {cancelled_count} Work Requirement(s)")
         elif cancelling_count == 0:
@@ -76,7 +85,7 @@ def main():
                 print_log("No Tasks to abort")
             else:
                 print_log("Aborting all currently running Tasks")
-                abort_all_tasks()
+                abort_all_tasks(selected_work_requirement_summaries)
 
         CLIENT.close()
     except Exception as e:
@@ -84,7 +93,9 @@ def main():
     print_log("Done")
 
 
-def abort_all_tasks() -> None:
+def abort_all_tasks(
+    selected_work_requirement_summaries: List[WorkRequirementSummary],
+) -> None:
     """
     Abort all Tasks in CANCELLING Work Requirements.
     """
@@ -107,7 +118,7 @@ def abort_all_tasks() -> None:
             wr_summary.tag == CONFIG.name_tag
             and wr_summary.namespace == CONFIG.namespace
             and wr_summary.status == WorkRequirementStatus.CANCELLING
-        ):
+        ) and wr_summary.id in [x.id for x in selected_work_requirement_summaries]:
             task_search = TaskSearch(
                 workRequirementId=wr_summary.id,
                 statuses=[TaskStatus.RUNNING],

@@ -26,6 +26,7 @@ setuptools.setup(
         "download",
         "provision",
         "reformat_json",
+        "selector",
         "shutdown",
         "submit",
         "terminate",
