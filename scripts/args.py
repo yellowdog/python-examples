@@ -131,7 +131,7 @@ class CLIParser:
 
         if any(
             module in sys.argv[0]
-            for module in ["cancel", "delete", "shutdown", "terminate"]
+            for module in ["cancel", "delete", "download", "shutdown", "terminate"]
             + all_options_modules
         ):
             parser.add_argument(
@@ -139,7 +139,7 @@ class CLIParser:
                 "-i",
                 action="store_true",
                 required=False,
-                help="manually select items from a list",
+                help="list available items and manually select",
             )
 
         self.args = parser.parse_args()

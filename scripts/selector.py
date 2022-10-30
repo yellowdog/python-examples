@@ -78,7 +78,7 @@ def select(objects: List[Item]) -> List[Item]:
             break
     print()
 
-    returned_objects: List[WorkRequirementSummary] = []
+    returned_objects: List[Item] = []
     for item in selector_set:
         returned_objects.append(objects[item - 1])
     return returned_objects
