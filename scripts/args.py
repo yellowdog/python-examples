@@ -135,11 +135,11 @@ class CLIParser:
             + all_options_modules
         ):
             parser.add_argument(
-                "--items",
+                "--interactive",
                 "-i",
                 action="store_true",
                 required=False,
-                help="list available items and manually select",
+                help="list, and interactively select, items to act on",
             )
             parser.add_argument(
                 "--no-confirm",
@@ -215,7 +215,7 @@ class CLIParser:
 
     @property
     def items(self) -> Optional[bool]:
-        return self.args.items
+        return self.args.interactive
 
     @property
     def yes(self) -> Optional[bool]:
@@ -237,5 +237,5 @@ if __name__ == "__main__":
     print("follow =", args.follow)
     print("abort =", args.abort)
     print("no-mustache =", args.no_mustache)
-    print("items =", args.items)
+    print("interactive =", args.items)
     print("proceed without confirmation =", args.yes)

@@ -1,6 +1,5 @@
 """
-Interactive selection from a list of objects,
-and check for user confirmation of actions.
+User interaction processing
 """
 
 from os import getenv
@@ -28,7 +27,7 @@ Item = TypeVar(
     WorkRequirementSummary,
 )
 
-# Environment variable to use --proceed-without-confirmation by default
+# Environment variable to use --no-confirmation by default
 # Set to any non-empty string
 YD_NO_CONFIRM = "YD_NO_CONFIRM"
 
