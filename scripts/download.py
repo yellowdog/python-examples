@@ -22,7 +22,7 @@ from yellowdog_client.object_store.download.abstracts.abstract_download_batch_bu
 from yellowdog_client.object_store.model import FileTransferStatus
 
 from common import ARGS_PARSER, ConfigCommon, load_config_common, print_log
-from selector import select
+from interactive import select
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()

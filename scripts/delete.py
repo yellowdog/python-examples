@@ -15,7 +15,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, load_config_common, print_log
-from selector import confirmed, select
+from interactive import confirmed, select
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
