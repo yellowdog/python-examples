@@ -6,6 +6,7 @@ from typing import List, Set, TypeVar
 
 from yellowdog_client.model import (
     ComputeRequirementSummary,
+    ObjectPath,
     WorkerPoolSummary,
     WorkRequirementSummary,
 )
@@ -18,7 +19,11 @@ except ImportError:
     pass
 
 Item = TypeVar(
-    "Item", ComputeRequirementSummary, WorkerPoolSummary, WorkRequirementSummary
+    "Item",
+    ComputeRequirementSummary,
+    ObjectPath,
+    WorkerPoolSummary,
+    WorkRequirementSummary,
 )
 
 

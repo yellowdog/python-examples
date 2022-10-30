@@ -131,7 +131,8 @@ class CLIParser:
 
         if any(
             module in sys.argv[0]
-            for module in ["cancel", "shutdown", "terminate"] + all_options_modules
+            for module in ["cancel", "delete", "shutdown", "terminate"]
+            + all_options_modules
         ):
             parser.add_argument(
                 "--items",
