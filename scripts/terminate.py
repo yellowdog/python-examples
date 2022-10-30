@@ -16,7 +16,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
-from selector import confirm, select
+from selector import confirmed, select
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
@@ -58,7 +58,7 @@ def main():
                 selected_compute_requirement_summaries
             )
 
-        if len(selected_compute_requirement_summaries) != 0 and confirm(
+        if len(selected_compute_requirement_summaries) != 0 and confirmed(
             f"Terminate {len(selected_compute_requirement_summaries)} "
             "Compute Requirement(s)?"
         ):

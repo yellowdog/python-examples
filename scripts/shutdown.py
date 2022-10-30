@@ -18,7 +18,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
-from selector import confirm, select
+from selector import confirmed, select
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
@@ -54,7 +54,7 @@ def main():
         if len(selected_worker_pool_summaries) != 0 and ARGS_PARSER.items:
             selected_worker_pool_summaries = select(selected_worker_pool_summaries)
 
-        if len(selected_worker_pool_summaries) != 0 and confirm(
+        if len(selected_worker_pool_summaries) != 0 and confirmed(
             f"Shutdown {len(selected_worker_pool_summaries)} Worker Pool(s)?"
         ):
             for worker_pool_summary in selected_worker_pool_summaries:

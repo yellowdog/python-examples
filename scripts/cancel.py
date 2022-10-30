@@ -19,7 +19,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
-from selector import confirm, select
+from selector import confirmed, select
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
@@ -58,7 +58,7 @@ def main():
                 selected_work_requirement_summaries
             )
 
-        if len(selected_work_requirement_summaries) != 0 and confirm(
+        if len(selected_work_requirement_summaries) != 0 and confirmed(
             f"Cancel {len(selected_work_requirement_summaries)} Work Requirement(s)?"
         ):
             for work_summary in selected_work_requirement_summaries:

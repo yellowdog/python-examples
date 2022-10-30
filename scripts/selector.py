@@ -1,5 +1,6 @@
 """
-Interactive selection from a list of objects
+Interactive selection from a list of objects,
+and check for user confirmation of actions.
 """
 
 from os import getenv
@@ -88,7 +89,7 @@ def select(objects: List[Item]) -> List[Item]:
     return returned_objects
 
 
-def confirm(msg: str) -> bool:
+def confirmed(msg: str) -> bool:
     """
     Confirm an action.
     """
