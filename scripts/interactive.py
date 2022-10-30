@@ -37,6 +37,7 @@ def select(objects: List[Item]) -> List[Item]:
     """
     Manually select objects from a list. Return the list of selected objects.
     """
+    print_log("Displaying list of matching items")
     print()
     indent = " " * 3
     index_len = len(str(len(objects)))
