@@ -11,7 +11,7 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from common import print_log
+from common import ARGS_PARSER, print_log
 
 try:
     import readline
@@ -38,11 +38,11 @@ def select(objects: List[Item]) -> List[Item]:
     for index, obj in enumerate(objects):
         print(f"{indent}{str(index + 1).rjust(index_len)} :   {obj.name}")
 
-    def in_range(item: int) -> bool:
-        if 1 <= item <= len(objects):
+    def in_range(num: int) -> bool:
+        if 1 <= num <= len(objects):
             return True
         else:
-            print_log(f"Error: '{i}' is out of range")
+            print_log(f"Error: '{num}' is out of range")
             return False
 
     while True:
@@ -76,9 +76,26 @@ def select(objects: List[Item]) -> List[Item]:
             continue
         else:
             break
-    print()
 
     returned_objects: List[Item] = []
     for item in selector_set:
         returned_objects.append(objects[item - 1])
     return returned_objects
+
+
+def confirm(msg: str) -> bool:
+    """
+    Confirm an action.
+    """
+    if ARGS_PARSER.yes:
+        print_log("Action proceeding without user confirmation")
+        return True
+
+    response = input(f"{msg} (y/N): ")
+
+    if response.lower() == "y":
+        print_log("Action confirmed by user")
+        return True
+    else:
+        print_log("Action cancelled by user")
+        return False

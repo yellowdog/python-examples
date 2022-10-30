@@ -141,6 +141,13 @@ class CLIParser:
                 required=False,
                 help="list available items and manually select",
             )
+            parser.add_argument(
+                "--proceed-without-confirmation",
+                "-y",
+                action="store_true",
+                required=False,
+                help="perform the action without user confirmation",
+            )
 
         self.args = parser.parse_args()
 
@@ -210,6 +217,10 @@ class CLIParser:
     def items(self) -> Optional[bool]:
         return self.args.items
 
+    @property
+    def yes(self) -> Optional[bool]:
+        return self.args.proceed_without_confirmation
+
 
 if __name__ == "__main__":
     # Standalone testing
@@ -227,3 +238,4 @@ if __name__ == "__main__":
     print("abort =", args.abort)
     print("no-mustache =", args.no_mustache)
     print("items =", args.items)
+    print("proceed without confirmation =", args.yes)

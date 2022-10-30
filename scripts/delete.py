@@ -15,7 +15,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, load_config_common, print_log
-from selector import select
+from selector import confirm, select
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
@@ -44,7 +44,9 @@ def main():
         if len(object_paths_to_delete) != 0 and ARGS_PARSER.items:
             object_paths_to_delete = select(object_paths_to_delete)
 
-        if len(object_paths_to_delete) != 0:
+        if len(object_paths_to_delete) != 0 and confirm(
+            f"Delete {len(object_paths_to_delete)} Object Path(s)?"
+        ):
             print_log(f"{len(object_paths_to_delete)} Object Path(s) to Delete")
             CLIENT.object_store_client.delete_objects(
                 CONFIG.namespace, object_paths=object_paths_to_delete

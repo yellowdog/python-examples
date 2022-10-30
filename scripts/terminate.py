@@ -16,7 +16,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
-from selector import select
+from selector import confirm, select
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
@@ -58,32 +58,37 @@ def main():
                 selected_compute_requirement_summaries
             )
 
-        for compute_summary in selected_compute_requirement_summaries:
-            if (
-                compute_summary.tag == CONFIG_COMMON.name_tag
-                and compute_summary.namespace == CONFIG_COMMON.namespace
-                and compute_summary.status
-                not in [
-                    ComputeRequirementStatus.TERMINATED,
-                    ComputeRequirementStatus.TERMINATING,
-                ]
-            ):
-                CLIENT.compute_client.terminate_compute_requirement_by_id(
-                    compute_summary.id
-                )
-                compute_requirement: ComputeRequirement = (
-                    CLIENT.compute_client.get_compute_requirement_by_id(
+        if len(selected_compute_requirement_summaries) != 0 and confirm(
+            f"Terminate {len(selected_compute_requirement_summaries)} "
+            "Compute Requirement(s)?"
+        ):
+            for compute_summary in selected_compute_requirement_summaries:
+                if (
+                    compute_summary.tag == CONFIG_COMMON.name_tag
+                    and compute_summary.namespace == CONFIG_COMMON.namespace
+                    and compute_summary.status
+                    not in [
+                        ComputeRequirementStatus.TERMINATED,
+                        ComputeRequirementStatus.TERMINATING,
+                    ]
+                ):
+                    CLIENT.compute_client.terminate_compute_requirement_by_id(
                         compute_summary.id
                     )
-                )
-                terminated_count += 1
-                print_log(
-                    f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement)}"
-                )
+                    compute_requirement: ComputeRequirement = (
+                        CLIENT.compute_client.get_compute_requirement_by_id(
+                            compute_summary.id
+                        )
+                    )
+                    terminated_count += 1
+                    print_log(
+                        f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement)}"
+                    )
         if terminated_count > 0:
             print_log(f"Terminated {terminated_count} Compute Requirement(s)")
         else:
             print_log("Nothing to terminate")
+
         # Clean up
         CLIENT.close()
     except Exception as e:

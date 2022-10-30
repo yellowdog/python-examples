@@ -18,7 +18,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
-from selector import select
+from selector import confirm, select
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
@@ -54,33 +54,40 @@ def main():
         if len(selected_worker_pool_summaries) != 0 and ARGS_PARSER.items:
             selected_worker_pool_summaries = select(selected_worker_pool_summaries)
 
-        for worker_pool_summary in selected_worker_pool_summaries:
-            if (
-                "ProvisionedWorkerPool" not in worker_pool_summary.type
-                or worker_pool_summary.status
-                in [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
-            ):
-                continue
-            worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
-                worker_pool_summary.id
-            )
-            compute_requirement: ComputeRequirement = (
-                CLIENT.compute_client.get_compute_requirement_by_id(
-                    worker_pool.computeRequirementId
+        if len(selected_worker_pool_summaries) != 0 and confirm(
+            f"Shutdown {len(selected_worker_pool_summaries)} Worker Pool(s)?"
+        ):
+            for worker_pool_summary in selected_worker_pool_summaries:
+                if (
+                    "ProvisionedWorkerPool" not in worker_pool_summary.type
+                    or worker_pool_summary.status
+                    in [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
+                ):
+                    continue
+                worker_pool: WorkerPool = (
+                    CLIENT.worker_pool_client.get_worker_pool_by_id(
+                        worker_pool_summary.id
+                    )
                 )
-            )
-            if (
-                compute_requirement.tag == CONFIG_COMMON.name_tag
-                and compute_requirement.namespace == CONFIG_COMMON.namespace
-                and compute_requirement.status
-                not in [
-                    ComputeRequirementStatus.TERMINATED,
-                    ComputeRequirementStatus.TERMINATING,
-                ]
-            ):
-                CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
-                shutdown_count += 1
-                print_log(f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}")
+                compute_requirement: ComputeRequirement = (
+                    CLIENT.compute_client.get_compute_requirement_by_id(
+                        worker_pool.computeRequirementId
+                    )
+                )
+                if (
+                    compute_requirement.tag == CONFIG_COMMON.name_tag
+                    and compute_requirement.namespace == CONFIG_COMMON.namespace
+                    and compute_requirement.status
+                    not in [
+                        ComputeRequirementStatus.TERMINATED,
+                        ComputeRequirementStatus.TERMINATING,
+                    ]
+                ):
+                    CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
+                    shutdown_count += 1
+                    print_log(
+                        f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}"
+                    )
         if shutdown_count > 0:
             print_log(f"Shut down {shutdown_count} Worker Pool(s)")
         else:
