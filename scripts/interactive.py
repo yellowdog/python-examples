@@ -54,7 +54,7 @@ def select(objects: List[Item]) -> List[Item]:
     while True:
         print()
         selector_string = input(
-            "Please select items to be deleted (e.g.: 1,2,4-7,9) "
+            "Please select items (e.g.: 1,2,4-7,9) "
             "or Return for none: "
         )
         selector_list = selector_string.split(",")
@@ -108,11 +108,11 @@ def confirmed(msg: str) -> bool:
         return True
 
     # Seek user confirmation
-    response = input(f"{msg} (y/N): ")
-
-    if response.lower() == "y":
-        print_log("Action confirmed by user")
-        return True
-    else:
-        print_log("Action cancelled by user")
-        return False
+    while True:
+        response = input(f"{msg} (y/N): ")
+        if response.lower() in ["y", "yes"]:
+            print_log("Action confirmed by user")
+            return True
+        elif response.lower() in ["n", "no", ""]:
+            print_log("Action cancelled by user")
+            return False
