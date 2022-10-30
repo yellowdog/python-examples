@@ -4,7 +4,11 @@ Interactive selection from a list of objects
 
 from typing import List, Set, TypeVar
 
-from yellowdog_client.model import WorkerPoolSummary, WorkRequirementSummary
+from yellowdog_client.model import (
+    ComputeRequirementSummary,
+    WorkerPoolSummary,
+    WorkRequirementSummary,
+)
 
 from common import print_log
 
@@ -13,7 +17,9 @@ try:
 except ImportError:
     pass
 
-Item = TypeVar("Item", WorkerPoolSummary, WorkRequirementSummary)
+Item = TypeVar(
+    "Item", ComputeRequirementSummary, WorkerPoolSummary, WorkRequirementSummary
+)
 
 
 def select(objects: List[Item]) -> List[Item]:

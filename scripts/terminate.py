@@ -15,7 +15,8 @@ from yellowdog_client.model import (
     ServicesSchema,
 )
 
-from common import ConfigCommon, link_entity, load_config_common, print_log
+from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
+from selector import select
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
@@ -38,7 +39,26 @@ def main():
             ComputeRequirementSummary
         ] = CLIENT.compute_client.find_all_compute_requirements()
         terminated_count = 0
+        selected_compute_requirement_summaries: List[ComputeRequirementSummary] = []
+
         for compute_summary in compute_requirement_summaries:
+            if (
+                compute_summary.tag == CONFIG_COMMON.name_tag
+                and compute_summary.namespace == CONFIG_COMMON.namespace
+                and compute_summary.status
+                not in [
+                    ComputeRequirementStatus.TERMINATED,
+                    ComputeRequirementStatus.TERMINATING,
+                ]
+            ):
+                selected_compute_requirement_summaries.append(compute_summary)
+
+        if len(selected_compute_requirement_summaries) != 0 and ARGS_PARSER.items:
+            selected_compute_requirement_summaries = select(
+                selected_compute_requirement_summaries
+            )
+
+        for compute_summary in selected_compute_requirement_summaries:
             if (
                 compute_summary.tag == CONFIG_COMMON.name_tag
                 and compute_summary.namespace == CONFIG_COMMON.namespace
