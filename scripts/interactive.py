@@ -125,6 +125,8 @@ def select(objects: List[Item]) -> List[Item]:
             "Selected item number(s): "
             f"{', '.join([str(x) for x in sorted(list(selector_set))])}"
         )
+    else:
+        print("No items selected")
 
     returned_objects: List[Item] = []
     for item in selector_set:

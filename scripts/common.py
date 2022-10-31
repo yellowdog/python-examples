@@ -176,7 +176,11 @@ if ARGS_PARSER.mustache_subs is not None:
                 f"'{key_value[0]}' = '{key_value[1]}'"
             )
         else:
-            print_log(f"Error in Mustache substitution '{key_value[0]}'")
+            print_log(
+                f"Error in Mustache substitution '{key_value[0]}'",
+                override_quiet=True,
+                use_stderr=True,
+            )
             print_log("Exiting")
             exit(1)
 
@@ -211,7 +215,11 @@ try:
     CONFIG_TOML: Dict = load_toml_file_with_mustache_substitutions(config_file)
     invalid_keys = check_for_invalid_keys(CONFIG_TOML)
     if invalid_keys is not None:
-        print_log(f"Error: Invalid properties in '{config_file}': {invalid_keys}")
+        print_log(
+            f"Error: Invalid properties in '{config_file}': {invalid_keys}",
+            override_quiet=True,
+            use_stderr=True,
+        )
         exit(1)
     print_log(f"Loading configuration data from: '{config_file}'")
     CONFIG_FILE_DIR = dirname(abspath(config_file))
@@ -222,7 +230,11 @@ except FileNotFoundError:
     CONFIG_FILE_DIR = os.getcwd()
 
 except (PermissionError, TomlDecodeError) as e:
-    print_log(f"Unable to load configuration data from '{config_file}': {e}")
+    print_log(
+        f"Unable to load configuration data from '{config_file}': {e}",
+        override_quiet=True,
+        use_stderr=True,
+    )
     exit(1)
 
 
@@ -269,8 +281,10 @@ def load_config_common() -> ConfigCommon:
         )
 
     except KeyError as e:
-        print_log(f"Missing configuration data: {e}")
-        exit(0)
+        print_log(
+            f"Missing configuration data: {e}", override_quiet=True, use_stderr=True
+        )
+        exit(1)
 
 
 def import_toml(filename: str) -> Dict:
@@ -279,7 +293,11 @@ def import_toml(filename: str) -> Dict:
         common_config: Dict = load_toml_file_with_mustache_substitutions(filename)
         return common_config[COMMON_SECTION]
     except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
-        print_log(f"Unable to load imported common configuration data: {e}")
+        print_log(
+            f"Unable to load imported common configuration data: {e}",
+            override_quiet=True,
+            use_stderr=True,
+        )
         exit(1)
 
 
@@ -336,8 +354,10 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             wr_name=mustache_substitution(wr_section.get(WR_NAME, None)),
         )
     except KeyError as e:
-        print_log(f"Missing configuration data: {e}")
-        exit(0)
+        print_log(
+            f"Missing configuration data: {e}", override_quiet=True, use_stderr=True
+        )
+        exit(1)
 
 
 def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
@@ -377,7 +397,9 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             workers_per_node=wp_section.get(WORKERS_PER_NODE, 1),
         )
     except KeyError as e:
-        print_log(f"Missing configuration data: {e}")
+        print_log(
+            f"Missing configuration data: {e}", override_quiet=True, use_stderr=True
+        )
         exit(0)
 
 
@@ -392,7 +414,9 @@ def generate_id(prefix: str, max_length: int = 50) -> str:
     if len(generated_id) > max_length:
         print_log(
             f"Error: Generated ID '{generated_id}' would exceed "
-            f"maximum length ({max_length})"
+            f"maximum length ({max_length})",
+            override_quiet=True,
+            use_stderr=True,
         )
         exit(1)
     return generated_id
