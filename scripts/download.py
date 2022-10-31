@@ -36,8 +36,8 @@ def main():
     try:
         tag = CONFIG.name_tag
         print_log(
-            f"Downloading all Objects in NAMESPACE={CONFIG.namespace} with "
-            f"names starting with TAG={tag}"
+            f"Downloading all Objects in 'namespace={CONFIG.namespace}' with "
+            f"names starting with 'tag={tag}'"
         )
 
         object_paths: List[

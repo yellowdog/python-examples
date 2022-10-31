@@ -28,8 +28,8 @@ CLIENT = PlatformClient.create(
 def main():
     try:
         print_log(
-            f"Deleting Object Paths in NAMESPACE={CONFIG.namespace} with "
-            f"names starting with TAG={CONFIG.name_tag}"
+            f"Deleting Object Paths in 'namespace={CONFIG.namespace}' with "
+            f"names starting with 'tag={CONFIG.name_tag}'"
         )
         object_paths: List[
             ObjectPath

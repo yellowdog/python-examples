@@ -8,10 +8,11 @@
    * [Update](#update)
 * [Usage](#usage)
 * [Configuration](#configuration)
+   * [Naming Restrictions](#naming-restrictions)
    * [Common Properties](#common-properties)
       * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
          * [Default Mustache Directives](#default-mustache-directives)
-         * [User-defined Mustache Directives](#user-defined-mustache-directives)
+         * [User-Defined Mustache Directives](#user-defined-mustache-directives)
       * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
    * [Work Requirement Properties](#work-requirement-properties)
       * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
@@ -40,7 +41,7 @@
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Oct 28 08:30:48 BST 2022 -->
+<!-- Added by: pwt, at: Mon Oct 31 11:15:45 GMT 2022 -->
 
 <!--te-->
 
@@ -85,26 +86,31 @@ pip install -U --force-reinstall --no-deps git+https://github.com/yellowdog/pyth
 
 Commands are run from the command line. Invoking the command with the `--help` or `-h` option will display the command line options applicable to a given command, e.g.:
 
-```shell
+```text
 % yd-cancel --help
-usage: yd-cancel [-h] [--config CONFIG_FILE.toml] [--key APP-KEY] [--secret APP-SECRET] [--namespace MY-NAMESPACE] [--tag MY-TAG] [--url https://portal.yellowdog.co/api] [--abort]
+usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>]
+                 [--namespace <namespace>] [--tag <tag>] [--url <url>] [--mustache-substitution <var1=v1>]
+                 [--abort] [--interactive] [--no-confirm]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --config CONFIG_FILE.toml, -c CONFIG_FILE.toml
+  --config <config_file.toml>, -c <config_file.toml>
                         configuration file in TOML format; default is 'config.toml' in the current directory
-  --key APP-KEY, -k APP-KEY
+  --key <app-key>, -k <app-key>
                         the YellowDog Application key
-  --secret APP-SECRET, -s APP-SECRET
+  --secret <app-secret>, -s <app-secret>
                         the YellowDog Application secret
-  --namespace MY-NAMESPACE, -n MY-NAMESPACE
+  --namespace <namespace>, -n <namespace>
                         the namespace to use when creating and identifying entities
-  --tag MY-TAG, -t MY-TAG
+  --tag <tag>, -t <tag>
                         the tag to use for tagging and identifying entities
-  --url https://portal.yellowdog.co/api
+  --url <url>, -u <url>
                         the URL of the YellowDog Platform API
+  --mustache-substitution <var1=v1>, -m <var1=v1>
+                        user-defined Mustache substitution; can be used multiple times
   --abort, -a           abort all running tasks with immediate effect
-
+  --interactive, -i     list, and interactively select, items to act on
+  --no-confirm, -y      perform actions without requiring user confirmation
 ```
 
 # Configuration
@@ -127,6 +133,19 @@ The configuration filename can be supplied in three different ways:
 
 The options above are shown in order of precedence, i.e., a filename supplied on the command line supersedes one set in `YD_CONF`, which supersedes the default.
 
+## Naming Restrictions
+
+All names used within the YellowDog Platform must comply with the following restrictions:
+
+- Names can only contain the following: lowercase letters, digits, hyphens and underscores (note that spaces are not permitted)
+- Names must start with a letter
+- Names must end with a letter or digit
+- Name length must be <= 60 characters
+
+These restrictions apply to Namespaces, Tags, Work Requirements, Task Groups, Tasks, Worker Pools, and Compute Requirements.
+
+(The restrictions also apply to entities that are currently used indirectly by these scripts: Usernames, Credentials, Keyrings, Compute Sources and Compute Templates).
+
 ## Common Properties
 
 The `[common]` section of the configuration file contains the following properties:
@@ -145,8 +164,8 @@ An example `common` section is shown below:
 [common]
     key = "asdfghjklzxcvb-1234567"
     secret = "qwertyuiopasdfghjklzxcvbnm1234567890qwertyu"
-    namespace = "PROJECT-X"
-    tag = "TESTING-{{username}}"
+    namespace = "project-x"
+    tag = "testing-{{username}}"
     url = "https://portal.yellowdog.co/api"
 ```
 
@@ -154,19 +173,19 @@ The indentation is optional in TOML files and is for readability only.
 
 ### Mustache Template Directives in Common Properties
 
-Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `TESTING-ABC`. This can be helpful to disambiguate multiple users running with the same configuration data.
+Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
 
 Mustache directives can be used within the `namespace` and `tag` values in the `common` section (or when supplied as command line options or environment variables).
 
 #### Default Mustache Directives
 
-| Directive      | Description                                                     | Example of Substitution |
-|:---------------|:----------------------------------------------------------------|:------------------------|
-| `{{username}}` | The current user's login username, capitalised, spaces replaced | JANE_SMITH              |
-| `{{date}}`     | The current date (UTC): YYYYMMDD                                | 20221027                |
-| `{{time}}`     | The current time (UTC): HHMMSS                                  | 163026                  |
-| `{{datetime}}` | Concatenation of the date and time above, with a 'T' separator  | 20221027T163026         |
-| `{{random}}`   | A random, three digit hexadecimal number                        | A1C                     |
+| Directive      | Description                                                    | Example of Substitution |
+|:---------------|:---------------------------------------------------------------|:------------------------|
+| `{{username}}` | The current user's login username, lower case, spaces replaced | jane_smith              |
+| `{{date}}`     | The current date (UTC): YYYYMMDD                               | 20221027                |
+| `{{time}}`     | The current time (UTC): HHMMSS                                 | 163026                  |
+| `{{datetime}}` | Concatenation of the date and time above, with a '-' separator | 20221027-163026         |
+| `{{random}}`   | A random, three digit hexadecimal number (lower case)          | a1c                     |
 
 For the `date`, `time` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
@@ -174,13 +193,13 @@ For the `date`, `time` and `random` directives, the same values will be used for
 
 Additional (static) Mustache directives can be supplied using command line options or by setting environment variables prefixed with `YD_SUB_`.
 
-The **command line** option is `--mustache-substitution` (or `-m`). For example, `yd-submit -m project_code=PR-213-A -m run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `PR-213-A` and `1234` respectively.
+The **command line** option is `--mustache-substitution` (or `-m`). For example, `yd-submit -m project_code=pr-213-a -m run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
-For **environment variables**, setting the variable `YD_SUB_project_code="PR-213-A"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `PR-213-A`.
+For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
 
 Directives set on the command line take precedence over directives set in environment variables.
 
-This method can be used to override the default directives, e.g., setting `-m username="OtherUser"` will override the default `{{username}}` directive.
+This method can be used to override the default directives, e.g., setting `-m username="other-user"` will override the default `{{username}}` directive.
 
 ### Specifying Common Properties using the Command Line or Environment Variables
 
@@ -285,7 +304,7 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**) and *
 | `maximumTaskRetries`  | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                        | Yes  | Yes | Yes      | Yes  |
 | `maxWorkers`          | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                             | Yes  | Yes | Yes      |      |
 | `minWorkers`          | The minimum number of Workers that the associated Task Group requires. This many workers must be claimed before the associated Task Group will start working. E.g., `1`. | Yes  | Yes | Yes      |      |
-| `name`                | The name of the Work Requirement, Task Group or Task. E.g., `"NAME"`. Note that the `name` property is not inherited.                                                    | Yes  | Yes | Yes      | Yes  |
+| `name`                | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                 | Yes  | Yes | Yes      | Yes  |
 | `outputs`             | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                           | Yes  | Yes | Yes      | Yes  |
 | `priority`            | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. Note: not inherited by Task Group from WR. E.g., `0.0`.     | Yes  | Yes | Yes      |      |
 | `providers`           | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                           | Yes  | Yes | Yes      |      |
@@ -305,9 +324,9 @@ In addition to the inheritance mechanism, some properties are set automatically 
 
 #### Work Requirement, Task Group and Task Naming
 
-- The **Work Requirement** name is automatically set using a concatenation the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `MYTAG_221024T155524-40A`.
-- **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `TaskGroup_1` (or `TaskGroup_01`, etc., for larger numbers of Task Groups).
-- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `Task_1` (or `Task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group.
+- The **Work Requirement** name is automatically set using a concatenation the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `mytag_221024-155524-40a`.
+- **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups).
+- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group.
 
 #### Task Types
 
@@ -341,7 +360,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     maxWorkers = 1
     maximumTaskRetries = 0
     minWorkers = 1
-    name = "My-Work-Requirement"
+    name = "my-work-requirement"
     outputs = ["results.txt"]
     priority = 0.0
     providers = ["AWS"]
@@ -351,7 +370,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskType = "docker"
     tasksPerWorker = 1
     vcpus = [1, 4]
-    workerTags = ["TAG-{{username}}"]
+    workerTags = ["tag-{{username}}"]
 #   workRequirementData = "work_requirement.json"
 ```
 
@@ -376,7 +395,7 @@ Showing all possible properties at the Work Requirement level:
   "maxWorkers": 1,
   "maximumTaskRetries": 0,
   "minWorkers": 1,
-  "name": "My-Work-Requirement",
+  "name": "my-work-requirement",
   "outputs": ["results.txt"],
   "priority": 0,
   "providers": ["AWS"],
@@ -419,7 +438,7 @@ Showing all possible properties at the Task Group level:
       "maximumTaskRetries": 0,
       "maxWorkers": 1,
       "minWorkers": 1,
-      "name": "First-Task-Group",
+      "name": "first-task-group",
       "outputs": ["results.txt"],
       "priority": 0,
       "providers": ["AWS"],
@@ -434,8 +453,8 @@ Showing all possible properties at the Task Group level:
       ]
     },
     {
-      "name": "Second-Task-Group",
-      "dependentOn": "First-Task-Group",
+      "name": "second-task-group",
+      "dependentOn": "first-task-group",
       "tasks": [
         {}
       ]
@@ -462,7 +481,7 @@ Showing all possible properties at the Task level:
           "executable": "my-container",
           "inputs": ["app/main.py", "app/requirements.txt"],
           "intermediateInputs": [],
-          "name": "My-Task",
+          "name": "my-task",
           "outputs": ["results.txt"],
           "taskType": "docker"
         }
@@ -501,7 +520,7 @@ The following properties are available:
 
 ### Automatic Properties
 
-The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `WP_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `WP_MYTAG_221024T155524-40A`.
+The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `WP_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `wp_mytag_221024T155524-b0a`.
 
 ### Worker Pool JSON File Structure
 
@@ -526,11 +545,11 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     autoscalingIdleDelay = 3
     maxNodes = 1
     minNodes = 1
-    name = "My-Worker-Pool"
+    name = "my-worker-pool"
     nodeBootTimeLimit = 5
     targetInstanceCount = 1
     templateId = "ydid:crt:000000:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-    workerTag = "TAG-{{username}}"
+    workerTag = "tag-{{username}}"
     workersPerNode = 1
 #   workerPoolData = "worker_pool.json"
 ```

@@ -129,11 +129,11 @@ def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
 UTCNOW = datetime.utcnow()
 RAND_SIZE = 0xFFF
 MUSTACHE_SUBSTITUTIONS = {
-    "username": getuser().replace(" ", "_").upper(),
+    "username": getuser().replace(" ", "_").lower(),
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S"),
-    "datetime": UTCNOW.strftime("%y%m%dT%H%M%S"),
-    "random": hex(randint(0, RAND_SIZE + 1))[2:].upper().zfill(len(hex(RAND_SIZE)) - 2),
+    "datetime": UTCNOW.strftime("%y%m%d-%H%M%S"),
+    "random": hex(randint(0, RAND_SIZE + 1))[2:].lower().zfill(len(hex(RAND_SIZE)) - 2),
 }
 
 # The CLIParser class parses command line arguments on instantiation
@@ -372,7 +372,7 @@ def generate_id(prefix: str, max_length: int = 50) -> str:
     a few random hex characters. Checks length.
     """
     generated_id = (
-        prefix + UTCNOW.strftime("_%y%m%dT%H%M%S-") + str(uuid4())[:3].upper()
+        prefix + UTCNOW.strftime("_%y%m%d-%H%M%S-") + str(uuid4())[:3].lower()
     )
     if len(generated_id) > max_length:
         print_log(

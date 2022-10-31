@@ -34,8 +34,8 @@ def main():
     try:
         print_log(
             f"Shutting down Worker Pools with Compute Requirements matching "
-            f"NAMESPACE={CONFIG_COMMON.namespace} and "
-            f"TAG={CONFIG_COMMON.name_tag}"
+            f"'namespace={CONFIG_COMMON.namespace}' and "
+            f"'tag={CONFIG_COMMON.name_tag}'"
         )
         worker_pool_summaries: List[
             WorkerPoolSummary

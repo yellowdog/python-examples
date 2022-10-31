@@ -78,7 +78,7 @@ def select(objects: List[Item]) -> List[Item]:
                         selector_set.add(i)
                     else:
                         error_flag = True
-            except ValueError as e:
+            except ValueError:
                 print_log(f"Error: '{selector}' is not a valid selection")
                 error_flag = True
         if error_flag:

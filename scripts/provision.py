@@ -290,7 +290,7 @@ def generate_wp_batch_name(
 
     # Standard automatic name generation
     if name is None:
-        return generate_id("WP")
+        return generate_id("wp" + "_" + CONFIG_COMMON.name_tag)
 
     # Use supplied name, with counter if multiple batches
     if num_batches > 1:

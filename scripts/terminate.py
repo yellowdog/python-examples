@@ -32,8 +32,8 @@ def main():
     try:
         print_log(
             f"Terminating Compute Requirements matching "
-            f"NAMESPACE={CONFIG_COMMON.namespace} and "
-            f"TAG={CONFIG_COMMON.name_tag}"
+            f"'namespace={CONFIG_COMMON.namespace}' and "
+            f"'tag={CONFIG_COMMON.name_tag}'"
         )
         compute_requirement_summaries: List[
             ComputeRequirementSummary

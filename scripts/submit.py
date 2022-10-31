@@ -62,7 +62,7 @@ CLIENT = PlatformClient.create(
 
 ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
-INPUT_FOLDER_NAME = "INPUTS"
+INPUT_FOLDER_NAME = "inputs"
 
 
 def main():
@@ -270,7 +270,7 @@ def create_task_group(
     num_task_groups = len(tasks_data[TASK_GROUPS])
     task_group_name = task_group_data.get(
         NAME,
-        "TaskGroup_" + str(tg_number + 1).zfill(len(str(num_task_groups))),
+        "task_group_" + str(tg_number + 1).zfill(len(str(num_task_groups))),
     )
 
     # Assemble the RunSpecification values for the Task Group
@@ -389,7 +389,7 @@ def add_tasks_to_task_group(
             task_group_data = tasks_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
             task_name = task.get(
-                NAME, "Task_" + str(task_number + 1).zfill(len(str(num_tasks)))
+                NAME, "task_" + str(task_number + 1).zfill(len(str(num_tasks)))
             )
             executable = task.get(
                 EXECUTABLE,

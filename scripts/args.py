@@ -25,7 +25,7 @@ class CLIParser:
             type=str,
             help="configuration file in TOML format; "
             "default is 'config.toml' in the current directory",
-            metavar="CONFIG_FILE.toml",
+            metavar="<config_file.toml>",
         )
 
         parser.add_argument(
@@ -34,7 +34,7 @@ class CLIParser:
             type=str,
             required=False,
             help="the YellowDog Application key",
-            metavar="APP-KEY",
+            metavar="<app-key>",
         )
 
         parser.add_argument(
@@ -43,7 +43,7 @@ class CLIParser:
             required=False,
             type=str,
             help="the YellowDog Application secret",
-            metavar="APP-SECRET",
+            metavar="<app-secret>",
         )
 
         parser.add_argument(
@@ -52,7 +52,7 @@ class CLIParser:
             type=str,
             required=False,
             help="the namespace to use when creating and identifying entities",
-            metavar="MY-NAMESPACE",
+            metavar="<namespace>",
         )
 
         parser.add_argument(
@@ -61,7 +61,7 @@ class CLIParser:
             type=str,
             required=False,
             help="the tag to use for tagging and identifying entities",
-            metavar="MY-TAG",
+            metavar="<tag>",
         )
 
         parser.add_argument(
@@ -70,7 +70,7 @@ class CLIParser:
             type=str,
             required=False,
             help="the URL of the YellowDog Platform API",
-            metavar="https://portal.yellowdog.co/api",
+            metavar="<url>",
         )
 
         parser.add_argument(
@@ -80,7 +80,7 @@ class CLIParser:
             required=False,
             action="append",
             help="user-defined Mustache substitution; can be used multiple times",
-            metavar="var1=V1",
+            metavar="<var1=v1>",
         )
 
         all_options_modules = ["args", "which-config"]
@@ -92,7 +92,7 @@ class CLIParser:
                 type=str,
                 required=False,
                 help="work requirement definition file in JSON format",
-                metavar="WORK_REQUIREMENT.json",
+                metavar="<work_requirement.json>",
             )
             parser.add_argument(
                 "--follow",
@@ -109,7 +109,7 @@ class CLIParser:
                 type=str,
                 required=False,
                 help="worker pool definition file in JSON format",
-                metavar="WORKER_POOL.json",
+                metavar="<worker_pool.json>",
             )
 
         if any(module in sys.argv[0] for module in ["cancel"] + all_options_modules):
