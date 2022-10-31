@@ -83,7 +83,7 @@ def select(objects: List[Item]) -> List[Item]:
         if 1 <= num <= len(objects):
             return True
         else:
-            print_log(f"Error: '{num}' is out of range")
+            print(f"Error: '{num}' is out of range")
             return False
 
     while True:
@@ -113,7 +113,7 @@ def select(objects: List[Item]) -> List[Item]:
                     else:
                         error_flag = True
             except ValueError:
-                print_log(f"Error: '{selector}' is not a valid selection")
+                print(f"Error: '{selector}' is not a valid selection")
                 error_flag = True
         if error_flag:
             continue
