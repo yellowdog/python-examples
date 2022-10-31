@@ -14,7 +14,7 @@ from yellowdog_client.model import (
     ServicesSchema,
 )
 
-from common import ARGS_PARSER, ConfigCommon, load_config_common, print_log
+from common import ConfigCommon, load_config_common, print_log
 from interactive import confirmed, select
 
 # Import the configuration from the TOML file
@@ -41,7 +41,7 @@ def main():
             if object_path.name.startswith(CONFIG.name_tag):
                 object_paths_to_delete.append(object_path)
 
-        if len(object_paths_to_delete) != 0 and ARGS_PARSER.interactive:
+        if len(object_paths_to_delete) != 0:
             object_paths_to_delete = select(object_paths_to_delete)
 
         if len(object_paths_to_delete) != 0 and confirmed(

@@ -21,7 +21,7 @@ from yellowdog_client.object_store.download.abstracts.abstract_download_batch_bu
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
-from common import ARGS_PARSER, ConfigCommon, load_config_common, print_log
+from common import ConfigCommon, load_config_common, print_log
 from interactive import select
 
 # Import the configuration from the TOML file
@@ -50,7 +50,7 @@ def main():
             if object_path.name.startswith(tag):
                 object_paths_to_download.append(object_path)
 
-        if len(object_paths_to_download) != 0 and ARGS_PARSER.interactive:
+        if len(object_paths_to_download) != 0:
             object_paths_to_download = select(object_paths_to_download)
 
         if len(object_paths_to_download) == 0:

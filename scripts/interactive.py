@@ -31,18 +31,52 @@ Item = TypeVar(
 # Set to any non-empty string
 YD_NO_CONFIRM = "YD_NO_CONFIRM"
 
+TYPE_MAP = {
+    "WorkerPool": "Worker Pool",
+    "ComputeRequirement": "Compute Requirement",
+    "WorkRequirement": "Work Requirement",
+    "ObjectPath": "Object Path",
+}
 
-def select(objects: List[Item]) -> List[Item]:
+
+def get_type_name(object: Item) -> str:
     """
-    Manually select objects from a list. Return the list of selected objects.
+    Get the display name of an object's type
     """
-    print_log("Displaying list of matching items")
+    type_str = str(type(object))
+    for key, value in TYPE_MAP.items():
+        if key in type_str:
+            return value
+    return ""
+
+
+def print_numbered_object_list(objects: List[Item]) -> None:
+    """
+    Print a numbered list of objects
+    """
+    if len(objects) == 0:
+        return
+
+    print_log(f"Displaying list of matching {get_type_name(objects[0])}(s):")
     print()
     indent = " " * 3
     index_len = len(str(len(objects)))
     objects = sorted(objects, key=lambda x: x.name)
     for index, obj in enumerate(objects):
         print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}")
+    print()
+
+
+def select(objects: List[Item]) -> List[Item]:
+    """
+    Print a numbered list of objects.
+    Manually select objects from a list if --interactive is set.
+    Return the list of objects.
+    """
+    print_numbered_object_list(objects)
+
+    if not ARGS_PARSER.interactive:
+        return objects
 
     def in_range(num: int) -> bool:
         if 1 <= num <= len(objects):
@@ -52,7 +86,6 @@ def select(objects: List[Item]) -> List[Item]:
             return False
 
     while True:
-        print()
         selector_string = input(
             "Please select items (e.g.: 1,2,4-7,9) or press <Return> for none: "
         )

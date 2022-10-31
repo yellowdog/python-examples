@@ -17,7 +17,7 @@ from yellowdog_client.model import (
     WorkerPoolSummary,
 )
 
-from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
+from common import ConfigCommon, link_entity, load_config_common, print_log
 from interactive import confirmed, select
 
 # Import the configuration from the TOML file
@@ -51,7 +51,7 @@ def main():
             ):
                 selected_worker_pool_summaries.append(worker_pool_summary)
 
-        if len(selected_worker_pool_summaries) != 0 and ARGS_PARSER.interactive:
+        if len(selected_worker_pool_summaries) != 0:
             selected_worker_pool_summaries = select(selected_worker_pool_summaries)
 
         if len(selected_worker_pool_summaries) != 0 and confirmed(

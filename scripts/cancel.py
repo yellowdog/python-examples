@@ -19,7 +19,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
-from interactive import confirmed, select
+from interactive import confirmed, print_numbered_object_list, select
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
@@ -53,7 +53,8 @@ def main():
                 and work_summary.namespace == CONFIG.namespace
             ):
                 selected_work_requirement_summaries.append(work_summary)
-        if len(selected_work_requirement_summaries) != 0 and ARGS_PARSER.interactive:
+
+        if len(selected_work_requirement_summaries) != 0:
             selected_work_requirement_summaries = select(
                 selected_work_requirement_summaries
             )
