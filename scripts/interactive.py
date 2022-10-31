@@ -121,7 +121,10 @@ def select(objects: List[Item]) -> List[Item]:
             break
 
     if len(selector_set) > 0:
-        print(f"Selected item number(s): {sorted(list(selector_set))}")
+        print(
+            "Selected item number(s): "
+            f"{', '.join([str(x) for x in sorted(list(selector_set))])}"
+        )
 
     returned_objects: List[Item] = []
     for item in selector_set:

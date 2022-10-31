@@ -105,7 +105,10 @@ def print_log(
     override_quiet: bool = False,
     use_stderr: bool = False,
 ):
-    """Placeholder for more sophisticated logging."""
+    """
+    Placeholder for logging.
+    Set 'override_quiet' to print when '-q' is set.
+    """
     if ARGS_PARSER.quiet and override_quiet is False:
         return
 

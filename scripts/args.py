@@ -60,7 +60,7 @@ class CLIParser:
             "-t",
             type=str,
             required=False,
-            help="the tag to use for tagging and identifying entities",
+            help="the tag to use for tagging and naming entities",
             metavar="<tag>",
         )
 
@@ -88,7 +88,7 @@ class CLIParser:
             "-q",
             action="store_true",
             required=False,
-            help="suppress (most) status and progress messages",
+            help="suppress (non-error, non-interactive) status and progress messages",
         )
 
         all_options_modules = ["args", "which-config"]
@@ -160,7 +160,7 @@ class CLIParser:
                 "-y",
                 action="store_true",
                 required=False,
-                help="perform actions without requiring user confirmation",
+                help="perform destructive actions without requiring user confirmation",
             )
 
         self.args = parser.parse_args()
@@ -241,7 +241,9 @@ class CLIParser:
 
 
 if __name__ == "__main__":
-    # Standalone testing
+    """
+    Standalone module testing
+    """
     args = CLIParser()
     print("config file =", args.config_file)
     print("key =", args.key)
