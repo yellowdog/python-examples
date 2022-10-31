@@ -73,7 +73,8 @@ def select(objects: List[Item]) -> List[Item]:
     Manually select objects from a list if --interactive is set.
     Return the list of objects.
     """
-    print_numbered_object_list(objects)
+    if not ARGS_PARSER.quiet or ARGS_PARSER.interactive:
+        print_numbered_object_list(objects)
 
     if not ARGS_PARSER.interactive:
         return objects

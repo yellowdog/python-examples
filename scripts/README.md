@@ -88,9 +88,8 @@ Commands are run from the command line. Invoking the command with the `--help` o
 
 ```text
 % yd-cancel --help
-usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>]
-                 [--namespace <namespace>] [--tag <tag>] [--url <url>] [--mustache-substitution <var1=v1>]
-                 [--abort] [--interactive] [--no-confirm]
+usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>]
+                 [--url <url>] [--mustache-substitution <var1=v1>] [--quiet] [--abort] [--interactive] [--no-confirm]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -108,6 +107,7 @@ optional arguments:
                         the URL of the YellowDog Platform API
   --mustache-substitution <var1=v1>, -m <var1=v1>
                         user-defined Mustache substitution; can be used multiple times
+  --quiet, -q           suppress (most) status and progress messages
   --abort, -a           abort all running tasks with immediate effect
   --interactive, -i     list, and interactively select, items to act on
   --no-confirm, -y      perform actions without requiring user confirmation

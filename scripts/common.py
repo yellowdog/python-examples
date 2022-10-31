@@ -3,6 +3,7 @@ Common utility functions
 """
 import os
 import re
+import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from getpass import getuser
@@ -98,13 +99,24 @@ class ConfigWorkerPool:
     workers_per_node: int = 1
 
 
-def print_log(log_message: str, flush: bool = True):
+def print_log(
+    log_message: str,
+    flush: bool = True,
+    override_quiet: bool = False,
+    use_stderr: bool = False,
+):
     """Placeholder for more sophisticated logging."""
+    if ARGS_PARSER.quiet and override_quiet is False:
+        return
+
+    file = sys.stderr if use_stderr else sys.stdout
+
     print(
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         ":",
         log_message,
         flush=flush,
+        file=file,
     )
 
 

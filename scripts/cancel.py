@@ -97,7 +97,7 @@ def main():
 
         CLIENT.close()
     except Exception as e:
-        print_log(f"Exception: {e}")
+        print_log(f"Exception: {e}", override_quiet=True, use_stderr=True)
     print_log("Done")
 
 

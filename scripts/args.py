@@ -83,6 +83,14 @@ class CLIParser:
             metavar="<var1=v1>",
         )
 
+        parser.add_argument(
+            "--quiet",
+            "-q",
+            action="store_true",
+            required=False,
+            help="suppress (most) status and progress messages",
+        )
+
         all_options_modules = ["args", "which-config"]
 
         if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
@@ -200,6 +208,10 @@ class CLIParser:
         return self.args.mustache_substitution
 
     @property
+    def quiet(self) -> bool:
+        return self.args.quiet
+
+    @property
     def work_req_file(self) -> Optional[str]:
         return self.args.work_req
 
@@ -235,9 +247,9 @@ if __name__ == "__main__":
     print("key =", args.key)
     print("secret =", args.secret)
     print("namespace =", args.namespace)
+    print("tag =", args.tag)
     print("url =", args.url)
     print("mustache substitutions =", args.mustache_subs)
-    print("tag =", args.tag)
     print("work requirement file =", args.work_req_file)
     print("worker pool file =", args.worker_pool_file)
     print("follow =", args.follow)
@@ -245,3 +257,4 @@ if __name__ == "__main__":
     print("no-mustache =", args.no_mustache)
     print("interactive =", args.interactive)
     print("proceed without confirmation =", args.no_confirm)
+    print("quiet =", args.quiet)
