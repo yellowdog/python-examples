@@ -152,7 +152,7 @@ class CLIParser:
                 "-y",
                 action="store_true",
                 required=False,
-                help="perform the action without user confirmation",
+                help="perform actions without requiring user confirmation",
             )
 
         self.args = parser.parse_args()

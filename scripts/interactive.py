@@ -40,9 +40,9 @@ def select(objects: List[Item]) -> List[Item]:
     print()
     indent = " " * 3
     index_len = len(str(len(objects)))
-    objects = sorted(objects, key=lambda x: x.name, reverse=True)
+    objects = sorted(objects, key=lambda x: x.name)
     for index, obj in enumerate(objects):
-        print(f"{indent}{str(index + 1).rjust(index_len)} :   {obj.name}")
+        print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}")
 
     def in_range(num: int) -> bool:
         if 1 <= num <= len(objects):
@@ -62,7 +62,11 @@ def select(objects: List[Item]) -> List[Item]:
         for selector in selector_list:
             try:
                 if "-" in selector:
-                    low, high = selector.split("-")
+                    low_s, high_s = selector.split("-")
+                    low = int(low_s)
+                    high = int(high_s)
+                    if low > high:
+                        raise ValueError
                     for i in range(int(low), int(high) + 1):
                         if in_range(i):
                             selector_set.add(i)
