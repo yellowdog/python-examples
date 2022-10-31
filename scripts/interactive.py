@@ -61,9 +61,12 @@ def print_numbered_object_list(objects: List[Item]) -> None:
     print()
     indent = " " * 3
     index_len = len(str(len(objects)))
-    objects = sorted(objects, key=lambda x: x.name)
     for index, obj in enumerate(objects):
-        print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}")
+        try:
+            status = f" ({obj.status})"
+        except:
+            status = ""
+        print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}{status}")
     print()
 
 
@@ -73,6 +76,8 @@ def select(objects: List[Item]) -> List[Item]:
     Manually select objects from a list if --interactive is set.
     Return the list of objects.
     """
+    objects = sorted(objects, key=lambda x: x.name)
+
     if not ARGS_PARSER.quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(objects)
 
@@ -120,18 +125,16 @@ def select(objects: List[Item]) -> List[Item]:
         else:
             break
 
-    if len(selector_set) > 0:
+    selected_list = sorted(list(selector_set))
+    if len(selected_list) > 0:
         print(
             "Selected item number(s): "
-            f"{', '.join([str(x) for x in sorted(list(selector_set))])}"
+            f"{', '.join([str(x) for x in selected_list])}"
         )
     else:
         print("No items selected")
 
-    returned_objects: List[Item] = []
-    for item in selector_set:
-        returned_objects.append(objects[item - 1])
-    return returned_objects
+    return [objects[x-1] for x in selected_list]
 
 
 def confirmed(msg: str) -> bool:
