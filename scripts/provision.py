@@ -97,7 +97,8 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     try:
         reqt_template_usage: Dict = wp_data["requirementTemplateUsage"]
         for key, value in [
-            ("requirementName", generate_id("WP")),  # Generate a default name
+            # Generate a default name
+            ("requirementName", generate_id("wp" + "_" + CONFIG_COMMON.name_tag)),
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
             ("templateId", CONFIG_WP.template_id),
