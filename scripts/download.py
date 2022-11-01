@@ -22,7 +22,7 @@ from yellowdog_client.object_store.download.abstracts.abstract_download_batch_bu
 from yellowdog_client.object_store.model import FileTransferStatus
 
 from common import ConfigCommon, load_config_common, print_log
-from interactive import select
+from interactive import confirmed, select
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
@@ -55,7 +55,8 @@ def main():
 
         if len(object_paths_to_download) == 0:
             print_log("No Objects to download")
-        else:
+
+        elif confirmed(f"Download {len(object_paths_to_download)} Object Path(s)?"):
             print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
             download_dir: str = _create_download_directory(CONFIG.namespace)
             for object_path in object_paths_to_download:
@@ -83,10 +84,10 @@ def main():
                 futures.wait((future,))
                 print_log(f"Downloaded all Objects in {object_path.displayName}")
 
-        if len(object_paths_to_download) > 1:
             print_log(
                 f"Downloaded all Objects in {len(object_paths_to_download)} Object Path(s)"
             )
+
         # Clean up
         CLIENT.close()
     except Exception as e:

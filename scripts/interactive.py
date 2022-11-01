@@ -29,7 +29,7 @@ Item = TypeVar(
 
 # Environment variable to use --no-confirmation by default
 # Set to any non-empty string
-YD_NO_CONFIRM = "YD_NO_CONFIRM"
+YD_YES = "YD_YES"
 
 TYPE_MAP = {
     "WorkerPool": "Worker Pool",
@@ -127,14 +127,11 @@ def select(objects: List[Item]) -> List[Item]:
 
     selected_list = sorted(list(selector_set))
     if len(selected_list) > 0:
-        print(
-            "Selected item number(s): "
-            f"{', '.join([str(x) for x in selected_list])}"
-        )
+        print(f"Selected item number(s): {', '.join([str(x) for x in selected_list])}")
     else:
         print("No items selected")
 
-    return [objects[x-1] for x in selected_list]
+    return [objects[x - 1] for x in selected_list]
 
 
 def confirmed(msg: str) -> bool:
@@ -142,17 +139,14 @@ def confirmed(msg: str) -> bool:
     Confirm an action.
     """
     # Confirmed on the command line?
-    if ARGS_PARSER.no_confirm:
+    if ARGS_PARSER.yes:
         print_log("Action proceeding without user confirmation")
         return True
 
     # Confirmed using the environment variable?
-    yd_no_confirm = getenv(YD_NO_CONFIRM, "")
-    if yd_no_confirm != "":
-        print_log(
-            f"'{YD_NO_CONFIRM}={yd_no_confirm}': "
-            "Action proceeding without user confirmation"
-        )
+    yd_yes = getenv(YD_YES, "")
+    if yd_yes != "":
+        print_log(f"'{YD_YES}={yd_yes}': Action proceeding without user confirmation")
         return True
 
     # Seek user confirmation

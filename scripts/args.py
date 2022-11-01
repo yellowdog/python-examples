@@ -156,11 +156,20 @@ class CLIParser:
             + all_options_modules
         ):
             parser.add_argument(
-                "--no-confirm",
+                "--yes",
                 "-y",
                 action="store_true",
                 required=False,
                 help="perform destructive actions without requiring user confirmation",
+            )
+
+        if "download" in sys.argv[0]:
+            parser.add_argument(
+                "--yes",
+                "-y",
+                action="store_true",
+                required=False,
+                help="download without requiring user confirmation",
             )
 
         self.args = parser.parse_args()
@@ -236,8 +245,8 @@ class CLIParser:
         return self.args.interactive
 
     @property
-    def no_confirm(self) -> Optional[bool]:
-        return self.args.no_confirm
+    def yes(self) -> Optional[bool]:
+        return self.args.yes
 
 
 if __name__ == "__main__":
@@ -258,5 +267,5 @@ if __name__ == "__main__":
     print("abort =", args.abort)
     print("no-mustache =", args.no_mustache)
     print("interactive =", args.interactive)
-    print("proceed without confirmation =", args.no_confirm)
+    print("yes (proceed without confirmation) =", args.yes)
     print("quiet =", args.quiet)
