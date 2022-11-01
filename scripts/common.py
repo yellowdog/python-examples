@@ -54,6 +54,7 @@ class ConfigWorkRequirement:
     bash_script: Optional[str] = None
     capture_taskoutput: bool = True
     completed_task_ttl: Optional[float] = None  # In minutes
+    docker_env: Optional[Dict] = None
     docker_password: Optional[str] = None
     docker_username: Optional[str] = None
     env: Dict = field(default_factory=dict)
@@ -329,6 +330,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
             capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, True),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
+            docker_env=wr_section.get(DOCKER_ENV, None),
             docker_password=wr_section.get(DOCKER_PASSWORD, None),
             docker_username=wr_section.get(DOCKER_USERNAME, None),
             env=wr_section.get(ENV, {}),

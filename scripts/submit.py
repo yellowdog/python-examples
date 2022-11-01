@@ -580,11 +580,22 @@ def create_task(
             inputs.append(task_input)
 
     elif task_type == "docker":
-        env_string = ""
-        for key, value in env.items():
-            env_string += f" --env {key}={value}"
-        env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
-        args = [env_string, executable] + args
+        # Set up the environment variables to be sent to the Docker container
+        docker_env = task_data.get(
+            DOCKER_ENV,
+            task_group_data.get(
+                DOCKER_ENV,
+                tasks_data.get(DOCKER_ENV, CONFIG_WR.docker_env),
+            ),
+        )
+        docker_env_string = ""
+        for key, value in docker_env.items():
+            docker_env_string += f" --env {key}={value}"
+        docker_env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
+        args = [docker_env_string, executable] + args
+
+        # Set up the environment used by the script to run Docker
+        # Add the username and password, if present
         docker_username = task_data.get(
             DOCKER_USERNAME,
             task_group_data.get(
@@ -599,7 +610,7 @@ def create_task(
                 tasks_data.get(DOCKER_PASSWORD, CONFIG_WR.docker_password),
             ),
         )
-        env = (
+        env.update(
             {
                 "DOCKER_USERNAME": docker_username,
                 "DOCKER_PASSWORD": docker_password,

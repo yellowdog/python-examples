@@ -12,6 +12,7 @@ COMMON_SECTION = "common"
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
 DEPENDENT_ON = "dependentOn"  # String
+DOCKER_ENV = "dockerEnvironment"  # Dictionary
 DOCKER_PASSWORD = "dockerPassword"  # String
 DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
@@ -73,6 +74,7 @@ ALL_KEYS = [
     COMPLETED_TASK_TTL,
     COMPUTE_REQUIREMENT_BATCH_SIZE,
     DEPENDENT_ON,
+    DOCKER_ENV,
     DOCKER_PASSWORD,
     DOCKER_USERNAME,
     ENV,

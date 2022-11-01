@@ -88,8 +88,8 @@ Commands are run from the command line. Invoking the command with the `--help` o
 
 ```text
 % yd-cancel --help
-usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>]
-                 [--url <url>] [--mustache-substitution <var1=v1>] [--quiet] [--abort] [--interactive] [--no-confirm]
+usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>]
+                 [--tag <tag>] [--url <url>] [--mustache-substitution <var1=v1>] [--quiet] [--abort] [--interactive] [--yes]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -102,15 +102,15 @@ optional arguments:
   --namespace <namespace>, -n <namespace>
                         the namespace to use when creating and identifying entities
   --tag <tag>, -t <tag>
-                        the tag to use for tagging and identifying entities
+                        the tag to use for tagging and naming entities
   --url <url>, -u <url>
                         the URL of the YellowDog Platform API
   --mustache-substitution <var1=v1>, -m <var1=v1>
                         user-defined Mustache substitution; can be used multiple times
-  --quiet, -q           suppress (most) status and progress messages
+  --quiet, -q           suppress (non-error, non-interactive) status and progress messages
   --abort, -a           abort all running tasks with immediate effect
   --interactive, -i     list, and interactively select, items to act on
-  --no-confirm, -y      perform actions without requiring user confirmation
+  --yes, -y             perform destructive actions without requiring user confirmation
 ```
 
 # Configuration
@@ -292,6 +292,7 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**) and *
 | `captureTaskOutput`   | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                     | Yes  | Yes | Yes      | Yes  |
 | `completedTaskTtl`    | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                     | Yes  | Yes | Yes      |      |
 | `dependentOn`         | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"TG_1"`.                     |      |     | Yes      |      |
+| `dockerEnvironment`   | The environment to be passed in to a Docker container. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                           | Yes  | Yes | Yes      | Yes  |
 | `dockerPassword`      | The password for DockerHub, used by the `docker` Task Type. E,g., `"my_password"`.                                                                                       | Yes  | Yes | Yes      | Yes  |
 | `dockerUsername`      | The username for DockerHub, used by the `docker` Task Type. E,g., `"my_username"`.                                                                                       | Yes  | Yes | Yes      | Yes  |
 | `environment`         | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                  | Yes  | Yes | Yes      | Yes  |
@@ -346,6 +347,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     autoFail = false
     captureTaskOutput = true
     completedTaskTtl = 10
+    dockerEnvironment = {MY_DOCKER_VAR = 100}
     dockerPassword = "myPassword"
     dockerUsername = "myUsername"
     environment = {MY_VAR = 100}
@@ -384,6 +386,7 @@ Showing all possible properties at the Work Requirement level:
   "autoFail": false,
   "captureTaskOutput": true,
   "completedTaskTtl": 10,
+  "dockerEnvironment": {"MY_DOCKER_VAR": 100},
   "dockerPassword": "myPassword",
   "dockerUsername": "myUsername",
   "environment": {"MY_VAR": 100},
@@ -427,6 +430,7 @@ Showing all possible properties at the Task Group level:
       "autoFail": false,
       "captureTaskOutput": true,
       "completedTaskTtl": 10,
+      "dockerEnvironment": {"MY_DOCKER_VAR": 100},
       "dockerPassword": "myPassword",
       "dockerUsername": "myUsername",
       "environment": {"MY_VAR": 100},
@@ -475,6 +479,7 @@ Showing all possible properties at the Task level:
         {
           "arguments": [],
           "captureTaskOutput": true,
+          "dockerEnvironment": {"MY_DOCKER_VAR": 100},
           "dockerPassword": "myPassword",
           "dockerUsername": "myUsername",
           "environment": {"MY_VAR": 100},
