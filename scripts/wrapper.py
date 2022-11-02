@@ -13,6 +13,9 @@ def main_wrapper(func):
             print_log(f"Error: {e}", override_quiet=True, use_stderr=True)
             print_log("Done")
             exit(1)
+        except KeyboardInterrupt:
+            print_log("\nCancelled")
+            exit(1)
         print_log("Done")
-
+        exit(0)
     return wrapper
