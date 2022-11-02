@@ -4,7 +4,7 @@
 An example script to cancel Work Requirements.
 """
 
-from typing import List
+from typing import List, Optional
 
 from yellowdog_client.model import (
     Task,
@@ -26,24 +26,21 @@ def main():
         f"Cancelling Work Requirements matching 'namespace={CONFIG.namespace}' "
         f"and with 'tag={CONFIG.name_tag}'"
     )
-    work_requirement_summaries: List[
+
+    selected_work_requirement_summaries: List[
         WorkRequirementSummary
-    ] = CLIENT.work_client.find_all_work_requirements()
+    ] = get_filtered_work_requirements(
+        namespace=CONFIG.namespace,
+        tag=CONFIG.name_tag,
+        exclude_filter=[
+            WorkRequirementStatus.COMPLETED,
+            WorkRequirementStatus.CANCELLED,
+            WorkRequirementStatus.FAILED,
+        ],
+    )
+
     cancelled_count = 0
     cancelling_count = 0
-    selected_work_requirement_summaries: List[WorkRequirementSummary] = []
-    ignored_states = [
-        WorkRequirementStatus.COMPLETED,
-        WorkRequirementStatus.CANCELLED,
-        WorkRequirementStatus.FAILED,
-    ]
-    for work_summary in work_requirement_summaries:
-        if (
-            work_summary.status not in ignored_states
-            and work_summary.tag == CONFIG.name_tag
-            and work_summary.namespace == CONFIG.namespace
-        ):
-            selected_work_requirement_summaries.append(work_summary)
 
     if len(selected_work_requirement_summaries) != 0:
         selected_work_requirement_summaries = select(
@@ -54,9 +51,7 @@ def main():
         f"Cancel {len(selected_work_requirement_summaries)} Work Requirement(s)?"
     ):
         for work_summary in selected_work_requirement_summaries:
-            if work_summary.status not in ignored_states + [
-                WorkRequirementStatus.CANCELLING
-            ]:
+            if work_summary.status != WorkRequirementStatus.CANCELLING:
                 CLIENT.work_client.cancel_work_requirement_by_id(work_summary.id)
                 work_requirement: WorkRequirement = (
                     CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
@@ -68,7 +63,7 @@ def main():
                 )
             elif work_summary.status == WorkRequirementStatus.CANCELLING:
                 print_log(
-                    f"Work Requirement '{work_summary.name}' " f"is already cancelling"
+                    f"Work Requirement '{work_summary.name} is already cancelling"
                 )
                 cancelling_count += 1
         if cancelled_count > 0:
@@ -106,12 +101,12 @@ def abort_all_tasks(
         return ""  # Shouldn't get here
 
     aborted_tasks = 0
-    for wr_summary in CLIENT.work_client.find_all_work_requirements():
-        if (
-            wr_summary.tag == CONFIG.name_tag
-            and wr_summary.namespace == CONFIG.namespace
-            and wr_summary.status == WorkRequirementStatus.CANCELLING
-        ) and wr_summary.id in [x.id for x in selected_work_requirement_summaries]:
+    for wr_summary in get_filtered_work_requirements(
+        namespace=CONFIG.namespace,
+        tag=CONFIG.name_tag,
+        include_filter=[WorkRequirementStatus.CANCELLING],
+    ):
+        if wr_summary.id in [x.id for x in selected_work_requirement_summaries]:
             task_search = TaskSearch(
                 workRequirementId=wr_summary.id,
                 statuses=[TaskStatus.RUNNING],
@@ -133,6 +128,39 @@ def abort_all_tasks(
         print_log("No Tasks to abort")
     else:
         print_log(f"Aborted {aborted_tasks} Task(s)")
+
+
+def get_filtered_work_requirements(
+    namespace: str,
+    tag: str,
+    include_filter: Optional[List[WorkRequirementStatus]] = None,
+    exclude_filter: Optional[List[WorkRequirementStatus]] = None,
+) -> List[WorkRequirementSummary]:
+    """
+    Get a list of Work Requirements filtered by namespace, tag
+    and status
+    """
+
+    # Avoid mutable keyword argument defaults
+    include_filter = [] if include_filter is None else include_filter
+    exclude_filter = [] if exclude_filter is None else exclude_filter
+
+    filtered_work_summaries: List[WorkRequirementSummary] = []
+
+    work_requirement_summaries: List[
+        WorkRequirementSummary
+    ] = CLIENT.work_client.find_all_work_requirements()
+
+    for work_summary in work_requirement_summaries:
+        if (
+            work_summary.status in include_filter
+            or not work_summary.status in exclude_filter
+            and work_summary.namespace == namespace
+            and work_summary.tag == tag
+        ):
+            filtered_work_summaries.append(work_summary)
+
+    return filtered_work_summaries
 
 
 # Entry point
