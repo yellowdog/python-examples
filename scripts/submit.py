@@ -49,6 +49,7 @@ from common import (
     print_log,
 )
 from config_keys import *
+from wrapper import main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
@@ -65,40 +66,34 @@ TASK_BATCH_SIZE = 2000
 INPUT_FOLDER_NAME = "inputs"
 
 
+@main_wrapper
 def main():
-    try:
-        wr_json_file = (
-            CONFIG_WR.tasks_data_file
-            if ARGS_PARSER.work_req_file is None
-            else ARGS_PARSER.work_req_file
-        )
-        if wr_json_file is not None:
-            print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
-            try:
-                if ARGS_PARSER.no_mustache:
-                    tasks_data = load_json_file(wr_json_file)
-                else:
-                    tasks_data = load_json_file_with_mustache_substitutions(
-                        wr_json_file
-                    )
-                submit_work_requirement(
-                    directory_to_upload_from=dirname(wr_json_file),
-                    tasks_data=tasks_data,
-                )
-            except (JSONDecodeError, FileNotFoundError) as e:
-                print_log(f"Error: '{wr_json_file}': {e}")
-        elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
-            print_log("Error: no work requirement (executable) defined")
-        else:
-            task_count = CONFIG_WR.task_count
+    wr_json_file = (
+        CONFIG_WR.tasks_data_file
+        if ARGS_PARSER.work_req_file is None
+        else ARGS_PARSER.work_req_file
+    )
+    if wr_json_file is not None:
+        print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
+        try:
+            if ARGS_PARSER.no_mustache:
+                tasks_data = load_json_file(wr_json_file)
+            else:
+                tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
             submit_work_requirement(
-                directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
+                directory_to_upload_from=dirname(wr_json_file),
+                tasks_data=tasks_data,
             )
-        CLIENT.close()
-    except Exception as e:
-        print_log(f"Error: {e}", override_quiet=True, use_stderr=True)
-
-    print_log("Done")
+        except (JSONDecodeError, FileNotFoundError) as e:
+            print_log(f"Error: '{wr_json_file}': {e}")
+    elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
+        print_log("Error: no work requirement (executable) defined")
+    else:
+        task_count = CONFIG_WR.task_count
+        submit_work_requirement(
+            directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
+        )
+    CLIENT.close()
 
 
 def upload_file(filename: str):

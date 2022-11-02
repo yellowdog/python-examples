@@ -35,6 +35,7 @@ from common import (
     load_config_worker_pool,
     print_log,
 )
+from wrapper import main_wrapper
 
 
 # Specifies the cardinality for a Worker Pool batch
@@ -56,28 +57,23 @@ CLIENT = PlatformClient.create(
 )
 
 
+@main_wrapper
 def main():
-    try:
-        wp_json_file = (
-            CONFIG_WP.worker_pool_data_file
-            if ARGS_PARSER.worker_pool_file is None
-            else ARGS_PARSER.worker_pool_file
-        )
-        if wp_json_file is not None:
-            print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
-            create_worker_pool_from_json(wp_json_file)
-        elif CONFIG_WP.template_id is None:
-            print_log("Error: No template_id supplied")
-        else:
-            create_worker_pool()
+    wp_json_file = (
+        CONFIG_WP.worker_pool_data_file
+        if ARGS_PARSER.worker_pool_file is None
+        else ARGS_PARSER.worker_pool_file
+    )
+    if wp_json_file is not None:
+        print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
+        create_worker_pool_from_json(wp_json_file)
+    elif CONFIG_WP.template_id is None:
+        print_log("Error: No template_id supplied")
+    else:
+        create_worker_pool()
 
-        # Clean up
-        CLIENT.close()
-
-    except Exception as e:
-        print_log(f"Error: {e}", override_quiet=True, use_stderr=True)
-
-    print_log("Done")
+    # Clean up
+    CLIENT.close()
 
 
 def create_worker_pool_from_json(wp_json_file: str) -> None:

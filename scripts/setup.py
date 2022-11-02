@@ -32,6 +32,7 @@ setuptools.setup(
         "terminate",
         "version",
         "which_config",
+        "wrapper",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
