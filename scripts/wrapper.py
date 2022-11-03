@@ -16,17 +16,17 @@ CLIENT = PlatformClient.create(
 
 def main_wrapper(func):
     def wrapper():
+        exit_code = 0
         try:
             func()
-            CLIENT.close()
         except Exception as e:
             print_log(f"Error: {e}", override_quiet=True, use_stderr=True)
-            print_log("Done")
-            exit(1)
+            exit_code = 1
         except KeyboardInterrupt:
-            print_log("\nCancelled")
-            exit(1)
-        print_log("Done")
-        exit(0)
-
+            print_log("Cancelled")
+            exit_code = 1
+        finally:
+            CLIENT.close()
+            print_log("Done")
+        exit(exit_code)
     return wrapper
