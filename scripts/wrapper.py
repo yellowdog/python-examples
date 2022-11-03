@@ -18,6 +18,7 @@ def main_wrapper(func):
     def wrapper():
         exit_code = 0
         try:
+            exit_code = 0
             func()
         except Exception as e:
             print_log(f"Error: {e}", override_quiet=True, use_stderr=True)
