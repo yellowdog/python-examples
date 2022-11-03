@@ -11,17 +11,14 @@ from math import ceil, floor
 from typing import Dict, List, Optional
 
 from requests import post as requests_post
-from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
     AllNodesInactiveShutdownCondition,
     AllWorkersReleasedShutdownCondition,
-    ApiKey,
     ComputeRequirementTemplateUsage,
     NodeActionFailedShutdownCondition,
     NodeWorkerTarget,
     NoRegisteredWorkersShutdownCondition,
     ProvisionedWorkerPoolProperties,
-    ServicesSchema,
     UnclaimedAfterStartupShutdownCondition,
 )
 
@@ -35,7 +32,7 @@ from common import (
     load_config_worker_pool,
     print_log,
 )
-from wrapper import main_wrapper
+from wrapper import CLIENT, main_wrapper
 
 
 # Specifies the cardinality for a Worker Pool batch
@@ -49,12 +46,6 @@ class WPBatch:
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
 CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
-
-# Initialise the client
-CLIENT = PlatformClient.create(
-    ServicesSchema(defaultUrl=CONFIG_COMMON.url),
-    ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
-)
 
 
 @main_wrapper
@@ -71,9 +62,6 @@ def main():
         print_log("Error: No template_id supplied")
     else:
         create_worker_pool()
-
-    # Clean up
-    CLIENT.close()
 
 
 def create_worker_pool_from_json(wp_json_file: str) -> None:

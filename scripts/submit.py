@@ -12,18 +12,15 @@ from os.path import dirname
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from yellowdog_client import PlatformClient
 from yellowdog_client.common.server_sent_events import (
     DelegatedSubscriptionEventListener,
 )
 from yellowdog_client.model import (
-    ApiKey,
     CloudProvider,
     DoubleRange,
     ObjectPath,
     ObjectPathsRequest,
     RunSpecification,
-    ServicesSchema,
     Task,
     TaskGroup,
     TaskInput,
@@ -49,17 +46,12 @@ from common import (
     print_log,
 )
 from config_keys import *
-from wrapper import main_wrapper
+from wrapper import CLIENT, main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
 CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 
-# Initialise the client for interaction with the YellowDog Platform
-CLIENT = PlatformClient.create(
-    ServicesSchema(defaultUrl=CONFIG_COMMON.url),
-    ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
-)
 
 ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
@@ -93,7 +85,6 @@ def main():
         submit_work_requirement(
             directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
         )
-    CLIENT.close()
 
 
 def upload_file(filename: str):

@@ -6,27 +6,18 @@ An example script to terminate Compute Requirements.
 
 from typing import List
 
-from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
-    ApiKey,
     ComputeRequirement,
     ComputeRequirementStatus,
     ComputeRequirementSummary,
-    ServicesSchema,
 )
 
 from common import ConfigCommon, link_entity, load_config_common, print_log
 from interactive import confirmed, select
-from wrapper import main_wrapper
+from wrapper import CLIENT, main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG_COMMON: ConfigCommon = load_config_common()
-
-# Initialise the client
-CLIENT = PlatformClient.create(
-    ServicesSchema(defaultUrl=CONFIG_COMMON.url),
-    ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
-)
 
 
 @main_wrapper
@@ -89,9 +80,6 @@ def main():
         print_log(f"Terminated {terminated_count} Compute Requirement(s)")
     else:
         print_log("Nothing to terminate")
-
-    # Clean up
-    CLIENT.close()
 
 
 # Entry point

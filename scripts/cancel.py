@@ -6,10 +6,7 @@ An example script to cancel Work Requirements.
 
 from typing import List
 
-from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
-    ApiKey,
-    ServicesSchema,
     Task,
     TaskSearch,
     TaskStatus,
@@ -20,14 +17,10 @@ from yellowdog_client.model import (
 
 from common import ARGS_PARSER, ConfigCommon, link_entity, load_config_common, print_log
 from interactive import confirmed, print_numbered_object_list, select
-from wrapper import main_wrapper
+from wrapper import CLIENT, main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
-
-CLIENT = PlatformClient.create(
-    ServicesSchema(defaultUrl=CONFIG.url), ApiKey(CONFIG.key, CONFIG.secret)
-)
 
 
 @main_wrapper
@@ -94,8 +87,6 @@ def main():
                 abort_all_tasks(selected_work_requirement_summaries)
     else:
         print_log("No Work Requirements to cancel")
-
-    CLIENT.close()
 
 
 def abort_all_tasks(

@@ -8,12 +8,9 @@ from concurrent import futures
 from os import mkdir, path
 from typing import List
 
-from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
-    ApiKey,
     ObjectPath,
     ObjectPathsRequest,
-    ServicesSchema,
 )
 from yellowdog_client.object_store.download.abstracts.abstract_download_batch_builder import (
     AbstractDownloadBatchBuilder,
@@ -23,14 +20,10 @@ from yellowdog_client.object_store.model import FileTransferStatus
 
 from common import ConfigCommon, load_config_common, print_log
 from interactive import confirmed, select
-from wrapper import main_wrapper
+from wrapper import CLIENT, main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
-
-CLIENT = PlatformClient.create(
-    ServicesSchema(defaultUrl=CONFIG.url), ApiKey(CONFIG.key, CONFIG.secret)
-)
 
 
 @main_wrapper
@@ -86,9 +79,6 @@ def main():
         print_log(
             f"Downloaded all Objects in {len(object_paths_to_download)} Object Path(s)"
         )
-
-    # Clean up
-    CLIENT.close()
 
 
 def _create_download_directory(namespace: str) -> str:

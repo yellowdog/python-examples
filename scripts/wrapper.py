@@ -2,13 +2,24 @@
 Decorator to catch exceptions
 """
 
-from common import print_log
+from typing import Optional
+
+from yellowdog_client import PlatformClient
+from yellowdog_client.model import ApiKey, ServicesSchema
+
+from common import ConfigCommon, load_config_common, print_log
+
+CONFIG: ConfigCommon = load_config_common()
+CLIENT = PlatformClient.create(
+    ServicesSchema(defaultUrl=CONFIG.url), ApiKey(CONFIG.key, CONFIG.secret)
+)
 
 
 def main_wrapper(func):
     def wrapper():
         try:
             func()
+            CLIENT.close()
         except Exception as e:
             print_log(f"Error: {e}", override_quiet=True, use_stderr=True)
             print_log("Done")
@@ -18,4 +29,5 @@ def main_wrapper(func):
             exit(1)
         print_log("Done")
         exit(0)
+
     return wrapper

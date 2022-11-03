@@ -6,24 +6,14 @@ An example script to delete YellowDog Object Store items.
 
 from typing import List
 
-from yellowdog_client import PlatformClient
-from yellowdog_client.model import (
-    ApiKey,
-    ObjectPath,
-    ObjectPathsRequest,
-    ServicesSchema,
-)
+from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 
 from common import ConfigCommon, load_config_common, print_log
 from interactive import confirmed, select
-from wrapper import main_wrapper
+from wrapper import CLIENT, main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG: ConfigCommon = load_config_common()
-
-CLIENT = PlatformClient.create(
-    ServicesSchema(defaultUrl=CONFIG.url), ApiKey(CONFIG.key, CONFIG.secret)
-)
 
 
 @main_wrapper
@@ -57,8 +47,6 @@ def main():
         print_log(f"Deleted {len(object_paths_to_delete)} Object Path(s)")
     else:
         print_log("Nothing to delete")
-    # Clean up
-    CLIENT.close()
 
 
 # Entry point
