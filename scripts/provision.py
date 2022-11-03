@@ -24,15 +24,15 @@ from yellowdog_client.model import (
 
 from common import (
     ARGS_PARSER,
-    ConfigCommon,
     ConfigWorkerPool,
     generate_id,
     link_entity,
-    load_config_common,
     load_config_worker_pool,
     print_log,
 )
-from wrapper import CLIENT, main_wrapper
+from wrapper import CLIENT
+from wrapper import CONFIG as CONFIG_COMMON
+from wrapper import main_wrapper
 
 
 # Specifies the cardinality for a Worker Pool batch
@@ -43,8 +43,6 @@ class WPBatch:
     max_nodes: int
 
 
-# Import the configuration from the TOML file
-CONFIG_COMMON: ConfigCommon = load_config_common()
 CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
 
 

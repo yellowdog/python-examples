@@ -1,8 +1,7 @@
 """
-Decorator to catch exceptions
+Decorator to handle standard setup, shutdown and exception handling
+for all commands.
 """
-
-from typing import Optional
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ApiKey, ServicesSchema

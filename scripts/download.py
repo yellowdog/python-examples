@@ -8,22 +8,16 @@ from concurrent import futures
 from os import mkdir, path
 from typing import List
 
-from yellowdog_client.model import (
-    ObjectPath,
-    ObjectPathsRequest,
-)
+from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 from yellowdog_client.object_store.download.abstracts.abstract_download_batch_builder import (
     AbstractDownloadBatchBuilder,
     AbstractTransferBatch,
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
-from common import ConfigCommon, load_config_common, print_log
+from common import print_log
 from interactive import confirmed, select
-from wrapper import CLIENT, main_wrapper
-
-# Import the configuration from the TOML file
-CONFIG: ConfigCommon = load_config_common()
+from wrapper import CLIENT, CONFIG, main_wrapper
 
 
 @main_wrapper

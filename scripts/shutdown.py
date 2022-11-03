@@ -14,12 +14,11 @@ from yellowdog_client.model import (
     WorkerPoolSummary,
 )
 
-from common import ConfigCommon, link_entity, load_config_common, print_log
+from common import link_entity, print_log
 from interactive import confirmed, select
-from wrapper import CLIENT, main_wrapper
-
-# Import the configuration from the TOML file
-CONFIG_COMMON: ConfigCommon = load_config_common()
+from wrapper import CLIENT
+from wrapper import CONFIG as CONFIG_COMMON
+from wrapper import main_wrapper
 
 
 @main_wrapper

@@ -8,12 +8,9 @@ from typing import List
 
 from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 
-from common import ConfigCommon, load_config_common, print_log
+from common import print_log
 from interactive import confirmed, select
-from wrapper import CLIENT, main_wrapper
-
-# Import the configuration from the TOML file
-CONFIG: ConfigCommon = load_config_common()
+from wrapper import CLIENT, CONFIG, main_wrapper
 
 
 @main_wrapper
