@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-An example script to download YellowDog Object Store objects.
+A script to download YellowDog Object Store objects.
 """
 
 from concurrent import futures

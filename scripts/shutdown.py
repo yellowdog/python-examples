@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-An example script to shut down Provisioned Worker Pools.
+A script to shut down Provisioned Worker Pools.
 """
 
 from typing import List

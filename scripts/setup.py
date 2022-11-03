@@ -17,6 +17,7 @@ setuptools.setup(
     url="https://github.com/yellowdog/python-examples",
     py_modules=[
         "__init__",
+        "abort",
         "args",
         "cancel",
         "common",
@@ -44,6 +45,7 @@ setuptools.setup(
     install_requires=REQUIREMENTS,
     entry_points={
         "console_scripts": [
+            "yd-abort=abort:main",
             "yd-cancel=cancel:main",
             "yd-delete=delete:main",
             "yd-download=download:main",

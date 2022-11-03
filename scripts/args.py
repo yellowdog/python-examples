@@ -136,10 +136,16 @@ class CLIParser:
                 required=False,
                 help="don't use Mustache substitutions in JSON file processing",
             )
-
+        print(sys.argv[0])
         if any(
             module in sys.argv[0]
-            for module in ["cancel", "delete", "download", "shutdown", "terminate"]
+            for module in [
+                "cancel",
+                "delete",
+                "download",
+                "shutdown",
+                "terminate",
+            ]
             + all_options_modules
         ):
             parser.add_argument(
@@ -152,7 +158,7 @@ class CLIParser:
 
         if any(
             module in sys.argv[0]
-            for module in ["cancel", "delete", "shutdown", "terminate"]
+            for module in ["abort", "cancel", "delete", "shutdown", "terminate"]
             + all_options_modules
         ):
             parser.add_argument(
@@ -243,6 +249,10 @@ class CLIParser:
     @property
     def interactive(self) -> Optional[bool]:
         return self.args.interactive
+
+    @interactive.setter
+    def interactive(self, interactive: bool):
+        self.args.interactive = interactive
 
     @property
     def yes(self) -> Optional[bool]:

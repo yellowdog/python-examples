@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-An example script to cancel Work Requirements.
+A script to cancel Work Requirements and optionally abort Tasks.
 """
 
 from typing import List, Optional
@@ -88,18 +88,6 @@ def abort_all_tasks(
     Abort all Tasks in CANCELLING Work Requirements.
     """
 
-    def _task_group_name(wr_summary: WorkRequirementSummary, task: Task) -> str:
-        """
-        Helper function to find the Task Group Name for a given Task
-        within a Work Requirement.
-        """
-        for task_group in CLIENT.work_client.get_work_requirement_by_id(
-            wr_summary.id
-        ).taskGroups:
-            if task.taskGroupId == task_group.id:
-                return task_group.name
-        return ""  # Shouldn't get here
-
     aborted_tasks = 0
     for wr_summary in get_filtered_work_requirements(
         namespace=CONFIG.namespace,
@@ -117,7 +105,7 @@ def abort_all_tasks(
                     CLIENT.work_client.cancel_task(task, abort=True)
                     print_log(
                         f"Aborting Task '{task.name}' "
-                        f"in Task Group '{_task_group_name(wr_summary, task)}' "
+                        f"in Task Group '{get_task_group_name(wr_summary, task)}' "
                         f"in Work Requirement '{wr_summary.name}'"
                     )
                     aborted_tasks += 1
@@ -128,6 +116,19 @@ def abort_all_tasks(
         print_log("No Tasks to abort")
     else:
         print_log(f"Aborted {aborted_tasks} Task(s)")
+
+
+def get_task_group_name(wr_summary: WorkRequirementSummary, task: Task) -> str:
+    """
+    Function to find the Task Group Name for a given Task
+    within a Work Requirement.
+    """
+    for task_group in CLIENT.work_client.get_work_requirement_by_id(
+        wr_summary.id
+    ).taskGroups:
+        if task.taskGroupId == task_group.id:
+            return task_group.name
+    return ""  # Shouldn't get here
 
 
 def get_filtered_work_requirements(

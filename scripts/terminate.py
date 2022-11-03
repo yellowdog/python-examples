@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-An example script to terminate Compute Requirements.
+A script to terminate Compute Requirements.
 """
 
 from typing import List

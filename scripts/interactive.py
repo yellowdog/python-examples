@@ -8,6 +8,7 @@ from typing import List, Set, TypeVar
 from yellowdog_client.model import (
     ComputeRequirementSummary,
     ObjectPath,
+    Task,
     WorkerPoolSummary,
     WorkRequirementSummary,
 )
@@ -23,6 +24,7 @@ Item = TypeVar(
     "Item",
     ComputeRequirementSummary,
     ObjectPath,
+    Task,
     WorkerPoolSummary,
     WorkRequirementSummary,
 )
@@ -34,6 +36,7 @@ YD_YES = "YD_YES"
 TYPE_MAP = {
     "WorkerPool": "Worker Pool",
     "ComputeRequirement": "Compute Requirement",
+    "Task": "Task",
     "WorkRequirement": "Work Requirement",
     "ObjectPath": "Object Path",
 }
@@ -66,7 +69,11 @@ def print_numbered_object_list(objects: List[Item]) -> None:
             status = f" ({obj.status})"
         except:
             status = ""
-        print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}{status}")
+        # ToDo: disambiguate by object type
+        if isinstance(obj, Task):
+            print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}{status}")
+        else:
+            print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}{status}")
     print()
 
 

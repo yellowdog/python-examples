@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-An example script to Provision a Worker Pool.
+A script to Provision a Worker Pool.
 """
 
 from dataclasses import dataclass

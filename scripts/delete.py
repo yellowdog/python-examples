@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-An example script to delete YellowDog Object Store items.
+A script to delete YellowDog Object Store items.
 """
 
 from typing import List
