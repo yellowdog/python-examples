@@ -15,7 +15,7 @@ from yellowdog_client.model import (
 
 from args import ARGS_PARSER
 from object_utilities import get_task_group_name
-from printing import print_log, print_string
+from printing import print_error, print_log, print_string
 
 try:
     import readline
@@ -112,7 +112,7 @@ def select(
         if 1 <= num <= len(objects):
             return True
         else:
-            print_log(f"Error: '{num}' is out of range")
+            print_error(f"'{num}' is out of range")
             return False
 
     while True:
