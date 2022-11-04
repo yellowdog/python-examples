@@ -17,9 +17,7 @@ from yellowdog_client.model import (
 from common import link_entity
 from interactive import confirmed, select
 from printing import print_log
-from wrapper import CLIENT
-from wrapper import CONFIG as CONFIG_COMMON
-from wrapper import main_wrapper
+from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper

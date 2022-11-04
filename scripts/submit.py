@@ -43,9 +43,7 @@ from common import (
 )
 from config_keys import *
 from printing import print_error, print_log
-from wrapper import CLIENT
-from wrapper import CONFIG as CONFIG_COMMON
-from wrapper import main_wrapper
+from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()

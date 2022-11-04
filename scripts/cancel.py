@@ -20,21 +20,22 @@ from common import link_entity
 from interactive import confirmed, select
 from object_utilities import get_filtered_work_requirements, get_task_group_name
 from printing import print_log
-from wrapper import CLIENT, CONFIG, main_wrapper
+from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
 def main():
     print_log(
-        f"Cancelling Work Requirements matching 'namespace={CONFIG.namespace}' "
-        f"and with 'tag={CONFIG.name_tag}'"
+        f"Cancelling Work Requirements matching "
+        f"'namespace={CONFIG_COMMON.namespace}' "
+        f"and with 'tag={CONFIG_COMMON.name_tag}'"
     )
 
     selected_work_requirement_summaries: List[
         WorkRequirementSummary
     ] = get_filtered_work_requirements(
-        namespace=CONFIG.namespace,
-        tag=CONFIG.name_tag,
+        namespace=CONFIG_COMMON.namespace,
+        tag=CONFIG_COMMON.name_tag,
         exclude_filter=[
             WorkRequirementStatus.COMPLETED,
             WorkRequirementStatus.CANCELLED,
@@ -61,7 +62,7 @@ def main():
                 )
                 cancelled_count += 1
                 print_log(
-                    f"Cancelling {link_entity(CONFIG.url, work_requirement)} "
+                    f"Cancelling {link_entity(CONFIG_COMMON.url, work_requirement)} "
                     f"({work_summary.name})"
                 )
             elif work_summary.status == WorkRequirementStatus.CANCELLING:
@@ -93,8 +94,8 @@ def abort_all_tasks(
 
     aborted_tasks = 0
     for wr_summary in get_filtered_work_requirements(
-        namespace=CONFIG.namespace,
-        tag=CONFIG.name_tag,
+        namespace=CONFIG_COMMON.namespace,
+        tag=CONFIG_COMMON.name_tag,
         include_filter=[WorkRequirementStatus.CANCELLING],
     ):
         if wr_summary.id in [x.id for x in selected_work_requirement_summaries]:

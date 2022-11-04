@@ -10,23 +10,23 @@ from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 
 from interactive import confirmed, select
 from printing import print_log
-from wrapper import CLIENT, CONFIG, main_wrapper
+from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
 def main():
     print_log(
-        f"Deleting Object Paths in 'namespace={CONFIG.namespace}' with "
-        f"names starting with 'tag={CONFIG.name_tag}'"
+        f"Deleting Object Paths in 'namespace={CONFIG_COMMON.namespace}' with "
+        f"names starting with 'tag={CONFIG_COMMON.name_tag}'"
     )
     object_paths: List[
         ObjectPath
     ] = CLIENT.object_store_client.get_namespace_object_paths(
-        ObjectPathsRequest(CONFIG.namespace)
+        ObjectPathsRequest(CONFIG_COMMON.namespace)
     )
     object_paths_to_delete: List[ObjectPath] = []
     for object_path in object_paths:
-        if object_path.name.startswith(CONFIG.name_tag):
+        if object_path.name.startswith(CONFIG_COMMON.name_tag):
             object_paths_to_delete.append(object_path)
 
     if len(object_paths_to_delete) != 0:
@@ -37,7 +37,7 @@ def main():
     ):
         print_log(f"{len(object_paths_to_delete)} Object Path(s) to Delete")
         CLIENT.object_store_client.delete_objects(
-            CONFIG.namespace, object_paths=object_paths_to_delete
+            CONFIG_COMMON.namespace, object_paths=object_paths_to_delete
         )
         for object_path in object_paths_to_delete:
             print_log(f"Deleted Object Path: {object_path.displayName}")

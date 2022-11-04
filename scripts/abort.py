@@ -18,14 +18,14 @@ from common import ARGS_PARSER
 from interactive import confirmed, select
 from object_utilities import get_filtered_work_requirements, get_task_group_name
 from printing import print_error, print_log
-from wrapper import CLIENT, CONFIG, main_wrapper
+from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
 def main():
     print_log(
-        f"Finding Work Requirements matching 'namespace={CONFIG.namespace}' "
-        f"and with 'tag={CONFIG.name_tag}'"
+        f"Finding Work Requirements matching 'namespace={CONFIG_COMMON.namespace}' "
+        f"and with 'tag={CONFIG_COMMON.name_tag}'"
     )
 
     # Abort Tasks is always interactive
@@ -34,8 +34,8 @@ def main():
     selected_work_requirement_summaries: List[
         WorkRequirementSummary
     ] = get_filtered_work_requirements(
-        namespace=CONFIG.namespace,
-        tag=CONFIG.name_tag,
+        namespace=CONFIG_COMMON.namespace,
+        tag=CONFIG_COMMON.name_tag,
         exclude_filter=[
             WorkRequirementStatus.COMPLETED,
             WorkRequirementStatus.CANCELLED,

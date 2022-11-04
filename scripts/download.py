@@ -17,21 +17,21 @@ from yellowdog_client.object_store.model import FileTransferStatus
 
 from interactive import confirmed, select
 from printing import print_log
-from wrapper import CLIENT, CONFIG, main_wrapper
+from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
 def main():
     tag = CONFIG.name_tag
     print_log(
-        f"Downloading all Objects in 'namespace={CONFIG.namespace}' with "
+        f"Downloading all Objects in 'namespace={CONFIG_COMMON.namespace}' with "
         f"names starting with 'tag={tag}'"
     )
 
     object_paths: List[
         ObjectPath
     ] = CLIENT.object_store_client.get_namespace_object_paths(
-        ObjectPathsRequest(CONFIG.namespace)
+        ObjectPathsRequest(CONFIG_COMMON.namespace)
     )
     object_paths_to_download: List[ObjectPath] = []
     for object_path in object_paths:
@@ -46,14 +46,14 @@ def main():
 
     elif confirmed(f"Download {len(object_paths_to_download)} Object Path(s)?"):
         print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
-        download_dir: str = _create_download_directory(CONFIG.namespace)
+        download_dir: str = _create_download_directory(CONFIG_COMMON.namespace)
         for object_path in object_paths_to_download:
             download_batch_builder: AbstractDownloadBatchBuilder = (
                 CLIENT.object_store_client.build_download_batch()
             )
             download_batch_builder.destination_folder = download_dir
             download_batch_builder.find_source_objects(
-                namespace=CONFIG.namespace,
+                namespace=CONFIG_COMMON.namespace,
                 object_name_pattern=f"{object_path.name}*",
             )
             download_batch: AbstractTransferBatch = (

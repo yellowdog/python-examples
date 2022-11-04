@@ -9,9 +9,10 @@ from yellowdog_client.model import ApiKey, ServicesSchema
 from common import ConfigCommon, load_config_common
 from printing import print_error, print_log
 
-CONFIG: ConfigCommon = load_config_common()
+CONFIG_COMMON: ConfigCommon = load_config_common()
 CLIENT = PlatformClient.create(
-    ServicesSchema(defaultUrl=CONFIG.url), ApiKey(CONFIG.key, CONFIG.secret)
+    ServicesSchema(defaultUrl=CONFIG_COMMON.url),
+    ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
 
