@@ -26,6 +26,7 @@ setuptools.setup(
         "delete",
         "download",
         "interactive",
+        "object_utilities",
         "provision",
         "reformat_json",
         "shutdown",

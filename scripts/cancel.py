@@ -4,7 +4,7 @@
 A script to cancel Work Requirements and optionally abort Tasks.
 """
 
-from typing import List, Optional
+from typing import List
 
 from yellowdog_client.model import (
     Task,
@@ -17,6 +17,7 @@ from yellowdog_client.model import (
 
 from common import ARGS_PARSER, link_entity, print_log
 from interactive import confirmed, select
+from object_utilities import get_filtered_work_requirements, get_task_group_name
 from wrapper import CLIENT, CONFIG, main_wrapper
 
 
@@ -116,52 +117,6 @@ def abort_all_tasks(
         print_log("No Tasks to abort")
     else:
         print_log(f"Aborted {aborted_tasks} Task(s)")
-
-
-def get_task_group_name(wr_summary: WorkRequirementSummary, task: Task) -> str:
-    """
-    Function to find the Task Group Name for a given Task
-    within a Work Requirement.
-    """
-    for task_group in CLIENT.work_client.get_work_requirement_by_id(
-        wr_summary.id
-    ).taskGroups:
-        if task.taskGroupId == task_group.id:
-            return task_group.name
-    return ""  # Shouldn't get here
-
-
-def get_filtered_work_requirements(
-    namespace: str,
-    tag: str,
-    include_filter: Optional[List[WorkRequirementStatus]] = None,
-    exclude_filter: Optional[List[WorkRequirementStatus]] = None,
-) -> List[WorkRequirementSummary]:
-    """
-    Get a list of Work Requirements filtered by namespace, tag
-    and status
-    """
-
-    # Avoid mutable keyword argument defaults
-    include_filter = [] if include_filter is None else include_filter
-    exclude_filter = [] if exclude_filter is None else exclude_filter
-
-    filtered_work_summaries: List[WorkRequirementSummary] = []
-
-    work_requirement_summaries: List[
-        WorkRequirementSummary
-    ] = CLIENT.work_client.find_all_work_requirements()
-
-    for work_summary in work_requirement_summaries:
-        if (
-            work_summary.status in include_filter
-            or not work_summary.status in exclude_filter
-            and work_summary.namespace == namespace
-            and work_summary.tag == tag
-        ):
-            filtered_work_summaries.append(work_summary)
-
-    return filtered_work_summaries
 
 
 # Entry point

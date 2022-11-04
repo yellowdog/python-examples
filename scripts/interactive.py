@@ -3,7 +3,7 @@ User interaction processing
 """
 
 from os import getenv
-from typing import List, Set, TypeVar
+from typing import List, Optional, Set, TypeVar
 
 from yellowdog_client.model import (
     ComputeRequirementSummary,
@@ -14,6 +14,7 @@ from yellowdog_client.model import (
 )
 
 from common import ARGS_PARSER, print_log
+from object_utilities import get_task_group_name
 
 try:
     import readline
@@ -53,7 +54,9 @@ def get_type_name(object: Item) -> str:
     return ""
 
 
-def print_numbered_object_list(objects: List[Item]) -> None:
+def print_numbered_object_list(
+    objects: List[Item], parent: Optional[Item] = None
+) -> None:
     """
     Print a numbered list of objects
     """
@@ -69,15 +72,23 @@ def print_numbered_object_list(objects: List[Item]) -> None:
             status = f" ({obj.status})"
         except:
             status = ""
-        # ToDo: disambiguate by object type
-        if isinstance(obj, Task):
-            print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}{status}")
+        if (
+            isinstance(obj, Task)
+            and parent is not None
+            and isinstance(parent, WorkRequirementSummary)
+        ):
+            # Special case for Task objects
+            print(
+                f"{indent}{str(index + 1).rjust(index_len)} : "
+                f"[TaskGroup: '{get_task_group_name(parent, obj)}'] "
+                f"{obj.name}{status}"
+            )
         else:
             print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}{status}")
     print()
 
 
-def select(objects: List[Item]) -> List[Item]:
+def select(objects: List[Item], parent: Optional[Item] = None) -> List[Item]:
     """
     Print a numbered list of objects.
     Manually select objects from a list if --interactive is set.
@@ -86,7 +97,7 @@ def select(objects: List[Item]) -> List[Item]:
     objects = sorted(objects, key=lambda x: x.name)
 
     if not ARGS_PARSER.quiet or ARGS_PARSER.interactive:
-        print_numbered_object_list(objects)
+        print_numbered_object_list(objects, parent)
 
     if not ARGS_PARSER.interactive:
         return objects

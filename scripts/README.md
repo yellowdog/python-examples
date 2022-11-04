@@ -54,6 +54,7 @@ This repository contains a set of command line Python scripts for interacting wi
 - **Downloading** Results
 - **Shutting Down** Worker Pools and **Terminating** Compute Requirements
 - **Cancelling** Work Requirements
+- **Aborting** running Tasks
 - **Deleting** objects in the YellowDog Object Store
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
