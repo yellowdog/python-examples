@@ -143,6 +143,7 @@ class CLIParser:
                 "cancel",
                 "delete",
                 "download",
+                "list",
                 "shutdown",
                 "terminate",
             ]
@@ -176,6 +177,50 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="download without requiring user confirmation",
+            )
+
+        if "list" in sys.argv[0]:
+            parser.add_argument(
+                "--object-paths",
+                "-o",
+                action="store_true",
+                required=False,
+                help="list YellowDog Object Store Object Paths",
+            )
+            parser.add_argument(
+                "--work-requirements",
+                "-w",
+                action="store_true",
+                required=False,
+                help="list Work Requirements",
+            )
+            parser.add_argument(
+                "--task-groups",
+                "-g",
+                action="store_true",
+                required=False,
+                help="list Task Groups in selected Work Requirements",
+            )
+            parser.add_argument(
+                "--tasks",
+                "-a",
+                action="store_true",
+                required=False,
+                help="list Tasks in selected Work Requirements",
+            )
+            parser.add_argument(
+                "--worker-pools",
+                "-p",
+                action="store_true",
+                required=False,
+                help="list Worker Pools",
+            )
+            parser.add_argument(
+                "--compute-requirements",
+                "-r",
+                action="store_true",
+                required=False,
+                help="list Compute Requirements",
             )
 
         self.args = parser.parse_args()
@@ -258,6 +303,30 @@ class CLIParser:
     def yes(self) -> Optional[bool]:
         return self.args.yes
 
+    @property
+    def object_paths(self) -> Optional[bool]:
+        return self.args.object_paths
+
+    @property
+    def work_requirements(self) -> Optional[bool]:
+        return self.args.work_requirements
+
+    @property
+    def task_groups(self) -> Optional[bool]:
+        return self.args.task_groups
+
+    @property
+    def tasks(self) -> Optional[bool]:
+        return self.args.tasks
+
+    @property
+    def worker_pools(self) -> Optional[bool]:
+        return self.args.worker_pools
+
+    @property
+    def compute_requirements(self) -> Optional[bool]:
+        return self.args.compute_requirements
+
 
 ARGS_PARSER = CLIParser()
 
@@ -282,3 +351,8 @@ if __name__ == "__main__":
     print("interactive =", args.interactive)
     print("yes (proceed without confirmation) =", args.yes)
     print("quiet =", args.quiet)
+    print("work-requirements", args.work_requirements)
+    print("task-groups", args.task_groups)
+    print("tasks", args.tasks)
+    print("worker-pools", args.worker_pools)
+    print("compute-requirements", args.compute_requirements)
