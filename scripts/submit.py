@@ -574,9 +574,10 @@ def create_task(
             ),
         )
         docker_env_string = ""
-        for key, value in docker_env.items():
-            docker_env_string += f" --env {key}={value}"
-        docker_env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
+        if docker_env is not None:
+            for key, value in docker_env.items():
+                docker_env_string += f" --env {key}={value}"
+            docker_env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
         args = [docker_env_string, executable] + args
 
         # Set up the environment used by the script to run Docker

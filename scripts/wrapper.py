@@ -29,4 +29,5 @@ def main_wrapper(func):
             CLIENT.close()
             print_log("Done")
         exit(exit_code)
+
     return wrapper
