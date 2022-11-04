@@ -136,7 +136,7 @@ class CLIParser:
                 required=False,
                 help="don't use Mustache substitutions in JSON file processing",
             )
-        print(sys.argv[0])
+
         if any(
             module in sys.argv[0]
             for module in [

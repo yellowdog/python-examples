@@ -194,7 +194,8 @@ def submit_work_requirement(
     for tg_number, task_group in enumerate(task_groups):
         try:
             # Upload files required by the Tasks in this Task Group
-            print_log(f"Uploading files for Task Group '{task_group.name}'")
+            if len(input_files_by_task_group[tg_number]) > 0:
+                print_log(f"Uploading files for Task Group '{task_group.name}'")
             for input_file in input_files_by_task_group[tg_number]:
                 if input_file not in uploaded_files:
                     upload_file(input_file)

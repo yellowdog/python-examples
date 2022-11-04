@@ -46,6 +46,8 @@ def main():
         selected_work_requirement_summaries = select(
             selected_work_requirement_summaries
         )
+    else:
+        print_log("No matching Work Requirements found")
 
     if len(selected_work_requirement_summaries) != 0:
         abort_tasks_selectively(selected_work_requirement_summaries)
