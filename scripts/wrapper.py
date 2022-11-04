@@ -29,6 +29,6 @@ def main_wrapper(func):
         finally:
             CLIENT.close()
             print_log("Done")
-        exit(exit_code)
+            exit(exit_code)
 
     return wrapper

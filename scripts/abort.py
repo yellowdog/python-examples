@@ -84,10 +84,10 @@ def abort_tasks_selectively(
                 except Exception as e:
                     print_log(f"Error: {e}")
                     continue
-    if aborted_tasks == 0:
-        print_log("No Tasks Aborted")
-    else:
-        print_log(f"Aborted {aborted_tasks} Task(s)")
+        if aborted_tasks == 0:
+            print_log("No Tasks Aborted")
+        else:
+            print_log(f"Aborted {aborted_tasks} Task(s)")
 
 
 # Entry point
