@@ -17,7 +17,7 @@ def get_task_groups_from_wr_summary(
 ) -> List[TaskGroup]:
     """
     Get the list of the Work Requirement's Task Groups.
-    Cached results to avoid hitting the API too often
+    Cache results to avoid repeatedly hitting the API for the same thing.
     """
     work_requirement = CLIENT.work_client.get_work_requirement_by_id(wr_summary_id)
     return work_requirement.taskGroups

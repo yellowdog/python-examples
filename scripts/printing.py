@@ -1,5 +1,6 @@
 import sys
 from datetime import datetime
+from typing import TypeVar
 
 from args import ARGS_PARSER
 
@@ -13,9 +14,8 @@ def print_string(msg: str = "") -> str:
 
 def print_log(
     log_message: str,
-    flush: bool = True,
     override_quiet: bool = False,
-    use_stderr: bool = False,
+    flush: bool = True,
 ):
     """
     Placeholder for logging.
@@ -24,17 +24,21 @@ def print_log(
     if ARGS_PARSER.quiet and override_quiet is False:
         return
 
-    file = sys.stderr if use_stderr else sys.stdout
-
     print(
         print_string(log_message),
         flush=flush,
-        file=file,
     )
 
 
-def print_error(error_msg: str):
+ErrorObject = TypeVar(
+    "ErrorObject",
+    Exception,
+    str,
+)
+
+
+def print_error(error_obj: ErrorObject):
     """
     Print an error message to stderr.
     """
-    print(print_string(f"Error: {error_msg}"), file=sys.stderr, flush=True)
+    print(print_string(f"Error: {error_obj}"), file=sys.stderr, flush=True)

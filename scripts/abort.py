@@ -4,7 +4,7 @@
 A script to abort Tasks without cancelling their Work Requirements.
 """
 
-from typing import List, Optional
+from typing import List
 
 from yellowdog_client.model import (
     Task,
@@ -17,7 +17,7 @@ from yellowdog_client.model import (
 from common import ARGS_PARSER
 from interactive import confirmed, select
 from object_utilities import get_filtered_work_requirements, get_task_group_name
-from printing import print_log
+from printing import print_error, print_log
 from wrapper import CLIENT, CONFIG, main_wrapper
 
 
@@ -89,7 +89,7 @@ def abort_tasks_selectively(
                     )
                     aborted_tasks += 1
                 except Exception as e:
-                    print_log(f"Error: {e}")
+                    print_error(e)
                     continue
         if aborted_tasks == 0:
             print_log("No Tasks Aborted")

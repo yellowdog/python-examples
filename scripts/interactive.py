@@ -112,7 +112,7 @@ def select(
         if 1 <= num <= len(objects):
             return True
         else:
-            print(f"Error: '{num}' is out of range")
+            print_log(f"Error: '{num}' is out of range")
             return False
 
     while True:
@@ -160,7 +160,7 @@ def select(
             )
         )
     else:
-        print("No items selected")
+        print_log("No items selected")
 
     return [objects[x - 1] for x in selected_list]
 

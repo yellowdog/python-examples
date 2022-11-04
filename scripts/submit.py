@@ -5,7 +5,6 @@ A script to submit a Work Requirement.
 """
 
 from datetime import timedelta
-from json import JSONDecodeError
 from math import ceil
 from os import chdir
 from os.path import dirname
@@ -43,7 +42,7 @@ from common import (
     load_json_file_with_mustache_substitutions,
 )
 from config_keys import *
-from printing import print_log
+from printing import print_error, print_log
 from wrapper import CLIENT
 from wrapper import CONFIG as CONFIG_COMMON
 from wrapper import main_wrapper
@@ -66,17 +65,14 @@ def main():
     )
     if wr_json_file is not None:
         print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
-        try:
-            if ARGS_PARSER.no_mustache:
-                tasks_data = load_json_file(wr_json_file)
-            else:
-                tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
-            submit_work_requirement(
-                directory_to_upload_from=dirname(wr_json_file),
-                tasks_data=tasks_data,
-            )
-        except (JSONDecodeError, FileNotFoundError) as e:
-            print_log(f"Error: '{wr_json_file}': {e}")
+        if ARGS_PARSER.no_mustache:
+            tasks_data = load_json_file(wr_json_file)
+        else:
+            tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
+        submit_work_requirement(
+            directory_to_upload_from=dirname(wr_json_file),
+            tasks_data=tasks_data,
+        )
     elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
         print_log("Error: no work requirement (executable) defined")
     else:
@@ -102,7 +98,8 @@ def upload_file(filename: str):
     # Wait for upload to complete
     session = session.when_status_matches(lambda status: status.is_finished()).result()
     if session.status != FileTransferStatus.Completed:
-        print_log(f"Failed to upload file: {filename}")
+        print_error(f"Failed to upload file: {filename}")
+        # Continue here?
     else:
         uploaded_pathname = unique_upload_pathname(
             filename, urlencode_forward_slash=True
@@ -212,7 +209,7 @@ def submit_work_requirement(
             )
 
         except Exception as e:
-            print_log(f"Error: {e}")
+            print_error(e)
             cleanup_on_failure(work_requirement)
             return
 
@@ -472,15 +469,11 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     """
     listener = DelegatedSubscriptionEventListener(on_update=on_update)
     CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
-    try:
-        work_requirement = (
-            CLIENT.work_client.get_work_requirement_helper(work_requirement)
-            .when_requirement_matches(lambda wr: wr.status.finished)
-            .result()
-        )
-    except (KeyboardInterrupt, Exception) as e:
-        print_log(f"Exiting {e}")
-        return
+    work_requirement = (
+        CLIENT.work_client.get_work_requirement_helper(work_requirement)
+        .when_requirement_matches(lambda wr: wr.status.finished)
+        .result()
+    )
     if work_requirement.status != WorkRequirementStatus.COMPLETED:
         print_log(f"Work Requirement did not complete: {work_requirement.status}")
 
@@ -523,12 +516,9 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
         else:
             print_log("No Objects to Delete")
 
-    try:
-        CLIENT.work_client.cancel_work_requirement(work_requirement)
-        print_log(f"Cancelled Work Requirement '{work_requirement.name}'")
-        _delete_objects()
-    except Exception as e:
-        print_log(f"Error: {e}")
+    CLIENT.work_client.cancel_work_requirement(work_requirement)
+    print_log(f"Cancelled Work Requirement '{work_requirement.name}'")
+    _delete_objects()
 
 
 def create_task(

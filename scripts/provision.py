@@ -24,7 +24,7 @@ from yellowdog_client.model import (
 
 from args import ARGS_PARSER
 from common import ConfigWorkerPool, generate_id, link_entity, load_config_worker_pool
-from printing import print_log
+from printing import print_error, print_log
 from wrapper import CLIENT
 from wrapper import CONFIG as CONFIG_COMMON
 from wrapper import main_wrapper
@@ -52,7 +52,7 @@ def main():
         print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
         create_worker_pool_from_json(wp_json_file)
     elif CONFIG_WP.template_id is None:
-        print_log("Error: No template_id supplied")
+        print_error("No template_id supplied")
     else:
         create_worker_pool()
 
@@ -62,12 +62,8 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     Directly create the Worker Pool using the YellowDog REST API
     """
     # Load the JSON data
-    try:
-        with open(wp_json_file, "r") as f:
-            wp_data = load(f)
-    except (JSONDecodeError, FileNotFoundError) as e:
-        print_log(f"Error: '{wp_json_file}': {e}")
-        return
+    with open(wp_json_file, "r") as f:
+        wp_data = load(f)
 
     # Some values are configurable via the TOML configuration file;
     # values in the JSON file override values in the TOML file
@@ -89,8 +85,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             )
             wp_data["provisionedProperties"]["workerTag"] = CONFIG_WP.worker_tag
     except KeyError as e:
-        print_log(f"Missing key error in JSON Worker Pool definition: {e}")
-        return
+        raise Exception(f"Missing key error in JSON Worker Pool definition: {e}")
 
     response = requests_post(
         url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
@@ -102,8 +97,8 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     if response.status_code == 200:
         print_log(f"Provisioned Worker Pool '{name}'")
     else:
-        print_log(f"Failed to provision Worker Pool '{name}'")
-        print_log(f"Error: {response.text}")
+        print_error(f"Failed to provision Worker Pool '{name}'")
+        raise Exception(f"{response.text}")
 
 
 def create_worker_pool():
@@ -115,11 +110,11 @@ def create_worker_pool():
         CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
         and CONFIG_WP.max_nodes > 0
     ):
-        print_log(
+        print_error(
             "Please ensure that minNodes <= targetInstanceCount <= maxNodes"
             " and maxNodes >= 1"
         )
-        return
+        raise Exception("Malformed configuration")
 
     # Set the Worker Pool auto-shutdown conditions
     if CONFIG_WP.auto_shutdown:
@@ -198,9 +193,9 @@ def create_worker_pool():
             )
             print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
         except Exception as e:
-            print_log(f"Unable to provision worker pool: {e}")
-            CLIENT.close()
-            return
+            print_error(f"Unable to provision worker pool")
+            raise Exception(e)
+
     auto_shutdown = "enabled" if CONFIG_WP.auto_shutdown is True else "disabled"
     auto_shutdown_msg = f"Worker Pool Auto-Shutdown is {auto_shutdown}"
     auto_shutdown_msg = (

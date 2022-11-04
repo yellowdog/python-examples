@@ -7,7 +7,7 @@ from yellowdog_client import PlatformClient
 from yellowdog_client.model import ApiKey, ServicesSchema
 
 from common import ConfigCommon, load_config_common
-from printing import print_log
+from printing import print_error, print_log
 
 CONFIG: ConfigCommon = load_config_common()
 CLIENT = PlatformClient.create(
@@ -22,7 +22,7 @@ def main_wrapper(func):
             exit_code = 0
             func()
         except Exception as e:
-            print_log(f"Error: {e}", override_quiet=True, use_stderr=True)
+            print_error(f"Error: {e}")
             exit_code = 1
         except KeyboardInterrupt:
             print_log("Cancelled")
