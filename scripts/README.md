@@ -36,12 +36,13 @@
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
    * [yd-cancel](#yd-cancel)
+   * [yd-abort](#yd-abort)
    * [yd-download](#yd-download)
    * [yd-delete](#yd-delete)
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Mon Oct 31 11:15:45 GMT 2022 -->
+<!-- Added by: pwt, at: Fri Nov  4 13:29:59 GMT 2022 -->
 
 <!--te-->
 
@@ -583,6 +584,12 @@ The `yd-cancel` command cancels any active Work Requirements, including any pend
 The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to cancel.
 
 By default, any Tasks that are currently running on Workers will continue to run to completion or until they fail. Tasks can be instructed to abort immediately by supplying the `--abort` or `-a` option to `yd-cancel`.
+
+## yd-abort
+
+The `yd-abort` command is used to abort Tasks that are currently running. The user interactively selects the Work Requirements to target, and then which Tasks within those Work Requirements to abort. The Work Requirements are not cancelled as part of this process.
+
+The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to list for selection.
 
 ## yd-download
 
