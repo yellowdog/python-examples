@@ -46,10 +46,12 @@
     # dockerPassword = ""
 
     # Arguments and environment to pass to the task executable
+    # Use 'environment for Bash', 'dockerEnvironment' for Docker.
     # Optional
     # --------------------------------------------------------------------------
     # arguments = [] # List of strings
     # environment = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
+    # dockerEnvironment = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
 
     # Worker tags: list of tags (strings) to match the tags associated
     # with Workers
@@ -137,7 +139,7 @@
     # if autoShutdown is true
     # Optional
     # --------------------------------------------------------------------------
-    # autoShutdown_delay = 10
+    # autoShutdownDelay = 10
 
     # The delay in minutes before idle nodes are shut down due to auto-scaling
     # Optional
