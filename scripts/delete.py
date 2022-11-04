@@ -8,8 +8,8 @@ from typing import List
 
 from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 
-from common import print_log
 from interactive import confirmed, select
+from printing import print_log
 from wrapper import CLIENT, CONFIG, main_wrapper
 
 

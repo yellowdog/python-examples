@@ -12,8 +12,8 @@ from common import (
     load_config_common,
     load_config_work_requirement,
     load_config_worker_pool,
-    print_log,
 )
+from printing import print_log
 
 
 def main():

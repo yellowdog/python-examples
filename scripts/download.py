@@ -15,8 +15,8 @@ from yellowdog_client.object_store.download.abstracts.abstract_download_batch_bu
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
-from common import print_log
 from interactive import confirmed, select
+from printing import print_log
 from wrapper import CLIENT, CONFIG, main_wrapper
 
 

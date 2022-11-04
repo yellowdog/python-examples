@@ -14,8 +14,8 @@ from yellowdog_client.model import (
 )
 
 from args import ARGS_PARSER
-from common import print_log
 from object_utilities import get_task_group_name
+from printing import print_log, print_string
 
 try:
     import readline
@@ -56,7 +56,7 @@ def get_type_name(object: Item) -> str:
 
 
 def print_numbered_object_list(
-    objects: List[Item], parent: Optional[Item] = None
+    objects: List[Item], parent: Optional[Item] = None, override_quiet: bool = False
 ) -> None:
     """
     Print a numbered list of objects
@@ -64,7 +64,10 @@ def print_numbered_object_list(
     if len(objects) == 0:
         return
 
-    print_log(f"Displaying list of matching {get_type_name(objects[0])}(s):")
+    print_log(
+        f"Displaying matching {get_type_name(objects[0])}(s):",
+        override_quiet=override_quiet,
+    )
     print()
     indent = " " * 3
     index_len = len(str(len(objects)))
@@ -89,7 +92,9 @@ def print_numbered_object_list(
     print()
 
 
-def select(objects: List[Item], parent: Optional[Item] = None) -> List[Item]:
+def select(
+    objects: List[Item], parent: Optional[Item] = None, override_quiet: bool = False
+) -> List[Item]:
     """
     Print a numbered list of objects.
     Manually select objects from a list if --interactive is set.
@@ -98,7 +103,7 @@ def select(objects: List[Item], parent: Optional[Item] = None) -> List[Item]:
     objects = sorted(objects, key=lambda x: x.name)
 
     if not ARGS_PARSER.quiet or ARGS_PARSER.interactive:
-        print_numbered_object_list(objects, parent)
+        print_numbered_object_list(objects, parent, override_quiet=override_quiet)
 
     if not ARGS_PARSER.interactive:
         return objects
@@ -112,7 +117,9 @@ def select(objects: List[Item], parent: Optional[Item] = None) -> List[Item]:
 
     while True:
         selector_string = input(
-            "Please select items (e.g.: 1,2,4-7,9) or press <Return> for none: "
+            print_string(
+                "Please select items (e.g.: 1,2,4-7) or press <Return> for none: "
+            )
         )
         selector_list = selector_string.split(",")
         selector_set: Set[int] = set()
@@ -137,7 +144,7 @@ def select(objects: List[Item], parent: Optional[Item] = None) -> List[Item]:
                     else:
                         error_flag = True
             except ValueError:
-                print(f"Error: '{selector}' is not a valid selection")
+                print(print_string(f"Error: '{selector}' is not a valid selection"))
                 error_flag = True
         if error_flag:
             continue
@@ -146,7 +153,12 @@ def select(objects: List[Item], parent: Optional[Item] = None) -> List[Item]:
 
     selected_list = sorted(list(selector_set))
     if len(selected_list) > 0:
-        print(f"Selected item number(s): {', '.join([str(x) for x in selected_list])}")
+        print(
+            print_string(
+                f"Selected item number(s): "
+                f"{', '.join([str(x) for x in selected_list])}"
+            )
+        )
     else:
         print("No items selected")
 
@@ -170,7 +182,7 @@ def confirmed(msg: str) -> bool:
 
     # Seek user confirmation
     while True:
-        response = input(f"{msg} (y/N): ")
+        response = input(print_string(f"{msg} (y/N): "))
         if response.lower() in ["y", "yes"]:
             print_log("Action confirmed by user")
             return True

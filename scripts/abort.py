@@ -14,9 +14,10 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from common import ARGS_PARSER, print_log
+from common import ARGS_PARSER
 from interactive import confirmed, select
 from object_utilities import get_filtered_work_requirements, get_task_group_name
+from printing import print_log
 from wrapper import CLIENT, CONFIG, main_wrapper
 
 
@@ -44,7 +45,7 @@ def main():
 
     if len(selected_work_requirement_summaries) != 0:
         selected_work_requirement_summaries = select(
-            selected_work_requirement_summaries
+            selected_work_requirement_summaries, override_quiet=True
         )
     else:
         print_log("No matching Work Requirements found")
@@ -61,16 +62,22 @@ def abort_tasks_selectively(
     """
     aborted_tasks = 0
     for wr_summary in selected_work_requirement_summaries:
-        print_log(f"Aborting Tasks in Work Requirement '{wr_summary.name}'")
+        print_log(
+            f"Aborting Tasks in Work Requirement '{wr_summary.name}'",
+            override_quiet=True,
+        )
         task_search = TaskSearch(
             workRequirementId=wr_summary.id,
             statuses=[TaskStatus.RUNNING],
         )
         tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
         if len(tasks) > 0:
-            tasks = select(tasks, parent=wr_summary)
+            tasks = select(tasks, parent=wr_summary, override_quiet=True)
         else:
-            print_log("No currently running Tasks in this Work Requirement")
+            print_log(
+                "No currently running Tasks in this Work Requirement",
+                override_quiet=True,
+            )
         if len(tasks) != 0 and confirmed(f"Abort {len(tasks)} Tasks?"):
             for task in tasks:
                 try:

@@ -3,7 +3,6 @@ Common utility functions
 """
 import os
 import re
-import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from getpass import getuser
@@ -28,6 +27,7 @@ from yellowdog_client.model import (
 
 from args import ARGS_PARSER
 from config_keys import *
+from printing import print_log
 
 
 @dataclass
@@ -98,30 +98,6 @@ class ConfigWorkerPool:
     worker_pool_data_file: Optional[str] = None
     worker_tag: Optional[str] = None
     workers_per_node: int = 1
-
-
-def print_log(
-    log_message: str,
-    flush: bool = True,
-    override_quiet: bool = False,
-    use_stderr: bool = False,
-):
-    """
-    Placeholder for logging.
-    Set 'override_quiet' to print when '-q' is set.
-    """
-    if ARGS_PARSER.quiet and override_quiet is False:
-        return
-
-    file = sys.stderr if use_stderr else sys.stdout
-
-    print(
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        ":",
-        log_message,
-        flush=flush,
-        file=file,
-    )
 
 
 def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:

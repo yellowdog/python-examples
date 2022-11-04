@@ -6,7 +6,8 @@ for all commands.
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ApiKey, ServicesSchema
 
-from common import ConfigCommon, load_config_common, print_log
+from common import ConfigCommon, load_config_common
+from printing import print_log
 
 CONFIG: ConfigCommon = load_config_common()
 CLIENT = PlatformClient.create(

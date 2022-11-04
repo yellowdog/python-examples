@@ -27,6 +27,7 @@ setuptools.setup(
         "download",
         "interactive",
         "object_utilities",
+        "printing",
         "provision",
         "reformat_json",
         "shutdown",

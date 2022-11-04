@@ -23,13 +23,8 @@ from yellowdog_client.model import (
 )
 
 from args import ARGS_PARSER
-from common import (
-    ConfigWorkerPool,
-    generate_id,
-    link_entity,
-    load_config_worker_pool,
-    print_log,
-)
+from common import ConfigWorkerPool, generate_id, link_entity, load_config_worker_pool
+from printing import print_log
 from wrapper import CLIENT
 from wrapper import CONFIG as CONFIG_COMMON
 from wrapper import main_wrapper
