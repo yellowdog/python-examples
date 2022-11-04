@@ -26,7 +26,7 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
-from args import CLIParser
+from args import ARGS_PARSER
 from config_keys import *
 
 
@@ -151,9 +151,6 @@ MUSTACHE_SUBSTITUTIONS = {
     "datetime": UTCNOW.strftime("%y%m%d-%H%M%S"),
     "random": hex(randint(0, RAND_SIZE + 1))[2:].lower().zfill(len(hex(RAND_SIZE)) - 2),
 }
-
-# The CLIParser class parses command line arguments on instantiation
-ARGS_PARSER: CLIParser = CLIParser()
 
 # Add user-defined Mustache substitutions
 # Can overwrite existing substitutions (above)

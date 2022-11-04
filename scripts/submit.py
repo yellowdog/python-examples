@@ -31,8 +31,8 @@ from yellowdog_client.model import (
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
+from args import ARGS_PARSER
 from common import (
-    ARGS_PARSER,
     CONFIG_FILE_DIR,
     ConfigWorkRequirement,
     generate_id,

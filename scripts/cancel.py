@@ -15,7 +15,8 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from common import ARGS_PARSER, link_entity, print_log
+from args import ARGS_PARSER
+from common import link_entity, print_log
 from interactive import confirmed, select
 from object_utilities import get_filtered_work_requirements, get_task_group_name
 from wrapper import CLIENT, CONFIG, main_wrapper

@@ -259,6 +259,9 @@ class CLIParser:
         return self.args.yes
 
 
+ARGS_PARSER = CLIParser()
+
+
 if __name__ == "__main__":
     """
     Standalone module testing

@@ -13,7 +13,8 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from common import ARGS_PARSER, print_log
+from args import ARGS_PARSER
+from common import print_log
 from object_utilities import get_task_group_name
 
 try:

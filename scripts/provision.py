@@ -22,8 +22,8 @@ from yellowdog_client.model import (
     UnclaimedAfterStartupShutdownCondition,
 )
 
+from args import ARGS_PARSER
 from common import (
-    ARGS_PARSER,
     ConfigWorkerPool,
     generate_id,
     link_entity,
