@@ -9,6 +9,7 @@ from yellowdog_client.model import (
     ComputeRequirementSummary,
     ObjectPath,
     Task,
+    TaskGroup,
     WorkerPoolSummary,
     WorkRequirementSummary,
 )
@@ -27,6 +28,7 @@ Item = TypeVar(
     ComputeRequirementSummary,
     ObjectPath,
     Task,
+    TaskGroup,
     WorkerPoolSummary,
     WorkRequirementSummary,
 )
@@ -36,11 +38,12 @@ Item = TypeVar(
 YD_YES = "YD_YES"
 
 TYPE_MAP = {
-    "WorkerPool": "Worker Pool",
-    "ComputeRequirement": "Compute Requirement",
-    "Task": "Task",
-    "WorkRequirement": "Work Requirement",
-    "ObjectPath": "Object Path",
+    WorkerPoolSummary: "Worker Pool",
+    ComputeRequirementSummary: "Compute Requirement",
+    Task: "Task",
+    TaskGroup: "Task Group",
+    WorkRequirementSummary: "Work Requirement",
+    ObjectPath: "Object Path",
 }
 
 
@@ -48,11 +51,7 @@ def get_type_name(object: Item) -> str:
     """
     Get the display name of an object's type
     """
-    type_str = str(type(object))
-    for key, value in TYPE_MAP.items():
-        if key in type_str:
-            return value
-    return ""
+    return TYPE_MAP.get(type(object), "")
 
 
 def print_numbered_object_list(

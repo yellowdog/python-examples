@@ -222,6 +222,13 @@ class CLIParser:
                 required=False,
                 help="list Compute Requirements",
             )
+            parser.add_argument(
+                "--live-only",
+                "-l",
+                action="store_true",
+                required=False,
+                help="list live objects only",
+            )
 
         self.args = parser.parse_args()
 
@@ -327,6 +334,10 @@ class CLIParser:
     def compute_requirements(self) -> Optional[bool]:
         return self.args.compute_requirements
 
+    @property
+    def live_only(self) -> Optional[bool]:
+        return self.args.live_only
+
 
 ARGS_PARSER = CLIParser()
 
@@ -356,3 +367,4 @@ if __name__ == "__main__":
     print("tasks", args.tasks)
     print("worker-pools", args.worker_pools)
     print("compute-requirements", args.compute_requirements)
+    print("live-only", args.live_only)
