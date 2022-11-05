@@ -7,11 +7,14 @@ Command to list YellowDog entities.
 from typing import List
 
 from yellowdog_client.model import (
+    ComputeRequirementStatus,
     ObjectPath,
     ObjectPathsRequest,
     Task,
     TaskGroup,
     TaskSearch,
+    WorkerPoolStatus,
+    WorkerPoolSummary,
     WorkRequirementStatus,
     WorkRequirementSummary,
 )
@@ -43,6 +46,9 @@ def main():
     if ARGS_PARSER.work_requirements or ARGS_PARSER.task_groups or ARGS_PARSER.tasks:
         list_work_requirements()
 
+    if ARGS_PARSER.worker_pools:
+        list_worker_pools()
+
 
 def check_for_valid_option() -> bool:
     """
@@ -54,7 +60,8 @@ def check_for_valid_option() -> bool:
         or ARGS_PARSER.task_groups
         or ARGS_PARSER.tasks
         or ARGS_PARSER.worker_pools
-        or ARGS_PARSER.compute_requirements)
+        or ARGS_PARSER.compute_requirements
+    )
 
 
 def list_work_requirements():
@@ -128,6 +135,30 @@ def list_object_paths():
         ObjectPathsRequest(CONFIG_COMMON.namespace)
     )
     print_numbered_object_list(object_paths)
+
+
+def list_worker_pools():
+    print_log(
+        f"Listing Worker Pools with Compute Requirements matching "
+        f"'namespace={CONFIG_COMMON.namespace}' and "
+        f"'tag={CONFIG_COMMON.name_tag}'"
+    )
+    worker_pool_summaries: List[
+        WorkerPoolSummary
+    ] = CLIENT.worker_pool_client.find_all_worker_pools()
+
+    selected_worker_pool_summaries: List[WorkerPoolSummary] = []
+    excluded_states = (
+        [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
+        if ARGS_PARSER.live_only
+        else []
+    )
+    for worker_pool_summary in worker_pool_summaries:
+        if not worker_pool_summary.status in excluded_states:
+            selected_worker_pool_summaries.append(worker_pool_summary)
+
+    selected_worker_pool_summaries = sorted_objects(selected_worker_pool_summaries)
+    print_numbered_object_list(selected_worker_pool_summaries, override_quiet=True)
 
 
 # Entry point

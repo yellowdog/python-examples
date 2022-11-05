@@ -7,7 +7,9 @@ from typing import List, Optional, Set, TypeVar
 
 from yellowdog_client.model import (
     ComputeRequirementSummary,
+    ConfiguredWorkerPool,
     ObjectPath,
+    ProvisionedWorkerPool,
     Task,
     TaskGroup,
     WorkerPoolSummary,
@@ -25,8 +27,10 @@ except ImportError:
 
 Item = TypeVar(
     "Item",
+    ConfiguredWorkerPool,
     ComputeRequirementSummary,
     ObjectPath,
+    ProvisionedWorkerPool,
     Task,
     TaskGroup,
     WorkerPoolSummary,
@@ -38,6 +42,8 @@ Item = TypeVar(
 YD_YES = "YD_YES"
 
 TYPE_MAP = {
+    ConfiguredWorkerPool: "Configured Worker Pool",
+    ProvisionedWorkerPool: "Provisioned Worker Pool",
     WorkerPoolSummary: "Worker Pool",
     ComputeRequirementSummary: "Compute Requirement",
     Task: "Task",
@@ -85,6 +91,15 @@ def print_numbered_object_list(
                 f"{indent}{str(index + 1).rjust(index_len)} : "
                 f"[TaskGroup: '{get_task_group_name(parent, obj)}'] "
                 f"{obj.name}{status}"
+            )
+        elif isinstance(obj, WorkerPoolSummary):
+            try:
+                obj_type = "[" + obj.type.split(".")[-1:][0] + "]"
+            except IndexError:
+                obj_type = ""
+            print(
+                f"{indent}{str(index + 1).rjust(index_len)} : "
+                f"{obj.name}{status} {obj_type}"
             )
         else:
             print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}{status}")
