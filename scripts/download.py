@@ -15,6 +15,7 @@ from yellowdog_client.object_store.download.abstracts.abstract_download_batch_bu
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
+from args import ARGS_PARSER
 from interactive import confirmed, select
 from printing import print_log
 from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
@@ -38,13 +39,11 @@ def main():
         if object_path.name.startswith(tag):
             object_paths_to_download.append(object_path)
 
-    if len(object_paths_to_download) != 0:
-        print_log("Matching Object Path(s):", override_quiet=True)
-        object_paths_to_download = select(object_paths_to_download)
+    if len(object_paths_to_download) > 0 and not ARGS_PARSER.yes:
+        object_paths_to_download = select(object_paths_to_download, override_quiet=True)
 
     if len(object_paths_to_download) == 0:
         print_log("No Objects to download")
-
     elif confirmed(f"Download {len(object_paths_to_download)} Object Path(s)?"):
         print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
         download_dir: str = _create_download_directory(CONFIG_COMMON.namespace)

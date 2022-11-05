@@ -8,6 +8,7 @@ from typing import List
 
 from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 
+from args import ARGS_PARSER
 from interactive import confirmed, select
 from printing import print_log
 from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
@@ -29,10 +30,10 @@ def main():
         if object_path.name.startswith(CONFIG_COMMON.name_tag):
             object_paths_to_delete.append(object_path)
 
-    if len(object_paths_to_delete) != 0:
-        object_paths_to_delete = select(object_paths_to_delete)
+    if len(object_paths_to_delete) > 0 and not ARGS_PARSER.yes:
+        object_paths_to_delete = select(object_paths_to_delete, override_quiet=True)
 
-    if len(object_paths_to_delete) != 0 and confirmed(
+    if len(object_paths_to_delete) > 0 and confirmed(
         f"Delete {len(object_paths_to_delete)} Object Path(s)?"
     ):
         print_log(f"{len(object_paths_to_delete)} Object Path(s) to Delete")

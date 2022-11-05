@@ -46,12 +46,13 @@ def main():
     cancelled_count = 0
     cancelling_count = 0
 
-    if len(selected_work_requirement_summaries) != 0:
+    if len(selected_work_requirement_summaries) > 0 and not ARGS_PARSER.yes:
         selected_work_requirement_summaries = select(
-            selected_work_requirement_summaries
+            selected_work_requirement_summaries,
+            override_quiet=True,
         )
 
-    if len(selected_work_requirement_summaries) != 0 and confirmed(
+    if len(selected_work_requirement_summaries) > 0 and confirmed(
         f"Cancel {len(selected_work_requirement_summaries)} Work Requirement(s)?"
     ):
         for work_summary in selected_work_requirement_summaries:

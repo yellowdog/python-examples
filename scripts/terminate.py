@@ -12,6 +12,7 @@ from yellowdog_client.model import (
     ComputeRequirementSummary,
 )
 
+from args import ARGS_PARSER
 from common import link_entity
 from interactive import confirmed, select
 from printing import print_log
@@ -25,6 +26,7 @@ def main():
         f"'namespace={CONFIG_COMMON.namespace}' and "
         f"'tag={CONFIG_COMMON.name_tag}'"
     )
+
     compute_requirement_summaries: List[
         ComputeRequirementSummary
     ] = CLIENT.compute_client.find_all_compute_requirements()
@@ -44,13 +46,12 @@ def main():
         ):
             selected_compute_requirement_summaries.append(compute_summary)
 
-    if len(selected_compute_requirement_summaries) != 0:
-        print_log("Matching Compute Requirement(s):", override_quiet=True)
+    if len(selected_compute_requirement_summaries) > 0 and not ARGS_PARSER.yes:
         selected_compute_requirement_summaries = select(
-            selected_compute_requirement_summaries
+            selected_compute_requirement_summaries, override_quiet=True
         )
 
-    if len(selected_compute_requirement_summaries) != 0 and confirmed(
+    if len(selected_compute_requirement_summaries) > 0 and confirmed(
         f"Terminate {len(selected_compute_requirement_summaries)} "
         "Compute Requirement(s)?"
     ):

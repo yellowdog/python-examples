@@ -22,7 +22,7 @@ def main_wrapper(func):
         try:
             func()
         except Exception as e:
-            print_error(f"Error: {e}")
+            print_error(f"{e}")
             exit_code = 1
         except KeyboardInterrupt:
             print_log("Cancelled")

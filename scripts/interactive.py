@@ -102,7 +102,7 @@ def select(
     """
     objects = sorted(objects, key=lambda x: x.name)
 
-    if not ARGS_PARSER.quiet or ARGS_PARSER.interactive:
+    if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(objects, parent, override_quiet=override_quiet)
 
     if not ARGS_PARSER.interactive:

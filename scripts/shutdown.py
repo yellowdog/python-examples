@@ -14,6 +14,7 @@ from yellowdog_client.model import (
     WorkerPoolSummary,
 )
 
+from args import ARGS_PARSER
 from common import link_entity
 from interactive import confirmed, select
 from printing import print_log
@@ -41,11 +42,12 @@ def main():
         ):
             selected_worker_pool_summaries.append(worker_pool_summary)
 
-    if len(selected_worker_pool_summaries) != 0:
-        print_log("Matching Worker Pool(s):", override_quiet=True)
-        selected_worker_pool_summaries = select(selected_worker_pool_summaries)
+    if len(selected_worker_pool_summaries) > 0 and not ARGS_PARSER.yes:
+        selected_worker_pool_summaries = select(
+            selected_worker_pool_summaries, override_quiet=True
+        )
 
-    if len(selected_worker_pool_summaries) != 0 and confirmed(
+    if len(selected_worker_pool_summaries) > 0 and confirmed(
         f"Shutdown {len(selected_worker_pool_summaries)} Worker Pool(s)?"
     ):
         for worker_pool_summary in selected_worker_pool_summaries:
