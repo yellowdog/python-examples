@@ -91,6 +91,10 @@ def print_numbered_object_list(
     print()
 
 
+def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
+    return sorted(objects, key=lambda x: x.name, reverse=reverse)
+
+
 def select(
     objects: List[Item], parent: Optional[Item] = None, override_quiet: bool = False
 ) -> List[Item]:
@@ -99,7 +103,7 @@ def select(
     Manually select objects from a list if --interactive is set.
     Return the list of objects.
     """
-    objects = sorted(objects, key=lambda x: x.name)
+    objects = sorted_objects(objects)
 
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(objects, parent, override_quiet=override_quiet)
