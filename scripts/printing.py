@@ -1,3 +1,7 @@
+"""
+Functions focused on print outputs.
+"""
+
 import sys
 from datetime import datetime
 from typing import TypeVar

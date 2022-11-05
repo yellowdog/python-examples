@@ -42,6 +42,7 @@ def main():
             selected_worker_pool_summaries.append(worker_pool_summary)
 
     if len(selected_worker_pool_summaries) != 0:
+        print_log("Matching Worker Pool(s):", override_quiet=True)
         selected_worker_pool_summaries = select(selected_worker_pool_summaries)
 
     if len(selected_worker_pool_summaries) != 0 and confirmed(

@@ -1,5 +1,5 @@
 """
-Common utility functions
+Common utility functions, mostly related to loading configuration data.
 """
 import os
 import re

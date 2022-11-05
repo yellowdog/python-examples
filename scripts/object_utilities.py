@@ -1,3 +1,7 @@
+"""
+Various utility functions for finding objects, etc.
+"""
+
 from functools import lru_cache
 from typing import List, Optional
 
@@ -42,7 +46,9 @@ def get_filtered_work_requirements(
 ) -> List[WorkRequirementSummary]:
     """
     Get a list of Work Requirements filtered by namespace, tag
-    and status
+    and status.
+    A WR will match the filter if it's in the included list OR
+    if it's not in the excluded list.
     """
 
     # Avoid mutable keyword argument defaults

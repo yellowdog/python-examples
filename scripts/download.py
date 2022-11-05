@@ -22,7 +22,7 @@ from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
-    tag = CONFIG.name_tag
+    tag = CONFIG_COMMON.name_tag
     print_log(
         f"Downloading all Objects in 'namespace={CONFIG_COMMON.namespace}' with "
         f"names starting with 'tag={tag}'"
@@ -39,6 +39,7 @@ def main():
             object_paths_to_download.append(object_path)
 
     if len(object_paths_to_download) != 0:
+        print_log("Matching Object Path(s):", override_quiet=True)
         object_paths_to_download = select(object_paths_to_download)
 
     if len(object_paths_to_download) == 0:

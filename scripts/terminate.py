@@ -28,6 +28,7 @@ def main():
     compute_requirement_summaries: List[
         ComputeRequirementSummary
     ] = CLIENT.compute_client.find_all_compute_requirements()
+
     terminated_count = 0
     selected_compute_requirement_summaries: List[ComputeRequirementSummary] = []
 
@@ -44,6 +45,7 @@ def main():
             selected_compute_requirement_summaries.append(compute_summary)
 
     if len(selected_compute_requirement_summaries) != 0:
+        print_log("Matching Compute Requirement(s):", override_quiet=True)
         selected_compute_requirement_summaries = select(
             selected_compute_requirement_summaries
         )
