@@ -7,7 +7,9 @@ Command to list YellowDog entities.
 from typing import List
 
 from yellowdog_client.model import (
+    ComputeRequirement,
     ComputeRequirementStatus,
+    ComputeRequirementSummary,
     ObjectPath,
     ObjectPathsRequest,
     Task,
@@ -48,6 +50,9 @@ def main():
 
     if ARGS_PARSER.worker_pools:
         list_worker_pools()
+
+    if ARGS_PARSER.compute_requirements:
+        list_compute_requirements()
 
 
 def check_for_valid_option() -> bool:
@@ -159,6 +164,36 @@ def list_worker_pools():
 
     selected_worker_pool_summaries = sorted_objects(selected_worker_pool_summaries)
     print_numbered_object_list(selected_worker_pool_summaries, override_quiet=True)
+
+
+def list_compute_requirements():
+    print_log(
+        f"Listing Compute Requirements matching "
+        f"'namespace={CONFIG_COMMON.namespace}' and "
+        f"'tag={CONFIG_COMMON.name_tag}'"
+    )
+
+    compute_requirement_summaries: List[
+        ComputeRequirementSummary
+    ] = CLIENT.compute_client.find_all_compute_requirements()
+
+    filtered_compute_requirement_summaries: List[ComputeRequirementSummary] = []
+    excluded_states = (
+        [ComputeRequirementStatus.TERMINATED, ComputeRequirementStatus.TERMINATING]
+        if ARGS_PARSER.live_only
+        else []
+    )
+    for compute_summary in compute_requirement_summaries:
+        if (
+            compute_summary.tag == CONFIG_COMMON.name_tag
+            and compute_summary.namespace == CONFIG_COMMON.namespace
+            and compute_summary.status not in excluded_states
+        ):
+            filtered_compute_requirement_summaries.append(compute_summary)
+
+    print_numbered_object_list(
+        sorted_objects(filtered_compute_requirement_summaries), override_quiet=True
+    )
 
 
 # Entry point
