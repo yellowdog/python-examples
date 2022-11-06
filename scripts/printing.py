@@ -6,6 +6,8 @@ import sys
 from datetime import datetime
 from typing import List, Optional, TypeVar
 
+from tabulate import tabulate
+from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
     ComputeRequirementSummary,
     ConfiguredWorkerPool,
@@ -74,16 +76,68 @@ TYPE_MAP = {
 
 def get_type_name(obj: Item) -> str:
     """
-    Get the display name of an object's type
+    Get the display name of an object's type.
     """
     return TYPE_MAP.get(type(obj), "")
 
 
+def compute_requirement_table(
+    cr_summary_list: List[ComputeRequirementSummary],
+) -> List[List]:
+    table = []
+    for index, cr_summary in enumerate(cr_summary_list):
+        table.append(
+            [
+                index + 1,
+                ":",
+                cr_summary.name,
+                f"[{cr_summary.status}]",
+            ]
+        )
+    return table
+
+
+def task_table(
+    client: PlatformClient, task_list: List[Task], work_req: WorkRequirementSummary
+) -> List[List]:
+    table = []
+    for index, task in enumerate(task_list):
+        table.append(
+            [
+                index + 1,
+                ":",
+                task.name,
+                f"[{get_task_group_name(client, work_req, task)}]",
+                f"[{task.status}]",
+            ]
+        )
+    return table
+
+
+def worker_pool_table(worker_pool_summaries: List[WorkerPoolSummary]) -> List[List]:
+    table = []
+    for index, worker_pool_summary in enumerate(worker_pool_summaries):
+        table.append(
+            [
+                index + 1,
+                ":",
+                worker_pool_summary.name,
+                f"[{worker_pool_summary.status}]",
+                f"[{worker_pool_summary.type.split('.')[-1:][0]}]",
+            ]
+        )
+    return table
+
+
 def print_numbered_object_list(
-    objects: List[Item], parent: Optional[Item] = None, override_quiet: bool = False
+    client: PlatformClient,
+    objects: List[Item],
+    parent: Optional[Item] = None,
+    override_quiet: bool = False,
 ) -> None:
     """
     Print a numbered list of objects.
+    Assume that the list supplied is already sorted.
     """
     if len(objects) == 0:
         return
@@ -93,37 +147,25 @@ def print_numbered_object_list(
         override_quiet=override_quiet,
     )
     print()
-    indent = " " * 3
-    index_len = len(str(len(objects)))
-    for index, obj in enumerate(objects):
-        try:
-            status = f" ({obj.status})"
-        except:
-            status = ""
-        if (
-            isinstance(obj, Task)
-            and parent is not None
-            and isinstance(parent, WorkRequirementSummary)
-        ):
-            # Special case for Task objects
-            print(
-                f"{indent}{str(index + 1).rjust(index_len)} : "
-                f"[TaskGroup: '{get_task_group_name(parent, obj)}'] "
-                f"{obj.name}{status}"
-            )
-        elif isinstance(obj, WorkerPoolSummary):
-            try:
-                obj_type = "[" + obj.type.split(".")[-1:][0] + "]"
-            except IndexError:
-                obj_type = ""
-            print(
-                f"{indent}{str(index + 1).rjust(index_len)} : "
-                f"{obj.name}{status} {obj_type}"
-            )
-        else:
-            print(f"{indent}{str(index + 1).rjust(index_len)} : {obj.name}{status}")
+
+    if isinstance(objects[0], ComputeRequirementSummary):
+        table = compute_requirement_table(objects)
+    elif isinstance(objects[0], Task):
+        table = task_table(client, objects, parent)
+    elif isinstance(objects[0], WorkerPoolSummary):
+        table = worker_pool_table(objects)
+    else:
+        table = []
+        for index, obj in enumerate(objects):
+            table.append([index + 1, ":", obj.name])
+
+    print(indent(tabulate(table, tablefmt="plain"), indent_width=4))
     print()
 
 
 def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
     return sorted(objects, key=lambda x: x.name, reverse=reverse)
+
+
+def indent(txt: str, indent_width: int = 4) -> str:
+    return "\n".join(" " * indent_width + ln for ln in txt.splitlines())

@@ -34,6 +34,7 @@ def main():
     selected_work_requirement_summaries: List[
         WorkRequirementSummary
     ] = get_filtered_work_requirements(
+        client=CLIENT,
         namespace=CONFIG_COMMON.namespace,
         tag=CONFIG_COMMON.name_tag,
         exclude_filter=[
@@ -48,8 +49,7 @@ def main():
 
     if len(selected_work_requirement_summaries) > 0:
         selected_work_requirement_summaries = select(
-            selected_work_requirement_summaries,
-            override_quiet=True,
+            CLIENT, selected_work_requirement_summaries, override_quiet=True
         )
 
     if len(selected_work_requirement_summaries) > 0 and confirmed(
@@ -92,9 +92,9 @@ def abort_all_tasks(
     """
     Abort all Tasks in CANCELLING Work Requirements.
     """
-
     aborted_tasks = 0
     for wr_summary in get_filtered_work_requirements(
+        client=CLIENT,
         namespace=CONFIG_COMMON.namespace,
         tag=CONFIG_COMMON.name_tag,
         include_filter=[WorkRequirementStatus.CANCELLING],
@@ -110,7 +110,7 @@ def abort_all_tasks(
                     CLIENT.work_client.cancel_task(task, abort=True)
                     print_log(
                         f"Aborting Task '{task.name}' "
-                        f"in Task Group '{get_task_group_name(wr_summary, task)}' "
+                        f"in Task Group '{get_task_group_name(CLIENT, wr_summary, task)}' "
                         f"in Work Requirement '{wr_summary.name}'"
                     )
                     aborted_tasks += 1

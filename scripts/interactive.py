@@ -5,6 +5,8 @@ User interaction processing
 from os import getenv
 from typing import List, Optional, Set
 
+from yellowdog_client import PlatformClient
+
 from args import ARGS_PARSER
 from object_utilities import Item
 from printing import (
@@ -26,7 +28,10 @@ YD_YES = "YD_YES"
 
 
 def select(
-    objects: List[Item], parent: Optional[Item] = None, override_quiet: bool = False
+    client: PlatformClient,
+    objects: List[Item],
+    parent: Optional[Item] = None,
+    override_quiet: bool = False,
 ) -> List[Item]:
     """
     Print a numbered list of objects.
@@ -36,7 +41,9 @@ def select(
     objects = sorted_objects(objects)
 
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
-        print_numbered_object_list(objects, parent, override_quiet=override_quiet)
+        print_numbered_object_list(
+            client, objects, parent, override_quiet=override_quiet
+        )
 
     if not ARGS_PARSER.interactive:
         return objects

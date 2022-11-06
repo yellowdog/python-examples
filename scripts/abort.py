@@ -46,7 +46,7 @@ def main():
 
     if len(selected_work_requirement_summaries) != 0:
         selected_work_requirement_summaries = select(
-            selected_work_requirement_summaries, override_quiet=True
+            CLIENT, selected_work_requirement_summaries, override_quiet=True
         )
     else:
         print_log("No matching Work Requirements found")
@@ -73,7 +73,7 @@ def abort_tasks_selectively(
         )
         tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
         if len(tasks) > 0:
-            tasks = select(tasks, parent=wr_summary, override_quiet=True)
+            tasks = select(CLIENT, tasks, parent=wr_summary, override_quiet=True)
         else:
             print_log(
                 "No currently running Tasks in this Work Requirement",
@@ -85,7 +85,7 @@ def abort_tasks_selectively(
                     CLIENT.work_client.cancel_task(task, abort=True)
                     print_log(
                         f"Aborting Task '{task.name}' "
-                        f"in Task Group '{get_task_group_name(wr_summary, task)}' "
+                        f"in Task Group '{get_task_group_name(CLIENT, wr_summary, task)}' "
                         f"in Work Requirement '{wr_summary.name}'"
                     )
                     aborted_tasks += 1

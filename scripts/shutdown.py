@@ -44,7 +44,7 @@ def main():
 
     if len(selected_worker_pool_summaries) > 0:
         selected_worker_pool_summaries = select(
-            selected_worker_pool_summaries, override_quiet=True
+            CLIENT, selected_worker_pool_summaries, override_quiet=True
         )
 
     if len(selected_worker_pool_summaries) > 0 and confirmed(

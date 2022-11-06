@@ -100,9 +100,11 @@ def list_work_requirements():
     )
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
     if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
-        print_numbered_object_list(work_requirement_summaries, override_quiet=True)
+        print_numbered_object_list(
+            CLIENT, work_requirement_summaries, override_quiet=True
+        )
     else:
-        selected_work_summaries = select(work_requirement_summaries)
+        selected_work_summaries = select(CLIENT, work_requirement_summaries)
         for work_summary in selected_work_summaries:
             print_log(f"Work Requirement {work_summary.name}", override_quiet=True)
             list_task_groups(work_summary)
@@ -114,9 +116,9 @@ def list_task_groups(work_summary: WorkRequirementSummary):
     )
     task_groups = sorted_objects(task_groups)
     if not ARGS_PARSER.tasks:
-        print_numbered_object_list(task_groups, override_quiet=True)
+        print_numbered_object_list(CLIENT, task_groups, override_quiet=True)
     else:
-        task_groups = select(task_groups, override_quiet=True)
+        task_groups = select(CLIENT, task_groups, override_quiet=True)
         for task_group in task_groups:
             list_tasks(task_group, work_summary)
 
@@ -128,7 +130,7 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
     )
     tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
     tasks = sorted_objects(tasks)
-    print_numbered_object_list(tasks, override_quiet=True)
+    print_numbered_object_list(CLIENT, tasks, parent=work_summary, override_quiet=True)
 
 
 def list_object_paths():
@@ -141,7 +143,7 @@ def list_object_paths():
     ] = CLIENT.object_store_client.get_namespace_object_paths(
         ObjectPathsRequest(CONFIG_COMMON.namespace)
     )
-    print_numbered_object_list(object_paths)
+    print_numbered_object_list(CLIENT, object_paths)
 
 
 def list_worker_pools():
@@ -165,7 +167,9 @@ def list_worker_pools():
             selected_worker_pool_summaries.append(worker_pool_summary)
 
     selected_worker_pool_summaries = sorted_objects(selected_worker_pool_summaries)
-    print_numbered_object_list(selected_worker_pool_summaries, override_quiet=True)
+    print_numbered_object_list(
+        CLIENT, selected_worker_pool_summaries, override_quiet=True
+    )
 
 
 def list_compute_requirements():
@@ -194,7 +198,9 @@ def list_compute_requirements():
             filtered_compute_requirement_summaries.append(compute_summary)
 
     print_numbered_object_list(
-        sorted_objects(filtered_compute_requirement_summaries), override_quiet=True
+        CLIENT,
+        sorted_objects(filtered_compute_requirement_summaries),
+        override_quiet=True,
     )
 
 
