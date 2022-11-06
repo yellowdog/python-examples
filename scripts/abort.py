@@ -34,6 +34,7 @@ def main():
     selected_work_requirement_summaries: List[
         WorkRequirementSummary
     ] = get_filtered_work_requirements(
+        CLIENT,
         namespace=CONFIG_COMMON.namespace,
         tag=CONFIG_COMMON.name_tag,
         exclude_filter=[

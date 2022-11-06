@@ -7,7 +7,6 @@ Command to list YellowDog entities.
 from typing import List
 
 from yellowdog_client.model import (
-    ComputeRequirement,
     ComputeRequirementStatus,
     ComputeRequirementSummary,
     ObjectPath,
@@ -22,12 +21,12 @@ from yellowdog_client.model import (
 )
 
 from args import ARGS_PARSER
-from interactive import print_numbered_object_list, select, sorted_objects
+from interactive import select
 from object_utilities import (
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
 )
-from printing import print_error, print_log
+from printing import print_log, print_numbered_object_list, sorted_objects
 from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -94,6 +93,7 @@ def list_work_requirements():
     work_requirement_summaries: List[
         WorkRequirementSummary
     ] = get_filtered_work_requirements(
+        CLIENT,
         namespace=CONFIG_COMMON.namespace,
         tag=CONFIG_COMMON.name_tag,
         exclude_filter=exclude_filter,
@@ -109,7 +109,9 @@ def list_work_requirements():
 
 
 def list_task_groups(work_summary: WorkRequirementSummary):
-    task_groups: List[TaskGroup] = get_task_groups_from_wr_summary(work_summary.id)
+    task_groups: List[TaskGroup] = get_task_groups_from_wr_summary(
+        CLIENT, work_summary.id
+    )
     task_groups = sorted_objects(task_groups)
     if not ARGS_PARSER.tasks:
         print_numbered_object_list(task_groups, override_quiet=True)

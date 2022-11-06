@@ -3,42 +3,49 @@ Various utility functions for finding objects, etc.
 """
 
 from functools import lru_cache
-from typing import List, Optional
+from typing import List, Optional, TypeVar
 
+from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
+    ComputeRequirementSummary,
+    ConfiguredWorkerPool,
+    ObjectPath,
+    ProvisionedWorkerPool,
     Task,
     TaskGroup,
+    WorkerPoolSummary,
     WorkRequirementStatus,
     WorkRequirementSummary,
 )
 
-from wrapper import CLIENT
-
 
 @lru_cache()
 def get_task_groups_from_wr_summary(
-    wr_summary_id: str,
+    client: PlatformClient, wr_summary_id: str
 ) -> List[TaskGroup]:
     """
     Get the list of the Work Requirement's Task Groups.
     Cache results to avoid repeatedly hitting the API for the same thing.
     """
-    work_requirement = CLIENT.work_client.get_work_requirement_by_id(wr_summary_id)
+    work_requirement = client.work_client.get_work_requirement_by_id(wr_summary_id)
     return work_requirement.taskGroups
 
 
-def get_task_group_name(wr_summary: WorkRequirementSummary, task: Task) -> str:
+def get_task_group_name(
+    client: PlatformClient, wr_summary: WorkRequirementSummary, task: Task
+) -> str:
     """
     Function to find the Task Group Name for a given Task
     within a Work Requirement.
     """
-    for task_group in get_task_groups_from_wr_summary(wr_summary.id):
+    for task_group in get_task_groups_from_wr_summary(client, wr_summary.id):
         if task.taskGroupId == task_group.id:
             return task_group.name
     return ""  # Shouldn't get here
 
 
 def get_filtered_work_requirements(
+    client: PlatformClient,
     namespace: str,
     tag: str,
     include_filter: Optional[List[WorkRequirementStatus]] = None,
@@ -59,7 +66,7 @@ def get_filtered_work_requirements(
 
     work_requirement_summaries: List[
         WorkRequirementSummary
-    ] = CLIENT.work_client.find_all_work_requirements()
+    ] = client.work_client.find_all_work_requirements()
 
     for work_summary in work_requirement_summaries:
         if (
@@ -71,3 +78,16 @@ def get_filtered_work_requirements(
             filtered_work_summaries.append(work_summary)
 
     return filtered_work_summaries
+
+
+Item = TypeVar(
+    "Item",
+    ConfiguredWorkerPool,
+    ComputeRequirementSummary,
+    ObjectPath,
+    ProvisionedWorkerPool,
+    Task,
+    TaskGroup,
+    WorkerPoolSummary,
+    WorkRequirementSummary,
+)
