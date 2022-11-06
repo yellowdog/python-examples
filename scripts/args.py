@@ -230,6 +230,13 @@ class CLIParser:
                 help="list live objects only",
             )
 
+        parser.add_argument(
+            "--stack-trace",
+            action="store_true",
+            required=False,
+            help="print a stack trace on error (for debugging)",
+        )
+
         self.args = parser.parse_args()
 
         # Temporary notification message while we figure out the problem
@@ -337,6 +344,10 @@ class CLIParser:
     @property
     def live_only(self) -> Optional[bool]:
         return self.args.live_only
+
+    @property
+    def stack_trace(self) -> Optional[bool]:
+        return self.args.stack_trace
 
 
 ARGS_PARSER = CLIParser()

@@ -6,6 +6,7 @@ for all commands.
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ApiKey, ServicesSchema
 
+from args import ARGS_PARSER
 from common import ConfigCommon, load_config_common
 from printing import print_error, print_log
 
@@ -18,18 +19,24 @@ CLIENT = PlatformClient.create(
 
 def main_wrapper(func):
     def wrapper():
-        exit_code = 0
-        try:
+        if not ARGS_PARSER.stack_trace:
+            exit_code = 0
+            try:
+                func()
+            except Exception as e:
+                print_error(e)
+                exit_code = 1
+            except KeyboardInterrupt:
+                print_log("Cancelled")
+                exit_code = 1
+            finally:
+                CLIENT.close()
+                print_log("Done")
+                exit(exit_code)
+        else:
             func()
-        except Exception as e:
-            print_error(e)
-            exit_code = 1
-        except KeyboardInterrupt:
-            print_log("Cancelled")
-            exit_code = 1
-        finally:
             CLIENT.close()
             print_log("Done")
-            exit(exit_code)
+            exit(0)
 
     return wrapper
