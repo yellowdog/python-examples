@@ -46,7 +46,7 @@ def main():
         ):
             selected_compute_requirement_summaries.append(compute_summary)
 
-    if len(selected_compute_requirement_summaries) > 0 and not ARGS_PARSER.yes:
+    if len(selected_compute_requirement_summaries) > 0:
         selected_compute_requirement_summaries = select(
             selected_compute_requirement_summaries, override_quiet=True
         )

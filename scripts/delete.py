@@ -30,7 +30,7 @@ def main():
         if object_path.name.startswith(CONFIG_COMMON.name_tag):
             object_paths_to_delete.append(object_path)
 
-    if len(object_paths_to_delete) > 0 and not ARGS_PARSER.yes:
+    if len(object_paths_to_delete) > 0:
         object_paths_to_delete = select(object_paths_to_delete, override_quiet=True)
 
     if len(object_paths_to_delete) > 0 and confirmed(

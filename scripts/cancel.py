@@ -46,7 +46,7 @@ def main():
     cancelled_count = 0
     cancelling_count = 0
 
-    if len(selected_work_requirement_summaries) > 0 and not ARGS_PARSER.yes:
+    if len(selected_work_requirement_summaries) > 0:
         selected_work_requirement_summaries = select(
             selected_work_requirement_summaries,
             override_quiet=True,

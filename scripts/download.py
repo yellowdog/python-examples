@@ -39,7 +39,7 @@ def main():
         if object_path.name.startswith(tag):
             object_paths_to_download.append(object_path)
 
-    if len(object_paths_to_download) > 0 and not ARGS_PARSER.yes:
+    if len(object_paths_to_download) > 0:
         object_paths_to_download = select(object_paths_to_download, override_quiet=True)
 
     if len(object_paths_to_download) == 0:

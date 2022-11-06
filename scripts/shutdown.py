@@ -42,7 +42,7 @@ def main():
         ):
             selected_worker_pool_summaries.append(worker_pool_summary)
 
-    if len(selected_worker_pool_summaries) > 0 and not ARGS_PARSER.yes:
+    if len(selected_worker_pool_summaries) > 0:
         selected_worker_pool_summaries = select(
             selected_worker_pool_summaries, override_quiet=True
         )
