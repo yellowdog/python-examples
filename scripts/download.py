@@ -40,9 +40,7 @@ def main():
             object_paths_to_download.append(object_path)
 
     if len(object_paths_to_download) > 0:
-        object_paths_to_download = select(
-            CLIENT, object_paths_to_download, override_quiet=True
-        )
+        object_paths_to_download = select(CLIENT, object_paths_to_download)
 
     if len(object_paths_to_download) == 0:
         print_log("No Objects to download")

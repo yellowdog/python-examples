@@ -43,9 +43,7 @@ def main():
             selected_worker_pool_summaries.append(worker_pool_summary)
 
     if len(selected_worker_pool_summaries) > 0:
-        selected_worker_pool_summaries = select(
-            CLIENT, selected_worker_pool_summaries, override_quiet=True
-        )
+        selected_worker_pool_summaries = select(CLIENT, selected_worker_pool_summaries)
 
     if len(selected_worker_pool_summaries) > 0 and confirmed(
         f"Shutdown {len(selected_worker_pool_summaries)} Worker Pool(s)?"

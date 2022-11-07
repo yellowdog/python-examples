@@ -49,7 +49,7 @@ def main():
 
     if len(selected_work_requirement_summaries) > 0:
         selected_work_requirement_summaries = select(
-            CLIENT, selected_work_requirement_summaries, override_quiet=True
+            CLIENT, selected_work_requirement_summaries
         )
 
     if len(selected_work_requirement_summaries) > 0 and confirmed(

@@ -31,9 +31,7 @@ def main():
             object_paths_to_delete.append(object_path)
 
     if len(object_paths_to_delete) > 0:
-        object_paths_to_delete = select(
-            CLIENT, object_paths_to_delete, override_quiet=True
-        )
+        object_paths_to_delete = select(CLIENT, object_paths_to_delete)
 
     if len(object_paths_to_delete) > 0 and confirmed(
         f"Delete {len(object_paths_to_delete)} Object Path(s)?"

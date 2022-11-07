@@ -48,7 +48,7 @@ def main():
 
     if len(selected_compute_requirement_summaries) > 0:
         selected_compute_requirement_summaries = select(
-            CLIENT, selected_compute_requirement_summaries, override_quiet=True
+            CLIENT, selected_compute_requirement_summaries
         )
 
     if len(selected_compute_requirement_summaries) > 0 and confirmed(
