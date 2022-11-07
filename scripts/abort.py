@@ -17,7 +17,7 @@ from yellowdog_client.model import (
 from common import ARGS_PARSER
 from interactive import confirmed, select
 from object_utilities import get_filtered_work_requirements, get_task_group_name
-from printing import print_error, print_log
+from printing import print_error, print_log, sorted_objects
 from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -73,7 +73,9 @@ def abort_tasks_selectively(
         )
         tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
         if len(tasks) > 0:
-            tasks = select(CLIENT, tasks, parent=wr_summary, override_quiet=True)
+            tasks = select(
+                CLIENT, sorted_objects(tasks), parent=wr_summary, override_quiet=True
+            )
         else:
             print_log(
                 "No currently running Tasks in this Work Requirement",
