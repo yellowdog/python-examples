@@ -102,7 +102,7 @@ def abort_all_tasks(
         if wr_summary.id in [x.id for x in selected_work_requirement_summaries]:
             task_search = TaskSearch(
                 workRequirementId=wr_summary.id,
-                statuses=[TaskStatus.RUNNING],
+                statuses=[TaskStatus.EXECUTING],
             )
             tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
             for task in tasks:

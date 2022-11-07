@@ -24,6 +24,7 @@ from yellowdog_client.model import (
     Task,
     TaskGroup,
     TaskInput,
+    TaskInputVerification,
     TaskOutput,
     TaskStatus,
     WorkRequirement,
@@ -390,7 +391,8 @@ def add_tasks_to_task_group(
             # Set up input files
             input_files = [
                 TaskInput.from_task_namespace(
-                    unique_upload_pathname(file), required=True
+                    unique_upload_pathname(file),
+                    verification=TaskInputVerification.VERIFY_AT_START,
                 )
                 for file in task.get(
                     INPUT_FILES,
@@ -401,7 +403,9 @@ def add_tasks_to_task_group(
                 )
             ]
             intermediate_files = [
-                TaskInput.from_task_namespace(f"{ID}/{file}", required=True)
+                TaskInput.from_task_namespace(
+                    f"{ID}/{file}", verification=TaskInputVerification.VERIFY_AT_START
+                )
                 for file in task.get(
                     INTERMEDIATE_FILES, task_group_data.get(INTERMEDIATE_FILES, [])
                 )
@@ -562,7 +566,8 @@ def create_task(
             upload_file(executable)
             uploaded_files.append(executable)
         task_input = TaskInput.from_task_namespace(
-            unique_upload_pathname(executable), required=True
+            unique_upload_pathname(executable),
+            verification=TaskInputVerification.VERIFY_AT_START,
         )
         if task_input not in inputs:
             inputs.append(task_input)

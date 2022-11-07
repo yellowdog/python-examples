@@ -69,7 +69,7 @@ def abort_tasks_selectively(
         )
         task_search = TaskSearch(
             workRequirementId=wr_summary.id,
-            statuses=[TaskStatus.RUNNING],
+            statuses=[TaskStatus.EXECUTING],
         )
         tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
         if len(tasks) > 0:
