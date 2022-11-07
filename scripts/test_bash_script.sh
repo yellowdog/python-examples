@@ -1,5 +1,27 @@
 #!/bin/bash
 
+################################################################################
+# Clean up child processes on Task Abort
+
+# Recursive cleanup function that kills all descendent processes
+kill_descendent_procs() {
+    local PID="$1"
+    local INCLUDE_SELF="${2:-false}"
+    if CHILDREN="$(pgrep -P "$PID")"; then
+        for CHILD in $CHILDREN; do
+            kill_descendent_procs "$CHILD" true
+        done
+    fi
+    if [[ "$INCLUDE_SELF" == true ]]; then
+        kill "$PID" &>/dev/null
+    fi
+}
+
+# Trap EXIT and clean up
+trap "kill_descendent_procs $$" EXIT
+
+################################################################################
+
 # Simple test script to be executed by a YellowDog Worker
 
 set -e
@@ -24,6 +46,6 @@ then
   echo
 fi
 echo "Script Directory:" $(dirname $(readlink -f $0))
-sleep 3
+sleep 3m
 echo
-echo "Slept 3s ... done"
+echo "Slept 3m ... done"
