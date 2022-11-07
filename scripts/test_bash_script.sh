@@ -3,6 +3,16 @@
 ################################################################################
 # Clean up child processes on Task Abort
 
+# Simple cleanup function that kills immediate child processes only
+kill_child_procs() {
+  local PIDS
+  PIDS=$(jobs -p)
+  if [ -n "$PIDS" ]
+  then
+    kill $PIDS &>/dev/null
+  fi
+}
+
 # Recursive cleanup function that kills all descendent processes
 kill_descendent_procs() {
     local PID="$1"
@@ -18,8 +28,8 @@ kill_descendent_procs() {
 }
 
 # Trap EXIT and clean up
-trap "kill_descendent_procs $$" EXIT
-
+#trap "kill_descendent_procs $$" EXIT
+trap kill_child_procs EXIT
 ################################################################################
 
 # Simple test script to be executed by a YellowDog Worker

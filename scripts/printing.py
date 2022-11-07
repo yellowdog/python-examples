@@ -97,9 +97,39 @@ def compute_requirement_table(
     return table
 
 
-def task_table(
-    client: PlatformClient, task_list: List[Task], work_req: WorkRequirementSummary
+def work_requirement_table(
+    wr_summary_list: List[WorkRequirementSummary],
 ) -> List[List]:
+    table = []
+    for index, wr_summary in enumerate(wr_summary_list):
+        table.append(
+            [
+                index + 1,
+                ":",
+                wr_summary.name,
+                f"[{wr_summary.status}]",
+            ]
+        )
+    return table
+
+
+def task_group_table(
+    task_group_list: List[TaskGroup],
+) -> List[List]:
+    table = []
+    for index, task_group in enumerate(task_group_list):
+        table.append(
+            [
+                index + 1,
+                ":",
+                task_group.name,
+                f"[{task_group.status}]",
+            ]
+        )
+    return table
+
+
+def task_table(task_list: List[Task]) -> List[List]:
     table = []
     for index, task in enumerate(task_list):
         table.append(
@@ -107,7 +137,6 @@ def task_table(
                 index + 1,
                 ":",
                 task.name,
-                f"[{get_task_group_name(client, work_req, task)}]",
                 f"[{task.status}]",
             ]
         )
@@ -150,8 +179,12 @@ def print_numbered_object_list(
 
     if isinstance(objects[0], ComputeRequirementSummary):
         table = compute_requirement_table(objects)
+    elif isinstance(objects[0], WorkRequirementSummary):
+        table = work_requirement_table(objects)
+    elif isinstance(objects[0], TaskGroup):
+        table = task_group_table(objects)
     elif isinstance(objects[0], Task):
-        table = task_table(client, objects, parent)
+        table = task_table(objects)
     elif isinstance(objects[0], WorkerPoolSummary):
         table = worker_pool_table(objects)
     else:
@@ -164,8 +197,14 @@ def print_numbered_object_list(
 
 
 def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
+    """
+    Sort objects by their 'name' property.
+    """
     return sorted(objects, key=lambda x: x.name, reverse=reverse)
 
 
 def indent(txt: str, indent_width: int = 4) -> str:
+    """
+    Indent lines of text.
+    """
     return "\n".join(" " * indent_width + ln for ln in txt.splitlines())
