@@ -55,30 +55,21 @@ def main():
         "Compute Requirement(s)?"
     ):
         for compute_summary in selected_compute_requirement_summaries:
-            if (
-                compute_summary.tag == CONFIG_COMMON.name_tag
-                and compute_summary.namespace == CONFIG_COMMON.namespace
-                and compute_summary.status
-                not in [
-                    ComputeRequirementStatus.TERMINATED,
-                    ComputeRequirementStatus.TERMINATING,
-                ]
-            ):
-                try:
-                    CLIENT.compute_client.terminate_compute_requirement_by_id(
+            try:
+                CLIENT.compute_client.terminate_compute_requirement_by_id(
+                    compute_summary.id
+                )
+                compute_requirement: ComputeRequirement = (
+                    CLIENT.compute_client.get_compute_requirement_by_id(
                         compute_summary.id
                     )
-                    compute_requirement: ComputeRequirement = (
-                        CLIENT.compute_client.get_compute_requirement_by_id(
-                            compute_summary.id
-                        )
-                    )
-                    terminated_count += 1
-                    print_log(
-                        f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement)}"
-                    )
-                except:
-                    print_error(f"Unable to terminate '{compute_summary.name}'")
+                )
+                terminated_count += 1
+                print_log(
+                    f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement)}"
+                )
+            except:
+                print_error(f"Unable to terminate '{compute_summary.name}'")
 
     if terminated_count > 0:
         print_log(f"Terminated {terminated_count} Compute Requirement(s)")
