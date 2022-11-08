@@ -536,7 +536,7 @@ def create_task(
     Create a Task object, handling variations for different Task Types.
     This is where to define a new Task Type and to set up how it's run.
     """
-    valid_task_types = ["bash", "docker"]
+    valid_task_types = ["bash", "docker", "sbatch"]
     if task_type not in valid_task_types:
         raise Exception(
             f"Error: TASK_TYPE must be one of {valid_task_types}, not '{task_type}'"
@@ -593,6 +593,9 @@ def create_task(
             if docker_username is not None and docker_password is not None
             else {}
         )
+
+    elif task_type == "sbatch":
+        pass
 
     return Task(
         name=name,
