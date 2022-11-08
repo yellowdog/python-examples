@@ -12,10 +12,9 @@ from yellowdog_client.model import (
     ComputeRequirementSummary,
 )
 
-from args import ARGS_PARSER
 from common import link_entity
 from interactive import confirmed, select
-from printing import print_log
+from printing import print_error, print_log
 from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -65,22 +64,26 @@ def main():
                     ComputeRequirementStatus.TERMINATING,
                 ]
             ):
-                CLIENT.compute_client.terminate_compute_requirement_by_id(
-                    compute_summary.id
-                )
-                compute_requirement: ComputeRequirement = (
-                    CLIENT.compute_client.get_compute_requirement_by_id(
+                try:
+                    CLIENT.compute_client.terminate_compute_requirement_by_id(
                         compute_summary.id
                     )
-                )
-                terminated_count += 1
-                print_log(
-                    f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement)}"
-                )
+                    compute_requirement: ComputeRequirement = (
+                        CLIENT.compute_client.get_compute_requirement_by_id(
+                            compute_summary.id
+                        )
+                    )
+                    terminated_count += 1
+                    print_log(
+                        f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement)}"
+                    )
+                except:
+                    print_error(f"Unable to terminate '{compute_summary.name}'")
+
     if terminated_count > 0:
         print_log(f"Terminated {terminated_count} Compute Requirement(s)")
     else:
-        print_log("Nothing to terminate")
+        print_log("No Compute Requirements terminated")
 
 
 # Entry point
