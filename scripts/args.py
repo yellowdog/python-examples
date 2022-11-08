@@ -95,7 +95,7 @@ class CLIParser:
 
         if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
             parser.add_argument(
-                "--work-req",
+                "--work-requirement",
                 "-r",
                 type=str,
                 required=False,
