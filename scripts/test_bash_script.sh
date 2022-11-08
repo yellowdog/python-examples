@@ -9,6 +9,7 @@ kill_child_procs() {
   PIDS=$(jobs -p)
   if [ -n "$PIDS" ]
   then
+    echo "Aborted: killing child processes [$PIDS]"
     kill $PIDS &>/dev/null
   fi
 }
@@ -56,6 +57,7 @@ then
   echo
 fi
 echo "Script Directory:" $(dirname $(readlink -f $0))
-sleep 3m
+sleep 1m
 echo
-echo "Slept 3m ... done"
+echo "Slept 1m ... done"
+exit 1
