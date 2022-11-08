@@ -7,6 +7,7 @@ Command to list YellowDog entities.
 from typing import List
 
 from yellowdog_client.model import (
+    ComputeRequirement,
     ComputeRequirementStatus,
     ComputeRequirementSummary,
     ObjectPath,
@@ -14,6 +15,7 @@ from yellowdog_client.model import (
     Task,
     TaskGroup,
     TaskSearch,
+    WorkerPool,
     WorkerPoolStatus,
     WorkerPoolSummary,
     WorkRequirementStatus,
@@ -163,8 +165,23 @@ def list_worker_pools():
         else []
     )
     for worker_pool_summary in worker_pool_summaries:
-        if not worker_pool_summary.status in excluded_states:
-            selected_worker_pool_summaries.append(worker_pool_summary)
+        if (
+            "ProvisionedWorkerPool" in worker_pool_summary.type
+            and not worker_pool_summary.status in excluded_states
+        ):
+            worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
+                worker_pool_summary.id
+            )
+            compute_requirement: ComputeRequirement = (
+                CLIENT.compute_client.get_compute_requirement_by_id(
+                    worker_pool.computeRequirementId
+                )
+            )
+            if (
+                compute_requirement.tag == CONFIG_COMMON.name_tag
+                and compute_requirement.namespace == CONFIG_COMMON.namespace
+            ):
+                selected_worker_pool_summaries.append(worker_pool_summary)
 
     selected_worker_pool_summaries = sorted_objects(selected_worker_pool_summaries)
     print_numbered_object_list(
