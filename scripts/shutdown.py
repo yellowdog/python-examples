@@ -16,6 +16,7 @@ from yellowdog_client.model import (
 
 from common import link_entity
 from interactive import confirmed, select
+from object_utilities import get_worker_pool_by_id
 from printing import print_error, print_log
 from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -39,8 +40,8 @@ def main():
             or worker_pool_summary.status
             in [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
         ):
-            worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
-                worker_pool_summary.id
+            worker_pool: WorkerPool = get_worker_pool_by_id(
+                CLIENT, worker_pool_summary.id
             )
             compute_requirement: ComputeRequirement = (
                 CLIENT.compute_client.get_compute_requirement_by_id(
@@ -70,12 +71,10 @@ def main():
                     worker_pool_summary.id
                 )
                 shutdown_count += 1
-                worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
-                    worker_pool_summary.id
+                worker_pool: WorkerPool = get_worker_pool_by_id(
+                    CLIENT, worker_pool_summary.id
                 )
-                print_log(
-                    f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}"
-                )
+                print_log(f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}")
             except:
                 print_error(f"Unable to shut down '{worker_pool_summary.name}'")
 

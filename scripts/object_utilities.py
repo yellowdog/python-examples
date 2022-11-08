@@ -13,6 +13,7 @@ from yellowdog_client.model import (
     ProvisionedWorkerPool,
     Task,
     TaskGroup,
+    WorkerPool,
     WorkerPoolSummary,
     WorkRequirementStatus,
     WorkRequirementSummary,
@@ -91,3 +92,13 @@ Item = TypeVar(
     WorkerPoolSummary,
     WorkRequirementSummary,
 )
+
+
+@lru_cache()
+def get_worker_pool_by_id(client: PlatformClient, worker_pool_id: str) -> WorkerPool:
+    """
+    Pass-through function to cache results.
+    """
+    return client.worker_pool_client.get_worker_pool_by_id(
+        worker_pool_id=worker_pool_id
+    )
