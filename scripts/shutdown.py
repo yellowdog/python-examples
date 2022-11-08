@@ -39,21 +39,6 @@ def main():
             or worker_pool_summary.status
             in [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
         ):
-            selected_worker_pool_summaries.append(worker_pool_summary)
-
-    if len(selected_worker_pool_summaries) > 0:
-        selected_worker_pool_summaries = select(CLIENT, selected_worker_pool_summaries)
-
-    if len(selected_worker_pool_summaries) > 0 and confirmed(
-        f"Shutdown {len(selected_worker_pool_summaries)} Worker Pool(s)?"
-    ):
-        for worker_pool_summary in selected_worker_pool_summaries:
-            if (
-                "ProvisionedWorkerPool" not in worker_pool_summary.type
-                or worker_pool_summary.status
-                in [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
-            ):
-                continue
             worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
                 worker_pool_summary.id
             )
@@ -71,12 +56,23 @@ def main():
                     ComputeRequirementStatus.TERMINATING,
                 ]
             ):
-                try:
-                    CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
-                    shutdown_count += 1
-                    print_log(f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}")
-                except:
-                    print_error(f"Unable to shut down '{worker_pool_summary.name}'")
+                selected_worker_pool_summaries.append(worker_pool_summary)
+
+    if len(selected_worker_pool_summaries) > 0:
+        selected_worker_pool_summaries = select(CLIENT, selected_worker_pool_summaries)
+
+    if len(selected_worker_pool_summaries) > 0 and confirmed(
+        f"Shutdown {len(selected_worker_pool_summaries)} Worker Pool(s)?"
+    ):
+        for worker_pool_summary in selected_worker_pool_summaries:
+            try:
+                CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
+                shutdown_count += 1
+                print_log(
+                    f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}"
+                )
+            except:
+                print_error(f"Unable to shut down '{worker_pool_summary.name}'")
 
     if shutdown_count > 0:
         print_log(f"Shut down {shutdown_count} Worker Pool(s)")
