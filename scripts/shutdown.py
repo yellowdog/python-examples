@@ -66,8 +66,13 @@ def main():
     ):
         for worker_pool_summary in selected_worker_pool_summaries:
             try:
-                CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
+                CLIENT.worker_pool_client.shutdown_worker_pool_by_id(
+                    worker_pool_summary.id
+                )
                 shutdown_count += 1
+                worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
+                    worker_pool_summary.id
+                )
                 print_log(
                     f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}"
                 )
