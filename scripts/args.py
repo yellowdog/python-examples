@@ -287,7 +287,7 @@ class CLIParser:
 
     @property
     def work_req_file(self) -> Optional[str]:
-        return self.args.work_req
+        return self.args.work_requirement
 
     @property
     def worker_pool_file(self) -> Optional[str]:
