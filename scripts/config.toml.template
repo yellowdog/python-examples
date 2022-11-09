@@ -26,17 +26,18 @@
 [workRequirement]  ############################################################
 
     # The task type of the task to be performed
-    # Must be 'bash' or 'docker'
-    # Optional
+    # Task types 'bash' and 'docker' are processed specially. All other task
+    # types are passed through without processing.
+    # Required
     # --------------------------------------------------------------------------
     # taskType = "bash"
 
     # In the case of the 'bash' task type, this is the locally-stored Bash
     # script to be executed
     # In the case of the 'docker' task type, this is the container image
-    # Required
+    # Required for the 'bash' and 'docker' task types.
     # --------------------------------------------------------------------------        
-    executable = "test_bash_script.sh"
+    # executable = "test_bash_script.sh"
 
     # The Docker Hub username and password, for private Docker Hub repositories
     # Only applicable to the 'docker' task type
@@ -45,8 +46,9 @@
     # dockerUsername = ""
     # dockerPassword = ""
 
-    # Arguments and environment to pass to the task executable
-    # Use 'environment for Bash', 'dockerEnvironment' for Docker.
+    # Arguments and environment to pass to the Task.
+    # Note: use 'dockerEnvironment' for environment settings to be passed to the
+    # Docker container.
     # Optional
     # --------------------------------------------------------------------------
     # arguments = [] # List of strings

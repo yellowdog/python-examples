@@ -536,12 +536,9 @@ def create_task(
     Create a Task object, handling variations for different Task Types.
     This is where to define a new Task Type and to set up how it's run.
     """
-    valid_task_types = ["bash", "docker", "sbatch"]
-    if task_type not in valid_task_types:
-        raise Exception(
-            f"Error: TASK_TYPE must be one of {valid_task_types}, not '{task_type}'"
-        )
 
+    # Special processing for Bash tasks. The Bash script is uploaded if not
+    # already done, and added to the list of required files.
     if task_type == "bash":
         args = [unique_upload_pathname(executable)] + args
         if executable not in uploaded_files:
@@ -553,6 +550,8 @@ def create_task(
         if task_input not in inputs:
             inputs.append(task_input)
 
+    # Special processing for Docker tasks. Sets up the '-e' environment strings
+    # and the DockerHub username and password if specified.
     elif task_type == "docker":
         # Set up the environment variables to be sent to the Docker container
         docker_env = task_data.get(
@@ -594,7 +593,9 @@ def create_task(
             else {}
         )
 
-    elif task_type == "sbatch":
+    else:
+        # All other Task Types are sent through without additional processing
+        # of the uploaded files, arguments or environment.
         pass
 
     return Task(

@@ -285,7 +285,7 @@ Overridden properties are also inherited. E.g., if a property is set at the Task
 
 The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and property `dependentOn` can only be set at the Task Group level.
 
-All properties are optional except for **`taskType`** (or **`TaskTypes`**) and **`executable`**. Note that the currently supported Task Types are `bash` and `docker`.
+All properties are optional except for **`taskType`** (or **`TaskTypes`**).
 
 | Property Name         | Description                                                                                                                                                              | TOML | WR  | Task Grp | Task |
 |:----------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:---------|:-----|
@@ -299,7 +299,7 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**) and *
 | `dockerUsername`      | The username for DockerHub, used by the `docker` Task Type. E,g., `"my_username"`.                                                                                       | Yes  | Yes | Yes      | Yes  |
 | `environment`         | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                  | Yes  | Yes | Yes      | Yes  |
 | `exclusiveWorkers`    | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                       | Yes  | Yes | Yes      |      |
-| `executable`          | The executable to run when the Task is executed. For the `bash` Task Type, this is the name of the Bash script. For `docker`, the name of the container.                 | Yes  | Yes | Yes      | Yes  |
+| `executable`          | The executable to run when a bash or Docker Task is executed. For the `bash` Task Type, this is the name of the Bash script. For `docker`, the name of the container.    | Yes  | Yes | Yes      | Yes  |
 | `fulfilOnSubmit`      | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |          |      |
 | `inputs`              | The list of input files to be uploaded to the YellowDog Object Store, and downloaded to the node on which a Task will execute. E.g. `["a.sh", "b.sh"]`.                  | Yes  | Yes | Yes      | Yes  |
 | `instanceTypes`       | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes      |      |
