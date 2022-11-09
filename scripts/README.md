@@ -269,9 +269,9 @@ A very simple example document is shown below with a top-level Work Requirement 
 
 ```
 
-To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file with the JSON filename, or specify it on the command line using the `--work-req` or `-r` options (which will override any value set in the TOML file), e.g.
+To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file with the JSON filename, or specify it on the command line using the `--work-requirement` or `-r` options (which will override any value set in the TOML file), e.g.
 
-`yd-submit --config myconfig.toml --work-req my_workreq.json`
+`yd-submit --config myconfig.toml --work-requirement my_workreq.json`
 
 ### Property Inheritance
 
