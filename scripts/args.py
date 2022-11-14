@@ -79,7 +79,7 @@ class CLIParser:
             type=str,
             required=False,
             action="append",
-            help="user-defined Mustache substitution; can be used multiple times",
+            help="user-defined Mustache substitution; can be supplied multiple times",
             metavar="<var1=v1>",
         )
 

@@ -302,9 +302,8 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**).
 | `executable`          | The executable to run when a bash or Docker Task is executed. For the `bash` Task Type, this is the name of the Bash script. For `docker`, the name of the container.    | Yes  | Yes | Yes      | Yes  |
 | `flattenInputPaths`   | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                               | Yes  | Yes | Yes      | Yes  |
 | `fulfilOnSubmit`      | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |          |      |
-| `inputs`              | The list of input files to be uploaded to the YellowDog Object Store, and downloaded to the node on which a Task will execute. E.g. `["a.sh", "b.sh"]`.                  | Yes  | Yes | Yes      | Yes  |
+| `inputs`              | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]`.                       | Yes  | Yes | Yes      | Yes  |
 | `instanceTypes`       | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes      |      |
-| `intermediateInputs`  | A list of output files from the execution of a previous Task to be downloaded for use by the current Task. E.g.: `["Task_Group_1/Task_1/results.txt"]`.                  |      |     | Yes      | Yes  |
 | `maximumTaskRetries`  | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                        | Yes  | Yes | Yes      | Yes  |
 | `maxWorkers`          | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                             | Yes  | Yes | Yes      |      |
 | `minWorkers`          | The minimum number of Workers that the associated Task Group requires. This many workers must be claimed before the associated Task Group will start working. E.g., `1`. | Yes  | Yes | Yes      |      |
@@ -319,6 +318,8 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**).
 | `taskType`            | The Task Type of a Task. E.g., `"docker"`.                                                                                                                               | Yes  |     |          | Yes  |
 | `taskTypes`           | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                        |      | Yes | Yes      |      |
 | `vcpus`               | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                               | Yes  | Yes | Yes      |      |
+| `verifyAtStart`       | A list of files required by a Task. Must be present when the Task is ready to start or the Task will fail. E.g.: `["Task_Group_1/Task_1/results.txt"]`.                  | Yes  | Yes | Yes      | Yes  |
+| `verifyWait`          | A list of files required by a Task. The Task will wait until the files are available before starting. E.g.: `["Task_Group_1/Task_1/results.txt"]`.                       | Yes  | Yes | Yes      | Yes  |
 | `workerTags`          | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                             | Yes  | Yes | Yes      |      |
 | `workRequirementData` | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                 | Yes  |     |          |      |
 
@@ -376,6 +377,8 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskType = "docker"
     tasksPerWorker = 1
     vcpus = [1, 4]
+    verifyAtStart = ["ready_results.txt"]
+    verifyWait = ["wait_for_results.txt"]
     workerTags = ["tag-{{username}}"]
 #   workRequirementData = "work_requirement.json"
 ```
@@ -412,6 +415,8 @@ Showing all possible properties at the Work Requirement level:
   "taskTypes": ["docker"],
   "tasksPerWorker": 1,
   "vcpus": [1, 4],
+  "verifyAtStart": ["ready_results.txt"],
+  "verifyWait": ["wait_for_results.txt"],
   "workerTags": [],
   "taskGroups": [
     {
@@ -421,6 +426,7 @@ Showing all possible properties at the Work Requirement level:
     }
   ]
 }
+
 ```
 
 #### JSON Properties at the Task Group Level
@@ -444,7 +450,6 @@ Showing all possible properties at the Task Group level:
       "flattenInputPaths": false,
       "inputs": ["app/main.py", "app/requirements.txt"],
       "instanceTypes": ["t3a.micro", "t3.micro"],
-      "intermediateInputs": [],
       "maximumTaskRetries": 0,
       "maxWorkers": 1,
       "minWorkers": 1,
@@ -457,6 +462,8 @@ Showing all possible properties at the Task Group level:
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,
       "vcpus": [1, 4],
+      "verifyAtStart": ["ready_results.txt"],
+      "verifyWait": ["wait_for_results.txt"],
       "workerTags": [],
       "tasks": [
         {}
@@ -492,10 +499,11 @@ Showing all possible properties at the Task level:
           "executable": "my-container",
           "flattenInputPaths": false,
           "inputs": ["app/main.py", "app/requirements.txt"],
-          "intermediateInputs": [],
           "name": "my-task",
           "outputs": ["results.txt"],
-          "taskType": "docker"
+          "taskType": "docker",
+          "verifyAtStart": ["ready_results.txt"],
+          "verifyWait": ["wait_for_results.txt"]
         }
       ]
     }

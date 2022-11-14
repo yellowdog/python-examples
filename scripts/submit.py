@@ -402,15 +402,31 @@ def add_tasks_to_task_group(
                     ),
                 )
             ]
-            intermediate_files = [
+            verify_at_start = [
                 TaskInput.from_task_namespace(
                     f"{ID}/{file}", verification=TaskInputVerification.VERIFY_AT_START
                 )
                 for file in task.get(
-                    INTERMEDIATE_FILES, task_group_data.get(INTERMEDIATE_FILES, [])
+                    VERIFY_AT_START,
+                    task_group_data.get(
+                        VERIFY_AT_START,
+                        tasks_data.get(VERIFY_AT_START, CONFIG_WR.verify_at_start),
+                    ),
                 )
             ]
-            input_files += intermediate_files
+            input_files += verify_at_start
+            verify_wait = [
+                TaskInput.from_task_namespace(
+                    f"{ID}/{file}", verification=TaskInputVerification.VERIFY_WAIT
+                )
+                for file in task.get(
+                    VERIFY_WAIT,
+                    task_group_data.get(
+                        VERIFY_WAIT, tasks_data.get(VERIFY_WAIT, CONFIG_WR.verify_wait)
+                    ),
+                )
+            ]
+            input_files += verify_wait
             output_files = [
                 TaskOutput.from_worker_directory(file)
                 for file in task.get(

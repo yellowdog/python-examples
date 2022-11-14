@@ -24,7 +24,6 @@ IMPORT = "import"  # String
 INITIAL_NODES = "targetInstanceCount"  # Integer
 INPUT_FILES = "inputs"  # List of Strings
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
-INTERMEDIATE_FILES = "intermediateInputs"  # List of Strings
 KEY = "key"  # String
 MAX_NODES = "maxNodes"  # Integer
 MAX_RETRIES = "maximumTaskRetries"  # Integer
@@ -50,6 +49,8 @@ TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
 URL = "url"  # String
 VCPUS = "vcpus"  # List of two Floats
+VERIFY_AT_START = "verifyAtStart"  # List of Strings
+VERIFY_WAIT = "verifyWait"  # List of Strings
 WORKERS_PER_NODE = "workersPerNode"  # Integer
 WORKER_POOL_SECTION = "workerPool"  # String
 WORKER_TAG = "workerTag"  # String
@@ -87,7 +88,6 @@ ALL_KEYS = [
     INITIAL_NODES,
     INPUT_FILES,
     INSTANCE_TYPES,
-    INTERMEDIATE_FILES,
     KEY,
     MAX_NODES,
     MAX_RETRIES,
@@ -112,6 +112,8 @@ ALL_KEYS = [
     TEMPLATE_ID,
     URL,
     VCPUS,
+    VERIFY_AT_START,
+    VERIFY_WAIT,
     WORKERS_PER_NODE,
     WORKER_POOL_SECTION,
     WORKER_TAG,
