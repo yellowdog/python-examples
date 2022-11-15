@@ -109,6 +109,22 @@ class CLIParser:
                 required=False,
                 help="follow the work requirement's progress to completion",
             )
+            parser.add_argument(
+                "--executable",
+                "-x",
+                type=str,
+                required=False,
+                help="the executable to use",
+                metavar="<executable>",
+            )
+            parser.add_argument(
+                "--task-type",
+                "-a",
+                type=str,
+                required=False,
+                help="the task type to use",
+                metavar="<task_type>",
+            )
 
         if any(module in sys.argv[0] for module in ["provision"] + all_options_modules):
             parser.add_argument(
@@ -290,6 +306,14 @@ class CLIParser:
         return self.args.work_requirement
 
     @property
+    def executable(self) -> Optional[str]:
+        return self.args.executable
+
+    @property
+    def task_type(self) -> Optional[str]:
+        return self.args.task_type
+
+    @property
     def worker_pool_file(self) -> Optional[str]:
         return self.args.worker_pool
 
@@ -366,6 +390,8 @@ if __name__ == "__main__":
     print("url =", args.url)
     print("mustache substitutions =", args.mustache_subs)
     print("work requirement file =", args.work_req_file)
+    print("executable =", args.executable)
+    print("task type =", args.task_type)
     print("worker pool file =", args.worker_pool_file)
     print("follow =", args.follow)
     print("abort =", args.abort)
@@ -373,9 +399,9 @@ if __name__ == "__main__":
     print("interactive =", args.interactive)
     print("yes (proceed without confirmation) =", args.yes)
     print("quiet =", args.quiet)
-    print("work-requirements", args.work_requirements)
-    print("task-groups", args.task_groups)
-    print("tasks", args.tasks)
-    print("worker-pools", args.worker_pools)
-    print("compute-requirements", args.compute_requirements)
-    print("live-only", args.live_only)
+    # print("work-requirements", args.work_requirements)
+    # print("task-groups", args.task_groups)
+    # print("tasks", args.tasks)
+    # print("worker-pools", args.worker_pools)
+    # print("compute-requirements", args.compute_requirements)
+    # print("live-only", args.live_only)

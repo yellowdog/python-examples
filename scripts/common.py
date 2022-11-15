@@ -280,8 +280,8 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
     except KeyError:
         return ConfigWorkRequirement()
     try:
-        worker_tags = wr_section.get(WORKER_TAGS, None)
         # Allow WORKER_TAG if WORKER_TAGS is empty
+        worker_tags = wr_section.get(WORKER_TAGS, None)
         if worker_tags is None:
             try:
                 worker_tags = [wr_section[WORKER_TAG]]
@@ -290,9 +290,23 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         if worker_tags is not None:
             for index, worker_tag in enumerate(worker_tags):
                 worker_tags[index] = mustache_substitution(worker_tag)
+
         tasks_data_file = wr_section.get(WR_DATA, None)
         if tasks_data_file is not None:
             tasks_data_file = pathname_relative_to_config_file(tasks_data_file)
+
+        # Check for properties set on the command line
+        executable = (
+            wr_section.get(EXECUTABLE, wr_section.get(EXECUTABLE, None))
+            if ARGS_PARSER.executable is None
+            else ARGS_PARSER.executable
+        )
+        task_type = (
+            wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, "bash"))
+            if ARGS_PARSER.task_type is None
+            else ARGS_PARSER.task_type
+        )
+
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),
             auto_fail=wr_section.get(AUTO_FAIL, True),
@@ -300,11 +314,15 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, True),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             docker_env=wr_section.get(DOCKER_ENV, None),
-            docker_password=wr_section.get(DOCKER_PASSWORD, None),
-            docker_username=wr_section.get(DOCKER_USERNAME, None),
+            docker_password=mustache_substitution(
+                wr_section.get(DOCKER_PASSWORD, None)
+            ),
+            docker_username=mustache_substitution(
+                wr_section.get(DOCKER_USERNAME, None)
+            ),
             env=wr_section.get(ENV, {}),
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
-            executable=wr_section.get(EXECUTABLE, wr_section.get(BASH_SCRIPT, None)),
+            executable=mustache_substitution(executable),
             fulfil_on_submit=wr_section.get(FULFIL_ON_SUBMIT, False),
             input_files=wr_section.get(INPUT_FILES, []),
             instance_types=wr_section.get(INSTANCE_TYPES, None),
@@ -317,7 +335,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             ram=wr_section.get(RAM, None),
             regions=wr_section.get(REGIONS, None),
             task_count=wr_section.get(TASK_COUNT, 1),
-            task_type=wr_section.get(TASK_TYPE, "bash"),
+            task_type=mustache_substitution(task_type),
             tasks_data_file=tasks_data_file,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
             vcpus=wr_section.get(VCPUS, None),

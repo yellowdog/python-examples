@@ -500,9 +500,9 @@ Showing all possible properties at the Task level:
 
 ### Mustache Template Directives in Work Requirement Properties
 
-Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives-in-common-properties) for more details on Mustache directives.
+Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives-in-common-properties) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line.
 
-To suppress all Mustache processing within a Work Requirement JSON file, `yd-submit` can be run with the `--no-mustache` option.
+To suppress all Mustache processing within a Work Requirement JSON file, `yd-submit` can be run with the `--no-mustache` option. All mustache directives will be ignored, i.e., the {{foobar}} form will remain in the Work Requirement.
 
 ## Worker Pool Properties
 
