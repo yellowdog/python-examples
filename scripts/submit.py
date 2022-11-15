@@ -427,6 +427,8 @@ def add_tasks_to_task_group(
                 )
             ]
             input_files += verify_wait
+
+            # Set up output files
             output_files = [
                 TaskOutput.from_worker_directory(file)
                 for file in task.get(
