@@ -18,6 +18,7 @@ DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
 EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
 EXECUTABLE = "executable"  # String
+FLATTEN_PATHS = "flattenInputPaths"  # Boolean
 FULFIL_ON_SUBMIT = "fulfilOnSubmit"  # Boolean
 IMPORT = "import"  # String
 INITIAL_NODES = "targetInstanceCount"  # Integer
@@ -80,6 +81,7 @@ ALL_KEYS = [
     ENV,
     EXCLUSIVE_WORKERS,
     EXECUTABLE,
+    FLATTEN_PATHS,
     FULFIL_ON_SUBMIT,
     IMPORT,
     INITIAL_NODES,

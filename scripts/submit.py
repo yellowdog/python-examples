@@ -17,6 +17,7 @@ from yellowdog_client.common.server_sent_events import (
 from yellowdog_client.model import (
     CloudProvider,
     DoubleRange,
+    FlattenPath,
     ObjectPath,
     ObjectPathsRequest,
     RunSpecification,
@@ -385,6 +386,8 @@ def add_tasks_to_task_group(
             env = task.get(
                 ENV, task_group_data.get(ENV, tasks_data.get(ENV, CONFIG_WR.env))
             )
+
+            # Set up input files
             input_files = [
                 TaskInput.from_task_namespace(
                     unique_upload_pathname(file), required=True
@@ -422,6 +425,7 @@ def add_tasks_to_task_group(
                 ),
             ):
                 output_files.append(TaskOutput.from_task_process())
+
             # If there's no task type in the task definition, and
             # there's only one task type at the task group level, use it
             try:
@@ -431,6 +435,7 @@ def add_tasks_to_task_group(
                     task_type = task_group.runSpecification.taskTypes[0]
                 else:
                     task_type = CONFIG_WR.task_type
+
             tasks_list.append(
                 create_task(
                     tasks_data=tasks_data,
@@ -446,12 +451,14 @@ def add_tasks_to_task_group(
                     uploaded_files=uploaded_files,
                 )
             )
+
         CLIENT.work_client.add_tasks_to_task_group_by_name(
             CONFIG_COMMON.namespace,
             work_requirement.name,
             task_group.name,
             tasks_list,
         )
+
         if num_task_batches > 1:
             print_log(
                 f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} : "
@@ -537,10 +544,20 @@ def create_task(
     This is where to define a new Task Type and to set up how it's run.
     """
 
+    # Flatten paths for downloaded files?
+    flatten_input_paths: Optional[FlattenPath] = None
+    if task_data.get(
+        FLATTEN_PATHS,
+        task_group_data.get(
+            FLATTEN_PATHS,
+            tasks_data.get(FLATTEN_PATHS, CONFIG_WR.flatten_input_paths),
+        ),
+    ):
+        flatten_input_paths = FlattenPath.FILE_NAME_ONLY
+
     # Special processing for Bash tasks. The Bash script is uploaded if not
     # already done, and added to the list of required files.
     if task_type == "bash":
-        args = [unique_upload_pathname(executable)] + args
         if executable not in uploaded_files:
             upload_file(executable)
             uploaded_files.append(executable)
@@ -549,6 +566,11 @@ def create_task(
         )
         if task_input not in inputs:
             inputs.append(task_input)
+        args = [
+            unique_upload_pathname(executable)
+            if flatten_input_paths is None
+            else executable
+        ] + args
 
     # Special processing for Docker tasks. Sets up the '-e' environment strings
     # and the DockerHub username and password if specified.
@@ -605,6 +627,7 @@ def create_task(
         inputs=inputs,
         environment=env,
         outputs=outputs,
+        flattenInputPaths=flatten_input_paths,
     )
 
 
