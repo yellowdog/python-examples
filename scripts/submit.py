@@ -231,7 +231,7 @@ def create_task_group(
 ) -> (TaskGroup, List[str]):
     """
     Create a Task Group and return the list of unique input files required by
-    the Tasks in the Task Group
+    the Tasks in the Task Group.
     """
 
     # Remap 'task_type' to 'task_types' in the Task Group if 'task_types'
@@ -397,43 +397,51 @@ def add_tasks_to_task_group(
                 ENV, task_group_data.get(ENV, tasks_data.get(ENV, CONFIG_WR.env))
             )
 
-            # Set up input files
+            # Set up lists of files to input, verify
+            input_files_list = task.get(
+                INPUT_FILES,
+                task_group_data.get(
+                    INPUT_FILES,
+                    tasks_data.get(INPUT_FILES, CONFIG_WR.input_files),
+                ),
+            )
+            verify_at_start_files_list = task.get(
+                VERIFY_AT_START,
+                task_group_data.get(
+                    VERIFY_AT_START,
+                    tasks_data.get(VERIFY_AT_START, CONFIG_WR.verify_at_start),
+                ),
+            )
+            verify_wait_files_list = task.get(
+                VERIFY_WAIT,
+                task_group_data.get(
+                    VERIFY_WAIT, tasks_data.get(VERIFY_WAIT, CONFIG_WR.verify_wait)
+                ),
+            )
+
+            check_for_duplicates_in_file_lists(
+                input_files_list, verify_at_start_files_list, verify_wait_files_list
+            )
+
             input_files = [
                 TaskInput.from_task_namespace(
                     unique_upload_pathname(file),
                     verification=TaskInputVerification.VERIFY_AT_START,
                 )
-                for file in task.get(
-                    INPUT_FILES,
-                    task_group_data.get(
-                        INPUT_FILES,
-                        tasks_data.get(INPUT_FILES, CONFIG_WR.input_files),
-                    ),
-                )
+                for file in input_files_list
             ]
             verify_at_start = [
                 TaskInput.from_task_namespace(
                     f"{ID}/{file}", verification=TaskInputVerification.VERIFY_AT_START
                 )
-                for file in task.get(
-                    VERIFY_AT_START,
-                    task_group_data.get(
-                        VERIFY_AT_START,
-                        tasks_data.get(VERIFY_AT_START, CONFIG_WR.verify_at_start),
-                    ),
-                )
+                for file in verify_at_start_files_list
             ]
             input_files += verify_at_start
             verify_wait = [
                 TaskInput.from_task_namespace(
                     f"{ID}/{file}", verification=TaskInputVerification.VERIFY_WAIT
                 )
-                for file in task.get(
-                    VERIFY_WAIT,
-                    task_group_data.get(
-                        VERIFY_WAIT, tasks_data.get(VERIFY_WAIT, CONFIG_WR.verify_wait)
-                    ),
-                )
+                for file in verify_wait_files_list
             ]
             input_files += verify_wait
 
@@ -557,6 +565,35 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     _delete_objects()
 
 
+def check_for_duplicates_in_file_lists(
+    input_files_list: List[str],
+    verify_at_start_list: List[str],
+    verify_wait_list: List[str],
+):
+    """
+    Tests for duplicates in file lists. If duplicates found, print an error
+    and raise an Exception.
+    """
+    input_files_set = set(input_files_list)
+    verify_at_start_set = set(verify_at_start_list)
+    verify_wait_set = set(verify_wait_list)
+    intersection = input_files_set.intersection(verify_at_start_set)
+    if len(intersection) != 0:
+        raise Exception(
+            f"Duplicate files in 'inputs' and 'verifyAtStart' lists: {intersection}"
+        )
+    intersection = input_files_set.intersection(verify_wait_set)
+    if len(intersection) != 0:
+        raise Exception(
+            f"Duplicate files in 'inputs' and 'verifyWait' lists: {intersection}"
+        )
+    intersection = verify_at_start_set.intersection(verify_wait_set)
+    if len(intersection) != 0:
+        raise Exception(
+            f"Duplicate files in 'verifyWait' and 'verifyAtStart' lists: {intersection}"
+        )
+
+
 def create_task(
     tasks_data: Dict,
     task_group_data: Dict,
@@ -596,7 +633,8 @@ def create_task(
             unique_upload_pathname(executable),
             verification=TaskInputVerification.VERIFY_AT_START,
         )
-        if task_input not in inputs:
+        # Avoid duplicate TaskInputs
+        if task_input.objectNamePattern not in [x.objectNamePattern for x in inputs]:
             inputs.append(task_input)
         args = [
             unique_upload_pathname(executable)
