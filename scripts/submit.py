@@ -53,7 +53,7 @@ CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 
 ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
-INPUT_FOLDER_NAME = "inputs"
+INPUT_FOLDER_NAME = None
 
 
 @main_wrapper
@@ -131,7 +131,7 @@ def unique_upload_pathname(
     if urlencode_forward_slash is True:
         filename = filename.replace("/", forward_slash)
     if input_folder_name is not None:
-        return ID + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
+        return ID + forward_slash + input_folder_name + forward_slash + filename
     else:
         return ID + forward_slash + filename
 
