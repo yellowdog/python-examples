@@ -82,12 +82,14 @@ def main():
         )
 
 
-def upload_file(filename: str):
+def upload_file(filename: str, input_folder_name: Optional[str] = INPUT_FOLDER_NAME):
     """
     Upload a local file to the YD Object Store.
     """
     pathname = Path(filename)
-    dest_filename = unique_upload_pathname(filename)
+    dest_filename = unique_upload_pathname(
+        filename, input_folder_name=input_folder_name
+    )
     CLIENT.object_store_client.start_transfers()
     session = CLIENT.object_store_client.create_upload_session(
         CONFIG_COMMON.namespace,
@@ -102,7 +104,7 @@ def upload_file(filename: str):
         # Continue here?
     else:
         uploaded_pathname = unique_upload_pathname(
-            filename, urlencode_forward_slash=True
+            filename, input_folder_name=input_folder_name, urlencode_forward_slash=True
         )
         link_ = link(
             CONFIG_COMMON.url,
@@ -111,7 +113,11 @@ def upload_file(filename: str):
         print_log(f"Uploaded file '{filename}': {link_}")
 
 
-def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False) -> str:
+def unique_upload_pathname(
+    filename: str,
+    input_folder_name: Optional[str] = INPUT_FOLDER_NAME,
+    urlencode_forward_slash: bool = False,
+) -> str:
     """
     Maps the local filename into a uniquely identified upload object
     in the YD Object Store. Optionally replaces forward slashes.
@@ -124,7 +130,10 @@ def unique_upload_pathname(filename: str, urlencode_forward_slash: bool = False)
     forward_slash = "%2F" if urlencode_forward_slash else "/"
     if urlencode_forward_slash is True:
         filename = filename.replace("/", forward_slash)
-    return ID + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
+    if input_folder_name is not None:
+        return ID + forward_slash + INPUT_FOLDER_NAME + forward_slash + filename
+    else:
+        return ID + forward_slash + filename
 
 
 def submit_work_requirement(
