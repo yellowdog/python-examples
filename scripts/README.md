@@ -356,6 +356,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     environment = {MY_VAR = 100}
     exclusiveWorkers = false
     executable = "my-container"
+    flattenInputPaths = false
     fulfilOnSubmit = false
     inputs = [
         "../app/main.py",
@@ -395,6 +396,7 @@ Showing all possible properties at the Work Requirement level:
   "environment": {"MY_VAR": 100},
   "exclusiveWorkers": false,
   "executable": "my-container",
+  "flattenInputPaths": false,
   "fulfilOnSubmit": false,
   "inputs": ["app/main.py", "app/requirements.txt"],
   "instanceTypes": ["t3a.micro", "t3.micro"],
@@ -439,6 +441,7 @@ Showing all possible properties at the Task Group level:
       "environment": {"MY_VAR": 100},
       "exclusiveWorkers": false,
       "executable": "my-container",
+      "flattenInputPaths": false,
       "inputs": ["app/main.py", "app/requirements.txt"],
       "instanceTypes": ["t3a.micro", "t3.micro"],
       "intermediateInputs": [],
@@ -487,6 +490,7 @@ Showing all possible properties at the Task level:
           "dockerUsername": "myUsername",
           "environment": {"MY_VAR": 100},
           "executable": "my-container",
+          "flattenInputPaths": false,
           "inputs": ["app/main.py", "app/requirements.txt"],
           "intermediateInputs": [],
           "name": "my-task",
