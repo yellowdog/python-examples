@@ -3,6 +3,9 @@ import re
 
 import setuptools  # type: ignore
 
+with open("PYPI_README.md", "r") as fh:
+    long_description = fh.read()
+
 src = io.open("__init__.py", encoding="utf-8").read()
 metadata = dict(re.findall('__([a-z]+)__ = "([^"]+)"', src))
 
@@ -13,8 +16,11 @@ setuptools.setup(
     name="yellowdog-python-examples",
     version=VERSION,
     author="YellowDog Limited",
-    description="YellowDog Python Example Scripts",
-    url="https://github.com/yellowdog/python-examples",
+    author_email="support@yellowdog.co",
+    description="Example scripts using the YellowDog Python SDK",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/yellowdog/python-examples/tree/main/scripts",
     py_modules=[
         "__init__",
         "abort",
@@ -39,7 +45,9 @@ setuptools.setup(
         "wrapper",
     ],
     classifiers=[
+        "Programming Language :: Python",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Development Status :: 4 - Beta",

@@ -53,7 +53,7 @@
 
 # Overview
 
-This repository contains a set of command line Python scripts for interacting with the YellowDog Platform. The scripts use the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/api.html), and support:
+This repository contains a set of command line Python scripts for interacting with the YellowDog Platform. The scripts use the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html), and support:
 
 - **Provisioning** Worker Pools
 - **Submitting** Work Requirements
@@ -67,27 +67,15 @@ The operation of the commands is controlled using TOML configuration files. In a
 
 # Installation
 
-Requirements for installation:
+Python version 3.7 or later is required. It's recommended that installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
 
-1. Python version 3.7+
-2. Git
-
-It's recommended that installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python instances on your system.
-
-At present, the scripts are installed and updated directly from this GitHub repository using `pip`. The installation process will put a number of commands prefixed with `yd-` on the PATH created by your virtual environment.
-
-## Initial Installation
+Installation is via `pip` and PyPI using: 
 
 ```shell
-pip install -U pip wheel
-pip install -U git+https://github.com/yellowdog/python-examples#subdirectory=scripts
+pip install -U yellowdog-python-examples
 ```
 
-## Update
-
-```shell
-pip install -U --force-reinstall --no-deps git+https://github.com/yellowdog/python-examples#subdirectory=scripts
-```
+The command line above is also used to update the commands.
 
 # Usage
 
@@ -524,25 +512,23 @@ To suppress all Mustache processing within a Work Requirement JSON file, `yd-sub
 
 ### File Storage Locations and File Usage
 
-This section discusses how to upload files from local storage to the YellowDog Object Store, how those files are transferred to Worker Nodes for Task processing, how the results of Task processing are returned by Worker nodes, and how files are transferred back from YellowDog to local storage.
+This section discusses how to upload files from local storage to the YellowDog Object Store, how those files are transferred to Worker Nodes for Task processing, how the results of Task processing are returned by Worker Nodes, and how files are transferred back from the YellowDog Object Store to local storage.
 
 #### Files Uploaded to the Object Store from Local Storage
 
 When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the case of the `bash` Task Type, the script specified in the `executable` property is also automatically uploaded as a convenience, even if not included in the `inputs` list.)
 
-Files are uploaded to the Namespace specified in the configuration. Within the Namespace, each Work Requirement has a separate folder that shares the name of the Work Requirement, and in which all files related to the Work Requirement are atored.
+Files are uploaded to the Namespace specified in the configuration. Within the Namespace, each Work Requirement has a separate folder that shares the name of the Work Requirement, and in which all files related to the Work Requirement are stored.
 
-Assuming a Namespace called `development` and a Work Requirement named `testrun_221108-120404-7d2`, the following locations are used when uploading files:
-
-1. Files that are in the **same directory as the Work Requirement specification** (the TOML or JSON file) are uploaded to the root of the Work Requirement folder.
+1. Files to be uploaded that are in the **same directory as the Work Requirement specification** (the TOML or JSON file) are uploaded to the root of the Work Requirement folder.
 
 
-2. Files that are in **subdirectories below the Work Requirement specification, or where absolute pathnames are supplied** are placed in the Object store in directories that mirror their local storage locations.
+2. Files to be uploaded that are in **subdirectories below the Work Requirement specification, or where absolute pathnames are supplied** are placed in the Object Store in directories that mirror their local storage locations.
 
 
-3. Files that are in **directories relative to the Work Requirement specification, using `..` relative paths** are placed in Object Store directories in which the `..` parts of the pathname are replaced with an integer count of the number of `..` entries (because we can't use the `..` relative form in the Object Store).
+3. Files to be uploaded that are in **directories relative to the Work Requirement specification, using `..` relative paths** are placed in Object Store directories in which the `..` parts of the pathname are replaced with an integer count of the number of `..` entries (because we can't use the `..` relative form in the Object Store).
 
-For example:
+Assuming a Namespace called `development` and a Work Requirement named `testrun_221108-120404-7d2`, the following locations are used when uploading files following the patterns above:
 
 ```shell
 "inputs" : ["file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
@@ -554,9 +540,9 @@ For example:
 
 #### Files Downloaded to a Node for use in Task Execution
 
-When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. (Note that a file should only appear in one of these lists, otherwise `yd-submit` will return an error.)
+When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. (Note that a file should only appear in one of these three lists, otherwise `yd-submit` will return an error.)
 
-When a Task is started by the Agent, its working directory is something like:
+When a Task is started by the Agent, its working directory has a pattern something like:
 
 `/var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1`
 
@@ -567,7 +553,7 @@ Files that are downloaded by the Agent prior to Task execution are located as fo
 1. If the `flattenInputPaths` property is set to `false` for the Task (this is the default), the downloaded objects are placed in subdirectories that mirror those in the Object Store, including the Work Requirement name, situated beneath the working directory.
 
 
-2. If the `flattenInputPaths` property is set to `true` for the Task, the downloaded objects are all placed directly in the Task's working directory.
+2. If the `flattenInputPaths` property is set to `true` for the Task, the downloaded objects are all placed directly in root of the Task's working directory.
 
 For example:
 
@@ -588,13 +574,13 @@ where <working_directory> is:
 
 After Task completion, the Agent will upload specified output files to the Object Store. The files to be uploaded are those listed in the `outputs` property for the Task.
 
-In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded is determined by the `captureTaskOutput` property for the Task, and this is set to 'true' by default.
+In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded to the Object Store is determined by the `captureTaskOutput` property for the Task, and this is set to 'true' by default.
 
 If Task outputs are created in subdirectories below the Task's working directory, include the directories for files in the `outputs` property. E.g., if a Task creates files `results/openfoam.tar.gz` and `results/openfoam.log`, then specify these for upload in the `outputs` property as follows:
 
 `"outputs": ["results/openfoam.tar.gz", "results/openfoam.log"]`
 
-When output files are uploaded to the Object Store, they are placed in a Task-specific directory. So, if the Namespace is `development`, the Work Requirement is `testrun_221108-120404-7d2`, the Task Group is `task_group_1` and the Task is `task_1`, then the files above would be uploaded to the Object Store as follows:
+When output files are uploaded to the Object Store, they are placed in a Task Group and Task specific directory. So, if the Namespace is `development`, the Work Requirement is `testrun_221108-120404-7d2`, the Task Group is `task_group_1` and the Task is `task_1`, then the files above would be uploaded to the Object Store as follows:
 
 ```shell
 development:testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.tar.gz
@@ -650,7 +636,7 @@ The following properties are available:
 
 ### Automatic Properties
 
-The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `WP_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `wp_mytag_221024T155524-b0a`.
+The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `wp_mytag_221024-155524-b0a`.
 
 ### Worker Pool JSON File Structure
 
