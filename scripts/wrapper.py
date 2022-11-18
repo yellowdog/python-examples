@@ -31,7 +31,8 @@ def main_wrapper(func):
                 exit_code = 1
             finally:
                 CLIENT.close()
-                print_log("Done")
+                if exit_code == 0:
+                    print_log("Done")
                 exit(exit_code)
         else:
             func()
