@@ -27,6 +27,11 @@
          * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
          * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
       * [Mustache Template Directives in Work Requirement Properties](#mustache-template-directives-in-work-requirement-properties)
+      * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
+         * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
+         * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
+         * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
+         * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
    * [Worker Pool Properties](#worker-pool-properties)
       * [Automatic Properties](#automatic-properties-1)
       * [Worker Pool JSON File Structure](#worker-pool-json-file-structure)
@@ -42,7 +47,7 @@
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Nov  4 13:29:59 GMT 2022 -->
+<!-- Added by: pwt, at: Fri Nov 18 11:56:17 GMT 2022 -->
 
 <!--te-->
 
@@ -515,11 +520,116 @@ Showing all possible properties at the Task level:
 
 Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives-in-common-properties) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line.
 
-To suppress all Mustache processing within a Work Requirement JSON file, `yd-submit` can be run with the `--no-mustache` option. All mustache directives will be ignored, i.e., the {{foobar}} form will remain in the Work Requirement.
+To suppress all Mustache processing within a Work Requirement JSON file, `yd-submit` can be run with the `--no-mustache` option. All mustache directives will be ignored, i.e., the {{foobar}} double-bracketed form will remain in the Work Requirement.
+
+### File Storage Locations and File Usage
+
+This section discusses how to upload files from local storage to the YellowDog Object Store, how those files are transferred to Worker Nodes for Task processing, how the results of Task processing are returned by Worker nodes, and how files are transferred back from YellowDog to local storage.
+
+#### Files Uploaded to the Object Store from Local Storage
+
+When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the case of the `bash` Task Type, the script specified in the `executable` property is also automatically uploaded as a convenience, even if not included in the `inputs` list.)
+
+Files are uploaded to the Namespace specified in the configuration. Within the Namespace, each Work Requirement has a separate folder that shares the name of the Work Requirement, and in which all files related to the Work Requirement are atored.
+
+Assuming a Namespace called `development` and a Work Requirement named `testrun_221108-120404-7d2`, the following locations are used when uploading files:
+
+1. Files that are in the **same directory as the Work Requirement specification** (the TOML or JSON file) are uploaded to the root of the Work Requirement folder.
+
+
+2. Files that are in **subdirectories below the Work Requirement specification, or where absolute pathnames are supplied** are placed in the Object store in directories that mirror their local storage locations.
+
+
+3. Files that are in **directories relative to the Work Requirement specification, using `..` relative paths** are placed in Object Store directories in which the `..` parts of the pathname are replaced with an integer count of the number of `..` entries (because we can't use the `..` relative form in the Object Store).
+
+For example:
+
+```shell
+"inputs" : ["file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["dev/file_1.txt"] -> development:testrun_221108-120404-7d2/dev/file_1.txt
+"inputs" : ["/home/dev/file_1.txt"] -> development:testrun_221108-120404-7d2/home/dev/file_1.txt
+"inputs" : ["../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/1/dev/file_1.txt
+"inputs" : ["../../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/2/dev/file_1.txt
+```
+
+#### Files Downloaded to a Node for use in Task Execution
+
+When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. (Note that a file should only appear in one of these lists, otherwise `yd-submit` will return an error.)
+
+When a Task is started by the Agent, its working directory is something like:
+
+`/var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1`
+
+(This is an ephemeral directory that is removed after the Task finishes and any outputs have been uploaded.)
+
+Files that are downloaded by the Agent prior to Task execution are located as follows:
+
+1. If the `flattenInputPaths` property is set to `false` for the Task (this is the default), the downloaded objects are placed in subdirectories that mirror those in the Object Store, including the Work Requirement name, situated beneath the working directory.
+
+
+2. If the `flattenInputPaths` property is set to `true` for the Task, the downloaded objects are all placed directly in the Task's working directory.
+
+For example:
+
+```shell
+If the required object is: development:testrun_221108-120404-7d2/dev/file_1.txt
+
+then, if flattenInputPaths is false, the file will be found at:
+ -> <working_directory>/testrun_221108-120404-7d2/dev/file_1.txt
+ 
+else, if flattenInputPaths is true, the file will be found at:
+ -> <working_directory>/file_1.txt 
+ 
+where <working_directory> is:
+  /var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
+```
+
+#### Files Uploaded from a Node to the Object Store after Task Execution
+
+After Task completion, the Agent will upload specified output files to the Object Store. The files to be uploaded are those listed in the `outputs` property for the Task.
+
+In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded is determined by the `captureTaskOutput` property for the Task, and this is set to 'true' by default.
+
+If Task outputs are created in subdirectories below the Task's working directory, include the directories for files in the `outputs` property. E.g., if a Task creates files `results/openfoam.tar.gz` and `results/openfoam.log`, then specify these for upload in the `outputs` property as follows:
+
+`"outputs": ["results/openfoam.tar.gz", "results/openfoam.log"]`
+
+When output files are uploaded to the Object Store, they are placed in a Task-specific directory. So, if the Namespace is `development`, the Work Requirement is `testrun_221108-120404-7d2`, the Task Group is `task_group_1` and the Task is `task_1`, then the files above would be uploaded to the Object Store as follows:
+
+```shell
+development:testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.tar.gz
+development:testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.log
+development:testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
+```
+
+#### Files Downloaded from the Object Store to Local Storage
+
+The `yd-download` command will download all objects from the Object Store to a local directory, on a per Work Requirement basis. A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
+
+Use the `--interactive` option with `yd-download` to select which Work Requirement(s) to download.
+
+For the example above, `yd-download` would create a directory called `development` in the current working directory, containing something like:
+
+```shell
+development
+└── testrun_221108-120404-7d2
+    ├── file_1.txt
+    ├── task_group_1
+    │ └── task_1
+    │     ├── results
+    │     |   └── openfoam.tar.gz
+    │     |   └── openfoam.log
+    │     └── taskoutput.txt
+    └── bash_script.sh
+```
+
+Note that everything within the `namespace:work-requirement` directory in the Object Store is downloaded, including any files that were specified in `inputs` and uploaded as part of the Work Requirement submission. Multiple Task Groups, and multiple Tasks will all appear in the directory structure.
+
+If the `development` directory already exists, `yd-download` will try `development.01`, etc., to avoid overwriting previous downloads.
 
 ## Worker Pool Properties
 
-The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. The only mandatory property is the `templateId`. All other properties have defaults (or are not required).
+The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. The only mandatory property is `templateId`. All other properties have defaults (or are not required).
 
 The following properties are available:
 
