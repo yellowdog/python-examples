@@ -50,7 +50,6 @@ YD_URL = "YD_URL"
 @dataclass
 class ConfigWorkRequirement:
     args: List[str] = field(default_factory=list)
-    auto_fail: bool = True
     bash_script: Optional[str] = None
     capture_taskoutput: bool = True
     completed_task_ttl: Optional[float] = None  # In minutes
@@ -60,6 +59,7 @@ class ConfigWorkRequirement:
     env: Dict = field(default_factory=dict)
     exclusive_workers: Optional[bool] = None
     executable: Optional[str] = None
+    finish_if_any_task_failed: bool = True
     flatten_input_paths: Optional[bool] = None
     flatten_upload_paths: Optional[bool] = None
     fulfil_on_submit: bool = False
@@ -313,7 +313,6 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
 
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),
-            auto_fail=wr_section.get(AUTO_FAIL, True),
             bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
             capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, True),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
@@ -327,6 +326,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             env=wr_section.get(ENV, {}),
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
             executable=mustache_substitution(executable),
+            finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, True),
             flatten_input_paths=wr_section.get(FLATTEN_PATHS, None),
             flatten_upload_paths=wr_section.get(FLATTEN_UPLOAD_PATHS, None),
             fulfil_on_submit=wr_section.get(FULFIL_ON_SUBMIT, False),

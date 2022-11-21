@@ -3,7 +3,6 @@ Configuration key strings
 """
 
 ARGS = "arguments"  # List
-AUTO_FAIL = "autoFail"  # Boolean
 AUTO_SCALING_IDLE_DELAY = "autoscalingIdleDelay"  # Float
 AUTO_SHUTDOWN = "autoShutdown"  # Boolean
 AUTO_SHUTDOWN_DELAY = "autoShutdownDelay"  # Float
@@ -18,6 +17,7 @@ DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
 EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
 EXECUTABLE = "executable"  # String
+FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
 FLATTEN_PATHS = "flattenInputPaths"  # Boolean
 FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
 FULFIL_ON_SUBMIT = "fulfilOnSubmit"  # Boolean
@@ -67,7 +67,7 @@ BASH_SCRIPT = "bashScript"  # String
 
 ALL_KEYS = [
     ARGS,
-    AUTO_FAIL,
+    FINISH_IF_ANY_TASK_FAILED,
     AUTO_SCALING_IDLE_DELAY,
     AUTO_SHUTDOWN,
     AUTO_SHUTDOWN_DELAY,

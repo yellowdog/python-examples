@@ -1,4 +1,4 @@
-yellowdog-sdk >= 4.0.1
+yellowdog-sdk >= 4.0.4
 toml
 chevron
 tabulate
