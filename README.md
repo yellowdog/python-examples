@@ -619,14 +619,14 @@ For the example above, `yd-download` would create a directory called `developmen
 ```shell
 development
 └── testrun_221108-120404-7d2
+    ├── bash_script.sh
     ├── file_1.txt
-    ├── task_group_1
-    │ └── task_1
-    │     ├── results
-    │     |   └── openfoam.tar.gz
-    │     |   └── openfoam.log
-    │     └── taskoutput.txt
-    └── bash_script.sh
+    └── task_group_1
+        └── task_1
+            ├── results
+            │   ├── openfoam.log
+            │   └── openfoam.tar.gz
+            └── taskoutput.txt
 ```
 
 Note that everything within the `namespace:work-requirement` directory in the Object Store is downloaded, including any files that were specified in `inputs` and uploaded as part of the Work Requirement submission. Multiple Task Groups, and multiple Tasks will all appear in the directory structure.
