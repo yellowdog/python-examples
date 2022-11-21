@@ -71,7 +71,7 @@ def main():
                 )
             elif work_summary.status == WorkRequirementStatus.CANCELLING:
                 print_log(
-                    f"Work Requirement '{work_summary.name} is already cancelling"
+                    f"Work Requirement '{work_summary.name}' is already cancelling"
                 )
                 cancelling_count += 1
         if cancelled_count > 0:
