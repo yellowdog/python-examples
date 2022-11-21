@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := no_op
 
-SRC = *.py
+SRC = yd_commands/*.py
 TESTS =
 MANIFEST = LICENSE README.md requirements.txt
 BUILD_DIST = build dist yellowdog_python_examples.egg-info

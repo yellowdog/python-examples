@@ -32,8 +32,8 @@ from yellowdog_client.model import (
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
-from args import ARGS_PARSER
-from common import (
+from .args import ARGS_PARSER
+from .common import (
     CONFIG_FILE_DIR,
     ConfigWorkRequirement,
     generate_id,
@@ -43,9 +43,9 @@ from common import (
     load_json_file,
     load_json_file_with_mustache_substitutions,
 )
-from config_keys import *
-from printing import print_error, print_log
-from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from .config_keys import *
+from .printing import print_error, print_log
+from .wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()

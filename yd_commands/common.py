@@ -25,9 +25,9 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
-from args import ARGS_PARSER
-from config_keys import *
-from printing import print_error, print_log
+from .args import ARGS_PARSER
+from .config_keys import *
+from .printing import print_error, print_log
 
 
 @dataclass

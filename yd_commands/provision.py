@@ -22,10 +22,10 @@ from yellowdog_client.model import (
     UnclaimedAfterStartupShutdownCondition,
 )
 
-from args import ARGS_PARSER
-from common import ConfigWorkerPool, generate_id, link_entity, load_config_worker_pool
-from printing import print_error, print_log
-from wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from .args import ARGS_PARSER
+from .common import ConfigWorkerPool, generate_id, link_entity, load_config_worker_pool
+from .printing import print_error, print_log
+from .wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
 # Specifies the cardinality for a Worker Pool batch

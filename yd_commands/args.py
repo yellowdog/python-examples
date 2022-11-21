@@ -91,7 +91,7 @@ class CLIParser:
             help="suppress (non-error, non-interactive) status and progress messages",
         )
 
-        all_options_modules = ["args", "which-config"]
+        all_options_modules = ["args"]
 
         if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
             parser.add_argument(

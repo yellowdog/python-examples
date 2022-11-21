@@ -19,8 +19,8 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from args import ARGS_PARSER
-from object_utilities import Item, get_task_group_name
+from .args import ARGS_PARSER
+from .object_utilities import Item
 
 
 def print_string(msg: str = "") -> str:
