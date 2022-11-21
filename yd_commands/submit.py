@@ -7,7 +7,7 @@ A script to submit a Work Requirement.
 from datetime import timedelta
 from math import ceil
 from os import chdir
-from os.path import dirname
+from os.path import basename, dirname
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -32,8 +32,8 @@ from yellowdog_client.model import (
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
-from .args import ARGS_PARSER
-from .common import (
+from yd_commands.args import ARGS_PARSER
+from yd_commands.common import (
     CONFIG_FILE_DIR,
     ConfigWorkRequirement,
     generate_id,
@@ -43,9 +43,9 @@ from .common import (
     load_json_file,
     load_json_file_with_mustache_substitutions,
 )
-from .config_keys import *
-from .printing import print_error, print_log
-from .wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.config_keys import *
+from yd_commands.printing import print_error, print_log
+from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 # Import the configuration from the TOML file
 CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
@@ -82,13 +82,22 @@ def main():
         )
 
 
-def upload_file(filename: str, input_folder_name: Optional[str] = INPUT_FOLDER_NAME):
+def upload_file(
+    filename: str,
+    input_folder_name: Optional[str] = INPUT_FOLDER_NAME,
+    flatten_upload_paths: bool = False,
+):
     """
     Upload a local file to the YD Object Store.
     """
     pathname = Path(filename)
+    if not pathname.is_file():
+        raise Exception(f"File '{pathname.name}' not found or not a regular file")
+
     dest_filename = unique_upload_pathname(
-        filename, input_folder_name=input_folder_name
+        filename,
+        input_folder_name=input_folder_name,
+        flatten_upload_paths=flatten_upload_paths,
     )
     CLIENT.object_store_client.start_transfers()
     session = CLIENT.object_store_client.create_upload_session(
@@ -104,7 +113,10 @@ def upload_file(filename: str, input_folder_name: Optional[str] = INPUT_FOLDER_N
         # Continue here?
     else:
         uploaded_pathname = unique_upload_pathname(
-            filename, input_folder_name=input_folder_name, urlencode_forward_slash=True
+            filename,
+            input_folder_name=input_folder_name,
+            urlencode_forward_slash=True,
+            flatten_upload_paths=flatten_upload_paths,
         )
         link_ = link(
             CONFIG_COMMON.url,
@@ -117,17 +129,23 @@ def unique_upload_pathname(
     filename: str,
     input_folder_name: Optional[str] = INPUT_FOLDER_NAME,
     urlencode_forward_slash: bool = False,
+    flatten_upload_paths: bool = False,
 ) -> str:
     """
     Maps the local filename into a uniquely identified upload object
     in the YD Object Store. Optionally replaces forward slashes.
     """
+    forward_slash = "%2F" if urlencode_forward_slash else "/"
+
+    if flatten_upload_paths:
+        # Use the root of the Work Requirement directory
+        return ID + forward_slash + basename(filename)
+
     # Rework the filename
     double_dots = filename.count("..")  # Use to disambiguate relative paths
     filename = filename.replace("../", "").replace("./", "").replace("//", "/")
     filename = filename[1:] if filename[0] == "/" else filename
     filename = str(double_dots) + "/" + filename if double_dots != 0 else filename
-    forward_slash = "%2F" if urlencode_forward_slash else "/"
     if urlencode_forward_slash is True:
         filename = filename.replace("/", forward_slash)
     if input_folder_name is not None:
@@ -165,6 +183,11 @@ def submit_work_requirement(
     # Ensure we're in the correct directory for uploads
     if directory_to_upload_from != "":
         chdir(directory_to_upload_from)
+
+    # Flatten upload paths?
+    flatten_upload_paths = tasks_data.get(
+        FLATTEN_UPLOAD_PATHS, CONFIG_WR.flatten_upload_paths
+    )
 
     # Create the list of Task Groups
     task_groups: List[TaskGroup] = []
@@ -204,7 +227,7 @@ def submit_work_requirement(
                 print_log(f"Uploading files for Task Group '{task_group.name}'")
             for input_file in input_files_by_task_group[tg_number]:
                 if input_file not in uploaded_files:
-                    upload_file(input_file)
+                    upload_file(input_file, flatten_upload_paths=flatten_upload_paths)
                     uploaded_files.append(input_file)
 
             # Add the Tasks
@@ -215,6 +238,7 @@ def submit_work_requirement(
                 task_count,
                 work_requirement,
                 uploaded_files,
+                flatten_upload_paths=flatten_upload_paths,
             )
 
         except Exception as e:
@@ -227,7 +251,9 @@ def submit_work_requirement(
 
 
 def create_task_group(
-    tg_number: int, tasks_data: Dict, task_group_data: Dict
+    tg_number: int,
+    tasks_data: Dict,
+    task_group_data: Dict,
 ) -> (TaskGroup, List[str]):
     """
     Create a Task Group and return the list of unique input files required by
@@ -355,6 +381,7 @@ def add_tasks_to_task_group(
     task_count: Optional[int],
     work_requirement: WorkRequirement,
     uploaded_files: List[str],
+    flatten_upload_paths: bool = False,
 ) -> None:
     """
     Adds all the Tasks that comprise a given Task Group
@@ -425,7 +452,9 @@ def add_tasks_to_task_group(
 
             input_files = [
                 TaskInput.from_task_namespace(
-                    unique_upload_pathname(file),
+                    unique_upload_pathname(
+                        file, flatten_upload_paths=flatten_upload_paths
+                    ),
                     verification=TaskInputVerification.VERIFY_AT_START,
                 )
                 for file in input_files_list
@@ -488,6 +517,7 @@ def add_tasks_to_task_group(
                     inputs=input_files,
                     outputs=output_files,
                     uploaded_files=uploaded_files,
+                    flatten_upload_paths=flatten_upload_paths,
                 )
             )
 
@@ -606,6 +636,7 @@ def create_task(
     inputs: Optional[List[TaskInput]],
     outputs: Optional[List[TaskOutput]],
     uploaded_files: List[str],
+    flatten_upload_paths: bool = False,
 ) -> Task:
     """
     Create a Task object, handling variations for different Task Types.
@@ -627,19 +658,23 @@ def create_task(
     # already done, and added to the list of required files.
     if task_type == "bash":
         if executable not in uploaded_files:
-            upload_file(executable)
+            upload_file(executable, flatten_upload_paths=flatten_upload_paths)
             uploaded_files.append(executable)
         task_input = TaskInput.from_task_namespace(
-            unique_upload_pathname(executable),
+            unique_upload_pathname(
+                executable, flatten_upload_paths=flatten_upload_paths
+            ),
             verification=TaskInputVerification.VERIFY_AT_START,
         )
         # Avoid duplicate TaskInputs
         if task_input.objectNamePattern not in [x.objectNamePattern for x in inputs]:
             inputs.append(task_input)
         args = [
-            unique_upload_pathname(executable)
+            unique_upload_pathname(
+                executable, flatten_upload_paths=flatten_upload_paths
+            )
             if flatten_input_paths is None
-            else executable
+            else basename(executable)
         ] + args
 
     # Special processing for Docker tasks. Sets up the '-e' environment strings

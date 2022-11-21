@@ -22,12 +22,13 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from .args import ARGS_PARSER
-from .interactive import select
-from .object_utilities import (
+from yd_commands.args import ARGS_PARSER
+from yd_commands.interactive import select
+from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
 )
+
 from .printing import print_log, print_numbered_object_list, sorted_objects
 from .wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 

@@ -314,6 +314,7 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**).
 | `exclusiveWorkers`    | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                       | Yes  | Yes | Yes      |      |
 | `executable`          | The 'executable' to run when a Task is executed. E.g., for the `bash` Task Type, this is the name of the Bash script. For `docker`, the name of the container.           | Yes  | Yes | Yes      | Yes  |
 | `flattenInputPaths`   | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                               | Yes  | Yes | Yes      | Yes  |
+| `flattenUploadPaths`  | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                        | Yes  | Yes |          |      |
 | `fulfilOnSubmit`      | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |          |      |
 | `inputs`              | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]`.                       | Yes  | Yes | Yes      | Yes  |
 | `instanceTypes`       | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes      |      |
@@ -371,6 +372,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     exclusiveWorkers = false
     executable = "my-container"
     flattenInputPaths = false
+    flattenUploadPaths = false
     fulfilOnSubmit = false
     inputs = [
         "../app/main.py",
@@ -413,6 +415,7 @@ Showing all possible properties at the Work Requirement level:
   "exclusiveWorkers": false,
   "executable": "my-container",
   "flattenInputPaths": false,
+  "flattenUploadPaths": false,
   "fulfilOnSubmit": false,
   "inputs": ["app/main.py", "app/requirements.txt"],
   "instanceTypes": ["t3a.micro", "t3.micro"],
@@ -557,6 +560,20 @@ Assuming a Namespace called `development` and a Work Requirement named `testrun_
 "inputs" : ["../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/1/dev/file_1.txt
 "inputs" : ["../../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/2/dev/file_1.txt
 ```
+
+**Using `flattenUploadPaths`**
+
+The `flattenUploadPaths` property can be used to suppress the mirroring of any local directory structure when uploading files to the Object Store. If set to `true`, all files will be uploaded to the root of the Work Requirement folder. For example:
+
+```shell
+"inputs" : ["file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["dev/file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["/home/dev/file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["../../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
+```
+
+The property default is `false`. This property **can only be set at the Work Requirement level** and will therefore apply to all Task Groups and Tasks within a Work Requirement.
 
 #### Files Downloaded to a Node for use in Task Execution
 

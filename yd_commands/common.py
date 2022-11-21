@@ -25,9 +25,9 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
-from .args import ARGS_PARSER
-from .config_keys import *
-from .printing import print_error, print_log
+from yd_commands.args import ARGS_PARSER
+from yd_commands.config_keys import *
+from yd_commands.printing import print_error, print_log
 
 
 @dataclass
@@ -61,6 +61,7 @@ class ConfigWorkRequirement:
     exclusive_workers: Optional[bool] = None
     executable: Optional[str] = None
     flatten_input_paths: Optional[bool] = None
+    flatten_upload_paths: Optional[bool] = None
     fulfil_on_submit: bool = False
     input_files: List[str] = field(default_factory=list)
     instance_types: Optional[List[str]] = None
@@ -327,6 +328,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
             executable=mustache_substitution(executable),
             flatten_input_paths=wr_section.get(FLATTEN_PATHS, None),
+            flatten_upload_paths=wr_section.get(FLATTEN_UPLOAD_PATHS, None),
             fulfil_on_submit=wr_section.get(FULFIL_ON_SUBMIT, False),
             input_files=wr_section.get(INPUT_FILES, []),
             instance_types=wr_section.get(INSTANCE_TYPES, None),

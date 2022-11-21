@@ -19,8 +19,8 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from .args import ARGS_PARSER
-from .object_utilities import Item
+from yd_commands.args import ARGS_PARSER
+from yd_commands.object_utilities import Item
 
 
 def print_string(msg: str = "") -> str:

@@ -19,6 +19,7 @@ ENV = "environment"  # Dictionary
 EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
 EXECUTABLE = "executable"  # String
 FLATTEN_PATHS = "flattenInputPaths"  # Boolean
+FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
 FULFIL_ON_SUBMIT = "fulfilOnSubmit"  # Boolean
 IMPORT = "import"  # String
 INITIAL_NODES = "targetInstanceCount"  # Integer
@@ -83,6 +84,7 @@ ALL_KEYS = [
     EXCLUSIVE_WORKERS,
     EXECUTABLE,
     FLATTEN_PATHS,
+    FLATTEN_UPLOAD_PATHS,
     FULFIL_ON_SUBMIT,
     IMPORT,
     INITIAL_NODES,

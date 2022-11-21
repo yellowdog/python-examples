@@ -8,7 +8,7 @@ from sys import version as python_version
 
 from yellowdog_client._version import __version__ as yd_sdk_version
 
-from .__init__ import __version__
+from yd_commands.__init__ import __version__
 
 
 def main():
