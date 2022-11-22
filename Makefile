@@ -30,8 +30,8 @@ format: isort black
 #mypy: $(SRC) $(TESTS)
 #	mypy $(SRC) $(TESTS)
 
-#pypi_upload: clean build
-#	python -m twine upload --repository pypi dist/*
+pypi_upload: clean build
+	python -m twine upload --repository pypi dist/*
 
 pypi_test_upload: clean build
 	python -m twine upload --repository testpypi dist/*
