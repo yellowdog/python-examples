@@ -31,10 +31,12 @@ format: isort black
 #	mypy $(SRC) $(TESTS)
 
 pypi_upload: clean build
-	python -m twine upload --repository pypi dist/*
+	# '--repository yellowdog-pypi' maps into the correct application token
+	# for the YellowDog PyPI account
+	python -m twine upload --repository yellowdog-pypi dist/*
 
 pypi_test_upload: clean build
-	python -m twine upload --repository testpypi dist/*
+	python -m twine upload --repository yellowdog-testpypi dist/*
 
 pypi_check: build
 	twine check dist/*
