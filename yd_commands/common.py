@@ -326,7 +326,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             env=wr_section.get(ENV, {}),
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
             executable=mustache_substitution(executable),
-            finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, True),
+            finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, False),
             flatten_input_paths=wr_section.get(FLATTEN_PATHS, None),
             flatten_upload_paths=wr_section.get(FLATTEN_UPLOAD_PATHS, None),
             fulfil_on_submit=wr_section.get(FULFIL_ON_SUBMIT, False),
