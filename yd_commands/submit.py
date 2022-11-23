@@ -73,8 +73,6 @@ def main():
             directory_to_upload_from=dirname(wr_json_file),
             tasks_data=tasks_data,
         )
-    elif CONFIG_WR.executable is None:  # Indicates no Task(s) defined
-        print_log("Error: no work requirement (executable) defined")
     else:
         task_count = CONFIG_WR.task_count
         submit_work_requirement(
