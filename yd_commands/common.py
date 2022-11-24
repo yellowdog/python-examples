@@ -28,6 +28,7 @@ from yellowdog_client.model import (
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config_keys import *
 from yd_commands.printing import print_error, print_log
+from yd_commands.validate_properties import validate_properties
 
 
 @dataclass
@@ -104,24 +105,6 @@ class ConfigWorkerPool:
     workers_per_node: int = 1
 
 
-def check_for_invalid_keys(data: Dict) -> Optional[List[str]]:
-    """
-    Look through the keys in the dictionary from the
-    TOML load and check they're in the list of valid keys.
-    Assumes a two-level containment structure.
-    Return the list of invalid keys, or None.
-    """
-    invalid_keys = []
-    for k1, v1 in data.items():
-        if k1 not in ALL_KEYS:
-            invalid_keys.append(k1)
-        if isinstance(v1, dict):
-            for k2, _ in v1.items():
-                if k2 not in ALL_KEYS:
-                    invalid_keys.append(k2)
-    return None if len(invalid_keys) == 0 else invalid_keys
-
-
 UTCNOW = datetime.utcnow()
 RAND_SIZE = 0xFFF
 MUSTACHE_SUBSTITUTIONS = {
@@ -188,15 +171,13 @@ config_file = (
 )
 
 try:
-    CONFIG_TOML: Dict = load_toml_file_with_mustache_substitutions(config_file)
-    invalid_keys = check_for_invalid_keys(CONFIG_TOML)
-    if invalid_keys is not None:
-        print_error(
-            f"Invalid properties in '{config_file}': {invalid_keys}",
-        )
-        print_log("Done")
-        exit(1)
     print_log(f"Loading configuration data from: '{config_file}'")
+    CONFIG_TOML: Dict = load_toml_file_with_mustache_substitutions(config_file)
+    try:
+        validate_properties(CONFIG_TOML, f"'{config_file}'")
+    except Exception as e:
+        print_error(e)
+        exit(1)
     CONFIG_FILE_DIR = dirname(abspath(config_file))
 
 except FileNotFoundError as e:
