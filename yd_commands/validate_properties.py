@@ -21,9 +21,9 @@ def validate_properties(data: Dict, context: str):
 
 def _get_keys(data: Union[Dict, List]) -> List[str]:
     """
-    Recursively walks a dictionary or list collecting keys.
+    Recursively walk a dictionary or list collecting keys.
     Ignore dictionaries mapped to the 'environment' and 'dockerEnvironment' keys,
-    # as these will contain user-specified keys.
+    as these will contain user-specified keys.
     """
     keys: List[str] = []
     if isinstance(data, dict):
