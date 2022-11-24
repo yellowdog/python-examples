@@ -660,6 +660,8 @@ def create_task(
     # Special processing for Bash tasks. The Bash script is uploaded if not
     # already done, and added to the list of required files.
     if task_type == "bash":
+        if executable is None:
+            raise Exception("No 'executable' specified for 'bash' Task Type")
         if executable not in uploaded_files:
             upload_file(executable, flatten_upload_paths=flatten_upload_paths)
             uploaded_files.append(executable)
@@ -683,6 +685,8 @@ def create_task(
     # Special processing for Docker tasks. Sets up the '-e' environment strings
     # and the DockerHub username and password if specified.
     elif task_type == "docker":
+        if executable is None:
+            raise Exception("No 'executable' specified for 'Docker' Task Type")
         # Set up the environment variables to be sent to the Docker container
         docker_env = task_data.get(
             DOCKER_ENV,
