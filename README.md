@@ -4,35 +4,34 @@
 * [Script Installation](#script-installation)
 * [Usage](#usage)
 * [Configuration](#configuration)
-   * [Naming Restrictions](#naming-restrictions)
-   * [Common Properties](#common-properties)
-      * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
-         * [Default Mustache Directives](#default-mustache-directives)
-         * [User-Defined Mustache Directives](#user-defined-mustache-directives)
-      * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
-   * [Work Requirement Properties](#work-requirement-properties)
-      * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
-      * [Property Inheritance](#property-inheritance)
-      * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
-      * [Automatic Properties](#automatic-properties)
-         * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
-         * [Task Types](#task-types)
-      * [Examples](#examples)
-         * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
-         * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
-         * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
-         * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
-      * [Mustache Template Directives in Work Requirement Properties](#mustache-template-directives-in-work-requirement-properties)
-      * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
-         * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
-         * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
-         * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
-         * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
-   * [Worker Pool Properties](#worker-pool-properties)
-      * [Automatic Properties](#automatic-properties-1)
-      * [Worker Pool JSON File Structure](#worker-pool-json-file-structure)
-      * [Examples](#examples-1)
-         * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
+* [Naming Restrictions](#naming-restrictions)
+* [Common Properties](#common-properties)
+   * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
+      * [Default Mustache Directives](#default-mustache-directives)
+      * [User-Defined Mustache Directives](#user-defined-mustache-directives)
+   * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
+* [Work Requirement Properties](#work-requirement-properties)
+   * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
+   * [Property Inheritance](#property-inheritance)
+   * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
+   * [Automatic Properties](#automatic-properties)
+      * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
+      * [Task Types](#task-types)
+   * [Examples](#examples)
+      * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
+      * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
+      * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
+      * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
+   * [Mustache Template Directives in Work Requirement Properties](#mustache-template-directives-in-work-requirement-properties)
+   * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
+      * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
+      * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
+      * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
+      * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
+* [Worker Pool Properties](#worker-pool-properties)
+   * [Automatic Properties](#automatic-properties-1)
+   * [Worker Pool JSON File Structure](#worker-pool-json-file-structure)
+   * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -43,7 +42,7 @@
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sun Nov 20 21:04:05 GMT 2022 -->
+<!-- Added by: pwt, at: Thu Nov 24 14:17:40 GMT 2022 -->
 
 <!--te-->
 
@@ -148,7 +147,7 @@ The configuration filename can be supplied in three different ways:
 
 The options above are shown in order of precedence, i.e., a filename supplied on the command line supersedes one set in `YD_CONF`, which supersedes the default.
 
-## Naming Restrictions
+# Naming Restrictions
 
 All names used within the YellowDog Platform must comply with the following restrictions:
 
@@ -161,7 +160,7 @@ These restrictions apply to Namespaces, Tags, Work Requirements, Task Groups, Ta
 
 (The restrictions also apply to entities that are currently used indirectly by these scripts: Usernames, Credentials, Keyrings, Compute Sources and Compute Templates).
 
-## Common Properties
+# Common Properties
 
 The `[common]` section of the configuration file contains the following properties:
 
@@ -181,18 +180,17 @@ An example `common` section is shown below:
     secret = "qwertyuiopasdfghjklzxcvbnm1234567890qwertyu"
     namespace = "project-x"
     tag = "testing-{{username}}"
-    url = "https://portal.yellowdog.co/api"
 ```
 
 The indentation is optional in TOML files and is for readability only.
 
-### Mustache Template Directives in Common Properties
+## Mustache Template Directives in Common Properties
 
 Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
 
 Mustache directives can be used within the `namespace` and `tag` values in the `common` section (or when supplied as command line options or environment variables).
 
-#### Default Mustache Directives
+### Default Mustache Directives
 
 | Directive      | Description                                                    | Example of Substitution |
 |:---------------|:---------------------------------------------------------------|:------------------------|
@@ -204,7 +202,7 @@ Mustache directives can be used within the `namespace` and `tag` values in the `
 
 For the `date`, `time` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
-#### User-Defined Mustache Directives
+### User-Defined Mustache Directives
 
 Additional (static) Mustache directives can be supplied using command line options or by setting environment variables prefixed with `YD_SUB_`.
 
@@ -216,7 +214,7 @@ Directives set on the command line take precedence over directives set in enviro
 
 This method can be used to override the default directives, e.g., setting `-m username="other-user"` will override the default `{{username}}` directive.
 
-### Specifying Common Properties using the Command Line or Environment Variables
+## Specifying Common Properties using the Command Line or Environment Variables
 
 All the common properties can be set using command line options, or in environment variables.
 
@@ -242,13 +240,13 @@ When setting the value of the above properties, a property set on the command li
 
 If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
 
-## Work Requirement Properties
+# Work Requirement Properties
 
 The `workRequirement` section of the configuration file is optional. It's used only by the `yd-submit` command, and controls the Work Requirement that is submitted to the Platform.
 
 The details of a Work Requirement to be submitted can be captured entirely within the TOML configuration file for simple examples. More complex examples capture the Work Requirement in a combination of the TOML file plus a JSON document, or in a JSON document only.
 
-### Work Requirement JSON File Structure
+## Work Requirement JSON File Structure
 
 Work Requirements are represented in JSON documents using a containment hierarchy of a **Work Requirement** containing a **list of Task Groups**, containing a **list of Tasks**.
 
@@ -286,7 +284,7 @@ To specify the file containing the JSON document, either populate the `workRequi
 
 `yd-submit --config myconfig.toml --work-requirement my_workreq.json`
 
-### Property Inheritance
+## Property Inheritance
 
 To simplify and optimise the definition of Work Requirements, there is a property inheritance mechanism. Properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
 
@@ -294,7 +292,7 @@ This means that a property set in the `workRequirement` section of the TOML file
 
 Overridden properties are also inherited. E.g., if a property is set at the Task Group level, it will be inherited by the Tasks in that Task Group unless explicitly overridden.
 
-### Work Requirement Property Dictionary
+## Work Requirement Property Dictionary
 
 The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and property `dependentOn` can only be set at the Task Group level.
 
@@ -337,25 +335,25 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**).
 | `workerTags`                      | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                             | Yes  | Yes | Yes      |      |
 | `workRequirementData`             | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                 | Yes  |     |          |      |
 
-### Automatic Properties
+## Automatic Properties
 
 In addition to the inheritance mechanism, some properties are set automatically by the `yd-submit` command, as a usage convenience.
 
-#### Work Requirement, Task Group and Task Naming
+### Work Requirement, Task Group and Task Naming
 
 - The **Work Requirement** name is automatically set using a concatenation of the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `mytag_221024-155524-40a`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups).
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group.
 
-#### Task Types
+### Task Types
 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
 - If `taskType` is set at the Task level, then `taskTypes` is automatically populated for Task Groups level using the accumulated Task Types from the Tasks, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
 
-### Examples
+## Examples
 
-#### TOML Properties in the `workRequirement` Section
+### TOML Properties in the `workRequirement` Section
 
 Here's an example of the `workRequirement` section of a TOML configuration file, showing all the possible properties that can be set:
 
@@ -398,7 +396,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
 #   workRequirementData = "work_requirement.json"
 ```
 
-#### JSON Properties at the Work Requirement Level
+### JSON Properties at the Work Requirement Level
 
 Showing all possible properties at the Work Requirement level:
 
@@ -445,7 +443,7 @@ Showing all possible properties at the Work Requirement level:
 
 ```
 
-#### JSON Properties at the Task Group Level
+### JSON Properties at the Task Group Level
 
 Showing all possible properties at the Task Group level:
 
@@ -496,7 +494,7 @@ Showing all possible properties at the Task Group level:
 }
 ```
 
-#### JSON Properties at the Task Level
+### JSON Properties at the Task Level
 
 Showing all possible properties at the Task level:
 
@@ -527,17 +525,17 @@ Showing all possible properties at the Task level:
 }
 ```
 
-### Mustache Template Directives in Work Requirement Properties
+## Mustache Template Directives in Work Requirement Properties
 
 Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives-in-common-properties) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line.
 
 To suppress all Mustache processing within a Work Requirement JSON file, `yd-submit` can be run with the `--no-mustache` option. All mustache directives will be ignored, i.e., the {{foobar}} double-bracketed form will remain in the Work Requirement.
 
-### File Storage Locations and File Usage
+## File Storage Locations and File Usage
 
 This section discusses how to upload files from local storage to the YellowDog Object Store, how those files are transferred to Worker Nodes for Task processing, how the results of Task processing are returned by Worker Nodes, and how files are transferred back from the YellowDog Object Store to local storage.
 
-#### Files Uploaded to the Object Store from Local Storage
+### Files Uploaded to the Object Store from Local Storage
 
 When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the case of the `bash` Task Type, the script specified in the `executable` property is also automatically uploaded as a convenience, even if not included in the `inputs` list.)
 
@@ -575,7 +573,7 @@ The `flattenUploadPaths` property can be used to suppress the mirroring of any l
 
 The property default is `false`. This property **can only be set at the Work Requirement level** and will therefore apply to all Task Groups and Tasks within a Work Requirement.
 
-#### Files Downloaded to a Node for use in Task Execution
+### Files Downloaded to a Node for use in Task Execution
 
 When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. (Note that a file should only appear in one of these three lists, otherwise `yd-submit` will return an error.)
 
@@ -607,7 +605,7 @@ where <working_directory> is:
   /var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
 ```
 
-#### Files Uploaded from a Node to the Object Store after Task Execution
+### Files Uploaded from a Node to the Object Store after Task Execution
 
 After Task completion, the Agent will upload specified output files to the Object Store. The files to be uploaded are those listed in the `outputs` property for the Task.
 
@@ -625,7 +623,7 @@ development:testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.log
 development:testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
 ```
 
-#### Files Downloaded from the Object Store to Local Storage
+### Files Downloaded from the Object Store to Local Storage
 
 The `yd-download` command will download all objects from the Object Store to a local directory, on a per Work Requirement basis. A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
 
@@ -650,7 +648,7 @@ Note that everything within the `namespace:work-requirement` directory in the Ob
 
 If the `development` directory already exists, `yd-download` will try `development.01`, etc., to avoid overwriting previous downloads.
 
-## Worker Pool Properties
+# Worker Pool Properties
 
 The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. The only mandatory property is `templateId`. All other properties have defaults (or are not required).
 
@@ -671,11 +669,11 @@ The following properties are available:
 | `workerPoolData`       | The name of a file containing a JSON document defining a Worker Pool.                                  |                |
 | `workerTag`            | The Worker Tag to publish for the all of the Workers.                                                  |                |
 
-### Automatic Properties
+## Automatic Properties
 
 The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `wp_mytag_221024-155524-b0a`.
 
-### Worker Pool JSON File Structure
+## Worker Pool JSON File Structure
 
 **Experimental Feature**
 
@@ -685,9 +683,7 @@ When using a JSON document to specify the Worker Pool, the schema of the documen
 
 Examples will be provided at a later date.
 
-### Examples
-
-#### TOML Properties in the `workerPool` Section
+## TOML Properties in the `workerPool` Section
 
 Here's an example of the `workerPool` section of a TOML configuration file, showing all the possible properties that can be set:
 
