@@ -242,6 +242,8 @@ def submit_work_requirement(
         except Exception as e:
             print_error(e)
             cleanup_on_failure(work_requirement)
+            if ARGS_PARSER.stack_trace:
+                raise e
             return
 
     if ARGS_PARSER.follow:
