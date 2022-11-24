@@ -45,6 +45,7 @@ from yd_commands.common import (
 )
 from yd_commands.config_keys import *
 from yd_commands.printing import print_error, print_log
+from yd_commands.validate_properties import validate_properties
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 # Import the configuration from the TOML file
@@ -69,6 +70,7 @@ def main():
             tasks_data = load_json_file(wr_json_file)
         else:
             tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
+        validate_properties(tasks_data, "Work Requirement JSON")
         submit_work_requirement(
             directory_to_upload_from=dirname(wr_json_file),
             tasks_data=tasks_data,
