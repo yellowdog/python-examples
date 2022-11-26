@@ -30,8 +30,9 @@
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
 * [Worker Pool Properties](#worker-pool-properties)
    * [Automatic Properties](#automatic-properties-1)
-   * [Worker Pool JSON File Structure](#worker-pool-json-file-structure)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
+   * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
+      * [Worker Pool JSON Document Mustache Substitution](#worker-pool-json-document-mustache-substitution)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -39,10 +40,11 @@
    * [yd-abort](#yd-abort)
    * [yd-download](#yd-download)
    * [yd-delete](#yd-delete)
+   * [yd-upload](#yd-upload)
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Thu Nov 24 14:17:40 GMT 2022 -->
+<!-- Added by: pwt, at: Sat Nov 26 16:10:17 GMT 2022 -->
 
 <!--te-->
 
@@ -674,16 +676,6 @@ The following properties are available:
 
 The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `wp_mytag_221024-155524-b0a`.
 
-## Worker Pool JSON File Structure
-
-**Experimental Feature**
-
-It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either using the command line with the `--worker-pool` or `-p` parameter with `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file with the JSON filename. Command line specification takes priority over TOML specification. The JSON specification allows the creation of **Advanced Worker Pools**, with different node types and the ability to specify Node Actions.
-
-When using a JSON document to specify the Worker Pool, the schema of the document is identical to that expected by the YellowDog API for Worker Provisioning.
-
-Examples will be provided at a later date.
-
 ## TOML Properties in the `workerPool` Section
 
 Here's an example of the `workerPool` section of a TOML configuration file, showing all the possible properties that can be set:
@@ -703,6 +695,31 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     workersPerNode = 1
 #   workerPoolData = "worker_pool.json"
 ```
+
+## Worker Pool Specification Using JSON Documents
+
+**Experimental Feature**
+
+It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either using the command line with the `--worker-pool` or `-p` parameter with `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file with the JSON filename. Command line specification takes priority over TOML specification.
+
+The JSON specification allows the creation of **Advanced Worker Pools**, with different node types and the ability to specify Node Actions.
+
+When using a JSON document to specify the Worker Pool, the schema of the document is identical to that expected by the YellowDog API for Worker Provisioning.
+
+Examples will be provided at a later date.
+
+### Worker Pool JSON Document Mustache Substitution
+
+Mustache directives can be used within Worker Pool JSON document values, with some caveats and limitations.
+
+- Each Mustache directive intended for preprocessing by the `yd-provision` command must be preceded by a `__` (double underscore) to disambiguate it from Mustache directives that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` variable.
+- Directives intended for preprocessing and directives intended for pass-through to the API cannot be mixed within a single value.
+
+As well as string substitutions, It's possible to substitute `int`, `float` and `bool` values, as follows:
+
+- Define the Mustache directive using one of the following patterns: `__{{int:my_int}}`, `__{{float:my_float}}`, `__{{bool:my_bool}}`
+- Variable definitions supplied on the command line would then be of the form: `-m my_int=5 -m my_float=2.5 -m my_bool=true`
+- In the processed JSON document, these would become `5`, `2.5` and `true`, respectively, converted from strings to their correct JSON types
 
 # Command List
 

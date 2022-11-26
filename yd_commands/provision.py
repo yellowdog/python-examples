@@ -6,9 +6,9 @@ A script to Provision a Worker Pool.
 
 from dataclasses import dataclass
 from datetime import timedelta
-from json import JSONDecodeError, load
+from json import load
 from math import ceil, floor
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from requests import post as requests_post
 from yellowdog_client.model import (
@@ -28,6 +28,7 @@ from yd_commands.common import (
     generate_id,
     link_entity,
     load_config_worker_pool,
+    mustache_substitution,
 )
 from yd_commands.printing import print_error, print_log
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
@@ -67,6 +68,8 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     # Load the JSON data
     with open(wp_json_file, "r") as f:
         wp_data = load(f)
+
+    process_mustache_substitutions(wp_data)
 
     # Some values are configurable via the TOML configuration file;
     # values in the JSON file override values in the TOML file
@@ -272,6 +275,90 @@ def generate_wp_batch_name(
     if num_batches > 1:
         name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
     return name
+
+
+def process_mustache_substitutions(wp_data: dict):
+    """
+    Process the Worker Pool JSON, avoiding any Mustache directives in
+    Node Action definitions. Apply Mustache substitutions to values.
+    Allow the use of Mustache directives including 'int:', 'float:'
+    and 'bool:', substituted for their correct types.
+
+    Mustache substitutions must start with '__{{' to disambiguate from the
+    substitutions suplied in the Worker Pool definition.
+    """
+
+    prefix = "__{{"
+    non_prefix = "{{"
+
+    # Supported type annotations
+    int_ = "int:"
+    float_ = "float:"
+    bool_ = "bool:"
+
+    def _walk_data(data: Union[Dict, List]):
+        """
+        Helper function to walk the JSON data structure implementing
+        Mustache substitutions.
+        """
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, dict) or isinstance(value, list):
+                    _walk_data(value)
+                elif isinstance(value, str):
+                    data[key] = _process_value(value)
+        elif isinstance(data, list):
+            for item in data:
+                _walk_data(item)
+
+    def _process_value(input: str) -> Union[str, int, bool, float]:
+        """
+        Helper function to transform non-string, type-tagged WP Mustache
+        substitutions into their required types.
+        """
+        if prefix not in input:
+            return input
+
+        input = input.replace(prefix, non_prefix)
+
+        if input.startswith(f"{{{{{int_}"):
+            replaced = mustache_substitution(input.replace(int_, ""))
+            try:
+                replaced_int = int(replaced)
+            except ValueError:
+                raise Exception(
+                    f"Non-integer used in Mustache integer "
+                    f"substitution: '{input}':'{replaced}'"
+                )
+            return replaced_int
+
+        if input.startswith(f"{{{{{float_}"):
+            replaced = mustache_substitution(input.replace(float_, ""))
+            try:
+                replaced_float = float(replaced)
+            except ValueError:
+                raise Exception(
+                    f"Non-float used in Mustache float "
+                    f"substitution: '{input}':'{replaced}'"
+                )
+            return replaced_float
+
+        if input.startswith(f"{{{{{bool_}"):
+            replaced = mustache_substitution(input.replace(bool_, ""))
+            if replaced.lower() == "true":
+                return True
+            if replaced.lower() == "false":
+                return False
+            raise Exception(
+                f"Non-boolean used in Mustache boolean "
+                f"substitution: '{input}':'{replaced}'"
+            )
+
+        # Note: this will break if Mustache substitutions intended for this
+        # preprocessor are mixed with those intended to be passed through
+        return mustache_substitution(input)
+
+    _walk_data(wp_data)
 
 
 # Entry point
