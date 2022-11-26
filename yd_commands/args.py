@@ -253,6 +253,30 @@ class CLIParser:
             help="print a stack trace on error (for debugging)",
         )
 
+        if "upload" in sys.argv[0]:
+            parser.add_argument(
+                "--directory",
+                "-d",
+                type=str,
+                required=True,
+                help="the object store directory name to use when uploading objects",
+                metavar="<directory>",
+            )
+            parser.add_argument(
+                "filenames",
+                metavar="<filename>",
+                type=str,
+                nargs="+",
+                help="a file to upload to the object store",
+            )
+            parser.add_argument(
+                "--flatten-upload-paths",
+                "-f",
+                action="store_true",
+                required=False,
+                help="suppress use of local directory paths when uploading files",
+            )
+
         self.args = parser.parse_args()
 
         # Temporary notification message while we figure out the problem
@@ -373,6 +397,17 @@ class CLIParser:
     def stack_trace(self) -> Optional[bool]:
         return self.args.stack_trace
 
+    @property
+    def directory(self) -> Optional[str]:
+        return self.args.directory
+
+    def files(self) -> List[str]:
+        return self.args.filenames
+
+    @property
+    def flatten(self) -> Optional[bool]:
+        return self.args.flatten_upload_paths
+
 
 ARGS_PARSER = CLIParser()
 
@@ -382,26 +417,4 @@ if __name__ == "__main__":
     Standalone module testing
     """
     args = CLIParser()
-    print("config file =", args.config_file)
-    print("key =", args.key)
-    print("secret =", args.secret)
-    print("namespace =", args.namespace)
-    print("tag =", args.tag)
-    print("url =", args.url)
-    print("mustache substitutions =", args.mustache_subs)
-    print("work requirement file =", args.work_req_file)
-    print("executable =", args.executable)
-    print("task type =", args.task_type)
-    print("worker pool file =", args.worker_pool_file)
-    print("follow =", args.follow)
-    print("abort =", args.abort)
-    print("no-mustache =", args.no_mustache)
-    print("interactive =", args.interactive)
-    print("yes (proceed without confirmation) =", args.yes)
-    print("quiet =", args.quiet)
-    # print("work-requirements", args.work_requirements)
-    # print("task-groups", args.task_groups)
-    # print("tasks", args.tasks)
-    # print("worker-pools", args.worker_pools)
-    # print("compute-requirements", args.compute_requirements)
-    # print("live-only", args.live_only)
+    print(args)

@@ -44,6 +44,7 @@ setuptools.setup(
             "yd-shutdown=yd_commands.shutdown:main",
             "yd-submit=yd_commands.submit:main",
             "yd-terminate=yd_commands.terminate:main",
+            "yd-upload=yd_commands.upload:main",
             "yd-version=yd_commands.version:main",
         ]
     },

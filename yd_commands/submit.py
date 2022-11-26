@@ -8,7 +8,6 @@ from datetime import timedelta
 from math import ceil
 from os import chdir
 from os.path import basename, dirname
-from pathlib import Path
 from typing import Dict, List, Optional
 
 from yellowdog_client.common.server_sent_events import (
@@ -30,14 +29,12 @@ from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementStatus,
 )
-from yellowdog_client.object_store.model import FileTransferStatus
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.common import (
     CONFIG_FILE_DIR,
     ConfigWorkRequirement,
     generate_id,
-    link,
     link_entity,
     load_config_work_requirement,
     load_json_file,
@@ -45,6 +42,7 @@ from yd_commands.common import (
 )
 from yd_commands.config_keys import *
 from yd_commands.printing import print_error, print_log
+from yd_commands.upload_utils import unique_upload_pathname, upload_file
 from yd_commands.validate_properties import validate_properties
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -80,78 +78,6 @@ def main():
         submit_work_requirement(
             directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
         )
-
-
-def upload_file(
-    filename: str,
-    input_folder_name: Optional[str] = INPUT_FOLDER_NAME,
-    flatten_upload_paths: bool = False,
-):
-    """
-    Upload a local file to the YD Object Store.
-    """
-    pathname = Path(filename)
-    if not pathname.is_file():
-        raise Exception(f"File '{pathname.name}' not found or not a regular file")
-
-    dest_filename = unique_upload_pathname(
-        filename,
-        input_folder_name=input_folder_name,
-        flatten_upload_paths=flatten_upload_paths,
-    )
-    CLIENT.object_store_client.start_transfers()
-    session = CLIENT.object_store_client.create_upload_session(
-        CONFIG_COMMON.namespace,
-        str(pathname),
-        destination_file_name=dest_filename,
-    )
-    session.start()
-    # Wait for upload to complete
-    session = session.when_status_matches(lambda status: status.is_finished()).result()
-    if session.status != FileTransferStatus.Completed:
-        print_error(f"Failed to upload file: {filename}")
-        # Continue here?
-    else:
-        uploaded_pathname = unique_upload_pathname(
-            filename,
-            input_folder_name=input_folder_name,
-            urlencode_forward_slash=True,
-            flatten_upload_paths=flatten_upload_paths,
-        )
-        link_ = link(
-            CONFIG_COMMON.url,
-            f"#/objects/{CONFIG_COMMON.namespace}/{uploaded_pathname}?object=true",
-        )
-        print_log(f"Uploaded file '{filename}': {link_}")
-
-
-def unique_upload_pathname(
-    filename: str,
-    input_folder_name: Optional[str] = INPUT_FOLDER_NAME,
-    urlencode_forward_slash: bool = False,
-    flatten_upload_paths: bool = False,
-) -> str:
-    """
-    Maps the local filename into a uniquely identified upload object
-    in the YD Object Store. Optionally replaces forward slashes.
-    """
-    forward_slash = "%2F" if urlencode_forward_slash else "/"
-
-    if flatten_upload_paths:
-        # Use the root of the Work Requirement directory
-        return ID + forward_slash + basename(filename)
-
-    # Rework the filename
-    double_dots = filename.count("..")  # Use to disambiguate relative paths
-    filename = filename.replace("../", "").replace("./", "").replace("//", "/")
-    filename = filename[1:] if filename[0] == "/" else filename
-    filename = str(double_dots) + "/" + filename if double_dots != 0 else filename
-    if urlencode_forward_slash is True:
-        filename = filename.replace("/", forward_slash)
-    if input_folder_name is not None:
-        return ID + forward_slash + input_folder_name + forward_slash + filename
-    else:
-        return ID + forward_slash + filename
 
 
 def submit_work_requirement(
@@ -227,7 +153,14 @@ def submit_work_requirement(
                 print_log(f"Uploading files for Task Group '{task_group.name}'")
             for input_file in input_files_by_task_group[tg_number]:
                 if input_file not in uploaded_files:
-                    upload_file(input_file, flatten_upload_paths=flatten_upload_paths)
+                    upload_file(
+                        client=CLIENT,
+                        filename=input_file,
+                        id=ID,
+                        url=CONFIG_COMMON.url,
+                        input_folder_name=INPUT_FOLDER_NAME,
+                        flatten_upload_paths=flatten_upload_paths,
+                    )
                     uploaded_files.append(input_file)
 
             # Add the Tasks
@@ -458,7 +391,10 @@ def add_tasks_to_task_group(
             input_files = [
                 TaskInput.from_task_namespace(
                     unique_upload_pathname(
-                        file, flatten_upload_paths=flatten_upload_paths
+                        filename=file,
+                        id=ID,
+                        input_folder_name=INPUT_FOLDER_NAME,
+                        flatten_upload_paths=flatten_upload_paths,
                     ),
                     verification=TaskInputVerification.VERIFY_AT_START,
                 )
@@ -665,11 +601,22 @@ def create_task(
         if executable is None:
             raise Exception("No 'executable' specified for 'bash' Task Type")
         if executable not in uploaded_files:
-            upload_file(executable, flatten_upload_paths=flatten_upload_paths)
+            upload_file(
+                client=CLIENT,
+                filename=executable,
+                id=ID,
+                namespace=CONFIG_COMMON.namespace,
+                url=CONFIG_COMMON.url,
+                input_folder_name=INPUT_FOLDER_NAME,
+                flatten_upload_paths=flatten_upload_paths,
+            )
             uploaded_files.append(executable)
         task_input = TaskInput.from_task_namespace(
             unique_upload_pathname(
-                executable, flatten_upload_paths=flatten_upload_paths
+                filename=executable,
+                id=ID,
+                input_folder_name=INPUT_FOLDER_NAME,
+                flatten_upload_paths=flatten_upload_paths,
             ),
             verification=TaskInputVerification.VERIFY_AT_START,
         )
@@ -678,7 +625,10 @@ def create_task(
             inputs.append(task_input)
         args = [
             unique_upload_pathname(
-                executable, flatten_upload_paths=flatten_upload_paths
+                filename=executable,
+                id=ID,
+                input_folder_name=INPUT_FOLDER_NAME,
+                flatten_upload_paths=flatten_upload_paths,
             )
             if flatten_input_paths is None
             else basename(executable)

@@ -52,7 +52,8 @@ This repository contains a set of command line Python scripts for interacting wi
 
 - **Provisioning** Worker Pools
 - **Submitting** Work Requirements
-- **Downloading** Results
+- **Uploading** files to the YellowDog Object Store
+- **Downloading** Results from the YellowDog Object Store
 - **Shutting Down** Worker Pools and **Terminating** Compute Requirements
 - **Cancelling** Work Requirements
 - **Aborting** running Tasks
@@ -754,6 +755,15 @@ The `namespace` and `tag` values are used to determine which objects to download
 The `yd-delete` command deletes any objects created in the YellowDog Object Store.
 
 The `namespace` and `tag` values in the `config.toml` file are used to identify which objects to delete.
+
+## yd-upload
+
+The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory supplied using the (required) `--directory` option, e.g.:
+
+```shell
+yd-upload --directory my_work_requirement file_1 file_2 morefiles/file3
+```
+To suppress the mirroring of the local directory structure within the object store, use the `--flatten-upload-paths` or `-f` option.
 
 ## yd-shutdown
 
