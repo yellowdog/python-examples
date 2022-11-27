@@ -31,16 +31,15 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.common import (
+from yd_commands.config import (
     CONFIG_FILE_DIR,
     ConfigWorkRequirement,
     generate_id,
     link_entity,
     load_config_work_requirement,
-    load_json_file,
-    load_json_file_with_mustache_substitutions,
 )
 from yd_commands.config_keys import *
+from yd_commands.mustache import load_json_file_with_mustache_substitutions
 from yd_commands.printing import print_error, print_log
 from yd_commands.upload_utils import unique_upload_pathname, upload_file
 from yd_commands.validate_properties import validate_properties
@@ -64,10 +63,7 @@ def main():
     )
     if wr_json_file is not None:
         print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
-        if ARGS_PARSER.no_mustache:
-            tasks_data = load_json_file(wr_json_file)
-        else:
-            tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
+        tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
         validate_properties(tasks_data, "Work Requirement JSON")
         submit_work_requirement(
             directory_to_upload_from=dirname(wr_json_file),
@@ -156,6 +152,7 @@ def submit_work_requirement(
                     upload_file(
                         client=CLIENT,
                         filename=input_file,
+                        namespace=CONFIG_COMMON.namespace,
                         id=ID,
                         url=CONFIG_COMMON.url,
                         input_folder_name=INPUT_FOLDER_NAME,

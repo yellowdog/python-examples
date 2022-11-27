@@ -6,10 +6,11 @@
 * [Configuration](#configuration)
 * [Naming Restrictions](#naming-restrictions)
 * [Common Properties](#common-properties)
-   * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
-      * [Default Mustache Directives](#default-mustache-directives)
-      * [User-Defined Mustache Directives](#user-defined-mustache-directives)
    * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
+   * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
+* [Mustache Template Directives](#mustache-template-directives)
+   * [Default Mustache Directives](#default-mustache-directives)
+   * [User-Defined Mustache Directives](#user-defined-mustache-directives)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
@@ -22,7 +23,7 @@
       * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
       * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
       * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
-   * [Mustache Template Directives in Work Requirement Properties](#mustache-template-directives-in-work-requirement-properties)
+   * [Mustache Directives in Work Requirement Properties](#mustache-directives-in-work-requirement-properties)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
@@ -32,7 +33,7 @@
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
    * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
-      * [Worker Pool JSON Document Mustache Substitution](#worker-pool-json-document-mustache-substitution)
+   * [Mustache Directives in Worker Pool Properties](#mustache-directives-in-worker-pool-properties)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -44,7 +45,7 @@
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Nov 26 16:10:17 GMT 2022 -->
+<!-- Added by: pwt, at: Mon Nov 28 08:39:48 GMT 2022 -->
 
 <!--te-->
 
@@ -105,8 +106,8 @@ Commands are run from the command line. Invoking the command with the `--help` o
 
 ```text
 % yd-cancel --help
-usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>]
-                 [--tag <tag>] [--url <url>] [--mustache-substitution <var1=v1>] [--quiet] [--abort] [--interactive] [--yes]
+usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>] [--url <url>] [--mustache-substitution <var1=v1>] [--quiet] [--abort]
+                 [--interactive] [--yes] [--stack-trace]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -123,11 +124,12 @@ optional arguments:
   --url <url>, -u <url>
                         the URL of the YellowDog Platform API
   --mustache-substitution <var1=v1>, -m <var1=v1>
-                        user-defined Mustache substitution; can be used multiple times
+                        user-defined Mustache substitution; can be supplied multiple times
   --quiet, -q           suppress (non-error, non-interactive) status and progress messages
   --abort, -a           abort all running tasks with immediate effect
   --interactive, -i     list, and interactively select, items to act on
   --yes, -y             perform destructive actions without requiring user confirmation
+  --stack-trace         print a stack trace on error (for debugging)
 ```
 
 # Configuration
@@ -140,7 +142,7 @@ The configuration file has three possible sections:
 2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
 3. A `workerPool` section that defines the properties of Provisoned Worker Pools to be created using the YellowDog platform. 
 
-There is a documented template TOML file provided in [config.toml.template](config.toml.template).
+There is a documented template TOML file provided in [config.toml.template](config.toml.template), containing the main properties that can be configured.
 
 The configuration filename can be supplied in three different ways:
 
@@ -152,16 +154,14 @@ The options above are shown in order of precedence, i.e., a filename supplied on
 
 # Naming Restrictions
 
-All names used within the YellowDog Platform must comply with the following restrictions:
+All entity names used within the YellowDog Platform must comply with the following restrictions:
 
 - Names can only contain the following: lowercase letters, digits, hyphens and underscores (note that spaces are not permitted)
 - Names must start with a letter
 - Names must end with a letter or digit
 - Name length must be <= 60 characters
 
-These restrictions apply to Namespaces, Tags, Work Requirements, Task Groups, Tasks, Worker Pools, and Compute Requirements.
-
-(The restrictions also apply to entities that are currently used indirectly by these scripts: Usernames, Credentials, Keyrings, Compute Sources and Compute Templates).
+These restrictions apply to entities including Namespaces, Tags, Work Requirements, Task Groups, Tasks, Worker Pools, and Compute Requirements, and also apply to entities that are currently used indirectly by these scripts: Usernames, Credentials, Keyrings, Compute Sources and Compute Templates).
 
 # Common Properties
 
@@ -186,36 +186,6 @@ An example `common` section is shown below:
 ```
 
 The indentation is optional in TOML files and is for readability only.
-
-## Mustache Template Directives in Common Properties
-
-Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
-
-Mustache directives can be used within the `namespace` and `tag` values in the `common` section (or when supplied as command line options or environment variables).
-
-### Default Mustache Directives
-
-| Directive      | Description                                                    | Example of Substitution |
-|:---------------|:---------------------------------------------------------------|:------------------------|
-| `{{username}}` | The current user's login username, lower case, spaces replaced | jane_smith              |
-| `{{date}}`     | The current date (UTC): YYYYMMDD                               | 20221027                |
-| `{{time}}`     | The current time (UTC): HHMMSS                                 | 163026                  |
-| `{{datetime}}` | Concatenation of the date and time above, with a '-' separator | 20221027-163026         |
-| `{{random}}`   | A random, three digit hexadecimal number (lower case)          | a1c                     |
-
-For the `date`, `time` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
-
-### User-Defined Mustache Directives
-
-Additional (static) Mustache directives can be supplied using command line options or by setting environment variables prefixed with `YD_SUB_`.
-
-The **command line** option is `--mustache-substitution` (or `-m`). For example, `yd-submit -m project_code=pr-213-a -m run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
-
-For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
-
-Directives set on the command line take precedence over directives set in environment variables.
-
-This method can be used to override the default directives, e.g., setting `-m username="other-user"` will override the default `{{username}}` directive.
 
 ## Specifying Common Properties using the Command Line or Environment Variables
 
@@ -242,6 +212,50 @@ The **environment variables** are as follows:
 When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in a configuration file.
 
 If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
+
+## Mustache Template Directives in Common Properties
+
+Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
+
+Mustache substitutions are discussed below.
+
+# Mustache Template Directives
+
+Mustache template substitutions provide a powerful way of introducing variable values into TOML configuration files, Work Requirement JSON definitions, and Worker Pool JSON definitions. They can be included in the value of any property in each of these objects, including in values within lists (e.g., for the `arguments` property) and arrays (e.g., the `environment` property).
+
+Mustache substitutions are expressed using `{{variable}}` notation, where the expression is replaced by the value of `variable`.
+
+Substitutions can also be performed for non-string (number and boolean) values using the `num:` and `bool:` prefixes within the Mustache directive:
+
+- Define the Mustache directive using one of the following patterns: `"{{num:my_int}}"`, `"{{num:my_float}}"`, `"{{bool:my_bool}}"`
+- Variable definitions supplied on the command line would then be of the form: `-m my_int=5 -m my_float=2.5 -m my_bool=true`
+- In the processed JSON or TOML, these values would become `5`, `2.5` and `true`, respectively, converted from strings to their correct JSON types
+
+## Default Mustache Directives
+
+The following substitutions are automatically provided by the commands:
+
+| Directive      | Description                                                    | Example of Substitution |
+|:---------------|:---------------------------------------------------------------|:------------------------|
+| `{{username}}` | The current user's login username, lower case, spaces replaced | jane_smith              |
+| `{{date}}`     | The current date (UTC): YYYYMMDD                               | 20221027                |
+| `{{time}}`     | The current time (UTC): HHMMSS                                 | 163026                  |
+| `{{datetime}}` | Concatenation of the date and time above, with a '-' separator | 20221027-163026         |
+| `{{random}}`   | A random, three digit hexadecimal number (lower case)          | a1c                     |
+
+For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
+
+## User-Defined Mustache Directives
+
+Arbitrary Mustache directives can be supplied using command line options or by setting environment variables prefixed with `YD_SUB_`.
+
+The **command line** option is `--mustache-substitution` (or `-m`). For example, `yd-submit -m project_code=pr-213-a -m run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
+
+For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
+
+Directives set on the command line take precedence over directives set in environment variables.
+
+This method can be used to override the default directives, e.g., setting `-m username="other-user"` will override the default `{{username}}` directive.
 
 # Work Requirement Properties
 
@@ -528,11 +542,9 @@ Showing all possible properties at the Task level:
 }
 ```
 
-## Mustache Template Directives in Work Requirement Properties
+## Mustache Directives in Work Requirement Properties
 
-Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives-in-common-properties) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line.
-
-To suppress all Mustache processing within a Work Requirement JSON file, `yd-submit` can be run with the `--no-mustache` option. All mustache directives will be ignored, i.e., the {{foobar}} double-bracketed form will remain in the Work Requirement.
+Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line or via environment variables.
 
 ## File Storage Locations and File Usage
 
@@ -708,18 +720,11 @@ When using a JSON document to specify the Worker Pool, the schema of the documen
 
 Examples will be provided at a later date.
 
-### Worker Pool JSON Document Mustache Substitution
+## Mustache Directives in Worker Pool Properties
 
-Mustache directives can be used within Worker Pool JSON document values, with some caveats and limitations.
+Mustache template directives can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line or via environment variables.
 
-- Each Mustache directive intended for preprocessing by the `yd-provision` command must be preceded by a `__` (double underscore) to disambiguate it from Mustache directives that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` variable.
-- Directives intended for preprocessing and directives intended for pass-through to the API cannot be mixed within a single value.
-
-As well as string substitutions, It's possible to substitute `int`, `float` and `bool` values, as follows:
-
-- Define the Mustache directive using one of the following patterns: `__{{int:my_int}}`, `__{{float:my_float}}`, `__{{bool:my_bool}}`
-- Variable definitions supplied on the command line would then be of the form: `-m my_int=5 -m my_float=2.5 -m my_bool=true`
-- In the processed JSON document, these would become `5`, `2.5` and `true`, respectively, converted from strings to their correct JSON types
+An important distinction **only** when using Mustache directives within Worker Pool JSON documents is that each directive **must be preceded by a `__` (double underscore)** to disambiguate it from Mustache directives that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` variable.
 
 # Command List
 

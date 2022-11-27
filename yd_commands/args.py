@@ -145,14 +145,6 @@ class CLIParser:
                 help="abort all running tasks with immediate effect",
             )
 
-        if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
-            parser.add_argument(
-                "--no-mustache",
-                action="store_true",
-                required=False,
-                help="don't use Mustache substitutions in JSON file processing",
-            )
-
         if any(
             module in sys.argv[0]
             for module in [

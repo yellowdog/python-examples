@@ -1,23 +1,17 @@
 """
 Common utility functions, mostly related to loading configuration data.
 """
+
 import os
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
-from getpass import getuser
-from json import load as json_load
-from json import loads as json_loads
 from os import getenv
 from os.path import abspath, dirname, join, normpath, relpath
-from random import randint
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from uuid import uuid4
 
-from chevron import render as chevron_render
 from toml import TomlDecodeError
-from toml import loads as toml_loads
 from yellowdog_client.model import (
     ComputeRequirement,
     ConfiguredWorkerPool,
@@ -27,6 +21,11 @@ from yellowdog_client.model import (
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config_keys import *
+from yd_commands.mustache import (
+    UTCNOW,
+    load_toml_file_with_mustache_substitutions,
+    substitute_mustache_str,
+)
 from yd_commands.printing import print_error, print_log
 from yd_commands.validate_properties import validate_properties
 
@@ -105,64 +104,6 @@ class ConfigWorkerPool:
     workers_per_node: int = 1
 
 
-UTCNOW = datetime.utcnow()
-RAND_SIZE = 0xFFF
-MUSTACHE_SUBSTITUTIONS = {
-    "username": getuser().replace(" ", "_").lower(),
-    "date": UTCNOW.strftime("%y%m%d"),
-    "time": UTCNOW.strftime("%H%M%S"),
-    "datetime": UTCNOW.strftime("%y%m%d-%H%M%S"),
-    "random": hex(randint(0, RAND_SIZE + 1))[2:].lower().zfill(len(hex(RAND_SIZE)) - 2),
-}
-
-# Add user-defined Mustache substitutions
-# Can overwrite existing substitutions (above)
-USER_MUSTACHE_PREFIX = "YD_SUB_"
-
-# Environment variables
-for key, value in os.environ.items():
-    if key.startswith(USER_MUSTACHE_PREFIX):
-        key = key[len(USER_MUSTACHE_PREFIX) :]
-        MUSTACHE_SUBSTITUTIONS[key] = value
-        print_log(f"Adding user-defined Mustache substitution: '{key}' = '{value}'")
-
-# Command line (takes precedence over environment variables)
-if ARGS_PARSER.mustache_subs is not None:
-    for sub in ARGS_PARSER.mustache_subs:
-        key_value: List = sub.split("=")
-        if len(key_value) == 2:
-            MUSTACHE_SUBSTITUTIONS[key_value[0]] = key_value[1]
-            print_log(
-                f"Adding user-defined Mustache substitution: "
-                f"'{key_value[0]}' = '{key_value[1]}'"
-            )
-        else:
-            print_error(
-                f"Error in Mustache substitution '{key_value[0]}'",
-            )
-            print_log("Done")
-            exit(1)
-
-
-def mustache_substitution(input_string: Optional[str]) -> Optional[str]:
-    """
-    Apply Mustache substitutions
-    """
-    if input_string is None:
-        return None
-    return chevron_render(input_string, MUSTACHE_SUBSTITUTIONS)
-
-
-def load_toml_file_with_mustache_substitutions(filename: str) -> Dict:
-    """
-    Takes a TOML filename and returns a dictionary with its mustache
-    substitutions processed.
-    """
-    with open(filename, "r") as f:
-        contents = f.read()
-    return toml_loads(mustache_substitution(contents))
-
-
 # CLI > YD_CONF > 'config.toml'
 config_file = (
     getenv("YD_CONF", "config.toml")
@@ -231,12 +172,14 @@ def load_config_common() -> ConfigCommon:
 
         return ConfigCommon(
             # Required
-            key=common_section[KEY],
-            secret=common_section[SECRET],
-            namespace=mustache_substitution(common_section[NAMESPACE]),
-            name_tag=mustache_substitution(common_section[NAME_TAG]),
+            key=substitute_mustache_str(common_section[KEY]),
+            secret=substitute_mustache_str(common_section[SECRET]),
+            namespace=substitute_mustache_str(common_section[NAMESPACE]),
+            name_tag=substitute_mustache_str(common_section[NAME_TAG]),
             # Optional
-            url=common_section.get(URL, "https://portal.yellowdog.co/api"),
+            url=substitute_mustache_str(
+                common_section.get(URL, "https://portal.yellowdog.co/api")
+            ),
         )
 
     except KeyError as e:
@@ -274,10 +217,11 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
                 pass
         if worker_tags is not None:
             for index, worker_tag in enumerate(worker_tags):
-                worker_tags[index] = mustache_substitution(worker_tag)
+                worker_tags[index] = substitute_mustache_str(worker_tag)
 
         tasks_data_file = wr_section.get(WR_DATA, None)
         if tasks_data_file is not None:
+            tasks_data_file = substitute_mustache_str(tasks_data_file)
             tasks_data_file = pathname_relative_to_config_file(tasks_data_file)
 
         # Check for properties set on the command line
@@ -286,11 +230,14 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             if ARGS_PARSER.executable is None
             else ARGS_PARSER.executable
         )
+        executable = substitute_mustache_str(executable)
+
         task_type = (
             wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, "bash"))
             if ARGS_PARSER.task_type is None
             else ARGS_PARSER.task_type
         )
+        task_type = substitute_mustache_str(task_type)
 
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),
@@ -298,15 +245,11 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, True),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             docker_env=wr_section.get(DOCKER_ENV, None),
-            docker_password=mustache_substitution(
-                wr_section.get(DOCKER_PASSWORD, None)
-            ),
-            docker_username=mustache_substitution(
-                wr_section.get(DOCKER_USERNAME, None)
-            ),
+            docker_password=wr_section.get(DOCKER_PASSWORD, None),
+            docker_username=wr_section.get(DOCKER_USERNAME, None),
             env=wr_section.get(ENV, {}),
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
-            executable=mustache_substitution(executable),
+            executable=executable,
             finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, False),
             flatten_input_paths=wr_section.get(FLATTEN_PATHS, None),
             flatten_upload_paths=wr_section.get(FLATTEN_UPLOAD_PATHS, None),
@@ -322,14 +265,14 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             ram=wr_section.get(RAM, None),
             regions=wr_section.get(REGIONS, None),
             task_count=wr_section.get(TASK_COUNT, 1),
-            task_type=mustache_substitution(task_type),
+            task_type=task_type,
             tasks_data_file=tasks_data_file,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
             vcpus=wr_section.get(VCPUS, None),
             verify_at_start=wr_section.get(VERIFY_AT_START, []),
             verify_wait=wr_section.get(VERIFY_WAIT, []),
             worker_tags=worker_tags,
-            wr_name=mustache_substitution(wr_section.get(WR_NAME, None)),
+            wr_name=wr_section.get(WR_NAME, None),
         )
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
@@ -346,14 +289,13 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     except KeyError:
         return ConfigWorkerPool()
     try:
-        worker_tag = wp_section.get(WORKER_TAG, None)
-        if worker_tag is not None:
-            worker_tag = mustache_substitution(worker_tag)
-        worker_pool_data_file = wp_section.get(WP_DATA, None)
+        worker_tag = substitute_mustache_str(wp_section.get(WORKER_TAG, None))
+        worker_pool_data_file = substitute_mustache_str(wp_section.get(WP_DATA, None))
         if worker_pool_data_file is not None:
             worker_pool_data_file = pathname_relative_to_config_file(
                 worker_pool_data_file
             )
+
         return ConfigWorkerPool(
             auto_scaling_idle_delay=wp_section.get(AUTO_SCALING_IDLE_DELAY, 10),
             auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
@@ -366,13 +308,16 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
                 MAX_NODES, max(1, wp_section.get(INITIAL_NODES, 1))
             ),
             min_nodes=wp_section.get(MIN_NODES, 0),
-            name=mustache_substitution(wp_section.get(WP_NAME, None)),
+            name=substitute_mustache_str(
+                wp_section.get(WP_NAME, None),
+            ),
             node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
             template_id=wp_section.get(TEMPLATE_ID, None),
             worker_pool_data_file=worker_pool_data_file,
             worker_tag=worker_tag,
             workers_per_node=wp_section.get(WORKERS_PER_NODE, 1),
         )
+
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
         print("Done")
@@ -403,25 +348,6 @@ def pathname_relative_to_config_file(file: str) -> str:
     of the config file
     """
     return normpath(relpath(join(CONFIG_FILE_DIR, file)))
-
-
-def load_json_file(filename: str) -> Dict:
-    """
-    Load a JSON file into a dictionary.
-    """
-    with open(filename, "r") as f:
-        return json_load(f)
-
-
-def load_json_file_with_mustache_substitutions(filename: str) -> Dict:
-    """
-    Takes a JSON filename and returns a dictionary with its mustache
-    substitutions processed. Currently only applicable to Work Requirement
-    submissions.
-    """
-    with open(filename, "r") as f:
-        contents = f.read()
-    return json_loads(mustache_substitution(contents))
 
 
 # Utility functions for creating links to YD entities

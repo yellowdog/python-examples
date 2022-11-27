@@ -16,7 +16,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.common import link_entity
+from yd_commands.config import link_entity
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,

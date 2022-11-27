@@ -12,7 +12,7 @@ from yellowdog_client.model import (
     ComputeRequirementSummary,
 )
 
-from yd_commands.common import link_entity
+from yd_commands.config import link_entity
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_error, print_log
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper

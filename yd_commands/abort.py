@@ -14,7 +14,7 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from yd_commands.common import ARGS_PARSER
+from yd_commands.config import ARGS_PARSER
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
