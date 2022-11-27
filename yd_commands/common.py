@@ -379,7 +379,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
         exit(0)
 
 
-def generate_id(prefix: str, max_length: int = 50) -> str:
+def generate_id(prefix: str, max_length: int = 60) -> str:
     """
     Adds a combination of a UTC timestamp plus
     a few random hex characters. Checks length.
