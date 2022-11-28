@@ -14,7 +14,7 @@ from toml import load as toml_load
 from yd_commands.args import ARGS_PARSER
 from yd_commands.printing import print_error, print_log
 
-# Set up Mustache substitutions
+# Set up default Mustache directives
 UTCNOW = datetime.utcnow()
 RAND_SIZE = 0xFFF
 MUSTACHE_SUBSTITUTIONS = {
@@ -25,18 +25,18 @@ MUSTACHE_SUBSTITUTIONS = {
     "random": hex(randint(0, RAND_SIZE + 1))[2:].lower().zfill(len(hex(RAND_SIZE)) - 2),
 }
 
-# Add user-defined Mustache substitutions
-# Can overwrite the existing substitutions above
+# Add user-defined Mustache directives
+# Can supersede the existing directives above
 USER_MUSTACHE_PREFIX = "YD_SUB_"
 
-# Environment variables
+# Directives from environment variables
 for key, value in os.environ.items():
     if key.startswith(USER_MUSTACHE_PREFIX):
         key = key[len(USER_MUSTACHE_PREFIX) :]
         MUSTACHE_SUBSTITUTIONS[key] = value
         print_log(f"Adding user-defined Mustache substitution: '{key}' = '{value}'")
 
-# Command line (takes precedence over environment variables)
+# Directives from the command line (take precedence over environment variables)
 if ARGS_PARSER.mustache_subs is not None:
     for sub in ARGS_PARSER.mustache_subs:
         key_value: List = sub.split("=")
@@ -57,6 +57,11 @@ if ARGS_PARSER.mustache_subs is not None:
 def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
     Apply basic Mustache substitutions.
+
+    Note that any unsatisfied directives will simply be erased. This is
+    undesirable. A new version of Chevron needs to be uploaded to PyPI,
+    enabling the 'keep' option. See:
+    https://github.com/noahmorrison/chevron/issues/114#issuecomment-1328948904
     """
     if input_string is None:
         return None
