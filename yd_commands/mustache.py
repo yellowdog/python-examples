@@ -2,8 +2,10 @@
 Utilities for applying Mustache substitutions.
 """
 import os
+import sys
 from datetime import datetime
 from getpass import getuser
+from io import StringIO
 from json import load as json_load
 from random import randint
 from typing import Dict, List, Optional, Union
@@ -65,7 +67,24 @@ def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
     if input_string is None:
         return None
-    return chevron_render(input_string, MUSTACHE_SUBSTITUTIONS)
+
+    # Trap stderror to capture Chevron misses, if 'stack-trace' is specified
+    if ARGS_PARSER.stack_trace:
+        error = StringIO()
+        sys.stderr = error
+
+    result = chevron_render(
+        input_string, MUSTACHE_SUBSTITUTIONS, warn=ARGS_PARSER.stack_trace
+    )
+
+    # Restore stderror and report missing substitutions
+    if ARGS_PARSER.stack_trace:
+        sys.stderr = sys.__stderr__
+        error_msg = error.getvalue().rstrip()
+        if error_msg != "":
+            print_log(f"Note: Mustache substitution error: '{error_msg}'")
+
+    return result
 
 
 def process_mustache_substitutions(
@@ -130,6 +149,8 @@ def substitute_mustache_str(
     if input.startswith(f"{{{{{number_}"):
         input_var_mustache = input.replace(number_, "")
         if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
+            if ARGS_PARSER.stack_trace:
+                print_log(f"Note: No Mustache substitution found for '{input}'")
             return input
         replaced = simple_mustache_substitution(input_var_mustache)
         try:
@@ -147,6 +168,8 @@ def substitute_mustache_str(
     if input.startswith(f"{{{{{bool_}"):
         input_var_mustache = input.replace(bool_, "")
         if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
+            if ARGS_PARSER.stack_trace:
+                print_log(f"Note: No Mustache substitution found for '{input}'")
             return input
         replaced = simple_mustache_substitution(input_var_mustache)
         if replaced.lower() == "true":
