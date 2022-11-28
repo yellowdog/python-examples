@@ -193,7 +193,7 @@ class CLIParser:
                 "-o",
                 action="store_true",
                 required=False,
-                help="list YellowDog Object Store Object Paths",
+                help="list YellowDog Object Store object paths",
             )
             parser.add_argument(
                 "--work-requirements",
@@ -238,20 +238,13 @@ class CLIParser:
                 help="list live objects only",
             )
 
-        parser.add_argument(
-            "--stack-trace",
-            action="store_true",
-            required=False,
-            help="print a stack trace on error (for debugging)",
-        )
-
         if "upload" in sys.argv[0]:
             parser.add_argument(
                 "--directory",
                 "-d",
                 type=str,
                 required=True,
-                help="the object store directory name to use when uploading objects",
+                help="the Object Store directory name to use when uploading objects",
                 metavar="<directory>",
             )
             parser.add_argument(
@@ -259,15 +252,29 @@ class CLIParser:
                 metavar="<filename>",
                 type=str,
                 nargs="+",
-                help="a file to upload to the object store",
+                help="files and/or directories to upload to the Object Store",
             )
             parser.add_argument(
                 "--flatten-upload-paths",
                 "-f",
                 action="store_true",
                 required=False,
-                help="suppress use of local directory paths when uploading files",
+                help="suppress mirroring of local directory paths when uploading files",
             )
+            parser.add_argument(
+                "--recursive",
+                "-r",
+                action="store_true",
+                required=False,
+                help="recursively upload files from directories",
+            )
+
+        parser.add_argument(
+            "--stack-trace",
+            action="store_true",
+            required=False,
+            help="print a stack trace on error (for debugging)",
+        )
 
         self.args = parser.parse_args()
 
@@ -393,12 +400,17 @@ class CLIParser:
     def directory(self) -> Optional[str]:
         return self.args.directory
 
+    @property
     def files(self) -> List[str]:
         return self.args.filenames
 
     @property
     def flatten(self) -> Optional[bool]:
         return self.args.flatten_upload_paths
+
+    @property
+    def recursive(self) -> Optional[bool]:
+        return self.args.recursive
 
 
 ARGS_PARSER = CLIParser()
