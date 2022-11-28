@@ -53,6 +53,7 @@ def main():
             url=CONFIG_COMMON.url,
             flatten_upload_paths=ARGS_PARSER.flatten,
         )
+    print_log(f"Uploaded {len(files_set)} files")
 
 
 # Standalone entry point
