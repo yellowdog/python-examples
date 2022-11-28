@@ -124,7 +124,6 @@ try:
 except FileNotFoundError as e:
     if ARGS_PARSER.config_file is not None:
         print_error(e)
-        print_log("Done")
         exit(1)
     # No config file, so create a stub config dictionary
     CONFIG_TOML = {COMMON_SECTION: {}}
@@ -134,7 +133,10 @@ except (PermissionError, TomlDecodeError) as e:
     print_error(
         f"Unable to load configuration data from '{config_file}': {e}",
     )
-    print_log("Done")
+    exit(1)
+
+except Exception as e:
+    print_error(e)
     exit(1)
 
 

@@ -124,10 +124,14 @@ def substitute_mustache_str(
     number_ = "num:"
     bool_ = "bool:"
 
+    def _remove_mustache_brackets(mustache_str: str) -> str:
+        return mustache_str.replace("{{", "").replace("}}", "")
+
     if input.startswith(f"{{{{{number_}"):
-        replaced = simple_mustache_substitution(
-            input.replace(number_, ""),
-        )
+        input_var_mustache = input.replace(number_, "")
+        if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
+            return input
+        replaced = simple_mustache_substitution(input_var_mustache)
         try:
             replaced_number = int(replaced)
         except ValueError:
@@ -141,9 +145,10 @@ def substitute_mustache_str(
         return replaced_number
 
     if input.startswith(f"{{{{{bool_}"):
-        replaced = simple_mustache_substitution(
-            input.replace(bool_, ""),
-        )
+        input_var_mustache = input.replace(bool_, "")
+        if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
+            return input
+        replaced = simple_mustache_substitution(input_var_mustache)
         if replaced.lower() == "true":
             return True
         if replaced.lower() == "false":
