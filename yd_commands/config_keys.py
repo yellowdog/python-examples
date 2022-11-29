@@ -31,6 +31,7 @@ MAX_RETRIES = "maximumTaskRetries"  # Integer
 MAX_WORKERS = "maxWorkers"  # Integer
 MIN_NODES = "minNodes"  # Integer
 MIN_WORKERS = "minWorkers"  # Integer
+MVARS = "mVars"  # Dictionary
 NAME = "name"  # String
 NAMESPACE = "namespace"  # String
 NAME_TAG = "tag"  # String
@@ -96,6 +97,7 @@ ALL_KEYS = [
     MAX_WORKERS,
     MIN_NODES,
     MIN_WORKERS,
+    MVARS,
     NAMESPACE,
     NAME_TAG,
     NODE_BOOT_TIME_LIMIT,

@@ -14,6 +14,7 @@ from chevron import render as chevron_render
 from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.config_keys import *
 from yd_commands.printing import print_error, print_log
 
 # Set up default Mustache directives
@@ -54,6 +55,15 @@ if ARGS_PARSER.mustache_subs is not None:
             )
             print_log("Done")
             exit(1)
+
+
+def add_substitutions(subs: Dict):
+    """
+    Add a dictionary of substitutions. Do not overwrite existing values.
+    """
+    global MUSTACHE_SUBSTITUTIONS
+    subs.update(MUSTACHE_SUBSTITUTIONS)
+    MUSTACHE_SUBSTITUTIONS = subs
 
 
 def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
@@ -204,5 +214,13 @@ def load_toml_file_with_mustache_substitutions(filename: str, prefix: str = "") 
     """
     with open(filename, "r") as f:
         config = toml_load(f)
+
+    # Add any Mustache substitutions in the TOML file before processing the
+    # file as a whole
+    try:
+        add_substitutions(config[COMMON_SECTION][MVARS])
+    except KeyError:
+        pass
+
     process_mustache_substitutions(config, prefix=prefix)
     return config

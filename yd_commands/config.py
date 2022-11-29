@@ -142,7 +142,7 @@ except Exception as e:
 
 def load_config_common() -> ConfigCommon:
     """
-    Load the configuration values for the 'common' section
+    Load the configuration values for the 'common' section.
     """
     try:
         common_section = CONFIG_TOML[COMMON_SECTION]

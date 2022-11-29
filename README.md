@@ -45,7 +45,7 @@
    * [yd-shutdown](#yd-shutdown)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Mon Nov 28 08:39:48 GMT 2022 -->
+<!-- Added by: pwt, at: Wed Nov 30 11:15:12 GMT 2022 -->
 
 <!--te-->
 
@@ -165,7 +165,7 @@ These restrictions apply to entities including Namespaces, Tags, Work Requiremen
 
 # Common Properties
 
-The `[common]` section of the configuration file contains the following properties:
+The `[common]` section of the configuration file can contain the following properties:
 
 | Property    | Description                                                                         |
 |:------------|:------------------------------------------------------------------------------------|
@@ -174,6 +174,7 @@ The `[common]` section of the configuration file contains the following properti
 | `namespace` | The **namespace** to be used to manage resources                                    |
 | `tag`       | The **tag** to be used for tagging resources and naming objects                     |
 | `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't to be used |
+| `mVars`     | A dictionary containing **Mustache substitutions** (see the Mustache section below) |
 
 An example `common` section is shown below:
 
@@ -233,7 +234,7 @@ Substitutions can also be performed for non-string (number and boolean) values u
 
 ## Default Mustache Directives
 
-The following substitutions are automatically provided by the commands:
+The following substitutions are automatically provided:
 
 | Directive      | Description                                                    | Example of Substitution |
 |:---------------|:---------------------------------------------------------------|:------------------------|
@@ -247,13 +248,17 @@ For the `date`, `time`, `datetime` and `random` directives, the same values will
 
 ## User-Defined Mustache Directives
 
-Arbitrary Mustache directives can be supplied using command line options or by setting environment variables prefixed with `YD_SUB_`.
+Arbitrary Mustache directives can be supplied using command line options, by setting environment variables prefixed with `YD_SUB_`, or by including the directives in the `[common]` section of the TOML configuration file.
 
-The **command line** option is `--mustache-substitution` (or `-m`). For example, `yd-submit -m project_code=pr-213-a -m run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
+1. The **command line** option is `--mustache-substitution` (or `-m`). For example, `yd-submit -m project_code=pr-213-a -m run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
-For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
 
-Directives set on the command line take precedence over directives set in environment variables.
+2. For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
+
+
+3. For **setting within the TOML file**, include an **`mVars`** dictionary in the `[common]` section of the file. E.g., `mVars = {project_code = "pr-213a", run_id = "1234"}`.
+
+Directives set on the command line take precedence over directives set in environment variables, and both of them take precedence over directives set in a TOML file.
 
 This method can be used to override the default directives, e.g., setting `-m username="other-user"` will override the default `{{username}}` directive.
 
@@ -347,14 +352,14 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**).
 | `taskType`                        | The Task Type of a Task. E.g., `"docker"`.                                                                                                                               | Yes  |     |           | Yes  |
 | `taskTypes`                       | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                        |      | Yes | Yes       |      |
 | `vcpus`                           | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                               | Yes  | Yes | Yes       |      |
-| `verifyAtStart`                   | A list of files required by a Task. Must be present when the Task is ready to start or the Task will fail. E.g.: `["Task_Group_1/Task_1/results.txt"]`.                  | Yes  | Yes | Yes       | Yes  |
-| `verifyWait`                      | A list of files required by a Task. The Task will wait until the files are available before starting. E.g.: `["Task_Group_1/Task_1/results.txt"]`.                       | Yes  | Yes | Yes       | Yes  |
+| `verifyAtStart`                   | A list of files required by a Task. Must be present when the Task is ready to start or the Task will fail. E.g.: `["task_group_1/task_1/results.txt"]`.                  | Yes  | Yes | Yes       | Yes  |
+| `verifyWait`                      | A list of files required by a Task. The Task will wait until the files are available before starting. E.g.: `["task_group_1/task_1/results.txt"]`.                       | Yes  | Yes | Yes       | Yes  |
 | `workerTags`                      | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                             | Yes  | Yes | Yes       |      |
 | `workRequirementData`             | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                 | Yes  |     |           |      |
 
 ## Automatic Properties
 
-In addition to the inheritance mechanism, some properties are set automatically by the `yd-submit` command, as a usage convenience.
+In addition to the inheritance mechanism, some properties are set automatically by the `yd-submit` command, as a usage convenience if they're not explicitly provided.
 
 ### Work Requirement, Task Group and Task Naming
 
@@ -544,7 +549,7 @@ Showing all possible properties at the Task level:
 
 ## Mustache Directives in Work Requirement Properties
 
-Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line or via environment variables.
+Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
 
 ## File Storage Locations and File Usage
 
@@ -596,7 +601,7 @@ When a Task is started by the Agent, its working directory has a pattern somethi
 
 `/var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1`
 
-(This is an ephemeral directory that is removed after the Task finishes and any outputs have been uploaded.)
+(`ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemeral directory that is removed after the Task finishes and any outputs have been uploaded.)
 
 Files that are downloaded by the Agent prior to Task execution are located as follows:
 
@@ -640,7 +645,7 @@ development:testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
 
 ### Files Downloaded from the Object Store to Local Storage
 
-The `yd-download` command will download all objects from the Object Store to a local directory, on a per Work Requirement basis. A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
+The `yd-download` command will download all objects from the Object Store to a local directory, on a per Work Requirement basis (including any files that have been uploaded). A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
 
 Use the `--interactive` option with `yd-download` to select which Work Requirement(s) to download.
 
@@ -722,7 +727,7 @@ Examples will be provided at a later date.
 
 ## Mustache Directives in Worker Pool Properties
 
-Mustache template directives can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line or via environment variables.
+Mustache template directives can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
 An important distinction **only** when using Mustache directives within Worker Pool JSON documents is that each directive **must be preceded by a `__` (double underscore)** to disambiguate it from Mustache directives that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` variable.
 
