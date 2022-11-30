@@ -19,7 +19,7 @@ CLIENT = PlatformClient.create(
 
 def main_wrapper(func):
     def wrapper():
-        if not ARGS_PARSER.stack_trace:
+        if not ARGS_PARSER.debug:
             exit_code = 0
             try:
                 func()

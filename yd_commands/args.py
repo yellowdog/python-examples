@@ -270,10 +270,10 @@ class CLIParser:
             )
 
         parser.add_argument(
-            "--stack-trace",
+            "--debug",
             action="store_true",
             required=False,
-            help="print a stack trace on error (for debugging)",
+            help="print a stack trace (etc.) on error",
         )
 
         self.args = parser.parse_args()
@@ -393,8 +393,8 @@ class CLIParser:
         return self.args.live_only
 
     @property
-    def stack_trace(self) -> Optional[bool]:
-        return self.args.stack_trace
+    def debug(self) -> Optional[bool]:
+        return self.args.debug
 
     @property
     def directory(self) -> Optional[str]:

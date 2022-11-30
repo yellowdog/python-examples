@@ -79,16 +79,16 @@ def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
         return None
 
     # Trap stderror to capture Chevron misses, if 'stack-trace' is specified
-    if ARGS_PARSER.stack_trace:
+    if ARGS_PARSER.debug:
         error = StringIO()
         sys.stderr = error
 
     result = chevron_render(
-        input_string, MUSTACHE_SUBSTITUTIONS, warn=ARGS_PARSER.stack_trace
+        input_string, MUSTACHE_SUBSTITUTIONS, warn=ARGS_PARSER.debug
     )
 
     # Restore stderror and report missing substitutions
-    if ARGS_PARSER.stack_trace:
+    if ARGS_PARSER.debug:
         sys.stderr = sys.__stderr__
         error_msg = error.getvalue().rstrip()
         if error_msg != "":
@@ -159,7 +159,7 @@ def substitute_mustache_str(
     if input.startswith(f"{{{{{number_}"):
         input_var_mustache = input.replace(number_, "")
         if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
-            if ARGS_PARSER.stack_trace:
+            if ARGS_PARSER.debug:
                 print_log(f"Note: No Mustache substitution found for '{input}'")
             return input
         replaced = simple_mustache_substitution(input_var_mustache)
@@ -178,7 +178,7 @@ def substitute_mustache_str(
     if input.startswith(f"{{{{{bool_}"):
         input_var_mustache = input.replace(bool_, "")
         if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
-            if ARGS_PARSER.stack_trace:
+            if ARGS_PARSER.debug:
                 print_log(f"Note: No Mustache substitution found for '{input}'")
             return input
         replaced = simple_mustache_substitution(input_var_mustache)

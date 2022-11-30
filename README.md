@@ -106,8 +106,8 @@ Commands are run from the command line. Invoking the command with the `--help` o
 
 ```text
 % yd-cancel --help
-usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>] [--url <url>] [--mustache-substitution <var1=v1>] [--quiet] [--abort]
-                 [--interactive] [--yes] [--stack-trace]
+usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>] [--url <url>] [--mustache-substitution <var1=v1>]
+                 [--quiet] [--abort] [--interactive] [--yes] [--debug]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -129,7 +129,32 @@ optional arguments:
   --abort, -a           abort all running tasks with immediate effect
   --interactive, -i     list, and interactively select, items to act on
   --yes, -y             perform destructive actions without requiring user confirmation
-  --stack-trace         print a stack trace on error (for debugging)
+  --debug               print a stack trace (etc.) on error
+(yellow-dev) pwt@pwt-mbp-14 python-examples % yd-cancel -h
+usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>] [--url <url>]
+                 [--mustache-substitution <var1=v1>] [--quiet] [--abort] [--interactive] [--yes] [--debug]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config <config_file.toml>, -c <config_file.toml>
+                        configuration file in TOML format; default is 'config.toml' in the current directory
+  --key <app-key>, -k <app-key>
+                        the YellowDog Application key
+  --secret <app-secret>, -s <app-secret>
+                        the YellowDog Application secret
+  --namespace <namespace>, -n <namespace>
+                        the namespace to use when creating and identifying entities
+  --tag <tag>, -t <tag>
+                        the tag to use for tagging and naming entities
+  --url <url>, -u <url>
+                        the URL of the YellowDog Platform API
+  --mustache-substitution <var1=v1>, -m <var1=v1>
+                        user-defined Mustache substitution; can be supplied multiple times
+  --quiet, -q           suppress (non-error, non-interactive) status and progress messages
+  --abort, -a           abort all running tasks with immediate effect
+  --interactive, -i     list, and interactively select, items to act on
+  --yes, -y             perform destructive actions without requiring user confirmation
+  --debug               print a stack trace (etc.) on error
 ```
 
 # Configuration
@@ -741,7 +766,7 @@ Some commands support the `--interactive` or `-i` option, allowing user selectio
 
 The `--quiet` or `-q` option reduces the command output down to essential messages only. So, for example, `yd-delete -yq` would delete all matching object paths silently.
 
-If you encounter an error it can be useful for support purposes to see the full Python stack trace. This can be enabled by running the command using the `--stack-trace` option.
+If you encounter an error it can be useful for support purposes to see the full Python stack trace. This can be enabled by running the command using the `--debug` option.
 
 ## yd-submit
 
