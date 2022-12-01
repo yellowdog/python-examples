@@ -39,7 +39,10 @@ from yd_commands.config import (
     load_config_work_requirement,
 )
 from yd_commands.config_keys import *
-from yd_commands.mustache import load_json_file_with_mustache_substitutions
+from yd_commands.mustache import (
+    load_json_file_with_mustache_substitutions,
+    load_toml_file_with_mustache_substitutions,
+)
 from yd_commands.printing import print_error, print_log
 from yd_commands.upload_utils import unique_upload_pathname, upload_file
 from yd_commands.validate_properties import validate_properties
@@ -56,17 +59,25 @@ INPUT_FOLDER_NAME = None
 
 @main_wrapper
 def main():
-    wr_json_file = (
+    wr_data_file = (
         CONFIG_WR.tasks_data_file
         if ARGS_PARSER.work_req_file is None
         else ARGS_PARSER.work_req_file
     )
-    if wr_json_file is not None:
-        print_log(f"Loading Work Requirement data from: '{wr_json_file}'")
-        tasks_data = load_json_file_with_mustache_substitutions(wr_json_file)
+    if wr_data_file is not None:
+        print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
+        if wr_data_file.lower().endswith("json"):
+            tasks_data = load_json_file_with_mustache_substitutions(wr_data_file)
+        elif wr_data_file.lower().endswith("toml"):
+            tasks_data = load_toml_file_with_mustache_substitutions(wr_data_file)
+        else:
+            raise Exception(
+                f"Work Requirement data file '{wr_data_file}' "
+                "must end with '.json' or '.toml'"
+            )
         validate_properties(tasks_data, "Work Requirement JSON")
         submit_work_requirement(
-            directory_to_upload_from=dirname(wr_json_file),
+            directory_to_upload_from=dirname(wr_data_file),
             tasks_data=tasks_data,
         )
     else:
