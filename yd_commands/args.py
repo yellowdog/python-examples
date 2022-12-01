@@ -11,12 +11,12 @@ from typing import List, Optional
 
 
 class CLIParser:
-    def __init__(self):
+    def __init__(self, description: Optional[str] = None):
         """
         Create the argument parser, and parse the command
         line arguments. Argument availability depends on module.
         """
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(description=description)
 
         parser.add_argument(
             "--config",
@@ -413,7 +413,36 @@ class CLIParser:
         return self.args.recursive
 
 
-ARGS_PARSER = CLIParser()
+def lookup_module_description(module_name: str) -> Optional[str]:
+    """
+    Descriptive string for the module's purpose.
+    """
+    prefix = "YellowDog example utility for "
+    suffix = None
+
+    if "submit" in module_name:
+        suffix = "submitting a Work Requirement"
+    elif "provision" in module_name:
+        suffix = "provisioning a Worker Pool"
+    elif "abort" in module_name:
+        suffix = "aborting Tasks"
+    elif "cancel" in module_name:
+        suffix = "cancelling Work Requirements"
+    elif "download" in module_name:
+        suffix = "downloading objects from the Object Store"
+    elif "delete" in module_name:
+        suffix = "deleting objects in the Object Store"
+    elif "shutdown" in module_name:
+        suffix = "shutting down Worker Pools"
+    elif "terminate" in module_name:
+        suffix = "terminating Compute Requirements"
+    elif "list" in module_name:
+        suffix = "listing entities"
+
+    return None if suffix is None else prefix + suffix
+
+
+ARGS_PARSER = CLIParser(description=lookup_module_description(sys.argv[0]))
 
 
 if __name__ == "__main__":
