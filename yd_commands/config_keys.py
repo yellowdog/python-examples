@@ -17,6 +17,7 @@ DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
 EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
 EXECUTABLE = "executable"  # String
+FINISH_IF_ALL_TASKS_FINISHED = "finishIfAllTasksFinished"  # Boolean
 FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
 FLATTEN_PATHS = "flattenInputPaths"  # Boolean
 FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
@@ -68,7 +69,6 @@ BASH_SCRIPT = "bashScript"  # String
 
 ALL_KEYS = [
     ARGS,
-    FINISH_IF_ANY_TASK_FAILED,
     AUTO_SCALING_IDLE_DELAY,
     AUTO_SHUTDOWN,
     AUTO_SHUTDOWN_DELAY,
@@ -84,6 +84,8 @@ ALL_KEYS = [
     ENV,
     EXCLUSIVE_WORKERS,
     EXECUTABLE,
+    FINISH_IF_ALL_TASKS_FINISHED,
+    FINISH_IF_ANY_TASK_FAILED,
     FLATTEN_PATHS,
     FLATTEN_UPLOAD_PATHS,
     FULFIL_ON_SUBMIT,

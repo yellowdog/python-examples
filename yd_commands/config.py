@@ -59,7 +59,8 @@ class ConfigWorkRequirement:
     env: Dict = field(default_factory=dict)
     exclusive_workers: Optional[bool] = None
     executable: Optional[str] = None
-    finish_if_any_task_failed: bool = True
+    finish_if_any_task_failed: bool = False
+    finish_if_all_tasks_finished: bool = True
     flatten_input_paths: Optional[bool] = None
     flatten_upload_paths: Optional[bool] = None
     fulfil_on_submit: bool = False
@@ -252,6 +253,9 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             env=wr_section.get(ENV, {}),
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
             executable=executable,
+            finish_if_all_tasks_finished=wr_section.get(
+                FINISH_IF_ALL_TASKS_FINISHED, True
+            ),
             finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, False),
             flatten_input_paths=wr_section.get(FLATTEN_PATHS, None),
             flatten_upload_paths=wr_section.get(FLATTEN_UPLOAD_PATHS, None),

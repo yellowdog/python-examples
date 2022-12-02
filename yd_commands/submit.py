@@ -306,13 +306,19 @@ def create_task_group(
         name=task_group_name,
         runSpecification=run_specification,
         dependentOn=task_group_data.get(DEPENDENT_ON, None),
+        finishIfAllTasksFinished=task_group_data.get(
+            FINISH_IF_ALL_TASKS_FINISHED,
+            tasks_data.get(
+                FINISH_IF_ALL_TASKS_FINISHED,
+                CONFIG_WR.finish_if_all_tasks_finished
+            ),
+        ),
         finishIfAnyTaskFailed=task_group_data.get(
             FINISH_IF_ANY_TASK_FAILED,
             tasks_data.get(
                 FINISH_IF_ANY_TASK_FAILED, CONFIG_WR.finish_if_any_task_failed
             ),
         ),
-        finishIfAllTasksFinished=True,
         priority=task_group_data.get(PRIORITY, 0.0),  # Not inherited from WR
         completedTaskTtl=completed_task_ttl,
     )
