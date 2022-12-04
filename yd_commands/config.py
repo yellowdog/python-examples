@@ -27,6 +27,7 @@ from yd_commands.mustache import (
     substitute_mustache_str,
 )
 from yd_commands.printing import print_error, print_log
+from yd_commands.type_check import check_list, check_str
 from yd_commands.validate_properties import validate_properties
 
 
@@ -219,24 +220,26 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             except KeyError:
                 pass
         if worker_tags is not None:
+            check_list(worker_tags)
             for index, worker_tag in enumerate(worker_tags):
                 worker_tags[index] = substitute_mustache_str(worker_tag)
 
         tasks_data_file = wr_section.get(WR_DATA, None)
         if tasks_data_file is not None:
+            check_str(tasks_data_file)
             tasks_data_file = substitute_mustache_str(tasks_data_file)
             tasks_data_file = pathname_relative_to_config_file(tasks_data_file)
 
         # Check for properties set on the command line
         executable = (
-            wr_section.get(EXECUTABLE, wr_section.get(EXECUTABLE, None))
+            check_str(wr_section.get(EXECUTABLE, wr_section.get(EXECUTABLE, None)))
             if ARGS_PARSER.executable is None
             else ARGS_PARSER.executable
         )
         executable = substitute_mustache_str(executable)
 
         task_type = (
-            wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, "bash"))
+            check_str(wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, "bash")))
             if ARGS_PARSER.task_type is None
             else ARGS_PARSER.task_type
         )
@@ -282,7 +285,9 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         )
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
-        print("Done")
+        exit(1)
+    except Exception as e:
+        print_error(f"{e}")
         exit(1)
 
 
