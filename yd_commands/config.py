@@ -188,7 +188,6 @@ def load_config_common() -> ConfigCommon:
 
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
-        print_log("Done")
         exit(1)
 
 
@@ -199,7 +198,6 @@ def import_toml(filename: str) -> Dict:
         return common_config[COMMON_SECTION]
     except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
         print_error(f"Unable to load imported common configuration data: {e}")
-        print("Done")
         exit(1)
 
 
@@ -331,8 +329,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
 
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
-        print("Done")
-        exit(0)
+        exit(1)
 
 
 def generate_id(prefix: str, max_length: int = 60) -> str:
@@ -348,7 +345,6 @@ def generate_id(prefix: str, max_length: int = 60) -> str:
             f"Error: Generated ID '{generated_id}' would exceed "
             f"maximum length ({max_length})"
         )
-        print("Done")
         exit(1)
     return generated_id
 
