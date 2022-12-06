@@ -369,7 +369,7 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**).
 | `minWorkers`               | The minimum number of Workers that the associated Task Group requires. This many workers must be claimed before the associated Task Group will start working. E.g., `1`. | Yes  | Yes | Yes       |      |
 | `name`                     | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                 | Yes  | Yes | Yes       | Yes  |
 | `outputs`                  | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                           | Yes  | Yes | Yes       | Yes  |
-| `priority`                 | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. Note: not inherited by Task Group from WR. E.g., `0.0`.     | Yes  | Yes | Yes       |      |
+| `priority`                 | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. E.g., `0.0`.                                                | Yes  | Yes | Yes       |      |
 | `providers`                | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                           | Yes  | Yes | Yes       |      |
 | `ram`                      | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                    | Yes  | Yes | Yes       |      |
 | `regions`                  | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                  | Yes  | Yes | Yes       |      |
@@ -472,7 +472,7 @@ Showing all possible properties at the Work Requirement level:
   "minWorkers": 1,
   "name": "my-work-requirement",
   "outputs": ["results.txt"],
-  "priority": 0,
+  "priority": 0.0,
   "providers": ["AWS"],
   "ram": [0.5, 2],
   "regions": ["eu-west-2"],
@@ -520,7 +520,7 @@ Showing all possible properties at the Task Group level:
       "minWorkers": 1,
       "name": "first-task-group",
       "outputs": ["results.txt"],
-      "priority": 0,
+      "priority": 0.0,
       "providers": ["AWS"],
       "ram": [0.5, 2],
       "regions": ["eu-west-2"],

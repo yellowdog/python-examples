@@ -357,8 +357,8 @@ def create_task_group(
             )
         ),
         priority=check_float_or_int(
-            task_group_data.get(PRIORITY, 0.0)
-        ),  # Not inherited from WR
+            task_group_data.get(PRIORITY, tasks_data.get(PRIORITY, CONFIG_WR.priority))
+        ),
         completedTaskTtl=completed_task_ttl,
     )
     print_log(f"Generated Task Group '{task_group_name}'")
