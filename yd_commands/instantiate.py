@@ -74,7 +74,9 @@ def create_compute_requirement():
                     )
                 )
             )
-            print_log(f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}")
+            print_log(
+                f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
+            )
         except Exception as e:
             print_error(f"Unable to provision Compute Requirement")
             raise Exception(e)

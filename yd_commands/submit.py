@@ -41,6 +41,7 @@ from yd_commands.config import (
 from yd_commands.config_keys import *
 from yd_commands.mustache import (
     load_json_file_with_mustache_substitutions,
+    load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
 )
 from yd_commands.printing import print_error, print_log
@@ -79,6 +80,8 @@ def main():
             tasks_data = load_json_file_with_mustache_substitutions(wr_data_file)
         elif wr_data_file.lower().endswith("toml"):
             tasks_data = load_toml_file_with_mustache_substitutions(wr_data_file)
+        elif wr_data_file.lower().endswith("jsonnet"):
+            tasks_data = load_jsonnet_file_with_mustache_substitutions(wr_data_file)
         else:
             raise Exception(
                 f"Work Requirement data file '{wr_data_file}' "

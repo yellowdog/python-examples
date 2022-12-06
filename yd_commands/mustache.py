@@ -7,6 +7,7 @@ from datetime import datetime
 from getpass import getuser
 from io import StringIO
 from json import load as json_load
+from json import loads as json_loads
 from random import randint
 from typing import Dict, List, Optional, Union
 
@@ -203,6 +204,27 @@ def load_json_file_with_mustache_substitutions(filename: str, prefix: str = "") 
     """
     with open(filename, "r") as f:
         wr_data = json_load(f)
+    process_mustache_substitutions(wr_data, prefix=prefix)
+    return wr_data
+
+
+def load_jsonnet_file_with_mustache_substitutions(filename: str, prefix="") -> Dict:
+    """
+    Takes a JSONNET filename and returns a dictionary with its mustache
+    substitutions processed.
+    """
+
+    # Jsonnet is not installed by default, due to a binary build requirement
+    # on some platforms.
+    try:
+        from _jsonnet import evaluate_file
+    except ImportError:
+        raise Exception(
+            "The 'jsonnet' package is not installed by default; "
+            "it can be installed using 'pip install jsonnet'"
+        )
+
+    wr_data = json_loads(evaluate_file(filename))
     process_mustache_substitutions(wr_data, prefix=prefix)
     return wr_data
 
