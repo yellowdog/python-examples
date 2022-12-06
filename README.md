@@ -1,4 +1,7 @@
+# YellowDog Python Example Scripts
+
 <!--ts-->
+* [YellowDog Python Example Scripts](#yellowdog-python-example-scripts)
 * [Overview](#overview)
 * [YellowDog Prerequisites](#yellowdog-prerequisites)
 * [Script Installation](#script-installation)
@@ -43,9 +46,10 @@
    * [yd-delete](#yd-delete)
    * [yd-upload](#yd-upload)
    * [yd-shutdown](#yd-shutdown)
+   * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Wed Nov 30 11:15:12 GMT 2022 -->
+<!-- Added by: pwt, at: Tue Dec  6 15:59:55 GMT 2022 -->
 
 <!--te-->
 
@@ -56,6 +60,7 @@ This repository contains a set of command line Python scripts for interacting wi
 - **Provisioning** Worker Pools
 - **Submitting** Work Requirements
 - **Uploading** files to the YellowDog Object Store
+- **Instantiating** Compute Requirements
 - **Downloading** Results from the YellowDog Object Store
 - **Shutting Down** Worker Pools and **Terminating** Compute Requirements
 - **Cancelling** Work Requirements
@@ -830,6 +835,10 @@ yd-upload --directory my_work_requirement -r mydir myotherdir
 ## yd-shutdown
 
 The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and `tag` found in the configuration file. All remaining work will be cancelled, but currently executing Tasks will be allowed to complete, after which the Compute Requirement will be terminated.
+
+## yd-instantiate
+
+The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool). This command used the data from the `workerPool` configuration, but only uses the `templateId` and `targetInstanceCount` properties.
 
 ## yd-terminate
 
