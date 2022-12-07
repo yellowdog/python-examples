@@ -111,9 +111,11 @@ Commands are run from the command line. Invoking the command with the `--help` o
 
 ```text
 % yd-cancel --help
-usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] 
-                 [--namespace <namespace>] [--tag <tag>] [--url <url>]
-                 [--mustache-substitution <var1=v1>] [--quiet] [--abort] [--interactive] [--yes] [--debug]
+usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>]
+                 [--namespace <namespace>] [--tag <tag>]
+                 [--url <url>] [--mustache <var1=v1>] [--quiet] [--abort] [--interactive] [--yes] [--debug]
+
+YellowDog example utility for cancelling Work Requirements
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -129,7 +131,7 @@ optional arguments:
                         the tag to use for tagging and naming entities
   --url <url>, -u <url>
                         the URL of the YellowDog Platform API
-  --mustache-substitution <var1=v1>, -m <var1=v1>
+  --mustache <var1=v1>, -m <var1=v1>
                         user-defined Mustache substitution; can be supplied multiple times
   --quiet, -q           suppress (non-error, non-interactive) status and progress messages
   --abort, -a           abort all running tasks with immediate effect

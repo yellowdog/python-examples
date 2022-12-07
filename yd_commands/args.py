@@ -74,7 +74,7 @@ class CLIParser:
         )
 
         parser.add_argument(
-            "--mustache-substitution",
+            "--mustache",
             "-m",
             type=str,
             required=False,
@@ -318,7 +318,7 @@ class CLIParser:
 
     @property
     def mustache_subs(self) -> Optional[List[str]]:
-        return self.args.mustache_substitution
+        return self.args.mustache
 
     @property
     def quiet(self) -> bool:
