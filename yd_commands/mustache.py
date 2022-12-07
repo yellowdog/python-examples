@@ -79,7 +79,7 @@ def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     if input_string is None:
         return None
 
-    # Trap stderror to capture Chevron misses, if 'stack-trace' is specified
+    # Trap stderror to capture Chevron misses, if 'debug' is specified
     if ARGS_PARSER.debug:
         error = StringIO()
         sys.stderr = error
@@ -203,9 +203,9 @@ def load_json_file_with_mustache_substitutions(filename: str, prefix: str = "") 
     substitutions processed.
     """
     with open(filename, "r") as f:
-        wr_data = json_load(f)
-    process_mustache_substitutions(wr_data, prefix=prefix)
-    return wr_data
+        dict_data = json_load(f)
+    process_mustache_substitutions(dict_data, prefix=prefix)
+    return dict_data
 
 
 def load_jsonnet_file_with_mustache_substitutions(filename: str, prefix="") -> Dict:
@@ -224,9 +224,9 @@ def load_jsonnet_file_with_mustache_substitutions(filename: str, prefix="") -> D
             "it can be installed using 'pip install jsonnet'"
         )
 
-    wr_data = json_loads(evaluate_file(filename))
-    process_mustache_substitutions(wr_data, prefix=prefix)
-    return wr_data
+    dict_data = json_loads(evaluate_file(filename))
+    process_mustache_substitutions(dict_data, prefix=prefix)
+    return dict_data
 
 
 def load_toml_file_with_mustache_substitutions(filename: str, prefix: str = "") -> Dict:
