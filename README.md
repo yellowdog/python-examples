@@ -111,32 +111,8 @@ Commands are run from the command line. Invoking the command with the `--help` o
 
 ```text
 % yd-cancel --help
-usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>] [--url <url>] [--mustache-substitution <var1=v1>]
-                 [--quiet] [--abort] [--interactive] [--yes] [--debug]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --config <config_file.toml>, -c <config_file.toml>
-                        configuration file in TOML format; default is 'config.toml' in the current directory
-  --key <app-key>, -k <app-key>
-                        the YellowDog Application key
-  --secret <app-secret>, -s <app-secret>
-                        the YellowDog Application secret
-  --namespace <namespace>, -n <namespace>
-                        the namespace to use when creating and identifying entities
-  --tag <tag>, -t <tag>
-                        the tag to use for tagging and naming entities
-  --url <url>, -u <url>
-                        the URL of the YellowDog Platform API
-  --mustache-substitution <var1=v1>, -m <var1=v1>
-                        user-defined Mustache substitution; can be supplied multiple times
-  --quiet, -q           suppress (non-error, non-interactive) status and progress messages
-  --abort, -a           abort all running tasks with immediate effect
-  --interactive, -i     list, and interactively select, items to act on
-  --yes, -y             perform destructive actions without requiring user confirmation
-  --debug               print a stack trace (etc.) on error
-(yellow-dev) pwt@pwt-mbp-14 python-examples % yd-cancel -h
-usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>] [--url <url>]
+usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>] 
+                 [--namespace <namespace>] [--tag <tag>] [--url <url>]
                  [--mustache-substitution <var1=v1>] [--quiet] [--abort] [--interactive] [--yes] [--debug]
 
 optional arguments:
