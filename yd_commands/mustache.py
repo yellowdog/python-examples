@@ -240,7 +240,7 @@ def load_toml_file_with_mustache_substitutions(filename: str, prefix: str = "") 
     # Add any Mustache substitutions in the TOML file before processing the
     # file as a whole
     try:
-        add_substitutions(config[COMMON_SECTION][MVARS])
+        add_substitutions(config[COMMON_SECTION][MUSTACHE])
     except KeyError:
         pass
 

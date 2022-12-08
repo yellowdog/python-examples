@@ -182,7 +182,7 @@ The `[common]` section of the configuration file can contain the following prope
 | `namespace` | The **namespace** to be used to manage resources                                    |
 | `tag`       | The **tag** to be used for tagging resources and naming objects                     |
 | `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't to be used |
-| `mVars`     | A dictionary containing **Mustache substitutions** (see the Mustache section below) |
+| `mustache`  | A dictionary containing **Mustache substitutions** (see the Mustache section below) |
 
 An example `common` section is shown below:
 
@@ -264,7 +264,7 @@ Arbitrary Mustache directives can be supplied using command line options, by set
 2. For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
 
 
-3. For **setting within the TOML file**, include an **`mVars`** dictionary in the `[common]` section of the file. E.g., `mVars = {project_code = "pr-213a", run_id = "1234"}`.
+3. For **setting within the TOML file**, include a **`mustache`** table in the `[common]` section of the file. E.g., `mustache = {project_code = "pr-213a", run_id = "1234"}`.
 
 Directives set on the command line take precedence over directives set in environment variables, and both of them take precedence over directives set in a TOML file.
 
