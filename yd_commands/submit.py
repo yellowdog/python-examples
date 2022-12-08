@@ -85,7 +85,7 @@ def main():
         else:
             raise Exception(
                 f"Work Requirement data file '{wr_data_file}' "
-                "must end with '.json' or '.toml'"
+                "must end with '.json', '.toml' or 'jsonnet'"
             )
         validate_properties(tasks_data, "Work Requirement JSON")
         submit_work_requirement(
