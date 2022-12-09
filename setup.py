@@ -39,6 +39,7 @@ setuptools.setup(
             "yd-delete=yd_commands.delete:main",
             "yd-download=yd_commands.download:main",
             "yd-instantiate=yd_commands.instantiate:main",
+            "yd-jsonnet2json=yd_commands.jsonnet2json:main",
             "yd-list=yd_commands.list:main",
             "yd-provision=yd_commands.provision:main",
             "yd-reformat-json=yd_commands.reformat_json:main",
@@ -49,9 +50,9 @@ setuptools.setup(
             "yd-version=yd_commands.version:main",
         ]
     },
-    options = {
-        'build_scripts': {
-            'executable': '/usr/bin/env python3',
+    options={
+        "build_scripts": {
+            "executable": "/usr/bin/env python3",
         },
     },
 )
