@@ -128,6 +128,10 @@ except FileNotFoundError as e:
         print_error(e)
         exit(1)
     # No config file, so create a stub config dictionary
+    print_log(
+        "No configuration file; expecting configuration data on command line "
+        "or in environment variables"
+    )
     CONFIG_TOML = {COMMON_SECTION: {}}
     CONFIG_FILE_DIR = os.getcwd()
 
