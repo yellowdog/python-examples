@@ -49,4 +49,9 @@ setuptools.setup(
             "yd-version=yd_commands.version:main",
         ]
     },
+    options = {
+        'build_scripts': {
+            'executable': '/usr/bin/env python3',
+        },
+    },
 )
