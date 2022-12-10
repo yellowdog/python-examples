@@ -31,26 +31,21 @@ CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
 
 @main_wrapper
 def main():
-    create_compute_requirement()
 
-
-def create_compute_requirement():
-    """
-    Create the Compute Requirement
-    """
-
-    # Create the Worker Pool
     print_log(
         f"Provisioning Compute Requirement with {CONFIG_WP.initial_nodes:,d} "
         "instance(s)"
     )
+
     batches: List[CRBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
         CONFIG_WP.initial_nodes,
     )
+
     num_batches = len(batches)
     if num_batches > 1:
         print_log(f"Batching into {num_batches} Compute Requirements")
+
     for batch_number in range(num_batches):
         id = generate_cr_batch_name(
             name=CONFIG_WP.name, batch_number=batch_number, num_batches=num_batches
