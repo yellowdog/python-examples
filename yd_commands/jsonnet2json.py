@@ -7,17 +7,13 @@ to stdout. General purpose, not YellowDog specific.
 
 import sys
 
+from yd_commands.check_imports import check_jsonnet_import
+
 
 def main():
-    # Jsonnet is not installed by default, due to a binary build requirement
-    # on some platforms.
-    try:
-        from _jsonnet import evaluate_file
-    except ImportError:
-        raise Exception(
-            "The 'jsonnet' package is not installed by default; "
-            "it can be installed using 'pip install jsonnet'"
-        )
+
+    check_jsonnet_import()
+    from _jsonnet import evaluate_file
 
     if len(sys.argv) != 2:
         print("Usage: yd-jsonnet2json <file.jsonnet>")

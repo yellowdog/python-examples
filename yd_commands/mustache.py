@@ -15,6 +15,7 @@ from chevron import render as chevron_render
 from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.check_imports import check_jsonnet_import
 from yd_commands.config_keys import *
 from yd_commands.printing import print_error, print_log
 
@@ -214,15 +215,8 @@ def load_jsonnet_file_with_mustache_substitutions(filename: str, prefix="") -> D
     substitutions processed.
     """
 
-    # Jsonnet is not installed by default, due to a binary build requirement
-    # on some platforms.
-    try:
-        from _jsonnet import evaluate_file
-    except ImportError:
-        raise Exception(
-            "The 'jsonnet' package is not installed by default; "
-            "it can be installed using 'pip install jsonnet'"
-        )
+    check_jsonnet_import()
+    from _jsonnet import evaluate_file
 
     dict_data = json_loads(evaluate_file(filename))
     process_mustache_substitutions(dict_data, prefix=prefix)
