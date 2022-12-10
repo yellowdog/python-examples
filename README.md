@@ -4,7 +4,8 @@
 * [YellowDog Python Example Scripts](#yellowdog-python-example-scripts)
 * [Overview](#overview)
 * [YellowDog Prerequisites](#yellowdog-prerequisites)
-* [Script Installation](#script-installation)
+* [Script Installation with Pip](#script-installation-with-pip)
+* [Script Installation with Pipx](#script-installation-with-pipx)
 * [Usage](#usage)
 * [Configuration](#configuration)
 * [Naming Restrictions](#naming-restrictions)
@@ -49,7 +50,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Dec  6 15:59:55 GMT 2022 -->
+<!-- Added by: pwt, at: Sat Dec 10 16:39:57 GMT 2022 -->
 
 <!--te-->
 
@@ -93,7 +94,7 @@ To set up **Configured Worker Pools**, you'll need:
 
 6. Obtain the YellowDog Agent and install/configure it on your on-premise systems using the Token above.
 
-# Script Installation
+# Script Installation with Pip
 
 Python version 3.7 or later is required. It's recommended that installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
 
@@ -105,7 +106,19 @@ pip install -U yellowdog-python-examples
 
 The command line above is also used to update the commands.
 
+# Script Installation with Pipx
+
+The commands can also be installed using **[pipx](https://pypa.github.io/pipx/)**.
+
+This method requires Python 3.7+ and pipx to be installed.
+
+```shell
+pipx install yellowdog-python-examples
+```
+
 # Usage
+
+Both of the installation methods above will install a number of **`yd-`** commands on your PATH.
 
 Commands are run from the command line. Invoking the command with the `--help` or `-h` option will display the command line options applicable to a given command, e.g.:
 
