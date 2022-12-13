@@ -22,6 +22,7 @@
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
       * [Task Types](#task-types)
+   * [Task Counts](#task-counts)
    * [Examples](#examples)
       * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
       * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
@@ -50,7 +51,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Dec 10 16:39:57 GMT 2022 -->
+<!-- Added by: pwt, at: Tue Dec 13 17:19:12 GMT 2022 -->
 
 <!--te-->
 
@@ -370,7 +371,7 @@ All properties are optional except for **`taskType`** (or **`TaskTypes`**).
 | `ram`                      | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                    | Yes  | Yes | Yes       |      |
 | `regions`                  | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                  | Yes  | Yes | Yes       |      |
 | `tasksPerWorker`           | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                      | Yes  | Yes | Yes       |      |
-| `taskCount`                | The number of times to execute the Task. Only used when a JSON Work Requirement document is not provided. E.g., `1`.                                                     | Yes  |     |           |      |
+| `taskCount`                | The number of times to execute the Task. Can be set in the TOML file or in any JSON Task Group definition. Not inherited. E.g., `1`.                                     | Yes  |     | Yes       |      |
 | `taskType`                 | The Task Type of a Task. E.g., `"docker"`.                                                                                                                               | Yes  |     |           | Yes  |
 | `taskTypes`                | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                        |      | Yes | Yes       |      |
 | `vcpus`                    | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                               | Yes  | Yes | Yes       |      |
@@ -394,6 +395,10 @@ In addition to the inheritance mechanism, some properties are set automatically 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
 - If `taskType` is set at the Task level, then `taskTypes` is automatically populated for Task Groups level using the accumulated Task Types from the Tasks, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
+
+## Task Counts
+
+The `taskCount` property can be set in the `workRequirement` section of the `config.toml` file, or in any `taskGroup` section of a JSON Work Requirement definition. In the former case, the `taskCount` applies only to the `Task` specified within the `config.toml` file and is not inherited by any JSON specification. In the latter case, the `taskCount` applies to the Task specified within that Task Group, and there must only be zero or one Task(s) within the Task Group.
 
 ## Examples
 
@@ -520,6 +525,7 @@ Showing all possible properties at the Task Group level:
       "providers": ["AWS"],
       "ram": [0.5, 2],
       "regions": ["eu-west-2"],
+      "taskCount": 5,
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,
       "vcpus": [1, 4],

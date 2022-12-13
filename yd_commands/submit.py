@@ -381,6 +381,21 @@ def add_tasks_to_task_group(
     Adds all the Tasks that comprise a given Task Group
     """
 
+    # If 'taskCount' is set at the Task Group level, and there are
+    # zero or one Tasks, create 'taskCount' copies of the Task
+    num_tasks = len(tasks_data[TASK_GROUPS][tg_number][TASKS])
+    task_group_task_count = tasks_data[TASK_GROUPS][tg_number].get(TASK_COUNT, None)
+    if task_group_task_count is not None:
+        if num_tasks <= 1:
+            task_count = task_group_task_count
+            if num_tasks == 0:
+                tasks_data[TASK_GROUPS][tg_number][TASKS] = [{}]
+        else:
+            raise Exception(
+                "Can't use 'taskCount' within Task Group if there are "
+                "multiple Tasks in the Task Group"
+            )
+
     # Determine Task batching
     tasks = tasks_data[TASK_GROUPS][tg_number][TASKS]
     num_tasks = len(tasks) if task_count is None else task_count
