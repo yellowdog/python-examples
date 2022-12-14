@@ -381,19 +381,22 @@ def add_tasks_to_task_group(
     Adds all the Tasks that comprise a given Task Group
     """
 
-    # If 'taskCount' is set at the Task Group level, and there are
-    # zero or one Tasks, create 'taskCount' copies of the Task
+    # Ensure there's at least one Task
     num_tasks = len(tasks_data[TASK_GROUPS][tg_number][TASKS])
+    if num_tasks == 0:
+        tasks_data[TASK_GROUPS][tg_number][TASKS] = [{}]
+        num_tasks = 1
+
+    # If 'taskCount' is set at the Task Group level, and there are
+    # is only one Task, create 'taskCount' copies of the Task
     task_group_task_count = tasks_data[TASK_GROUPS][tg_number].get(TASK_COUNT, None)
     if task_group_task_count is not None:
-        if num_tasks <= 1:
+        if num_tasks == 1:
             task_count = task_group_task_count
-            if num_tasks == 0:
-                tasks_data[TASK_GROUPS][tg_number][TASKS] = [{}]
         else:
             raise Exception(
-                "Can't use 'taskCount' within Task Group if there are "
-                "multiple Tasks in the Task Group"
+                "Can't use 'taskCount' for a Task Group if there are "
+                "multiple Tasks in the group"
             )
 
     # Determine Task batching
@@ -691,8 +694,8 @@ def create_task(
     ):
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
-    # Special processing for Bash tasks. The Bash script is uploaded if not
-    # already done, and added to the list of required files.
+    # Special processing for Bash tasks. The Bash script is uploaded if this
+    # hasn't already been done, and added it's to the list of required files.
     if task_type == "bash":
         if executable is None:
             raise Exception("No 'executable' specified for 'bash' Task Type")
