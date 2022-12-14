@@ -22,7 +22,7 @@
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
       * [Task Types](#task-types)
-   * [Task Counts](#task-counts)
+      * [Task Counts](#task-counts)
    * [Examples](#examples)
       * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
       * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
@@ -51,7 +51,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Dec 13 17:19:12 GMT 2022 -->
+<!-- Added by: pwt, at: Wed Dec 14 08:44:40 GMT 2022 -->
 
 <!--te-->
 
@@ -396,9 +396,13 @@ In addition to the inheritance mechanism, some properties are set automatically 
 - If `taskType` is set at the Task level, then `taskTypes` is automatically populated for Task Groups level using the accumulated Task Types from the Tasks, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
 
-## Task Counts
+### Task Counts
 
-The `taskCount` property can be set in the `workRequirement` section of the `config.toml` file, or in any `taskGroup` section of a JSON Work Requirement definition. In the former case, the `taskCount` applies only to the `Task` specified within the `config.toml` file and is not inherited by any JSON specification. In the latter case, the `taskCount` applies to the Task specified within that Task Group, and there must only be zero or one Task(s) within the Task Group.
+The `taskCount` property can be set in the `workRequirement` section of the `config.toml` file, or in any `taskGroup` section of a JSON Work Requirement definition.
+
+In the former case, the `taskCount` applies only to the `Task` specified within the `config.toml` file and is not inherited by JSON Work Requirement specifications.
+
+In the latter case, the `taskCount` applies to the Task specified within that Task Group, and there must only be zero or one Task(s) listed within the group.
 
 ## Examples
 
