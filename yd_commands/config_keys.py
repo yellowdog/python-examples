@@ -54,6 +54,7 @@ URL = "url"  # String
 VCPUS = "vcpus"  # List of two Floats
 VERIFY_AT_START = "verifyAtStart"  # List of Strings
 VERIFY_WAIT = "verifyWait"  # List of Strings
+WORKERS_PER_VCPU = "workersPerVCPU"  # Integer
 WORKERS_PER_NODE = "workersPerNode"  # Integer
 WORKER_POOL_SECTION = "workerPool"  # String
 WORKER_TAG = "workerTag"  # String
@@ -120,6 +121,7 @@ ALL_KEYS = [
     VCPUS,
     VERIFY_AT_START,
     VERIFY_WAIT,
+    WORKERS_PER_VCPU,
     WORKERS_PER_NODE,
     WORKER_POOL_SECTION,
     WORKER_TAG,

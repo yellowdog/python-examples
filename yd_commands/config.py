@@ -103,6 +103,7 @@ class ConfigWorkerPool:
     template_id: Optional[str] = None
     worker_pool_data_file: Optional[str] = None
     worker_tag: Optional[str] = None
+    workers_per_vcpu: Optional[int] = None
     workers_per_node: int = 1
 
 
@@ -330,6 +331,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             template_id=wp_section.get(TEMPLATE_ID, None),
             worker_pool_data_file=worker_pool_data_file,
             worker_tag=worker_tag,
+            workers_per_vcpu=wp_section.get(WORKERS_PER_VCPU, None),
             workers_per_node=wp_section.get(WORKERS_PER_NODE, 1),
         )
 

@@ -142,10 +142,17 @@ def create_worker_pool():
         else timedelta(minutes=CONFIG_WP.node_boot_time_limit)
     )
 
+    # Establish the number of Workers to create
+    if CONFIG_WP.workers_per_vcpu is not None:
+        node_workers = NodeWorkerTarget.per_vcpus(CONFIG_WP.workers_per_vcpu)
+    else:
+        node_workers = NodeWorkerTarget.per_node(CONFIG_WP.workers_per_node)
+
     # Create the Worker Pool
     print_log(
         f"Provisioning {CONFIG_WP.initial_nodes:,d} node(s) "
-        f"with {CONFIG_WP.workers_per_node:,d} worker(s) per node "
+        f"with {node_workers.targetCount:,d} worker(s) per "
+        f"{node_workers.targetType} "
         f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
         f"maxNodes: {CONFIG_WP.max_nodes:,d})"
     )
@@ -181,9 +188,7 @@ def create_worker_pool():
                     requirementTag=CONFIG_COMMON.name_tag,
                 ),
                 ProvisionedWorkerPoolProperties(
-                    createNodeWorkers=NodeWorkerTarget.per_node(
-                        CONFIG_WP.workers_per_node
-                    ),
+                    createNodeWorkers=node_workers,
                     minNodes=batches[batch_number].min_nodes,
                     maxNodes=batches[batch_number].max_nodes,
                     workerTag=CONFIG_WP.worker_tag,

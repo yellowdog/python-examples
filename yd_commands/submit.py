@@ -260,11 +260,7 @@ def create_task_group(
     # specified in the Tasks
     task_types: List = list(
         set(
-            check_list(
-                task_group_data.get(
-                    TASK_TYPES, tasks_data.get(TASK_TYPES, [])
-                )
-            )
+            check_list(task_group_data.get(TASK_TYPES, tasks_data.get(TASK_TYPES, [])))
         ).union(task_types_from_tasks)
     )
     if CONFIG_WR.task_type is not None and CONFIG_WR.task_type not in task_types:

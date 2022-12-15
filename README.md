@@ -709,20 +709,21 @@ The `workerPool` section of the TOML file defines the properties of the Worker P
 
 The following properties are available:
 
-| Property               | Description                                                                                            | Default        |
-|:-----------------------|:-------------------------------------------------------------------------------------------------------|:---------------|
-| `autoscalingIdleDelay` | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.           | `10.0` minutes |
-| `autoShutdown`         | Whether the Worker Pool is shut down after all nodes have been idle for the `autoShutdownDelay`.       | `true`         |
-| `autoShutdownDelay`    | The delay in minutes for which all nodes can be idle before the Worker Pool is shut down.              | `10.0` minutes |
-| `minNodes`             | The minimum number of nodes to which the Worker Pool can be scaled down.                               | `0`            |
-| `maxNodes`             | The maximum number of nodes to which the Worker Pool can be scaled up.                                 | `1`            |
-| `name`                 | The name of the Worker Pool.                                                                           | Automatic      |
-| `nodeBootTimeLimit`    | The time in minutes allowed for a node to boot and register with the platform before it is terminated. | `10.0` minutes |
-| `targetInstanceCount`  | The initial number of nodes to create for the Worker Pool.                                             | `1`            |
-| `templateId`           | The YellowDog Compute Template ID to use for provisioning.                                             |                |
-| `workersPerNode`       | The number of Workers to establish on each node in the Worker Pool.                                    | `1`            |
-| `workerPoolData`       | The name of a file containing a JSON document defining a Worker Pool.                                  |                |
-| `workerTag`            | The Worker Tag to publish for the all of the Workers.                                                  |                |
+| Property               | Description                                                                                                | Default        |
+|:-----------------------|:-----------------------------------------------------------------------------------------------------------|:---------------|
+| `autoscalingIdleDelay` | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.               | `10.0` minutes |
+| `autoShutdown`         | Whether the Worker Pool is shut down after all nodes have been idle for the `autoShutdownDelay`.           | `true`         |
+| `autoShutdownDelay`    | The delay in minutes for which all nodes can be idle before the Worker Pool is shut down.                  | `10.0` minutes |
+| `minNodes`             | The minimum number of nodes to which the Worker Pool can be scaled down.                                   | `0`            |
+| `maxNodes`             | The maximum number of nodes to which the Worker Pool can be scaled up.                                     | `1`            |
+| `name`                 | The name of the Worker Pool.                                                                               | Automatic      |
+| `nodeBootTimeLimit`    | The time in minutes allowed for a node to boot and register with the platform before it is terminated.     | `10.0` minutes |
+| `targetInstanceCount`  | The initial number of nodes to create for the Worker Pool.                                                 | `1`            |
+| `templateId`           | The YellowDog Compute Template ID to use for provisioning.                                                 |                |
+| `workersPerVCPU`       | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.) |                |
+| `workersPerNode`       | The number of Workers to establish on each node in the Worker Pool.                                        | `1`            |
+| `workerPoolData`       | The name of a file containing a JSON document defining a Worker Pool.                                      |                |
+| `workerTag`            | The Worker Tag to publish for the all of the Workers.                                                      |                |
 
 ## Automatic Properties
 
