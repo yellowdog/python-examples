@@ -76,7 +76,7 @@ class ConfigWorkRequirement:
     ram: Optional[List[float]] = None
     regions: Optional[List[str]] = None
     task_count: int = 1
-    task_type: str = "bash"
+    task_type: str = Optional[str]
     tasks_data_file: Optional[str] = None
     tasks_per_worker: Optional[int] = None
     vcpus: Optional[List[float]] = None
@@ -241,11 +241,13 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         executable = substitute_mustache_str(executable)
 
         task_type = (
-            check_str(wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, "bash")))
+            wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, None))
             if ARGS_PARSER.task_type is None
             else ARGS_PARSER.task_type
         )
-        task_type = substitute_mustache_str(task_type)
+        if task_type is not None:
+            check_str(task_type)
+            task_type = substitute_mustache_str(task_type)
 
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),

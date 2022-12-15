@@ -262,11 +262,13 @@ def create_task_group(
         set(
             check_list(
                 task_group_data.get(
-                    TASK_TYPES, tasks_data.get(TASK_TYPES, [CONFIG_WR.task_type])
+                    TASK_TYPES, tasks_data.get(TASK_TYPES, [])
                 )
             )
         ).union(task_types_from_tasks)
     )
+    if CONFIG_WR.task_type is not None and CONFIG_WR.task_type not in task_types:
+        task_types.append(CONFIG_WR.task_type)
 
     vcpus_data: Optional[List[float]] = check_list(
         task_group_data.get(VCPUS, tasks_data.get(VCPUS, CONFIG_WR.vcpus))
