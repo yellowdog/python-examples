@@ -29,7 +29,7 @@
       * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
       * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
    * [Mustache Directives in Work Requirement Properties](#mustache-directives-in-work-requirement-properties)
-      * [Task Naming](#task-naming)
+      * [Task and Task Group Naming](#task-and-task-group-naming)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
@@ -52,7 +52,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Dec 16 09:24:28 GMT 2022 -->
+<!-- Added by: pwt, at: Fri Dec 16 10:56:41 GMT 2022 -->
 
 <!--te-->
 
@@ -388,7 +388,7 @@ In addition to the inheritance mechanism, some properties are set automatically 
 ### Work Requirement, Task Group and Task Naming
 
 - The **Work Requirement** name is automatically set using a concatenation of the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `mytag_221024-155524-40a`.
-- **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups).
+- **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` Mustache substitution discussed below.
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` Mustache substitution discussed below.
 
 ### Task Types
@@ -587,11 +587,44 @@ Showing all possible properties at the Task level:
 
 Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
 
-### Task Naming
+### Task and Task Group Naming
 
-Task names can be disambiguated using the `{{task_number}}` Mustache directive. This is substituted with the integer number of the Task, starting from `1`, with zero fills as required for tidy formatting. E.g., if there are 100 Tasks, the numbering will be `001`, `002` ... `100`.
+Task names can include the `{{task_number}}` Mustache directive. This is substituted with the integer number of the Task, starting from `1`, with zero fills as required for tidy formatting. E.g., if there are 100 Tasks, the numbering will be `001`, `002` ... `100`.
 
-Note that this directive can only be used within the `name` property of a Task.
+Task Group names can include the `{{task_group_number}}` Mustache directive, which works in the same fashion as for Task naming.
+
+For example, the following JSON Work Requirement:
+
+```json
+{
+  "taskGroups": [
+    {
+      "name": "my_task_group_{{task_group_number}}_a1",
+      "executable": "ex1.sh",
+      "taskCount": 2,
+      "tasks": [
+        {
+          "name": "my_task_{{task_number}}"
+        }
+      ]
+    },
+    {
+      "name": "my_task_group_{{task_group_number}}_b1",
+      "executable": "ex2.sh",
+      "taskCount": 2,
+      "tasks": [
+        {
+          "name": "my_task_{{task_number}}"
+        }
+      ]
+    }
+  ]
+}
+```
+
+... would create Task Groups named `my_task_group_1_a1` and `my_task_group_2_b1`, each containing Tasks named `my_task_1`, `my_task_2`.
+
+Note that these directives can only be used within the `name` properties of Tasks and Task Groups respectively.
 
 ## File Storage Locations and File Usage
 

@@ -249,11 +249,8 @@ def create_task_group(
 
     # Name the Task Group
     num_task_groups = len(tasks_data[TASK_GROUPS])
-    task_group_name = check_str(
-        task_group_data.get(
-            NAME,
-            "task_group_" + str(tg_number + 1).zfill(len(str(num_task_groups))),
-        )
+    task_group_name = get_name(
+        task_group_data, tg_number, num_task_groups, "task_group_", "task_group_number"
     )
 
     # Assemble the RunSpecification values for the Task Group
@@ -418,7 +415,7 @@ def add_tasks_to_task_group(
         ):
             task_group_data = tasks_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
-            task_name = get_task_name(task, task_number, num_tasks)
+            task_name = get_name(task, task_number, num_tasks, "task_", "task_number")
             executable = check_str(
                 task.get(
                     EXECUTABLE,
@@ -654,22 +651,32 @@ def check_for_duplicates_in_file_lists(
         )
 
 
-def get_task_name(task: Dict, task_number: int, num_tasks: int) -> str:
+def get_name(
+    entity_data: Dict,
+    entity_number: int,
+    num_entities: int,
+    name_prefix: str,
+    substitution_str: str,
+) -> str:
     """
-    Create the Task name
+    Create the name of an entity.
+    Supports lazy substitution.
     """
-    def _task_number_str():
-        return str(task_number + 1).zfill(len(str(num_tasks)))
+
+    def _entity_number_str():
+        return str(entity_number + 1).zfill(len(str(num_entities)))
 
     try:
-        name = task[NAME]
+        name = entity_data[NAME]
         # Perform lazy substitution of 'task_number'
         name = name.replace(
-            f"{LAZY_SUBSTITUTION_WRAPPER}task_number{LAZY_SUBSTITUTION_WRAPPER}",
-            _task_number_str(),
+            f"{LAZY_SUBSTITUTION_WRAPPER}{substitution_str}"
+            f"{LAZY_SUBSTITUTION_WRAPPER}",
+            _entity_number_str(),
         )
     except KeyError:
-        name = "task_" + _task_number_str()
+        name = name_prefix + _entity_number_str()
+
     return name
 
 
