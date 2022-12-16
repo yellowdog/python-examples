@@ -40,6 +40,7 @@ from yd_commands.config import (
 )
 from yd_commands.config_keys import *
 from yd_commands.mustache import (
+    LAZY_SUBSTITUTION_WRAPPER,
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
@@ -417,11 +418,7 @@ def add_tasks_to_task_group(
         ):
             task_group_data = tasks_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
-            task_name = check_str(
-                task.get(
-                    NAME, "task_" + str(task_number + 1).zfill(len(str(num_tasks)))
-                )
-            )
+            task_name = get_task_name(task, task_number, num_tasks)
             executable = check_str(
                 task.get(
                     EXECUTABLE,
@@ -655,6 +652,25 @@ def check_for_duplicates_in_file_lists(
         raise Exception(
             f"Duplicate files in 'verifyWait' and 'verifyAtStart' lists: {intersection}"
         )
+
+
+def get_task_name(task: Dict, task_number: int, num_tasks: int) -> str:
+    """
+    Create the Task name
+    """
+    def _task_number_str():
+        return str(task_number + 1).zfill(len(str(num_tasks)))
+
+    try:
+        name = task[NAME]
+        # Perform lazy substitution of 'task_number'
+        name = name.replace(
+            f"{LAZY_SUBSTITUTION_WRAPPER}task_number{LAZY_SUBSTITUTION_WRAPPER}",
+            _task_number_str(),
+        )
+    except KeyError:
+        name = "task_" + _task_number_str()
+    return name
 
 
 def create_task(

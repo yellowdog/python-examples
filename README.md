@@ -29,6 +29,7 @@
       * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
       * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
    * [Mustache Directives in Work Requirement Properties](#mustache-directives-in-work-requirement-properties)
+      * [Task Naming](#task-naming)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
@@ -51,7 +52,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Wed Dec 14 08:44:40 GMT 2022 -->
+<!-- Added by: pwt, at: Fri Dec 16 09:24:28 GMT 2022 -->
 
 <!--te-->
 
@@ -388,7 +389,7 @@ In addition to the inheritance mechanism, some properties are set automatically 
 
 - The **Work Requirement** name is automatically set using a concatenation of the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `mytag_221024-155524-40a`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups).
-- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group.
+- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` Mustache substitution discussed below.
 
 ### Task Types
 
@@ -585,6 +586,12 @@ Showing all possible properties at the Task level:
 ## Mustache Directives in Work Requirement Properties
 
 Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
+
+### Task Naming
+
+Task names can be disambiguated using the `{{task_number}}` Mustache directive. This is substituted with the integer number of the Task, starting from `1`, with zero fills as required for tidy formatting. E.g., if there are 100 Tasks, the numbering will be `001`, `002` ... `100`.
+
+Note that this directive can only be used within the `name` property of a Task.
 
 ## File Storage Locations and File Usage
 

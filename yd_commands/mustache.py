@@ -68,6 +68,9 @@ def add_substitutions(subs: Dict):
     MUSTACHE_SUBSTITUTIONS = subs
 
 
+LAZY_SUBSTITUTION_WRAPPER = "%%%%"
+
+
 def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
     Apply basic Mustache substitutions.
@@ -79,6 +82,14 @@ def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
     if input_string is None:
         return None
+
+    # Lazy substitutions: avoid Mustache processing until later by using
+    # modified wrapper
+    for substitution in ["task_number"]:
+        input_string = input_string.replace(
+            f"{{{{{substitution}}}}}",
+            f"{LAZY_SUBSTITUTION_WRAPPER}{substitution}{LAZY_SUBSTITUTION_WRAPPER}",
+        )
 
     # Trap stderror to capture Chevron misses, if 'debug' is specified
     if ARGS_PARSER.debug:
