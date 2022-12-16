@@ -263,6 +263,8 @@ def create_task_group(
     )
     if CONFIG_WR.task_type is not None and CONFIG_WR.task_type not in task_types:
         task_types.append(CONFIG_WR.task_type)
+    if len(task_types) == 0:
+        raise Exception(f"No Task Type(s) specified in Task Group '{task_group_name}'")
 
     vcpus_data: Optional[List[float]] = check_list(
         task_group_data.get(VCPUS, tasks_data.get(VCPUS, CONFIG_WR.vcpus))
