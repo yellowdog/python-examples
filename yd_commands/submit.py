@@ -678,8 +678,7 @@ def get_name(
         name = entity_data[NAME]
         # Perform lazy substitutions
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{substitution_str}"
-            f"{LAZY_SUBS_WRAPPER}",
+            f"{LAZY_SUBS_WRAPPER}{substitution_str}" f"{LAZY_SUBS_WRAPPER}",
             _entity_number_str(),
         )
     except KeyError:

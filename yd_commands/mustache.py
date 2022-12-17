@@ -22,19 +22,21 @@ from yd_commands.printing import print_error, print_log
 # Set up default Mustache directives
 UTCNOW = datetime.utcnow()
 RAND_SIZE = 0xFFF
-LAZY_SUBS_WRAPPER = "%%%"
-TASK_NUMBER_SUB = "task_number"
-TASK_GROUP_NUMBER_SUB = "task_group_number"
 MUSTACHE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").lower(),
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S"),
     "datetime": UTCNOW.strftime("%y%m%d-%H%M%S"),
     "random": hex(randint(0, RAND_SIZE + 1))[2:].lower().zfill(len(hex(RAND_SIZE)) - 2),
-    # Lazy substitutions
-    TASK_NUMBER_SUB: f"{LAZY_SUBS_WRAPPER}{TASK_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
-    TASK_GROUP_NUMBER_SUB: f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
 }
+
+# Lazy substitutions: 'submit' only
+if "submit" in sys.argv[0]:
+    LAZY_SUBS_WRAPPER = "%%%"
+    TASK_NUMBER_SUB = "task_number"
+    TASK_GROUP_NUMBER_SUB = "task_group_number"
+    for sub in [TASK_NUMBER_SUB, TASK_GROUP_NUMBER_SUB]:
+        MUSTACHE_SUBSTITUTIONS[sub] = f"{LAZY_SUBS_WRAPPER}{sub}{LAZY_SUBS_WRAPPER}"
 
 # Add user-defined Mustache directives
 # Can supersede the existing directives above
@@ -43,7 +45,7 @@ USER_MUSTACHE_PREFIX = "YD_SUB_"
 # Directives from environment variables
 for key, value in os.environ.items():
     if key.startswith(USER_MUSTACHE_PREFIX):
-        key = key[len(USER_MUSTACHE_PREFIX) :]
+        key = key[len(USER_MUSTACHE_PREFIX):]
         MUSTACHE_SUBSTITUTIONS[key] = value
         print_log(f"Adding user-defined Mustache substitution: '{key}' = '{value}'")
 
