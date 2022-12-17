@@ -22,12 +22,18 @@ from yd_commands.printing import print_error, print_log
 # Set up default Mustache directives
 UTCNOW = datetime.utcnow()
 RAND_SIZE = 0xFFF
+LAZY_SUBS_WRAPPER = "%%%"
+TASK_NUMBER_SUB = "task_number"
+TASK_GROUP_NUMBER_SUB = "task_group_number"
 MUSTACHE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").lower(),
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S"),
     "datetime": UTCNOW.strftime("%y%m%d-%H%M%S"),
     "random": hex(randint(0, RAND_SIZE + 1))[2:].lower().zfill(len(hex(RAND_SIZE)) - 2),
+    # Lazy substitutions
+    TASK_NUMBER_SUB: f"{LAZY_SUBS_WRAPPER}{TASK_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
+    TASK_GROUP_NUMBER_SUB: f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
 }
 
 # Add user-defined Mustache directives
@@ -68,9 +74,6 @@ def add_substitutions(subs: Dict):
     MUSTACHE_SUBSTITUTIONS = subs
 
 
-LAZY_SUBSTITUTION_WRAPPER = "%%%%%"
-
-
 def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
     Apply basic Mustache substitutions.
@@ -82,15 +85,6 @@ def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
     if input_string is None:
         return None
-
-    # Lazy substitutions: avoid Mustache processing until later by using
-    # modified wrapper
-    for substitution in ["task_number", "task_group_number"]:
-        if substitution not in MUSTACHE_SUBSTITUTIONS:
-            input_string = input_string.replace(
-                f"{{{{{substitution}}}}}",
-                f"{LAZY_SUBSTITUTION_WRAPPER}{substitution}{LAZY_SUBSTITUTION_WRAPPER}",
-            )
 
     # Trap stderror to capture Chevron misses, if 'debug' is specified
     if ARGS_PARSER.debug:

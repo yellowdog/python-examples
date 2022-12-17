@@ -40,7 +40,9 @@ from yd_commands.config import (
 )
 from yd_commands.config_keys import *
 from yd_commands.mustache import (
-    LAZY_SUBSTITUTION_WRAPPER,
+    LAZY_SUBS_WRAPPER,
+    TASK_GROUP_NUMBER_SUB,
+    TASK_NUMBER_SUB,
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
@@ -250,7 +252,11 @@ def create_task_group(
     # Name the Task Group
     num_task_groups = len(tasks_data[TASK_GROUPS])
     task_group_name = get_name(
-        task_group_data, tg_number, num_task_groups, "task_group_", "task_group_number"
+        task_group_data,
+        tg_number,
+        num_task_groups,
+        "task_group_",
+        TASK_GROUP_NUMBER_SUB,
     )
 
     # Assemble the RunSpecification values for the Task Group
@@ -417,7 +423,7 @@ def add_tasks_to_task_group(
         ):
             task_group_data = tasks_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
-            task_name = get_name(task, task_number, num_tasks, "task_", "task_number")
+            task_name = get_name(task, task_number, num_tasks, "task_", TASK_NUMBER_SUB)
             executable = check_str(
                 task.get(
                     EXECUTABLE,
@@ -670,10 +676,10 @@ def get_name(
 
     try:
         name = entity_data[NAME]
-        # Perform lazy substitution of 'task_number'
+        # Perform lazy substitutions
         name = name.replace(
-            f"{LAZY_SUBSTITUTION_WRAPPER}{substitution_str}"
-            f"{LAZY_SUBSTITUTION_WRAPPER}",
+            f"{LAZY_SUBS_WRAPPER}{substitution_str}"
+            f"{LAZY_SUBS_WRAPPER}",
             _entity_number_str(),
         )
     except KeyError:
