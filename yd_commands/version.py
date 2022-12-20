@@ -17,6 +17,10 @@ def main():
     print(f" YellowDog SDK Version:               {yd_sdk_version}")
     print(f" Python Version:                      {py_version.split()[0]} ")
     print(f" Python Executable:                   {executable}")
+    print(
+        f" Documentation:                       https://github.com/"
+        f"yellowdog/python-examples/blob/v{__version__}/README.md"
+    )
 
 
 if __name__ == "__main__":

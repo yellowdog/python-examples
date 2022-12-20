@@ -45,7 +45,7 @@ USER_MUSTACHE_PREFIX = "YD_SUB_"
 # Directives from environment variables
 for key, value in os.environ.items():
     if key.startswith(USER_MUSTACHE_PREFIX):
-        key = key[len(USER_MUSTACHE_PREFIX):]
+        key = key[len(USER_MUSTACHE_PREFIX) :]
         MUSTACHE_SUBSTITUTIONS[key] = value
         print_log(f"Adding user-defined Mustache substitution: '{key}' = '{value}'")
 

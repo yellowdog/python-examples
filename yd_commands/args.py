@@ -9,6 +9,15 @@ import sys
 from datetime import datetime
 from typing import List, Optional
 
+from . import __version__
+
+
+def docs():
+    url = (
+        f"https://github.com/yellowdog/python-examples/blob/v{__version__}/README.md"
+    )
+    print(f"Online documentation for v{__version__}: {url}", flush=True)
+
 
 class CLIParser:
     def __init__(self, description: Optional[str] = None):
@@ -17,6 +26,13 @@ class CLIParser:
         line arguments. Argument availability depends on module.
         """
         parser = argparse.ArgumentParser(description=description)
+
+        parser.add_argument(
+            "--docs",
+            action="store_true",
+            required=False,
+            help="provide a link to the documentation for this version",
+        )
 
         parser.add_argument(
             "--config",
@@ -277,6 +293,10 @@ class CLIParser:
         )
 
         self.args = parser.parse_args()
+
+        if self.args.docs:
+            docs()
+            exit(0)
 
         # Temporary notification message while we figure out the problem
         # with the use of concurrent futures
