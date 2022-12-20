@@ -35,7 +35,14 @@ if "submit" in sys.argv[0]:
     LAZY_SUBS_WRAPPER = "%%%"
     TASK_NUMBER_SUB = "task_number"
     TASK_GROUP_NUMBER_SUB = "task_group_number"
-    for sub in [TASK_NUMBER_SUB, TASK_GROUP_NUMBER_SUB]:
+    TASK_COUNT_SUB = "task_count"
+    TASK_GROUP_COUNT_SUB = "task_group_count"
+    for sub in [
+        TASK_NUMBER_SUB,
+        TASK_GROUP_NUMBER_SUB,
+        TASK_COUNT_SUB,
+        TASK_GROUP_COUNT_SUB,
+    ]:
         MUSTACHE_SUBSTITUTIONS[sub] = f"{LAZY_SUBS_WRAPPER}{sub}{LAZY_SUBS_WRAPPER}"
 
 # Add user-defined Mustache directives

@@ -41,6 +41,8 @@ from yd_commands.config import (
 from yd_commands.config_keys import *
 from yd_commands.mustache import (
     LAZY_SUBS_WRAPPER,
+    TASK_COUNT_SUB,
+    TASK_GROUP_COUNT_SUB,
     TASK_GROUP_NUMBER_SUB,
     TASK_NUMBER_SUB,
     load_json_file_with_mustache_substitutions,
@@ -251,12 +253,12 @@ def create_task_group(
 
     # Name the Task Group
     num_task_groups = len(tasks_data[TASK_GROUPS])
-    task_group_name = get_name(
-        task_group_data,
+    num_tasks = len(task_group_data[TASKS])
+    task_group_name = get_task_group_name(
+        task_group_data.get(NAME, None),
         tg_number,
         num_task_groups,
-        "task_group_",
-        TASK_GROUP_NUMBER_SUB,
+        num_tasks,
     )
 
     # Assemble the RunSpecification values for the Task Group
@@ -403,6 +405,8 @@ def add_tasks_to_task_group(
                 "multiple Tasks in the group"
             )
 
+    num_task_groups = len(tasks_data[TASK_GROUPS])
+
     # Determine Task batching
     tasks = tasks_data[TASK_GROUPS][tg_number][TASKS]
     num_tasks = len(tasks) if task_count is None else task_count
@@ -423,7 +427,9 @@ def add_tasks_to_task_group(
         ):
             task_group_data = tasks_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
-            task_name = get_name(task, task_number, num_tasks, "task_", TASK_NUMBER_SUB)
+            task_name = get_task_name(
+                task.get(NAME, None), task_number, num_tasks, tg_number, num_task_groups
+            )
             executable = check_str(
                 task.get(
                     EXECUTABLE,
@@ -659,30 +665,77 @@ def check_for_duplicates_in_file_lists(
         )
 
 
-def get_name(
-    entity_data: Dict,
-    entity_number: int,
-    num_entities: int,
-    name_prefix: str,
-    substitution_str: str,
+def formatted_number_str(current_item_number: int, num_items: int) -> str:
+    """
+    Return a nicely formatted number string given a current item number
+    and a total number of items.
+    """
+    return str(current_item_number + 1).zfill(len(str(num_items)))
+
+
+def get_task_name(
+    name: Optional[str],
+    task_number: int,
+    num_tasks: int,
+    task_group_number: int,
+    num_task_groups: int,
 ) -> str:
     """
-    Create the name of an entity.
+    Create the name of a Task.
     Supports lazy substitution.
     """
 
-    def _entity_number_str():
-        return str(entity_number + 1).zfill(len(str(num_entities)))
-
-    try:
-        name = entity_data[NAME]
-        # Perform lazy substitutions
+    if name:
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{substitution_str}" f"{LAZY_SUBS_WRAPPER}",
-            _entity_number_str(),
+            f"{LAZY_SUBS_WRAPPER}{TASK_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
+            formatted_number_str(task_number, num_tasks),
         )
-    except KeyError:
-        name = name_prefix + _entity_number_str()
+        name = name.replace(
+            f"{LAZY_SUBS_WRAPPER}{TASK_COUNT_SUB}{LAZY_SUBS_WRAPPER}",
+            str(num_tasks),
+        )
+        name = name.replace(
+            f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
+            formatted_number_str(task_group_number, num_task_groups),
+        )
+        name = name.replace(
+            f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_COUNT_SUB}{LAZY_SUBS_WRAPPER}",
+            str(num_task_groups),
+        )
+
+    else:
+        name = "task_" + formatted_number_str(task_number, num_tasks)
+
+    return name
+
+
+def get_task_group_name(
+    name: Optional[str],
+    task_group_number: int,
+    num_task_groups: int,
+    task_count: int,
+) -> str:
+    """
+    Create the name of a Task Group.
+    Supports lazy substitution.
+    """
+
+    if name:
+        name = name.replace(
+            f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
+            formatted_number_str(task_group_number, num_task_groups),
+        )
+        name = name.replace(
+            f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_COUNT_SUB}{LAZY_SUBS_WRAPPER}",
+            str(num_task_groups),
+        )
+        name = name.replace(
+            f"{LAZY_SUBS_WRAPPER}{TASK_COUNT_SUB}{LAZY_SUBS_WRAPPER}",
+            str(task_count),
+        )
+
+    else:
+        name = "task_group_" + formatted_number_str(task_group_number, num_task_groups)
 
     return name
 

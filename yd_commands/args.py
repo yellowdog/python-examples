@@ -13,9 +13,7 @@ from . import __version__
 
 
 def docs():
-    url = (
-        f"https://github.com/yellowdog/python-examples/blob/v{__version__}/README.md"
-    )
+    url = f"https://github.com/yellowdog/python-examples/blob/v{__version__}/README.md"
     print(f"Online documentation for v{__version__}: {url}", flush=True)
 
 

@@ -52,7 +52,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Dec 16 10:56:41 GMT 2022 -->
+<!-- Added by: pwt, at: Tue Dec 20 22:16:10 GMT 2022 -->
 
 <!--te-->
 
@@ -591,7 +591,9 @@ Mustache template directives can be used within any property value in TOML confi
 
 Task names can include the `{{task_number}}` Mustache directive. This is substituted with the integer number of the Task, starting from `1`, with zero fills as required for tidy formatting. E.g., if there are 100 Tasks, the numbering will be `001`, `002` ... `100`.
 
-Task Group names can include the `{{task_group_number}}` Mustache directive, which works in the same fashion as for Task naming.
+Task names can also include the `{{task_count}}` directive, which is the total number of Tasks in the Task Group, and the `{{task_group_count}}` directive, which is the total number of Task Groups in the Work Requirement.
+
+Task Group names can include the `{{task_group_number}}`, `{{task_group_count}}` and `{{{task_count}}` Mustache directives, which work in the same manner as the Task naming directives.
 
 For example, the following JSON Work Requirement:
 
@@ -604,7 +606,7 @@ For example, the following JSON Work Requirement:
       "taskCount": 2,
       "tasks": [
         {
-          "name": "my_task_{{task_number}}"
+          "name": "my_task_{{task_number}}-of-{{task_count}}"
         }
       ]
     },
@@ -614,7 +616,7 @@ For example, the following JSON Work Requirement:
       "taskCount": 2,
       "tasks": [
         {
-          "name": "my_task_{{task_number}}"
+          "name": "my_task_{{task_number}}-of-{{task_count}}"
         }
       ]
     }
@@ -622,7 +624,7 @@ For example, the following JSON Work Requirement:
 }
 ```
 
-... would create Task Groups named `my_task_group_1_a1` and `my_task_group_2_b1`, each containing Tasks named `my_task_1`, `my_task_2`.
+... would create Task Groups named `my_task_group_1_a1` and `my_task_group_2_b1`, each containing Tasks named `my_task_1-of-2`, `my_task_2-of-2`.
 
 Note that these directives can only be used within the `name` properties of Tasks and Task Groups respectively.
 
