@@ -589,13 +589,18 @@ Mustache template directives can be used within any property value in TOML confi
 
 ### Task and Task Group Naming
 
-Task names can include the `{{task_number}}` Mustache directive. This is substituted with the integer number of the Task, starting from `1`, with zero fills as required for tidy formatting. E.g., if there are 100 Tasks, the numbering will be `001`, `002` ... `100`.
+The following numbering substitutions are available for use in Task and Task Group naming, i.e., they can be used in the `name` properties for Tasks and Task Groups respectively in JSON Work Requirements. Note that Task Group names cannot use the `{{task_number}}` directive.
 
-Task names can also include the `{{task_count}}` directive, which is the total number of Tasks in the Task Group, and the `{{task_group_count}}` directive, which is the total number of Task Groups in the Work Requirement.
+| Directive               | Description                                       | Task Group | Task |
+|:------------------------|:--------------------------------------------------|:-----------|:-----|
+| `{{task_group_count}}`  | The number of Task Groups in the Work Requirement | Yes        | Yes  |
+| `{{task_group_number}}` | The current Task Group number                     | Yes        | Yes  |
+| `{{task_count}}`        | The number of Tasks in the current Task Group     | Yes        | Yes  |
+| `{{task_number}}`       | The current Task number                           |            | Yes  |
 
-Task Group names can include the `{{task_group_number}}`, `{{task_group_count}}` and `{{{task_count}}` Mustache directives, which work in the same manner as the Task naming directives.
+Numbers are zero-padded for neat formatting and sorting, e.g., Task number 37 of 1000 Tasks would be substituted as `0037`.
 
-For example, the following JSON Work Requirement:
+As an example, the following JSON Work Requirement:
 
 ```json
 {
@@ -625,8 +630,6 @@ For example, the following JSON Work Requirement:
 ```
 
 ... would create Task Groups named `my_task_group_1_a1` and `my_task_group_2_b1`, each containing Tasks named `my_task_1-of-2`, `my_task_2-of-2`.
-
-Note that these directives can only be used within the `name` properties of Tasks and Task Groups respectively.
 
 ## File Storage Locations and File Usage
 
