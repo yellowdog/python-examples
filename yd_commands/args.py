@@ -9,12 +9,12 @@ import sys
 from datetime import datetime
 from typing import List, Optional
 
-from . import __version__
+from yd_commands import __version__
+from yd_commands.version import DOCS_URL
 
 
 def docs():
-    url = f"https://github.com/yellowdog/python-examples/blob/v{__version__}/README.md"
-    print(f"Online documentation for v{__version__}: {url}", flush=True)
+    print(f"Online documentation for v{__version__}: {DOCS_URL}", flush=True)
 
 
 class CLIParser:
