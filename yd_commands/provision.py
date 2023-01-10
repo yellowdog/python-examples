@@ -28,7 +28,10 @@ from yd_commands.config import (
     link_entity,
     load_config_worker_pool,
 )
-from yd_commands.mustache import load_json_file_with_mustache_substitutions
+from yd_commands.mustache import (
+    load_json_file_with_mustache_substitutions,
+    load_jsonnet_file_with_mustache_substitutions,
+)
 from yd_commands.printing import print_error, print_log
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -65,8 +68,16 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     Directly create the Worker Pool using the YellowDog REST API
     """
 
-    # Load the JSON data
-    wp_data = load_json_file_with_mustache_substitutions(wp_json_file, prefix="__")
+    wp_mustache_prefix = "__"
+
+    if wp_json_file.lower().endswith(".jsonnet"):
+        wp_data = load_jsonnet_file_with_mustache_substitutions(
+            wp_json_file, prefix=wp_mustache_prefix
+        )
+    else:
+        wp_data = load_json_file_with_mustache_substitutions(
+            wp_json_file, prefix=wp_mustache_prefix
+        )
 
     # Some values are configurable via the TOML configuration file;
     # values in the JSON file override values in the TOML file
