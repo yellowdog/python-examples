@@ -341,7 +341,7 @@ Overridden properties are also inherited. E.g., if a property is set at the Task
 
 The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and property `dependentOn` can only be set at the Task Group level.
 
-All properties are optional except for **`taskType`** (or **`TaskTypes`**).
+All properties are optional except for **`taskType`** (or **`taskTypes`**).
 
 | Property Name              | Description                                                                                                                                                              | TOML | WR  | Task Grp. | Task |
 |:---------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:----------|:-----|
