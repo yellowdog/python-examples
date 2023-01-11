@@ -2,7 +2,9 @@
 Utilities for applying Mustache substitutions.
 """
 import os
+import re
 import sys
+import tempfile
 from datetime import datetime
 from getpass import getuser
 from io import StringIO
@@ -226,15 +228,18 @@ def load_json_file_with_mustache_substitutions(filename: str, prefix: str = "") 
 
 def load_jsonnet_file_with_mustache_substitutions(filename: str, prefix="") -> Dict:
     """
-    Takes a JSONNET filename and returns a dictionary with its mustache
+    Takes a Jsonnet filename and returns a dictionary with its mustache
     substitutions processed.
     """
 
     check_jsonnet_import()
     from _jsonnet import evaluate_file
 
-    dict_data = json_loads(evaluate_file(filename))
-    process_mustache_substitutions(dict_data, prefix=prefix)
+    with MustachePreprocessedJsonnetFile(
+        filename=filename, prefix=prefix
+    ) as preprocessed_filename:
+        dict_data = json_loads(evaluate_file(preprocessed_filename))
+
     return dict_data
 
 
@@ -255,3 +260,44 @@ def load_toml_file_with_mustache_substitutions(filename: str, prefix: str = "") 
 
     process_mustache_substitutions(config, prefix=prefix)
     return config
+
+
+class MustachePreprocessedJsonnetFile:
+    """
+    The jsonnet 'evaluate_file' function will only operate on files,
+    not strings, so this context manager class will create a
+    temporary, mustache-processed file that can be used by the
+    evaluator, then deleted.
+    """
+
+    def __init__(self, filename: str, prefix: str = ""):
+        self.filename = filename
+        self.prefix = prefix
+
+    def __enter__(self) -> str:
+        """
+        Return the filename of the temporary mustache-processed
+        jsonnet file.
+        """
+        with open(self.filename, "r") as file:
+            file_contents = file.read()
+        processed_file_contents: str = self.mustache_process_jsonnet(
+            file_contents, self.prefix
+        )
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+            temp_file.write(processed_file_contents)
+        self.temp_filename: str = temp_file.name
+        return self.temp_filename
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        os.remove(self.temp_filename)
+
+    @staticmethod
+    def mustache_process_jsonnet(file_contents: str, prefix: str) -> str:
+        regex = prefix + "{{[A-Z,a-z,0-9,_,-,:, ,;,',\,]*}}"
+        m_expressions = re.findall(regex, file_contents)
+        for m_expression in m_expressions:
+            file_contents = file_contents.replace(
+                m_expression, str(substitute_mustache_str(m_expression, prefix=prefix))
+            )
+        return file_contents
