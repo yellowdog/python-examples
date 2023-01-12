@@ -53,7 +53,6 @@ from yd_commands.printing import print_error, print_log
 from yd_commands.type_check import (
     check_bool,
     check_dict,
-    check_float,
     check_float_or_int,
     check_int,
     check_list,
