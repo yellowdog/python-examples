@@ -866,6 +866,10 @@ def create_task(
         # of the uploaded files, arguments or environment.
         pass
 
+    # Cannot use flatten_input_paths if there are no inputs
+    if inputs is None or len(inputs) == 0:
+        flatten_input_paths = None
+
     return Task(
         name=name,
         taskType=task_type,
