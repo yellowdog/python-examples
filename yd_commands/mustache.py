@@ -294,7 +294,7 @@ class MustachePreprocessedJsonnetFile:
 
     @staticmethod
     def mustache_process_jsonnet(file_contents: str, prefix: str) -> str:
-        regex = prefix + "{{[A-Z,a-z,0-9,_,-,:, ,;,',\,]*}}"
+        regex = prefix + "{{[:,A-Z,a-z,0-9,_,-]*}}"
         m_expressions = re.findall(regex, file_contents)
         for m_expression in m_expressions:
             file_contents = file_contents.replace(
