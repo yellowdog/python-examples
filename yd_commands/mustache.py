@@ -281,7 +281,7 @@ class MustachePreprocessedJsonnetFile:
         """
         with open(self.filename, "r") as file:
             file_contents = file.read()
-        processed_file_contents: str = self.mustache_process_jsonnet(
+        processed_file_contents: str = self.mustache_process_file_contents(
             file_contents, self.prefix
         )
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
@@ -293,11 +293,29 @@ class MustachePreprocessedJsonnetFile:
         os.remove(self.temp_filename)
 
     @staticmethod
-    def mustache_process_jsonnet(file_contents: str, prefix: str) -> str:
-        regex = prefix + "{{[:,A-Z,a-z,0-9,_,-]*}}"
-        m_expressions = re.findall(regex, file_contents)
+    def mustache_process_file_contents(file_contents: str, prefix: str) -> str:
+        """
+        Process substitutions in the raw contents of a complete file.
+        """
+        mustache_regex = prefix + "{{[:,A-Z,a-z,0-9,_,-]*}}"
+        m_expressions = set(re.findall(mustache_regex, file_contents))
         for m_expression in m_expressions:
-            file_contents = file_contents.replace(
-                m_expression, str(substitute_mustache_str(m_expression, prefix=prefix))
+            replacement_expression = substitute_mustache_str(
+                m_expression, prefix=prefix
             )
+            if isinstance(replacement_expression, str):
+                file_contents = file_contents.replace(
+                    m_expression, replacement_expression
+                )
+            else:
+                # If the replacement is an int, float, or bool, we need to
+                # remove the enclosing quotes when we substitute, and ensure
+                # that lower case 'false' & 'true' are used. Account for both
+                # double and single quotes (for Jsonnet support).
+                file_contents = file_contents.replace(
+                    f'"{m_expression}"', str(replacement_expression).lower()
+                )
+                file_contents = file_contents.replace(
+                    f"'{m_expression}'", str(replacement_expression).lower()
+                )
         return file_contents
