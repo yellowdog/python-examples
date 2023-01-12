@@ -58,7 +58,9 @@
 
 # Overview
 
-This repository contains a set of command line Python scripts for interacting with the YellowDog Platform. The scripts use the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html), and support:
+This repository contains a set of example Python scripts for interacting with the YellowDog Platform. The scripts use the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html), the code for which can be found in this [GitHub repository](https://github.com/yellowdog/yellowdog-sdk-python-public).
+
+The scripts provide commands for:
 
 - **Provisioning** Worker Pools
 - **Submitting** Work Requirements
@@ -71,6 +73,8 @@ This repository contains a set of command line Python scripts for interacting wi
 - **Deleting** objects in the YellowDog Object Store
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
+
+The scripts are intended to be helpful starting points for programmatically interacting with the YellowDog Platform, and to be useful for initial development and experimentation. They are not intended to be of production quality nor to represent a standard or recommended method for using YellowDog.
 
 # YellowDog Prerequisites
 
