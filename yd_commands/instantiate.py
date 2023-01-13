@@ -11,12 +11,13 @@ from typing import List, Optional
 from yellowdog_client.model import ComputeRequirementTemplateUsage
 
 from yd_commands.config import (
+    ARGS_PARSER,
     ConfigWorkerPool,
     generate_id,
     link_entity,
     load_config_worker_pool,
 )
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import print_error, print_log, print_yd_object
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -50,31 +51,43 @@ def main():
         id = generate_cr_batch_name(
             name=CONFIG_WP.name, batch_number=batch_number, num_batches=num_batches
         )
-        if num_batches > 1:
-            print_log(
-                f"Provisioning Compute Requirement {batch_number + 1} '{id}'"
-                f"with {batches[batch_number].target_instances:,d} instance(s)"
-            )
+        if not ARGS_PARSER.dry_run:
+            if num_batches > 1:
+                print_log(
+                    f"Provisioning Compute Requirement {batch_number + 1} '{id}'"
+                    f"with {batches[batch_number].target_instances:,d} instance(s)"
+                )
+            else:
+                print_log(f"Provisioning Compute Requirement '{id}'")
         else:
-            print_log(f"Provisioning Compute Requirement '{id}'")
+            print_log("Dry-run: Printing JSON Compute Requirement Template")
+
         try:
-            compute_requirement = (
-                CLIENT.compute_client.provision_compute_requirement_template(
-                    ComputeRequirementTemplateUsage(
-                        templateId=CONFIG_WP.template_id,
-                        requirementNamespace=CONFIG_COMMON.namespace,
-                        requirementName=id,
-                        targetInstanceCount=batches[batch_number].target_instances,
-                        requirementTag=CONFIG_COMMON.name_tag,
+            compute_requirement_template_usage = ComputeRequirementTemplateUsage(
+                templateId=CONFIG_WP.template_id,
+                requirementNamespace=CONFIG_COMMON.namespace,
+                requirementName=id,
+                targetInstanceCount=batches[batch_number].target_instances,
+                requirementTag=CONFIG_COMMON.name_tag,
+            )
+            if not ARGS_PARSER.dry_run:
+                compute_requirement = (
+                    CLIENT.compute_client.provision_compute_requirement_template(
+                        compute_requirement_template_usage
                     )
                 )
-            )
-            print_log(
-                f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
-            )
+                print_log(
+                    f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
+                )
+            else:
+                print_yd_object(compute_requirement_template_usage)
+
         except Exception as e:
             print_error(f"Unable to provision Compute Requirement")
             raise Exception(e)
+
+    if ARGS_PARSER.dry_run:
+        print_log("Dry-run: Complete")
 
 
 def _allocate_nodes_to_batches(

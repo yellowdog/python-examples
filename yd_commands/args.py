@@ -290,7 +290,9 @@ class CLIParser:
             help="print a stack trace (etc.) on error",
         )
 
-        if any(module in sys.argv[0] for module in ["submit", "provision"]):
+        if any(
+            module in sys.argv[0] for module in ["submit", "provision", "instantiate"]
+        ):
             parser.add_argument(
                 "--dry-run",
                 action="store_true",
