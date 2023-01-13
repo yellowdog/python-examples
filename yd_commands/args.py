@@ -290,6 +290,14 @@ class CLIParser:
             help="print a stack trace (etc.) on error",
         )
 
+        if any(module in sys.argv[0] for module in ["submit", "provision"]):
+            parser.add_argument(
+                "--dry-run",
+                action="store_true",
+                required=False,
+                help="dry-run the action and print the JSON that would be submitted",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -429,6 +437,10 @@ class CLIParser:
     @property
     def recursive(self) -> Optional[bool]:
         return self.args.recursive
+
+    @property
+    def dry_run(self) -> Optional[bool]:
+        return self.args.dry_run
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

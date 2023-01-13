@@ -30,6 +30,7 @@
       * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
    * [Mustache Directives in Work Requirement Properties](#mustache-directives-in-work-requirement-properties)
       * [Task and Task Group Naming](#task-and-task-group-naming)
+   * [Dry-Running Work Requirement Submissions](#dry-running-work-requirement-submissions)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
@@ -40,6 +41,7 @@
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
    * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
    * [Mustache Directives in Worker Pool Properties](#mustache-directives-in-worker-pool-properties)
+   * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -52,7 +54,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Dec 20 22:16:10 GMT 2022 -->
+<!-- Added by: pwt, at: Fri Jan 13 14:26:17 GMT 2023 -->
 
 <!--te-->
 
@@ -116,10 +118,14 @@ The command line above is also used to update the commands.
 
 The commands can also be installed using **[pipx](https://pypa.github.io/pipx/)**.
 
-This method requires Python 3.7+ and pipx to be installed.
-
+This method requires Python 3.7+ and pipx to be installed. To install:
 ```shell
 pipx install yellowdog-python-examples
+```
+
+To update:
+```shell
+pipx upgrade yellowdog-python-examples
 ```
 
 # Usage
@@ -635,6 +641,14 @@ As an example, the following JSON Work Requirement:
 
 ... would create Task Groups named `my_task_group_1_a1` and `my_task_group_2_b1`, each containing Tasks named `my_task_1-of-2`, `my_task_2-of-2`.
 
+## Dry-Running Work Requirement Submissions
+
+To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-submit`. This will print the JSON for the Work Requirement, followed by the JSON for the contents (Tasks) of each Task Group. Nothing will be submitted to the Platform.
+
+The dry-run is useful for inspecting the results of all the processing that's been performed.
+
+Note that the generated JSON form is exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. It's also in two parts -- (1) the Work Requirement and Task Groups and (2) the Tasks themselves -- because this is how the components are submitted to the YellowDog API.
+
 ## File Storage Locations and File Usage
 
 This section discusses how to upload files from local storage to the YellowDog Object Store, how those files are transferred to Worker Nodes for Task processing, how the results of Task processing are returned by Worker Nodes, and how files are transferred back from the YellowDog Object Store to local storage.
@@ -816,6 +830,19 @@ Mustache template directives can be used within any property value in TOML confi
 
 An important distinction **only** when using Mustache directives within Worker Pool JSON documents is that each directive **must be preceded by a `__` (double underscore)** to disambiguate it from Mustache directives that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` variable.
 
+## Dry-Running Worker Pool Provisioning
+
+To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-provision`. This will print the JSON specification for the Worker Pool. Nothing will be submitted to the platform.
+
+The generated JSON is produced after all processing (incorporating `config.toml` properties, Mustache substitutions, etc.) has been concluded, so the dry-run is useful for inspecting the results of all the processing that's been performed.
+
+The JSON dry-run output could itself be used by `yd-provision`, if captured in a file, e.g.:
+
+```shell
+yd-provision --dry-run -q > my_worker_pool.json
+yd-provision -p my_worker_pool.json
+```
+
 # Command List
 
 Help is available for all commands by invoking a command with the `--help` or `-h` option. Some command line parameters are common to all commands, while others are command-specific.
@@ -832,6 +859,8 @@ If you encounter an error it can be useful for support purposes to see the full 
 
 The `yd-submit` command submits a new Work Requirement, according to the Work Requirement definition found in the `workRequirement` section of the TOML configuration file and/or the specification found in a Work Requirement JSON document supplied using the `--work-requirement` option.
 
+Use the `--dry-run` option to inspect the details of the Work Requirement, Task Groups, and Tasks that will be submitted, in JSON format.
+
 Once submitted, the Work Requirement will appear in the **Work** tab in the YellowDog Portal.
 
 The Work Requirement's progress can be tracked to completion by using the `--follow` (or `-f`) option when invoking `yd-submit`: the command will report on Tasks as they conclude and won't return until the Work Requirement has finished.
@@ -839,6 +868,8 @@ The Work Requirement's progress can be tracked to completion by using the `--fol
 ## yd-provision
 
 The `yd-provision` command provisions a new Worker Pool according to the specifications in the `workerPool` section of the TOML configuration file and/or in the specification found in a Worker Pool JSON document supplied using the `--worker-pool` option.
+
+Use the `--dry-run` option to inspect the details of the Worker Pool specification that will be submitted, in JSON format.
 
 Once provisioned, the Worker Pool will appear in the **Workers** tab in the YellowDog Portal, and its associated Compute Requirement will appear in the **Compute** tab.
 

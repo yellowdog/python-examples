@@ -298,13 +298,9 @@ def mustache_process_file_contents(file_contents: str, prefix: str) -> str:
     mustache_regex = prefix + "{{[:,A-Z,a-z,0-9,_,-]*}}"
     m_expressions = set(re.findall(mustache_regex, file_contents))
     for m_expression in m_expressions:
-        replacement_expression = substitute_mustache_str(
-            m_expression, prefix=prefix
-        )
+        replacement_expression = substitute_mustache_str(m_expression, prefix=prefix)
         if isinstance(replacement_expression, str):
-            file_contents = file_contents.replace(
-                m_expression, replacement_expression
-            )
+            file_contents = file_contents.replace(m_expression, replacement_expression)
         else:
             # If the replacement is an int, float, or bool, we need to
             # remove the enclosing quotes when we substitute, and ensure

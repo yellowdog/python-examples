@@ -9,7 +9,7 @@ from datetime import timedelta
 from math import ceil, floor
 from typing import Dict, List, Optional
 
-from requests import post as requests_post
+import requests
 from yellowdog_client.model import (
     AllNodesInactiveShutdownCondition,
     AllWorkersReleasedShutdownCondition,
@@ -32,7 +32,13 @@ from yd_commands.mustache import (
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
 )
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import (
+    print_error,
+    print_json,
+    print_log,
+    print_worker_pool,
+    print_yd_object,
+)
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -101,18 +107,25 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     except KeyError as e:
         raise Exception(f"Missing key error in JSON Worker Pool definition: {e}")
 
-    response = requests_post(
-        url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
-        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
-        json=wp_data,
-    )
+    if ARGS_PARSER.dry_run:
+        print_log("Dry-run: printing JSON submission")
+        print_yd_object(wp_data)
+        print_log("Dry run: exiting")
 
-    name = wp_data["requirementTemplateUsage"]["requirementName"]
-    if response.status_code == 200:
-        print_log(f"Provisioned Worker Pool '{name}'")
     else:
-        print_error(f"Failed to provision Worker Pool '{name}'")
-        raise Exception(f"{response.text}")
+        response = requests.post(
+            url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
+            headers={
+                "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
+            },
+            json=wp_data,
+        )
+        name = wp_data["requirementTemplateUsage"]["requirementName"]
+        if response.status_code == 200:
+            print_log(f"Provisioned Worker Pool '{name}'")
+        else:
+            print_error(f"Failed to provision Worker Pool '{name}'")
+            raise Exception(f"{response.text}")
 
 
 def create_worker_pool():
@@ -182,7 +195,7 @@ def create_worker_pool():
         )
         if num_batches > 1:
             print_log(
-                f"Provisioning Worker Pool {batch_number + 1} '{id}'"
+                f"Provisioning Worker Pool {batch_number + 1} '{id}' "
                 f"with {batches[batch_number].initial_nodes:,d} nodes(s) "
                 f"(minNodes: {batches[batch_number].min_nodes:,d}, "
                 f"maxNodes: {batches[batch_number].max_nodes:,d})"
@@ -190,44 +203,56 @@ def create_worker_pool():
         else:
             print_log(f"Provisioning Worker Pool '{id}'")
         try:
-            worker_pool = CLIENT.worker_pool_client.provision_worker_pool(
-                ComputeRequirementTemplateUsage(
-                    templateId=CONFIG_WP.template_id,
-                    requirementNamespace=CONFIG_COMMON.namespace,
-                    requirementName=id,
-                    targetInstanceCount=batches[batch_number].initial_nodes,
-                    requirementTag=CONFIG_COMMON.name_tag,
-                ),
-                ProvisionedWorkerPoolProperties(
-                    createNodeWorkers=node_workers,
-                    minNodes=batches[batch_number].min_nodes,
-                    maxNodes=batches[batch_number].max_nodes,
-                    workerTag=CONFIG_WP.worker_tag,
-                    autoShutdown=CONFIG_WP.auto_shutdown,
-                    autoShutdownConditions=auto_shutdown_conditions,
-                    nodeIdleTimeLimit=auto_scaling_idle_delay,
-                    nodeIdleGracePeriod=auto_scaling_idle_delay,
-                    nodeBootTimeLimit=node_boot_time_limit,
-                ),
+            compute_requirement_template_usage = ComputeRequirementTemplateUsage(
+                templateId=CONFIG_WP.template_id,
+                requirementNamespace=CONFIG_COMMON.namespace,
+                requirementName=id,
+                targetInstanceCount=batches[batch_number].initial_nodes,
+                requirementTag=CONFIG_COMMON.name_tag,
             )
-            print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
+            provisioned_worker_pool_properties = ProvisionedWorkerPoolProperties(
+                createNodeWorkers=node_workers,
+                minNodes=batches[batch_number].min_nodes,
+                maxNodes=batches[batch_number].max_nodes,
+                workerTag=CONFIG_WP.worker_tag,
+                autoShutdown=CONFIG_WP.auto_shutdown,
+                autoShutdownConditions=auto_shutdown_conditions,
+                nodeIdleTimeLimit=auto_scaling_idle_delay,
+                nodeIdleGracePeriod=auto_scaling_idle_delay,
+                nodeBootTimeLimit=node_boot_time_limit,
+            )
+            if not ARGS_PARSER.dry_run:
+                worker_pool = CLIENT.worker_pool_client.provision_worker_pool(
+                    compute_requirement_template_usage,
+                    provisioned_worker_pool_properties,
+                )
+                print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
+            else:
+                print_log("Dry-run: printing JSON submission")
+                print_worker_pool(
+                    compute_requirement_template_usage,
+                    provisioned_worker_pool_properties,
+                )
+                print_log("Dry run: exiting")
+
         except Exception as e:
             print_error(f"Unable to provision worker pool")
             raise Exception(e)
 
-    auto_shutdown = "enabled" if CONFIG_WP.auto_shutdown is True else "disabled"
-    auto_shutdown_msg = f"Worker Pool Auto-Shutdown is {auto_shutdown}"
-    auto_shutdown_msg = (
-        auto_shutdown_msg
-        + f" with a delay of {CONFIG_WP.auto_shutdown_delay} minute(s)"
-        if CONFIG_WP.auto_shutdown is True
-        else auto_shutdown_msg
-    )
-    print_log(auto_shutdown_msg)
-    print_log(
-        f"Auto-Scaling idle delay is set to "
-        f"{CONFIG_WP.auto_scaling_idle_delay} minute(s)"
-    )
+    if not ARGS_PARSER.dry_run:
+        auto_shutdown = "enabled" if CONFIG_WP.auto_shutdown is True else "disabled"
+        auto_shutdown_msg = f"Worker Pool Auto-Shutdown is {auto_shutdown}"
+        auto_shutdown_msg = (
+            auto_shutdown_msg
+            + f" with a delay of {CONFIG_WP.auto_shutdown_delay} minute(s)"
+            if CONFIG_WP.auto_shutdown is True
+            else auto_shutdown_msg
+        )
+        print_log(auto_shutdown_msg)
+        print_log(
+            f"Auto-Scaling idle delay is set to "
+            f"{CONFIG_WP.auto_scaling_idle_delay} minute(s)"
+        )
 
 
 def _allocate_nodes_to_batches(

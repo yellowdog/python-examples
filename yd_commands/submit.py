@@ -49,7 +49,7 @@ from yd_commands.mustache import (
     load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
 )
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import print_error, print_log, print_tasks, print_yd_object
 from yd_commands.type_check import (
     check_bool,
     check_dict,
@@ -154,21 +154,24 @@ def submit_work_requirement(
     fulfilOnSubmit = check_bool(
         tasks_data.get(FULFIL_ON_SUBMIT, CONFIG_WR.fulfil_on_submit)
     )
-    work_requirement = CLIENT.work_client.add_work_requirement(
-        WorkRequirement(
-            namespace=CONFIG_COMMON.namespace,
-            name=ID,
-            taskGroups=task_groups,
-            tag=CONFIG_COMMON.name_tag,
-            priority=priority,
-            fulfilOnSubmit=fulfilOnSubmit,
+    work_requirement = WorkRequirement(
+        namespace=CONFIG_COMMON.namespace,
+        name=ID,
+        taskGroups=task_groups,
+        tag=CONFIG_COMMON.name_tag,
+        priority=priority,
+        fulfilOnSubmit=fulfilOnSubmit,
+    )
+    if not ARGS_PARSER.dry_run:
+        work_requirement = CLIENT.work_client.add_work_requirement(work_requirement)
+        print_log(
+            f"Created "
+            f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
+            f"({work_requirement.name})"
         )
-    )
-    print_log(
-        f"Created "
-        f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
-        f"({work_requirement.name})"
-    )
+    else:
+        print_log("Dry-run: Printing Work Requirement:")
+        print_yd_object(work_requirement)
 
     # Keep track of uploaded files
     uploaded_files = []
@@ -180,7 +183,7 @@ def submit_work_requirement(
             if len(input_files_by_task_group[tg_number]) > 0:
                 print_log(f"Uploading files for Task Group '{task_group.name}'")
             for input_file in input_files_by_task_group[tg_number]:
-                if input_file not in uploaded_files:
+                if input_file not in uploaded_files and not ARGS_PARSER.dry_run:
                     upload_file(
                         client=CLIENT,
                         filename=input_file,
@@ -561,20 +564,29 @@ def add_tasks_to_task_group(
                 )
             )
 
-        CLIENT.work_client.add_tasks_to_task_group_by_name(
-            CONFIG_COMMON.namespace,
-            work_requirement.name,
-            task_group.name,
-            tasks_list,
-        )
-
-        if num_task_batches > 1:
-            print_log(
-                f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} : "
-                f"Added {len(tasks_list):,d} "
-                f"Task(s) to Work Requirement Task Group '{task_group.name}'"
+        if not ARGS_PARSER.dry_run:
+            CLIENT.work_client.add_tasks_to_task_group_by_name(
+                CONFIG_COMMON.namespace,
+                work_requirement.name,
+                task_group.name,
+                tasks_list,
             )
-    print_log(f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'")
+        else:
+            print_log("Dry-run: Printing Tasks in Task Group")
+            print_tasks(task_group.name, tasks_list)
+
+        if not ARGS_PARSER.dry_run:
+            if num_task_batches > 1:
+                print_log(
+                    f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} : "
+                    f"Added {len(tasks_list):,d} "
+                    f"Task(s) to Work Requirement Task Group '{task_group.name}'"
+                )
+
+    if not ARGS_PARSER.dry_run:
+        print_log(
+            f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'"
+        )
 
 
 def follow_progress(work_requirement: WorkRequirement) -> None:
@@ -779,7 +791,7 @@ def create_task(
     if task_type == "bash":
         if executable is None:
             raise Exception("No 'executable' specified for 'bash' Task Type")
-        if executable not in uploaded_files:
+        if executable not in uploaded_files and not ARGS_PARSER.dry_run:
             upload_file(
                 client=CLIENT,
                 filename=executable,

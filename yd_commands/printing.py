@@ -4,15 +4,20 @@ Functions focused on print outputs.
 
 import sys
 from datetime import datetime
-from typing import List, Optional, TypeVar
+from json import dumps as json_dumps
+from textwrap import indent as text_indent
+from typing import Dict, List, Optional, TypeVar
 
 from tabulate import tabulate
 from yellowdog_client import PlatformClient
+from yellowdog_client.common.json import Json
 from yellowdog_client.model import (
     ComputeRequirementSummary,
+    ComputeRequirementTemplateUsage,
     ConfiguredWorkerPool,
     ObjectPath,
     ProvisionedWorkerPool,
+    ProvisionedWorkerPoolProperties,
     Task,
     TaskGroup,
     WorkerPoolSummary,
@@ -20,7 +25,10 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.object_utilities import Item
+
+JSON_INDENT = 2
 
 
 def print_string(msg: str = "") -> str:
@@ -207,4 +215,67 @@ def indent(txt: str, indent_width: int = 4) -> str:
     """
     Indent lines of text.
     """
-    return "\n".join(" " * indent_width + ln for ln in txt.splitlines())
+    return text_indent(txt, prefix=" " * indent_width)
+
+
+def print_json(
+    data: Dict,
+    initial_indent: int = 0,
+    drop_first_line: bool = False,
+    with_final_comma: bool = False,
+):
+    """
+    Print a dictionary as a JSON data structure, using the compact JSON
+    encoder.
+    """
+    json_string = indent(
+        json_dumps(data, indent=JSON_INDENT, cls=CompactJSONEncoder), initial_indent
+    )
+    if drop_first_line:
+        json_string = "\n".join(json_string.splitlines()[1:])
+    if with_final_comma:
+        print(json_string, end=",\n")
+    else:
+        print(json_string)
+
+
+def print_yd_object(
+    yd_object: object,
+    initial_indent: int = 0,
+    drop_first_line: bool = False,
+    with_final_comma: bool = False,
+):
+    """
+    Print a YellowDog object as a JSON data structure,
+    using the compact JSON encoder
+    """
+    print_json(Json.dump(yd_object), initial_indent, drop_first_line, with_final_comma)
+
+
+def print_tasks(task_group_name: str, tasks: List[Task]):
+    """
+    Print the JSON-formatted Tasks in a named Task Group
+    """
+    print(f"Task Group '{task_group_name}':")
+    final_comma = True
+    for index, task in enumerate(tasks):
+        if index + 1 == len(tasks):
+            final_comma = False
+        print_yd_object(task, with_final_comma=final_comma)
+
+
+def print_worker_pool(
+    crtu: ComputeRequirementTemplateUsage, pwpp: ProvisionedWorkerPoolProperties
+):
+    """
+    Reconstruct and print the JSON-formatted Worker Pool specification.
+    """
+    spaces = " " * JSON_INDENT
+    print("{")
+    print(f'{spaces}"provisionedProperties": {{')
+    print_yd_object(
+        pwpp, initial_indent=JSON_INDENT, drop_first_line=True, with_final_comma=True
+    )
+    print(f'{spaces}"requirementTemplateUsage": {{')
+    print_yd_object(crtu, initial_indent=JSON_INDENT, drop_first_line=True)
+    print("}")
