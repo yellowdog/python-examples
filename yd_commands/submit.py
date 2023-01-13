@@ -179,21 +179,22 @@ def submit_work_requirement(
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
         try:
-            # Upload files required by the Tasks in this Task Group
-            if len(input_files_by_task_group[tg_number]) > 0:
-                print_log(f"Uploading files for Task Group '{task_group.name}'")
-            for input_file in input_files_by_task_group[tg_number]:
-                if input_file not in uploaded_files and not ARGS_PARSER.dry_run:
-                    upload_file(
-                        client=CLIENT,
-                        filename=input_file,
-                        namespace=CONFIG_COMMON.namespace,
-                        id=ID,
-                        url=CONFIG_COMMON.url,
-                        input_folder_name=INPUT_FOLDER_NAME,
-                        flatten_upload_paths=flatten_upload_paths,
-                    )
-                    uploaded_files.append(input_file)
+            if not ARGS_PARSER.dry_run:
+                # Upload files required by the Tasks in this Task Group
+                if len(input_files_by_task_group[tg_number]) > 0:
+                    print_log(f"Uploading files for Task Group '{task_group.name}'")
+                for input_file in input_files_by_task_group[tg_number]:
+                    if input_file not in uploaded_files:
+                        upload_file(
+                            client=CLIENT,
+                            filename=input_file,
+                            namespace=CONFIG_COMMON.namespace,
+                            id=ID,
+                            url=CONFIG_COMMON.url,
+                            input_folder_name=INPUT_FOLDER_NAME,
+                            flatten_upload_paths=flatten_upload_paths,
+                        )
+                        uploaded_files.append(input_file)
 
             # Add the Tasks
             add_tasks_to_task_group(

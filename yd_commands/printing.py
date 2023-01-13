@@ -256,7 +256,7 @@ def print_tasks(task_group_name: str, tasks: List[Task]):
     """
     Print the JSON-formatted Tasks in a named Task Group
     """
-    print(f"Task Group '{task_group_name}':")
+    print(f"Tasks in Task Group '{task_group_name}':")
     final_comma = True
     for index, task in enumerate(tasks):
         if index + 1 == len(tasks):
