@@ -40,6 +40,8 @@
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
    * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
+      * [Worker Pool JSON Examples](#worker-pool-json-examples)
+      * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
    * [Mustache Directives in Worker Pool Properties](#mustache-directives-in-worker-pool-properties)
    * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
 * [Command List](#command-list)
@@ -54,7 +56,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Jan 13 14:26:17 GMT 2023 -->
+<!-- Added by: pwt, at: Fri Jan 13 18:03:14 GMT 2023 -->
 
 <!--te-->
 
@@ -814,15 +816,151 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
 
 ## Worker Pool Specification Using JSON Documents
 
-**Experimental Feature**
-
 It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either using the command line with the `--worker-pool` or `-p` parameter with `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file with the JSON filename. Command line specification takes priority over TOML specification.
 
 The JSON specification allows the creation of **Advanced Worker Pools**, with different node types and the ability to specify Node Actions.
 
-When using a JSON document to specify the Worker Pool, the schema of the document is identical to that expected by the YellowDog API for Worker Provisioning.
+When using a JSON document to specify the Worker Pool, the schema of the document is identical to that expected by the YellowDog REST API for Worker Pool Provisioning.
 
-Examples will be provided at a later date.
+### Worker Pool JSON Examples
+
+The example below is of a simple JSON specification of a Worker Pool with one initial node,  shutdown conditions, etc.
+
+```json
+{
+  "requirementTemplateUsage": {
+    "maintainInstanceCount": false,
+    "requirementName": "wp_pyex-primes_230113-161528-da0",
+    "requirementNamespace": "pyexamples",
+    "requirementTag": "pyex-primes",
+    "targetInstanceCount": 1,
+    "templateId": "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
+  },
+  "provisionedProperties": {
+    "autoShutdown": true,
+    "autoShutdownConditions": [
+      {"delay": "PT1H", "type": "co.yellowdog.platform.model.AllWorkersReleasedShutdownCondition"},
+      {"delay": "PT1H", "type": "co.yellowdog.platform.model.AllNodesInactiveShutdownCondition"},
+      {"delay": "PT1H", "type": "co.yellowdog.platform.model.UnclaimedAfterStartupShutdownCondition"},
+      {"delay": "PT1H", "type": "co.yellowdog.platform.model.NodeActionFailedShutdownCondition"}
+    ],
+    "createNodeWorkers": {"targetCount": 1, "targetType": "PER_VCPU"},
+    "maxNodes": 5,
+    "minNodes": 0,
+    "nodeBootTimeLimit": "PT5M",
+    "nodeIdleGracePeriod": "PT3M",
+    "nodeIdleTimeLimit": "PT3M",
+    "workerTag": "pyex-bash-docker"
+  }
+}
+```
+
+The next example is of a relatively rich JSON specification of an Advanced Worker Pool, from one of the YellowDog demos. It includes node specialisation, and action groups that respond to the `STARTUP_NODES_ADDED` and `NODES_ADDED` events to drive Node Actions.
+
+```json
+{
+  "requirementTemplateUsage": {
+    "maintainInstanceCount": false,
+    "targetInstanceCount": 6,
+    "templateId": "ydid:crt:D9C548:a7eda287-f9d6-4bc8-b2dc-455344057257",
+    "requirementName": "wp_pyex-slurm_230113-165615-2b7",
+    "requirementNamespace": "pyexamples",
+    "requirementTag": "pyex-slurm"
+  },
+  "provisionedProperties": {
+    "autoShutdown": true,
+    "createNodeWorkers": {"targetCount": 0, "targetType": "PER_NODE"},
+    "nodeConfiguration": {
+      "nodeTypes": [
+        {"name": "slurmctld", "count": 1},
+        {"name": "slurmd", "min": 5, "slotNumbering": "REUSABLE"}
+      ],
+      "nodeEvents": {
+        "STARTUP_NODES_ADDED": [
+          {
+            "actions": [
+              {
+                "action": "WRITE_FILE",
+                "path": "nodes.json",
+                "content": "{\n  \"nodes\": [\n{{#otherNodes}}\n    {\n      \"name\": \"slurmd{{details.nodeSlot}}\",\n      \"ip\": \"{{details.privateIpAddress}}\"\n    }{{^-last}},{{/-last}}\n{{/otherNodes}}\n  ]\n}",
+                "nodeTypes": ["slurmctld"]
+              },
+              {
+                "action": "RUN_COMMAND",
+                "path": "start_simple_slurmctld",
+                "arguments": ["nodes.json"],
+                "environment": {"EXAMPLE": "FOO"},
+                "nodeTypes": ["slurmctld"]
+              }
+            ]
+          },
+          {
+            "actions": [
+              {
+                "action": "RUN_COMMAND",
+                "path": "start_simple_slurmd",
+                "arguments": ["{{nodesByType.slurmctld.0.details.privateIpAddress}}", "{{node.details.nodeSlot}}"],
+                "nodeTypes": ["slurmd"]
+              }
+            ]
+          },
+          {
+            "actions": [
+              {
+                "action": "CREATE_WORKERS",
+                "totalWorkers": 1,
+                "nodeTypes": ["slurmctld"]
+              }
+            ]
+          }
+        ],
+        "NODES_ADDED": [
+          {
+            "actions": [
+              {
+                "action": "WRITE_FILE",
+                "path": "nodes.json",
+                "content": "{\n  \"nodes\": [\n{{#filteredNodes}}\n    {\n      \"name\": \"slurmd{{details.nodeSlot}}\",\n      \"ip\": \"{{details.privateIpAddress}}\"\n    }{{^-last}},{{/-last}}\n{{/filteredNodes}}\n  ]\n}",
+                "nodeTypes": ["slurmctld"]
+              },
+              {
+                "action": "RUN_COMMAND",
+                "path": "add_nodes",
+                "arguments": ["nodes.json"],
+                "nodeTypes": ["slurmctld"]
+              }
+            ]
+          },
+          {
+            "actions": [
+              {
+                "action": "RUN_COMMAND",
+                "path": "start_simple_slurmd",
+                "arguments": ["{{nodesByType.slurmctld.0.details.privateIpAddress}}", "{{node.details.nodeSlot}}"],
+                "nodeIdFilter": "EVENT",
+                "nodeTypes": ["slurmd"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "workerTag": "pyex-slurm-cluster"
+  }
+}
+```
+
+### TOML Properties Inherited by Worker Pool JSON Specifications
+
+When a JSON Worker Pool specification is used, the following properties from the `config.toml` file can be inherited:
+
+- `requirementName` (This will be generated automatically if not supplied in either the TOML file or the JSON specification)
+- `requirementNamespace`
+- `requirementTag`
+- `templateId`
+- `workerTag`
+
+Properties set in the JSON file override those set in the TOML file.
 
 ## Mustache Directives in Worker Pool Properties
 
