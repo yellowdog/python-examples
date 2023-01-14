@@ -49,6 +49,7 @@
    * [Jsonnet Installation](#jsonnet-installation)
    * [Mustache Substitutions in Jsonnet Files](#mustache-substitutions-in-jsonnet-files)
    * [Checking Jsonnet Processing](#checking-jsonnet-processing)
+   * [Jsonnet Example](#jsonnet-example)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -61,7 +62,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Jan 14 13:57:09 GMT 2023 -->
+<!-- Added by: pwt, at: Sat Jan 14 14:11:05 GMT 2023 -->
 
 <!--te-->
 
@@ -1042,7 +1043,7 @@ yd-provision -p my_worker_pool.json
 
 # Using Jsonnet instead of JSON for Work Requirement and Worker Pool Specification
 
-In all circumstances where JSON files are used by the Python Examples scripts, these can be substituted by [Jsonnet](https://jsonnet.org) files. This allows the use of Jsonnet's powerful additional features.
+In all circumstances where JSON files are used by the Python Examples scripts, these can be substituted by **[Jsonnet](https://jsonnet.org)** files. This allows the use of Jsonnet's powerful additional features.
 
 A simple usage example might be:
 
@@ -1081,6 +1082,125 @@ Mustache processing is performed **before** Jsonnet evaluation.
 ## Checking Jsonnet Processing
 
 The `dry-run` (`-D`) option of the `yd-submit` and `yd-provision` commands will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
+
+## Jsonnet Example
+
+Here's an example of a Jsonnet file that generates a Work Requirement with four Tasks:
+
+```jsonnet
+# Function for synthesising Tasks
+local Task(arguments=[], environment={}) = {
+    arguments: arguments,
+    environment: environment,
+    name: "my_task_{{task_number}}"
+};
+
+# Work Requirement
+{
+  "name": "workreq_{{datetime}}",
+  "taskGroups": [
+    {
+      "tasks": [
+        Task(["1"], {A: "A_1"}),  # arguments and environment
+        Task(["2", "3"], {}),     # arguments and empty environment
+        Task(["4"]),              # arguments and default environment
+        Task()                    # default arguments and environment
+      ]
+    }
+  ]
+}
+```
+
+When this is inspected using the `dry-run` option (`yd-submit -Dq -r my_work_req.jsonnet`), this is the processed output:
+
+```json
+{
+  "fulfilOnSubmit": false,
+  "name": "workreq_230114-140645",
+  "namespace": "pyexamples",
+  "priority": 0,
+  "tag": "pyex-bash",
+  "taskGroups": [
+    {
+      "finishIfAllTasksFinished": true,
+      "finishIfAnyTaskFailed": false,
+      "name": "task_group_1",
+      "priority": 0,
+      "runSpecification": {
+        "maximumTaskRetries": 0,
+        "taskTypes": ["bash"],
+        "workerTags": ["pyex-bash-docker"]
+      },
+      "tasks": [
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "1"],
+          "environment": {"A": "A_1"},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_1",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "2", "3"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_2",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "4"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_3",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_4",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        }
+      ]
+    }
+  ]
+}
+```
 
 # Command List
 
