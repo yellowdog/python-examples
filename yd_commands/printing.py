@@ -278,9 +278,9 @@ class WorkRequirementSnapshot:
     def __init__(self):
         self.wr_data: Dict = {}
 
-    def add_work_requirement(self, wr: WorkRequirement):
+    def set_work_requirement(self, wr: WorkRequirement):
         """
-        Add the Work Requirement to be represented, processed to
+        Set the Work Requirement to be represented, processed to
         comply with the API.
         """
         self.wr_data = Json.dump(wr)  # Dictionary holding the complete WR
@@ -292,10 +292,8 @@ class WorkRequirementSnapshot:
         """
         for task_group in self.wr_data["taskGroups"]:
             if task_group["name"] == task_group_name:
-                break
-        else:
-            return
-        task_group["tasks"] = [Json.dump(task) for task in tasks]
+                task_group["tasks"] = [Json.dump(task) for task in tasks]
+                return
 
     def print(self):
         """

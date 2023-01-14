@@ -189,7 +189,7 @@ def submit_work_requirement(
         )
     else:
         global WR_SNAPSHOT
-        WR_SNAPSHOT.add_work_requirement(work_requirement)
+        WR_SNAPSHOT.set_work_requirement(work_requirement)
 
     # Keep track of uploaded files
     uploaded_files = []
