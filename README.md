@@ -45,6 +45,10 @@
       * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
    * [Mustache Directives in Worker Pool Properties](#mustache-directives-in-worker-pool-properties)
    * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
+* [Using Jsonnet instead of JSON for Work Requirement and Worker Pool Specification](#using-jsonnet-instead-of-json-for-work-requirement-and-worker-pool-specification)
+   * [Jsonnet Installation](#jsonnet-installation)
+   * [Mustache Substitutions in Jsonnet Files](#mustache-substitutions-in-jsonnet-files)
+   * [Checking Jsonnet Processing](#checking-jsonnet-processing)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -57,7 +61,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Jan 14 13:25:59 GMT 2023 -->
+<!-- Added by: pwt, at: Sat Jan 14 13:57:09 GMT 2023 -->
 
 <!--te-->
 
@@ -1035,6 +1039,48 @@ The JSON dry-run output could itself be used by `yd-provision`, if captured in a
 yd-provision --dry-run -q > my_worker_pool.json
 yd-provision -p my_worker_pool.json
 ```
+
+# Using Jsonnet instead of JSON for Work Requirement and Worker Pool Specification
+
+In all circumstances where JSON files are used by the Python Examples scripts, these can be substituted by [Jsonnet](https://jsonnet.org) files. This allows the use of Jsonnet's powerful additional features.
+
+A simple usage example might be:
+
+```shell
+yd-submit --work-requirement my_work_req.jsonnet
+```
+
+The use of Jsonnet evaluation is implied by the filename extension `.jsonnet`.
+
+## Jsonnet Installation
+
+Jsonnet is not installed by default when yellowdog-python-examples is installed, because the package has binary components which are not provided for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
+
+To install Jsonnet, try:
+
+```shell
+pip install -U jsonnet
+```
+
+If this fails, try:
+
+```shell
+pip install -U jsonnet-binary
+```
+
+If both of these methods fail, you'll need to ensure that the platform you're running on has the required build tools available, so that the binary component can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
+
+Please get in touch with YellowDog if you get stuck.
+
+## Mustache Substitutions in Jsonnet Files
+
+The scripts provide full support for Mustache substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for Worker Pool specification, substitutions need to be prefixed by `__`, e.g. `"__{{username}}}"`.
+
+Mustache processing is performed **before** Jsonnet evaluation.
+
+## Checking Jsonnet Processing
+
+The `dry-run` (`-D`) option of the `yd-submit` and `yd-provision` commands will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
 
 # Command List
 
