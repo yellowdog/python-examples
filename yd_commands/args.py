@@ -295,6 +295,7 @@ class CLIParser:
         ):
             parser.add_argument(
                 "--dry-run",
+                "-D",
                 action="store_true",
                 required=False,
                 help="dry-run the action and print the JSON that would be submitted",
