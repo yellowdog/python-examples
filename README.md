@@ -649,7 +649,51 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 The dry-run is useful for inspecting the results of all the processing that's been performed.
 
-Note that the generated JSON form is exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. It's also in two parts -- (1) the Work Requirement and Task Groups and (2) the Tasks themselves -- because this is how the components are submitted to the YellowDog API.
+Note that the generated JSON form is a consolidated form of exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. Also, in actual API submissions, the Work Requirement and Task Groups are submitted first, and Tasks are added in a subsequent call.
+
+A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
+
+`% yd-submit --dry-run --quiet`
+```json
+{
+  "fulfilOnSubmit": false,
+  "name": "pyex-bash_230114-095504-53a",
+  "namespace": "pyexamples",
+  "priority": 0,
+  "tag": "pyex-bash",
+  "taskGroups": [
+    {
+      "finishIfAllTasksFinished": true,
+      "finishIfAnyTaskFailed": false,
+      "name": "task_group_1",
+      "priority": 0,
+      "runSpecification": {
+        "maximumTaskRetries": 0,
+        "taskTypes": ["bash"],
+        "workerTags": ["pyex-bash"]
+      },
+      "tasks": [
+        {
+          "arguments": ["pyex-bash_230114-095504-53a/sleep_script.sh"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "pyex-bash_230114-095504-53a/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "task_01",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        }
+      ]
+    }
+  ]
+}
+```
 
 ## File Storage Locations and File Usage
 

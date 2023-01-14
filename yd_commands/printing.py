@@ -21,6 +21,7 @@ from yellowdog_client.model import (
     Task,
     TaskGroup,
     WorkerPoolSummary,
+    WorkRequirement,
     WorkRequirementSummary,
 )
 
@@ -252,18 +253,6 @@ def print_yd_object(
     print_json(Json.dump(yd_object), initial_indent, drop_first_line, with_final_comma)
 
 
-def print_tasks(task_group_name: str, tasks: List[Task]):
-    """
-    Print the JSON-formatted Tasks in a named Task Group
-    """
-    print(f"Tasks in Task Group '{task_group_name}':")
-    final_comma = True
-    for index, task in enumerate(tasks):
-        if index + 1 == len(tasks):
-            final_comma = False
-        print_yd_object(task, with_final_comma=final_comma)
-
-
 def print_worker_pool(
     crtu: ComputeRequirementTemplateUsage, pwpp: ProvisionedWorkerPoolProperties
 ):
@@ -279,3 +268,41 @@ def print_worker_pool(
     print(f'{spaces}"requirementTemplateUsage": {{')
     print_yd_object(crtu, initial_indent=JSON_INDENT, drop_first_line=True)
     print("}")
+
+
+class WorkRequirementSnapshot:
+    """
+    Represent a complete Work Requirement, with Tasks included within
+    Task Group definitions. Note, this is not an 'official' representation
+    of a Work Requirement.
+    """
+
+    def __init__(self):
+        self.wr_data: Dict = {}
+
+    def add_work_requirement(self, wr: WorkRequirement):
+        """
+        Add the Work Requirement to be represented, processed to
+        comply with the API.
+        """
+        self.wr_data = Json.dump(wr)  # Dictionary holding the complete WR
+
+    def add_tasks(self, task_group_name: str, tasks: List[Task]):
+        """
+        Add the list of Tasks to a named Task Group within the
+        Work Requirement
+        """
+        for task_group in self.wr_data["taskGroups"]:
+            if task_group["name"] == task_group_name:
+                break
+        else:
+            return
+        task_group["tasks"] = [Json.dump(task) for task in tasks]
+
+    def print(self):
+        """
+        Print the JSON representation of the
+        """
+        print_log("Dry-run: Printing Work Requirement:")
+        print_json(self.wr_data)
+        print_log("Dry-run: Complete")

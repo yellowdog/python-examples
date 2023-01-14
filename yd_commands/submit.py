@@ -49,7 +49,7 @@ from yd_commands.mustache import (
     load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
 )
-from yd_commands.printing import print_error, print_log, print_tasks, print_yd_object
+from yd_commands.printing import WorkRequirementSnapshot, print_error, print_log
 from yd_commands.type_check import (
     check_bool,
     check_dict,
@@ -69,6 +69,9 @@ CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
 INPUT_FOLDER_NAME = None
+
+if ARGS_PARSER.dry_run:
+    WR_SNAPSHOT = WorkRequirementSnapshot()
 
 
 @main_wrapper
@@ -101,6 +104,9 @@ def main():
         submit_work_requirement(
             directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
         )
+
+    if ARGS_PARSER.dry_run:
+        WR_SNAPSHOT.print()
 
 
 def submit_work_requirement(
@@ -170,8 +176,8 @@ def submit_work_requirement(
             f"({work_requirement.name})"
         )
     else:
-        print_log("Dry-run: Printing Work Requirement:")
-        print_yd_object(work_requirement)
+        global WR_SNAPSHOT
+        WR_SNAPSHOT.add_work_requirement(work_requirement)
 
     # Keep track of uploaded files
     uploaded_files = []
@@ -573,8 +579,8 @@ def add_tasks_to_task_group(
                 tasks_list,
             )
         else:
-            print_log("Dry-run: Printing Tasks in Task Group")
-            print_tasks(task_group.name, tasks_list)
+            global WR_SNAPSHOT
+            WR_SNAPSHOT.add_tasks(task_group.name, tasks_list)
 
         if not ARGS_PARSER.dry_run:
             if num_task_batches > 1:
@@ -624,6 +630,8 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     """
     Clean up the Work Requirement and any uploaded Objects on failure
     """
+    if ARGS_PARSER.dry_run:
+        return
 
     def _delete_objects():
         object_paths: List[
