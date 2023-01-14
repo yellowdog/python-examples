@@ -34,7 +34,6 @@ from yd_commands.mustache import (
 )
 from yd_commands.printing import (
     print_error,
-    print_json,
     print_log,
     print_worker_pool,
     print_yd_object,
@@ -108,9 +107,9 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         raise Exception(f"Missing key error in JSON Worker Pool definition: {e}")
 
     if ARGS_PARSER.dry_run:
-        print_log("Dry-run: printing JSON submission")
+        print_log("Dry-run: Printing JSON Worker Pool specification")
         print_yd_object(wp_data)
-        print_log("Dry run: exiting")
+        print_log("Dry run: Complete")
 
     else:
         response = requests.post(
@@ -228,12 +227,10 @@ def create_worker_pool():
                 )
                 print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
             else:
-                print_log("Dry-run: printing JSON submission")
                 print_worker_pool(
                     compute_requirement_template_usage,
                     provisioned_worker_pool_properties,
                 )
-                print_log("Dry run: exiting")
 
         except Exception as e:
             print_error(f"Unable to provision worker pool")

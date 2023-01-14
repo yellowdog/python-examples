@@ -259,15 +259,13 @@ def print_worker_pool(
     """
     Reconstruct and print the JSON-formatted Worker Pool specification.
     """
-    spaces = " " * JSON_INDENT
-    print("{")
-    print(f'{spaces}"provisionedProperties": {{')
-    print_yd_object(
-        pwpp, initial_indent=JSON_INDENT, drop_first_line=True, with_final_comma=True
-    )
-    print(f'{spaces}"requirementTemplateUsage": {{')
-    print_yd_object(crtu, initial_indent=JSON_INDENT, drop_first_line=True)
-    print("}")
+    print_log("Dry-run: Printing JSON Worker Pool specification")
+    wp_data = {
+        "provisionedProperties": Json.dump(pwpp),
+        "requirementTemplateUsage": Json.dump(crtu),
+    }
+    print_json(wp_data)
+    print_log("Dry run: Complete")
 
 
 class WorkRequirementSnapshot:
@@ -301,8 +299,8 @@ class WorkRequirementSnapshot:
 
     def print(self):
         """
-        Print the JSON representation of the
+        Print the JSON representation
         """
-        print_log("Dry-run: Printing Work Requirement:")
+        print_log("Dry-run: Printing JSON Work Requirement specification:")
         print_json(self.wr_data)
         print_log("Dry-run: Complete")

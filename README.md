@@ -645,11 +645,11 @@ As an example, the following JSON Work Requirement:
 
 ## Dry-Running Work Requirement Submissions
 
-To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-submit`. This will print the JSON for the Work Requirement, followed by the JSON for the contents (Tasks) of each Task Group. Nothing will be submitted to the Platform.
+To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-submit`. This will print the fully processed JSON for the Work Requirement. Nothing will be submitted to the Platform.
 
-The dry-run is useful for inspecting the results of all the processing that's been performed.
+The dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON form is a consolidated form of exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. Also, in actual API submissions, the Work Requirement and Task Groups are submitted first, and Tasks are added in a subsequent call.
+Note that the generated JSON form is a consolidated form of exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. Also, in actual API submissions, the Work Requirement and Task Groups are submitted first, and Tasks are added in a subsequent call, so the unified JSON document is just a convenience.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
@@ -1017,6 +1017,8 @@ An important distinction **only** when using Mustache directives within Worker P
 To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-provision`. This will print the JSON specification for the Worker Pool. Nothing will be submitted to the platform.
 
 The generated JSON is produced after all processing (incorporating `config.toml` properties, Mustache substitutions, etc.) has been concluded, so the dry-run is useful for inspecting the results of all the processing that's been performed.
+
+To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
 The JSON dry-run output could itself be used by `yd-provision`, if captured in a file, e.g.:
 
