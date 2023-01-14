@@ -10,6 +10,8 @@ from os import chdir
 from os.path import basename, dirname
 from typing import Dict, List, Optional
 
+import jsons
+import requests
 from yellowdog_client.common.server_sent_events import (
     DelegatedSubscriptionEventListener,
 )
@@ -49,7 +51,12 @@ from yd_commands.mustache import (
     load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
 )
-from yd_commands.printing import WorkRequirementSnapshot, print_error, print_log
+from yd_commands.printing import (
+    WorkRequirementSnapshot,
+    print_error,
+    print_json,
+    print_log,
+)
 from yd_commands.type_check import (
     check_bool,
     check_dict,
@@ -76,6 +83,11 @@ if ARGS_PARSER.dry_run:
 
 @main_wrapper
 def main():
+
+    if ARGS_PARSER.json_raw:
+        submit_json_raw(ARGS_PARSER.json_raw)
+        return
+
     wr_data_file = (
         CONFIG_WR.tasks_data_file
         if ARGS_PARSER.work_req_file is None
@@ -901,6 +913,86 @@ def create_task(
     )
 
 
-# Entry point
+def submit_json_raw(wr_file: str):
+    """
+    Submit a 'raw' JSON Work Requirement, consisting of a combined Work
+    Requirement definition and the constituent Tasks.
+
+    Note that there is no automatic upload of required ('VERIFY_AT_START')
+    input files. These can be pre-uploaded using yd-upload.
+    """
+
+    # Load file contents, with Jsonnet/Mustache processing if required
+    if wr_file.lower().endswith(".jsonnet"):
+        wr_data = load_jsonnet_file_with_mustache_substitutions(wr_file)
+    else:
+        wr_data = load_json_file_with_mustache_substitutions(wr_file)
+
+    if ARGS_PARSER.dry_run:
+        print_log("Dry-run: Printing JSON Work Requirement specification:")
+        print_json(wr_data)
+        print_log("Dry-run: Complete")
+        return
+
+    # Extract Tasks from Task Groups
+    task_lists = {}
+    for task_group in wr_data["taskGroups"]:
+        task_lists[task_group["name"]] = task_group["tasks"]
+        del task_group["tasks"]
+
+    # Submit the Work Requirement
+    response = requests.post(
+        url=f"{CONFIG_COMMON.url}/work/requirements",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+        json=wr_data,
+    )
+
+    wr_name = wr_data["name"]
+    if response.status_code == 200:
+        wr_id = jsons.loads(response.text)["id"]
+        print_log(f"Created Work Requirement '{wr_name}' [{wr_id}]")
+    else:
+        print_error(f"Failed to create Work Requirement '{wr_name}'")
+        raise Exception(f"{response.text}")
+
+    # Submit Tasks to the Work Requirement
+    for task_group_name, task_list in task_lists.items():
+
+        # Warn for required files not present at start
+        for task in task_list:
+            inputs = task.get("inputs", [])
+            for input in inputs:
+                if input["verification"] == "VERIFY_AT_START":
+                    print_log(
+                        f"Note: expecting object '{input['objectNamePattern']}' "
+                        f"to be available at start of Task "
+                        f"'{task_group_name}/{task['name']}', "
+                        "otherwise Task will immediately fail"
+                    )
+
+        response = requests.post(
+            url=(
+                f"{CONFIG_COMMON.url}/work/namespaces/"
+                f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
+                f"taskGroups/{task_group_name}/tasks"
+            ),
+            headers={
+                "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
+            },
+            json=task_list,
+        )
+
+        if response.status_code == 200:
+            print_log(
+                f"Added {len(task_list)} Task(s) to Task Group '{task_group_name}'"
+            )
+        else:
+            print_error(f"Failed to add Task(s) to Task Group '{task_group_name}'")
+            print_log(f"Cancelling Work Requirement '{wr_name}' [{wr_id}]")
+            CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
+            raise Exception(f"{response.text}")
+
+
+# Standalone entry point
 if __name__ == "__main__":
     main()

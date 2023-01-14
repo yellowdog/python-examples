@@ -113,8 +113,16 @@ class CLIParser:
                 "-r",
                 type=str,
                 required=False,
-                help="work requirement definition file in JSON format",
+                help="submit a work requirement definition file in JSON format",
                 metavar="<work_requirement.json>",
+            )
+            parser.add_argument(
+                "--json-raw",
+                "-j",
+                type=str,
+                required=False,
+                help="submit a 'raw' JSON work requirement file",
+                metavar="<raw_work_requirement.json>",
             )
             parser.add_argument(
                 "--follow",
@@ -444,6 +452,10 @@ class CLIParser:
     @property
     def dry_run(self) -> Optional[bool]:
         return self.args.dry_run
+
+    @property
+    def json_raw(self) -> Optional[str]:
+        return self.args.json_raw
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

@@ -31,6 +31,7 @@
    * [Mustache Directives in Work Requirement Properties](#mustache-directives-in-work-requirement-properties)
       * [Task and Task Group Naming](#task-and-task-group-naming)
    * [Dry-Running Work Requirement Submissions](#dry-running-work-requirement-submissions)
+      * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
@@ -56,7 +57,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Jan 13 18:03:14 GMT 2023 -->
+<!-- Added by: pwt, at: Sat Jan 14 13:25:59 GMT 2023 -->
 
 <!--te-->
 
@@ -694,6 +695,14 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
   ]
 }
 ```
+
+### Submitting 'Raw' JSON Work Requirement Specifications
+
+It's possible to use the JSON output of `yd-submit --dry-run` (such as the example above) as a self-contained, fully-specified Work Requirement specification, using the `yd-submit --json-raw <filename.json>` option.
+
+This will submit the Work Requirement, then add all the specified Tasks without additional processing. Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to do this.
+
+Mustache directives **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
 
 ## File Storage Locations and File Usage
 
