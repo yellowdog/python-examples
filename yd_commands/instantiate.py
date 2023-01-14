@@ -34,13 +34,13 @@ CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
 def main():
 
     print_log(
-        f"Provisioning Compute Requirement with {CONFIG_WP.initial_nodes:,d} "
+        f"Provisioning Compute Requirement with {CONFIG_WP.target_instance_count:,d} "
         "instance(s)"
     )
 
     batches: List[CRBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
-        CONFIG_WP.initial_nodes,
+        CONFIG_WP.target_instance_count,
     )
 
     num_batches = len(batches)

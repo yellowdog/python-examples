@@ -90,15 +90,27 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         reqt_template_usage: Dict = wp_data["requirementTemplateUsage"]
         for key, value in [
             # Generate a default name
-            ("requirementName", generate_id("wp" + "_" + CONFIG_COMMON.name_tag)),
+            (
+                "requirementName",
+                CONFIG_WP.name
+                if CONFIG_WP.name is not None
+                else generate_id("wp" + "_" + CONFIG_COMMON.name_tag),
+            ),
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
             ("templateId", CONFIG_WP.template_id),
+            ("userData", CONFIG_WP.user_data),
+            ("imagesId", CONFIG_WP.images_id),
+            ("instanceTags", CONFIG_WP.instance_tags),
+            ("targetInstanceCount", CONFIG_WP.target_instance_count),
         ]:
-            if reqt_template_usage.get(key) is None:
+            if reqt_template_usage.get(key) is None and value is not None:
                 print_log(f"Setting 'requirementTemplateUsage.{key}': '{value}'")
                 reqt_template_usage[key] = value
-        if wp_data["provisionedProperties"].get("workerTag") is None:
+        if (
+            wp_data["provisionedProperties"].get("workerTag") is None
+            and CONFIG_WP.worker_tag is not None
+        ):
             print_log(
                 f"Setting 'provisionedProperties.workerTag': '{CONFIG_WP.worker_tag}'"
             )
@@ -133,7 +145,7 @@ def create_worker_pool():
     """
     # Check for well-configured node quantities
     if not (
-        CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
+        CONFIG_WP.min_nodes <= CONFIG_WP.target_instance_count <= CONFIG_WP.max_nodes
         and CONFIG_WP.max_nodes > 0
     ):
         print_error(
@@ -173,7 +185,7 @@ def create_worker_pool():
 
     # Create the Worker Pool
     print_log(
-        f"Provisioning {CONFIG_WP.initial_nodes:,d} node(s) "
+        f"Provisioning {CONFIG_WP.target_instance_count:,d} node(s) "
         f"with {node_workers.targetCount:,d} worker(s) per "
         f"{node_workers.targetType} "
         f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
@@ -181,7 +193,7 @@ def create_worker_pool():
     )
     batches: List[WPBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
-        CONFIG_WP.initial_nodes,
+        CONFIG_WP.target_instance_count,
         CONFIG_WP.min_nodes,
         CONFIG_WP.max_nodes,
     )
@@ -208,6 +220,9 @@ def create_worker_pool():
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].initial_nodes,
                 requirementTag=CONFIG_COMMON.name_tag,
+                userData=CONFIG_WP.user_data,
+                imagesId=CONFIG_WP.images_id,
+                instanceTags=CONFIG_WP.instance_tags,
             )
             provisioned_worker_pool_properties = ProvisionedWorkerPoolProperties(
                 createNodeWorkers=node_workers,

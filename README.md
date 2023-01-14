@@ -837,12 +837,15 @@ The following properties are available:
 | `autoscalingIdleDelay` | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.               | `10.0` minutes |
 | `autoShutdown`         | Whether the Worker Pool is shut down after all nodes have been idle for the `autoShutdownDelay`.           | `true`         |
 | `autoShutdownDelay`    | The delay in minutes for which all nodes can be idle before the Worker Pool is shut down.                  | `10.0` minutes |
+| `imagesId`             | The images ID to use when booting instances.                                                               |                |
+| `instanceTags`         | The dictionary of instance tags to apply to the instances.                                                 |                |
 | `minNodes`             | The minimum number of nodes to which the Worker Pool can be scaled down.                                   | `0`            |
 | `maxNodes`             | The maximum number of nodes to which the Worker Pool can be scaled up.                                     | `1`            |
 | `name`                 | The name of the Worker Pool.                                                                               | Automatic      |
 | `nodeBootTimeLimit`    | The time in minutes allowed for a node to boot and register with the platform before it is terminated.     | `10.0` minutes |
 | `targetInstanceCount`  | The initial number of nodes to create for the Worker Pool.                                                 | `1`            |
 | `templateId`           | The YellowDog Compute Template ID to use for provisioning.                                                 |                |
+| `userData`             | User Data to be supplied to instances on boot.                                                             |                |
 | `workersPerVCPU`       | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.) |                |
 | `workersPerNode`       | The number of Workers to establish on each node in the Worker Pool.                                        | `1`            |
 | `workerPoolData`       | The name of a file containing a JSON document defining a Worker Pool.                                      |                |
@@ -861,12 +864,15 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     autoShutdown = true
     autoShutdownDelay = 10
     autoscalingIdleDelay = 3
+    imagesId = "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b"
+    instanceTags = {}
     maxNodes = 1
     minNodes = 1
     name = "my-worker-pool"
     nodeBootTimeLimit = 5
     targetInstanceCount = 1
     templateId = "ydid:crt:000000:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    userData = ""
     workerTag = "tag-{{username}}"
     workersPerNode = 1
 #   workerPoolData = "worker_pool.json"
@@ -1012,11 +1018,15 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
 
 When a JSON Worker Pool specification is used, the following properties from the `config.toml` file can be inherited:
 
-- `requirementName` (This will be generated automatically if not supplied in either the TOML file or the JSON specification)
+- `name`: Mapped to `requirementName` in JSON. This will be generated automatically if not supplied in either the TOML file or the JSON specification.
 - `requirementNamespace`
 - `requirementTag`
+- `targetInstanceCount`
 - `templateId`
+- `userData`
 - `workerTag`
+- `imagesId`
+- `instanceTags`
 
 Properties set in the JSON file override those set in the TOML file.
 

@@ -95,12 +95,15 @@ class ConfigWorkerPool:
     auto_shutdown: bool = True
     auto_shutdown_delay: float = 10
     compute_requirement_batch_size: int = CR_BATCH_SIZE
-    initial_nodes: int = 0
+    images_id: Optional[str] = (None,)
+    instance_tags: Optional[Dict] = None
     max_nodes: int = 0
     min_nodes: int = 0
     name: Optional[str] = None
     node_boot_time_limit: float = 10
+    target_instance_count: int = 0
     template_id: Optional[str] = None
+    user_data: Optional[str] = None
     worker_pool_data_file: Optional[str] = None
     worker_tag: Optional[str] = None
     workers_per_vcpu: Optional[int] = None
@@ -319,16 +322,19 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             compute_requirement_batch_size=wp_section.get(
                 COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE
             ),
-            initial_nodes=wp_section.get(INITIAL_NODES, 1),
+            images_id=wp_section.get(IMAGES_ID, None),
+            instance_tags=wp_section.get(INSTANCE_TAGS, None),
             max_nodes=wp_section.get(
-                MAX_NODES, max(1, wp_section.get(INITIAL_NODES, 1))
+                MAX_NODES, max(1, wp_section.get(TARGET_INSTANCE_COUNT, 1))
             ),
             min_nodes=wp_section.get(MIN_NODES, 0),
             name=substitute_mustache_str(
                 wp_section.get(WP_NAME, None),
             ),
             node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
+            target_instance_count=wp_section.get(TARGET_INSTANCE_COUNT, 1),
             template_id=wp_section.get(TEMPLATE_ID, None),
+            user_data=wp_section.get(USERDATA, None),
             worker_pool_data_file=worker_pool_data_file,
             worker_tag=worker_tag,
             workers_per_vcpu=wp_section.get(WORKERS_PER_VCPU, None),
