@@ -69,6 +69,10 @@ def main():
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].target_instances,
                 requirementTag=CONFIG_COMMON.name_tag,
+                maintainInstanceCount=CONFIG_WP.maintainInstanceCount,
+                instanceTags=CONFIG_WP.instance_tags,
+                imagesId=CONFIG_WP.images_id,
+                userData=CONFIG_WP.user_data,
             )
             if not ARGS_PARSER.dry_run:
                 compute_requirement = (

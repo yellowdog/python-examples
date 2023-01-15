@@ -28,6 +28,7 @@ INPUT_FILES = "inputs"  # List of Strings
 INSTANCE_TAGS = "instanceTags"  # List of Strings
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
+MAINTAIN_INSTANCE_COUNT = "maintainInstanceCount"  # Bool
 MAX_NODES = "maxNodes"  # Integer
 MAX_RETRIES = "maximumTaskRetries"  # Integer
 MAX_WORKERS = "maxWorkers"  # Integer
@@ -99,6 +100,7 @@ ALL_KEYS = [
     INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
+    MAINTAIN_INSTANCE_COUNT,
     MAX_NODES,
     MAX_RETRIES,
     MAX_WORKERS,

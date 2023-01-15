@@ -97,6 +97,7 @@ class ConfigWorkerPool:
     compute_requirement_batch_size: int = CR_BATCH_SIZE
     images_id: Optional[str] = (None,)
     instance_tags: Optional[Dict] = None
+    maintainInstanceCount: bool = False  # Only for yd-instantiate
     max_nodes: int = 0
     min_nodes: int = 0
     name: Optional[str] = None
@@ -324,6 +325,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             ),
             images_id=wp_section.get(IMAGES_ID, None),
             instance_tags=wp_section.get(INSTANCE_TAGS, None),
+            maintainInstanceCount=wp_section.get(MAINTAIN_INSTANCE_COUNT, False),
             max_nodes=wp_section.get(
                 MAX_NODES, max(1, wp_section.get(TARGET_INSTANCE_COUNT, 1))
             ),

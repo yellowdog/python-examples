@@ -1289,7 +1289,7 @@ The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and
 
 ## yd-instantiate
 
-The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool). This command uses the data from the `workerPool` configuration, but only uses the `templateId` and `targetInstanceCount` properties.
+The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool). This command uses the data from the `workerPool` configuration section, but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
 Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format.
 
