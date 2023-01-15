@@ -45,7 +45,7 @@
       * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
    * [Mustache Directives in Worker Pool Properties](#mustache-directives-in-worker-pool-properties)
    * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
-* [Using Jsonnet instead of JSON for Work Requirement and Worker Pool Specification](#using-jsonnet-instead-of-json-for-work-requirement-and-worker-pool-specification)
+* [Using Jsonnet instead of JSON](#using-jsonnet-instead-of-json)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Mustache Substitutions in Jsonnet Files](#mustache-substitutions-in-jsonnet-files)
    * [Checking Jsonnet Processing](#checking-jsonnet-processing)
@@ -62,7 +62,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Jan 14 14:11:05 GMT 2023 -->
+<!-- Added by: pwt, at: Sun Jan 15 13:33:50 GMT 2023 -->
 
 <!--te-->
 
@@ -871,7 +871,7 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     name = "my-worker-pool"
     nodeBootTimeLimit = 5
     targetInstanceCount = 1
-    templateId = "ydid:crt:000000:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    templateId = "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
     userData = ""
     workerTag = "tag-{{username}}"
     workersPerNode = 1
@@ -1051,9 +1051,9 @@ yd-provision --dry-run -q > my_worker_pool.json
 yd-provision -p my_worker_pool.json
 ```
 
-# Using Jsonnet instead of JSON for Work Requirement and Worker Pool Specification
+# Using Jsonnet instead of JSON
 
-In all circumstances where JSON files are used by the Python Examples scripts, these can be substituted by **[Jsonnet](https://jsonnet.org)** files. This allows the use of Jsonnet's powerful additional features.
+In all circumstances where JSON files are used by the Python Examples scripts, these can be substituted by **[Jsonnet](https://jsonnet.org)** files. This allows the use of Jsonnet's powerful additional features, including comments, variables, functions, etc.
 
 A simple usage example might be:
 
@@ -1061,7 +1061,7 @@ A simple usage example might be:
 yd-submit --work-requirement my_work_req.jsonnet
 ```
 
-The use of Jsonnet evaluation is implied by the filename extension `.jsonnet`.
+The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages.)
 
 ## Jsonnet Installation
 
@@ -1291,7 +1291,21 @@ The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and
 
 The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool). This command uses the data from the `workerPool` configuration section, but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
-Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file.
+Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
+
+```json
+{
+  "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
+  "instanceTags": {"a1": "one", "a2": "two"},
+  "requirementName": "cr_test_{{datetime}}",
+  "requirementNamespace": "pyexamples",
+  "requirementTag": "pyexamples-test",
+  "templateId": "ydid:crt:000000:230e9a42-97db-4d69-aa91-29ff309951b4",
+  "userData": "#/bin/bash\n#Other stuff...",
+  "targetInstanceCount": 1,
+  "maintainInstanceCount": true
+}
+```
 
 Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above.
 

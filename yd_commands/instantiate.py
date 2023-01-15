@@ -203,9 +203,7 @@ def create_compute_requirement_from_json(cr_json_file: str) -> None:
 
     response = requests.post(
         url=f"{CONFIG_COMMON.url}/compute/templates/provision",
-        headers={
-            "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
-        },
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
         json=cr_data,
     )
     name = cr_data["requirementName"]

@@ -126,9 +126,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
 
     response = requests.post(
         url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
-        headers={
-            "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
-        },
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
         json=wp_data,
     )
     name = wp_data["requirementTemplateUsage"]["requirementName"]
