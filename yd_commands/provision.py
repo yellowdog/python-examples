@@ -122,21 +122,21 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         print_log("Dry-run: Printing JSON Worker Pool specification")
         print_yd_object(wp_data)
         print_log("Dry run: Complete")
+        return
 
+    response = requests.post(
+        url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
+        headers={
+            "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
+        },
+        json=wp_data,
+    )
+    name = wp_data["requirementTemplateUsage"]["requirementName"]
+    if response.status_code == 200:
+        print_log(f"Provisioned Worker Pool '{name}'")
     else:
-        response = requests.post(
-            url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
-            headers={
-                "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
-            },
-            json=wp_data,
-        )
-        name = wp_data["requirementTemplateUsage"]["requirementName"]
-        if response.status_code == 200:
-            print_log(f"Provisioned Worker Pool '{name}'")
-        else:
-            print_error(f"Failed to provision Worker Pool '{name}'")
-            raise Exception(f"{response.text}")
+        print_error(f"Failed to provision Worker Pool '{name}'")
+        raise Exception(f"{response.text}")
 
 
 def create_worker_pool():

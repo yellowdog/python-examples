@@ -309,6 +309,16 @@ class CLIParser:
                 help="dry-run the action and print the JSON that would be submitted",
             )
 
+        if any(module in sys.argv[0] for module in ["instantiate"]):
+            parser.add_argument(
+                "--compute-requirement",
+                "-C",
+                type=str,
+                required=False,
+                help="the compute requirement definition",
+                metavar="<compute_requirement.json>",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -456,6 +466,10 @@ class CLIParser:
     @property
     def json_raw(self) -> Optional[str]:
         return self.args.json_raw
+
+    @property
+    def compute_requirement(self) -> Optional[str]:
+        return self.args.compute_requirement
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
