@@ -1007,6 +1007,9 @@ def submit_json_raw(wr_file: str):
                 CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
                 raise Exception(f"{response.text}")
 
+    if ARGS_PARSER.follow:
+        follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
+
 
 # Standalone entry point
 if __name__ == "__main__":
