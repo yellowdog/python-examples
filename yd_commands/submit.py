@@ -511,7 +511,7 @@ def add_tasks_to_task_group(
                         input_folder_name=INPUT_FOLDER_NAME,
                         flatten_upload_paths=flatten_upload_paths,
                     ),
-                    verification=TaskInputVerification.VERIFY_AT_START,
+                    verification=TaskInputVerification.VERIFY_WAIT,
                 )
                 for file in input_files_list
             ]
@@ -830,7 +830,7 @@ def create_task(
                 input_folder_name=INPUT_FOLDER_NAME,
                 flatten_upload_paths=flatten_upload_paths,
             ),
-            verification=TaskInputVerification.VERIFY_AT_START,
+            verification=TaskInputVerification.VERIFY_WAIT,
         )
         # Avoid duplicate TaskInputs
         if task_input.objectNamePattern not in [x.objectNamePattern for x in inputs]:
@@ -962,20 +962,14 @@ def submit_json_raw(wr_file: str):
         raise Exception(f"{response.text}")
 
     # Submit Tasks to the Work Requirement
+    input_files = set()
     for task_group_name, task_list in task_lists.items():
 
-        if ARGS_PARSER.debug:
-            # Warn for required files not present at start
-            for task in task_list:
-                inputs = task.get("inputs", [])
-                for input in inputs:
-                    if input["verification"] == "VERIFY_AT_START":
-                        print_log(
-                            f"Note: expecting object '{input['objectNamePattern']}' "
-                            f"to be available at start of Task "
-                            f"'{task_group_name}/{task['name']}', "
-                            "otherwise the Task will immediately fail"
-                        )
+        # Collect set of required files
+        for task in task_list:
+            input_files.update(
+                {input["objectNamePattern"] for input in task.get("inputs", [])}
+            )
 
         # Submit Tasks in batches
         batches = ceil(len(task_list) / TASK_BATCH_SIZE)
@@ -1006,6 +1000,9 @@ def submit_json_raw(wr_file: str):
                 print_log(f"Cancelling Work Requirement '{wr_name}' [{wr_id}]")
                 CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
                 raise Exception(f"{response.text}")
+
+    if len(input_files) != 0:
+        print_log("Note: Files required by Tasks will not be uploaded automatically")
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))

@@ -378,7 +378,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `flattenInputPaths`        | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                               | Yes  | Yes | Yes       | Yes  |
 | `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                        | Yes  | Yes |           |      |
 | `fulfilOnSubmit`           | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |           |      |
-| `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]`.                       | Yes  | Yes | Yes       | Yes  |
+| `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyWait`). E.g. `["a.sh", "b.sh"]`.                          | Yes  | Yes | Yes       | Yes  |
 | `instanceTypes`            | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes       |      |
 | `maximumTaskRetries`       | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                        | Yes  | Yes | Yes       | Yes  |
 | `maxWorkers`               | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                             | Yes  | Yes | Yes       |      |
@@ -686,7 +686,7 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
             {
               "objectNamePattern": "pyex-bash_230114-095504-53a/sleep_script.sh",
               "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
+              "verification": "VERIFY_WAIT"
             }
           ],
           "name": "task_01",
@@ -709,7 +709,7 @@ This will submit the Work Requirement, then add all the specified Tasks.
 
 Mustache directives **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
 
-Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload files beforehand. Alternatively, `VERIFY_AT_START` can be replaced with `VERIFY_WAIT`, allowing the files to be uploaded after the Tasks have been created.
+Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload files beforehand.
 
 ## File Storage Locations and File Usage
 
