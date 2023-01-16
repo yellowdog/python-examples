@@ -133,7 +133,7 @@ class CLIParser:
             )
             parser.add_argument(
                 "--executable",
-                "-x",
+                "-X",
                 type=str,
                 required=False,
                 help="the executable to use",
@@ -141,11 +141,19 @@ class CLIParser:
             )
             parser.add_argument(
                 "--task-type",
-                "-a",
+                "-T",
                 type=str,
                 required=False,
                 help="the task type to use",
                 metavar="<task_type>",
+            )
+            parser.add_argument(
+                "--task-count",
+                "-C",
+                type=int,
+                required=False,
+                help="the number of times to submit the task",
+                metavar="<task_count>",
             )
 
         if any(
@@ -473,6 +481,10 @@ class CLIParser:
     @property
     def compute_requirement(self) -> Optional[str]:
         return self.args.compute_requirement
+
+    @property
+    def task_count(self) -> Optional[int]:
+        return self.args.task_count
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

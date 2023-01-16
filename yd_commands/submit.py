@@ -113,7 +113,11 @@ def main():
             tasks_data=tasks_data,
         )
     else:
-        task_count = CONFIG_WR.task_count
+        task_count = (
+            CONFIG_WR.task_count
+            if ARGS_PARSER.task_count is None
+            else ARGS_PARSER.task_count
+        )
         submit_work_requirement(
             directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
         )
