@@ -18,6 +18,7 @@ DOCS_URL = f"https://github.com/yellowdog/python-examples/blob/v{__version__}/RE
 def check_for_jsonnet() -> str:
     try:
         from _jsonnet import evaluate_file
+
         return "Jsonnet is installed"
     except ImportError:
         return "Jsonnet is not installed"

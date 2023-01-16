@@ -100,7 +100,7 @@ def main():
                     f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
                 )
             else:
-                print_log("Dry-run: Printing JSON Compute Requirement Template")
+                print_log("Dry-run: Printing JSON Compute Requirement specification")
                 print_yd_object(compute_requirement_template_usage)
                 print_log("Dry-run: Complete")
 
