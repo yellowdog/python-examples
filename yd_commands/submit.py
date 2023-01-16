@@ -419,7 +419,7 @@ def add_tasks_to_task_group(
     task_group_task_count = tasks_data[TASK_GROUPS][tg_number].get(TASK_COUNT, None)
     if task_group_task_count is not None:
         if num_tasks == 1:
-            task_count = task_group_task_count
+            task_count = check_int(task_group_task_count)
         else:
             raise Exception(
                 "Can't use 'taskCount' for a Task Group if there are "
