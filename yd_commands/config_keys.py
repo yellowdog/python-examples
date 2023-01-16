@@ -22,11 +22,13 @@ FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
 FLATTEN_PATHS = "flattenInputPaths"  # Boolean
 FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
 FULFIL_ON_SUBMIT = "fulfilOnSubmit"  # Boolean
+IMAGES_ID = "imagesId"  # String
 IMPORT = "import"  # String
-INITIAL_NODES = "targetInstanceCount"  # Integer
 INPUT_FILES = "inputs"  # List of Strings
+INSTANCE_TAGS = "instanceTags"  # List of Strings
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
+MAINTAIN_INSTANCE_COUNT = "maintainInstanceCount"  # Bool
 MAX_NODES = "maxNodes"  # Integer
 MAX_RETRIES = "maximumTaskRetries"  # Integer
 MAX_WORKERS = "maxWorkers"  # Integer
@@ -43,6 +45,7 @@ PROVIDERS = "providers"  # List of Strings
 RAM = "ram"  # List of two Floats
 REGIONS = "regions"  # List of Strings
 SECRET = "secret"  # String
+TARGET_INSTANCE_COUNT = "targetInstanceCount"  # Integer
 TASKS = "tasks"  # List of Tasks
 TASKS_PER_WORKER = "tasksPerWorker"  # Integer
 TASK_COUNT = "taskCount"  # Integer
@@ -51,6 +54,7 @@ TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
 URL = "url"  # String
+USERDATA = "userData"  # String
 VCPUS = "vcpus"  # List of two Floats
 VERIFY_AT_START = "verifyAtStart"  # List of Strings
 VERIFY_WAIT = "verifyWait"  # List of Strings
@@ -90,11 +94,13 @@ ALL_KEYS = [
     FLATTEN_PATHS,
     FLATTEN_UPLOAD_PATHS,
     FULFIL_ON_SUBMIT,
+    IMAGES_ID,
     IMPORT,
-    INITIAL_NODES,
     INPUT_FILES,
+    INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
+    MAINTAIN_INSTANCE_COUNT,
     MAX_NODES,
     MAX_RETRIES,
     MAX_WORKERS,
@@ -110,6 +116,7 @@ ALL_KEYS = [
     RAM,
     REGIONS,
     SECRET,
+    TARGET_INSTANCE_COUNT,
     TASKS,
     TASKS_PER_WORKER,
     TASK_COUNT,
@@ -118,6 +125,7 @@ ALL_KEYS = [
     TASK_TYPES,
     TEMPLATE_ID,
     URL,
+    USERDATA,
     VCPUS,
     VERIFY_AT_START,
     VERIFY_WAIT,

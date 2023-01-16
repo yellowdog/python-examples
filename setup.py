@@ -32,6 +32,7 @@ setuptools.setup(
     ],
     python_requires=">=3.7",
     install_requires=REQUIREMENTS,
+    extras_require={"jsonnet": ["jsonnet"]},
     entry_points={
         "console_scripts": [
             "yd-abort=yd_commands.abort:main",

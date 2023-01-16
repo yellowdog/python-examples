@@ -31,6 +31,7 @@
    * [Mustache Directives in Work Requirement Properties](#mustache-directives-in-work-requirement-properties)
       * [Task and Task Group Naming](#task-and-task-group-naming)
    * [Dry-Running Work Requirement Submissions](#dry-running-work-requirement-submissions)
+      * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
@@ -44,6 +45,11 @@
       * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
    * [Mustache Directives in Worker Pool Properties](#mustache-directives-in-worker-pool-properties)
    * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
+* [Using Jsonnet instead of JSON](#using-jsonnet-instead-of-json)
+   * [Jsonnet Installation](#jsonnet-installation)
+   * [Mustache Substitutions in Jsonnet Files](#mustache-substitutions-in-jsonnet-files)
+   * [Checking Jsonnet Processing](#checking-jsonnet-processing)
+   * [Jsonnet Example](#jsonnet-example)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -56,7 +62,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Jan 13 18:03:14 GMT 2023 -->
+<!-- Added by: pwt, at: Sun Jan 15 13:33:50 GMT 2023 -->
 
 <!--te-->
 
@@ -645,11 +651,65 @@ As an example, the following JSON Work Requirement:
 
 ## Dry-Running Work Requirement Submissions
 
-To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-submit`. This will print the JSON for the Work Requirement, followed by the JSON for the contents (Tasks) of each Task Group. Nothing will be submitted to the Platform.
+To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-submit`. This will print the fully processed JSON for the Work Requirement. Nothing will be submitted to the Platform.
 
-The dry-run is useful for inspecting the results of all the processing that's been performed.
+The dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON form is exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. It's also in two parts -- (1) the Work Requirement and Task Groups and (2) the Tasks themselves -- because this is how the components are submitted to the YellowDog API.
+Note that the generated JSON form is a consolidated form of exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. Also, in actual API submissions, the Work Requirement and Task Groups are submitted first, and Tasks are added in a subsequent call, so the unified JSON document is just a convenience.
+
+A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
+
+`% yd-submit --dry-run --quiet`
+```json
+{
+  "fulfilOnSubmit": false,
+  "name": "pyex-bash_230114-095504-53a",
+  "namespace": "pyexamples",
+  "priority": 0,
+  "tag": "pyex-bash",
+  "taskGroups": [
+    {
+      "finishIfAllTasksFinished": true,
+      "finishIfAnyTaskFailed": false,
+      "name": "task_group_1",
+      "priority": 0,
+      "runSpecification": {
+        "maximumTaskRetries": 0,
+        "taskTypes": ["bash"],
+        "workerTags": ["pyex-bash"]
+      },
+      "tasks": [
+        {
+          "arguments": ["pyex-bash_230114-095504-53a/sleep_script.sh"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "pyex-bash_230114-095504-53a/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "task_01",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Submitting 'Raw' JSON Work Requirement Specifications
+
+It's possible to use the JSON output of `yd-submit --dry-run` (such as the example above) as a self-contained, fully-specified Work Requirement specification, using the `yd-submit --json-raw <filename.json>` option.
+
+This will submit the Work Requirement, then add all the specified Tasks without additional processing.
+
+Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to do this.
+
+Mustache directives **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
 
 ## File Storage Locations and File Usage
 
@@ -779,12 +839,15 @@ The following properties are available:
 | `autoscalingIdleDelay` | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.               | `10.0` minutes |
 | `autoShutdown`         | Whether the Worker Pool is shut down after all nodes have been idle for the `autoShutdownDelay`.           | `true`         |
 | `autoShutdownDelay`    | The delay in minutes for which all nodes can be idle before the Worker Pool is shut down.                  | `10.0` minutes |
+| `imagesId`             | The images ID to use when booting instances.                                                               |                |
+| `instanceTags`         | The dictionary of instance tags to apply to the instances.                                                 |                |
 | `minNodes`             | The minimum number of nodes to which the Worker Pool can be scaled down.                                   | `0`            |
 | `maxNodes`             | The maximum number of nodes to which the Worker Pool can be scaled up.                                     | `1`            |
 | `name`                 | The name of the Worker Pool.                                                                               | Automatic      |
 | `nodeBootTimeLimit`    | The time in minutes allowed for a node to boot and register with the platform before it is terminated.     | `10.0` minutes |
 | `targetInstanceCount`  | The initial number of nodes to create for the Worker Pool.                                                 | `1`            |
 | `templateId`           | The YellowDog Compute Template ID to use for provisioning.                                                 |                |
+| `userData`             | User Data to be supplied to instances on boot.                                                             |                |
 | `workersPerVCPU`       | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.) |                |
 | `workersPerNode`       | The number of Workers to establish on each node in the Worker Pool.                                        | `1`            |
 | `workerPoolData`       | The name of a file containing a JSON document defining a Worker Pool.                                      |                |
@@ -803,12 +866,15 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     autoShutdown = true
     autoShutdownDelay = 10
     autoscalingIdleDelay = 3
+    imagesId = "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b"
+    instanceTags = {}
     maxNodes = 1
     minNodes = 1
     name = "my-worker-pool"
     nodeBootTimeLimit = 5
     targetInstanceCount = 1
-    templateId = "ydid:crt:000000:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    templateId = "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
+    userData = ""
     workerTag = "tag-{{username}}"
     workersPerNode = 1
 #   workerPoolData = "worker_pool.json"
@@ -954,11 +1020,15 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
 
 When a JSON Worker Pool specification is used, the following properties from the `config.toml` file can be inherited:
 
-- `requirementName` (This will be generated automatically if not supplied in either the TOML file or the JSON specification)
+- `name`: Mapped to `requirementName` in JSON. This will be generated automatically if not supplied in either the TOML file or the JSON specification.
 - `requirementNamespace`
 - `requirementTag`
+- `targetInstanceCount`
 - `templateId`
+- `userData`
 - `workerTag`
+- `imagesId`
+- `instanceTags`
 
 Properties set in the JSON file override those set in the TOML file.
 
@@ -974,11 +1044,180 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 The generated JSON is produced after all processing (incorporating `config.toml` properties, Mustache substitutions, etc.) has been concluded, so the dry-run is useful for inspecting the results of all the processing that's been performed.
 
+To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
+
 The JSON dry-run output could itself be used by `yd-provision`, if captured in a file, e.g.:
 
 ```shell
 yd-provision --dry-run -q > my_worker_pool.json
 yd-provision -p my_worker_pool.json
+```
+
+# Using Jsonnet instead of JSON
+
+In all circumstances where JSON files are used by the Python Examples scripts, these can be substituted by **[Jsonnet](https://jsonnet.org)** files. This allows the use of Jsonnet's powerful additional features, including comments, variables, functions, etc.
+
+A simple usage example might be:
+
+```shell
+yd-submit --work-requirement my_work_req.jsonnet
+```
+
+The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages.)
+
+## Jsonnet Installation
+
+Jsonnet is not installed by default when yellowdog-python-examples is installed, because the package has binary components which are not provided for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
+
+To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
+
+```
+pip install -U yellowdog-python-examples[jsonnet]
+```
+
+To install Jsonnet separately, try:
+
+```shell
+pip install -U jsonnet
+```
+
+If this fails, try:
+
+```shell
+pip install -U jsonnet-binary
+```
+
+If both of these methods fail, you'll need to ensure that the platform you're running on has the required build tools available, so that the binary component can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
+
+Please get in touch with YellowDog if you get stuck.
+
+## Mustache Substitutions in Jsonnet Files
+
+The scripts provide full support for Mustache substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for Worker Pool specification, substitutions need to be prefixed by `__`, e.g. `"__{{username}}}"`.
+
+Mustache processing is performed **before** Jsonnet evaluation.
+
+## Checking Jsonnet Processing
+
+The `dry-run` (`-D`) option of the `yd-submit` and `yd-provision` commands will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
+
+## Jsonnet Example
+
+Here's an example of a Jsonnet file that generates a Work Requirement with four Tasks:
+
+```jsonnet
+# Function for synthesising Tasks
+local Task(arguments=[], environment={}) = {
+    arguments: arguments,
+    environment: environment,
+    name: "my_task_{{task_number}}"
+};
+
+# Work Requirement
+{
+  "name": "workreq_{{datetime}}",
+  "taskGroups": [
+    {
+      "tasks": [
+        Task(["1"], {A: "A_1"}),  # arguments and environment
+        Task(["2", "3"], {}),     # arguments and empty environment
+        Task(["4"]),              # arguments and default environment
+        Task()                    # default arguments and environment
+      ]
+    }
+  ]
+}
+```
+
+When this is inspected using the `dry-run` option (`yd-submit -Dq -r my_work_req.jsonnet`), this is the processed output:
+
+```json
+{
+  "fulfilOnSubmit": false,
+  "name": "workreq_230114-140645",
+  "namespace": "pyexamples",
+  "priority": 0,
+  "tag": "pyex-bash",
+  "taskGroups": [
+    {
+      "finishIfAllTasksFinished": true,
+      "finishIfAnyTaskFailed": false,
+      "name": "task_group_1",
+      "priority": 0,
+      "runSpecification": {
+        "maximumTaskRetries": 0,
+        "taskTypes": ["bash"],
+        "workerTags": ["pyex-bash-docker"]
+      },
+      "tasks": [
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "1"],
+          "environment": {"A": "A_1"},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_1",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "2", "3"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_2",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "4"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_3",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_4",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 # Command List
@@ -1058,9 +1297,25 @@ The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and
 
 ## yd-instantiate
 
-The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool). This command uses the data from the `workerPool` configuration, but only uses the `templateId` and `targetInstanceCount` properties.
+The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool). This command uses the data from the `workerPool` configuration section, but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
-Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format.
+Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
+
+```json
+{
+  "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
+  "instanceTags": {"a1": "one", "a2": "two"},
+  "requirementName": "cr_test_{{datetime}}",
+  "requirementNamespace": "pyexamples",
+  "requirementTag": "pyexamples-test",
+  "templateId": "ydid:crt:000000:230e9a42-97db-4d69-aa91-29ff309951b4",
+  "userData": "#/bin/bash\n#Other stuff...",
+  "targetInstanceCount": 1,
+  "maintainInstanceCount": true
+}
+```
+
+Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above.
 
 ## yd-terminate
 

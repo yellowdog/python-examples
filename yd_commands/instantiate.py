@@ -6,8 +6,9 @@ A script to provision a Compute Requirement.
 
 from dataclasses import dataclass
 from math import ceil, floor
-from typing import List, Optional
+from typing import Dict, List, Optional
 
+import requests
 from yellowdog_client.model import ComputeRequirementTemplateUsage
 
 from yd_commands.config import (
@@ -16,6 +17,10 @@ from yd_commands.config import (
     generate_id,
     link_entity,
     load_config_worker_pool,
+)
+from yd_commands.mustache import (
+    load_json_file_with_mustache_substitutions,
+    load_jsonnet_file_with_mustache_substitutions,
 )
 from yd_commands.printing import print_error, print_log, print_yd_object
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
@@ -33,14 +38,27 @@ CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
 @main_wrapper
 def main():
 
+    cr_json_file = (
+        CONFIG_WP.worker_pool_data_file
+        if ARGS_PARSER.compute_requirement is None
+        else ARGS_PARSER.compute_requirement
+    )
+    if cr_json_file is not None:
+        print_log(f"Loading Compute Requirement data from: '{cr_json_file}'")
+        create_compute_requirement_from_json(cr_json_file)
+        return
+
+    if CONFIG_WP.template_id is None:
+        print_error("No template_id supplied")
+
     print_log(
-        f"Provisioning Compute Requirement with {CONFIG_WP.initial_nodes:,d} "
+        f"Provisioning Compute Requirement with {CONFIG_WP.target_instance_count:,d} "
         "instance(s)"
     )
 
     batches: List[CRBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
-        CONFIG_WP.initial_nodes,
+        CONFIG_WP.target_instance_count,
     )
 
     num_batches = len(batches)
@@ -59,8 +77,6 @@ def main():
                 )
             else:
                 print_log(f"Provisioning Compute Requirement '{id}'")
-        else:
-            print_log("Dry-run: Printing JSON Compute Requirement Template")
 
         try:
             compute_requirement_template_usage = ComputeRequirementTemplateUsage(
@@ -69,6 +85,10 @@ def main():
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].target_instances,
                 requirementTag=CONFIG_COMMON.name_tag,
+                maintainInstanceCount=CONFIG_WP.maintainInstanceCount,
+                instanceTags=CONFIG_WP.instance_tags,
+                imagesId=CONFIG_WP.images_id,
+                userData=CONFIG_WP.user_data,
             )
             if not ARGS_PARSER.dry_run:
                 compute_requirement = (
@@ -80,14 +100,13 @@ def main():
                     f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
                 )
             else:
+                print_log("Dry-run: Printing JSON Compute Requirement Template")
                 print_yd_object(compute_requirement_template_usage)
+                print_log("Dry-run: Complete")
 
         except Exception as e:
             print_error(f"Unable to provision Compute Requirement")
             raise Exception(e)
-
-    if ARGS_PARSER.dry_run:
-        print_log("Dry-run: Complete")
 
 
 def _allocate_nodes_to_batches(
@@ -137,6 +156,64 @@ def generate_cr_batch_name(
     return name
 
 
-# Entry point
+def create_compute_requirement_from_json(cr_json_file: str) -> None:
+    """
+    Directly create the Compute Requirement using the YellowDog REST API
+    """
+
+    if cr_json_file.lower().endswith(".jsonnet"):
+        cr_data = load_jsonnet_file_with_mustache_substitutions(cr_json_file)
+    else:
+        cr_data = load_json_file_with_mustache_substitutions(cr_json_file)
+
+    # Some values are configurable via the TOML configuration file;
+    # values in the JSON file override values in the TOML file
+    try:
+        for key, value in [
+            # Generate a default name
+            (
+                "requirementName",
+                CONFIG_WP.name
+                if CONFIG_WP.name is not None
+                else generate_id("cr" + "_" + CONFIG_COMMON.name_tag),
+            ),
+            ("requirementNamespace", CONFIG_COMMON.namespace),
+            ("requirementTag", CONFIG_COMMON.name_tag),
+            ("templateId", CONFIG_WP.template_id),
+            ("userData", CONFIG_WP.user_data),
+            ("imagesId", CONFIG_WP.images_id),
+            ("instanceTags", CONFIG_WP.instance_tags),
+            ("targetInstanceCount", CONFIG_WP.target_instance_count),
+            ("maintainInstanceCount", CONFIG_WP.maintainInstanceCount),
+        ]:
+            if cr_data.get(key) is None and value is not None:
+                print_log(f"Setting '{key}' to '{value}'")
+                cr_data[key] = value
+
+    except KeyError as e:
+        raise Exception(
+            f"Missing key error in JSON Compute Requirement definition: {e}"
+        )
+
+    if ARGS_PARSER.dry_run:
+        print_log("Dry-run: Printing JSON Compute Requirement specification")
+        print_yd_object(cr_data)
+        print_log("Dry run: Complete")
+        return
+
+    response = requests.post(
+        url=f"{CONFIG_COMMON.url}/compute/templates/provision",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+        json=cr_data,
+    )
+    name = cr_data["requirementName"]
+    if response.status_code == 200:
+        print_log(f"Provisioned Compute Requirement '{name}'")
+    else:
+        print_error(f"Failed to provision Compute Requirement '{name}'")
+        raise Exception(f"{response.text}")
+
+
+# Standalone entry point
 if __name__ == "__main__":
     main()

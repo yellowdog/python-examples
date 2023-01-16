@@ -34,7 +34,6 @@ from yd_commands.mustache import (
 )
 from yd_commands.printing import (
     print_error,
-    print_json,
     print_log,
     print_worker_pool,
     print_yd_object,
@@ -91,15 +90,27 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         reqt_template_usage: Dict = wp_data["requirementTemplateUsage"]
         for key, value in [
             # Generate a default name
-            ("requirementName", generate_id("wp" + "_" + CONFIG_COMMON.name_tag)),
+            (
+                "requirementName",
+                CONFIG_WP.name
+                if CONFIG_WP.name is not None
+                else generate_id("wp" + "_" + CONFIG_COMMON.name_tag),
+            ),
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
             ("templateId", CONFIG_WP.template_id),
+            ("userData", CONFIG_WP.user_data),
+            ("imagesId", CONFIG_WP.images_id),
+            ("instanceTags", CONFIG_WP.instance_tags),
+            ("targetInstanceCount", CONFIG_WP.target_instance_count),
         ]:
-            if reqt_template_usage.get(key) is None:
+            if reqt_template_usage.get(key) is None and value is not None:
                 print_log(f"Setting 'requirementTemplateUsage.{key}': '{value}'")
                 reqt_template_usage[key] = value
-        if wp_data["provisionedProperties"].get("workerTag") is None:
+        if (
+            wp_data["provisionedProperties"].get("workerTag") is None
+            and CONFIG_WP.worker_tag is not None
+        ):
             print_log(
                 f"Setting 'provisionedProperties.workerTag': '{CONFIG_WP.worker_tag}'"
             )
@@ -108,24 +119,22 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         raise Exception(f"Missing key error in JSON Worker Pool definition: {e}")
 
     if ARGS_PARSER.dry_run:
-        print_log("Dry-run: printing JSON submission")
+        print_log("Dry-run: Printing JSON Worker Pool specification")
         print_yd_object(wp_data)
-        print_log("Dry run: exiting")
+        print_log("Dry run: Complete")
+        return
 
+    response = requests.post(
+        url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+        json=wp_data,
+    )
+    name = wp_data["requirementTemplateUsage"]["requirementName"]
+    if response.status_code == 200:
+        print_log(f"Provisioned Worker Pool '{name}'")
     else:
-        response = requests.post(
-            url=f"{CONFIG_COMMON.url}/workerPools/provisioned/template",
-            headers={
-                "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
-            },
-            json=wp_data,
-        )
-        name = wp_data["requirementTemplateUsage"]["requirementName"]
-        if response.status_code == 200:
-            print_log(f"Provisioned Worker Pool '{name}'")
-        else:
-            print_error(f"Failed to provision Worker Pool '{name}'")
-            raise Exception(f"{response.text}")
+        print_error(f"Failed to provision Worker Pool '{name}'")
+        raise Exception(f"{response.text}")
 
 
 def create_worker_pool():
@@ -134,7 +143,7 @@ def create_worker_pool():
     """
     # Check for well-configured node quantities
     if not (
-        CONFIG_WP.min_nodes <= CONFIG_WP.initial_nodes <= CONFIG_WP.max_nodes
+        CONFIG_WP.min_nodes <= CONFIG_WP.target_instance_count <= CONFIG_WP.max_nodes
         and CONFIG_WP.max_nodes > 0
     ):
         print_error(
@@ -174,7 +183,7 @@ def create_worker_pool():
 
     # Create the Worker Pool
     print_log(
-        f"Provisioning {CONFIG_WP.initial_nodes:,d} node(s) "
+        f"Provisioning {CONFIG_WP.target_instance_count:,d} node(s) "
         f"with {node_workers.targetCount:,d} worker(s) per "
         f"{node_workers.targetType} "
         f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
@@ -182,7 +191,7 @@ def create_worker_pool():
     )
     batches: List[WPBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
-        CONFIG_WP.initial_nodes,
+        CONFIG_WP.target_instance_count,
         CONFIG_WP.min_nodes,
         CONFIG_WP.max_nodes,
     )
@@ -209,6 +218,9 @@ def create_worker_pool():
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].initial_nodes,
                 requirementTag=CONFIG_COMMON.name_tag,
+                userData=CONFIG_WP.user_data,
+                imagesId=CONFIG_WP.images_id,
+                instanceTags=CONFIG_WP.instance_tags,
             )
             provisioned_worker_pool_properties = ProvisionedWorkerPoolProperties(
                 createNodeWorkers=node_workers,
@@ -228,31 +240,29 @@ def create_worker_pool():
                 )
                 print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
             else:
-                print_log("Dry-run: printing JSON submission")
                 print_worker_pool(
                     compute_requirement_template_usage,
                     provisioned_worker_pool_properties,
                 )
-                print_log("Dry run: exiting")
+                return
 
         except Exception as e:
             print_error(f"Unable to provision worker pool")
             raise Exception(e)
 
-    if not ARGS_PARSER.dry_run:
-        auto_shutdown = "enabled" if CONFIG_WP.auto_shutdown is True else "disabled"
-        auto_shutdown_msg = f"Worker Pool Auto-Shutdown is {auto_shutdown}"
-        auto_shutdown_msg = (
-            auto_shutdown_msg
-            + f" with a delay of {CONFIG_WP.auto_shutdown_delay} minute(s)"
-            if CONFIG_WP.auto_shutdown is True
-            else auto_shutdown_msg
-        )
-        print_log(auto_shutdown_msg)
-        print_log(
-            f"Auto-Scaling idle delay is set to "
-            f"{CONFIG_WP.auto_scaling_idle_delay} minute(s)"
-        )
+    auto_shutdown = "enabled" if CONFIG_WP.auto_shutdown is True else "disabled"
+    auto_shutdown_msg = f"Worker Pool Auto-Shutdown is {auto_shutdown}"
+    auto_shutdown_msg = (
+        auto_shutdown_msg
+        + f" with a delay of {CONFIG_WP.auto_shutdown_delay} minute(s)"
+        if CONFIG_WP.auto_shutdown is True
+        else auto_shutdown_msg
+    )
+    print_log(auto_shutdown_msg)
+    print_log(
+        f"Auto-Scaling idle delay is set to "
+        f"{CONFIG_WP.auto_scaling_idle_delay} minute(s)"
+    )
 
 
 def _allocate_nodes_to_batches(

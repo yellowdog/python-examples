@@ -10,6 +10,8 @@ from os import chdir
 from os.path import basename, dirname
 from typing import Dict, List, Optional
 
+import jsons
+import requests
 from yellowdog_client.common.server_sent_events import (
     DelegatedSubscriptionEventListener,
 )
@@ -49,7 +51,12 @@ from yd_commands.mustache import (
     load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
 )
-from yd_commands.printing import print_error, print_log, print_tasks, print_yd_object
+from yd_commands.printing import (
+    WorkRequirementSnapshot,
+    print_error,
+    print_json,
+    print_log,
+)
 from yd_commands.type_check import (
     check_bool,
     check_dict,
@@ -70,9 +77,17 @@ ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = 2000
 INPUT_FOLDER_NAME = None
 
+if ARGS_PARSER.dry_run:
+    WR_SNAPSHOT = WorkRequirementSnapshot()
+
 
 @main_wrapper
 def main():
+
+    if ARGS_PARSER.json_raw:
+        submit_json_raw(ARGS_PARSER.json_raw)
+        return
+
     wr_data_file = (
         CONFIG_WR.tasks_data_file
         if ARGS_PARSER.work_req_file is None
@@ -101,6 +116,9 @@ def main():
         submit_work_requirement(
             directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
         )
+
+    if ARGS_PARSER.dry_run:
+        WR_SNAPSHOT.print()
 
 
 def submit_work_requirement(
@@ -170,8 +188,8 @@ def submit_work_requirement(
             f"({work_requirement.name})"
         )
     else:
-        print_log("Dry-run: Printing Work Requirement:")
-        print_yd_object(work_requirement)
+        global WR_SNAPSHOT
+        WR_SNAPSHOT.set_work_requirement(work_requirement)
 
     # Keep track of uploaded files
     uploaded_files = []
@@ -179,21 +197,22 @@ def submit_work_requirement(
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
         try:
-            # Upload files required by the Tasks in this Task Group
-            if len(input_files_by_task_group[tg_number]) > 0:
-                print_log(f"Uploading files for Task Group '{task_group.name}'")
-            for input_file in input_files_by_task_group[tg_number]:
-                if input_file not in uploaded_files and not ARGS_PARSER.dry_run:
-                    upload_file(
-                        client=CLIENT,
-                        filename=input_file,
-                        namespace=CONFIG_COMMON.namespace,
-                        id=ID,
-                        url=CONFIG_COMMON.url,
-                        input_folder_name=INPUT_FOLDER_NAME,
-                        flatten_upload_paths=flatten_upload_paths,
-                    )
-                    uploaded_files.append(input_file)
+            if not ARGS_PARSER.dry_run:
+                # Upload files required by the Tasks in this Task Group
+                if len(input_files_by_task_group[tg_number]) > 0:
+                    print_log(f"Uploading files for Task Group '{task_group.name}'")
+                for input_file in input_files_by_task_group[tg_number]:
+                    if input_file not in uploaded_files:
+                        upload_file(
+                            client=CLIENT,
+                            filename=input_file,
+                            namespace=CONFIG_COMMON.namespace,
+                            id=ID,
+                            url=CONFIG_COMMON.url,
+                            input_folder_name=INPUT_FOLDER_NAME,
+                            flatten_upload_paths=flatten_upload_paths,
+                        )
+                        uploaded_files.append(input_file)
 
             # Add the Tasks
             add_tasks_to_task_group(
@@ -572,8 +591,8 @@ def add_tasks_to_task_group(
                 tasks_list,
             )
         else:
-            print_log("Dry-run: Printing Tasks in Task Group")
-            print_tasks(task_group.name, tasks_list)
+            global WR_SNAPSHOT
+            WR_SNAPSHOT.add_tasks(task_group.name, tasks_list)
 
         if not ARGS_PARSER.dry_run:
             if num_task_batches > 1:
@@ -623,6 +642,8 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     """
     Clean up the Work Requirement and any uploaded Objects on failure
     """
+    if ARGS_PARSER.dry_run:
+        return
 
     def _delete_objects():
         object_paths: List[
@@ -892,6 +913,95 @@ def create_task(
     )
 
 
-# Entry point
+def submit_json_raw(wr_file: str):
+    """
+    Submit a 'raw' JSON Work Requirement, consisting of a combined Work
+    Requirement definition and the constituent Tasks.
+
+    Note that there is no automatic upload of required ('VERIFY_AT_START')
+    input files. These can be pre-uploaded using yd-upload.
+    """
+
+    # Load file contents, with Jsonnet/Mustache processing if required
+    if wr_file.lower().endswith(".jsonnet"):
+        wr_data = load_jsonnet_file_with_mustache_substitutions(wr_file)
+    else:
+        wr_data = load_json_file_with_mustache_substitutions(wr_file)
+
+    if ARGS_PARSER.dry_run:
+        print_log("Dry-run: Printing JSON Work Requirement specification:")
+        print_json(wr_data)
+        print_log("Dry-run: Complete")
+        return
+
+    # Extract Tasks from Task Groups
+    task_lists = {}
+    for task_group in wr_data["taskGroups"]:
+        task_lists[task_group["name"]] = task_group["tasks"]
+        del task_group["tasks"]
+
+    # Submit the Work Requirement
+    response = requests.post(
+        url=f"{CONFIG_COMMON.url}/work/requirements",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+        json=wr_data,
+    )
+
+    wr_name = wr_data["name"]
+    if response.status_code == 200:
+        wr_id = jsons.loads(response.text)["id"]
+        print_log(f"Created Work Requirement '{wr_name}' [{wr_id}]")
+    else:
+        print_error(f"Failed to create Work Requirement '{wr_name}'")
+        raise Exception(f"{response.text}")
+
+    # Submit Tasks to the Work Requirement
+    for task_group_name, task_list in task_lists.items():
+
+        if ARGS_PARSER.debug:
+            # Warn for required files not present at start
+            for task in task_list:
+                inputs = task.get("inputs", [])
+                for input in inputs:
+                    if input["verification"] == "VERIFY_AT_START":
+                        print_log(
+                            f"Note: expecting object '{input['objectNamePattern']}' "
+                            f"to be available at start of Task "
+                            f"'{task_group_name}/{task['name']}', "
+                            "otherwise the Task will immediately fail"
+                        )
+
+        # Submit Tasks in batches
+        batches = ceil(len(task_list) / TASK_BATCH_SIZE)
+        for index in range(batches):
+            task_batch = task_list[
+                index
+                * TASK_BATCH_SIZE : min(len(task_list), (index + 1) * TASK_BATCH_SIZE)
+            ]
+            response = requests.post(
+                url=(
+                    f"{CONFIG_COMMON.url}/work/namespaces/"
+                    f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
+                    f"taskGroups/{task_group_name}/tasks"
+                ),
+                headers={
+                    "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
+                },
+                json=task_batch,
+            )
+
+            if response.status_code == 200:
+                print_log(
+                    f"Added {len(task_batch)} Task(s) to Task Group "
+                    f"'{task_group_name}' (Batch {index + 1} of {batches})"
+                )
+            else:
+                print_error(f"Failed to add Task(s) to Task Group '{task_group_name}'")
+                print_log(f"Cancelling Work Requirement '{wr_name}' [{wr_id}]")
+                CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
+                raise Exception(f"{response.text}")
+
+
+# Standalone entry point
 if __name__ == "__main__":
     main()
