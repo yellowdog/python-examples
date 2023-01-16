@@ -48,9 +48,16 @@ def main():
         CONFIG_WP.worker_pool_data_file if cr_json_file is None else cr_json_file
     )
 
+    # Use the Mustache prefix if this is a Worker Pool file
     if cr_json_file is not None:
+        if (
+            ARGS_PARSER.worker_pool_file or CONFIG_WP.worker_pool_data_file
+        ) and not ARGS_PARSER.compute_requirement:
+            prefix = "__"
+        else:
+            prefix = ""
         print_log(f"Loading Compute Requirement data from: '{cr_json_file}'")
-        create_compute_requirement_from_json(cr_json_file)
+        create_compute_requirement_from_json(cr_json_file, prefix)
         return
 
     if CONFIG_WP.template_id is None:
@@ -161,17 +168,22 @@ def generate_cr_batch_name(
     return name
 
 
-def create_compute_requirement_from_json(cr_json_file: str) -> None:
+def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") -> None:
     """
     Directly create the Compute Requirement using the YellowDog REST API
     """
 
     if cr_json_file.lower().endswith(".jsonnet"):
-        cr_data = load_jsonnet_file_with_mustache_substitutions(cr_json_file)
+        cr_data = load_jsonnet_file_with_mustache_substitutions(
+            cr_json_file, prefix=prefix
+        )
     else:
-        cr_data = load_json_file_with_mustache_substitutions(cr_json_file)
+        cr_data = load_json_file_with_mustache_substitutions(
+            cr_json_file, prefix=prefix
+        )
 
-    # Use only the 'requirementTemplateUsage' value (if present)
+    # Use only the 'requirementTemplateUsage' value (if present);
+    # strips out Worker Pool stuff
     cr_data = cr_data.get("requirementTemplateUsage", cr_data)
 
     # Some values are configurable via the TOML configuration file;
