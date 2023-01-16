@@ -148,7 +148,10 @@ class CLIParser:
                 metavar="<task_type>",
             )
 
-        if any(module in sys.argv[0] for module in ["provision"] + all_options_modules):
+        if any(
+            module in sys.argv[0]
+            for module in ["provision", "instantiate"] + all_options_modules
+        ):
             parser.add_argument(
                 "--worker-pool",
                 "-p",

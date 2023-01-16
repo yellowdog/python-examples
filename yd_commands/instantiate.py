@@ -38,18 +38,23 @@ CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
 @main_wrapper
 def main():
 
+    # -C > -P > workerPoolData
     cr_json_file = (
-        CONFIG_WP.worker_pool_data_file
+        ARGS_PARSER.worker_pool_file
         if ARGS_PARSER.compute_requirement is None
         else ARGS_PARSER.compute_requirement
     )
+    cr_json_file = (
+        CONFIG_WP.worker_pool_data_file if cr_json_file is None else cr_json_file
+    )
+
     if cr_json_file is not None:
         print_log(f"Loading Compute Requirement data from: '{cr_json_file}'")
         create_compute_requirement_from_json(cr_json_file)
         return
 
     if CONFIG_WP.template_id is None:
-        print_error("No template_id supplied")
+        print_error("No 'templateId' supplied")
 
     print_log(
         f"Provisioning Compute Requirement with {CONFIG_WP.target_instance_count:,d} "
@@ -165,6 +170,9 @@ def create_compute_requirement_from_json(cr_json_file: str) -> None:
         cr_data = load_jsonnet_file_with_mustache_substitutions(cr_json_file)
     else:
         cr_data = load_json_file_with_mustache_substitutions(cr_json_file)
+
+    # Use only the 'requirementTemplateUsage' value (if present)
+    cr_data = cr_data.get("requirementTemplateUsage", cr_data)
 
     # Some values are configurable via the TOML configuration file;
     # values in the JSON file override values in the TOML file
