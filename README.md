@@ -1072,7 +1072,7 @@ Jsonnet is not installed by default when yellowdog-python-examples is installed,
 To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
 
 ```
-pip install -U yellowdog-python-examples[jsonnet]
+pip install -U "yellowdog-python-examples[jsonnet]"
 ```
 
 To install Jsonnet separately, try:
@@ -1315,7 +1315,9 @@ Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifi
 }
 ```
 
-Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above.
+If a Worker Pool is defined, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
+
+Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above (or with `-p` for Worker Pool specifications).
 
 ## yd-terminate
 
