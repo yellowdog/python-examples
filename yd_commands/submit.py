@@ -56,6 +56,7 @@ from yd_commands.printing import (
     print_error,
     print_json,
     print_log,
+    print_numbered_strings,
 )
 from yd_commands.type_check import (
     check_bool,
@@ -1002,7 +1003,8 @@ def submit_json_raw(wr_file: str):
                 raise Exception(f"{response.text}")
 
     if len(input_files) != 0:
-        print_log("Note: Files required by Tasks will not be uploaded automatically")
+        print_log("Note: Files required by Tasks will not be uploaded automatically:\n")
+        print_numbered_strings(sorted(list(input_files)))
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))

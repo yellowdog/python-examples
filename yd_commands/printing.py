@@ -205,6 +205,14 @@ def print_numbered_object_list(
     print()
 
 
+def print_numbered_strings(objects: List[str]):
+    table = []
+    for index, obj in enumerate(objects):
+        table.append([index + 1, ":", obj])
+    print(indent(tabulate(table, tablefmt="plain"), indent_width=4))
+    print()
+
+
 def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
     """
     Sort objects by their 'name' property.
