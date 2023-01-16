@@ -288,11 +288,12 @@ class WorkRequirementSnapshot:
     def add_tasks(self, task_group_name: str, tasks: List[Task]):
         """
         Add the list of Tasks to a named Task Group within the
-        Work Requirement
+        Work Requirement. Cumulative.
         """
         for task_group in self.wr_data["taskGroups"]:
             if task_group["name"] == task_group_name:
-                task_group["tasks"] = [Json.dump(task) for task in tasks]
+                task_group["tasks"] = task_group.get("tasks", [])
+                task_group["tasks"] += [Json.dump(task) for task in tasks]
                 return
 
     def print(self):
