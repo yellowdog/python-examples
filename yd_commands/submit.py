@@ -1003,7 +1003,10 @@ def submit_json_raw(wr_file: str):
                 raise Exception(f"{response.text}")
 
     if len(input_files) != 0:
-        print_log("Note: Files required by Tasks will not be uploaded automatically:\n")
+        print_log(
+            "Note: Required files will not be uploaded automatically; "
+            "some of the following may need to be provided:\n"
+        )
         print_numbered_strings(sorted(list(input_files)))
 
     if ARGS_PARSER.follow:
