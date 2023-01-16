@@ -705,7 +705,9 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
 
 It's possible to use the JSON output of `yd-submit --dry-run` (such as the example above) as a self-contained, fully-specified Work Requirement specification, using the `yd-submit --json-raw <filename.json>` option.
 
-This will submit the Work Requirement, then add all the specified Tasks without additional processing. Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to do this.
+This will submit the Work Requirement, then add all the specified Tasks without additional processing.
+
+Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to do this.
 
 Mustache directives **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
 

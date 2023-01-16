@@ -958,39 +958,48 @@ def submit_json_raw(wr_file: str):
     # Submit Tasks to the Work Requirement
     for task_group_name, task_list in task_lists.items():
 
-        # Warn for required files not present at start
-        for task in task_list:
-            inputs = task.get("inputs", [])
-            for input in inputs:
-                if input["verification"] == "VERIFY_AT_START":
-                    print_log(
-                        f"Note: expecting object '{input['objectNamePattern']}' "
-                        f"to be available at start of Task "
-                        f"'{task_group_name}/{task['name']}', "
-                        "otherwise Task will immediately fail"
-                    )
+        if ARGS_PARSER.debug:
+            # Warn for required files not present at start
+            for task in task_list:
+                inputs = task.get("inputs", [])
+                for input in inputs:
+                    if input["verification"] == "VERIFY_AT_START":
+                        print_log(
+                            f"Note: expecting object '{input['objectNamePattern']}' "
+                            f"to be available at start of Task "
+                            f"'{task_group_name}/{task['name']}', "
+                            "otherwise the Task will immediately fail"
+                        )
 
-        response = requests.post(
-            url=(
-                f"{CONFIG_COMMON.url}/work/namespaces/"
-                f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
-                f"taskGroups/{task_group_name}/tasks"
-            ),
-            headers={
-                "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
-            },
-            json=task_list,
-        )
-
-        if response.status_code == 200:
-            print_log(
-                f"Added {len(task_list)} Task(s) to Task Group '{task_group_name}'"
+        # Submit Tasks in batches
+        batches = ceil(len(task_list) / TASK_BATCH_SIZE)
+        for index in range(batches):
+            task_batch = task_list[
+                index
+                * TASK_BATCH_SIZE : min(len(task_list), (index + 1) * TASK_BATCH_SIZE)
+            ]
+            response = requests.post(
+                url=(
+                    f"{CONFIG_COMMON.url}/work/namespaces/"
+                    f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
+                    f"taskGroups/{task_group_name}/tasks"
+                ),
+                headers={
+                    "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
+                },
+                json=task_batch,
             )
-        else:
-            print_error(f"Failed to add Task(s) to Task Group '{task_group_name}'")
-            print_log(f"Cancelling Work Requirement '{wr_name}' [{wr_id}]")
-            CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
-            raise Exception(f"{response.text}")
+
+            if response.status_code == 200:
+                print_log(
+                    f"Added {len(task_batch)} Task(s) to Task Group "
+                    f"'{task_group_name}' (Batch {index + 1} of {batches})"
+                )
+            else:
+                print_error(f"Failed to add Task(s) to Task Group '{task_group_name}'")
+                print_log(f"Cancelling Work Requirement '{wr_name}' [{wr_id}]")
+                CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
+                raise Exception(f"{response.text}")
 
 
 # Standalone entry point
