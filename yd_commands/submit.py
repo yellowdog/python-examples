@@ -936,9 +936,15 @@ def submit_json_raw(wr_file: str):
 
     # Extract Tasks from Task Groups
     task_lists = {}
-    for task_group in wr_data["taskGroups"]:
-        task_lists[task_group["name"]] = task_group["tasks"]
-        del task_group["tasks"]
+    try:
+        task_groups = wr_data["taskGroups"]
+    except KeyError:
+        raise Exception("Property 'taskGroups' is not defined")
+    if len(task_groups) == 0:
+        raise Exception("There must be at least one Task Group")
+    for task_group in task_groups:
+        task_lists[task_group["name"]] = task_group.get("tasks", [])
+        task_group.pop("tasks", None)
 
     # Submit the Work Requirement
     response = requests.post(
