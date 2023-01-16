@@ -1069,7 +1069,13 @@ The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (No
 
 Jsonnet is not installed by default when yellowdog-python-examples is installed, because the package has binary components which are not provided for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
 
-To install Jsonnet, try:
+To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
+
+```
+pip install -U yellowdog-python-examples[jsonnet]
+```
+
+To install Jsonnet separately, try:
 
 ```shell
 pip install -U jsonnet
