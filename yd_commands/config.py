@@ -184,9 +184,7 @@ def load_config_common() -> ConfigCommon:
                 )
 
         DEFAULT_URL = "https://portal.yellowdog.co/api"
-        url = substitute_mustache_str(
-                common_section.get(URL, DEFAULT_URL)
-            )
+        url = substitute_mustache_str(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
             print_log(f"Using the YellowDog API at: {url}")
 
