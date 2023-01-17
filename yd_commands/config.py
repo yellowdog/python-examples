@@ -183,6 +183,13 @@ def load_config_common() -> ConfigCommon:
                     f"for '{key_name}'"
                 )
 
+        DEFAULT_URL = "https://portal.yellowdog.co/api"
+        url = substitute_mustache_str(
+                common_section.get(URL, DEFAULT_URL)
+            )
+        if url != DEFAULT_URL:
+            print_log(f"Using the YellowDog API at: {url}")
+
         return ConfigCommon(
             # Required
             key=substitute_mustache_str(common_section[KEY]),
@@ -190,9 +197,7 @@ def load_config_common() -> ConfigCommon:
             namespace=substitute_mustache_str(common_section[NAMESPACE]),
             name_tag=substitute_mustache_str(common_section[NAME_TAG]),
             # Optional
-            url=substitute_mustache_str(
-                common_section.get(URL, "https://portal.yellowdog.co/api")
-            ),
+            url=url,
         )
 
     except KeyError as e:
