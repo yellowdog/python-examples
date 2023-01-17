@@ -205,7 +205,13 @@ def print_numbered_object_list(
     print()
 
 
-def print_numbered_strings(objects: List[str]):
+def print_numbered_strings(objects: List[str], override_quiet: bool = False):
+    """
+    Print a simple list of strings with numbering
+    """
+    if ARGS_PARSER.quiet and override_quiet is False:
+        return
+
     table = []
     for index, obj in enumerate(objects):
         table.append([index + 1, ":", obj])
