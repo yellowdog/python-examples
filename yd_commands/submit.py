@@ -41,6 +41,7 @@ from yd_commands.config import (
     load_config_work_requirement,
 )
 from yd_commands.config_keys import *
+from yd_commands.csv_data import load_json_file_with_csv_task_expansion
 from yd_commands.mustache import (
     LAZY_SUBS_WRAPPER,
     TASK_COUNT_SUB,
@@ -97,7 +98,13 @@ def main():
     if wr_data_file is not None:
         print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
         if wr_data_file.lower().endswith("json"):
-            tasks_data = load_json_file_with_mustache_substitutions(wr_data_file)
+            if ARGS_PARSER.csv_files is not None:
+                tasks_data = load_json_file_with_csv_task_expansion(
+                    json_file=wr_data_file,
+                    csv_files=ARGS_PARSER.csv_files,
+                )
+            else:
+                tasks_data = load_json_file_with_mustache_substitutions(wr_data_file)
         elif wr_data_file.lower().endswith("toml"):
             tasks_data = load_toml_file_with_mustache_substitutions(wr_data_file)
         elif wr_data_file.lower().endswith("jsonnet"):

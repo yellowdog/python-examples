@@ -155,6 +155,15 @@ class CLIParser:
                 help="the number of times to submit the task",
                 metavar="<task_count>",
             )
+            parser.add_argument(
+                "--csv-file",
+                "-v",
+                type=str,
+                required=False,
+                action="append",
+                help="the CSV file(s) from which to read task data",
+                metavar="<data.csv>",
+            )
 
         if any(
             module in sys.argv[0]
@@ -485,6 +494,10 @@ class CLIParser:
     @property
     def task_count(self) -> Optional[int]:
         return self.args.task_count
+
+    @property
+    def csv_files(self) -> Optional[List[str]]:
+        return self.args.csv_file
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

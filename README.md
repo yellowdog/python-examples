@@ -37,6 +37,11 @@
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
+   * [Specifying Work Requirement Tasks using CSV Data](#specifying-work-requirement-tasks-using-csv-data)
+      * [Work Requirement CSV Data Example](#work-requirement-csv-data-example)
+      * [CSV Mustache Substitutions](#csv-mustache-substitutions)
+      * [Property Inheritance](#property-inheritance-1)
+      * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
 * [Worker Pool Properties](#worker-pool-properties)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
@@ -62,7 +67,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sun Jan 15 13:33:50 GMT 2023 -->
+<!-- Added by: pwt, at: Mon Jan 23 08:35:36 GMT 2023 -->
 
 <!--te-->
 
@@ -827,6 +832,123 @@ development
 Note that everything within the `namespace:work-requirement` directory in the Object Store is downloaded, including any files that were specified in `inputs` and uploaded as part of the Work Requirement submission. Multiple Task Groups, and multiple Tasks will all appear in the directory structure.
 
 If the `development` directory already exists, `yd-download` will try `development.01`, etc., to avoid overwriting previous downloads.
+
+## Specifying Work Requirement Tasks using CSV Data
+
+CSV data files can be used to generate lists of Tasks, as follows:
+
+- A **prototype** Task specification is created within a JSON Work Requirement specification
+- The prototype task includes one or more Mustache substitutions
+- A CSV file is created, with the **headers** (first row) matching the names of the Mustache substitutions in the Task prototype
+- Each subsequent row of the CSV file represents a new Task built using the prototype, with the variables substituted by the values in the row
+- A Task will be created for each data row
+
+Note that Jsonnet files cannot be used in place of JSON files when using CSV files to generate expanded Task lists.
+
+### Work Requirement CSV Data Example
+
+As an example, consider the following JSON Work Requirement 'wr.json':
+
+```json
+{
+  "taskGroups": [
+    {
+      "tasks": [
+        {
+          "arguments": ["{{arg_1}}", "{{arg_2}}", "{{arg_3}}"],
+          "environment": {"ENV_VAR_1": "{{env_1}}"}
+        }
+      ]
+    }
+  ]
+}
+```
+
+Note that the Task Group must contain only a single Task, acting as the prototype.
+
+Now consider a CSV file 'wr_data.csv' with the following contents:
+
+| arg_1 | arg_2 | arg_3 | env_1 |
+|-------|-------|-------|-------|
+| A     | B     | C     | E-1   |
+| D     | E     | F     | E-2   |
+| G     | H     | I     | E-3   |
+
+If these files are processed using `yd-submit -r wr.json -v wr_data.csv`, the following expanded list of three Tasks will be created prior to further processing by the `yd-submit` script:
+
+```json
+{
+  "taskGroups": [
+    {
+      "tasks": [
+        {
+          "arguments": ["A", "B", "C"],
+          "environment": {"ENV_VAR_1": "E-1"}
+        },
+        {
+          "arguments": ["D", "E", "F"],
+          "environment": {"ENV_VAR_1": "E-2"}
+        },
+        {
+          "arguments": ["G", "H", "I"],
+          "environment": {"ENV_VAR_1": "E-3"}
+        }
+      ]
+    }
+  ]
+}
+```
+
+### CSV Mustache Substitutions
+
+When the CSV file data is processed, the only substitutions made are those which match the Mustache directives in the prototype Task. The CSV file is the **only** source of substitutions; all other Mustache substitutions (supplied on the command line, in the TOML configuration file, or from environment variables) are ignored -- i.e., they do not override the contents of the CSV file.
+
+All Mustache directives unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
+
+If the value to be inserted is a number (an int or float) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification.
+
+### Property Inheritance
+
+All the usual property inheritance features operate as normal. Properties are inherited from the `config.toml` file, and from the relevant sections of the JSON Work Requirement file. Any properties set within a Task prototype are copied to all the generated Tasks.
+
+### Multiple Task Groups using Multiple CSV Files
+
+The use of multiple Task Groups is also supported, by using one CSV file per Task Group.  Each Task Group must contain only a single prototype Task.
+
+The CSV files are supplied on the command line in the order of the Task Groups to which they apply. For example, if 'wr_json' contains two Task Groups, as follows:
+
+```json
+{
+  "taskGroups": [
+    {
+      "tasks": [
+        {
+          "arguments": ["{{arg_1}}", "{{arg_2}}", "{{arg_3}}"],
+          "environment": {"ENV_VAR_1": "{{env_1}}"}
+        }
+      ]
+    },
+    {
+      "tasks": [
+        {
+          "arguments": ["{{arg_1}}", "{{arg_2}}"],
+          "environment": {"ENV_VAR_1": "{{env_1}}", "ENV_VAR_2": "{{env_2}}"}
+        }
+      ]
+    }
+  ]
+}
+```
+
+The `yd-submit` command would then be invoked with a separate CSV file for each Task Group, e.g.:
+
+```shell
+yd-submit -r wr.json -v wr_data_task_group_1.csv -v wr_data_task_group_2.csv
+```
+
+If there are **fewer** CSV files than Task Groups a warning will be printed and, if there are 'n' CSV files, CSV data processing will be applied to the first 'n' Task Groups in the Work Requirement.
+
+If there are **more** CSV files than Task Groups, an error will raised and processing will stop.
 
 # Worker Pool Properties
 

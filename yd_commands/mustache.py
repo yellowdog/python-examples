@@ -46,6 +46,10 @@ if "submit" in sys.argv[0]:
     ]:
         MUSTACHE_SUBSTITUTIONS[sub] = f"{LAZY_SUBS_WRAPPER}{sub}{LAZY_SUBS_WRAPPER}"
 
+# Type annotations for Mustache type substitutions
+NUMBER_SUB = "num:"
+BOOL_SUB = "bool:"
+
 # Add user-defined Mustache directives
 # Can supersede the existing directives above
 USER_MUSTACHE_PREFIX = "YD_SUB_"
@@ -167,15 +171,11 @@ def substitute_mustache_str(
 
     input = input.replace(prefix, "")
 
-    # Supported type annotations
-    number_ = "num:"
-    bool_ = "bool:"
-
     def _remove_mustache_brackets(mustache_str: str) -> str:
         return mustache_str.replace("{{", "").replace("}}", "")
 
-    if input.startswith(f"{{{{{number_}"):
-        input_var_mustache = input.replace(number_, "")
+    if input.startswith(f"{{{{{NUMBER_SUB}"):
+        input_var_mustache = input.replace(NUMBER_SUB, "")
         if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
             if ARGS_PARSER.debug:
                 print_log(f"Note: No Mustache substitution found for '{input}'")
@@ -193,8 +193,8 @@ def substitute_mustache_str(
                 )
         return replaced_number
 
-    if input.startswith(f"{{{{{bool_}"):
-        input_var_mustache = input.replace(bool_, "")
+    if input.startswith(f"{{{{{BOOL_SUB}"):
+        input_var_mustache = input.replace(BOOL_SUB, "")
         if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
             if ARGS_PARSER.debug:
                 print_log(f"Note: No Mustache substitution found for '{input}'")
