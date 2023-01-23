@@ -32,7 +32,7 @@ def main():
     print(f"  Command:                             {abspath(__file__)}")
     print(f"  Python Executable:                   {executable}")
     for i, p in enumerate(path, start=1):
-        print(f"    Path-{str(i).zfill(2)}:                             {p}")
+        print(f"    Path-{str(i).zfill(2)}:                           {p}")
 
 
 if __name__ == "__main__":
