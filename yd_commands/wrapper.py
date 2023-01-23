@@ -33,7 +33,9 @@ def print_account():
         keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
         for keyring_summary in keyrings:
             # This is a little brittle, obviously
-            print_log(f"YellowDog Account short identifier is: '{keyring_summary.id[13:19]}'")
+            print_log(
+                f"YellowDog Account short identifier is: '{keyring_summary.id[13:19]}'"
+            )
 
 
 def main_wrapper(func):

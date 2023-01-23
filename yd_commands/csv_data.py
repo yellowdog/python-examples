@@ -3,9 +3,10 @@ Module for handling Task data supplied in a CSV file
 """
 
 import csv
+import re
 from ast import literal_eval
 from json import load as json_load
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from yd_commands.config_keys import *
 from yd_commands.mustache import BOOL_SUB, NUMBER_SUB, process_mustache_substitutions
@@ -93,7 +94,11 @@ def load_json_file_with_csv_task_expansion(
     if len(csv_files) > len(wr_data[TASK_GROUPS]):
         raise Exception("Number of CSV files exceeds number of Task Groups")
 
-    for index, csv_file in enumerate(csv_files):
+    for i, csv_file in enumerate(csv_files):
+        csv_file, index = _get_csv_file_index(csv_file, len(wr_data[TASK_GROUPS]))
+        if index is None:
+            index = i
+        task_group = wr_data[TASK_GROUPS][index]
         print_log(
             f"Loading CSV Task data for Task Group {index + 1} from: '{csv_file}'"
         )
@@ -103,7 +108,6 @@ def load_json_file_with_csv_task_expansion(
                 "when using CSV file for data"
             )
         csv_data = CSVTaskData(csv_file)
-        task_group = wr_data[TASK_GROUPS][index]
         task_prototype = task_group[TASKS][0]
         generated_task_list = []
         for task_data in csv_data:
@@ -146,3 +150,29 @@ def _make_string_substitutions(input: str, var_name: str, value: str) -> str:
         value = "False"
     input = input.replace(f"'{{{{{BOOL_SUB}{var_name}}}}}'", value)
     return input
+
+
+USED_FILE_INDEXES = []
+
+
+def _get_csv_file_index(
+    csv_filename: str, num_task_groups: int
+) -> [str, Optional[int]]:
+    """
+    Check if the CSV filename ends in an integer index (':<integer>).
+    If so, return the filename with the index stripped, and the index
+    integer (zero-based).
+    """
+    matches = re.findall(":\d+$", csv_filename)
+    if len(matches) != 1:
+        return csv_filename, None
+
+    index = int(matches[0][1:])
+    if index > num_task_groups:
+        raise Exception(
+            f"CSV file Task Group index '{index}' exceeds number of Task Groups"
+        )
+    if index in USED_FILE_INDEXES:
+        raise Exception(f"CSV file Task Group index '{index}' used more than once")
+    USED_FILE_INDEXES.append(index)
+    return csv_filename.replace(matches[0], ""), index - 1

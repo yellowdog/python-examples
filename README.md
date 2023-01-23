@@ -946,9 +946,15 @@ The `yd-submit` command would then be invoked with a separate CSV file for each 
 yd-submit -r wr.json -v wr_data_task_group_1.csv -v wr_data_task_group_2.csv
 ```
 
-If there are **fewer** CSV files than Task Groups a warning will be printed and, if there are 'n' CSV files, CSV data processing will be applied to the first 'n' Task Groups in the Work Requirement.
+If there are **fewer** CSV files than Task Groups a warning will be printed and, if there are 'n' CSV files, CSV data processing will be applied to the first 'n' Task Groups in the Work Requirement by default, in the order in which the CSV files were supplied. If there are **more** CSV files than Task Groups, an error will be raised and processing will stop.
 
-If there are **more** CSV files than Task Groups, an error will raised and processing will stop.
+It is possible to apply CSV files explicitly to specific Task Groups, by using an optional index postfix at the end of each CSV filename. For example, if there are two CSV files to be applied to the second and fourth Task Groups in a JSON Work Requirement, use the following syntax:
+
+```shell
+yd-submit -r wr.json -v wr_data_task_group_2.csv:2 -v wr_data_task_group_4.csv:4
+```
+
+Note that only one CSV file can be applied to any given Task Group.
 
 # Worker Pool Properties
 
