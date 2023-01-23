@@ -94,10 +94,11 @@ def load_json_file_with_csv_task_expansion(
     if len(csv_files) > len(wr_data[TASK_GROUPS]):
         raise Exception("Number of CSV files exceeds number of Task Groups")
 
-    for i, csv_file in enumerate(csv_files):
+    for counter, csv_file in enumerate(csv_files):
         csv_file, index = _get_csv_file_index(csv_file, len(wr_data[TASK_GROUPS]))
         if index is None:
-            index = i
+            index = counter
+
         task_group = wr_data[TASK_GROUPS][index]
         print_log(
             f"Loading CSV Task data for Task Group {index + 1} from: '{csv_file}'"
@@ -107,6 +108,7 @@ def load_json_file_with_csv_task_expansion(
                 f"Task Group {index + 1} must have only a single (prototype) Task "
                 "when using CSV file for data"
             )
+
         csv_data = CSVTaskData(csv_file)
         task_prototype = task_group[TASKS][0]
         generated_task_list = []
