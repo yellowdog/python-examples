@@ -847,7 +847,7 @@ Note that Jsonnet files cannot be used in place of JSON files when using CSV fil
 
 ### Work Requirement CSV Data Example
 
-As an example, consider the following JSON Work Requirement 'wr.json':
+As an example, consider the following JSON Work Requirement `wr.json`:
 
 ```json
 {
@@ -866,7 +866,7 @@ As an example, consider the following JSON Work Requirement 'wr.json':
 
 Note that the Task Group must contain only a single Task, acting as the prototype.
 
-Now consider a CSV file 'wr_data.csv' with the following contents:
+Now consider a CSV file `wr_data.csv` with the following contents:
 
 | arg_1 | arg_2 | arg_3 | env_1 |
 |-------|-------|-------|-------|
@@ -915,7 +915,7 @@ All the usual property inheritance features operate as normal. Properties are in
 
 The use of multiple Task Groups is also supported, by using one CSV file per Task Group.  Each Task Group must contain only a single prototype Task.
 
-The CSV files are supplied on the command line in the order of the Task Groups to which they apply. For example, if 'wr_json' contains two Task Groups, as follows:
+The CSV files are supplied on the command line in the order of the Task Groups to which they apply. For example, if `wr_json` contains two Task Groups, as follows:
 
 ```json
 {
@@ -948,13 +948,13 @@ yd-submit -r wr.json -v wr_data_task_group_1.csv -v wr_data_task_group_2.csv
 
 If there are **fewer** CSV files than Task Groups a warning will be printed and, if there are 'n' CSV files, CSV data processing will be applied to the first 'n' Task Groups in the Work Requirement by default, in the order in which the CSV files were supplied. If there are **more** CSV files than Task Groups, an error will be raised and processing will stop.
 
-It is possible to apply CSV files explicitly to specific Task Groups, by using an optional index postfix at the end of each CSV filename. For example, if there are two CSV files to be applied to the second and fourth Task Groups in a JSON Work Requirement, use the following syntax:
+It is possible to apply CSV files explicitly to specific Task Groups, by using an optional **index postfix** (e.g., `:2`) at the end of each CSV filename. For example, if there are two CSV files to be applied to the second and fourth Task Groups in a JSON Work Requirement, use the following syntax:
 
 ```shell
 yd-submit -r wr.json -v wr_data_task_group_2.csv:2 -v wr_data_task_group_4.csv:4
 ```
 
-Note that only one CSV file can be applied to any given Task Group.
+Note that only one CSV file can be applied to any given Task Group. A single CSV file can, however, be reused for mutliple Task Groups.
 
 # Worker Pool Properties
 
