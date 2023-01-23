@@ -168,9 +168,9 @@ def _get_csv_file_index(
         return csv_filename, None
 
     index = int(matches[0][1:])
-    if index > num_task_groups:
+    if index > num_task_groups or index < 1:
         raise Exception(
-            f"CSV file Task Group index '{index}' exceeds number of Task Groups"
+            f"CSV file Task Group index '{index}' is outside Task Group range"
         )
     if index in USED_FILE_INDEXES:
         raise Exception(f"CSV file Task Group index '{index}' used more than once")
