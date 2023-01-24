@@ -112,6 +112,14 @@ def load_json_file_with_csv_task_expansion(
 
         csv_data = CSVTaskData(csv_file)
         task_prototype = task_group[TASKS][0]
+
+        if not _substitions_present(csv_data.var_names, str(task_prototype)):
+            print_log(
+                f"Warning: No CSV substitutions to apply to Task Group "
+                f"{index + 1}; not expanding Task list"
+            )
+            continue
+
         generated_task_list = []
         for task_data in csv_data:
             generated_task_list.append(
@@ -206,3 +214,14 @@ def _get_csv_file_index(
         )
 
     return csv_filename, None
+
+
+def _substitions_present(var_names: List[str], task_prototype: str) -> bool:
+    """
+    Check if there are any CSV substitutions present in the Task prototype.
+    """
+    return (
+        any(f"{{{{{var_name}}}}}" in task_prototype for var_name in var_names)
+        or any(f"{{{{num:{var_name}}}}}" in task_prototype for var_name in var_names)
+        or any(f"{{{{bool:{var_name}}}}}" in task_prototype for var_name in var_names)
+    )
