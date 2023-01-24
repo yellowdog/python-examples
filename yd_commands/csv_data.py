@@ -159,12 +159,25 @@ def _make_string_substitutions(input: str, var_name: str, value: str) -> str:
     Helper function to make string substitutions for CSV variables only.
     """
     input = input.replace(f"{{{{{var_name}}}}}", value)
-    input = input.replace(f"'{{{{{NUMBER_SUB}{var_name}}}}}'", value)
-    if value.lower() == "true":
-        value = "True"
-    elif value.lower() == "false":
-        value = "False"
-    input = input.replace(f"'{{{{{BOOL_SUB}{var_name}}}}}'", value)
+
+    num_sub_str = f"{{{{{NUMBER_SUB}{var_name}}}}}"
+    if num_sub_str in input:
+        try:
+            float(value)
+        except ValueError:
+            raise Exception(f"Invalid number substitution in CSV: '{value}'")
+        input = input.replace(f"'{num_sub_str}'", value)
+
+    bool_sub_str = f"{{{{{BOOL_SUB}{var_name}}}}}"
+    if bool_sub_str in input:
+        if value.lower() == "true":
+            value = "True"
+        elif value.lower() == "false":
+            value = "False"
+        else:
+            raise Exception(f"Invalid Boolean substitution in CSV: '{value}'")
+        input = input.replace(f"'{bool_sub_str}'", value)
+
     return input
 
 
