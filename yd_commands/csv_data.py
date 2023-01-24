@@ -8,9 +8,10 @@ from ast import literal_eval
 from json import load as json_load
 from typing import Dict, List, Optional
 
+from yd_commands.args import ARGS_PARSER
 from yd_commands.config_keys import *
 from yd_commands.mustache import BOOL_SUB, NUMBER_SUB, process_mustache_substitutions
-from yd_commands.printing import print_log
+from yd_commands.printing import print_json, print_log
 
 
 class CSVTaskData:
@@ -121,6 +122,11 @@ def load_json_file_with_csv_task_expansion(
         task_group[TASKS] = generated_task_list
         print_log(f"Generated {len(generated_task_list)} Task(s) from CSV data")
 
+    if ARGS_PARSER.process_csv_only:
+        print_log("Processing CSV substitutions only")
+        print_json(wr_data)
+        exit(0)
+
     # Process remaining substitutions
     process_mustache_substitutions(wr_data)
     return wr_data
@@ -170,7 +176,7 @@ def _get_csv_file_index(
         return csv_filename, None
 
     index = int(matches[0][1:])
-    if index > num_task_groups or index < 1:
+    if not 0 < index <= num_task_groups:
         raise Exception(
             f"CSV file Task Group index '{index}' is outside Task Group range"
         )

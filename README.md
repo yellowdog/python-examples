@@ -42,6 +42,7 @@
       * [CSV Mustache Substitutions](#csv-mustache-substitutions)
       * [Property Inheritance](#property-inheritance-1)
       * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
+      * [Inspecting the Output of CSV Variable Substitution](#inspecting-the-output-of-csv-variable-substitution)
 * [Worker Pool Properties](#worker-pool-properties)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
@@ -67,7 +68,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Mon Jan 23 08:35:36 GMT 2023 -->
+<!-- Added by: pwt, at: Tue Jan 24 08:45:21 GMT 2023 -->
 
 <!--te-->
 
@@ -955,6 +956,10 @@ yd-submit -r wr.json -v wr_data_task_group_2.csv:2 -v wr_data_task_group_4.csv:4
 ```
 
 Note that only one CSV file can be applied to any given Task Group. A single CSV file can, however, be reused for mutliple Task Groups.
+
+### Inspecting the Output of CSV Variable Substitution
+
+The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance.
 
 # Worker Pool Properties
 

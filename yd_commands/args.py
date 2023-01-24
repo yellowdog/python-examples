@@ -164,6 +164,13 @@ class CLIParser:
                 help="the CSV file(s) from which to read task data",
                 metavar="<data.csv>",
             )
+            parser.add_argument(
+                "--process-csv-only",
+                "-p",
+                action="store_true",
+                required=False,
+                help="process CSV variable substitutions only and output intermediate JSON",
+            )
 
         if any(
             module in sys.argv[0]
@@ -498,6 +505,10 @@ class CLIParser:
     @property
     def csv_files(self) -> Optional[List[str]]:
         return self.args.csv_file
+
+    @property
+    def process_csv_only(self) -> Optional[bool]:
+        return self.args.process_csv_only
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
