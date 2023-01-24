@@ -42,6 +42,7 @@ from yd_commands.config import (
 )
 from yd_commands.config_keys import *
 from yd_commands.csv_data import load_json_file_with_csv_task_expansion
+from yd_commands.interactive import confirmed
 from yd_commands.mustache import (
     LAZY_SUBS_WRAPPER,
     TASK_COUNT_SUB,
@@ -96,9 +97,7 @@ def main():
         else ARGS_PARSER.work_req_file
     )
     csv_files = (
-        CONFIG_WR.csv_files
-        if ARGS_PARSER.csv_files is None
-        else ARGS_PARSER.csv_files
+        CONFIG_WR.csv_files if ARGS_PARSER.csv_files is None else ARGS_PARSER.csv_files
     )
     if wr_data_file is not None:
         print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
@@ -528,7 +527,7 @@ def add_tasks_to_task_group(
                         input_folder_name=INPUT_FOLDER_NAME,
                         flatten_upload_paths=flatten_upload_paths,
                     ),
-                    verification=TaskInputVerification.VERIFY_WAIT,
+                    verification=TaskInputVerification.VERIFY_AT_START,
                 )
                 for file in input_files_list
             ]
@@ -847,7 +846,7 @@ def create_task(
                 input_folder_name=INPUT_FOLDER_NAME,
                 flatten_upload_paths=flatten_upload_paths,
             ),
-            verification=TaskInputVerification.VERIFY_WAIT,
+            verification=TaskInputVerification.VERIFY_AT_START,
         )
         # Avoid duplicate TaskInputs
         if task_input.objectNamePattern not in [x.objectNamePattern for x in inputs]:
@@ -988,6 +987,25 @@ def submit_json_raw(wr_file: str):
                 {input["objectNamePattern"] for input in task.get("inputs", [])}
             )
 
+        # Warn about required files & pause to allow upload
+        if len(input_files) != 0:
+            print_log(
+                "The following files may be required ('VERIFY_AT_START') "
+                "before Tasks are submitted, or the Tasks will fail."
+            )
+            print_log(
+                "You now have an opportunity to upload required files "
+                "before proceeding:\n"
+            )
+            print_numbered_strings(sorted(list(input_files)))
+            if not confirmed(
+                "Now proceed with Task submission (Y/y), or "
+                "Cancel Work Requirement (N)?"
+            ):
+                print_log(f"Cancelling Work Requirement '{wr_name}'")
+                CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
+                return
+
         # Submit Tasks in batches
         batches = ceil(len(task_list) / TASK_BATCH_SIZE)
         for index in range(batches):
@@ -1014,16 +1032,9 @@ def submit_json_raw(wr_file: str):
                 )
             else:
                 print_error(f"Failed to add Task(s) to Task Group '{task_group_name}'")
-                print_log(f"Cancelling Work Requirement '{wr_name}' [{wr_id}]")
+                print_log(f"Cancelling Work Requirement '{wr_name}'")
                 CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
                 raise Exception(f"{response.text}")
-
-    if len(input_files) != 0:
-        print_log(
-            "Note: Required files will not be uploaded automatically; "
-            "some of the following may need to be provided:\n"
-        )
-        print_numbered_strings(sorted(list(input_files)))
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
