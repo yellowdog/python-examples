@@ -955,7 +955,13 @@ It is possible to apply CSV files explicitly to specific Task Groups, by using a
 yd-submit -r wr.json -v wr_data_task_group_2.csv:2 -v wr_data_task_group_4.csv:4
 ```
 
-Note that only one CSV file can be applied to any given Task Group. A single CSV file can, however, be reused for mutliple Task Groups.
+Alternatively, the **Task Group name** (if supplied in the JSON file) can be used as the postfix. For example, if the Task Groups above are named `tg_two` and `tg_four`, the `yd-submit` command would become:
+
+```shell
+yd-submit -r wr.json -v wr_data_task_group_2.csv:tg_two -v wr_data_task_group_4.csv:tg_four
+```
+
+Note that only one CSV file can be applied to any given Task Group. A single CSV file can, however, be reused for multiple Task Groups.
 
 ### Inspecting the Output of CSV Variable Substitution
 

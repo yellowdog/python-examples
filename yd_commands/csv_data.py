@@ -96,7 +96,7 @@ def load_json_file_with_csv_task_expansion(
         raise Exception("Number of CSV files exceeds number of Task Groups")
 
     for counter, csv_file in enumerate(csv_files):
-        csv_file, index = _get_csv_file_index(csv_file, len(wr_data[TASK_GROUPS]))
+        csv_file, index = _get_csv_file_index(csv_file, wr_data[TASK_GROUPS])
         if index is None:
             index = counter
 
@@ -164,23 +164,45 @@ USED_FILE_INDEXES = []
 
 
 def _get_csv_file_index(
-    csv_filename: str, num_task_groups: int
+    csv_filename: str, task_groups: List[Dict]
 ) -> [str, Optional[int]]:
     """
-    Check if the CSV filename ends in an integer index (':<integer>).
+    Check if the CSV filename ends in an integer index (':<integer>'),
+    or in a Task Group name (':<task_group_name>').
     If so, return the filename with the index stripped, and the index
     integer (zero-based).
     """
-    matches = re.findall(":\d+$", csv_filename)
-    if len(matches) != 1:
-        return csv_filename, None
 
-    index = int(matches[0][1:])
-    if not 0 < index <= num_task_groups:
-        raise Exception(
-            f"CSV file Task Group index '{index}' is outside Task Group range"
+    # Task Group number matching
+    matches = re.findall(":\d+$", csv_filename)
+    if len(matches) == 1:
+        index = int(matches[0][1:])
+        if not 0 < index <= len(task_groups):
+            raise Exception(
+                f"CSV file Task Group index '{index}' is outside Task Group range"
+            )
+        if index in USED_FILE_INDEXES:
+            raise Exception(f"CSV file Task Group index '{index}' used more than once")
+        USED_FILE_INDEXES.append(index)
+        return csv_filename.replace(matches[0], ""), index - 1
+
+    # Task Group name matching; filter on valid name patterns
+    matches = re.findall(":[a-z][a-z0-9_-]+$", csv_filename)
+    if len(matches) == 1:
+        for index, task_group in enumerate(task_groups):
+            try:
+                if matches[0][1:] == task_group[NAME]:
+                    return csv_filename.replace(matches[0], ""), index
+            except KeyError:
+                pass
+        else:
+            raise Exception(f"No matches for Task Group name '{matches[0][1:]}'")
+
+    # Invalid Task Group naming?
+    split_name = csv_filename.split(":")
+    if len(split_name) > 1:
+        print_log(
+            f"Warning: Possible invalid Task Group name/number '{split_name[-1:]}'?"
         )
-    if index in USED_FILE_INDEXES:
-        raise Exception(f"CSV file Task Group index '{index}' used more than once")
-    USED_FILE_INDEXES.append(index)
-    return csv_filename.replace(matches[0], ""), index - 1
+
+    return csv_filename, None
