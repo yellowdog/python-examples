@@ -95,13 +95,18 @@ def main():
         if ARGS_PARSER.work_req_file is None
         else ARGS_PARSER.work_req_file
     )
+    csv_files = (
+        CONFIG_WR.csv_files
+        if ARGS_PARSER.csv_files is None
+        else ARGS_PARSER.csv_files
+    )
     if wr_data_file is not None:
         print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
         if wr_data_file.lower().endswith("json"):
-            if ARGS_PARSER.csv_files is not None:
+            if csv_files is not None:
                 tasks_data = load_json_file_with_csv_task_expansion(
                     json_file=wr_data_file,
-                    csv_files=ARGS_PARSER.csv_files,
+                    csv_files=csv_files,
                 )
             else:
                 tasks_data = load_json_file_with_mustache_substitutions(wr_data_file)
