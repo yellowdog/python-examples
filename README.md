@@ -399,6 +399,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `regions`                  | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                  | Yes  | Yes | Yes       |      |
 | `tasksPerWorker`           | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                      | Yes  | Yes | Yes       |      |
 | `taskCount`                | The number of times to execute the Task. Can be set in the TOML file or in any JSON Task Group definition. Not inherited. E.g., `1`.                                     | Yes  |     | Yes       |      |
+| `taskName`                 | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                   | Yes  |     |           |      |
 | `taskType`                 | The Task Type of a Task. E.g., `"docker"`.                                                                                                                               | Yes  |     |           | Yes  |
 | `taskTypes`                | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                        |      | Yes | Yes       |      |
 | `vcpus`                    | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                               | Yes  | Yes | Yes       |      |
@@ -469,13 +470,14 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     ram = [0.5, 2.0]
     regions = ["eu-west-2"]
     taskCount = 100
+    taskName = "my_task_number_{{task_number}}"
     taskType = "docker"
     tasksPerWorker = 1
     vcpus = [1, 4]
     verifyAtStart = ["ready_results.txt"]
     verifyWait = ["wait_for_results.txt"]
     workerTags = ["tag-{{username}}"]
-#   workRequirementData = "work_requirement.json"
+    workRequirementData = "work_requirement.json"
 ```
 
 ### JSON Properties at the Work Requirement Level
@@ -972,13 +974,13 @@ The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output
 
 ### Using CSV Data with TOML-Only Work Requirement Specifications
 
-It's possible to use TOML only to derive a list of Tasks from CSV data -- i.e., the JSON Work Requirement can be omitted. To enable this:
+It's possible to use TOML on its own to derive a list of Tasks from CSV data -- i.e., the JSON Work Requirement is not required. To make use of this:
 
 - Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or `--work-requirement` on the command line)
 - Insert the required CSV-supplied Mustache substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
 - Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`
 
-When `yd-submit` is run, it will expand the Task list to match the number data rows in the CSV file.
+When `yd-submit` is run, it will expand the Task list to match the number of data rows in the CSV file.
 
 # Worker Pool Properties
 

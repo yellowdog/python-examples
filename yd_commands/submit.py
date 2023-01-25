@@ -477,7 +477,11 @@ def add_tasks_to_task_group(
             task_group_data = tasks_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
             task_name = get_task_name(
-                task.get(NAME, None), task_number, num_tasks, tg_number, num_task_groups
+                task.get(NAME, CONFIG_WR.task_name),
+                task_number,
+                num_tasks,
+                tg_number,
+                num_task_groups,
             )
             executable = check_str(
                 task.get(
@@ -1071,6 +1075,7 @@ def csv_expand_toml_tasks(csv_file: str) -> Dict:
         (CONFIG_WR.flatten_input_paths, FLATTEN_PATHS),
         (CONFIG_WR.input_files, INPUT_FILES),
         (CONFIG_WR.output_files, OUTPUT_FILES),
+        (CONFIG_WR.task_name, TASK_NAME),
         (CONFIG_WR.task_type, TASK_TYPE),
         (CONFIG_WR.verify_at_start, VERIFY_AT_START),
         (CONFIG_WR.verify_wait, VERIFY_WAIT),

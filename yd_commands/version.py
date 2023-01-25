@@ -5,8 +5,7 @@ Report version numbers, etc.
 """
 
 from os.path import abspath
-from sys import argv
-from sys import executable, path
+from sys import argv, executable, path
 from sys import version as py_version
 
 from yellowdog_client._version import __version__ as yd_sdk_version

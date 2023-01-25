@@ -77,6 +77,7 @@ class ConfigWorkRequirement:
     ram: Optional[List[float]] = None
     regions: Optional[List[str]] = None
     task_count: int = 1
+    task_name: Optional[str] = None
     task_type: Optional[str] = None
     tasks_data_file: Optional[str] = None
     tasks_per_worker: Optional[int] = None
@@ -288,6 +289,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             ram=wr_section.get(RAM, None),
             regions=wr_section.get(REGIONS, None),
             task_count=wr_section.get(TASK_COUNT, 1),
+            task_name=wr_section.get(TASK_NAME, None),
             task_type=task_type,
             tasks_data_file=tasks_data_file,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),

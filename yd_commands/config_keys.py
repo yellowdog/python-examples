@@ -51,6 +51,7 @@ TASKS = "tasks"  # List of Tasks
 TASKS_PER_WORKER = "tasksPerWorker"  # Integer
 TASK_COUNT = "taskCount"  # Integer
 TASK_GROUPS = "taskGroups"  # List of Task Groups
+TASK_NAME = "taskName"  # String
 TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
@@ -123,6 +124,7 @@ ALL_KEYS = [
     TASKS_PER_WORKER,
     TASK_COUNT,
     TASK_GROUPS,
+    TASK_NAME,
     TASK_TYPE,
     TASK_TYPES,
     TEMPLATE_ID,
