@@ -77,7 +77,7 @@ class ConfigWorkRequirement:
     ram: Optional[List[float]] = None
     regions: Optional[List[str]] = None
     task_count: int = 1
-    task_type: str = Optional[str]
+    task_type: Optional[str] = None
     tasks_data_file: Optional[str] = None
     tasks_per_worker: Optional[int] = None
     vcpus: Optional[List[float]] = None
