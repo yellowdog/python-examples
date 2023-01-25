@@ -1070,7 +1070,6 @@ def csv_expand_toml_tasks(csv_file: str) -> Dict:
         (CONFIG_WR.executable, EXECUTABLE),
         (CONFIG_WR.flatten_input_paths, FLATTEN_PATHS),
         (CONFIG_WR.input_files, INPUT_FILES),
-        (CONFIG_WR.wr_name, NAME),
         (CONFIG_WR.output_files, OUTPUT_FILES),
         (CONFIG_WR.task_type, TASK_TYPE),
         (CONFIG_WR.verify_at_start, VERIFY_AT_START),
