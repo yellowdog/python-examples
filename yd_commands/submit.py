@@ -304,7 +304,7 @@ def create_task_group(
     num_task_groups = len(tasks_data[TASK_GROUPS])
     num_tasks = len(task_group_data[TASKS])
     task_group_name = get_task_group_name(
-        task_group_data.get(NAME, None),
+        task_group_data.get(NAME, CONFIG_WR.task_group_name),
         tg_number,
         num_task_groups,
         num_tasks,
