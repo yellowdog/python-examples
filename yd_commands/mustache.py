@@ -7,12 +7,10 @@ import sys
 import tempfile
 from datetime import datetime
 from getpass import getuser
-from io import StringIO
 from json import loads as json_loads
 from random import randint
 from typing import Dict, List, Optional, Union
 
-from chevron import render as chevron_render
 from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
@@ -91,32 +89,14 @@ def add_substitutions(subs: Dict):
 def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
     Apply basic Mustache substitutions.
-
-    Note that any unsatisfied directives will simply be erased. This is
-    undesirable. A new version of Chevron needs to be uploaded to PyPI,
-    enabling the 'keep' option. See:
-    https://github.com/noahmorrison/chevron/issues/114#issuecomment-1328948904
     """
     if input_string is None:
         return None
 
-    # Trap stderror to capture Chevron misses, if 'debug' is specified
-    if ARGS_PARSER.debug:
-        error = StringIO()
-        sys.stderr = error
+    for sub, value in MUSTACHE_SUBSTITUTIONS.items():
+        input_string = input_string.replace(f"{{{{{sub}}}}}", value)
 
-    result = chevron_render(
-        input_string, MUSTACHE_SUBSTITUTIONS, warn=ARGS_PARSER.debug
-    )
-
-    # Restore stderror and report missing substitutions
-    if ARGS_PARSER.debug:
-        sys.stderr = sys.__stderr__
-        error_msg = error.getvalue().rstrip()
-        if error_msg != "":
-            print_log(f"Note: Mustache substitution error: '{error_msg}'")
-
-    return result
+    return input_string
 
 
 def process_mustache_substitutions(
