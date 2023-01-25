@@ -41,7 +41,10 @@ from yd_commands.config import (
     load_config_work_requirement,
 )
 from yd_commands.config_keys import *
-from yd_commands.csv_data import load_json_file_with_csv_task_expansion
+from yd_commands.csv_data import (
+    load_json_file_with_csv_task_expansion,
+    perform_csv_task_expansion,
+)
 from yd_commands.interactive import confirmed
 from yd_commands.mustache import (
     LAZY_SUBS_WRAPPER,
@@ -99,7 +102,15 @@ def main():
     csv_files = (
         CONFIG_WR.csv_files if ARGS_PARSER.csv_files is None else ARGS_PARSER.csv_files
     )
-    if wr_data_file is not None:
+
+    if wr_data_file is None and csv_files is not None:
+        tasks_data = csv_expand_toml_tasks(csv_files[0])
+        submit_work_requirement(
+            directory_to_upload_from=CONFIG_FILE_DIR,
+            tasks_data=tasks_data,
+        )
+
+    elif wr_data_file is not None:
         print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
         if wr_data_file.lower().endswith("json"):
             if csv_files is not None:
@@ -123,6 +134,7 @@ def main():
             directory_to_upload_from=dirname(wr_data_file),
             tasks_data=tasks_data,
         )
+
     else:
         task_count = (
             CONFIG_WR.task_count
@@ -1038,6 +1050,36 @@ def submit_json_raw(wr_file: str):
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
+
+
+def csv_expand_toml_tasks(csv_file: str) -> Dict:
+    """
+    When there's a CSV file specified, but no JSON file, create the expanded
+    list of Tasks using the CSV data.
+    """
+    wr_data = {TASK_GROUPS: [{TASKS: [{}]}]}
+    task_proto = wr_data[TASK_GROUPS][0][TASKS][0]
+    for config_value, config_name in [
+        (CONFIG_WR.args, ARGS),
+        (CONFIG_WR.bash_script, BASH_SCRIPT),
+        (CONFIG_WR.capture_taskoutput, CAPTURE_TASKOUTPUT),
+        (CONFIG_WR.docker_env, DOCKER_ENV),
+        (CONFIG_WR.docker_password, DOCKER_PASSWORD),
+        (CONFIG_WR.docker_username, DOCKER_USERNAME),
+        (CONFIG_WR.env, ENV),
+        (CONFIG_WR.executable, EXECUTABLE),
+        (CONFIG_WR.flatten_input_paths, FLATTEN_PATHS),
+        (CONFIG_WR.input_files, INPUT_FILES),
+        (CONFIG_WR.wr_name, NAME),
+        (CONFIG_WR.output_files, OUTPUT_FILES),
+        (CONFIG_WR.task_type, TASK_TYPE),
+        (CONFIG_WR.verify_at_start, VERIFY_AT_START),
+        (CONFIG_WR.verify_wait, VERIFY_WAIT),
+    ]:
+        if config_value is not None:
+            task_proto[config_name] = config_value
+
+    return perform_csv_task_expansion(wr_data, [csv_file])
 
 
 # Standalone entry point

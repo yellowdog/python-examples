@@ -85,6 +85,13 @@ def load_json_file_with_csv_task_expansion(
     with open(json_file, "r") as f:
         wr_data = json_load(f)
 
+    return perform_csv_task_expansion(wr_data, csv_files)
+
+
+def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
+    """
+    Expand a Work Requirement using CSV data.
+    """
     if len(wr_data[TASK_GROUPS]) > len(csv_files):
         print_log(
             f"Warning: Number of Task Groups ({len(wr_data[TASK_GROUPS])}) "

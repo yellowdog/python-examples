@@ -43,6 +43,7 @@
       * [Property Inheritance](#property-inheritance-1)
       * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
       * [Inspecting the Output of CSV Variable Substitution](#inspecting-the-output-of-csv-variable-substitution)
+      * [Using CSV Data with TOML-Only Work Requirement Specifications](#using-csv-data-with-toml-only-work-requirement-specifications)
 * [Worker Pool Properties](#worker-pool-properties)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
@@ -68,7 +69,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Jan 24 08:45:21 GMT 2023 -->
+<!-- Added by: pwt, at: Wed Jan 25 11:44:02 GMT 2023 -->
 
 <!--te-->
 
@@ -372,6 +373,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `arguments`                | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                  | Yes  | Yes | Yes       | Yes  |
 | `captureTaskOutput`        | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                     | Yes  | Yes | Yes       | Yes  |
 | `completedTaskTtl`         | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                     | Yes  | Yes | Yes       |      |
+| `csvFiles`                 | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                        | Yes  |     |           |      |
 | `dependentOn`              | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.             |      |     | Yes       |      |
 | `dockerEnvironment`        | The environment to be passed to a Docker container. Only used by the `docker` Task Type. E.g., JSON: `{"VAR_1": "abc"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.         | Yes  | Yes | Yes       | Yes  |
 | `dockerPassword`           | The password for DockerHub, only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                  | Yes  | Yes | Yes       | Yes  |
@@ -440,6 +442,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     arguments = [1, "TWO"]
     captureTaskOutput = true
     completedTaskTtl = 10
+    csvFiles = ["file1.csv", "file3.csv:3"]
     dockerEnvironment = {MY_DOCKER_VAR = 100}
     dockerPassword = "myPassword"
     dockerUsername = "myUsername"
@@ -844,7 +847,7 @@ CSV data files can be used to generate lists of Tasks, as follows:
 - Each subsequent row of the CSV file represents a new Task built using the prototype, with the variables substituted by the values in the row
 - A Task will be created for each data row
 
-Note that Jsonnet files cannot be used in place of JSON files when using CSV files to generate expanded Task lists.
+(Note that Jsonnet files, discussed later,  cannot be used in place of JSON files when using CSV files to generate expanded Task lists.)
 
 ### Work Requirement CSV Data Example
 
@@ -966,6 +969,16 @@ Note that only one CSV file can be applied to any given Task Group. A single CSV
 ### Inspecting the Output of CSV Variable Substitution
 
 The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance.
+
+### Using CSV Data with TOML-Only Work Requirement Specifications
+
+It's possible to use TOML only to derive a list of Tasks from CSV data -- i.e., the JSON Work Requirement can be omitted. To enable this:
+
+- Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or `--work-requirement` on the command line)
+- Insert the required CSV-supplied Mustache substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
+- Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`
+
+When `yd-submit` is run, it will expand the Task list to match the number data rows in the CSV file.
 
 # Worker Pool Properties
 
