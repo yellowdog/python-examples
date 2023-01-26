@@ -260,12 +260,20 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             check_str(task_type)
             task_type = substitute_mustache_str(task_type)
 
+        csv_file = wr_section.get(CSV_FILE, None)
+        csv_files = wr_section.get(CSV_FILES, None)
+        if csv_file and csv_files:
+            print_error("Only one of 'csvFile' and 'csvFiles' should be set")
+            exit(1)
+        if csv_file:
+            csv_files = [csv_file]
+
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),
             bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
             capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, True),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
-            csv_files=wr_section.get(CSV_FILES, None),
+            csv_files=csv_files,
             docker_env=wr_section.get(DOCKER_ENV, None),
             docker_password=wr_section.get(DOCKER_PASSWORD, None),
             docker_username=wr_section.get(DOCKER_USERNAME, None),

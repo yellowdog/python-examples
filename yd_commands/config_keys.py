@@ -10,6 +10,7 @@ CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
 COMMON_SECTION = "common"
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
+CSV_FILE = "csvFile"  # String
 CSV_FILES = "csvFiles"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String
 DOCKER_ENV = "dockerEnvironment"  # Dictionary
@@ -85,6 +86,7 @@ ALL_KEYS = [
     COMMON_SECTION,
     COMPLETED_TASK_TTL,
     COMPUTE_REQUIREMENT_BATCH_SIZE,
+    CSV_FILE,
     CSV_FILES,
     DEPENDENT_ON,
     DOCKER_ENV,

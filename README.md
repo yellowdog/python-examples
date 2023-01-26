@@ -373,6 +373,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `arguments`                | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                  | Yes  | Yes | Yes       | Yes  |
 | `captureTaskOutput`        | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                     | Yes  | Yes | Yes       | Yes  |
 | `completedTaskTtl`         | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                     | Yes  | Yes | Yes       |      |
+| `csvFile`                  | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv".                  | Yes  |     |           |      |
 | `csvFiles`                 | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                        | Yes  |     |           |      |
 | `dependentOn`              | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.             |      |     | Yes       |      |
 | `dockerEnvironment`        | The environment to be passed to a Docker container. Only used by the `docker` Task Type. E.g., JSON: `{"VAR_1": "abc"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.         | Yes  | Yes | Yes       | Yes  |
@@ -444,6 +445,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     arguments = [1, "TWO"]
     captureTaskOutput = true
     completedTaskTtl = 10
+    csvFile = "file1.csv"
     csvFiles = ["file1.csv", "file3.csv:3"]
     dockerEnvironment = {MY_DOCKER_VAR = 100}
     dockerPassword = "myPassword"
