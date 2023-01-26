@@ -19,17 +19,31 @@ CLIENT = PlatformClient.create(
 )
 
 
+def dry_run() -> bool:
+    """
+    Is this a dry-run?
+    """
+    try:
+        if ARGS_PARSER.dry_run is not None:
+            if ARGS_PARSER.dry_run:
+                return True
+    except AttributeError:
+        pass
+    try:
+        if ARGS_PARSER.process_csv_only is not None:
+            if ARGS_PARSER.process_csv_only:
+                return True
+    except AttributeError:
+        pass
+    return False
+
+
 def print_account():
     """
     Print the six character hexadecimal account ID. Depends on there
-    being at least one Keyring in the account.
+    being at least one Keyring in the account. Omit if this is a dry run.
     """
-    try:
-        if ARGS_PARSER.dry_run:
-            return
-    except AttributeError:
-        pass
-    finally:
+    if not dry_run():
         keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
         for keyring_summary in keyrings:
             # This is a little brittle, obviously
