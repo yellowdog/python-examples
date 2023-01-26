@@ -242,6 +242,11 @@ def _substitions_present(var_names: List[str], task_prototype: str) -> bool:
     """
     return (
         any(f"{{{{{var_name}}}}}" in task_prototype for var_name in var_names)
-        or any(f"{{{{num:{var_name}}}}}" in task_prototype for var_name in var_names)
-        or any(f"{{{{bool:{var_name}}}}}" in task_prototype for var_name in var_names)
+        or any(
+            f"{{{{{NUMBER_SUB}{var_name}}}}}" in task_prototype
+            for var_name in var_names
+        )
+        or any(
+            f"{{{{{BOOL_SUB}{var_name}}}}}" in task_prototype for var_name in var_names
+        )
     )
