@@ -42,7 +42,7 @@ from yd_commands.config import (
 )
 from yd_commands.config_keys import *
 from yd_commands.csv_data import (
-    CSVTaskData,
+    CSV_DATA_FACTORY,
     load_json_file_with_csv_task_expansion,
     perform_csv_task_expansion,
     substitions_present,
@@ -1065,7 +1065,7 @@ def csv_expand_toml_tasks(csv_file: str) -> Dict:
     """
     wr_data = {TASK_GROUPS: [{TASKS: [{}]}]}
     task_proto = wr_data[TASK_GROUPS][0][TASKS][0]
-    csv_data = CSVTaskData(csv_file.split(":")[0])
+    csv_data = CSV_DATA_FACTORY.get_csv_task_data(csv_file.split(":")[0])
     for config_value, config_name in [
         (CONFIG_WR.args, ARGS),
         (CONFIG_WR.bash_script, BASH_SCRIPT),

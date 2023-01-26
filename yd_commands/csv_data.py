@@ -74,6 +74,28 @@ class CSVTaskData:
         return self._total_tasks - self._index
 
 
+class CSVDataFactory:
+    """
+    Caches CSV data to prevent multiple loads of the same CSV file
+    """
+
+    def __init__(self):
+        self._csv_task_data_objects: Dict[str, CSVTaskData] = {}
+
+    def get_csv_task_data(self, csv_filename: str) -> CSVTaskData:
+        csv_task_data = self._csv_task_data_objects.get(csv_filename, None)
+        if csv_task_data:
+            csv_task_data.reset()
+        else:
+            csv_task_data = CSVTaskData(csv_filename)
+            self._csv_task_data_objects[csv_filename] = csv_task_data
+        return csv_task_data
+
+
+# Singleton instance of the CSVDataFactory class
+CSV_DATA_FACTORY = CSVDataFactory()
+
+
 def load_json_file_with_csv_task_expansion(
     json_file: str, csv_files: List[str]
 ) -> Dict:
@@ -117,7 +139,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
                 "when using CSV file for data"
             )
 
-        csv_data = CSVTaskData(csv_file)
+        csv_data = CSV_DATA_FACTORY.get_csv_task_data(csv_file)
         task_prototype = task_group[TASKS][0]
 
         if not substitions_present(csv_data.var_names, str(task_prototype)):
@@ -138,7 +160,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
         print_log(f"Generated {len(generated_task_list)} Task(s) from CSV data")
 
     if ARGS_PARSER.process_csv_only:
-        print_log("Processing CSV substitutions only")
+        print_log("Displaying CSV substitutions only:")
         print_json(wr_data)
         exit(0)
 
