@@ -120,7 +120,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
         csv_data = CSVTaskData(csv_file)
         task_prototype = task_group[TASKS][0]
 
-        if not _substitions_present(csv_data.var_names, str(task_prototype)):
+        if not substitions_present(csv_data.var_names, str(task_prototype)):
             print_log(
                 f"Warning: No CSV substitutions to apply to Task Group "
                 f"{index + 1}; not expanding Task list"
@@ -236,7 +236,7 @@ def _get_csv_file_index(
     return csv_filename, None
 
 
-def _substitions_present(var_names: List[str], task_prototype: str) -> bool:
+def substitions_present(var_names: List[str], task_prototype: str) -> bool:
     """
     Check if there are any CSV substitutions present in the Task prototype.
     """

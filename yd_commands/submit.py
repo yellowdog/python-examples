@@ -42,8 +42,10 @@ from yd_commands.config import (
 )
 from yd_commands.config_keys import *
 from yd_commands.csv_data import (
+    CSVTaskData,
     load_json_file_with_csv_task_expansion,
     perform_csv_task_expansion,
+    substitions_present,
 )
 from yd_commands.interactive import confirmed
 from yd_commands.mustache import (
@@ -1063,6 +1065,7 @@ def csv_expand_toml_tasks(csv_file: str) -> Dict:
     """
     wr_data = {TASK_GROUPS: [{TASKS: [{}]}]}
     task_proto = wr_data[TASK_GROUPS][0][TASKS][0]
+    csv_data = CSVTaskData(csv_file.split(":")[0])
     for config_value, config_name in [
         (CONFIG_WR.args, ARGS),
         (CONFIG_WR.bash_script, BASH_SCRIPT),
@@ -1080,7 +1083,9 @@ def csv_expand_toml_tasks(csv_file: str) -> Dict:
         (CONFIG_WR.verify_at_start, VERIFY_AT_START),
         (CONFIG_WR.verify_wait, VERIFY_WAIT),
     ]:
-        if config_value is not None:
+        if config_value is not None and substitions_present(
+            csv_data.var_names, str(config_value)
+        ):
             task_proto[config_name] = config_value
 
     return perform_csv_task_expansion(wr_data, [csv_file])
