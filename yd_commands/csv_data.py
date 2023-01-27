@@ -114,7 +114,7 @@ class CSVDataCache:
         return csv_task_data
 
 
-# Singleton instance of the CSVDataFactory class
+# Singleton instance of the CSVDataCache class
 CSV_DATA_CACHE = CSVDataCache(max_entries=2)
 
 
