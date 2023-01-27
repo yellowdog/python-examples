@@ -353,6 +353,15 @@ class CLIParser:
                 metavar="<compute_requirement.json>",
             )
 
+        if "admin" in sys.argv[0]:
+            parser.add_argument(
+                "work_requirement_id",
+                metavar="<work_requirement_id>",
+                type=str,
+                nargs="*",
+                help="work requirement to be refreshed",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -516,6 +525,10 @@ class CLIParser:
     @property
     def process_csv_only(self) -> Optional[bool]:
         return self.args.process_csv_only
+
+    @property
+    def wr_ids(self) -> Optional[List[str]]:
+        return self.args.work_requirement_id
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
