@@ -34,6 +34,7 @@
       * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
+      * [Other File Dependencies: Using verifyAtStart and verifyWait](#other-file-dependencies-using-verifyatstart-and-verifywait)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
@@ -69,7 +70,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Wed Jan 25 11:44:02 GMT 2023 -->
+<!-- Added by: pwt, at: Fri Jan 27 18:12:22 GMT 2023 -->
 
 <!--te-->
 
@@ -767,6 +768,36 @@ The `flattenUploadPaths` property can be used to suppress the mirroring of any l
 ```
 
 The property default is `false`. This property **can only be set at the Work Requirement level** and will therefore apply to all Task Groups and Tasks within a Work Requirement.
+
+### Other File Dependencies: Using `verifyAtStart` and `verifyWait`
+
+It's possible to make Tasks dependent on the presence of other files, using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are either uploaded manually, or are created as a result of the execution of other Tasks.
+
+Note that a given file can only appear in *one* of the `inputs`, `verifyAtStart` or `verifyWait` lists.
+
+Tasks with `verifyAtStart` dependencies will fail immediately if the required files are not present when the Task is submitted. Tasks with `verifyWait` dependencies will not become `READY` to be scheduled to Workers until the dependencies are satisfied.
+
+When specifying files in the `verifyAtStart` and `verifyWait` lists, the file locations can be (1) relative to the Work Requirement name in the current namespace (the default), (2) relative to the root of the current namespace, or (3) relative to the root of a different namespace in the user's Account.
+
+1. For files relative to the Work Requirement name in the current namespace, just use the file path, e.g.
+```shell
+"verifyWait": ["file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
+```
+
+2. For files relative to the root of the current namespace, prefix the file path with `::`, e.g.
+```shell
+"verifyWait": ["::file_1.txt"] -> development:file_1.txt
+```
+
+3. For files relative to the root of a different namespace, prefix the file path with the namespace name and `::`, e.g.
+```shell
+"verifyWait": ["other_namespace::file_1.txt"] -> other_namespace:file_1.txt
+```
+
+The use of the three different forms can be mixed within a single list, e.g.:
+```shell
+"verifyAtStart": ["file_1.txt", "::dir_2/file_2.txt", "other_namespace::dir_3/file_3.txt"]
+```
 
 ### Files Downloaded to a Node for use in Task Execution
 

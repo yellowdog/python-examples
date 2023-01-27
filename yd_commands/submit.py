@@ -569,20 +569,13 @@ def add_tasks_to_task_group(
                 )
                 for file in input_files_list
             ]
-            verify_at_start = [
-                TaskInput.from_task_namespace(
-                    f"{ID}/{file}", verification=TaskInputVerification.VERIFY_AT_START
-                )
-                for file in verify_at_start_files_list
-            ]
-            input_files += verify_at_start
-            verify_wait = [
-                TaskInput.from_task_namespace(
-                    f"{ID}/{file}", verification=TaskInputVerification.VERIFY_WAIT
-                )
-                for file in verify_wait_files_list
-            ]
-            input_files += verify_wait
+
+            input_files += generate_verify_file_list(
+                verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START
+            )
+            input_files += generate_verify_file_list(
+                verify_wait_files_list, TaskInputVerification.VERIFY_WAIT
+            )
 
             # Set up output files
             output_files = [
@@ -862,7 +855,7 @@ def create_task(
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
     # Special processing for Bash tasks. The Bash script is uploaded if this
-    # hasn't already been done, and added it's to the list of required files.
+    # hasn't already been done, and it's added to the list of required files.
     if task_type == "bash":
         if executable is None:
             raise Exception("No 'executable' specified for 'bash' Task Type")
@@ -1076,6 +1069,57 @@ def submit_json_raw(wr_file: str):
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
+
+
+def generate_verify_file_list(
+    files: List[str], verification: TaskInputVerification
+) -> List[TaskInput]:
+    """
+    Generate a TaskInput list, accommodating files located
+    relative to the root of the namespace, relative to the
+    root of a different namespace, and relative to the directory
+    specific to this Work Requirement.
+    """
+    separator = "::"
+
+    task_input_list: List[TaskInput] = []
+    for file in files:
+        try:
+            file_parts = file.split(separator)
+            if len(file_parts) > 2:
+                raise Exception
+
+            # Start at the root of the current namespace
+            if file_parts[0] == "":
+                task_input_list.append(
+                    TaskInput.from_task_namespace(
+                        f"{file_parts[1]}", verification=verification
+                    )
+                )
+
+            # Start at the root of a different namespace
+            elif len(file_parts[0]) > 0:
+                task_input_list.append(
+                    TaskInput.from_namespace(
+                        namespace=file_parts[0],
+                        object_name_pattern=f"{file_parts[1]}",
+                        verification=verification,
+                    )
+                )
+
+            # Use the Work Requirement ID as the directory within the
+            # current namespace
+            else:
+                task_input_list.append(
+                    TaskInput.from_task_namespace(
+                        f"{ID}/{file_parts[0]}", verification=verification
+                    )
+                )
+
+        except:
+            raise Exception(f"Malformed file specification: '{file}'")
+
+    return task_input_list
 
 
 # Standalone entry point
