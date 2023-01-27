@@ -5,6 +5,7 @@ Module for handling Task data supplied in a CSV file
 import csv
 import re
 from ast import literal_eval
+from collections import OrderedDict
 from json import load as json_load
 from typing import Dict, List, Optional
 
@@ -80,21 +81,34 @@ class CSVDataCache:
     Caches CSV data to prevent multiple loads of the same CSV file
     """
 
-    def __init__(self):
-        self._csv_task_data_objects: Dict[str, CSVTaskData] = {}
+    def __init__(self, max_entries: Optional[int] = None):
+        """
+        'max_entries' limits the size of the cache.
+        - Use default 'None' for unlimited caching
+        - Set to zero to disable caching
+        """
+        self._max_entries: Optional[int] = max_entries
+        self._csv_task_data_objects: OrderedDict[str, CSVTaskData] = OrderedDict()
 
     def get_csv_task_data(self, csv_filename: str) -> CSVTaskData:
         csv_task_data = self._csv_task_data_objects.get(csv_filename, None)
-        if csv_task_data:
+        if csv_task_data:  # Cache hit
             csv_task_data.reset()
-        else:
+        else:  # Cache miss
+            if self._max_entries is not None:
+                if (
+                    len(self._csv_task_data_objects) == self._max_entries
+                    and len(self._csv_task_data_objects) > 0
+                ):
+                    self._csv_task_data_objects.popitem(last=False)
             csv_task_data = CSVTaskData(csv_filename)
-            self._csv_task_data_objects[csv_filename] = csv_task_data
+            if self._max_entries != 0:
+                self._csv_task_data_objects[csv_filename] = csv_task_data
         return csv_task_data
 
 
 # Singleton instance of the CSVDataFactory class
-CSV_DATA_CACHE = CSVDataCache()
+CSV_DATA_CACHE = CSVDataCache(max_entries=2)
 
 
 def load_json_file_with_csv_task_expansion(
