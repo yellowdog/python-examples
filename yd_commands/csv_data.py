@@ -9,6 +9,7 @@ from json import load as json_load
 from typing import Dict, List, Optional
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.config import ConfigWorkRequirement
 from yd_commands.config_keys import *
 from yd_commands.mustache import BOOL_SUB, NUMBER_SUB, process_mustache_substitutions
 from yd_commands.printing import print_json, print_log
@@ -74,7 +75,7 @@ class CSVTaskData:
         return self._total_tasks - self._index
 
 
-class CSVDataFactory:
+class CSVDataCache:
     """
     Caches CSV data to prevent multiple loads of the same CSV file
     """
@@ -93,7 +94,7 @@ class CSVDataFactory:
 
 
 # Singleton instance of the CSVDataFactory class
-CSV_DATA_FACTORY = CSVDataFactory()
+CSV_DATA_CACHE = CSVDataCache()
 
 
 def load_json_file_with_csv_task_expansion(
@@ -125,7 +126,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
         raise Exception("Number of CSV files exceeds number of Task Groups")
 
     for counter, csv_file in enumerate(csv_files):
-        csv_file, index = _get_csv_file_index(csv_file, wr_data[TASK_GROUPS])
+        csv_file, index = get_csv_file_index(csv_file, wr_data[TASK_GROUPS])
         if index is None:
             index = counter
 
@@ -139,7 +140,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
                 "when using CSV file for data"
             )
 
-        csv_data = CSV_DATA_FACTORY.get_csv_task_data(csv_file)
+        csv_data = CSV_DATA_CACHE.get_csv_task_data(csv_file)
         task_prototype = task_group[TASKS][0]
 
         if not substitions_present(csv_data.var_names, str(task_prototype)):
@@ -152,9 +153,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
         generated_task_list = []
         for task_data in csv_data:
             generated_task_list.append(
-                _csv_mustache_substitution(
-                    task_prototype, csv_data.var_names, task_data
-                )
+                csv_mustache_substitution(task_prototype, csv_data.var_names, task_data)
             )
         task_group[TASKS] = generated_task_list
         print_log(f"Generated {len(generated_task_list)} Task(s) from CSV data")
@@ -169,7 +168,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
     return wr_data
 
 
-def _csv_mustache_substitution(
+def csv_mustache_substitution(
     task_prototype: Dict, csv_var_names: List, task_data: List
 ) -> Dict:
     """
@@ -179,11 +178,11 @@ def _csv_mustache_substitution(
     subs_dict = {var_name: task_data[i] for i, var_name in enumerate(csv_var_names)}
     new_task = str(task_prototype)
     for var_name, value in subs_dict.items():
-        new_task = _make_string_substitutions(new_task, var_name, value)
+        new_task = make_string_substitutions(new_task, var_name, value)
     return literal_eval(new_task)  # Convert back from string
 
 
-def _make_string_substitutions(input: str, var_name: str, value: str) -> str:
+def make_string_substitutions(input: str, var_name: str, value: str) -> str:
     """
     Helper function to make string substitutions for CSV variables only.
     """
@@ -213,7 +212,7 @@ def _make_string_substitutions(input: str, var_name: str, value: str) -> str:
 USED_FILE_INDEXES = []
 
 
-def _get_csv_file_index(
+def get_csv_file_index(
     csv_filename: str, task_groups: List[Dict]
 ) -> [str, Optional[int]]:
     """
@@ -272,3 +271,36 @@ def substitions_present(var_names: List[str], task_prototype: str) -> bool:
             f"{{{{{BOOL_SUB}{var_name}}}}}" in task_prototype for var_name in var_names
         )
     )
+
+
+def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Dict:
+    """
+    When there's a CSV file specified, but no JSON file, create the expanded
+    list of Tasks using the CSV data.
+    """
+    wr_data = {TASK_GROUPS: [{TASKS: [{}]}]}
+    task_proto = wr_data[TASK_GROUPS][0][TASKS][0]
+    csv_data = CSV_DATA_CACHE.get_csv_task_data(csv_file.split(":")[0])
+    for config_value, config_name in [
+        (config_wr.args, ARGS),
+        (config_wr.bash_script, BASH_SCRIPT),
+        (config_wr.capture_taskoutput, CAPTURE_TASKOUTPUT),
+        (config_wr.docker_env, DOCKER_ENV),
+        (config_wr.docker_password, DOCKER_PASSWORD),
+        (config_wr.docker_username, DOCKER_USERNAME),
+        (config_wr.env, ENV),
+        (config_wr.executable, EXECUTABLE),
+        (config_wr.flatten_input_paths, FLATTEN_PATHS),
+        (config_wr.input_files, INPUT_FILES),
+        (config_wr.output_files, OUTPUT_FILES),
+        (config_wr.task_name, TASK_NAME),
+        (config_wr.task_type, TASK_TYPE),
+        (config_wr.verify_at_start, VERIFY_AT_START),
+        (config_wr.verify_wait, VERIFY_WAIT),
+    ]:
+        if config_value is not None and substitions_present(
+            csv_data.var_names, str(config_value)
+        ):
+            task_proto[config_name] = config_value
+
+    return perform_csv_task_expansion(wr_data, [csv_file])

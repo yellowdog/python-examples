@@ -42,10 +42,8 @@ from yd_commands.config import (
 )
 from yd_commands.config_keys import *
 from yd_commands.csv_data import (
-    CSV_DATA_FACTORY,
+    csv_expand_toml_tasks,
     load_json_file_with_csv_task_expansion,
-    perform_csv_task_expansion,
-    substitions_present,
 )
 from yd_commands.interactive import confirmed
 from yd_commands.mustache import (
@@ -106,7 +104,7 @@ def main():
     )
 
     if wr_data_file is None and csv_files is not None:
-        tasks_data = csv_expand_toml_tasks(csv_files[0])
+        tasks_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0])
         submit_work_requirement(
             directory_to_upload_from=CONFIG_FILE_DIR,
             tasks_data=tasks_data,
@@ -1056,39 +1054,6 @@ def submit_json_raw(wr_file: str):
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
-
-
-def csv_expand_toml_tasks(csv_file: str) -> Dict:
-    """
-    When there's a CSV file specified, but no JSON file, create the expanded
-    list of Tasks using the CSV data.
-    """
-    wr_data = {TASK_GROUPS: [{TASKS: [{}]}]}
-    task_proto = wr_data[TASK_GROUPS][0][TASKS][0]
-    csv_data = CSV_DATA_FACTORY.get_csv_task_data(csv_file.split(":")[0])
-    for config_value, config_name in [
-        (CONFIG_WR.args, ARGS),
-        (CONFIG_WR.bash_script, BASH_SCRIPT),
-        (CONFIG_WR.capture_taskoutput, CAPTURE_TASKOUTPUT),
-        (CONFIG_WR.docker_env, DOCKER_ENV),
-        (CONFIG_WR.docker_password, DOCKER_PASSWORD),
-        (CONFIG_WR.docker_username, DOCKER_USERNAME),
-        (CONFIG_WR.env, ENV),
-        (CONFIG_WR.executable, EXECUTABLE),
-        (CONFIG_WR.flatten_input_paths, FLATTEN_PATHS),
-        (CONFIG_WR.input_files, INPUT_FILES),
-        (CONFIG_WR.output_files, OUTPUT_FILES),
-        (CONFIG_WR.task_name, TASK_NAME),
-        (CONFIG_WR.task_type, TASK_TYPE),
-        (CONFIG_WR.verify_at_start, VERIFY_AT_START),
-        (CONFIG_WR.verify_wait, VERIFY_WAIT),
-    ]:
-        if config_value is not None and substitions_present(
-            csv_data.var_names, str(config_value)
-        ):
-            task_proto[config_name] = config_value
-
-    return perform_csv_task_expansion(wr_data, [csv_file])
 
 
 # Standalone entry point
