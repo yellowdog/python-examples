@@ -9,6 +9,8 @@ from collections import OrderedDict
 from json import load as json_load
 from typing import Dict, List, Optional
 
+from toml import load as toml_load
+
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import ConfigWorkRequirement
 from yd_commands.config_keys import *
@@ -131,14 +133,29 @@ def load_json_file_with_csv_task_expansion(
 
 
 def load_jsonnet_file_with_csv_task_expansion(
-    json_file: str, csv_files: List[str]
+    jsonnet_file: str, csv_files: List[str]
 ) -> Dict:
     """
     Load a Jsonnet file, expanding its Task lists using data from CSV
     files. Return the expanded and Mustache-processed Work Requirement data.
     """
 
-    wr_data = load_jsonnet_file_with_mustache_substitutions(json_file)
+    wr_data = load_jsonnet_file_with_mustache_substitutions(jsonnet_file)
+    return perform_csv_task_expansion(wr_data, csv_files)
+
+
+def load_toml_file_with_csv_task_expansion(
+    toml_file: str, csv_files: List[str]
+) -> Dict:
+    """
+    Load a TOML file Work Requirement, expanding its Task lists using data
+    from CSV files. Return the expanded and Mustache-processed Work Requirement
+    data.
+    """
+
+    with open(toml_file, "r") as f:
+        wr_data = toml_load(f)
+
     return perform_csv_task_expansion(wr_data, csv_files)
 
 

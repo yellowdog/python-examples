@@ -45,6 +45,7 @@ from yd_commands.csv_data import (
     csv_expand_toml_tasks,
     load_json_file_with_csv_task_expansion,
     load_jsonnet_file_with_csv_task_expansion,
+    load_toml_file_with_csv_task_expansion,
 )
 from yd_commands.interactive import confirmed
 from yd_commands.mustache import (
@@ -113,6 +114,8 @@ def main():
 
     elif wr_data_file is not None:
         print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
+
+        # JSON file
         if wr_data_file.lower().endswith("json"):
             if csv_files is not None:
                 tasks_data = load_json_file_with_csv_task_expansion(
@@ -121,20 +124,32 @@ def main():
                 )
             else:
                 tasks_data = load_json_file_with_mustache_substitutions(wr_data_file)
-        elif wr_data_file.lower().endswith("toml"):
-            tasks_data = load_toml_file_with_mustache_substitutions(wr_data_file)
+
+        # Jsonnet file
         elif wr_data_file.lower().endswith("jsonnet"):
             if csv_files is not None:
                 tasks_data = load_jsonnet_file_with_csv_task_expansion(
-                    json_file=wr_data_file,
+                    jsonnet_file=wr_data_file,
                     csv_files=csv_files,
                 )
             else:
                 tasks_data = load_jsonnet_file_with_mustache_substitutions(wr_data_file)
+
+        # TOML file (undocumented)
+        elif wr_data_file.lower().endswith("toml"):
+            if csv_files is not None:
+                tasks_data = load_toml_file_with_csv_task_expansion(
+                    toml_file=wr_data_file,
+                    csv_files=csv_files,
+                )
+            else:
+                tasks_data = load_toml_file_with_mustache_substitutions(wr_data_file)
+
+        # None of the above
         else:
             raise Exception(
                 f"Work Requirement data file '{wr_data_file}' "
-                "must end with '.json', '.toml' or 'jsonnet'"
+                "must end with '.json', '.jsonnet', or '.toml'"
             )
         validate_properties(tasks_data, "Work Requirement JSON")
         submit_work_requirement(
