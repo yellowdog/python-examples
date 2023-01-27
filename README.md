@@ -853,8 +853,6 @@ CSV data files can be used to generate lists of Tasks, as follows:
 - Each subsequent row of the CSV file represents a new Task built using the prototype, with the variables substituted by the values in the row
 - A Task will be created for each data row
 
-(Note that Jsonnet files, discussed later,  cannot be used in place of JSON files when using CSV files to generate expanded Task lists.)
-
 ### Work Requirement CSV Data Example
 
 As an example, consider the following JSON Work Requirement `wr.json`:

@@ -12,7 +12,12 @@ from typing import Dict, List, Optional
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import ConfigWorkRequirement
 from yd_commands.config_keys import *
-from yd_commands.mustache import BOOL_SUB, NUMBER_SUB, process_mustache_substitutions
+from yd_commands.mustache import (
+    BOOL_SUB,
+    NUMBER_SUB,
+    load_jsonnet_file_with_mustache_substitutions,
+    process_mustache_substitutions,
+)
 from yd_commands.printing import print_json, print_log
 
 
@@ -122,6 +127,18 @@ def load_json_file_with_csv_task_expansion(
     with open(json_file, "r") as f:
         wr_data = json_load(f)
 
+    return perform_csv_task_expansion(wr_data, csv_files)
+
+
+def load_jsonnet_file_with_csv_task_expansion(
+    json_file: str, csv_files: List[str]
+) -> Dict:
+    """
+    Load a Jsonnet file, expanding its Task lists using data from CSV
+    files. Return the expanded and Mustache-processed Work Requirement data.
+    """
+
+    wr_data = load_jsonnet_file_with_mustache_substitutions(json_file)
     return perform_csv_task_expansion(wr_data, csv_files)
 
 

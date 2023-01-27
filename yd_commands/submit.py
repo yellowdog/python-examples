@@ -44,6 +44,7 @@ from yd_commands.config_keys import *
 from yd_commands.csv_data import (
     csv_expand_toml_tasks,
     load_json_file_with_csv_task_expansion,
+    load_jsonnet_file_with_csv_task_expansion,
 )
 from yd_commands.interactive import confirmed
 from yd_commands.mustache import (
@@ -123,7 +124,13 @@ def main():
         elif wr_data_file.lower().endswith("toml"):
             tasks_data = load_toml_file_with_mustache_substitutions(wr_data_file)
         elif wr_data_file.lower().endswith("jsonnet"):
-            tasks_data = load_jsonnet_file_with_mustache_substitutions(wr_data_file)
+            if csv_files is not None:
+                tasks_data = load_jsonnet_file_with_csv_task_expansion(
+                    json_file=wr_data_file,
+                    csv_files=csv_files,
+                )
+            else:
+                tasks_data = load_jsonnet_file_with_mustache_substitutions(wr_data_file)
         else:
             raise Exception(
                 f"Work Requirement data file '{wr_data_file}' "
