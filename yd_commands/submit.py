@@ -105,6 +105,11 @@ def main():
         CONFIG_WR.csv_files if ARGS_PARSER.csv_files is None else ARGS_PARSER.csv_files
     )
 
+    if not csv_files and ARGS_PARSER.process_csv_only:
+        raise Exception(
+            "Option '--process-csv-only' is only valid if CSV file(s) specified"
+        )
+
     if wr_data_file is None and csv_files is not None:
         tasks_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0])
         submit_work_requirement(
