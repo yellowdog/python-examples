@@ -34,7 +34,7 @@
       * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
-      * [Other File Dependencies: Using verifyAtStart and verifyWait](#other-file-dependencies-using-verifyatstart-and-verifywait)
+      * [Specifying File Dependencies: Using verifyAtStart and verifyWait](#specifying-file-dependencies-using-verifyatstart-and-verifywait)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
@@ -70,7 +70,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Jan 27 18:12:22 GMT 2023 -->
+<!-- Added by: pwt, at: Sat Jan 28 21:11:57 GMT 2023 -->
 
 <!--te-->
 
@@ -357,7 +357,7 @@ To specify the file containing the JSON document, either populate the `workRequi
 
 ## Property Inheritance
 
-To simplify and optimise the definition of Work Requirements, there is a property inheritance mechanism. Properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
+To simplify and streamline the definition of Work Requirements, there is a property inheritance mechanism. Properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
 
 This means that a property set in the `workRequirement` section of the TOML file can be inherited successively by the Work Requirement, Task Groups and Tasks in the JSON document (assuming the property is valid at each level).  Hence, Tasks inherit from Task Groups, which inherit from the Work Requirement in the JSON document, which inherits from the `workRequirement` properties in the TOML file.
 
@@ -671,7 +671,7 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 The dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON form is a consolidated form of exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. Also, in actual API submissions, the Work Requirement and Task Groups are submitted first, and Tasks are added in a subsequent call, so the unified JSON document is just a convenience.
+Note that the generated JSON is a consolidated form of exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. Also, in actual API submissions, the Work Requirement and Task Groups are submitted first, and Tasks are added in subsequent calls, so the unified JSON document is just for convenience.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
@@ -769,9 +769,9 @@ The `flattenUploadPaths` property can be used to suppress the mirroring of any l
 
 The property default is `false`. This property **can only be set at the Work Requirement level** and will therefore apply to all Task Groups and Tasks within a Work Requirement.
 
-### Other File Dependencies: Using `verifyAtStart` and `verifyWait`
+### Specifying File Dependencies: Using `verifyAtStart` and `verifyWait`
 
-It's possible to make Tasks dependent on the presence of other files, using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are either uploaded manually, or are created as a result of the execution of other Tasks.
+It's possible to make Tasks dependent on the presence of files by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are either uploaded manually (e.g., by using `yd-upload`), or are created as a result of the execution of other Tasks.
 
 Note that a given file can only appear in *one* of the `inputs`, `verifyAtStart` or `verifyWait` lists.
 
