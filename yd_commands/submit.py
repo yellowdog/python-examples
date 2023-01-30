@@ -82,7 +82,7 @@ from yd_commands.upload_utils import unique_upload_pathname
 from yd_commands.validate_properties import validate_properties
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
-# Import the configuration from the TOML file
+# Import the Work Requirement configuration from the TOML file
 CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 
 
@@ -726,6 +726,7 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
         return
 
     def _delete_objects():
+        # Delete 'inputs' objects
         object_paths: List[
             ObjectPath
         ] = CLIENT.object_store_client.get_namespace_object_paths(
@@ -736,12 +737,15 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
             if work_requirement.name in object_path.name:
                 object_paths_to_delete.append(object_path)
         if len(object_paths_to_delete) > 0:
+            print_log(f"Deleting all input objects under '{work_requirement.name}'")
             CLIENT.object_store_client.delete_objects(
                 CONFIG_COMMON.namespace, object_paths=object_paths_to_delete
             )
-            print_log(f"Deleted all Objects under '{work_requirement.name}'")
         else:
-            print_log("No Objects to Delete")
+            print_log("No input objects to delete")
+
+        # Delete 'uploadFiles' objects
+        UPLOADED_FILES.delete_uploaded_files()
 
     CLIENT.work_client.cancel_work_requirement(work_requirement)
     print_log(f"Cancelled Work Requirement '{work_requirement.name}'")

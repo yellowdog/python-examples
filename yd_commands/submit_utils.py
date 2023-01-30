@@ -6,9 +6,14 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from yellowdog_client import PlatformClient
-from yellowdog_client.model import TaskInput, TaskInputVerification
+from yellowdog_client.model import (
+    ObjectPath,
+    TaskInput,
+    TaskInputVerification,
+)
 
 from yd_commands.config import ConfigCommon
+from yd_commands.printing import print_error, print_log
 from yd_commands.upload_utils import upload_file, upload_file_core
 from yd_commands.wrapper import ARGS_PARSER
 
@@ -109,7 +114,7 @@ def upload_input_file(
 @dataclass
 class UploadedFile:
     original_file_path: str
-    namespace: Optional[str]
+    namespace: str
     uploaded_file_path: str
 
 
@@ -139,13 +144,35 @@ class UploadedFiles:
         namespace, uploaded_file_path = get_namespace_and_filepath(
             upload_path, self._wr_name
         )
-
+        namespace = self._config.namespace if namespace is None else namespace
         upload_file_core(
             client=self._client,
             url=self._config.url,
             local_file=upload_file,
-            namespace=self._config.namespace if namespace is None else namespace,
+            namespace=namespace,
             remote_file=uploaded_file_path,
         )
 
-        self._uploaded_files.append(UploadedFile(upload_file, namespace, upload_path))
+        self._uploaded_files.append(
+            UploadedFile(upload_file, namespace, uploaded_file_path)
+        )
+
+    def delete_uploaded_files(self):
+        """
+        Delete all files that have been uploaded.
+        """
+        for namespace in {uf.namespace for uf in self._uploaded_files}:
+            object_paths = [
+                ObjectPath(uf.uploaded_file_path)
+                for uf in self._uploaded_files
+                if uf.namespace == namespace
+            ]
+            print_log(
+                f"Deleting {len(object_paths)} uploaded object(s) in "
+                f"namespace '{namespace}'"
+            )
+            try:
+                self._client.object_store_client.delete_objects(namespace, object_paths)
+            except:
+                print_error("Failed to delete one or more objects")
+        self._uploaded_files = []
