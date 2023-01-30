@@ -65,6 +65,11 @@ from yd_commands.printing import (
     print_log,
     print_numbered_strings,
 )
+from yd_commands.submit_utils import (
+    UploadedFiles,
+    generate_task_input_list,
+    upload_input_file,
+)
 from yd_commands.type_check import (
     check_bool,
     check_dict,
@@ -73,7 +78,7 @@ from yd_commands.type_check import (
     check_list,
     check_str,
 )
-from yd_commands.upload_utils import unique_upload_pathname, upload_file
+from yd_commands.upload_utils import unique_upload_pathname
 from yd_commands.validate_properties import validate_properties
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -87,6 +92,8 @@ INPUT_FOLDER_NAME = None
 
 if ARGS_PARSER.dry_run:
     WR_SNAPSHOT = WorkRequirementSnapshot()
+
+UPLOADED_FILES: Optional[UploadedFiles] = None
 
 
 @main_wrapper
@@ -203,6 +210,10 @@ def submit_work_requirement(
     global ID
     ID = tasks_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
 
+    # Handle files that appear in any 'upload_files' properties
+    global UPLOADED_FILES
+    UPLOADED_FILES = UploadedFiles(client=CLIENT, wr_name=ID, config=CONFIG_COMMON)
+
     # Ensure we're in the correct directory for uploads
     if directory_to_upload_from != "":
         chdir(directory_to_upload_from)
@@ -246,8 +257,8 @@ def submit_work_requirement(
         global WR_SNAPSHOT
         WR_SNAPSHOT.set_work_requirement(work_requirement)
 
-    # Keep track of uploaded files
-    uploaded_files = []
+    # Keep track of uploaded files in the 'inputs' lists
+    input_files_uploaded = []
 
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
@@ -257,17 +268,15 @@ def submit_work_requirement(
                 if len(input_files_by_task_group[tg_number]) > 0:
                     print_log(f"Uploading files for Task Group '{task_group.name}'")
                 for input_file in input_files_by_task_group[tg_number]:
-                    if input_file not in uploaded_files:
-                        upload_file(
-                            client=CLIENT,
-                            filename=input_file,
-                            namespace=CONFIG_COMMON.namespace,
-                            id=ID,
-                            url=CONFIG_COMMON.url,
-                            input_folder_name=INPUT_FOLDER_NAME,
-                            flatten_upload_paths=flatten_upload_paths,
-                        )
-                        uploaded_files.append(input_file)
+                    upload_input_file(
+                        CLIENT,
+                        CONFIG_COMMON,
+                        input_file,
+                        ID,
+                        input_files_uploaded,
+                        INPUT_FOLDER_NAME,
+                        flatten_upload_paths,
+                    )
 
             # Add the Tasks
             add_tasks_to_task_group(
@@ -276,7 +285,7 @@ def submit_work_requirement(
                 tasks_data,
                 task_count,
                 work_requirement,
-                uploaded_files,
+                input_files_uploaded,
                 flatten_upload_paths=flatten_upload_paths,
             )
 
@@ -575,12 +584,31 @@ def add_tasks_to_task_group(
                 for file in input_files_list
             ]
 
-            input_files += generate_verify_file_list(
-                verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START
+            input_files += generate_task_input_list(
+                verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START, ID
             )
-            input_files += generate_verify_file_list(
-                verify_wait_files_list, TaskInputVerification.VERIFY_WAIT
+            input_files += generate_task_input_list(
+                verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
             )
+
+            # Upload any files in the 'uploadFiles' lists
+            upload_files = check_list(
+                task.get(
+                    UPLOAD_FILES,
+                    task_group_data.get(
+                        UPLOAD_FILES,
+                        tasks_data.get(UPLOAD_FILES, CONFIG_WR.upload_files),
+                    ),
+                )
+            )
+            for file in upload_files:
+                try:
+                    UPLOADED_FILES.add_upload_file(file[LOCAL_PATH], file[UPLOAD_PATH])
+                except KeyError:
+                    raise Exception(
+                        f"Property '{UPLOAD_FILES}' must have entries with "
+                        f"properties '{LOCAL_PATH}' and '{UPLOAD_PATH}'"
+                    )
 
             # Set up output files
             output_files = [
@@ -864,17 +892,16 @@ def create_task(
     if task_type == "bash":
         if executable is None:
             raise Exception("No 'executable' specified for 'bash' Task Type")
-        if executable not in uploaded_files and not ARGS_PARSER.dry_run:
-            upload_file(
-                client=CLIENT,
-                filename=executable,
-                id=ID,
-                namespace=CONFIG_COMMON.namespace,
-                url=CONFIG_COMMON.url,
-                input_folder_name=INPUT_FOLDER_NAME,
-                flatten_upload_paths=flatten_upload_paths,
-            )
-            uploaded_files.append(executable)
+        upload_input_file(
+            CLIENT,
+            CONFIG_COMMON,
+            executable,
+            ID,
+            uploaded_files,
+            INPUT_FOLDER_NAME,
+            flatten_upload_paths,
+        )
+
         task_input = TaskInput.from_task_namespace(
             unique_upload_pathname(
                 filename=executable,
@@ -1035,8 +1062,7 @@ def submit_json_raw(wr_file: str):
             )
             print_numbered_strings(sorted(list(input_files)))
             if not confirmed(
-                "Now proceed with Task submission (Y/y), or "
-                "Cancel Work Requirement (N)?"
+                "Proceed with Task submission (Y/y), or " "Cancel Work Requirement (N)?"
             ):
                 print_log(f"Cancelling Work Requirement '{wr_name}'")
                 CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
@@ -1074,57 +1100,6 @@ def submit_json_raw(wr_file: str):
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
-
-
-def generate_verify_file_list(
-    files: List[str], verification: TaskInputVerification
-) -> List[TaskInput]:
-    """
-    Generate a TaskInput list, accommodating files located
-    relative to the root of the namespace, relative to the
-    root of a different namespace, and relative to the directory
-    specific to this Work Requirement.
-    """
-    separator = "::"
-
-    task_input_list: List[TaskInput] = []
-    for file in files:
-        try:
-            file_parts = file.split(separator)
-            if len(file_parts) > 2:
-                raise Exception
-
-            # Start at the root of the current namespace
-            if file_parts[0] == "":
-                task_input_list.append(
-                    TaskInput.from_task_namespace(
-                        f"{file_parts[1]}", verification=verification
-                    )
-                )
-
-            # Start at the root of a different namespace
-            elif len(file_parts[0]) > 0:
-                task_input_list.append(
-                    TaskInput.from_namespace(
-                        namespace=file_parts[0],
-                        object_name_pattern=f"{file_parts[1]}",
-                        verification=verification,
-                    )
-                )
-
-            # Use the Work Requirement ID as the directory within the
-            # current namespace
-            else:
-                task_input_list.append(
-                    TaskInput.from_task_namespace(
-                        f"{ID}/{file_parts[0]}", verification=verification
-                    )
-                )
-
-        except:
-            raise Exception(f"Malformed file specification: '{file}'")
-
-    return task_input_list
 
 
 # Standalone entry point

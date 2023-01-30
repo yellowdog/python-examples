@@ -34,7 +34,9 @@
       * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
-      * [Specifying File Dependencies: Using verifyAtStart and verifyWait](#specifying-file-dependencies-using-verifyatstart-and-verifywait)
+         * [Files in the inputs List](#files-in-the-inputs-list)
+         * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
+      * [File Dependencies Using verifyAtStart and verifyWait](#file-dependencies-using-verifyatstart-and-verifywait)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
@@ -70,7 +72,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Jan 28 21:11:57 GMT 2023 -->
+<!-- Added by: pwt, at: Mon Jan 30 13:20:50 GMT 2023 -->
 
 <!--te-->
 
@@ -388,7 +390,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `flattenInputPaths`        | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                               | Yes  | Yes | Yes       | Yes  |
 | `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                        | Yes  | Yes |           |      |
 | `fulfilOnSubmit`           | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |           |      |
-| `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyWait`). E.g. `["a.sh", "b.sh"]`.                          | Yes  | Yes | Yes       | Yes  |
+| `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]`.                       | Yes  | Yes | Yes       | Yes  |
 | `instanceTypes`            | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes       |      |
 | `maximumTaskRetries`       | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                        | Yes  | Yes | Yes       | Yes  |
 | `maxWorkers`               | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                             | Yes  | Yes | Yes       |      |
@@ -405,6 +407,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `taskGroupName`            | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                          | Yes  |     |           |      |
 | `taskType`                 | The Task Type of a Task. E.g., `"docker"`.                                                                                                                               | Yes  |     |           | Yes  |
 | `taskTypes`                | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                        |      | Yes | Yes       |      |
+| `uploadFiles`              | The list of files to be uploaded to the YellowDog Object Store. E.g., (JSON): `[{"localPath": file_1.txt", "uploadPath": "file_1.txt"}]`.                                | Yes  | Yes | Yes       | Yes  |
 | `vcpus`                    | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                               | Yes  | Yes | Yes       |      |
 | `verifyAtStart`            | A list of files required by a Task. Must be present when the Task is ready to start or the Task will fail. E.g.: `["task_group_1/task_1/results.txt"]`.                  | Yes  | Yes | Yes       | Yes  |
 | `verifyWait`               | A list of files required by a Task. The Task will wait until the files are available before starting. E.g.: `["task_group_1/task_1/results.txt"]`.                       | Yes  | Yes | Yes       | Yes  |
@@ -478,6 +481,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskGroupName = "my_task_group_number_{{task_group_number}}"
     taskType = "docker"
     tasksPerWorker = 1
+    uploadFiles = [{localPath = "file_1.txt", uploadPath = "file_1.txt"}]
     vcpus = [1, 4]
     verifyAtStart = ["ready_results.txt"]
     verifyWait = ["wait_for_results.txt"]
@@ -518,6 +522,7 @@ Showing all possible properties at the Work Requirement level:
   "regions": ["eu-west-2"],
   "taskTypes": ["docker"],
   "tasksPerWorker": 1,
+  "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
   "vcpus": [1, 4],
   "verifyAtStart": ["ready_results.txt"],
   "verifyWait": ["wait_for_results.txt"],
@@ -567,6 +572,7 @@ Showing all possible properties at the Task Group level:
       "taskCount": 5,
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,
+      "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
       "vcpus": [1, 4],
       "verifyAtStart": ["ready_results.txt"],
       "verifyWait": ["wait_for_results.txt"],
@@ -608,6 +614,7 @@ Showing all possible properties at the Task level:
           "name": "my-task",
           "outputs": ["results.txt"],
           "taskType": "docker",
+          "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
           "verifyAtStart": ["ready_results.txt"],
           "verifyWait": ["wait_for_results.txt"]
         }
@@ -733,6 +740,8 @@ This section discusses how to upload files from local storage to the YellowDog O
 
 ### Files Uploaded to the Object Store from Local Storage
 
+#### Files in the `inputs` List
+
 When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the case of the `bash` Task Type, the script specified in the `executable` property is also automatically uploaded as a convenience, even if not included in the `inputs` list.)
 
 Files are uploaded to the Namespace specified in the configuration. Within the Namespace, each Work Requirement has a separate folder that shares the name of the Work Requirement, and in which all files related to the Work Requirement are stored.
@@ -769,15 +778,64 @@ The `flattenUploadPaths` property can be used to suppress the mirroring of any l
 
 The property default is `false`. This property **can only be set at the Work Requirement level** and will therefore apply to all Task Groups and Tasks within a Work Requirement.
 
-### Specifying File Dependencies: Using `verifyAtStart` and `verifyWait`
+When files appear in the `inputs` list, they are also automatically added to the list of files required by the relevant Task(s) as `VerifyAtStart` dependencies.
 
-It's possible to make Tasks dependent on the presence of files by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are either uploaded manually (e.g., by using `yd-upload`), or are created as a result of the execution of other Tasks.
+#### Files in the `uploadFiles` List
+
+The `uploadFiles` property allows more flexible control over the files to be uploaded from local storage to the Object Store when `yd-submit` is run. The property can be used at all Work Requirement levels, from the TOML file through to individual Task specifications.
+
+The property is supplied as a list of dictionary items, each of which must include the properties `localPath` and `uploadPath`. 
+
+- `localPath` specifies the pathname of the file on local storage
+- `uploadPath` specifies the name and location of the file's destination in the Object Store
+
+For example, in TOML:
+```toml
+uploadFiles = [
+    {localPath = "file_1.txt", uploadPath = "file_1.txt"},
+    {localPath = "dir_2/file_2.txt", uploadPath = "::file_2.txt"},
+    {localPath = "file_3.txt", uploadPath = "other_namespace::file_3.txt"}
+]
+```
+And in JSON, with the property set at the Task level, the same specification would be:
+```json
+{
+  "taskGroups": [
+    {
+      "tasks": [
+        {
+          "uploadFiles": [
+            {"localPath": "file_1.txt", "uploadPath": "file_1.txt"},
+            {"localPath": "dir_2/file_2.txt", "uploadPath": "::file_2.txt"},
+            {"localPath": "file_3.txt", "uploadPath": "other_namespace::file_3.txt"}
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+The `uploadFiles` property can also be set at the Work Requirement and Task Group levels, and property inheritance operates as normal.
+
+For `uploadPath`, the same `::` naming convention is available as is used in the `verifyAtStart` and `verifyWait` properties discussed below:
+
+- If `::` is not used, then the file is uploaded relative to the current namespace in a directory named after the name of the Work Requirement
+- If `::` is used at the start of the `uploadPath`, the file is uploaded relative to the root of the current namespace
+- If `<namespace>::` is used at the start of `uploadPath`, the file is uploaded relative to the root of `<namespace>`
+
+Each file specified in the `uploadFiles` lists will only be uploaded once to each unique upload location for any given invocation of `yd-submit`.
+
+If a file in the `uploadFiles` list is required by a Task, it must separately be added to the `verifyAtStart` or `verifyWait` lists discussed below. This is not done automatically. Note also that the `flattenUploadPaths` property is ignored for files in the `uploadFiles` list.
+
+### File Dependencies Using `verifyAtStart` and `verifyWait`
+
+It's possible to make Tasks dependent on the presence of files in the Object Store by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are either uploaded manually (e.g., by using `yd-upload`), or are created as a result of the execution of other Tasks.
 
 Note that a given file can only appear in *one* of the `inputs`, `verifyAtStart` or `verifyWait` lists.
 
 Tasks with `verifyAtStart` dependencies will fail immediately if the required files are not present when the Task is submitted. Tasks with `verifyWait` dependencies will not become `READY` to be scheduled to Workers until the dependencies are satisfied.
 
-When specifying files in the `verifyAtStart` and `verifyWait` lists, the file locations can be (1) relative to the Work Requirement name in the current namespace (the default), (2) relative to the root of the current namespace, or (3) relative to the root of a different namespace in the user's Account.
+When specifying files in the `verifyAtStart` and `verifyWait` lists, as with the `uploadPath` property discussed above, the file locations can be (1) relative to the Work Requirement name in the current namespace (the default), (2) relative to the root of the current namespace, or (3) relative to the root of a different namespace in the user's Account.
 
 1. For files relative to the Work Requirement name in the current namespace, just use the file path, e.g.
 ```shell

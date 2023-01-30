@@ -91,3 +91,30 @@ def unique_upload_pathname(
         return prefix + input_folder_name + forward_slash + filename
     else:
         return prefix + filename
+
+
+def upload_file_core(
+    client: PlatformClient, url: str, local_file: str, namespace: str, remote_file: str
+):
+    """
+    Core object upload action, without upload pathname processing
+    """
+    client.object_store_client.start_transfers()
+    session = client.object_store_client.create_upload_session(
+        namespace,
+        local_file,
+        destination_file_name=remote_file,
+    )
+    session.start()
+    # Wait for upload to complete
+    session = session.when_status_matches(lambda status: status.is_finished()).result()
+    if session.status != FileTransferStatus.Completed:
+        print_error(f"Failed to upload file: {local_file}")
+        # Continue here?
+    else:
+        remote_file = remote_file.replace("/", "%2F")
+        link_ = link(
+            url,
+            f"#/objects/{namespace}/{remote_file}?object=true",
+        )
+        print_log(f"Uploaded file '{local_file}': {link_}")

@@ -57,6 +57,9 @@ TASK_NAME = "taskName"  # String
 TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
+UPLOAD_FILES = "uploadFiles"  # List of Dicts
+LOCAL_PATH = "localPath"  # String
+UPLOAD_PATH = "uploadPath"  # String
 URL = "url"  # String
 USERDATA = "userData"  # String
 VCPUS = "vcpus"  # List of two Floats
@@ -132,6 +135,9 @@ ALL_KEYS = [
     TASK_TYPE,
     TASK_TYPES,
     TEMPLATE_ID,
+    UPLOAD_FILES,
+    LOCAL_PATH,
+    UPLOAD_PATH,
     URL,
     USERDATA,
     VCPUS,
