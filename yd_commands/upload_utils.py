@@ -23,11 +23,9 @@ def upload_file(
     flatten_upload_paths: bool = False,
 ):
     """
-    Upload a local file to the YD Object Store.
+    Upload a local file to the YD Object Store using a calculated
+    unique upload pathname
     """
-    pathname = Path(filename)
-    if not pathname.is_file():
-        raise Exception(f"File '{pathname.name}' not found or not a regular file")
 
     dest_filename = unique_upload_pathname(
         filename,
@@ -35,31 +33,14 @@ def upload_file(
         input_folder_name=input_folder_name,
         flatten_upload_paths=flatten_upload_paths,
     )
-    client.object_store_client.start_transfers()
-    session = client.object_store_client.create_upload_session(
-        namespace,
-        str(pathname),
-        destination_file_name=dest_filename,
+
+    upload_file_core(
+        client=client,
+        url=url,
+        local_file=filename,
+        namespace=namespace,
+        remote_file=dest_filename,
     )
-    session.start()
-    # Wait for upload to complete
-    session = session.when_status_matches(lambda status: status.is_finished()).result()
-    if session.status != FileTransferStatus.Completed:
-        print_error(f"Failed to upload file: {filename}")
-        # Continue here?
-    else:
-        uploaded_pathname = unique_upload_pathname(
-            filename,
-            id=id,
-            input_folder_name=input_folder_name,
-            urlencode_forward_slash=True,
-            flatten_upload_paths=flatten_upload_paths,
-        )
-        link_ = link(
-            url,
-            f"#/objects/{namespace}/{uploaded_pathname}?object=true",
-        )
-        print_log(f"Uploaded file '{filename}': {link_}")
 
 
 def unique_upload_pathname(
@@ -99,6 +80,10 @@ def upload_file_core(
     """
     Core object upload action, without upload pathname processing
     """
+    pathname = Path(local_file)
+    if not pathname.is_file():
+        raise Exception(f"File '{pathname.name}' not found or not a regular file")
+
     client.object_store_client.start_transfers()
     session = client.object_store_client.create_upload_session(
         namespace,
