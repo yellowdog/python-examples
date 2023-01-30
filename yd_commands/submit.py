@@ -1041,29 +1041,34 @@ def submit_json_raw(wr_file: str):
         raise Exception(f"{response.text}")
 
     # Submit Tasks to the Work Requirement
-    input_files = set()
+    verify_at_start_files = set()
     for task_group_name, task_list in task_lists.items():
 
-        # Collect set of required files
+        # Collect set of VERIFY_AT_START files
         for task in task_list:
-            input_files.update(
-                {input["objectNamePattern"] for input in task.get("inputs", [])}
-            )
+            for input in task.get("inputs", []):
+                if input["verification"] == "VERIFY_AT_START":
+                    namespace = (
+                        CONFIG_COMMON.namespace
+                        if input["source"] == "TASK_NAMESPACE"
+                        else input["namespace"]
+                    )
+                    verify_at_start_files.add(
+                        f"{namespace} :: {input['objectNamePattern']}"
+                    )
 
-        # Warn about required files & pause to allow upload
-        if len(input_files) != 0:
+        # Warn about VERIFY_AT_START files & pause to allow upload
+        if len(verify_at_start_files) != 0:
             print_log(
                 "The following files may be required ('VERIFY_AT_START') "
                 "before Tasks are submitted, or the Tasks will fail."
             )
             print_log(
-                "You now have an opportunity to upload required files "
-                "before proceeding:\n"
+                "You now have an opportunity to upload the required files "
+                "before Tasks are submitted:\n"
             )
-            print_numbered_strings(sorted(list(input_files)))
-            if not confirmed(
-                "Proceed with Task submission (Y/y), or " "Cancel Work Requirement (N)?"
-            ):
+            print_numbered_strings(sorted(list(verify_at_start_files)))
+            if not confirmed("Proceed now (Y/y), or " "Cancel Work Requirement (N)?"):
                 print_log(f"Cancelling Work Requirement '{wr_name}'")
                 CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
                 return
