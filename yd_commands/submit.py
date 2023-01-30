@@ -19,8 +19,6 @@ from yellowdog_client.model import (
     CloudProvider,
     DoubleRange,
     FlattenPath,
-    ObjectPath,
-    ObjectPathsRequest,
     RunSpecification,
     Task,
     TaskGroup,
@@ -257,25 +255,18 @@ def submit_work_requirement(
         global WR_SNAPSHOT
         WR_SNAPSHOT.set_work_requirement(work_requirement)
 
-    # Keep track of uploaded files in the 'inputs' lists
-    input_files_uploaded = []
-
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
         try:
             if not ARGS_PARSER.dry_run:
                 # Upload files required by the Tasks in this Task Group
                 if len(input_files_by_task_group[tg_number]) > 0:
-                    print_log(f"Uploading files for Task Group '{task_group.name}'")
+                    print_log(
+                        f"Uploading input files for Task Group '{task_group.name}'"
+                    )
                 for input_file in input_files_by_task_group[tg_number]:
-                    upload_input_file(
-                        CLIENT,
-                        CONFIG_COMMON,
-                        input_file,
-                        ID,
-                        input_files_uploaded,
-                        INPUT_FOLDER_NAME,
-                        flatten_upload_paths,
+                    UPLOADED_FILES.add_input_file(
+                        filename=input_file, flatten_upload_paths=flatten_upload_paths
                     )
 
             # Add the Tasks
@@ -285,7 +276,6 @@ def submit_work_requirement(
                 tasks_data,
                 task_count,
                 work_requirement,
-                input_files_uploaded,
                 flatten_upload_paths=flatten_upload_paths,
             )
 
@@ -465,7 +455,6 @@ def add_tasks_to_task_group(
     tasks_data: Dict,
     task_count: Optional[int],
     work_requirement: WorkRequirement,
-    uploaded_files: List[str],
     flatten_upload_paths: bool = False,
 ) -> None:
     """
@@ -571,19 +560,16 @@ def add_tasks_to_task_group(
                 input_files_list, verify_at_start_files_list, verify_wait_files_list
             )
 
-            input_files = [
-                TaskInput.from_task_namespace(
+            input_files = generate_task_input_list(
+                files=[
                     unique_upload_pathname(
-                        filename=file,
-                        id=ID,
-                        input_folder_name=INPUT_FOLDER_NAME,
-                        flatten_upload_paths=flatten_upload_paths,
-                    ),
-                    verification=TaskInputVerification.VERIFY_AT_START,
-                )
-                for file in input_files_list
-            ]
-
+                        input_file, ID, INPUT_FOLDER_NAME, False, flatten_upload_paths
+                    )
+                    for input_file in input_files_list
+                ],
+                verification=TaskInputVerification.VERIFY_AT_START,
+                wr_name=None,
+            )
             input_files += generate_task_input_list(
                 verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START, ID
             )
@@ -658,7 +644,6 @@ def add_tasks_to_task_group(
                     env=env,
                     inputs=input_files,
                     outputs=output_files,
-                    uploaded_files=uploaded_files,
                     flatten_upload_paths=flatten_upload_paths,
                 )
             )
@@ -725,31 +710,11 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     if ARGS_PARSER.dry_run:
         return
 
-    def _delete_objects():
-        # Delete 'inputs' objects
-        object_paths: List[
-            ObjectPath
-        ] = CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(CONFIG_COMMON.namespace)
-        )
-        object_paths_to_delete: List[ObjectPath] = []
-        for object_path in object_paths:
-            if work_requirement.name in object_path.name:
-                object_paths_to_delete.append(object_path)
-        if len(object_paths_to_delete) > 0:
-            print_log(f"Deleting all input objects under '{work_requirement.name}'")
-            CLIENT.object_store_client.delete_objects(
-                CONFIG_COMMON.namespace, object_paths=object_paths_to_delete
-            )
-        else:
-            print_log("No input objects to delete")
-
-        # Delete 'uploadFiles' objects
-        UPLOADED_FILES.delete_uploaded_files()
-
     CLIENT.work_client.cancel_work_requirement(work_requirement)
     print_log(f"Cancelled Work Requirement '{work_requirement.name}'")
-    _delete_objects()
+
+    # Delete uploaded objects
+    UPLOADED_FILES.delete_uploaded_files()
 
 
 def check_for_duplicates_in_file_lists(
@@ -867,7 +832,6 @@ def create_task(
     env: Dict[str, str],
     inputs: Optional[List[TaskInput]],
     outputs: Optional[List[TaskOutput]],
-    uploaded_files: List[str],
     flatten_upload_paths: bool = False,
 ) -> Task:
     """
@@ -896,16 +860,10 @@ def create_task(
     if task_type == "bash":
         if executable is None:
             raise Exception("No 'executable' specified for 'bash' Task Type")
-        upload_input_file(
-            CLIENT,
-            CONFIG_COMMON,
-            executable,
-            ID,
-            uploaded_files,
-            INPUT_FOLDER_NAME,
-            flatten_upload_paths,
+        UPLOADED_FILES.add_input_file(
+            filename=executable,
+            flatten_upload_paths=flatten_upload_paths,
         )
-
         task_input = TaskInput.from_task_namespace(
             unique_upload_pathname(
                 filename=executable,

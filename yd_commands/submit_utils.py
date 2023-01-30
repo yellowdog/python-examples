@@ -1,27 +1,27 @@
 """
-Utility functions for use with the submit command
+Utility functions for use with the submit command.
 """
 
 from dataclasses import dataclass
 from typing import List, Optional
 
 from yellowdog_client import PlatformClient
-from yellowdog_client.model import (
-    ObjectPath,
-    TaskInput,
-    TaskInputVerification,
-)
+from yellowdog_client.model import ObjectPath, TaskInput, TaskInputVerification
 
 from yd_commands.config import ConfigCommon
 from yd_commands.printing import print_error, print_log
-from yd_commands.upload_utils import upload_file, upload_file_core
+from yd_commands.upload_utils import (
+    unique_upload_pathname,
+    upload_file,
+    upload_file_core,
+)
 from yd_commands.wrapper import ARGS_PARSER
 
 NAMESPACE_SEPARATOR = "::"
 
 
 def generate_task_input_list(
-    files: List[str], verification: TaskInputVerification, wr_name: str
+    files: List[str], verification: TaskInputVerification, wr_name: Optional[str]
 ) -> List[TaskInput]:
     """
     Generate a TaskInput list.
@@ -114,13 +114,15 @@ def upload_input_file(
 @dataclass
 class UploadedFile:
     original_file_path: str
+    upload_path: str
     namespace: str
     uploaded_file_path: str
 
 
 class UploadedFiles:
     """
-    Upload and keep track of uploaded files.
+    Upload and manage uploaded files from the 'inputs' and
+    'uploadFiles' lists.
     """
 
     def __init__(self, client: PlatformClient, wr_name: str, config: ConfigCommon):
@@ -138,7 +140,7 @@ class UploadedFiles:
 
         if upload_file in [
             f.original_file_path for f in self._uploaded_files
-        ] and upload_path in [f.uploaded_file_path for f in self._uploaded_files]:
+        ] and upload_path in [f.upload_path for f in self._uploaded_files]:
             return
 
         namespace, uploaded_file_path = get_namespace_and_filepath(
@@ -154,8 +156,28 @@ class UploadedFiles:
         )
 
         self._uploaded_files.append(
-            UploadedFile(upload_file, namespace, uploaded_file_path)
+            UploadedFile(
+                original_file_path=upload_file,
+                upload_path=upload_path,
+                namespace=namespace,
+                uploaded_file_path=uploaded_file_path,
+            )
         )
+
+    def add_input_file(self, filename: str, flatten_upload_paths: bool):
+        """
+        Add a file from the inputs list.
+        """
+        # Apply Work Requirement name prefix, etc.
+        upload_file_name = unique_upload_pathname(
+            filename=filename,
+            id=self._wr_name,
+            input_folder_name=None,
+            urlencode_forward_slash=False,
+            flatten_upload_paths=flatten_upload_paths,
+        )
+        # Force 'uploaded_file_name' to be at the root of the namespace
+        self.add_upload_file(filename, f"{NAMESPACE_SEPARATOR}{upload_file_name}")
 
     def delete_uploaded_files(self):
         """
@@ -174,5 +196,8 @@ class UploadedFiles:
             try:
                 self._client.object_store_client.delete_objects(namespace, object_paths)
             except:
-                print_error("Failed to delete one or more objects")
+                print_error(
+                    "Failed to delete one or more objects "
+                    "(may already have been deleted)"
+                )
         self._uploaded_files = []
