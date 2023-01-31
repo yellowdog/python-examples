@@ -696,7 +696,7 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     print_log(f"Cancelled Work Requirement '{work_requirement.name}'")
 
     # Delete uploaded objects
-    UPLOADED_FILES.delete_uploaded_files()
+    UPLOADED_FILES.delete()
 
 
 def check_for_duplicates_in_file_lists(
