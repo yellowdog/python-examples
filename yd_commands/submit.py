@@ -307,9 +307,9 @@ def create_task_group(
         num_tasks,
     )
 
-    # Assemble the RunSpecification values for the Task Group
-    # task_types can be automatically added to by the task_types
-    # specified in the Tasks
+    # Assemble the RunSpecification values for the Task Group;
+    # 'task_types' can automatically be added to by the task_types
+    # specified in the Tasks.
     task_types: List = list(
         set(
             check_list(task_group_data.get(TASK_TYPES, tasks_data.get(TASK_TYPES, [])))
@@ -590,6 +590,7 @@ def add_tasks_to_task_group(
                     )
                 )
             ]
+
             # Add capture of the TaskOutput?
             if check_bool(
                 task.get(
