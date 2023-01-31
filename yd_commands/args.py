@@ -140,6 +140,14 @@ class CLIParser:
                 metavar="<executable>",
             )
             parser.add_argument(
+                "--task-batch-size",
+                "-b",
+                type=int,
+                required=False,
+                help="the batch size for task submission",
+                metavar="<batch_size>",
+            )
+            parser.add_argument(
                 "--task-type",
                 "-T",
                 type=str,
@@ -529,6 +537,10 @@ class CLIParser:
     @property
     def wr_ids(self) -> Optional[List[str]]:
         return self.args.work_requirement_id
+
+    @property
+    def task_batch_size(self) -> Optional[int]:
+        return self.args.task_batch_size
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

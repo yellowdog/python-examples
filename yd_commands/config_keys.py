@@ -49,6 +49,7 @@ REGIONS = "regions"  # List of Strings
 SECRET = "secret"  # String
 TARGET_INSTANCE_COUNT = "targetInstanceCount"  # Integer
 TASKS = "tasks"  # List of Tasks
+TASK_BATCH_SIZE = "taskBatchSize"  # Integer
 TASKS_PER_WORKER = "tasksPerWorker"  # Integer
 TASK_COUNT = "taskCount"  # Integer
 TASK_GROUPS = "taskGroups"  # List of Task Groups
@@ -127,6 +128,7 @@ ALL_KEYS = [
     SECRET,
     TARGET_INSTANCE_COUNT,
     TASKS,
+    TASK_BATCH_SIZE,
     TASKS_PER_WORKER,
     TASK_COUNT,
     TASK_GROUPS,

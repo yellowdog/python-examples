@@ -47,6 +47,8 @@ YD_NAMESPACE = "YD_NAMESPACE"
 YD_TAG = "YD_TAG"
 YD_URL = "YD_URL"
 
+TASK_BATCH_SIZE_DEFAULT = 2000
+
 
 @dataclass
 class ConfigWorkRequirement:
@@ -76,6 +78,7 @@ class ConfigWorkRequirement:
     providers: Optional[List[str]] = None
     ram: Optional[List[float]] = None
     regions: Optional[List[str]] = None
+    task_batch_size: int = TASK_BATCH_SIZE_DEFAULT
     task_count: int = 1
     task_name: Optional[str] = None
     task_group_name: Optional[str] = None
@@ -269,6 +272,12 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         if csv_file:
             csv_files = [csv_file]
 
+        task_batch_size = (
+            wr_section.get(TASK_BATCH_SIZE, TASK_BATCH_SIZE_DEFAULT)
+            if ARGS_PARSER.task_batch_size is None
+            else ARGS_PARSER.task_batch_size
+        )
+
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),
             bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
@@ -298,6 +307,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             providers=wr_section.get(PROVIDERS, None),
             ram=wr_section.get(RAM, None),
             regions=wr_section.get(REGIONS, None),
+            task_batch_size=task_batch_size,
             task_count=wr_section.get(TASK_COUNT, 1),
             task_group_name=wr_section.get(TASK_GROUP_NAME, None),
             task_name=wr_section.get(TASK_NAME, None),

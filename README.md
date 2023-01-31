@@ -401,12 +401,13 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `providers`                | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                           | Yes  | Yes | Yes       |      |
 | `ram`                      | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                    | Yes  | Yes | Yes       |      |
 | `regions`                  | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                  | Yes  | Yes | Yes       |      |
-| `tasksPerWorker`           | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                      | Yes  | Yes | Yes       |      |
+| `taskBatchSize`            | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                            | Yes  |     |           |      |
 | `taskCount`                | The number of times to execute the Task. Can be set in the TOML file or in any JSON Task Group definition. Not inherited. E.g., `1`.                                     | Yes  |     | Yes       |      |
 | `taskName`                 | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                   | Yes  |     |           |      |
 | `taskGroupName`            | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                          | Yes  |     |           |      |
 | `taskType`                 | The Task Type of a Task. E.g., `"docker"`.                                                                                                                               | Yes  |     |           | Yes  |
 | `taskTypes`                | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                        |      | Yes | Yes       |      |
+| `tasksPerWorker`           | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                      | Yes  | Yes | Yes       |      |
 | `uploadFiles`              | The list of files to be uploaded to the YellowDog Object Store. E.g., (JSON): `[{"localPath": file_1.txt", "uploadPath": "file_1.txt"}]`.                                | Yes  | Yes | Yes       | Yes  |
 | `vcpus`                    | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                               | Yes  | Yes | Yes       |      |
 | `verifyAtStart`            | A list of files required by a Task. Must be present when the Task is ready to start or the Task will fail. E.g.: `["task_group_1/task_1/results.txt"]`.                  | Yes  | Yes | Yes       | Yes  |
@@ -478,6 +479,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     providers = ["AWS"]
     ram = [0.5, 2.0]
     regions = ["eu-west-2"]
+    taskBatchSize = 1000
     taskCount = 100
     taskName = "my_task_number_{{task_number}}"
     taskGroupName = "my_task_group_number_{{task_group_number}}"

@@ -12,7 +12,6 @@ from yd_commands.config import ConfigCommon
 from yd_commands.printing import print_error, print_log
 from yd_commands.upload_utils import (
     unique_upload_pathname,
-    upload_file,
     upload_file_core,
 )
 from yd_commands.wrapper import ARGS_PARSER

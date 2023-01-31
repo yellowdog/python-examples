@@ -81,7 +81,7 @@ CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 
 
 ID = generate_id(CONFIG_COMMON.name_tag)
-TASK_BATCH_SIZE = 2000
+TASK_BATCH_SIZE = CONFIG_WR.task_batch_size
 INPUT_FOLDER_NAME = None
 
 if ARGS_PARSER.dry_run:
