@@ -283,9 +283,9 @@ def create_task_group(
     if task_group_data.get(TASK_TYPE, None) is not None:
         if task_group_data.get(TASK_TYPES, None) is None:
             task_group_data[TASK_TYPES] = [task_group_data[TASK_TYPE]]
-    task_types_from_tasks = set()
 
     # Gather task types
+    task_types_from_tasks = set()
     for task in task_group_data[TASKS]:
         try:
             task_types_from_tasks.add(task[TASK_TYPE])

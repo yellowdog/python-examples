@@ -6,7 +6,7 @@ A script to provision a Compute Requirement.
 
 from dataclasses import dataclass
 from math import ceil, floor
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import requests
 from yellowdog_client.model import ComputeRequirementTemplateUsage
