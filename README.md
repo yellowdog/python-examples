@@ -40,7 +40,7 @@
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
-   * [Specifying Work Requirement Tasks using CSV Data](#specifying-work-requirement-tasks-using-csv-data)
+   * [Specifying Work Requirements using CSV Data](#specifying-work-requirements-using-csv-data)
       * [Work Requirement CSV Data Example](#work-requirement-csv-data-example)
       * [CSV Mustache Substitutions](#csv-mustache-substitutions)
       * [Property Inheritance](#property-inheritance-1)
@@ -72,7 +72,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Mon Jan 30 13:20:50 GMT 2023 -->
+<!-- Added by: pwt, at: Tue Jan 31 16:41:09 GMT 2023 -->
 
 <!--te-->
 
@@ -427,12 +427,14 @@ In addition to the inheritance mechanism, some properties are set automatically 
 ### Task Types
 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
-- If `taskType` is set at the Task level, then `taskTypes` is automatically populated for Task Groups level using the accumulated Task Types from the Tasks, unless overridden.
+- If `taskType` is set at the Task level, then `taskTypes` is automatically populated for the Task Groups level using the accumulated Task Types from the Tasks included in each Task Group, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
 
 ### Task Counts
 
-The `taskCount` property can be set in the `workRequirement` section of the `config.toml` file, or in any `taskGroup` section of a JSON Work Requirement definition.
+This property will expand the number of Tasks to match `taskCount`.
+
+The `taskCount` property can be set in the `workRequirement` section of the `config.toml` file, or in any `taskGroup` section of a JSON Work Requirement definition. 
 
 In the former case, the `taskCount` applies only to the `Task` specified within the `config.toml` file and is not inherited by JSON Work Requirement specifications.
 
@@ -932,9 +934,9 @@ Note that everything within the `namespace:work-requirement` directory in the Ob
 
 If the `development` directory already exists, `yd-download` will try `development.01`, etc., to avoid overwriting previous downloads.
 
-## Specifying Work Requirement Tasks using CSV Data
+## Specifying Work Requirements using CSV Data
 
-CSV data files can be used to generate lists of Tasks, as follows:
+CSV data files can be used to drive the generation of lists of Tasks, as follows:
 
 - A **prototype** Task specification is created within a JSON Work Requirement specification
 - The prototype task includes one or more Mustache substitutions
@@ -1002,7 +1004,7 @@ When the CSV file data is processed, the only substitutions made are those which
 
 All Mustache directives unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
 
-If the value to be inserted is a number (an int or float) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification.
+If the value to be inserted is a number (an integer or floating point value) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification. The substituted value will assume the nominated type rather than being a string.
 
 ### Property Inheritance
 
@@ -1010,7 +1012,7 @@ All the usual property inheritance features operate as normal. Properties are in
 
 ### Multiple Task Groups using Multiple CSV Files
 
-The use of multiple Task Groups is also supported, by using one CSV file per Task Group.  Each Task Group must contain only a single prototype Task.
+The use of multiple Task Groups is also supported, by using one CSV file per Task Group. Each Task Group must contain only a single prototype Task.
 
 The CSV files are supplied on the command line in the order of the Task Groups to which they apply. For example, if `wr_json` contains two Task Groups, as follows:
 
@@ -1061,15 +1063,17 @@ Note that only one CSV file can be applied to any given Task Group. A single CSV
 
 ### Inspecting the Output of CSV Variable Substitution
 
-The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance.
+The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance applied by `yd-submit`.
 
 ### Using CSV Data with TOML-Only Work Requirement Specifications
 
-It's possible to use TOML on its own to derive a list of Tasks from CSV data -- i.e., the JSON Work Requirement is not required. To make use of this:
+It's possible to use TOML exclusively to derive a list of Tasks from CSV data -- i.e., a JSON Work Requirement specification is not required.
 
-- Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or `--work-requirement` on the command line)
-- Insert the required CSV-supplied Mustache substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
-- Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`
+To make use of this:
+
+1. Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or `--work-requirement` on the command line)
+2. Insert the required CSV-supplied Mustache substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
+3. Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`
 
 When `yd-submit` is run, it will expand the Task list to match the number of data rows in the CSV file.
 
@@ -1166,7 +1170,7 @@ The example below is of a simple JSON specification of a Worker Pool with one in
 }
 ```
 
-The next example is of a relatively rich JSON specification of an Advanced Worker Pool, from one of the YellowDog demos. It includes node specialisation, and action groups that respond to the `STARTUP_NODES_ADDED` and `NODES_ADDED` events to drive Node Actions.
+The next example is of a relatively rich JSON specification of an Advanced Worker Pool, from one of the YellowDog demos. It includes node specialisation, and action groups that respond to the `STARTUP_NODES_ADDED` and `NODES_ADDED` events to drive **Node Actions**.
 
 ```json
 {
@@ -1281,7 +1285,7 @@ Properties set in the JSON file override those set in the TOML file.
 
 Mustache template directives can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
-An important distinction **only** when using Mustache directives within Worker Pool JSON documents is that each directive **must be preceded by a `__` (double underscore)** to disambiguate it from Mustache directives that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` variable.
+An important distinction **only** when using Mustache directives within Worker Pool JSON documents is that each directive **must be preceded by a `__` (double underscore)** to disambiguate it from Mustache directives that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` default substitution.
 
 ## Dry-Running Worker Pool Provisioning
 
@@ -1300,7 +1304,7 @@ yd-provision -p my_worker_pool.json
 
 # Using Jsonnet instead of JSON
 
-In all circumstances where JSON files are used by the Python Examples scripts, these can be substituted by **[Jsonnet](https://jsonnet.org)** files. This allows the use of Jsonnet's powerful additional features, including comments, variables, functions, etc.
+In all circumstances where JSON files are used by the Python Examples scripts,  **[Jsonnet](https://jsonnet.org)** files cab be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
 
 A simple usage example might be:
 
@@ -1308,11 +1312,11 @@ A simple usage example might be:
 yd-submit --work-requirement my_work_req.jsonnet
 ```
 
-The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages.)
+The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages: this file will have been deleted before the script stops.)
 
 ## Jsonnet Installation
 
-Jsonnet is not installed by default when yellowdog-python-examples is installed, because the package has binary components which are not provided for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
+Jsonnet is **not** installed by default when `yellowdog-python-examples` is installed, because the package has binary components which are not available on PyPI for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
 
 To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
 
@@ -1320,7 +1324,7 @@ To install Jsonnet at the same time as installing or updating the Python Example
 pip install -U "yellowdog-python-examples[jsonnet]"
 ```
 
-To install Jsonnet separately, try:
+To install Jsonnet separately from `yellowdog-python-examples`, try:
 
 ```shell
 pip install -U jsonnet
@@ -1332,15 +1336,15 @@ If this fails, try:
 pip install -U jsonnet-binary
 ```
 
-If both of these methods fail, you'll need to ensure that the platform you're running on has the required build tools available, so that the binary component can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
+If both of these methods fail, you'll need to ensure that the platform on which you're running has the required build tools available, so that the Jsonnet binary components can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
 
 Please get in touch with YellowDog if you get stuck.
 
 ## Mustache Substitutions in Jsonnet Files
 
-The scripts provide full support for Mustache substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for Worker Pool specification, substitutions need to be prefixed by `__`, e.g. `"__{{username}}}"`.
+The scripts provide full support for Mustache substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** specifications, Mustache substitutions must be prefixed by `__`, e.g. `"__{{username}}}"`.
 
-Mustache processing is performed **before** Jsonnet evaluation.
+Mustache processing is performed **before** Jsonnet evaluation into the internal JSON representation.
 
 ## Checking Jsonnet Processing
 
@@ -1519,7 +1523,13 @@ The `namespace` and `tag` values are used to determine which objects to download
 
 The `yd-delete` command deletes any objects created in the YellowDog Object Store.
 
-The `namespace` and `tag` values in the `config.toml` file are used to identify which objects to delete.
+The `namespace` and `tag` values in the `config.toml` file are used to identify which objects to delete. Note that it's easy to use `yd-delete` to clear the contents of a namespace by using an empty `tag`, as follows:
+
+```shell
+yd-delete -t ""
+```
+
+This can be extended to any other namespace by using the `--namespace`/`-n` option.
 
 ## yd-upload
 
@@ -1536,13 +1546,17 @@ Files in directories may be recursively uploaded using the `--recursive` or `-r`
 yd-upload --directory my_work_requirement -r mydir myotherdir
 ```
 
+To upload to other namespaces, use the `--namespace`/`-n` option.
+
 ## yd-shutdown
 
 The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and `tag` found in the configuration file. All remaining work will be cancelled, but currently executing Tasks will be allowed to complete, after which the Compute Requirement will be terminated.
 
 ## yd-instantiate
 
-The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool). This command uses the data from the `workerPool` configuration section, but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
+The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool).
+
+This command uses the data from the `workerPool` configuration section, but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
 Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
 
