@@ -208,7 +208,7 @@ def submit_work_requirement(
     global ID
     ID = tasks_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
 
-    # Handle files that appear in any 'upload_files' properties
+    # Handle any files that need to be uploaded
     global UPLOADED_FILES
     UPLOADED_FILES = UploadedFiles(client=CLIENT, wr_name=ID, config=CONFIG_COMMON)
 
@@ -223,13 +223,8 @@ def submit_work_requirement(
 
     # Create the list of Task Groups
     task_groups: List[TaskGroup] = []
-    input_files_by_task_group: List[List[str]] = []
     for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
-        task_group, input_files = create_task_group(
-            tg_number, tasks_data, task_group_data
-        )
-        task_groups.append(task_group)
-        input_files_by_task_group.append(input_files)
+        task_groups.append(create_task_group(tg_number, tasks_data, task_group_data))
 
     # Create the Work Requirement
     priority = check_float_or_int(tasks_data.get(PRIORITY, CONFIG_WR.priority))
@@ -258,18 +253,6 @@ def submit_work_requirement(
     # Add Tasks to their Task Groups
     for tg_number, task_group in enumerate(task_groups):
         try:
-            if not ARGS_PARSER.dry_run:
-                # Upload files required by the Tasks in this Task Group
-                if len(input_files_by_task_group[tg_number]) > 0:
-                    print_log(
-                        f"Uploading input files for Task Group '{task_group.name}'"
-                    )
-                for input_file in input_files_by_task_group[tg_number]:
-                    UPLOADED_FILES.add_input_file(
-                        filename=input_file, flatten_upload_paths=flatten_upload_paths
-                    )
-
-            # Add the Tasks
             add_tasks_to_task_group(
                 tg_number,
                 task_group,
@@ -294,7 +277,7 @@ def create_task_group(
     tg_number: int,
     tasks_data: Dict,
     task_group_data: Dict,
-) -> (TaskGroup, List[str]):
+) -> TaskGroup:
     """
     Create a Task Group and return the list of unique input files required by
     the Tasks in the Task Group.
@@ -307,24 +290,12 @@ def create_task_group(
             task_group_data[TASK_TYPES] = [task_group_data[TASK_TYPE]]
     task_types_from_tasks = set()
 
-    # Gather input files and task types
-    input_files = []
+    # Gather task types
     for task in task_group_data[TASKS]:
-        input_files += check_list(
-            task.get(
-                INPUT_FILES,
-                task_group_data.get(
-                    INPUT_FILES, tasks_data.get(INPUT_FILES, CONFIG_WR.input_files)
-                ),
-            )
-        )
         try:
             task_types_from_tasks.add(task[TASK_TYPE])
         except KeyError:
             pass
-
-    # Deduplicate
-    input_files = sorted(list(set(input_files)))
 
     # Name the Task Group
     num_task_groups = len(tasks_data[TASK_GROUPS])
@@ -419,7 +390,7 @@ def create_task_group(
     )
     completed_task_ttl = None if ctttl_data is None else timedelta(minutes=ctttl_data)
 
-    # Create the fully-populated Task Group
+    # Create the Task Group
     task_group = TaskGroup(
         name=task_group_name,
         runSpecification=run_specification,
@@ -445,8 +416,9 @@ def create_task_group(
         ),
         completedTaskTtl=completed_task_ttl,
     )
+
     print_log(f"Generated Task Group '{task_group_name}'")
-    return task_group, input_files
+    return task_group
 
 
 def add_tasks_to_task_group(
@@ -458,7 +430,7 @@ def add_tasks_to_task_group(
     flatten_upload_paths: bool = False,
 ) -> None:
     """
-    Adds all the Tasks that comprise a given Task Group
+    Add all the constituent Tasks to the Task Group.
     """
 
     # Ensure there's at least one Task
@@ -538,6 +510,7 @@ def add_tasks_to_task_group(
                     ),
                 )
             )
+
             verify_at_start_files_list = check_list(
                 task.get(
                     VERIFY_AT_START,
@@ -560,24 +533,14 @@ def add_tasks_to_task_group(
                 input_files_list, verify_at_start_files_list, verify_wait_files_list
             )
 
-            input_files = generate_task_input_list(
-                files=[
-                    unique_upload_pathname(
-                        input_file, ID, INPUT_FOLDER_NAME, False, flatten_upload_paths
-                    )
-                    for input_file in input_files_list
-                ],
-                verification=TaskInputVerification.VERIFY_AT_START,
-                wr_name=None,
-            )
-            input_files += generate_task_input_list(
-                verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START, ID
-            )
-            input_files += generate_task_input_list(
-                verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
-            )
+            # Upload files in the 'inputs' list
+            # (Duplicates won't be re-added)
+            for file in input_files_list:
+                UPLOADED_FILES.add_input_file(
+                    filename=file, flatten_upload_paths=flatten_upload_paths
+                )
 
-            # Upload any files in the 'uploadFiles' lists
+            # Upload files in the 'uploadFiles' list
             upload_files = check_list(
                 task.get(
                     UPLOAD_FILES,
@@ -596,8 +559,26 @@ def add_tasks_to_task_group(
                         f"properties '{LOCAL_PATH}' and '{UPLOAD_PATH}'"
                     )
 
-            # Set up output files
-            output_files = [
+            # Set up the 'inputs' property
+            inputs = generate_task_input_list(
+                files=[
+                    unique_upload_pathname(
+                        input_file, ID, INPUT_FOLDER_NAME, False, flatten_upload_paths
+                    )
+                    for input_file in input_files_list
+                ],
+                verification=TaskInputVerification.VERIFY_AT_START,
+                wr_name=None,
+            )
+            inputs += generate_task_input_list(
+                verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START, ID
+            )
+            inputs += generate_task_input_list(
+                verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
+            )
+
+            # Set up the 'outputs' property
+            outputs = [
                 TaskOutput.from_worker_directory(file)
                 for file in check_list(
                     task.get(
@@ -609,6 +590,7 @@ def add_tasks_to_task_group(
                     )
                 )
             ]
+            # Add capture of the TaskOutput?
             if check_bool(
                 task.get(
                     CAPTURE_TASKOUTPUT,
@@ -620,10 +602,11 @@ def add_tasks_to_task_group(
                     ),
                 )
             ):
-                output_files.append(TaskOutput.from_task_process())
+                outputs.append(TaskOutput.from_task_process())
 
-            # If there's no task type in the task definition, and
-            # there's only one task type at the task group level, use it
+            # If there's no task type in the task definition, AND
+            # there's only one task type at the task group level,
+            # use that task type
             try:
                 task_type = task[TASK_TYPE]
             except KeyError:
@@ -642,8 +625,8 @@ def add_tasks_to_task_group(
                     executable=executable,
                     args=arguments_list,
                     env=env,
-                    inputs=input_files,
-                    outputs=output_files,
+                    inputs=inputs,
+                    outputs=outputs,
                     flatten_upload_paths=flatten_upload_paths,
                 )
             )

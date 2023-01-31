@@ -135,12 +135,13 @@ class UploadedFiles:
         """
         Upload a file if it hasn't already been uploaded to the same location.
         """
-        if ARGS_PARSER.dry_run:
-            return
-
         if upload_file in [
             f.original_file_path for f in self._uploaded_files
         ] and upload_path in [f.upload_path for f in self._uploaded_files]:
+            return
+
+        if ARGS_PARSER.dry_run:
+            print_log(f"File '{upload_file}' would be uploaded to '{upload_path}'")
             return
 
         namespace, uploaded_file_path = get_namespace_and_filepath(

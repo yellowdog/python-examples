@@ -82,7 +82,7 @@ class ConfigWorkRequirement:
     task_type: Optional[str] = None
     tasks_data_file: Optional[str] = None
     tasks_per_worker: Optional[int] = None
-    upload_files: Optional[List[Dict]] = None
+    upload_files: List[Dict] = field(default_factory=list)
     vcpus: Optional[List[float]] = None
     verify_at_start: List[str] = field(default_factory=list)
     verify_wait: List[str] = field(default_factory=list)
@@ -304,7 +304,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             task_type=task_type,
             tasks_data_file=tasks_data_file,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
-            upload_files=wr_section.get(UPLOAD_FILES, None),
+            upload_files=wr_section.get(UPLOAD_FILES, []),
             vcpus=wr_section.get(VCPUS, None),
             verify_at_start=wr_section.get(VERIFY_AT_START, []),
             verify_wait=wr_section.get(VERIFY_WAIT, []),
