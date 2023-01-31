@@ -83,39 +83,11 @@ def get_namespace_and_filepath(
         raise Exception(f"Malformed file specification: '{file}'")
 
 
-def upload_input_file(
-    client: PlatformClient,
-    config: ConfigCommon,
-    input_file: str,
-    wr_id: str,
-    uploaded_files: List[str],
-    input_folder_name: Optional[str],
-    flatten_upload_paths: bool,
-):
-    """
-    Upload an input file, if not already uploaded.
-    Add the file to the list of uploaded files
-    """
-    if ARGS_PARSER.dry_run or input_file in uploaded_files:
-        return
-
-    upload_file(
-        client=client,
-        filename=input_file,
-        namespace=config.namespace,
-        id=wr_id,
-        url=config.url,
-        input_folder_name=input_folder_name,
-        flatten_upload_paths=flatten_upload_paths,
-    )
-    uploaded_files.append(input_file)
-
-
 @dataclass
 class UploadedFile:
-    original_file_path: str
-    upload_path: str
-    namespace: str
+    local_file_path: str
+    specified_upload_path: str
+    upload_namespace: str
     uploaded_file_path: str
 
 
@@ -136,8 +108,8 @@ class UploadedFiles:
         Upload a file if it hasn't already been uploaded to the same location.
         """
         if upload_file in [
-            f.original_file_path for f in self._uploaded_files
-        ] and upload_path in [f.upload_path for f in self._uploaded_files]:
+            f.local_file_path for f in self._uploaded_files
+        ] and upload_path in [f.specified_upload_path for f in self._uploaded_files]:
             return
 
         if ARGS_PARSER.dry_run:
@@ -158,9 +130,9 @@ class UploadedFiles:
 
         self._uploaded_files.append(
             UploadedFile(
-                original_file_path=upload_file,
-                upload_path=upload_path,
-                namespace=namespace,
+                local_file_path=upload_file,
+                specified_upload_path=upload_path,
+                upload_namespace=namespace,
                 uploaded_file_path=uploaded_file_path,
             )
         )
@@ -184,11 +156,11 @@ class UploadedFiles:
         """
         Delete all files that have been uploaded.
         """
-        for namespace in {uf.namespace for uf in self._uploaded_files}:
+        for namespace in {uf.upload_namespace for uf in self._uploaded_files}:
             object_paths = [
                 ObjectPath(uf.uploaded_file_path)
                 for uf in self._uploaded_files
-                if uf.namespace == namespace
+                if uf.upload_namespace == namespace
             ]
             print_log(
                 f"Deleting {len(object_paths)} uploaded object(s) in "

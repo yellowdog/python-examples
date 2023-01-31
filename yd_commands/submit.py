@@ -63,11 +63,7 @@ from yd_commands.printing import (
     print_log,
     print_numbered_strings,
 )
-from yd_commands.submit_utils import (
-    UploadedFiles,
-    generate_task_input_list,
-    upload_input_file,
-)
+from yd_commands.submit_utils import UploadedFiles, generate_task_input_list
 from yd_commands.type_check import (
     check_bool,
     check_dict,
@@ -279,8 +275,7 @@ def create_task_group(
     task_group_data: Dict,
 ) -> TaskGroup:
     """
-    Create a Task Group and return the list of unique input files required by
-    the Tasks in the Task Group.
+    Create a TaskGroup object.
     """
 
     # Remap 'task_type' to 'task_types' in the Task Group if 'task_types'
@@ -439,7 +434,7 @@ def add_tasks_to_task_group(
         tasks_data[TASK_GROUPS][tg_number][TASKS] = [{}]
         num_tasks = 1
 
-    # If 'taskCount' is set at the Task Group level, and there are
+    # If 'taskCount' is set at the Task Group level, and there
     # is only one Task, create 'taskCount' copies of the Task
     task_group_task_count = tasks_data[TASK_GROUPS][tg_number].get(TASK_COUNT, None)
     if task_group_task_count is not None:
@@ -466,7 +461,8 @@ def add_tasks_to_task_group(
 
     # Iterate through batches
     for batch_number in range(num_task_batches):
-        tasks_list.clear()
+
+        # Iterate through tasks in the batch
         for task_number in range(
             (TASK_BATCH_SIZE * batch_number),
             min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
@@ -510,7 +506,6 @@ def add_tasks_to_task_group(
                     ),
                 )
             )
-
             verify_at_start_files_list = check_list(
                 task.get(
                     VERIFY_AT_START,
@@ -591,7 +586,7 @@ def add_tasks_to_task_group(
                 )
             ]
 
-            # Add capture of the TaskOutput?
+            # Add TaskOutput to 'outputs'?
             if check_bool(
                 task.get(
                     CAPTURE_TASKOUTPUT,
@@ -650,6 +645,9 @@ def add_tasks_to_task_group(
                     f"Added {len(tasks_list):,d} "
                     f"Task(s) to Work Requirement Task Group '{task_group.name}'"
                 )
+
+        # Empty the task list for the next batch
+        tasks_list.clear()
 
     if not ARGS_PARSER.dry_run:
         print_log(
@@ -947,13 +945,18 @@ def submit_json_raw(wr_file: str):
     input files. These can be pre-uploaded using yd-upload.
     """
 
-    # Load file contents, with Jsonnet/Mustache processing if required
+    # Load file contents, with Mustache processing
     if wr_file.lower().endswith(".jsonnet"):
         wr_data = load_jsonnet_file_with_mustache_substitutions(wr_file)
-    else:
+    elif wr_file.lower().endswith(".json"):
         wr_data = load_json_file_with_mustache_substitutions(wr_file)
+    else:
+        raise Exception(
+            f"Work Requirement file '{wr_file}' must end in '.json' or '.jsonnet'"
+        )
 
     if ARGS_PARSER.dry_run:
+        # This will show the results any Mustache processing
         print_log("Dry-run: Printing JSON Work Requirement specification:")
         print_json(wr_data)
         print_log("Dry-run: Complete")
@@ -1003,7 +1006,8 @@ def submit_json_raw(wr_file: str):
                         f"{namespace} :: {input['objectNamePattern']}"
                     )
 
-        # Warn about VERIFY_AT_START files & pause to allow upload
+        # Warn about VERIFY_AT_START files & halt to allow upload or
+        # Work Requirement cancellation
         if len(verify_at_start_files) != 0:
             print_log(
                 "The following files may be required ('VERIFY_AT_START') "
@@ -1014,14 +1018,14 @@ def submit_json_raw(wr_file: str):
                 "before Tasks are submitted:\n"
             )
             print_numbered_strings(sorted(list(verify_at_start_files)))
-            if not confirmed("Proceed now (Y/y), or " "Cancel Work Requirement (N)?"):
+            if not confirmed("Proceed now (y), or Cancel Work Requirement (n)?"):
                 print_log(f"Cancelling Work Requirement '{wr_name}'")
                 CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
                 return
 
         # Submit Tasks in batches
-        batches = ceil(len(task_list) / TASK_BATCH_SIZE)
-        for index in range(batches):
+        num_batches = ceil(len(task_list) / TASK_BATCH_SIZE)
+        for index in range(num_batches):
             task_batch = task_list[
                 index
                 * TASK_BATCH_SIZE : min(len(task_list), (index + 1) * TASK_BATCH_SIZE)
@@ -1041,7 +1045,7 @@ def submit_json_raw(wr_file: str):
             if response.status_code == 200:
                 print_log(
                     f"Added {len(task_batch)} Task(s) to Task Group "
-                    f"'{task_group_name}' (Batch {index + 1} of {batches})"
+                    f"'{task_group_name}' (Batch {index + 1} of {num_batches})"
                 )
             else:
                 print_error(f"Failed to add Task(s) to Task Group '{task_group_name}'")
