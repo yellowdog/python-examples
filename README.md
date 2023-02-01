@@ -55,7 +55,7 @@
       * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
    * [Mustache Directives in Worker Pool Properties](#mustache-directives-in-worker-pool-properties)
    * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
-* [Using Jsonnet instead of JSON](#using-jsonnet-instead-of-json)
+* [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Mustache Substitutions in Jsonnet Files](#mustache-substitutions-in-jsonnet-files)
    * [Checking Jsonnet Processing](#checking-jsonnet-processing)
@@ -72,7 +72,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Jan 31 16:41:09 GMT 2023 -->
+<!-- Added by: pwt, at: Wed Feb  1 08:25:21 GMT 2023 -->
 
 <!--te-->
 
@@ -124,13 +124,13 @@ To set up **Configured Worker Pools**, you'll need:
 
 Python version 3.7 or later is required. It's recommended that installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
 
-Installation is via `pip` and PyPI using: 
+Installation and subsequent update are via `pip` and PyPI using: 
 
 ```shell
 pip install -U yellowdog-python-examples
 ```
 
-The command line above is also used to update the commands.
+If you're interested in including **Jsonnet** support, please see the [Jsonnet Support](#jsonnet-support) section below.
 
 # Script Installation with Pipx
 
@@ -384,7 +384,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `dockerUsername`           | The username for DockerHub, only used by the `docker` Task Type. E,g., `"my_username"`.                                                                                  | Yes  | Yes | Yes       | Yes  |
 | `environment`              | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                  | Yes  | Yes | Yes       | Yes  |
 | `exclusiveWorkers`         | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                       | Yes  | Yes | Yes       |      |
-| `executable`               | The 'executable' to run when a Bash or Docker Task is executed. For the `bash` Task Type, this is the name of the Bash script. For `docker`, the name of the container.  | Yes  | Yes | Yes       | Yes  |
+| `executable`               | The 'executable' to run when a Bash or Docker Task is executed. Bash script for Bash, container image for Docker. Optional: omit to suppress automatic processing.       | Yes  | Yes | Yes       | Yes  |
 | `finishIfAllTasksFinished` | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                         | Yes  | Yes | Yes       |      |
 | `finishIfAnyTaskFailed`    | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                       | Yes  | Yes | Yes       |      |
 | `flattenInputPaths`        | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                               | Yes  | Yes | Yes       | Yes  |
@@ -430,6 +430,13 @@ In addition to the inheritance mechanism, some properties are set automatically 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
 - If `taskType` is set at the Task level, then `taskTypes` is automatically populated for the Task Groups level using the accumulated Task Types from the Tasks included in each Task Group, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
+
+For the **`bash`** and **`docker`** task types, automatic processing will be performed if the **`executable`** property is set.
+
+- For **Bash**, the script nominated in the `executable` property is automatically added to the `inputs` list (if not already present). This means the script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
+- For **Docker**, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property. The `dockerUsername` and `dockerPassword` properties, if supplied, are added to the `environment` property.
+
+If the `executable` property is not supplied, the automatic processing above must be performed manually.
 
 ### Task Counts
 
@@ -1304,7 +1311,7 @@ yd-provision --dry-run -q > my_worker_pool.json
 yd-provision -p my_worker_pool.json
 ```
 
-# Using Jsonnet instead of JSON
+# Jsonnet Support
 
 In all circumstances where JSON files are used by the Python Examples scripts,  **[Jsonnet](https://jsonnet.org)** files cab be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
 

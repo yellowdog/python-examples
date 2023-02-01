@@ -817,9 +817,26 @@ def create_task(
     flatten_upload_paths: bool = False,
 ) -> Task:
     """
-    Create a Task object, handling variations for different Task Types.
-    This is where to define a new Task Type and to set up how it's run.
+    Create a Task object, handling special processing for specific Task Types.
     """
+
+    def _make_task(flatten_input_paths: FlattenPath) -> Task:
+        """
+        Helper function to create the Task object.
+        """
+        # Cannot use flatten_input_paths if there are no inputs
+        if inputs is None or len(inputs) == 0:
+            flatten_input_paths = None
+
+        return Task(
+            name=name,
+            taskType=task_type,
+            arguments=args,
+            inputs=inputs,
+            environment=env,
+            outputs=outputs,
+            flattenInputPaths=flatten_input_paths,
+        )
 
     check_list(args)
     check_dict(env)
@@ -837,11 +854,14 @@ def create_task(
     ):
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
-    # Special processing for Bash tasks. The Bash script is uploaded if this
-    # hasn't already been done, and it's added to the list of required files.
+    # Special processing for Bash tasks if the 'executable' property is set
+    # The Bash script is uploaded if this hasn't already been done, and
+    # added to the list of required files.
     if task_type == "bash":
         if executable is None:
-            raise Exception("No 'executable' specified for 'bash' Task Type")
+            print_log("Note: no 'executable' specified for 'bash' Task Type")
+            return _make_task(flatten_input_paths)
+
         UPLOADED_FILES.add_input_file(
             filename=executable,
             flatten_upload_paths=flatten_upload_paths,
@@ -868,12 +888,16 @@ def create_task(
             if flatten_input_paths is None
             else basename(executable)
         ] + args
+        return _make_task(flatten_input_paths)
 
-    # Special processing for Docker tasks. Sets up the '-e' environment strings
-    # and the DockerHub username and password if specified.
+    # Special processing for Docker tasks if the 'executable property is set.
+    # Sets up the '-e' environment strings and the DockerHub username and
+    # password if specified.
     elif task_type == "docker":
         if executable is None:
-            raise Exception("No 'executable' specified for 'Docker' Task Type")
+            print_log("Note: no 'executable' specified for 'docker' Task Type")
+            return _make_task(flatten_input_paths)
+
         # Set up the environment variables to be sent to the Docker container
         docker_env = check_dict(
             task_data.get(
@@ -884,11 +908,12 @@ def create_task(
                 ),
             )
         )
-        docker_env_string = ""
+        # 'TASK_NAME' env. var. is set for convenience
+        docker_env_string = f"--env TASK_NAME={name}"
         if docker_env is not None:
             for key, value in docker_env.items():
                 docker_env_string += f" --env {key}={value}"
-            docker_env_string += f" --env TASK_NAME={name.replace(' ', '_')}"
+
         args = [docker_env_string, executable] + args
 
         # Set up the environment used by the script to run Docker
@@ -915,25 +940,12 @@ def create_task(
             if docker_username is not None and docker_password is not None
             else {}
         )
+        return _make_task(flatten_input_paths)
 
     else:
         # All other Task Types are sent through without additional processing
         # of the uploaded files, arguments or environment.
-        pass
-
-    # Cannot use flatten_input_paths if there are no inputs
-    if inputs is None or len(inputs) == 0:
-        flatten_input_paths = None
-
-    return Task(
-        name=name,
-        taskType=task_type,
-        arguments=args,
-        inputs=inputs,
-        environment=env,
-        outputs=outputs,
-        flattenInputPaths=flatten_input_paths,
-    )
+        return _make_task(flatten_input_paths)
 
 
 def submit_json_raw(wr_file: str):
