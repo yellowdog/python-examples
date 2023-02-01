@@ -22,6 +22,9 @@
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
       * [Task Types](#task-types)
+         * [Bash Tasks](#bash-tasks)
+         * [Docker Tasks](#docker-tasks)
+         * [Bash &amp; Docker without Automatic Processing](#bash--docker-without-automatic-processing)
       * [Task Counts](#task-counts)
    * [Examples](#examples)
       * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
@@ -45,8 +48,8 @@
       * [CSV Mustache Substitutions](#csv-mustache-substitutions)
       * [Property Inheritance](#property-inheritance-1)
       * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
+      * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
       * [Inspecting the Output of CSV Variable Substitution](#inspecting-the-output-of-csv-variable-substitution)
-      * [Using CSV Data with TOML-Only Work Requirement Specifications](#using-csv-data-with-toml-only-work-requirement-specifications)
 * [Worker Pool Properties](#worker-pool-properties)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
@@ -72,7 +75,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Wed Feb  1 08:25:21 GMT 2023 -->
+<!-- Added by: pwt, at: Wed Feb  1 14:04:05 GMT 2023 -->
 
 <!--te-->
 
@@ -431,12 +434,57 @@ In addition to the inheritance mechanism, some properties are set automatically 
 - If `taskType` is set at the Task level, then `taskTypes` is automatically populated for the Task Groups level using the accumulated Task Types from the Tasks included in each Task Group, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
 
-For the **`bash`** and **`docker`** task types, automatic processing will be performed if the **`executable`** property is set.
+For the **`bash`** and **`docker`** task types, some automatic processing will be performed if the **`executable`** property is set.
 
-- For **Bash**, the script nominated in the `executable` property is automatically added to the `inputs` list (if not already present). This means the script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
-- For **Docker**, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property. The `dockerUsername` and `dockerPassword` properties, if supplied, are added to the `environment` property.
+#### Bash Tasks
 
-If the `executable` property is not supplied, the automatic processing above must be performed manually.
+For the **`bash`** Task Type, the script nominated in the `executable` property is automatically added to the `inputs` list (if not already present). This means the script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
+
+For example (in TOML form):
+```toml
+taskType = "bash"
+inputs = []
+executable = "my_bash_script.sh"
+arguments = [1, 2, 3]
+```
+is equivalent to:
+```toml
+taskType = "bash"
+inputs = ["my_bash_script.sh"]
+arguments = ["my_bash_script.sh", 1, 2, 3]
+```
+(For completeness, note that this is also equivalent to:
+```toml
+taskType = "bash"
+uploadFiles = [{localPath = "my_bash_script.sh", uploadPath = "my_bash_script.sh"}]
+verifyAtStart = ["my_bash_script.sh"]
+arguments = ["my_bash_script.sh", 1, 2, 3]
+```
+The use of `uploadFiles` and `verifyAtStart` is discussed [below](#file-storage-locations-and-file-usage).)
+
+#### Docker Tasks
+
+For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property. The `dockerUsername` and `dockerPassword` properties, if supplied, are added to the `environment` property.
+
+For example:
+```toml
+taskType = "docker"
+executable = "my_dockerhub_repo/my_container_image"
+dockerEnvironment = { E1 = "EeeOne"}
+dockerUsername = "my_user"
+dockerPassword = "my_password"
+arguments = [1, 2, 3]
+```
+is equivalent to the following being sent for processing by the `docker` Task Type, the YellowDog version of which will log in to the Docker repo (if required) then issue a `docker run` command with the arguments supplied:
+```toml
+taskType = "docker"
+arguments = ["--env TASK_NAME=<task_name> --env E1=EeeOne", "my_dockerhubrepo/my_container_image", 1, 2, 3]
+environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password"}
+```
+
+#### Bash & Docker without Automatic Processing
+
+If the `executable` property is not supplied, the automatic processing for `bash` and `docker` taskTypes must be performed manually, as shown in the examples.
 
 ### Task Counts
 
@@ -947,7 +995,7 @@ If the `development` directory already exists, `yd-download` will try `developme
 
 CSV data files can be used to drive the generation of lists of Tasks, as follows:
 
-- A **prototype** Task specification is created within a JSON Work Requirement specification
+- A **prototype** Task specification is created within a JSON Work Requirement specification or in the `workRequirement` section of the TOML configuration file
 - The prototype task includes one or more Mustache substitutions
 - A CSV file is created, with the **headers** (first row) matching the names of the Mustache substitutions in the Task prototype
 - Each subsequent row of the CSV file represents a new Task built using the prototype, with the variables substituted by the values in the row
@@ -974,13 +1022,24 @@ As an example, consider the following JSON Work Requirement `wr.json`:
 
 Note that the Task Group must contain only a single Task, acting as the prototype.
 
-Now consider a CSV file `wr_data.csv` with the following contents:
+Now consider a CSV file `wr_data.csv` with the following contents (shown in tabular form):
 
 | arg_1 | arg_2 | arg_3 | env_1 |
 |-------|-------|-------|-------|
 | A     | B     | C     | E-1   |
 | D     | E     | F     | E-2   |
 | G     | H     | I     | E-3   |
+
+The 'raw' `wr_data.csv` file looks like:
+
+```text
+arg_1, arg_2, arg_3, env_1
+A, B, C, E-1
+D, E, F, E-2
+G, H, I, E-3
+```
+
+Note that the (optional) leading spaces after each comma are ignored, but trailing spaces are not and will form part of the imported data.
 
 If these files are processed using `yd-submit -r wr.json -v wr_data.csv`, the following expanded list of three Tasks will be created prior to further processing by the `yd-submit` script:
 
@@ -1009,7 +1068,7 @@ If these files are processed using `yd-submit -r wr.json -v wr_data.csv`, the fo
 
 ### CSV Mustache Substitutions
 
-When the CSV file data is processed, the only substitutions made are those which match the Mustache directives in the prototype Task. The CSV file is the **only** source of substitutions; all other Mustache substitutions (supplied on the command line, in the TOML configuration file, or from environment variables) are ignored -- i.e., they do not override the contents of the CSV file.
+When the CSV file data is processed, the only substitutions made are those which match the Mustache directives in the prototype Task. The CSV file is the **only** source of substitutions used for this processing phase; all other Mustache substitutions (supplied on the command line, in the TOML configuration file, or from environment variables) are ignored -- i.e., they do not override the contents of the CSV file.
 
 All Mustache directives unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
 
@@ -1070,11 +1129,7 @@ yd-submit -r wr.json -v wr_data_task_group_2.csv:tg_two -v wr_data_task_group_4.
 
 Note that only one CSV file can be applied to any given Task Group. A single CSV file can, however, be reused for multiple Task Groups.
 
-### Inspecting the Output of CSV Variable Substitution
-
-The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance applied by `yd-submit`.
-
-### Using CSV Data with TOML-Only Work Requirement Specifications
+### Using CSV Data with Simple, TOML-Only Work Requirement Specifications
 
 It's possible to use TOML exclusively to derive a list of Tasks from CSV data -- i.e., a JSON Work Requirement specification is not required.
 
@@ -1082,9 +1137,13 @@ To make use of this:
 
 1. Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or `--work-requirement` on the command line)
 2. Insert the required CSV-supplied Mustache substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
-3. Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`
+3. Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`, or provide the CSV file on the command line `-v wr_data.csv`
 
 When `yd-submit` is run, it will expand the Task list to match the number of data rows in the CSV file.
+
+### Inspecting the Output of CSV Variable Substitution
+
+The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance applied by `yd-submit`.
 
 # Worker Pool Properties
 
