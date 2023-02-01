@@ -25,13 +25,13 @@ class CLIParser:
         """
         parser = argparse.ArgumentParser(description=description)
 
+        # Common arguments across all commands
         parser.add_argument(
             "--docs",
             action="store_true",
             required=False,
             help="provide a link to the documentation for this version",
         )
-
         parser.add_argument(
             "--config",
             "-c",
@@ -41,7 +41,6 @@ class CLIParser:
             "default is 'config.toml' in the current directory",
             metavar="<config_file.toml>",
         )
-
         parser.add_argument(
             "--key",
             "-k",
@@ -50,7 +49,6 @@ class CLIParser:
             help="the YellowDog Application key",
             metavar="<app-key>",
         )
-
         parser.add_argument(
             "--secret",
             "-s",
@@ -59,7 +57,6 @@ class CLIParser:
             help="the YellowDog Application secret",
             metavar="<app-secret>",
         )
-
         parser.add_argument(
             "--namespace",
             "-n",
@@ -68,7 +65,6 @@ class CLIParser:
             help="the namespace to use when creating and identifying entities",
             metavar="<namespace>",
         )
-
         parser.add_argument(
             "--tag",
             "-t",
@@ -77,7 +73,6 @@ class CLIParser:
             help="the tag to use for tagging and naming entities",
             metavar="<tag>",
         )
-
         parser.add_argument(
             "--url",
             "-u",
@@ -86,7 +81,6 @@ class CLIParser:
             help="the URL of the YellowDog Platform API",
             metavar="<url>",
         )
-
         parser.add_argument(
             "--mustache",
             "-m",
@@ -96,7 +90,6 @@ class CLIParser:
             help="user-defined Mustache substitution; can be supplied multiple times",
             metavar="<var1=v1>",
         )
-
         parser.add_argument(
             "--quiet",
             "-q",
@@ -104,10 +97,16 @@ class CLIParser:
             required=False,
             help="suppress (non-error, non-interactive) status and progress messages",
         )
+        parser.add_argument(
+            "--debug",
+            action="store_true",
+            required=False,
+            help="print a stack trace (etc.) on error",
+        )
 
-        all_options_modules = ["args"]
+        # Module-specific argument sets
 
-        if any(module in sys.argv[0] for module in ["submit"] + all_options_modules):
+        if any(module in sys.argv[0] for module in ["submit"]):
             parser.add_argument(
                 "--work-requirement",
                 "-r",
@@ -187,10 +186,7 @@ class CLIParser:
                 help="proceed without requiring user confirmation",
             )
 
-        if any(
-            module in sys.argv[0]
-            for module in ["provision", "instantiate"] + all_options_modules
-        ):
+        if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
             parser.add_argument(
                 "--worker-pool",
                 "-p",
@@ -200,7 +196,7 @@ class CLIParser:
                 metavar="<worker_pool.json>",
             )
 
-        if any(module in sys.argv[0] for module in ["cancel"] + all_options_modules):
+        if any(module in sys.argv[0] for module in ["cancel"]):
             parser.add_argument(
                 "--abort",
                 "-a",
@@ -219,7 +215,6 @@ class CLIParser:
                 "shutdown",
                 "terminate",
             ]
-            + all_options_modules
         ):
             parser.add_argument(
                 "--interactive",
@@ -232,7 +227,6 @@ class CLIParser:
         if any(
             module in sys.argv[0]
             for module in ["abort", "cancel", "delete", "shutdown", "terminate"]
-            + all_options_modules
         ):
             parser.add_argument(
                 "--yes",
@@ -333,13 +327,6 @@ class CLIParser:
                 help="recursively upload files from directories",
             )
 
-        parser.add_argument(
-            "--debug",
-            action="store_true",
-            required=False,
-            help="print a stack trace (etc.) on error",
-        )
-
         if any(
             module in sys.argv[0] for module in ["submit", "provision", "instantiate"]
         ):
@@ -377,9 +364,9 @@ class CLIParser:
             exit(0)
 
         # Temporary notification message while we figure out the problem
-        # with the use of concurrent futures
+        # with the use of concurrent futures in Python 3.10+
         if (
-            any(module in sys.argv[0] for module in ["submit"] + all_options_modules)
+            any(module in sys.argv[0] for module in ["submit"])
             and self.args.follow
             and sys.version_info >= (3, 10)
         ):
