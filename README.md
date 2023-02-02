@@ -215,7 +215,7 @@ All entity names used within the YellowDog Platform must comply with the followi
 - Names must end with a letter or digit
 - Name length must be <= 60 characters
 
-These restrictions apply to entities including Namespaces, Tags, Work Requirements, Task Groups, Tasks, Worker Pools, and Compute Requirements, and also apply to entities that are currently used indirectly by these scripts: Usernames, Credentials, Keyrings, Compute Sources and Compute Templates).
+These restrictions apply to entities including Namespaces, Tags, Work Requirements, Task Groups, Tasks, Worker Pools, and Compute Requirements, and also apply to entities that are currently used indirectly by these scripts, including Usernames, Credentials, Keyrings, Compute Sources and Compute Templates.
 
 # Common Properties
 
