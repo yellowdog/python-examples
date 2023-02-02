@@ -32,9 +32,10 @@ class CSVTaskData:
         """
         Load the data from the CSV file; validate row lengths
         """
+        self._csv_data = []
+        row_length = None
+
         with open(csv_filename) as csv_file:
-            self._csv_data = []
-            row_length = None
             csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
             for row_number, row in enumerate(csv_reader):
                 if row_length is None:
@@ -46,6 +47,7 @@ class CSVTaskData:
                             "all rows must have the same number of items"
                         )
                 self._csv_data.append(row)
+
         self._index = 0
         self._total_tasks = len(self._csv_data) - 1
 
@@ -329,6 +331,7 @@ def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Di
     wr_data = {TASK_GROUPS: [{TASKS: [{}]}]}
     task_proto = wr_data[TASK_GROUPS][0][TASKS][0]
     csv_data = CSV_DATA_CACHE.get_csv_task_data(csv_file.split(":")[0])
+    # Populate properties that can be set at Task level only
     for config_value, config_name in [
         (config_wr.args, ARGS),
         (config_wr.bash_script, BASH_SCRIPT),
@@ -343,6 +346,7 @@ def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Di
         (config_wr.output_files, OUTPUT_FILES),
         (config_wr.task_name, TASK_NAME),
         (config_wr.task_type, TASK_TYPE),
+        (config_wr.upload_files, UPLOAD_FILES),
         (config_wr.verify_at_start, VERIFY_AT_START),
         (config_wr.verify_wait, VERIFY_WAIT),
     ]:
