@@ -80,6 +80,7 @@ class ConfigWorkRequirement:
     regions: Optional[List[str]] = None
     task_batch_size: int = TASK_BATCH_SIZE_DEFAULT
     task_count: int = 1
+    task_data: Optional[str] = None
     task_name: Optional[str] = None
     task_group_name: Optional[str] = None
     task_type: Optional[str] = None
@@ -309,6 +310,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             regions=wr_section.get(REGIONS, None),
             task_batch_size=task_batch_size,
             task_count=wr_section.get(TASK_COUNT, 1),
+            task_data=wr_section.get(TASK_DATA, None),
             task_group_name=wr_section.get(TASK_GROUP_NAME, None),
             task_name=wr_section.get(TASK_NAME, None),
             task_type=task_type,

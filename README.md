@@ -406,6 +406,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `regions`                  | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                  | Yes  | Yes | Yes       |      |
 | `taskBatchSize`            | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                            | Yes  |     |           |      |
 | `taskCount`                | The number of times to execute the Task. Can be set in the TOML file or in any JSON Task Group definition. Not inherited. E.g., `1`.                                     | Yes  |     | Yes       |      |
+| `taskData`                 | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when The Task executes.      | Yes  | Yes | Yes       | Yes  |
 | `taskName`                 | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                   | Yes  |     |           |      |
 | `taskGroupName`            | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                          | Yes  |     |           |      |
 | `taskType`                 | The Task Type of a Task. E.g., `"docker"`.                                                                                                                               | Yes  |     |           | Yes  |
@@ -536,6 +537,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     regions = ["eu-west-2"]
     taskBatchSize = 1000
     taskCount = 100
+    taskData = "my_data_string"
     taskName = "my_task_number_{{task_number}}"
     taskGroupName = "my_task_group_number_{{task_group_number}}"
     taskType = "docker"
@@ -579,6 +581,7 @@ Showing all possible properties at the Work Requirement level:
   "providers": ["AWS"],
   "ram": [0.5, 2],
   "regions": ["eu-west-2"],
+  "taskData": "my_task_data_string",
   "taskTypes": ["docker"],
   "tasksPerWorker": 1,
   "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
@@ -629,6 +632,7 @@ Showing all possible properties at the Task Group level:
       "ram": [0.5, 2],
       "regions": ["eu-west-2"],
       "taskCount": 5,
+      "taskData": "my_task_data_string",
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,
       "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
@@ -672,6 +676,7 @@ Showing all possible properties at the Task level:
           "inputs": ["app/main.py", "app/requirements.txt"],
           "name": "my-task",
           "outputs": ["results.txt"],
+          "taskData": "my_task_data_string",
           "taskType": "docker",
           "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
           "verifyAtStart": ["ready_results.txt"],

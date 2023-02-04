@@ -495,6 +495,14 @@ def add_tasks_to_task_group(
                     ENV, task_group_data.get(ENV, tasks_data.get(ENV, CONFIG_WR.env))
                 )
             )
+            task_data_property = check_str(
+                task.get(
+                    TASK_DATA,
+                    task_group_data.get(
+                        TASK_DATA, tasks_data.get(TASK_DATA, CONFIG_WR.task_data)
+                    ),
+                )
+            )
 
             # Set up lists of files to input, verify
             input_files_list = check_list(
@@ -620,6 +628,7 @@ def add_tasks_to_task_group(
                     task_type=task_type,
                     executable=executable,
                     args=arguments_list,
+                    task_data_property=task_data_property,
                     env=env,
                     inputs=inputs,
                     outputs=outputs,
@@ -811,6 +820,7 @@ def create_task(
     task_type: str,
     executable: str,
     args: List[str],
+    task_data_property: Optional[str],
     env: Dict[str, str],
     inputs: Optional[List[TaskInput]],
     outputs: Optional[List[TaskOutput]],
@@ -836,6 +846,7 @@ def create_task(
             environment=env,
             outputs=outputs,
             flattenInputPaths=flatten_input_paths,
+            taskData=task_data_property,
         )
 
     check_list(args)

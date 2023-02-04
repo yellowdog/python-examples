@@ -52,6 +52,7 @@ TASKS = "tasks"  # List of Tasks
 TASK_BATCH_SIZE = "taskBatchSize"  # Integer
 TASKS_PER_WORKER = "tasksPerWorker"  # Integer
 TASK_COUNT = "taskCount"  # Integer
+TASK_DATA = "taskData"  # String
 TASK_GROUPS = "taskGroups"  # List of Task Groups
 TASK_GROUP_NAME = "taskGroupName"  # String
 TASK_NAME = "taskName"  # String
@@ -131,6 +132,7 @@ ALL_KEYS = [
     TASK_BATCH_SIZE,
     TASKS_PER_WORKER,
     TASK_COUNT,
+    TASK_DATA,
     TASK_GROUPS,
     TASK_GROUP_NAME,
     TASK_NAME,
