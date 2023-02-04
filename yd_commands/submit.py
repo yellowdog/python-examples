@@ -259,11 +259,8 @@ def submit_work_requirement(
             )
 
         except Exception as e:
-            print_error(e)
             cleanup_on_failure(work_requirement)
-            if ARGS_PARSER.debug:
-                raise e
-            return
+            raise e
 
     if ARGS_PARSER.follow:
         follow_progress(work_requirement)
