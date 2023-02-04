@@ -495,14 +495,6 @@ def add_tasks_to_task_group(
                     ENV, task_group_data.get(ENV, tasks_data.get(ENV, CONFIG_WR.env))
                 )
             )
-            task_data_property = check_str(
-                task.get(
-                    TASK_DATA,
-                    task_group_data.get(
-                        TASK_DATA, tasks_data.get(TASK_DATA, CONFIG_WR.task_data)
-                    ),
-                )
-            )
 
             # Set up lists of files to input, verify
             input_files_list = check_list(
@@ -628,7 +620,9 @@ def add_tasks_to_task_group(
                     task_type=task_type,
                     executable=executable,
                     args=arguments_list,
-                    task_data_property=task_data_property,
+                    task_data_property=get_task_data_property(
+                        tasks_data, task_group_data, task, task_name
+                    ),
                     env=env,
                     inputs=inputs,
                     outputs=outputs,
@@ -662,6 +656,36 @@ def add_tasks_to_task_group(
         print_log(
             f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'"
         )
+
+
+def get_task_data_property(
+    tasks_data: Dict, task_group_data: Dict, task: Dict, task_name: str
+) -> Optional[str]:
+    """
+    Get the 'taskData' property, either using the contents of the file
+    specified in 'taskDataFile' or using the string specified in 'taskData'.
+    Raise exception if both 'taskData' and 'taskDataFile' are set at the same
+    level in the Work Requirement.
+    """
+
+    # Try Task, Task Group, then Work Requirement data
+    for data, task_data_default, task_data_file_default in [
+        (task, None, None),
+        (task_group_data, None, None),
+        (tasks_data, CONFIG_WR.task_data, CONFIG_WR.task_data_file),
+    ]:
+        task_data_property = data.get(TASK_DATA, task_data_default)
+        task_data_file_property = data.get(TASK_DATA_FILE, task_data_file_default)
+        if task_data_property and task_data_file_property:
+            raise Exception(
+                f"Task '{task_name}': Properties '{TASK_DATA}' and "
+                f"'{TASK_DATA_FILE}' are both set"
+            )
+        if task_data_property:
+            return task_data_property
+        if task_data_file_property:
+            with open(task_data_file_property, "r") as f:
+                return f.read()
 
 
 def follow_progress(work_requirement: WorkRequirement) -> None:
