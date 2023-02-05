@@ -8,7 +8,7 @@
 * [Script Installation with Pipx](#script-installation-with-pipx)
 * [Usage](#usage)
 * [Configuration](#configuration)
-* [Naming Restrictions](#naming-restrictions)
+* [Naming Rules](#naming-rules)
 * [Common Properties](#common-properties)
    * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
    * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
@@ -75,13 +75,17 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Wed Feb  1 14:04:05 GMT 2023 -->
+<!-- Added by: pwt, at: Sun Feb  5 11:34:08 GMT 2023 -->
 
 <!--te-->
 
 # Overview
 
-This repository contains a set of example Python scripts for interacting with the YellowDog Platform. The scripts use the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html), the code for which can be found in this [GitHub repository](https://github.com/yellowdog/yellowdog-sdk-python-public).
+This repository contains a set of example Python scripts for interacting with the YellowDog Platform. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
+
+This documentation should be read in conjunction with the main **[YellowDog Documentation](https://docs.yellowdog.co)**, which provides a comprehensive description of the concepts and operation of the YellowDog Platform.
+
+The scripts are intended to be helpful starting points for experimenting with the YellowDog Platform. They are not assured to be of production quality nor to represent a standard or recommended method for using YellowDog.
 
 The scripts provide commands for:
 
@@ -96,8 +100,6 @@ The scripts provide commands for:
 - **Deleting** objects in the YellowDog Object Store
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
-
-The scripts are intended to be helpful starting points for programmatically interacting with the YellowDog Platform, and to be useful for initial development and experimentation. They are not intended to be of production quality nor to represent a standard or recommended method for using YellowDog.
 
 # YellowDog Prerequisites
 
@@ -206,7 +208,7 @@ The configuration filename can be supplied in three different ways:
 
 The options above are shown in order of precedence, i.e., a filename supplied on the command line supersedes one set in `YD_CONF`, which supersedes the default.
 
-# Naming Restrictions
+# Naming Rules
 
 All entity names used within the YellowDog Platform must comply with the following restrictions:
 
