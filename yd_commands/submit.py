@@ -442,8 +442,8 @@ def add_tasks_to_task_group(
             task_count = check_int(task_group_task_count)
         else:
             print_log(
-                f"Warning: Task Group '{task_group.name}'has {num_tasks} Tasks; "
-                "ignoring 'taskCount'"
+                f"Warning: Task Group '{task_group.name}' contains {num_tasks} "
+                "Tasks: ignoring 'taskCount'"
             )
 
     num_task_groups = len(tasks_data[TASK_GROUPS])
