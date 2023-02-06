@@ -453,7 +453,7 @@ def add_tasks_to_task_group(
     num_tasks = len(tasks) if task_count is None else task_count
     num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
     tasks_list: List[Task] = []
-    if num_task_batches > 1:
+    if num_task_batches > 1 and not ARGS_PARSER.dry_run:
         print_log(
             f"Adding Tasks to Task Group '{task_group.name}' in "
             f"{num_task_batches} batches"
