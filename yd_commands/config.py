@@ -85,13 +85,13 @@ class ConfigWorkRequirement:
     task_name: Optional[str] = None
     task_group_name: Optional[str] = None
     task_type: Optional[str] = None
-    tasks_data_file: Optional[str] = None
     tasks_per_worker: Optional[int] = None
     upload_files: List[Dict] = field(default_factory=list)
     vcpus: Optional[List[float]] = None
     verify_at_start: List[str] = field(default_factory=list)
     verify_wait: List[str] = field(default_factory=list)
     worker_tags: Optional[List[str]] = None
+    wr_data_file: Optional[str] = None
     wr_name: Optional[str] = None
 
 
@@ -243,11 +243,11 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             for index, worker_tag in enumerate(worker_tags):
                 worker_tags[index] = substitute_mustache_str(worker_tag)
 
-        tasks_data_file = wr_section.get(WR_DATA, None)
-        if tasks_data_file is not None:
-            check_str(tasks_data_file)
-            tasks_data_file = substitute_mustache_str(tasks_data_file)
-            tasks_data_file = pathname_relative_to_config_file(tasks_data_file)
+        wr_data_file = wr_section.get(WR_DATA, None)
+        if wr_data_file is not None:
+            check_str(wr_data_file)
+            wr_data_file = substitute_mustache_str(wr_data_file)
+            wr_data_file = pathname_relative_to_config_file(wr_data_file)
 
         # Check for properties set on the command line
         executable = (
@@ -316,13 +316,13 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             task_group_name=wr_section.get(TASK_GROUP_NAME, None),
             task_name=wr_section.get(TASK_NAME, None),
             task_type=task_type,
-            tasks_data_file=tasks_data_file,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
             upload_files=wr_section.get(UPLOAD_FILES, []),
             vcpus=wr_section.get(VCPUS, None),
             verify_at_start=wr_section.get(VERIFY_AT_START, []),
             verify_wait=wr_section.get(VERIFY_WAIT, []),
             worker_tags=worker_tags,
+            wr_data_file=wr_data_file,
             wr_name=wr_section.get(WR_NAME, None),
         )
     except KeyError as e:
