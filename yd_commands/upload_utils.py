@@ -19,7 +19,7 @@ def upload_file(
     id: str,
     namespace: str,
     url: str,
-    input_folder_name: Optional[str] = None,
+    inputs_folder_name: Optional[str] = None,
     flatten_upload_paths: bool = False,
 ):
     """
@@ -30,7 +30,7 @@ def upload_file(
     dest_filename = unique_upload_pathname(
         filename,
         id=id,
-        input_folder_name=input_folder_name,
+        inputs_folder_name=inputs_folder_name,
         flatten_upload_paths=flatten_upload_paths,
     )
 
@@ -46,7 +46,7 @@ def upload_file(
 def unique_upload_pathname(
     filename: str,
     id: str,
-    input_folder_name: Optional[str],
+    inputs_folder_name: Optional[str],
     urlencode_forward_slash: bool = False,
     flatten_upload_paths: bool = False,
 ) -> str:
@@ -68,8 +68,8 @@ def unique_upload_pathname(
     filename = str(double_dots) + "/" + filename if double_dots != 0 else filename
     if urlencode_forward_slash is True:
         filename = filename.replace("/", forward_slash)
-    if input_folder_name is not None:
-        return prefix + input_folder_name + forward_slash + filename
+    if inputs_folder_name is not None:
+        return prefix + inputs_folder_name + forward_slash + filename
     else:
         return prefix + filename
 

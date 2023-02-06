@@ -7,7 +7,7 @@ AUTO_SCALING_IDLE_DELAY = "autoscalingIdleDelay"  # Float
 AUTO_SHUTDOWN = "autoShutdown"  # Boolean
 AUTO_SHUTDOWN_DELAY = "autoShutdownDelay"  # Float
 CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
-COMMON_SECTION = "common"
+COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
 CSV_FILE = "csvFile"  # String
@@ -70,13 +70,13 @@ VERIFY_AT_START = "verifyAtStart"  # List of Strings
 VERIFY_WAIT = "verifyWait"  # List of Strings
 WORKERS_PER_VCPU = "workersPerVCPU"  # Integer
 WORKERS_PER_NODE = "workersPerNode"  # Integer
-WORKER_POOL_SECTION = "workerPool"  # String
+WORKER_POOL_SECTION = "workerPool"  # No value
 WORKER_TAG = "workerTag"  # String
 WORKER_TAGS = "workerTags"  # List of Strings
-WORK_REQUIREMENT_SECTION = "workRequirement"  # String
+WORK_REQUIREMENT_SECTION = "workRequirement"  # No value
 WP_DATA = "workerPoolData"  # String
 WP_NAME = "name"  # String
-WR_DATA = "workRequirementData"  # Integer
+WR_DATA = "workRequirementData"  # String
 WR_NAME = "name"  # String
 
 # Legacy

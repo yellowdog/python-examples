@@ -82,7 +82,7 @@ CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 
 ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = CONFIG_WR.task_batch_size
-INPUT_FOLDER_NAME = None
+INPUTS_FOLDER_NAME = None
 
 if ARGS_PARSER.dry_run:
     WR_SNAPSHOT = WorkRequirementSnapshot()
@@ -98,7 +98,7 @@ def main():
         return
 
     wr_data_file = (
-        CONFIG_WR.tasks_data_file
+        CONFIG_WR.wr_data_file
         if ARGS_PARSER.work_req_file is None
         else ARGS_PARSER.work_req_file
     )
@@ -112,10 +112,10 @@ def main():
         )
 
     if wr_data_file is None and csv_files is not None:
-        tasks_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0])
+        wr_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0])
         submit_work_requirement(
             directory_to_upload_from=CONFIG_FILE_DIR,
-            tasks_data=tasks_data,
+            wr_data=wr_data,
         )
 
     elif wr_data_file is not None:
@@ -124,32 +124,32 @@ def main():
         # JSON file
         if wr_data_file.lower().endswith("json"):
             if csv_files is not None:
-                tasks_data = load_json_file_with_csv_task_expansion(
+                wr_data = load_json_file_with_csv_task_expansion(
                     json_file=wr_data_file,
                     csv_files=csv_files,
                 )
             else:
-                tasks_data = load_json_file_with_mustache_substitutions(wr_data_file)
+                wr_data = load_json_file_with_mustache_substitutions(wr_data_file)
 
         # Jsonnet file
         elif wr_data_file.lower().endswith("jsonnet"):
             if csv_files is not None:
-                tasks_data = load_jsonnet_file_with_csv_task_expansion(
+                wr_data = load_jsonnet_file_with_csv_task_expansion(
                     jsonnet_file=wr_data_file,
                     csv_files=csv_files,
                 )
             else:
-                tasks_data = load_jsonnet_file_with_mustache_substitutions(wr_data_file)
+                wr_data = load_jsonnet_file_with_mustache_substitutions(wr_data_file)
 
         # TOML file (undocumented)
         elif wr_data_file.lower().endswith("toml"):
             if csv_files is not None:
-                tasks_data = load_toml_file_with_csv_task_expansion(
+                wr_data = load_toml_file_with_csv_task_expansion(
                     toml_file=wr_data_file,
                     csv_files=csv_files,
                 )
             else:
-                tasks_data = load_toml_file_with_mustache_substitutions(wr_data_file)
+                wr_data = load_toml_file_with_mustache_substitutions(wr_data_file)
 
         # None of the above
         else:
@@ -157,10 +157,10 @@ def main():
                 f"Work Requirement data file '{wr_data_file}' "
                 "must end with '.json', '.jsonnet', or '.toml'"
             )
-        validate_properties(tasks_data, "Work Requirement JSON")
+        validate_properties(wr_data, "Work Requirement JSON")
         submit_work_requirement(
             directory_to_upload_from=dirname(wr_data_file),
-            tasks_data=tasks_data,
+            wr_data=wr_data,
         )
 
     else:
@@ -179,7 +179,7 @@ def main():
 
 def submit_work_requirement(
     directory_to_upload_from: str,
-    tasks_data: Optional[Dict] = None,
+    wr_data: Optional[Dict] = None,
     task_count: Optional[int] = None,
 ):
     """
@@ -192,17 +192,17 @@ def submit_work_requirement(
     Task > Task Group > Top-Level JSON Property > TOML config file
     """
     # Create a default tasks_data dictionary if required
-    tasks_data = {TASK_GROUPS: [{TASKS: [{}]}]} if tasks_data is None else tasks_data
-    check_dict(tasks_data)
+    wr_data = {TASK_GROUPS: [{TASKS: [{}]}]} if wr_data is None else wr_data
+    check_dict(wr_data)
 
     # Remap 'task_type' at WR level to 'task_types' if 'task_types' is empty
-    if tasks_data.get(TASK_TYPE, None) is not None:
-        if tasks_data.get(TASK_TYPES, None) is None:
-            tasks_data[TASK_TYPES] = [tasks_data[TASK_TYPE]]
+    if wr_data.get(TASK_TYPE, None) is not None:
+        if wr_data.get(TASK_TYPES, None) is None:
+            wr_data[TASK_TYPES] = [wr_data[TASK_TYPE]]
 
     # Overwrite the WR name?
     global ID
-    ID = tasks_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
+    ID = wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
 
     # Handle any files that need to be uploaded
     global UPLOADED_FILES
@@ -214,18 +214,18 @@ def submit_work_requirement(
 
     # Flatten upload paths?
     flatten_upload_paths = check_bool(
-        tasks_data.get(FLATTEN_UPLOAD_PATHS, CONFIG_WR.flatten_upload_paths)
+        wr_data.get(FLATTEN_UPLOAD_PATHS, CONFIG_WR.flatten_upload_paths)
     )
 
     # Create the list of Task Groups
     task_groups: List[TaskGroup] = []
-    for tg_number, task_group_data in enumerate(tasks_data[TASK_GROUPS]):
-        task_groups.append(create_task_group(tg_number, tasks_data, task_group_data))
+    for tg_number, task_group_data in enumerate(wr_data[TASK_GROUPS]):
+        task_groups.append(create_task_group(tg_number, wr_data, task_group_data))
 
     # Create the Work Requirement
-    priority = check_float_or_int(tasks_data.get(PRIORITY, CONFIG_WR.priority))
+    priority = check_float_or_int(wr_data.get(PRIORITY, CONFIG_WR.priority))
     fulfilOnSubmit = check_bool(
-        tasks_data.get(FULFIL_ON_SUBMIT, CONFIG_WR.fulfil_on_submit)
+        wr_data.get(FULFIL_ON_SUBMIT, CONFIG_WR.fulfil_on_submit)
     )
     work_requirement = WorkRequirement(
         namespace=CONFIG_COMMON.namespace,
@@ -252,7 +252,7 @@ def submit_work_requirement(
             add_tasks_to_task_group(
                 tg_number,
                 task_group,
-                tasks_data,
+                wr_data,
                 task_count,
                 work_requirement,
                 flatten_upload_paths=flatten_upload_paths,
@@ -268,7 +268,7 @@ def submit_work_requirement(
 
 def create_task_group(
     tg_number: int,
-    tasks_data: Dict,
+    wr_data: Dict,
     task_group_data: Dict,
 ) -> TaskGroup:
     """
@@ -290,7 +290,7 @@ def create_task_group(
             pass
 
     # Name the Task Group
-    num_task_groups = len(tasks_data[TASK_GROUPS])
+    num_task_groups = len(wr_data[TASK_GROUPS])
     num_tasks = len(task_group_data[TASKS])
     task_group_name = get_task_group_name(
         task_group_data.get(NAME, CONFIG_WR.task_group_name),
@@ -304,7 +304,7 @@ def create_task_group(
     # specified in the Tasks.
     task_types: List = list(
         set(
-            check_list(task_group_data.get(TASK_TYPES, tasks_data.get(TASK_TYPES, [])))
+            check_list(task_group_data.get(TASK_TYPES, wr_data.get(TASK_TYPES, [])))
         ).union(task_types_from_tasks)
     )
     if CONFIG_WR.task_type is not None and CONFIG_WR.task_type not in task_types:
@@ -313,7 +313,7 @@ def create_task_group(
         raise Exception(f"No Task Type(s) specified in Task Group '{task_group_name}'")
 
     vcpus_data: Optional[List[float]] = check_list(
-        task_group_data.get(VCPUS, tasks_data.get(VCPUS, CONFIG_WR.vcpus))
+        task_group_data.get(VCPUS, wr_data.get(VCPUS, CONFIG_WR.vcpus))
     )
     vcpus = (
         None
@@ -322,7 +322,7 @@ def create_task_group(
     )
 
     ram_data: Optional[List[float]] = check_list(
-        task_group_data.get(RAM, tasks_data.get(RAM, CONFIG_WR.ram))
+        task_group_data.get(RAM, wr_data.get(RAM, CONFIG_WR.ram))
     )
     ram = (
         None
@@ -331,7 +331,7 @@ def create_task_group(
     )
 
     providers_data: Optional[List[str]] = check_list(
-        task_group_data.get(PROVIDERS, tasks_data.get(PROVIDERS, CONFIG_WR.providers))
+        task_group_data.get(PROVIDERS, wr_data.get(PROVIDERS, CONFIG_WR.providers))
     )
     providers: Optional[List[CloudProvider]] = (
         None
@@ -343,23 +343,23 @@ def create_task_group(
         taskTypes=task_types,
         maximumTaskRetries=check_int(
             task_group_data.get(
-                MAX_RETRIES, tasks_data.get(MAX_RETRIES, CONFIG_WR.max_retries)
+                MAX_RETRIES, wr_data.get(MAX_RETRIES, CONFIG_WR.max_retries)
             )
         ),
         workerTags=check_list(
             task_group_data.get(
-                WORKER_TAGS, tasks_data.get(WORKER_TAGS, CONFIG_WR.worker_tags)
+                WORKER_TAGS, wr_data.get(WORKER_TAGS, CONFIG_WR.worker_tags)
             )
         ),
         exclusiveWorkers=check_bool(
             task_group_data.get(
                 EXCLUSIVE_WORKERS,
-                tasks_data.get(EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers),
+                wr_data.get(EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers),
             )
         ),
         instanceTypes=check_list(
             task_group_data.get(
-                INSTANCE_TYPES, tasks_data.get(INSTANCE_TYPES, CONFIG_WR.instance_types)
+                INSTANCE_TYPES, wr_data.get(INSTANCE_TYPES, CONFIG_WR.instance_types)
             )
         ),
         vcpus=vcpus,
@@ -371,13 +371,13 @@ def create_task_group(
         ),
         providers=providers,
         regions=check_list(
-            task_group_data.get(REGIONS, tasks_data.get(REGIONS, CONFIG_WR.regions))
+            task_group_data.get(REGIONS, wr_data.get(REGIONS, CONFIG_WR.regions))
         ),
     )
     ctttl_data = check_float_or_int(
         task_group_data.get(
             COMPLETED_TASK_TTL,
-            tasks_data.get(COMPLETED_TASK_TTL, CONFIG_WR.completed_task_ttl),
+            wr_data.get(COMPLETED_TASK_TTL, CONFIG_WR.completed_task_ttl),
         )
     )
     completed_task_ttl = None if ctttl_data is None else timedelta(minutes=ctttl_data)
@@ -390,7 +390,7 @@ def create_task_group(
         finishIfAllTasksFinished=check_bool(
             task_group_data.get(
                 FINISH_IF_ALL_TASKS_FINISHED,
-                tasks_data.get(
+                wr_data.get(
                     FINISH_IF_ALL_TASKS_FINISHED, CONFIG_WR.finish_if_all_tasks_finished
                 ),
             )
@@ -398,13 +398,13 @@ def create_task_group(
         finishIfAnyTaskFailed=check_bool(
             task_group_data.get(
                 FINISH_IF_ANY_TASK_FAILED,
-                tasks_data.get(
+                wr_data.get(
                     FINISH_IF_ANY_TASK_FAILED, CONFIG_WR.finish_if_any_task_failed
                 ),
             )
         ),
         priority=check_float_or_int(
-            task_group_data.get(PRIORITY, tasks_data.get(PRIORITY, CONFIG_WR.priority))
+            task_group_data.get(PRIORITY, wr_data.get(PRIORITY, CONFIG_WR.priority))
         ),
         completedTaskTtl=completed_task_ttl,
     )
@@ -416,7 +416,7 @@ def create_task_group(
 def add_tasks_to_task_group(
     tg_number: int,
     task_group: TaskGroup,
-    tasks_data: Dict,
+    wr_data: Dict,
     task_count: Optional[int],
     work_requirement: WorkRequirement,
     flatten_upload_paths: bool = False,
@@ -426,16 +426,16 @@ def add_tasks_to_task_group(
     """
 
     # Ensure there's at least one Task
-    num_tasks = len(tasks_data[TASK_GROUPS][tg_number][TASKS])
+    num_tasks = len(wr_data[TASK_GROUPS][tg_number][TASKS])
     if num_tasks == 0:
-        tasks_data[TASK_GROUPS][tg_number][TASKS] = [{}]
+        wr_data[TASK_GROUPS][tg_number][TASKS] = [{}]
         num_tasks = 1
 
     # If 'taskCount' is set at the Json Work Requirement or
     # Task Group levels, and there is only one Task, create 'taskCount'
     # copies of the Task. Note: NOT inherited from the TOML level.
-    task_group_task_count = tasks_data[TASK_GROUPS][tg_number].get(
-        TASK_COUNT, tasks_data.get(TASK_COUNT, None)
+    task_group_task_count = wr_data[TASK_GROUPS][tg_number].get(
+        TASK_COUNT, wr_data.get(TASK_COUNT, None)
     )
     if task_group_task_count is not None:
         if num_tasks == 1:
@@ -446,10 +446,10 @@ def add_tasks_to_task_group(
                 "Tasks: ignoring 'taskCount'"
             )
 
-    num_task_groups = len(tasks_data[TASK_GROUPS])
+    num_task_groups = len(wr_data[TASK_GROUPS])
 
     # Determine Task batching
-    tasks = tasks_data[TASK_GROUPS][tg_number][TASKS]
+    tasks = wr_data[TASK_GROUPS][tg_number][TASKS]
     num_tasks = len(tasks) if task_count is None else task_count
     num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
     tasks_list: List[Task] = []
@@ -467,7 +467,7 @@ def add_tasks_to_task_group(
             (TASK_BATCH_SIZE * batch_number),
             min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
         ):
-            task_group_data = tasks_data[TASK_GROUPS][tg_number]
+            task_group_data = wr_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
             task_name = get_task_name(
                 task.get(NAME, CONFIG_WR.task_name),
@@ -480,20 +480,18 @@ def add_tasks_to_task_group(
                 task.get(
                     EXECUTABLE,
                     task_group_data.get(
-                        EXECUTABLE, tasks_data.get(EXECUTABLE, CONFIG_WR.executable)
+                        EXECUTABLE, wr_data.get(EXECUTABLE, CONFIG_WR.executable)
                     ),
                 )
             )
             arguments_list = check_list(
                 task.get(
                     ARGS,
-                    tasks_data.get(ARGS, task_group_data.get(ARGS, CONFIG_WR.args)),
+                    wr_data.get(ARGS, task_group_data.get(ARGS, CONFIG_WR.args)),
                 )
             )
             env = check_dict(
-                task.get(
-                    ENV, task_group_data.get(ENV, tasks_data.get(ENV, CONFIG_WR.env))
-                )
+                task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, CONFIG_WR.env)))
             )
 
             # Set up lists of files to input, verify
@@ -502,7 +500,7 @@ def add_tasks_to_task_group(
                     INPUT_FILES,
                     task_group_data.get(
                         INPUT_FILES,
-                        tasks_data.get(INPUT_FILES, CONFIG_WR.input_files),
+                        wr_data.get(INPUT_FILES, CONFIG_WR.input_files),
                     ),
                 )
             )
@@ -511,7 +509,7 @@ def add_tasks_to_task_group(
                     VERIFY_AT_START,
                     task_group_data.get(
                         VERIFY_AT_START,
-                        tasks_data.get(VERIFY_AT_START, CONFIG_WR.verify_at_start),
+                        wr_data.get(VERIFY_AT_START, CONFIG_WR.verify_at_start),
                     ),
                 )
             )
@@ -519,7 +517,7 @@ def add_tasks_to_task_group(
                 task.get(
                     VERIFY_WAIT,
                     task_group_data.get(
-                        VERIFY_WAIT, tasks_data.get(VERIFY_WAIT, CONFIG_WR.verify_wait)
+                        VERIFY_WAIT, wr_data.get(VERIFY_WAIT, CONFIG_WR.verify_wait)
                     ),
                 )
             )
@@ -541,7 +539,7 @@ def add_tasks_to_task_group(
                     UPLOAD_FILES,
                     task_group_data.get(
                         UPLOAD_FILES,
-                        tasks_data.get(UPLOAD_FILES, CONFIG_WR.upload_files),
+                        wr_data.get(UPLOAD_FILES, CONFIG_WR.upload_files),
                     ),
                 )
             )
@@ -558,7 +556,7 @@ def add_tasks_to_task_group(
             inputs = generate_task_input_list(
                 files=[
                     unique_upload_pathname(
-                        input_file, ID, INPUT_FOLDER_NAME, False, flatten_upload_paths
+                        input_file, ID, INPUTS_FOLDER_NAME, False, flatten_upload_paths
                     )
                     for input_file in input_files_list
                 ],
@@ -580,7 +578,7 @@ def add_tasks_to_task_group(
                         OUTPUT_FILES,
                         task_group_data.get(
                             OUTPUT_FILES,
-                            tasks_data.get(OUTPUT_FILES, CONFIG_WR.output_files),
+                            wr_data.get(OUTPUT_FILES, CONFIG_WR.output_files),
                         ),
                     )
                 )
@@ -592,9 +590,7 @@ def add_tasks_to_task_group(
                     CAPTURE_TASKOUTPUT,
                     task_group_data.get(
                         CAPTURE_TASKOUTPUT,
-                        tasks_data.get(
-                            CAPTURE_TASKOUTPUT, CONFIG_WR.capture_taskoutput
-                        ),
+                        wr_data.get(CAPTURE_TASKOUTPUT, CONFIG_WR.capture_taskoutput),
                     ),
                 )
             ):
@@ -613,7 +609,7 @@ def add_tasks_to_task_group(
 
             tasks_list.append(
                 create_task(
-                    tasks_data=tasks_data,
+                    wr_data=wr_data,
                     task_group_data=task_group_data,
                     task_data=task,
                     name=task_name,
@@ -621,7 +617,7 @@ def add_tasks_to_task_group(
                     executable=executable,
                     args=arguments_list,
                     task_data_property=get_task_data_property(
-                        tasks_data, task_group_data, task, task_name
+                        wr_data, task_group_data, task, task_name
                     ),
                     env=env,
                     inputs=inputs,
@@ -659,7 +655,7 @@ def add_tasks_to_task_group(
 
 
 def get_task_data_property(
-    tasks_data: Dict, task_group_data: Dict, task: Dict, task_name: str
+    wr_data: Dict, task_group_data: Dict, task: Dict, task_name: str
 ) -> Optional[str]:
     """
     Get the 'taskData' property, either using the contents of the file
@@ -672,7 +668,7 @@ def get_task_data_property(
     for data, task_data_default, task_data_file_default in [
         (task, None, None),
         (task_group_data, None, None),
-        (tasks_data, CONFIG_WR.task_data, CONFIG_WR.task_data_file),
+        (wr_data, CONFIG_WR.task_data, CONFIG_WR.task_data_file),
     ]:
         task_data_property = data.get(TASK_DATA, task_data_default)
         task_data_file_property = data.get(TASK_DATA_FILE, task_data_file_default)
@@ -837,7 +833,7 @@ def get_task_group_name(
 
 
 def create_task(
-    tasks_data: Dict,
+    wr_data: Dict,
     task_group_data: Dict,
     task_data: Dict,
     name: str,
@@ -883,7 +879,7 @@ def create_task(
             FLATTEN_PATHS,
             task_group_data.get(
                 FLATTEN_PATHS,
-                tasks_data.get(FLATTEN_PATHS, CONFIG_WR.flatten_input_paths),
+                wr_data.get(FLATTEN_PATHS, CONFIG_WR.flatten_input_paths),
             ),
         )
     ):
@@ -905,7 +901,7 @@ def create_task(
             unique_upload_pathname(
                 filename=executable,
                 id=ID,
-                input_folder_name=INPUT_FOLDER_NAME,
+                inputs_folder_name=INPUTS_FOLDER_NAME,
                 flatten_upload_paths=flatten_upload_paths,
             ),
             verification=TaskInputVerification.VERIFY_AT_START,
@@ -917,7 +913,7 @@ def create_task(
             unique_upload_pathname(
                 filename=executable,
                 id=ID,
-                input_folder_name=INPUT_FOLDER_NAME,
+                inputs_folder_name=INPUTS_FOLDER_NAME,
                 flatten_upload_paths=flatten_upload_paths,
             )
             if flatten_input_paths is None
@@ -939,7 +935,7 @@ def create_task(
                 DOCKER_ENV,
                 task_group_data.get(
                     DOCKER_ENV,
-                    tasks_data.get(DOCKER_ENV, CONFIG_WR.docker_env),
+                    wr_data.get(DOCKER_ENV, CONFIG_WR.docker_env),
                 ),
             )
         )
@@ -957,14 +953,14 @@ def create_task(
             DOCKER_USERNAME,
             task_group_data.get(
                 DOCKER_USERNAME,
-                tasks_data.get(DOCKER_USERNAME, CONFIG_WR.docker_username),
+                wr_data.get(DOCKER_USERNAME, CONFIG_WR.docker_username),
             ),
         )
         docker_password = task_data.get(
             DOCKER_PASSWORD,
             task_group_data.get(
                 DOCKER_PASSWORD,
-                tasks_data.get(DOCKER_PASSWORD, CONFIG_WR.docker_password),
+                wr_data.get(DOCKER_PASSWORD, CONFIG_WR.docker_password),
             ),
         )
         env.update(

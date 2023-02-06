@@ -140,7 +140,7 @@ class UploadedFiles:
         upload_file_name = unique_upload_pathname(
             filename=filename,
             id=self._wr_name,
-            input_folder_name=None,
+            inputs_folder_name=None,
             urlencode_forward_slash=False,
             flatten_upload_paths=flatten_upload_paths,
         )
