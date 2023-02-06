@@ -562,11 +562,3 @@ def lookup_module_description(module_name: str) -> Optional[str]:
 
 
 ARGS_PARSER = CLIParser(description=lookup_module_description(sys.argv[0]))
-
-
-if __name__ == "__main__":
-    """
-    Standalone module testing
-    """
-    args = CLIParser()
-    print(args)
