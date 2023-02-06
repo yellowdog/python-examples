@@ -431,16 +431,19 @@ def add_tasks_to_task_group(
         tasks_data[TASK_GROUPS][tg_number][TASKS] = [{}]
         num_tasks = 1
 
-    # If 'taskCount' is set at the Task Group level, and there
-    # is only one Task, create 'taskCount' copies of the Task
-    task_group_task_count = tasks_data[TASK_GROUPS][tg_number].get(TASK_COUNT, None)
+    # If 'taskCount' is set at the Json Work Requirement or
+    # Task Group levels, and there is only one Task, create 'taskCount'
+    # copies of the Task. Note: NOT inherited from the TOML level.
+    task_group_task_count = tasks_data[TASK_GROUPS][tg_number].get(
+        TASK_COUNT, tasks_data.get(TASK_COUNT, None)
+    )
     if task_group_task_count is not None:
         if num_tasks == 1:
             task_count = check_int(task_group_task_count)
         else:
-            raise Exception(
-                "Can't use 'taskCount' for a Task Group if there are "
-                "multiple Tasks in the group"
+            print_log(
+                f"Warning: Task Group '{task_group.name}'has {num_tasks} Tasks; "
+                "ignoring 'taskCount'"
             )
 
     num_task_groups = len(tasks_data[TASK_GROUPS])
