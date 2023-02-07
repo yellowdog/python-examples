@@ -1,3 +1,3 @@
-yellowdog-sdk >= 4.0.9
+yellowdog-sdk >= 4.0.18
 toml
 tabulate
