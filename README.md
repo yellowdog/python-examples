@@ -1036,21 +1036,13 @@ As an example, consider the following JSON Work Requirement `wr.json`:
 
 Note that the Task Group must contain only a single Task, acting as the prototype.
 
-Now consider a CSV file `wr_data.csv` with the following contents (shown in tabular form):
-
-| arg_1 | arg_2 | arg_3 | env_1 |
-|-------|-------|-------|-------|
-| A     | B     | C     | E-1   |
-| D     | E     | F     | E-2   |
-| G     | H     | I     | E-3   |
-
-The 'raw' `wr_data.csv` file looks like:
+Now consider a CSV file `wr_data.csv` with the following contents:
 
 ```text
 arg_1, arg_2, arg_3, env_1
-A, B, C, E-1
-D, E, F, E-2
-G, H, I, E-3
+A,     B,     C,     E-1
+D,     E,     F,     E-2
+G,     H,     I,     E-3
 ```
 
 Note that the (optional) leading spaces after each comma are ignored, but trailing spaces are not and will form part of the imported data.
