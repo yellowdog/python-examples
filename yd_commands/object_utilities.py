@@ -74,7 +74,7 @@ def get_filtered_work_requirements(
             work_summary.status in include_filter
             or not work_summary.status in exclude_filter
             and work_summary.namespace == namespace
-            and work_summary.tag == tag
+            and work_summary.tag.startswith(tag)
         ):
             filtered_work_summaries.append(work_summary)
 
