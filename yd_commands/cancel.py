@@ -4,6 +4,7 @@
 A script to cancel Work Requirements and optionally abort Tasks.
 """
 
+from time import sleep
 from typing import List
 
 from yellowdog_client.model import (
@@ -84,14 +85,22 @@ def main():
                 print_log("No Tasks to abort")
             else:
                 print_log("Aborting all currently running Tasks")
-                abort_all_tasks(selected_work_requirement_summaries)
+                abort_attempts = 12
+                for attempt in range(1, abort_attempts + 1):
+                    print_log(
+                        f"Collecting Tasks to abort (attempt {attempt}/{abort_attempts})"
+                    )
+                    if abort_all_tasks(selected_work_requirement_summaries) == 0:
+                        break
+                    sleep(5)
+
     else:
         print_log("No Work Requirements to cancel")
 
 
 def abort_all_tasks(
     selected_work_requirement_summaries: List[WorkRequirementSummary],
-) -> None:
+) -> int:
     """
     Abort all Tasks in CANCELLING Work Requirements.
     """
@@ -124,6 +133,7 @@ def abort_all_tasks(
         print_log("No Tasks to abort")
     else:
         print_log(f"Aborted {aborted_tasks} Task(s)")
+    return aborted_tasks
 
 
 # Entry point
