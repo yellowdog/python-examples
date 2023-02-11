@@ -6,6 +6,7 @@ Command to list YellowDog entities.
 
 from typing import List
 
+from requests import HTTPError
 from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementStatus,
@@ -28,9 +29,8 @@ from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
 )
-
-from .printing import print_log, print_numbered_object_list, sorted_objects
-from .wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.printing import print_log, print_numbered_object_list, sorted_objects
+from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
@@ -173,11 +173,18 @@ def list_worker_pools():
             worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
                 worker_pool_summary.id
             )
-            compute_requirement: ComputeRequirement = (
-                CLIENT.compute_client.get_compute_requirement_by_id(
-                    worker_pool.computeRequirementId
+            try:
+                compute_requirement: ComputeRequirement = (
+                    CLIENT.compute_client.get_compute_requirement_by_id(
+                        worker_pool.computeRequirementId
+                    )
                 )
-            )
+            except HTTPError:
+                print_log(
+                    "Warning: HTTP Error for Compute Requirement ID: "
+                    f"{worker_pool.computeRequirementId}"
+                )
+                continue
             if (
                 compute_requirement.tag == CONFIG_COMMON.name_tag
                 and compute_requirement.namespace == CONFIG_COMMON.namespace
