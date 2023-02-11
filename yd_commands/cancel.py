@@ -31,7 +31,7 @@ def main():
     print_log(
         f"Cancelling Work Requirements matching "
         f"'namespace={CONFIG_COMMON.namespace}' "
-        f"and with 'tag={CONFIG_COMMON.name_tag}'"
+        f"and starting with 'tag={CONFIG_COMMON.name_tag}'"
     )
 
     selected_work_requirement_summaries: List[
