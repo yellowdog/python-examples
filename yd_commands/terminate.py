@@ -23,7 +23,7 @@ def main():
     print_log(
         f"Terminating Compute Requirements matching "
         f"'namespace={CONFIG_COMMON.namespace}' and "
-        f"'tag={CONFIG_COMMON.name_tag}'"
+        f"starting with 'tag={CONFIG_COMMON.name_tag}'"
     )
 
     compute_requirement_summaries: List[
@@ -35,7 +35,7 @@ def main():
 
     for compute_summary in compute_requirement_summaries:
         if (
-            compute_summary.tag == CONFIG_COMMON.name_tag
+            compute_summary.tag.startswith(CONFIG_COMMON.name_tag)
             and compute_summary.namespace == CONFIG_COMMON.namespace
             and compute_summary.status
             not in [

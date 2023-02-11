@@ -81,7 +81,7 @@ def list_work_requirements():
     """
     print_log(
         f"Listing Work Requirements in 'namespace={CONFIG_COMMON.namespace}' "
-        f"with 'tag={CONFIG_COMMON.name_tag}'",
+        f"and names starting with 'tag={CONFIG_COMMON.name_tag}'",
         override_quiet=True,
     )
     exclude_filter = (
@@ -138,7 +138,7 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
 
 def list_object_paths():
     print_log(
-        f"Listing Object Paths in 'namespace={CONFIG_COMMON.namespace}' with "
+        f"Listing Object Paths in 'namespace={CONFIG_COMMON.namespace}' and "
         f"names starting with 'tag={CONFIG_COMMON.name_tag}'"
     )
     object_paths: List[
@@ -153,7 +153,7 @@ def list_worker_pools():
     print_log(
         f"Listing Provisioned Worker Pools with Compute Requirements matching "
         f"'namespace={CONFIG_COMMON.namespace}' and "
-        f"'tag={CONFIG_COMMON.name_tag}'"
+        f"names starting with 'tag={CONFIG_COMMON.name_tag}'"
     )
     worker_pool_summaries: List[
         WorkerPoolSummary
@@ -182,7 +182,7 @@ def list_worker_pools():
             except HTTPError:
                 continue
             if (
-                compute_requirement.tag == CONFIG_COMMON.name_tag
+                compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
                 and compute_requirement.namespace == CONFIG_COMMON.namespace
             ):
                 selected_worker_pool_summaries.append(worker_pool_summary)
@@ -197,7 +197,7 @@ def list_compute_requirements():
     print_log(
         f"Listing Compute Requirements matching "
         f"'namespace={CONFIG_COMMON.namespace}' and "
-        f"'tag={CONFIG_COMMON.name_tag}'"
+        f" names starting with 'tag={CONFIG_COMMON.name_tag}'"
     )
 
     compute_requirement_summaries: List[
@@ -212,7 +212,7 @@ def list_compute_requirements():
     )
     for compute_summary in compute_requirement_summaries:
         if (
-            compute_summary.tag == CONFIG_COMMON.name_tag
+            compute_summary.tag.startswith(CONFIG_COMMON.name_tag)
             and compute_summary.namespace == CONFIG_COMMON.namespace
             and compute_summary.status not in excluded_states
         ):
