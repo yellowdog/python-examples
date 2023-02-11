@@ -151,7 +151,7 @@ def list_object_paths():
 
 def list_worker_pools():
     print_log(
-        f"Listing Worker Pools with Compute Requirements matching "
+        f"Listing Provisioned Worker Pools with Compute Requirements matching "
         f"'namespace={CONFIG_COMMON.namespace}' and "
         f"names starting with 'tag={CONFIG_COMMON.name_tag}'"
     )
@@ -180,10 +180,6 @@ def list_worker_pools():
                     )
                 )
             except HTTPError:
-                print_log(
-                    "Warning: HTTP Error for Compute Requirement ID: "
-                    f"{worker_pool.computeRequirementId}"
-                )
                 continue
             if (
                 compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
