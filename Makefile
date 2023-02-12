@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := no_op
 
-SRC = yd_commands/*.py setup.py
+SRC = yd_commands/*.py
 TESTS =
 MANIFEST = LICENSE README.md requirements.txt
 BUILD_DIST = build dist yellowdog_python_examples.egg-info
@@ -8,7 +8,7 @@ PYCACHE = __pycache__
 TOC_BACKUP = README.md.*
 
 build: $(SRC) $(MANIFEST)
-	python setup.py sdist bdist_wheel
+	python -m build
 
 clean:
 	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP)
