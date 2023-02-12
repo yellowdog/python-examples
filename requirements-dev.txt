@@ -3,3 +3,4 @@ wheel
 setuptools
 black
 isort
+build
