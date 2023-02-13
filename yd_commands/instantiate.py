@@ -37,7 +37,6 @@ CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
 
 @main_wrapper
 def main():
-
     # -C > -P > workerPoolData
     cr_json_file = (
         ARGS_PARSER.worker_pool_file
