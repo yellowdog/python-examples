@@ -22,8 +22,8 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 def main():
     print_log(
         f"Terminating Compute Requirements matching "
-        f"'namespace={CONFIG_COMMON.namespace}' and "
-        f"starting with 'tag={CONFIG_COMMON.name_tag}'"
+        f"'namespace={CONFIG_COMMON.namespace}' and tag "
+        f"starting with '{CONFIG_COMMON.name_tag}'"
     )
 
     compute_requirement_summaries: List[
@@ -34,6 +34,7 @@ def main():
     selected_compute_requirement_summaries: List[ComputeRequirementSummary] = []
 
     for compute_summary in compute_requirement_summaries:
+        compute_summary.tag = "" if compute_summary.tag is None else compute_summary.tag
         if (
             compute_summary.tag.startswith(CONFIG_COMMON.name_tag)
             and compute_summary.namespace == CONFIG_COMMON.namespace

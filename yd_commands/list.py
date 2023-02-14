@@ -138,8 +138,8 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
 
 def list_object_paths():
     print_log(
-        f"Listing Object Paths in 'namespace={CONFIG_COMMON.namespace}' and "
-        f"names starting with 'tag={CONFIG_COMMON.name_tag}'"
+        f"Listing Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
+        f"names starting with '{CONFIG_COMMON.name_tag}'"
     )
     object_paths: List[
         ObjectPath
@@ -151,9 +151,9 @@ def list_object_paths():
 
 def list_worker_pools():
     print_log(
-        f"Listing Provisioned Worker Pools with Compute Requirements matching "
-        f"'namespace={CONFIG_COMMON.namespace}' and "
-        f"names starting with 'tag={CONFIG_COMMON.name_tag}'"
+        f"Listing Provisioned Worker Pools with Compute Requirements in "
+        f"namespace '{CONFIG_COMMON.namespace}' and "
+        f"names starting with '{CONFIG_COMMON.name_tag}'"
     )
     worker_pool_summaries: List[
         WorkerPoolSummary
@@ -195,9 +195,9 @@ def list_worker_pools():
 
 def list_compute_requirements():
     print_log(
-        f"Listing Compute Requirements matching "
-        f"'namespace={CONFIG_COMMON.namespace}' and "
-        f" names starting with 'tag={CONFIG_COMMON.name_tag}'"
+        f"Listing Compute Requirements in "
+        f"namespace '{CONFIG_COMMON.namespace}' and "
+        f" names starting with '{CONFIG_COMMON.name_tag}'"
     )
 
     compute_requirement_summaries: List[
@@ -211,6 +211,7 @@ def list_compute_requirements():
         else []
     )
     for compute_summary in compute_requirement_summaries:
+        compute_summary.tag = "" if compute_summary.tag is None else compute_summary.tag
         if (
             compute_summary.tag.startswith(CONFIG_COMMON.name_tag)
             and compute_summary.namespace == CONFIG_COMMON.namespace

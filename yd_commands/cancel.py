@@ -30,9 +30,9 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        f"Cancelling Work Requirements matching "
-        f"'namespace={CONFIG_COMMON.namespace}' "
-        f"and starting with 'tag={CONFIG_COMMON.name_tag}'"
+        f"Cancelling Work Requirements in "
+        f"namespace '{CONFIG_COMMON.namespace}' and "
+        f"tag starting with '{CONFIG_COMMON.name_tag}'"
     )
 
     selected_work_requirement_summaries: List[
