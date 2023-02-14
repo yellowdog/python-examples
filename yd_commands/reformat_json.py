@@ -13,7 +13,6 @@ from yd_commands.compact_json import CompactJSONEncoder
 
 def main():
     for filename in sys.argv[1:]:
-
         # Check file extension
         backup_filename = filename + ".backup"
         if not filename.lower().endswith("json"):

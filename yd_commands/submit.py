@@ -92,7 +92,6 @@ UPLOADED_FILES: Optional[UploadedFiles] = None
 
 @main_wrapper
 def main():
-
     if ARGS_PARSER.json_raw:
         submit_json_raw(ARGS_PARSER.json_raw)
         return
@@ -461,7 +460,6 @@ def add_tasks_to_task_group(
 
     # Iterate through batches
     for batch_number in range(num_task_batches):
-
         # Iterate through tasks in the batch
         for task_number in range(
             (TASK_BATCH_SIZE * batch_number),
@@ -1035,7 +1033,6 @@ def submit_json_raw(wr_file: str):
     # Submit Tasks to the Work Requirement
     verify_at_start_files = set()
     for task_group_name, task_list in task_lists.items():
-
         # Collect set of VERIFY_AT_START files
         for task in task_list:
             for input in task.get("inputs", []):

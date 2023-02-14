@@ -1,3 +1,57 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+    requires = [ "setuptools>=61.2",]
+    build-backend = "setuptools.build_meta"
+
+[project]
+    name = "yellowdog-python-examples"
+    description = "Example Python commands using the YellowDog Python SDK"
+    classifiers = [
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Development Status :: 4 - Beta",
+    ]
+    requires-python = ">=3.7"
+    dynamic = ["version", "dependencies"]
+
+[[project.authors]]
+    name = "YellowDog Limited"
+    email = "support@yellowdog.co"
+
+[project.readme]
+    file = "PYPI_README.md"
+    content-type = "text/markdown"
+
+[project.urls]
+    Homepage = "https://github.com/yellowdog/python-examples"
+
+[project.optional-dependencies]
+    jsonnet = ["jsonnet"]
+
+[project.scripts]
+    yd-abort = "yd_commands.abort:main"
+    yd-cancel = "yd_commands.cancel:main"
+    yd-delete = "yd_commands.delete:main"
+    yd-download = "yd_commands.download:main"
+    yd-instantiate = "yd_commands.instantiate:main"
+    yd-jsonnet2json = "yd_commands.jsonnet2json:main"
+    yd-list = "yd_commands.list:main"
+    yd-provision = "yd_commands.provision:main"
+    yd-reformat-json = "yd_commands.reformat_json:main"
+    yd-shutdown = "yd_commands.shutdown:main"
+    yd-submit = "yd_commands.submit:main"
+    yd-terminate = "yd_commands.terminate:main"
+    yd-upload = "yd_commands.upload:main"
+    yd-version = "yd_commands.version:main"
+
+[tool.setuptools]
+    include-package-data = false
+    packages = ["yd_commands"]
+
+[tool.setuptools.dynamic.version]
+    attr = "yd_commands.__init__.__version__"
+
+[tool.setuptools.dynamic.dependencies]
+    file = ["requirements.txt"]

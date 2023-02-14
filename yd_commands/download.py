@@ -24,8 +24,8 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 def main():
     tag = CONFIG_COMMON.name_tag
     print_log(
-        f"Downloading all Objects in 'namespace={CONFIG_COMMON.namespace}' with "
-        f"names starting with 'tag={tag}'"
+        f"Downloading all Objects in namespace '{CONFIG_COMMON.namespace}' and "
+        f"names starting with '{tag}'"
     )
 
     object_paths: List[

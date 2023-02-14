@@ -16,8 +16,8 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        f"Deleting Object Paths in 'namespace={CONFIG_COMMON.namespace}' with "
-        f"names starting with 'tag={CONFIG_COMMON.name_tag}'"
+        f"Deleting Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
+        f"names starting with '{CONFIG_COMMON.name_tag}'"
     )
     object_paths: List[
         ObjectPath

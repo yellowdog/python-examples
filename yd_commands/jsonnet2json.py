@@ -11,7 +11,6 @@ from yd_commands.check_imports import check_jsonnet_import
 
 
 def main():
-
     check_jsonnet_import()
     from _jsonnet import evaluate_file
 

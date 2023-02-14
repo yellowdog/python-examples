@@ -24,9 +24,9 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        f"Shutting down Worker Pools with Compute Requirements matching "
-        f"'namespace={CONFIG_COMMON.namespace}' and "
-        f"'tag={CONFIG_COMMON.name_tag}'"
+        f"Shutting down Worker Pools with Compute Requirements in "
+        f"namespace '{CONFIG_COMMON.namespace}' and "
+        f"tag starting with '{CONFIG_COMMON.name_tag}'"
     )
     worker_pool_summaries: List[
         WorkerPoolSummary
@@ -48,8 +48,11 @@ def main():
                     worker_pool.computeRequirementId
                 )
             )
+            compute_requirement.tag = (
+                "" if compute_requirement.tag is None else compute_requirement.tag
+            )
             if (
-                compute_requirement.tag == CONFIG_COMMON.name_tag
+                compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
                 and compute_requirement.namespace == CONFIG_COMMON.namespace
                 and compute_requirement.status
                 not in [
