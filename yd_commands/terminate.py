@@ -21,8 +21,8 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        f"Terminating Compute Requirements matching "
-        f"'namespace={CONFIG_COMMON.namespace}' and tag "
+        f"Terminating Compute Requirements in "
+        f"namespace '{CONFIG_COMMON.namespace}' and tag "
         f"starting with '{CONFIG_COMMON.name_tag}'"
     )
 
