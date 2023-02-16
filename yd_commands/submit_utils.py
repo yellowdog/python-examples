@@ -17,7 +17,9 @@ NAMESPACE_SEPARATOR = "::"
 
 
 def generate_task_input_list(
-    files: List[str], verification: TaskInputVerification, wr_name: Optional[str]
+    files: List[str],
+    verification: Optional[TaskInputVerification],
+    wr_name: Optional[str],
 ) -> List[TaskInput]:
     """
     Generate a TaskInput list.
@@ -29,7 +31,7 @@ def generate_task_input_list(
 
 
 def generate_task_input(
-    file: str, verification: TaskInputVerification, wr_name: str
+    file: str, verification: Optional[TaskInputVerification], wr_name: str
 ) -> TaskInput:
     """
     Generate a TaskInput, accommodating files located relative to the root of

@@ -519,9 +519,21 @@ def add_tasks_to_task_group(
                     ),
                 )
             )
+            optional_inputs_list = check_list(
+                task.get(
+                    OPTIONAL_INPUTS,
+                    task_group_data.get(
+                        OPTIONAL_INPUTS,
+                        wr_data.get(OPTIONAL_INPUTS, CONFIG_WR.optional_inputs),
+                    ),
+                )
+            )
 
             check_for_duplicates_in_file_lists(
-                input_files_list, verify_at_start_files_list, verify_wait_files_list
+                input_files_list,
+                verify_at_start_files_list,
+                verify_wait_files_list,
+                optional_inputs_list,
             )
 
             # Upload files in the 'inputs' list
@@ -567,10 +579,13 @@ def add_tasks_to_task_group(
             inputs += generate_task_input_list(
                 verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
             )
+            inputs += generate_task_input_list(
+                files=optional_inputs_list, verification=None, wr_name=ID
+            )
 
             # Set up the 'outputs' property
             outputs = [
-                TaskOutput.from_worker_directory(file)
+                TaskOutput.from_worker_directory(file_pattern=file, required=False)
                 for file in check_list(
                     task.get(
                         OUTPUT_FILES,
@@ -581,6 +596,26 @@ def add_tasks_to_task_group(
                     )
                 )
             ]
+
+            # Add the contents of the 'outputsRequired' property
+            outputs += [
+                TaskOutput.from_worker_directory(file_pattern=file, required=True)
+                for file in check_list(
+                    task.get(
+                        OUTPUT_FILES_REQUIRED,
+                        task_group_data.get(
+                            OUTPUT_FILES_REQUIRED,
+                            wr_data.get(
+                                OUTPUT_FILES_REQUIRED, CONFIG_WR.output_files_required
+                            ),
+                        ),
+                    )
+                )
+            ]
+
+            # Set 'alwaysUpload' to true for all outputs
+            for task_output in outputs:
+                task_output.alwaysUpload = True
 
             # Add TaskOutput to 'outputs'?
             if check_bool(
@@ -726,33 +761,19 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     UPLOADED_FILES.delete()
 
 
-def check_for_duplicates_in_file_lists(
-    input_files_list: List[str],
-    verify_at_start_list: List[str],
-    verify_wait_list: List[str],
-):
+def check_for_duplicates_in_file_lists(*args: List[str]):
     """
     Tests for duplicates in file lists. If duplicates found, print an error
     and raise an Exception.
     """
-    input_files_set = set(input_files_list)
-    verify_at_start_set = set(verify_at_start_list)
-    verify_wait_set = set(verify_wait_list)
-    intersection = input_files_set.intersection(verify_at_start_set)
-    if len(intersection) != 0:
-        raise Exception(
-            f"Duplicate files in 'inputs' and 'verifyAtStart' lists: {intersection}"
-        )
-    intersection = input_files_set.intersection(verify_wait_set)
-    if len(intersection) != 0:
-        raise Exception(
-            f"Duplicate files in 'inputs' and 'verifyWait' lists: {intersection}"
-        )
-    intersection = verify_at_start_set.intersection(verify_wait_set)
-    if len(intersection) != 0:
-        raise Exception(
-            f"Duplicate files in 'verifyWait' and 'verifyAtStart' lists: {intersection}"
-        )
+    files_list = []
+    for file_list in args:
+        files_list += file_list
+    files_list_unique = list(set(files_list))
+    for file in files_list_unique:
+        files_list.remove(file)
+    if len(files_list) != 0:
+        raise Exception(f"Duplicate file(s) in file lists: {files_list}")
 
 
 def formatted_number_str(current_item_number: int, num_items: int) -> str:
