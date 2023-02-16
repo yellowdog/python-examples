@@ -63,7 +63,11 @@ from yd_commands.printing import (
     print_log,
     print_numbered_strings,
 )
-from yd_commands.submit_utils import UploadedFiles, generate_task_input_list
+from yd_commands.submit_utils import (
+    UploadedFiles,
+    format_yd_name,
+    generate_task_input_list,
+)
 from yd_commands.type_check import (
     check_bool,
     check_dict,
@@ -201,7 +205,9 @@ def submit_work_requirement(
 
     # Overwrite the WR name?
     global ID
-    ID = wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
+    ID = format_yd_name(
+        wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
+    )
 
     # Handle any files that need to be uploaded
     global UPLOADED_FILES
@@ -291,11 +297,13 @@ def create_task_group(
     # Name the Task Group
     num_task_groups = len(wr_data[TASK_GROUPS])
     num_tasks = len(task_group_data[TASKS])
-    task_group_name = get_task_group_name(
-        task_group_data.get(NAME, CONFIG_WR.task_group_name),
-        tg_number,
-        num_task_groups,
-        num_tasks,
+    task_group_name = format_yd_name(
+        get_task_group_name(
+            task_group_data.get(NAME, CONFIG_WR.task_group_name),
+            tg_number,
+            num_task_groups,
+            num_tasks,
+        )
     )
 
     # Assemble the RunSpecification values for the Task Group;
@@ -467,12 +475,14 @@ def add_tasks_to_task_group(
         ):
             task_group_data = wr_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
-            task_name = get_task_name(
-                task.get(NAME, CONFIG_WR.task_name),
-                task_number,
-                num_tasks,
-                tg_number,
-                num_task_groups,
+            task_name = format_yd_name(
+                get_task_name(
+                    task.get(NAME, CONFIG_WR.task_name),
+                    task_number,
+                    num_tasks,
+                    tg_number,
+                    num_task_groups,
+                )
             )
             executable = check_str(
                 task.get(

@@ -2,6 +2,7 @@
 Utility functions for use with the submit command.
 """
 
+import re
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -171,3 +172,13 @@ class UploadedFiles:
                     "(may already have been deleted)"
                 )
         self._uploaded_files = []
+
+
+def format_yd_name(yd_name: str) -> str:
+    """
+    Format a string to be consistent with YellowDog naming requirements.
+    """
+    # Make obvious substitutions
+    yd_name = yd_name.replace("/", "-").replace(" ", "_").lower()
+    # Enforce acceptable regex and name length
+    return re.sub("[^a-z0-9_-]", "", yd_name)[:60]
