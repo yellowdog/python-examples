@@ -52,9 +52,12 @@ from yd_commands.mustache import (
     TASK_GROUP_COUNT_SUB,
     TASK_GROUP_NUMBER_SUB,
     TASK_NUMBER_SUB,
+    WR_NAME_SUB,
+    add_substitutions,
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
+    process_mustache_substitutions,
 )
 from yd_commands.printing import (
     WorkRequirementSnapshot,
@@ -208,6 +211,9 @@ def submit_work_requirement(
     ID = format_yd_name(
         wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
     )
+    # Lazy substitution of the Work Requirement name, now it's defined
+    add_substitutions(subs={WR_NAME_SUB: ID})
+    process_mustache_substitutions(wr_data)
 
     # Handle any files that need to be uploaded
     global UPLOADED_FILES
@@ -1026,8 +1032,14 @@ def submit_json_raw(wr_file: str):
             f"Work Requirement file '{wr_file}' must end in '.json' or '.jsonnet'"
         )
 
+    # Lazy substitution of Work Requirement name
+    wr_data["name"] = format_yd_name(wr_data["name"])
+    wr_name = wr_data["name"]
+    add_substitutions(subs={WR_NAME_SUB: wr_name})
+    process_mustache_substitutions(wr_data)
+
     if ARGS_PARSER.dry_run:
-        # This will show the results any Mustache processing
+        # This will show the results of any Mustache processing
         print_log("Dry-run: Printing JSON Work Requirement specification:")
         print_json(wr_data)
         print_log("Dry-run: Complete")
@@ -1052,7 +1064,6 @@ def submit_json_raw(wr_file: str):
         json=wr_data,
     )
 
-    wr_name = wr_data["name"]
     if response.status_code == 200:
         wr_id = jsons.loads(response.text)["id"]
         print_log(f"Created Work Requirement '{wr_name}' [{wr_id}]")

@@ -167,7 +167,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
     """
     if len(wr_data[TASK_GROUPS]) > len(csv_files):
         print_log(
-            f"Warning: Number of Task Groups ({len(wr_data[TASK_GROUPS])}) "
+            f"Note: Number of Task Groups ({len(wr_data[TASK_GROUPS])}) "
             f"in Work Requirement is greater than number of CSV files "
             f"({len(csv_files)})"
         )

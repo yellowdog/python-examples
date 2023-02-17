@@ -32,7 +32,8 @@
       * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
       * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
    * [Mustache Directives in Work Requirement Properties](#mustache-directives-in-work-requirement-properties)
-      * [Task and Task Group Naming](#task-and-task-group-naming)
+      * [Task and Task Group Name Substitution](#task-and-task-group-name-substitution)
+      * [Work Requirement Name Substitution](#work-requirement-name-substitution)
    * [Dry-Running Work Requirement Submissions](#dry-running-work-requirement-submissions)
       * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
    * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
@@ -50,7 +51,7 @@
       * [Property Inheritance](#property-inheritance-1)
       * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
       * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
-      * [Inspecting the Output of CSV Variable Substitution](#inspecting-the-output-of-csv-variable-substitution)
+      * [Inspecting the Results of CSV Variable Substitution](#inspecting-the-results-of-csv-variable-substitution)
 * [Worker Pool Properties](#worker-pool-properties)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
@@ -76,7 +77,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Fri Feb 17 13:52:34 GMT 2023 -->
+<!-- Added by: pwt, at: Sun Feb 19 18:34:11 GMT 2023 -->
 
 <!--te-->
 
@@ -712,7 +713,7 @@ Showing all possible properties at the Task level:
 
 Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
 
-### Task and Task Group Naming
+### Task and Task Group Name Substitution
 
 The following numbering substitutions are available for use in Task and Task Group naming, i.e., they can be used in the `name` properties for Tasks and Task Groups respectively in JSON Work Requirements. Note that Task Group names cannot use the `{{task_number}}` directive.
 
@@ -755,6 +756,10 @@ As an example, the following JSON Work Requirement:
 ```
 
 ... would create Task Groups named `my_task_group_1_a1` and `my_task_group_2_b1`, each containing Tasks named `my_task_1-of-2`, `my_task_2-of-2`.
+
+### Work Requirement Name Substitution
+
+The name of the Work Requirement itself can be used via the Mustache substitution `{{wr_name}}`.
 
 ## Dry-Running Work Requirement Submissions
 
@@ -1162,7 +1167,7 @@ To make use of this:
 
 When `yd-submit` is run, it will expand the Task list to match the number of data rows in the CSV file.
 
-### Inspecting the Output of CSV Variable Substitution
+### Inspecting the Results of CSV Variable Substitution
 
 The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance applied by `yd-submit`.
 
