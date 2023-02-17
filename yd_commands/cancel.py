@@ -26,6 +26,9 @@ from yd_commands.object_utilities import (
 from yd_commands.printing import print_log
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
+ABORT_ATTEMPTS = 20  # Number of Task abort repeats to ensure all Tasks are aborted
+ABORT_RETRY_INTERVAL = 10  # Seconds
+
 
 @main_wrapper
 def main():
@@ -85,14 +88,16 @@ def main():
                 print_log("No Tasks to abort")
             else:
                 print_log("Aborting all currently running Tasks")
-                abort_attempts = 12
-                for attempt in range(1, abort_attempts + 1):
+                for attempt in range(1, ABORT_ATTEMPTS + 1):
                     print_log(
-                        f"Collecting Tasks to abort (attempt {attempt}/{abort_attempts})"
+                        f"Collecting Tasks to abort (attempt {attempt}/{ABORT_ATTEMPTS})"
                     )
                     if abort_all_tasks(selected_work_requirement_summaries) == 0:
                         break
-                    sleep(5)
+                    print_log(
+                        f"Waiting {ABORT_RETRY_INTERVAL}s for abort confirmation ..."
+                    )
+                    sleep(ABORT_RETRY_INTERVAL)
 
     else:
         print_log("No Work Requirements to cancel")
@@ -131,8 +136,10 @@ def abort_all_tasks(
                     continue
     if aborted_tasks == 0:
         print_log("No Tasks to abort")
+    if aborted_tasks <= 5:
+        pass
     else:
-        print_log(f"Aborted {aborted_tasks} Task(s)")
+        print_log(f"Aborting {aborted_tasks} Task(s)")
     return aborted_tasks
 
 
