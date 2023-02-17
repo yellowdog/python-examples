@@ -955,7 +955,6 @@ def create_task(
     # password if specified.
     elif task_type == "docker":
         if executable is None:
-            print_log("Note: no 'executable' specified for 'docker' Task Type")
             return _make_task(flatten_input_paths)
 
         # Set up the environment variables to be sent to the Docker container
