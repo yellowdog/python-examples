@@ -1077,7 +1077,7 @@ def submit_json_raw(wr_file: str):
         # Collect set of VERIFY_AT_START files
         for task in task_list:
             for input in task.get("inputs", []):
-                if input["verification"] == "VERIFY_AT_START":
+                if input.get("verification", None) == "VERIFY_AT_START":
                     namespace = (
                         CONFIG_COMMON.namespace
                         if input["source"] == "TASK_NAMESPACE"
