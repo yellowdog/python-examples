@@ -43,6 +43,8 @@ if "submit" in sys.argv[0]:
         TASK_GROUP_COUNT_SUB,
     ]:
         MUSTACHE_SUBSTITUTIONS[sub] = f"{LAZY_SUBS_WRAPPER}{sub}{LAZY_SUBS_WRAPPER}"
+    # No wrapper required
+    WR_NAME_SUB = "wr_name"
 
 # Type annotations for Mustache type substitutions
 NUMBER_SUB = "num:"

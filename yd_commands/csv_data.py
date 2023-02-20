@@ -167,7 +167,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
     """
     if len(wr_data[TASK_GROUPS]) > len(csv_files):
         print_log(
-            f"Warning: Number of Task Groups ({len(wr_data[TASK_GROUPS])}) "
+            f"Note: Number of Task Groups ({len(wr_data[TASK_GROUPS])}) "
             f"in Work Requirement is greater than number of CSV files "
             f"({len(csv_files)})"
         )
@@ -343,7 +343,9 @@ def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Di
         (config_wr.executable, EXECUTABLE),
         (config_wr.flatten_input_paths, FLATTEN_PATHS),
         (config_wr.input_files, INPUT_FILES),
+        (config_wr.optional_inputs, OPTIONAL_INPUTS),
         (config_wr.output_files, OUTPUT_FILES),
+        (config_wr.output_files_required, OUTPUT_FILES_REQUIRED),
         (config_wr.task_data, TASK_DATA),
         (config_wr.task_data_file, TASK_DATA_FILE),
         (config_wr.task_name, TASK_NAME),

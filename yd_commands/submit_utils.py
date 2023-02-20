@@ -2,6 +2,7 @@
 Utility functions for use with the submit command.
 """
 
+import re
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -17,7 +18,9 @@ NAMESPACE_SEPARATOR = "::"
 
 
 def generate_task_input_list(
-    files: List[str], verification: TaskInputVerification, wr_name: Optional[str]
+    files: List[str],
+    verification: Optional[TaskInputVerification],
+    wr_name: Optional[str],
 ) -> List[TaskInput]:
     """
     Generate a TaskInput list.
@@ -29,7 +32,7 @@ def generate_task_input_list(
 
 
 def generate_task_input(
-    file: str, verification: TaskInputVerification, wr_name: str
+    file: str, verification: Optional[TaskInputVerification], wr_name: str
 ) -> TaskInput:
     """
     Generate a TaskInput, accommodating files located relative to the root of
@@ -169,3 +172,13 @@ class UploadedFiles:
                     "(may already have been deleted)"
                 )
         self._uploaded_files = []
+
+
+def format_yd_name(yd_name: str) -> str:
+    """
+    Format a string to be consistent with YellowDog naming requirements.
+    """
+    # Make obvious substitutions
+    yd_name = yd_name.replace("/", "-").replace(" ", "_").lower()
+    # Enforce acceptable regex and name length
+    return re.sub("[^a-z0-9_-]", "", yd_name)[:60]

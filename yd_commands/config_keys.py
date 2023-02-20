@@ -41,7 +41,9 @@ NAME = "name"  # String
 NAMESPACE = "namespace"  # String
 NAME_TAG = "tag"  # String
 NODE_BOOT_TIME_LIMIT = "nodeBootTimeLimit"  # Float
+OPTIONAL_INPUTS = "optionalInputs"  # List of Strings
 OUTPUT_FILES = "outputs"  # List of Strings
+OUTPUT_FILES_REQUIRED = "outputsRequired"  # List of Strings
 PRIORITY = "priority"  # Float
 PROVIDERS = "providers"  # List of Strings
 RAM = "ram"  # List of two Floats
@@ -122,7 +124,9 @@ ALL_KEYS = [
     NAMESPACE,
     NAME_TAG,
     NODE_BOOT_TIME_LIMIT,
+    OPTIONAL_INPUTS,
     OUTPUT_FILES,
+    OUTPUT_FILES_REQUIRED,
     PRIORITY,
     PROVIDERS,
     RAM,

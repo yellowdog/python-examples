@@ -52,9 +52,12 @@ from yd_commands.mustache import (
     TASK_GROUP_COUNT_SUB,
     TASK_GROUP_NUMBER_SUB,
     TASK_NUMBER_SUB,
+    WR_NAME_SUB,
+    add_substitutions,
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
     load_toml_file_with_mustache_substitutions,
+    process_mustache_substitutions,
 )
 from yd_commands.printing import (
     WorkRequirementSnapshot,
@@ -63,7 +66,11 @@ from yd_commands.printing import (
     print_log,
     print_numbered_strings,
 )
-from yd_commands.submit_utils import UploadedFiles, generate_task_input_list
+from yd_commands.submit_utils import (
+    UploadedFiles,
+    format_yd_name,
+    generate_task_input_list,
+)
 from yd_commands.type_check import (
     check_bool,
     check_dict,
@@ -201,7 +208,12 @@ def submit_work_requirement(
 
     # Overwrite the WR name?
     global ID
-    ID = wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
+    ID = format_yd_name(
+        wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
+    )
+    # Lazy substitution of the Work Requirement name, now it's defined
+    add_substitutions(subs={WR_NAME_SUB: ID})
+    process_mustache_substitutions(wr_data)
 
     # Handle any files that need to be uploaded
     global UPLOADED_FILES
@@ -291,11 +303,13 @@ def create_task_group(
     # Name the Task Group
     num_task_groups = len(wr_data[TASK_GROUPS])
     num_tasks = len(task_group_data[TASKS])
-    task_group_name = get_task_group_name(
-        task_group_data.get(NAME, CONFIG_WR.task_group_name),
-        tg_number,
-        num_task_groups,
-        num_tasks,
+    task_group_name = format_yd_name(
+        get_task_group_name(
+            task_group_data.get(NAME, CONFIG_WR.task_group_name),
+            tg_number,
+            num_task_groups,
+            num_tasks,
+        )
     )
 
     # Assemble the RunSpecification values for the Task Group;
@@ -467,12 +481,14 @@ def add_tasks_to_task_group(
         ):
             task_group_data = wr_data[TASK_GROUPS][tg_number]
             task = tasks[task_number] if task_count is None else tasks[0]
-            task_name = get_task_name(
-                task.get(NAME, CONFIG_WR.task_name),
-                task_number,
-                num_tasks,
-                tg_number,
-                num_task_groups,
+            task_name = format_yd_name(
+                get_task_name(
+                    task.get(NAME, CONFIG_WR.task_name),
+                    task_number,
+                    num_tasks,
+                    tg_number,
+                    num_task_groups,
+                )
             )
             executable = check_str(
                 task.get(
@@ -519,9 +535,21 @@ def add_tasks_to_task_group(
                     ),
                 )
             )
+            optional_inputs_list = check_list(
+                task.get(
+                    OPTIONAL_INPUTS,
+                    task_group_data.get(
+                        OPTIONAL_INPUTS,
+                        wr_data.get(OPTIONAL_INPUTS, CONFIG_WR.optional_inputs),
+                    ),
+                )
+            )
 
             check_for_duplicates_in_file_lists(
-                input_files_list, verify_at_start_files_list, verify_wait_files_list
+                input_files_list,
+                verify_at_start_files_list,
+                verify_wait_files_list,
+                optional_inputs_list,
             )
 
             # Upload files in the 'inputs' list
@@ -567,10 +595,13 @@ def add_tasks_to_task_group(
             inputs += generate_task_input_list(
                 verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
             )
+            inputs += generate_task_input_list(
+                files=optional_inputs_list, verification=None, wr_name=ID
+            )
 
             # Set up the 'outputs' property
             outputs = [
-                TaskOutput.from_worker_directory(file)
+                TaskOutput.from_worker_directory(file_pattern=file, required=False)
                 for file in check_list(
                     task.get(
                         OUTPUT_FILES,
@@ -581,6 +612,26 @@ def add_tasks_to_task_group(
                     )
                 )
             ]
+
+            # Add the contents of the 'outputsRequired' property
+            outputs += [
+                TaskOutput.from_worker_directory(file_pattern=file, required=True)
+                for file in check_list(
+                    task.get(
+                        OUTPUT_FILES_REQUIRED,
+                        task_group_data.get(
+                            OUTPUT_FILES_REQUIRED,
+                            wr_data.get(
+                                OUTPUT_FILES_REQUIRED, CONFIG_WR.output_files_required
+                            ),
+                        ),
+                    )
+                )
+            ]
+
+            # Set 'alwaysUpload' to true for all outputs
+            for task_output in outputs:
+                task_output.alwaysUpload = True
 
             # Add TaskOutput to 'outputs'?
             if check_bool(
@@ -726,33 +777,19 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     UPLOADED_FILES.delete()
 
 
-def check_for_duplicates_in_file_lists(
-    input_files_list: List[str],
-    verify_at_start_list: List[str],
-    verify_wait_list: List[str],
-):
+def check_for_duplicates_in_file_lists(*args: List[str]):
     """
     Tests for duplicates in file lists. If duplicates found, print an error
     and raise an Exception.
     """
-    input_files_set = set(input_files_list)
-    verify_at_start_set = set(verify_at_start_list)
-    verify_wait_set = set(verify_wait_list)
-    intersection = input_files_set.intersection(verify_at_start_set)
-    if len(intersection) != 0:
-        raise Exception(
-            f"Duplicate files in 'inputs' and 'verifyAtStart' lists: {intersection}"
-        )
-    intersection = input_files_set.intersection(verify_wait_set)
-    if len(intersection) != 0:
-        raise Exception(
-            f"Duplicate files in 'inputs' and 'verifyWait' lists: {intersection}"
-        )
-    intersection = verify_at_start_set.intersection(verify_wait_set)
-    if len(intersection) != 0:
-        raise Exception(
-            f"Duplicate files in 'verifyWait' and 'verifyAtStart' lists: {intersection}"
-        )
+    files_list = []
+    for file_list in args:
+        files_list += file_list
+    files_list_unique = list(set(files_list))
+    for file in files_list_unique:
+        files_list.remove(file)
+    if len(files_list) != 0:
+        raise Exception(f"Duplicate file(s) in file lists: {files_list}")
 
 
 def formatted_number_str(current_item_number: int, num_items: int) -> str:
@@ -924,7 +961,6 @@ def create_task(
     # password if specified.
     elif task_type == "docker":
         if executable is None:
-            print_log("Note: no 'executable' specified for 'docker' Task Type")
             return _make_task(flatten_input_paths)
 
         # Set up the environment variables to be sent to the Docker container
@@ -996,8 +1032,14 @@ def submit_json_raw(wr_file: str):
             f"Work Requirement file '{wr_file}' must end in '.json' or '.jsonnet'"
         )
 
+    # Lazy substitution of Work Requirement name
+    wr_data["name"] = format_yd_name(wr_data["name"])
+    wr_name = wr_data["name"]
+    add_substitutions(subs={WR_NAME_SUB: wr_name})
+    process_mustache_substitutions(wr_data)
+
     if ARGS_PARSER.dry_run:
-        # This will show the results any Mustache processing
+        # This will show the results of any Mustache processing
         print_log("Dry-run: Printing JSON Work Requirement specification:")
         print_json(wr_data)
         print_log("Dry-run: Complete")
@@ -1022,7 +1064,6 @@ def submit_json_raw(wr_file: str):
         json=wr_data,
     )
 
-    wr_name = wr_data["name"]
     if response.status_code == 200:
         wr_id = jsons.loads(response.text)["id"]
         print_log(f"Created Work Requirement '{wr_name}' [{wr_id}]")
