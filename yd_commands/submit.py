@@ -1057,7 +1057,7 @@ def submit_json_raw(wr_file: str):
         task_lists[task_group["name"]] = task_group.get("tasks", [])
         task_group.pop("tasks", None)
 
-    # Submit the Work Requirement
+    # Submit the Work Requirement and its Task Groups
     response = requests.post(
         url=f"{CONFIG_COMMON.url}/work/requirements",
         headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
@@ -1072,6 +1072,7 @@ def submit_json_raw(wr_file: str):
         raise Exception(f"{response.text}")
 
     # Submit Tasks to the Work Requirement
+    # Collect 'VERIFY_AT_START' files
     verify_at_start_files = set()
     for task_group_name, task_list in task_lists.items():
         # Collect set of VERIFY_AT_START files
@@ -1087,24 +1088,25 @@ def submit_json_raw(wr_file: str):
                         f"{namespace} :: {input['objectNamePattern']}"
                     )
 
-        # Warn about VERIFY_AT_START files & halt to allow upload or
-        # Work Requirement cancellation
-        if len(verify_at_start_files) != 0:
-            print_log(
-                "The following files may be required ('VERIFY_AT_START') "
-                "before Tasks are submitted, or the Tasks will fail."
-            )
-            print_log(
-                "You now have an opportunity to upload the required files "
-                "before Tasks are submitted:\n"
-            )
-            print_numbered_strings(sorted(list(verify_at_start_files)))
-            if not confirmed("Proceed now (y), or Cancel Work Requirement (n)?"):
-                print_log(f"Cancelling Work Requirement '{wr_name}'")
-                CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
-                return
+    # Warn about VERIFY_AT_START files & halt to allow upload or
+    # Work Requirement cancellation
+    if len(verify_at_start_files) != 0:
+        print_log(
+            "The following files may be required ('VERIFY_AT_START') "
+            "before Tasks are submitted, or the Tasks will fail."
+        )
+        print_log(
+            "You now have an opportunity to upload the required files "
+            "before Tasks are submitted:\n"
+        )
+        print_numbered_strings(sorted(list(verify_at_start_files)))
+        if not confirmed("Proceed now (y), or Cancel Work Requirement (n)?"):
+            print_log(f"Cancelling Work Requirement '{wr_name}'")
+            CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
+            return
 
-        # Submit Tasks in batches
+    # Submit Tasks in batches
+    for task_group_name, task_list in task_lists.items():
         num_batches = ceil(len(task_list) / TASK_BATCH_SIZE)
         for index in range(num_batches):
             task_batch = task_list[
