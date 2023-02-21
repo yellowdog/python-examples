@@ -208,7 +208,7 @@ def load_config_common() -> ConfigCommon:
             key=substitute_mustache_str(common_section[KEY]),
             secret=substitute_mustache_str(common_section[SECRET]),
             namespace=namespace,
-            name_tag=namespace,
+            name_tag=name_tag,
             # Optional
             url=url,
         )
