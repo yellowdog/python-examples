@@ -292,15 +292,17 @@ Substitutions can also be performed for non-string (number and boolean) values u
 
 ## Default Mustache Directives
 
-The following substitutions are automatically provided:
+The following substitutions are automatically provided and can be used in any section of the configuration file, or in any JSON specification:
 
-| Directive      | Description                                                    | Example of Substitution |
-|:---------------|:---------------------------------------------------------------|:------------------------|
-| `{{username}}` | The current user's login username, lower case, spaces replaced | jane_smith              |
-| `{{date}}`     | The current date (UTC): YYYYMMDD                               | 20221027                |
-| `{{time}}`     | The current time (UTC): HHMMSS                                 | 163026                  |
-| `{{datetime}}` | Concatenation of the date and time above, with a '-' separator | 20221027-163026         |
-| `{{random}}`   | A random, three digit hexadecimal number (lower case)          | a1c                     |
+| Directive       | Description                                                    | Example of Substitution |
+|:----------------|:---------------------------------------------------------------|:------------------------|
+| `{{username}}`  | The current user's login username, lower case, spaces replaced | jane_smith              |
+| `{{date}}`      | The current date (UTC): YYYYMMDD                               | 20221027                |
+| `{{time}}`      | The current time (UTC): HHMMSS                                 | 163026                  |
+| `{{datetime}}`  | Concatenation of the date and time above, with a '-' separator | 20221027-163026         |
+| `{{random}}`    | A random, three digit hexadecimal number (lower case)          | a1c                     |
+| `{{namespace}}` | The `namespace` property. Note that `namespace` must be set.   | my_namespace            |
+| `{{tag}}`       | The `tag` property. Note that `tag` must be set.               | my_tag                  |
 
 For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
@@ -314,7 +316,13 @@ Arbitrary Mustache directives can be supplied using command line options, by set
 2. For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
 
 
-3. For **setting within the TOML file**, include a **`mustache`** table in the `[common]` section of the file. E.g., `mustache = {project_code = "pr-213a", run_id = "1234"}`.
+3. For **setting within the TOML file**, include a **`mustache`** table in the `[common]` section of the file. E.g., `mustache = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
+
+```toml
+[common.mustache]
+project_code = "pr-213a"
+run_id = "1234"
+```
 
 Directives set on the command line take precedence over directives set in environment variables, and both of them take precedence over directives set in a TOML file.
 

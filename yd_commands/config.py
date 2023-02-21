@@ -23,6 +23,7 @@ from yd_commands.args import ARGS_PARSER
 from yd_commands.config_keys import *
 from yd_commands.mustache import (
     UTCNOW,
+    add_substitutions,
     load_toml_file_with_mustache_substitutions,
     substitute_mustache_str,
 )
@@ -48,6 +49,7 @@ YD_TAG = "YD_TAG"
 YD_URL = "YD_URL"
 
 TASK_BATCH_SIZE_DEFAULT = 2000
+DEFAULT_URL = "https://portal.yellowdog.co/api"
 
 
 @dataclass
@@ -194,17 +196,19 @@ def load_config_common() -> ConfigCommon:
                     f"for '{key_name}'"
                 )
 
-        DEFAULT_URL = "https://portal.yellowdog.co/api"
         url = substitute_mustache_str(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
             print_log(f"Using the YellowDog API at: {url}")
+        namespace = substitute_mustache_str(common_section[NAMESPACE])
+        name_tag = substitute_mustache_str(common_section[NAME_TAG])
+        add_substitutions(subs={NAMESPACE: namespace, NAME_TAG: name_tag, URL: url})
 
         return ConfigCommon(
             # Required
             key=substitute_mustache_str(common_section[KEY]),
             secret=substitute_mustache_str(common_section[SECRET]),
-            namespace=substitute_mustache_str(common_section[NAMESPACE]),
-            name_tag=substitute_mustache_str(common_section[NAME_TAG]),
+            namespace=namespace,
+            name_tag=namespace,
             # Optional
             url=url,
         )
