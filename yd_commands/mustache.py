@@ -31,20 +31,11 @@ MUSTACHE_SUBSTITUTIONS = {
 
 # Lazy substitutions: 'submit' only
 if "submit" in sys.argv[0]:
-    LAZY_SUBS_WRAPPER = "%%%"
-    TASK_NUMBER_SUB = "task_number"
-    TASK_GROUP_NUMBER_SUB = "task_group_number"
-    TASK_COUNT_SUB = "task_count"
-    TASK_GROUP_COUNT_SUB = "task_group_count"
-    for sub in [
-        TASK_NUMBER_SUB,
-        TASK_GROUP_NUMBER_SUB,
-        TASK_COUNT_SUB,
-        TASK_GROUP_COUNT_SUB,
-    ]:
-        MUSTACHE_SUBSTITUTIONS[sub] = f"{LAZY_SUBS_WRAPPER}{sub}{LAZY_SUBS_WRAPPER}"
-    # No wrapper required
-    WR_NAME_SUB = "wr_name"
+    WR_NAME = "wr_name"
+    TASK_NUMBER = "task_number"
+    TASK_GROUP_NUMBER = "task_group_number"
+    TASK_COUNT = "task_count"
+    TASK_GROUP_COUNT = "task_group_count"
 
 # Type annotations for Mustache type substitutions
 NUMBER_SUB = "num:"

@@ -26,8 +26,8 @@ from yd_commands.object_utilities import (
 from yd_commands.printing import print_log
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
-ABORT_ATTEMPTS = 20  # Number of Task abort repeats to ensure all Tasks are aborted
-ABORT_RETRY_INTERVAL = 10  # Seconds
+ABORT_ATTEMPTS = 10  # Number of Task abort repeats to ensure all Tasks are aborted
+ABORT_RETRY_INTERVAL = 20  # Seconds
 
 
 @main_wrapper
