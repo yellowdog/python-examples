@@ -306,6 +306,14 @@ class CLIParser:
                 metavar="<directory>",
             )
             parser.add_argument(
+                "--content-path",
+                "-C",
+                type=str,
+                required=True,
+                help="the path where the items to be uploaded are found",
+                metavar="<directory>",
+            )
+            parser.add_argument(
                 "filenames",
                 metavar="<filename>",
                 type=str,
@@ -528,6 +536,10 @@ class CLIParser:
     @property
     def task_batch_size(self) -> Optional[int]:
         return self.args.task_batch_size
+
+    @property
+    def content_path(self) -> Optional[str]:
+        return self.args.content_path
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

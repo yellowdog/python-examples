@@ -4,6 +4,7 @@
 A script to upload files to the YellowDog Object Store.
 """
 
+from os import chdir
 from os import walk as os_walk
 from os.path import join as os_path_join
 from pathlib import Path
@@ -16,6 +17,13 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
+    if ARGS_PARSER.content_path is not None and ARGS_PARSER.content_path != "":
+        chdir(ARGS_PARSER.content_path)
+        print_log(
+            "Uploading files relative to local directory: "
+            f"'{ARGS_PARSER.content_path}'"
+        )
+
     print_log(
         f"Using Object Store namespace '{CONFIG_COMMON.namespace}' "
         f"and directory '{ARGS_PARSER.directory}'"
