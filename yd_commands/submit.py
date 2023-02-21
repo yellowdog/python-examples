@@ -47,12 +47,11 @@ from yd_commands.csv_data import (
 )
 from yd_commands.interactive import confirmed
 from yd_commands.mustache import (
-    LAZY_SUBS_WRAPPER,
-    TASK_COUNT_SUB,
-    TASK_GROUP_COUNT_SUB,
-    TASK_GROUP_NUMBER_SUB,
-    TASK_NUMBER_SUB,
-    WR_NAME_SUB,
+    TASK_COUNT,
+    TASK_GROUP_COUNT,
+    TASK_GROUP_NUMBER,
+    TASK_NUMBER,
+    WR_NAME,
     add_substitutions,
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
@@ -212,7 +211,7 @@ def submit_work_requirement(
         wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
     )
     # Lazy substitution of the Work Requirement name, now it's defined
-    add_substitutions(subs={WR_NAME_SUB: ID})
+    add_substitutions(subs={WR_NAME: ID})
     process_mustache_substitutions(wr_data)
 
     # Handle any files that need to be uploaded
@@ -814,19 +813,19 @@ def get_task_name(
 
     if name:
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{TASK_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
+            f"{{{{{TASK_NUMBER}}}}}",
             formatted_number_str(task_number, num_tasks),
         )
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{TASK_COUNT_SUB}{LAZY_SUBS_WRAPPER}",
+            f"{{{{{TASK_COUNT}}}}}",
             str(num_tasks),
         )
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
+            f"{{{{{TASK_GROUP_NUMBER}}}}}",
             formatted_number_str(task_group_number, num_task_groups),
         )
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_COUNT_SUB}{LAZY_SUBS_WRAPPER}",
+            f"{{{{{TASK_GROUP_COUNT}}}}}",
             str(num_task_groups),
         )
 
@@ -849,15 +848,15 @@ def get_task_group_name(
 
     if name:
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_NUMBER_SUB}{LAZY_SUBS_WRAPPER}",
+            f"{{{{{TASK_GROUP_NUMBER}}}}}",
             formatted_number_str(task_group_number, num_task_groups),
         )
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{TASK_GROUP_COUNT_SUB}{LAZY_SUBS_WRAPPER}",
+            f"{{{{{TASK_GROUP_COUNT}}}}}",
             str(num_task_groups),
         )
         name = name.replace(
-            f"{LAZY_SUBS_WRAPPER}{TASK_COUNT_SUB}{LAZY_SUBS_WRAPPER}",
+            f"{{{{{TASK_COUNT}}}}}",
             str(task_count),
         )
 
@@ -1035,7 +1034,7 @@ def submit_json_raw(wr_file: str):
     # Lazy substitution of Work Requirement name
     wr_data["name"] = format_yd_name(wr_data["name"])
     wr_name = wr_data["name"]
-    add_substitutions(subs={WR_NAME_SUB: wr_name})
+    add_substitutions(subs={WR_NAME: wr_name})
     process_mustache_substitutions(wr_data)
 
     if ARGS_PARSER.dry_run:
