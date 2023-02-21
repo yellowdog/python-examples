@@ -309,7 +309,7 @@ class CLIParser:
                 "--content-path",
                 "-C",
                 type=str,
-                required=True,
+                required=False,
                 help="the path where the items to be uploaded are found",
                 metavar="<directory>",
             )
