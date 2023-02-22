@@ -78,6 +78,10 @@ def add_substitutions(subs: Dict):
     subs.update(MUSTACHE_SUBSTITUTIONS)
     MUSTACHE_SUBSTITUTIONS = subs
 
+    # Populate variables that can now be substituted
+    for key, value in MUSTACHE_SUBSTITUTIONS.items():
+        MUSTACHE_SUBSTITUTIONS[key] = substitute_mustache_str(value)
+
 
 def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
     """
