@@ -310,12 +310,12 @@ For the `date`, `time`, `datetime` and `random` directives, the same values will
 
 ## User-Defined Mustache Directives
 
-Arbitrary Mustache directives can be supplied using command line options, by setting environment variables prefixed with `YD_SUB_`, or by including the directives in the `[common]` section of the TOML configuration file.
+Arbitrary Mustache directives can be supplied using command line options, by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
 
 1. The **command line** option is `--variable` (or `-V`). For example, `yd-submit -V project_code=pr-213-a -V run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
 
-2. For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
+2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
 
 
 3. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. E.g., `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
