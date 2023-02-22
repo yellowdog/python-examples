@@ -82,12 +82,12 @@ class CLIParser:
             metavar="<url>",
         )
         parser.add_argument(
-            "--mustache",
-            "-m",
+            "--variable",
+            "-V",
             type=str,
             required=False,
             action="append",
-            help="user-defined Mustache substitution; can be supplied multiple times",
+            help="user-defined Mustache variable substitution; can be supplied multiple times",
             metavar="<var1=v1>",
         )
         parser.add_argument(
@@ -417,8 +417,8 @@ class CLIParser:
         return self.args.url
 
     @property
-    def mustache_subs(self) -> Optional[List[str]]:
-        return self.args.mustache
+    def variables(self) -> Optional[List[str]]:
+        return self.args.variable
 
     @property
     def quiet(self) -> bool:

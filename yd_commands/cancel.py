@@ -89,9 +89,7 @@ def main():
                 attempt = 0
                 while True:
                     attempt += 1
-                    print_log(
-                        f"Collecting Tasks to abort (attempt {attempt})"
-                    )
+                    print_log(f"Collecting Tasks to abort (attempt {attempt})")
                     if abort_all_tasks(selected_work_requirement_summaries) == 0:
                         break
                     print_log(

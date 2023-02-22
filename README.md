@@ -161,14 +161,15 @@ Commands are run from the command line. Invoking the command with the `--help` o
 
 ```text
 % yd-cancel --help
-usage: yd-cancel [-h] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>]
-                 [--namespace <namespace>] [--tag <tag>]
-                 [--url <url>] [--mustache <var1=v1>] [--quiet] [--abort] [--interactive] [--yes] [--debug]
+usage: yd-cancel [-h] [--docs] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>]
+                 [--namespace <namespace>] [--tag <tag>] [--url <url>] [--variable <var1=v1>] [--quiet] [--debug]
+                 [--abort] [--follow] [--interactive] [--yes]
 
 YellowDog example utility for cancelling Work Requirements
 
 optional arguments:
   -h, --help            show this help message and exit
+  --docs                provide a link to the documentation for this version
   --config <config_file.toml>, -c <config_file.toml>
                         configuration file in TOML format; default is 'config.toml' in the current directory
   --key <app-key>, -k <app-key>
@@ -181,13 +182,14 @@ optional arguments:
                         the tag to use for tagging and naming entities
   --url <url>, -u <url>
                         the URL of the YellowDog Platform API
-  --mustache <var1=v1>, -m <var1=v1>
-                        user-defined Mustache substitution; can be supplied multiple times
+  --variable <var1=v1>, -V <var1=v1>
+                        user-defined Mustache variable substitution; can be supplied multiple times
   --quiet, -q           suppress (non-error, non-interactive) status and progress messages
+  --debug               print a stack trace (etc.) on error
   --abort, -a           abort all running tasks with immediate effect
+  --follow, -f          when using --abort, poll until all Tasks have been aborted
   --interactive, -i     list, and interactively select, items to act on
   --yes, -y             perform destructive actions without requiring user confirmation
-  --debug               print a stack trace (etc.) on error
 ```
 
 # Configuration
@@ -310,7 +312,7 @@ For the `date`, `time`, `datetime` and `random` directives, the same values will
 
 Arbitrary Mustache directives can be supplied using command line options, by setting environment variables prefixed with `YD_SUB_`, or by including the directives in the `[common]` section of the TOML configuration file.
 
-1. The **command line** option is `--mustache-substitution` (or `-m`). For example, `yd-submit -m project_code=pr-213-a -m run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
+1. The **command line** option is `--variable` (or `-V`). For example, `yd-submit -V project_code=pr-213-a -V run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
 
 2. For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
@@ -326,7 +328,7 @@ run_id = "1234"
 
 Directives set on the command line take precedence over directives set in environment variables, and both of them take precedence over directives set in a TOML file.
 
-This method can be used to override the default directives, e.g., setting `-m username="other-user"` will override the default `{{username}}` directive.
+This method can be used to override the default directives, e.g., setting `-V username="other-user"` will override the default `{{username}}` directive.
 
 # Work Requirement Properties
 

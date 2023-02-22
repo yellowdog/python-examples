@@ -53,9 +53,9 @@ for key, value in os.environ.items():
         print_log(f"Adding user-defined Mustache substitution: '{key}' = '{value}'")
 
 # Directives from the command line (take precedence over environment variables)
-if ARGS_PARSER.mustache_subs is not None:
-    for sub in ARGS_PARSER.mustache_subs:
-        key_value: List = sub.split("=")
+if ARGS_PARSER.variables is not None:
+    for variable in ARGS_PARSER.variables:
+        key_value: List = variable.split("=")
         if len(key_value) == 2:
             MUSTACHE_SUBSTITUTIONS[key_value[0]] = key_value[1]
             print_log(
