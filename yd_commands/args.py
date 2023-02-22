@@ -569,6 +569,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "listing entities"
     elif "instantiate" in module_name:
         suffix = "provisioning a Compute Requirement"
+    elif "upload" in module_name:
+        suffix = "uploading objects to the Object Store"
 
     return None if suffix is None else prefix + suffix
 
