@@ -204,6 +204,13 @@ class CLIParser:
                 required=False,
                 help="abort all running tasks with immediate effect",
             )
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help="when using --abort, poll until all Tasks have been aborted",
+            )
 
         if any(
             module in sys.argv[0]
