@@ -37,6 +37,7 @@ from yd_commands.config import (
     generate_id,
     link_entity,
     load_config_work_requirement,
+    update_config_work_requirement,
 )
 from yd_commands.config_keys import *
 from yd_commands.csv_data import (
@@ -206,13 +207,14 @@ def submit_work_requirement(
             wr_data[TASK_TYPES] = [wr_data[TASK_TYPE]]
 
     # Overwrite the WR name?
-    global ID
+    global ID, CONFIG_WR
     ID = format_yd_name(
         wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
     )
     # Lazy substitution of the Work Requirement name, now it's defined
     add_substitutions(subs={WR_NAME: ID})
     process_mustache_substitutions(wr_data)
+    CONFIG_WR = update_config_work_requirement(CONFIG_WR)
 
     # Handle any files that need to be uploaded
     global UPLOADED_FILES

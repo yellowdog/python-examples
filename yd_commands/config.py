@@ -446,3 +446,13 @@ entities = {
     WorkRequirement: "work",
     ComputeRequirement: "compute",
 }
+
+
+def update_config_work_requirement(config_wr: ConfigWorkRequirement):
+    """
+    Update a ConfigWorkRequirement Object with the current dictionary of
+    Mustache substitutions. Returns the updated object.
+    """
+    config_wr_str_processed = substitute_mustache_str(str(config_wr))
+    # Note: 'literal_eval' doesn't work here
+    return eval(config_wr_str_processed)
