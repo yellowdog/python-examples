@@ -23,7 +23,7 @@ def _get_keys(data: Union[Dict, List]) -> List[str]:
     Exclude dictionaries with user-specified keys.
     """
     keys: List[str] = []
-    excluded_keys = [ENV, DOCKER_ENV, MUSTACHE, INSTANCE_TAGS]
+    excluded_keys = [ENV, DOCKER_ENV, VARIABLES, INSTANCE_TAGS]
     if isinstance(data, dict):
         for key, value in data.items():
             keys.append(key)

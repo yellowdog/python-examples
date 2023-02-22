@@ -318,10 +318,10 @@ Arbitrary Mustache directives can be supplied using command line options, by set
 2. For **environment variables**, setting the variable `YD_SUB_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
 
 
-3. For **setting within the TOML file**, include a **`mustache`** table in the `[common]` section of the file. E.g., `mustache = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
+3. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. E.g., `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
 
 ```toml
-[common.mustache]
+[common.variables]
 project_code = "pr-213a"
 run_id = "1234"
 ```
