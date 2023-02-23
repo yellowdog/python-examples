@@ -234,7 +234,7 @@ The `[common]` section of the configuration file can contain the following prope
 | `namespace` | The **namespace** to be used to manage resources                                    |
 | `tag`       | The **tag** to be used for tagging resources and naming objects                     |
 | `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't to be used |
-| `mustache`  | A dictionary containing **Mustache substitutions** (see the Mustache section below) |
+| `variables` | A dictionary containing **Mustache substitutions** (see the Mustache section below) |
 
 An example `common` section is shown below:
 
