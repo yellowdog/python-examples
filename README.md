@@ -1010,6 +1010,10 @@ development:testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.log
 development:testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
 ```
 
+The **`outputsRequired`** property can be used instead of (or in addition to) the `outputs` property, if the output file(s) **must** be available for upload to the Object Store at the conclusion of the Task or the Task will be marked as `Failed`, e.g.:
+
+`"outputsRequired": ["results/process_output.txt"]`
+
 ### Files Downloaded from the Object Store to Local Storage
 
 The `yd-download` command will download all objects from the Object Store to a local directory, on a per Work Requirement basis (including any files that have been uploaded). A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
