@@ -178,13 +178,6 @@ class CLIParser:
                 required=False,
                 help="process CSV variable substitutions only and output intermediate JSON",
             )
-            parser.add_argument(
-                "--yes",
-                "-y",
-                action="store_true",
-                required=False,
-                help="proceed without requiring user confirmation",
-            )
 
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
             parser.add_argument(
