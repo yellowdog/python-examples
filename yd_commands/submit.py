@@ -699,9 +699,12 @@ def add_tasks_to_task_group(
         tasks_list.clear()
 
     if not ARGS_PARSER.dry_run:
-        print_log(
-            f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'"
-        )
+        if num_tasks > 0:
+            print_log(
+                f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'"
+            )
+        else:
+            print_log(f"No Tasks added to Task Group '{task_group.name}'")
 
 
 def get_task_data_property(
