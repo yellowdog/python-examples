@@ -1232,6 +1232,7 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     nodeBootTimeLimit = 5
     targetInstanceCount = 1
     templateId = "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
+    # Note: only one of 'userData'/'userDataFile' should be set
     userData = ""
     userDataFile = "myuserdata.txt"
     workerTag = "tag-{{username}}"
@@ -1414,7 +1415,7 @@ yd-provision -p my_worker_pool.json
 
 # Jsonnet Support
 
-In all circumstances where JSON files are used by the Python Examples scripts,  **[Jsonnet](https://jsonnet.org)** files cab be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
+In all circumstances where JSON files are used by the Python Examples scripts,  **[Jsonnet](https://jsonnet.org)** files can be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
 
 A simple usage example might be:
 
