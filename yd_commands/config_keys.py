@@ -67,6 +67,7 @@ LOCAL_PATH = "localPath"  # String
 UPLOAD_PATH = "uploadPath"  # String
 URL = "url"  # String
 USERDATA = "userData"  # String
+USERDATAFILE = "userDataFile"  # String
 VCPUS = "vcpus"  # List of two Floats
 VERIFY_AT_START = "verifyAtStart"  # List of Strings
 VERIFY_WAIT = "verifyWait"  # List of Strings
@@ -150,6 +151,7 @@ ALL_KEYS = [
     UPLOAD_PATH,
     URL,
     USERDATA,
+    USERDATAFILE,
     VCPUS,
     VERIFY_AT_START,
     VERIFY_WAIT,

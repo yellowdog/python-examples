@@ -1205,6 +1205,7 @@ The following properties are available:
 | `targetInstanceCount`  | The initial number of nodes to create for the Worker Pool.                                                 | `1`            |
 | `templateId`           | The YellowDog Compute Template ID to use for provisioning.                                                 |                |
 | `userData`             | User Data to be supplied to instances on boot.                                                             |                |
+| `userDataFile`         | As above, but read the User Data from the filename supplied in this property.                              |                |
 | `workersPerVCPU`       | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.) |                |
 | `workersPerNode`       | The number of Workers to establish on each node in the Worker Pool.                                        | `1`            |
 | `workerPoolData`       | The name of a file containing a JSON document defining a Worker Pool.                                      |                |
@@ -1232,6 +1233,7 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     targetInstanceCount = 1
     templateId = "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
     userData = ""
+    userDataFile = "myuserdata.txt"
     workerTag = "tag-{{username}}"
     workersPerNode = 1
 #   workerPoolData = "worker_pool.json"
