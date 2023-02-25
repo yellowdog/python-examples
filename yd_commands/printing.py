@@ -27,6 +27,7 @@ from yellowdog_client.model import (
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.compact_json import CompactJSONEncoder
+from yd_commands.config_keys import NAME, TASK_GROUPS, TASKS
 from yd_commands.object_utilities import Item
 
 JSON_INDENT = 2
@@ -304,10 +305,10 @@ class WorkRequirementSnapshot:
         Add the list of Tasks to a named Task Group within the
         Work Requirement. Cumulative.
         """
-        for task_group in self.wr_data["taskGroups"]:
-            if task_group["name"] == task_group_name:
-                task_group["tasks"] = task_group.get("tasks", [])
-                task_group["tasks"] += [Json.dump(task) for task in tasks]
+        for task_group in self.wr_data[TASK_GROUPS]:
+            if task_group[NAME] == task_group_name:
+                task_group[TASKS] = task_group.get(TASKS, [])
+                task_group[TASKS] += [Json.dump(task) for task in tasks]
                 return
 
     def print(self):
