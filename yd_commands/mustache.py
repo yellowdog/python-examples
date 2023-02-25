@@ -229,7 +229,13 @@ def load_toml_file_with_mustache_substitutions(filename: str, prefix: str = "") 
     # Add any Mustache substitutions in the TOML file before processing the
     # file as a whole
     try:
-        add_substitutions(config[COMMON_SECTION][VARIABLES])
+        # Convert all values to strings before adding
+        add_substitutions(
+            {
+                var_name: str(var_value)
+                for var_name, var_value in config[COMMON_SECTION][VARIABLES].items()
+            }
+        )
     except KeyError:
         pass
 
