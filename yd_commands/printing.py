@@ -280,7 +280,6 @@ def print_worker_pool(
         "requirementTemplateUsage": Json.dump(crtu),
     }
     print_json(wp_data)
-    print_log("Dry run: Complete")
 
 
 class WorkRequirementSnapshot:

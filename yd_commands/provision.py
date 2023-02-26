@@ -245,14 +245,17 @@ def create_worker_pool():
                     compute_requirement_template_usage,
                     provisioned_worker_pool_properties,
                 )
-                return
 
         except Exception as e:
             print_error(f"Unable to provision worker pool")
             raise Exception(e)
 
+    print_log(
+        f"Auto-Scaling node idle delay is "
+        f"{CONFIG_WP.auto_scaling_idle_delay} minute(s)"
+    )
     auto_shutdown = "enabled" if CONFIG_WP.auto_shutdown is True else "disabled"
-    auto_shutdown_msg = f"Worker Pool Auto-Shutdown is {auto_shutdown}"
+    auto_shutdown_msg = f"Auto-Shutdown is {auto_shutdown}"
     auto_shutdown_msg = (
         auto_shutdown_msg
         + f" with a delay of {CONFIG_WP.auto_shutdown_delay} minute(s)"
@@ -260,10 +263,9 @@ def create_worker_pool():
         else auto_shutdown_msg
     )
     print_log(auto_shutdown_msg)
-    print_log(
-        f"Auto-Scaling idle delay is set to "
-        f"{CONFIG_WP.auto_scaling_idle_delay} minute(s)"
-    )
+
+    if ARGS_PARSER.dry_run:
+        print_log("Dry run: Complete")
 
 
 def _allocate_nodes_to_batches(
