@@ -215,6 +215,9 @@ def load_jsonnet_file_with_mustache_substitutions(filename: str, prefix="") -> D
     ) as preprocessed_filename:
         dict_data = json_loads(evaluate_file(preprocessed_filename))
 
+    # Secondary processing after Jsonnet expansion
+    process_mustache_substitutions(dict_data, prefix)
+
     return dict_data
 
 

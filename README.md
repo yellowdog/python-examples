@@ -777,7 +777,7 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 The dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON is a consolidated form of exactly what will be submitted to the API, so will differ in some ways from the JSON form ingested by `yd-submit`. Also, in actual API submissions, the Work Requirement and Task Groups are submitted first, and Tasks are added in subsequent calls, so the unified JSON document is just for convenience.
+Note that the generated JSON is a consolidated form of exactly what will be submitted to the API, with Tasks included directly within their Task Group properties for convenience. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are added to Task Groups separately in subsequent API calls, so the unified JSON document is just for convenience.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
@@ -1455,7 +1455,7 @@ Please get in touch with YellowDog if you get stuck.
 
 The scripts provide full support for Mustache substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** specifications, Mustache substitutions must be prefixed by `__`, e.g. `"__{{username}}}"`.
 
-Mustache processing is performed **before** Jsonnet evaluation into the internal JSON representation.
+Mustache processing is performed before Jsonnet expansion into JSON, and again after the expansion.
 
 ## Checking Jsonnet Processing
 
