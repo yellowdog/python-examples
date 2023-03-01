@@ -181,10 +181,13 @@ def list_worker_pools():
                 )
             except HTTPError:
                 continue
-            if (
-                compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
-                and compute_requirement.namespace == CONFIG_COMMON.namespace
-            ):
+            if compute_requirement.tag is not None:
+                if (
+                    compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
+                    and compute_requirement.namespace == CONFIG_COMMON.namespace
+                ):
+                    selected_worker_pool_summaries.append(worker_pool_summary)
+            else:
                 selected_worker_pool_summaries.append(worker_pool_summary)
 
     selected_worker_pool_summaries = sorted_objects(selected_worker_pool_summaries)
