@@ -28,7 +28,7 @@ from yd_commands.config import (
     link_entity,
     load_config_worker_pool,
 )
-from yd_commands.config_keys import USERDATA, USERDATAFILE
+from yd_commands.config_keys import MAINTAIN_INSTANCE_COUNT, USERDATA, USERDATAFILE
 from yd_commands.mustache import (
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
@@ -239,6 +239,12 @@ def create_worker_pool():
         node_workers = NodeWorkerTarget.per_vcpus(CONFIG_WP.workers_per_vcpu)
     else:
         node_workers = NodeWorkerTarget.per_node(CONFIG_WP.workers_per_node)
+
+    if CONFIG_WP.maintainInstanceCount is True:
+        print_log(
+            f"Warning: Property '{MAINTAIN_INSTANCE_COUNT}' will be set to "
+            "'false' when creating a Worker Pool"
+        )
 
     # Create the Worker Pool
     print_log(
