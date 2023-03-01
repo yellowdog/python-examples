@@ -55,7 +55,7 @@ DEFAULT_URL = "https://portal.yellowdog.co/api"
 @dataclass
 class ConfigWorkRequirement:
     args: List[str] = field(default_factory=list)
-    bash_script: Optional[str] = None
+    bash_script: Optional[str] = None  # Deprecated
     capture_taskoutput: bool = True
     completed_task_ttl: Optional[float] = None  # In minutes
     csv_files: Optional[List[str]] = None

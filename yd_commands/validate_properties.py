@@ -5,6 +5,7 @@ Validate property dictionaries.
 from typing import Dict, List, Union
 
 from yd_commands.config_keys import *
+from yd_commands.printing import print_log
 
 
 def validate_properties(data: Dict, context: str):
@@ -24,8 +25,18 @@ def _get_keys(data: Union[Dict, List]) -> List[str]:
     """
     keys: List[str] = []
     excluded_keys = [ENV, DOCKER_ENV, VARIABLES, INSTANCE_TAGS]
+    deprecated_keys = [
+        (AUTO_SCALING_IDLE_DELAY, NODE_IDLE_TIME_LIMIT),
+        (BASH_SCRIPT, EXECUTABLE),
+    ]
     if isinstance(data, dict):
         for key, value in data.items():
+            for deprecated_key in deprecated_keys:
+                if key == deprecated_key[0]:
+                    print_log(
+                        f"Warning: Property '{deprecated_key[0]}' is deprecated"
+                        f"; please replace with '{deprecated_key[1]}'"
+                    )
             keys.append(key)
             if (isinstance(value, dict) and key not in excluded_keys) or isinstance(
                 value, list
