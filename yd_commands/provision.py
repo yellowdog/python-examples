@@ -119,19 +119,31 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                 [
                     {
                         "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
-                        "type": "co.yellowdog.platform.model.AllWorkersReleasedShutdownCondition",
+                        "type": (
+                            "co.yellowdog.platform.model."
+                            "AllWorkersReleasedShutdownCondition"
+                        ),
                     },
                     {
                         "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
-                        "type": "co.yellowdog.platform.model.AllNodesInactiveShutdownCondition",
+                        "type": (
+                            "co.yellowdog.platform.model."
+                            "AllNodesInactiveShutdownCondition"
+                        ),
                     },
                     {
                         "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
-                        "type": "co.yellowdog.platform.model.UnclaimedAfterStartupShutdownCondition",
+                        "type": (
+                            "co.yellowdog.platform.model."
+                            "UnclaimedAfterStartupShutdownCondition"
+                        ),
                     },
                     {
                         "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
-                        "type": "co.yellowdog.platform.model.NodeActionFailedShutdownCondition",
+                        "type": (
+                            "co.yellowdog.platform.model."
+                            "NodeActionFailedShutdownCondition"
+                        ),
                     },
                 ],
             ),
