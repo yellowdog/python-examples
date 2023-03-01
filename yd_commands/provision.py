@@ -88,6 +88,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     # Some values are configurable via the TOML configuration file;
     # values in the JSON file override values in the TOML file
     try:
+        # requirementTemplateUsage insertions
         reqt_template_usage: Dict = wp_data["requirementTemplateUsage"]
         for key, value in [
             # Generate a default name
@@ -108,14 +109,51 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             if reqt_template_usage.get(key) is None and value is not None:
                 print_log(f"Setting 'requirementTemplateUsage.{key}': '{value}'")
                 reqt_template_usage[key] = value
-        if (
-            wp_data["provisionedProperties"].get("workerTag") is None
-            and CONFIG_WP.worker_tag is not None
-        ):
-            print_log(
-                f"Setting 'provisionedProperties.workerTag': '{CONFIG_WP.worker_tag}'"
-            )
-            wp_data["provisionedProperties"]["workerTag"] = CONFIG_WP.worker_tag
+
+        # provisionedProperties insertions
+        provisioned_properties = wp_data["provisionedProperties"]
+        for key, value in [
+            ("autoShutdown", CONFIG_WP.auto_shutdown),
+            (
+                "autoShutdownConditions",
+                [
+                    {
+                        "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
+                        "type": "co.yellowdog.platform.model.AllWorkersReleasedShutdownCondition",
+                    },
+                    {
+                        "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
+                        "type": "co.yellowdog.platform.model.AllNodesInactiveShutdownCondition",
+                    },
+                    {
+                        "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
+                        "type": "co.yellowdog.platform.model.UnclaimedAfterStartupShutdownCondition",
+                    },
+                    {
+                        "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
+                        "type": "co.yellowdog.platform.model.NodeActionFailedShutdownCondition",
+                    },
+                ],
+            ),
+            ("maxNodes", CONFIG_WP.max_nodes),
+            ("minNodes", CONFIG_WP.min_nodes),
+            (
+                "createNodeWorkers",
+                {"targetCount": CONFIG_WP.workers_per_vcpu, "targetType": "PER_VCPU"}
+                if CONFIG_WP.workers_per_vcpu
+                else {
+                    "targetCount": CONFIG_WP.workers_per_node,
+                    "targetType": "PER_NODE",
+                },
+            ),
+            ("workerTag", CONFIG_WP.worker_tag),
+            ("nodeBootTimeLimit", f"PT{CONFIG_WP.node_boot_time_limit}M"),
+            ("nodeIdleTimeLimit", f"PT{CONFIG_WP.auto_scaling_idle_delay}M"),
+        ]:
+            if provisioned_properties.get(key) is None and value is not None:
+                print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
+                provisioned_properties[key] = value
+
     except KeyError as e:
         raise Exception(f"Missing key error in JSON Worker Pool definition: {e}")
 

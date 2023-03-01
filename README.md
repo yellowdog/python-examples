@@ -77,7 +77,7 @@
    * [yd-instantiate](#yd-instantiate)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sun Feb 19 18:34:11 GMT 2023 -->
+<!-- Added by: pwt, at: Wed Mar  1 16:08:30 GMT 2023 -->
 
 <!--te-->
 
@@ -1378,19 +1378,29 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
 
 ### TOML Properties Inherited by Worker Pool JSON Specifications
 
-When a JSON Worker Pool specification is used, the following properties from the `config.toml` file can be inherited:
+When a JSON Worker Pool specification is used, the following properties from the `config.toml` file will be inherited if the value is absent in the JSON file:
 
-- `name`: Mapped to `requirementName` in JSON. This will be generated automatically if not supplied in either the TOML file or the JSON specification.
+**Properties Inherited within the `requirementTemplateUsage` property**
+
+- `name`: Mapped to `requirementName` in JSON. (This will be generated automatically if not supplied in either the TOML file or the JSON specification.)
 - `requirementNamespace`
 - `requirementTag`
 - `targetInstanceCount`
 - `templateId`
 - `userData`
-- `workerTag`
 - `imagesId`
 - `instanceTags`
 
-Properties set in the JSON file override those set in the TOML file.
+**Properties Inherited within the `provisionedProperties` Property**
+
+- `autoShutdown`
+- `autoShutdownConditions`
+- `createNodeWorkers` (derived from the `workersPerVCPU` or `workersPerNode` properties in the TOML file)
+- `maxNodes`
+- `minNodes`
+- `nodeBootTimeLimit`
+- `nodeIdleTimeLimit` (obtained from the `autoscalingIdleDelay` property in the TOML file)
+- `workerTag`
 
 ## Mustache Directives in Worker Pool Properties
 
