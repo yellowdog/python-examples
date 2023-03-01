@@ -148,6 +148,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ),
             ("workerTag", CONFIG_WP.worker_tag),
             ("nodeBootTimeLimit", f"PT{CONFIG_WP.node_boot_time_limit}M"),
+            ("nodeIdleGracePeriod", f"PT{CONFIG_WP.node_idle_grace_period}M"),
             ("nodeIdleTimeLimit", f"PT{CONFIG_WP.node_idle_time_limit}M"),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
@@ -203,15 +204,22 @@ def create_worker_pool():
         ]
     else:
         auto_shutdown_conditions = []
+
+    # Set auto-scaling time limits
+    node_boot_time_limit = (
+        None
+        if CONFIG_WP.node_boot_time_limit is None
+        else timedelta(minutes=CONFIG_WP.node_boot_time_limit)
+    )
     node_idle_time_limit = (
         None
         if CONFIG_WP.node_idle_time_limit is None
         else timedelta(minutes=CONFIG_WP.node_idle_time_limit)
     )
-    node_boot_time_limit = (
+    node_idle_grace_period = (
         None
-        if CONFIG_WP.node_boot_time_limit is None
-        else timedelta(minutes=CONFIG_WP.node_boot_time_limit)
+        if CONFIG_WP.node_idle_grace_period is None
+        else timedelta(minutes=CONFIG_WP.node_idle_grace_period)
     )
 
     # Establish the number of Workers to create
@@ -260,6 +268,7 @@ def create_worker_pool():
                 userData=get_user_data_property(),
                 imagesId=CONFIG_WP.images_id,
                 instanceTags=CONFIG_WP.instance_tags,
+                maintainInstanceCount=False,  # Must be false for Worker Pools
             )
             provisioned_worker_pool_properties = ProvisionedWorkerPoolProperties(
                 createNodeWorkers=node_workers,
@@ -269,7 +278,7 @@ def create_worker_pool():
                 autoShutdown=CONFIG_WP.auto_shutdown,
                 autoShutdownConditions=auto_shutdown_conditions,
                 nodeIdleTimeLimit=node_idle_time_limit,
-                nodeIdleGracePeriod=node_idle_time_limit,
+                nodeIdleGracePeriod=node_idle_grace_period,
                 nodeBootTimeLimit=node_boot_time_limit,
             )
             if not ARGS_PARSER.dry_run:

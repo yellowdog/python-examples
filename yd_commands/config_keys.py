@@ -36,12 +36,12 @@ MAX_RETRIES = "maximumTaskRetries"  # Integer
 MAX_WORKERS = "maxWorkers"  # Integer
 MIN_NODES = "minNodes"  # Integer
 MIN_WORKERS = "minWorkers"  # Integer
-NODE_IDLE_TIME_LIMIT = "nodeIdleTimeLimit"  # Float
-VARIABLES = "variables"  # Dictionary
 NAME = "name"  # String
 NAMESPACE = "namespace"  # String
 NAME_TAG = "tag"  # String
 NODE_BOOT_TIME_LIMIT = "nodeBootTimeLimit"  # Float
+NODE_IDLE_GRACE_PERIOD = "nodeIdleGracePeriod"  # Float
+NODE_IDLE_TIME_LIMIT = "nodeIdleTimeLimit"  # Float
 OPTIONAL_INPUTS = "optionalInputs"  # List of Strings
 OUTPUT_FILES = "outputs"  # List of Strings
 OUTPUT_FILES_REQUIRED = "outputsRequired"  # List of Strings
@@ -69,6 +69,7 @@ UPLOAD_PATH = "uploadPath"  # String
 URL = "url"  # String
 USERDATA = "userData"  # String
 USERDATAFILE = "userDataFile"  # String
+VARIABLES = "variables"  # Dictionary
 VCPUS = "vcpus"  # List of two Floats
 VERIFY_AT_START = "verifyAtStart"  # List of Strings
 VERIFY_WAIT = "verifyWait"  # List of Strings
@@ -122,7 +123,6 @@ ALL_KEYS = [
     MAX_WORKERS,
     MIN_NODES,
     MIN_WORKERS,
-    VARIABLES,
     NAMESPACE,
     NAME_TAG,
     NODE_BOOT_TIME_LIMIT,
@@ -154,6 +154,7 @@ ALL_KEYS = [
     URL,
     USERDATA,
     USERDATAFILE,
+    VARIABLES,
     VCPUS,
     VERIFY_AT_START,
     VERIFY_WAIT,
