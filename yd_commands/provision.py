@@ -148,7 +148,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ),
             ("workerTag", CONFIG_WP.worker_tag),
             ("nodeBootTimeLimit", f"PT{CONFIG_WP.node_boot_time_limit}M"),
-            ("nodeIdleTimeLimit", f"PT{CONFIG_WP.auto_scaling_idle_delay}M"),
+            ("nodeIdleTimeLimit", f"PT{CONFIG_WP.node_idle_time_limit}M"),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
                 print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
@@ -203,10 +203,10 @@ def create_worker_pool():
         ]
     else:
         auto_shutdown_conditions = []
-    auto_scaling_idle_delay = (
+    node_idle_time_limit = (
         None
-        if CONFIG_WP.auto_scaling_idle_delay is None
-        else timedelta(minutes=CONFIG_WP.auto_scaling_idle_delay)
+        if CONFIG_WP.node_idle_time_limit is None
+        else timedelta(minutes=CONFIG_WP.node_idle_time_limit)
     )
     node_boot_time_limit = (
         None
@@ -268,8 +268,8 @@ def create_worker_pool():
                 workerTag=CONFIG_WP.worker_tag,
                 autoShutdown=CONFIG_WP.auto_shutdown,
                 autoShutdownConditions=auto_shutdown_conditions,
-                nodeIdleTimeLimit=auto_scaling_idle_delay,
-                nodeIdleGracePeriod=auto_scaling_idle_delay,
+                nodeIdleTimeLimit=node_idle_time_limit,
+                nodeIdleGracePeriod=node_idle_time_limit,
                 nodeBootTimeLimit=node_boot_time_limit,
             )
             if not ARGS_PARSER.dry_run:

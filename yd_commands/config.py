@@ -104,7 +104,7 @@ CR_BATCH_SIZE = 2000
 
 @dataclass
 class ConfigWorkerPool:
-    auto_scaling_idle_delay: float = 10
+    auto_scaling_idle_delay: float = 10  # Deprecated
     auto_shutdown: bool = True
     auto_shutdown_delay: float = 10
     compute_requirement_batch_size: int = CR_BATCH_SIZE
@@ -115,6 +115,7 @@ class ConfigWorkerPool:
     min_nodes: int = 0
     name: Optional[str] = None
     node_boot_time_limit: float = 10
+    node_idle_time_limit: float = 10
     target_instance_count: int = 0
     template_id: Optional[str] = None
     user_data: Optional[str] = None
@@ -376,6 +377,9 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
                 wp_section.get(WP_NAME, None),
             ),
             node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
+            node_idle_time_limit=wp_section.get(
+                NODE_IDLE_TIME_LIMIT, wp_section.get(AUTO_SCALING_IDLE_DELAY, 10)
+            ),
             target_instance_count=wp_section.get(TARGET_INSTANCE_COUNT, 1),
             template_id=wp_section.get(TEMPLATE_ID, None),
             user_data=wp_section.get(USERDATA, None),

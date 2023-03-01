@@ -36,6 +36,7 @@ MAX_RETRIES = "maximumTaskRetries"  # Integer
 MAX_WORKERS = "maxWorkers"  # Integer
 MIN_NODES = "minNodes"  # Integer
 MIN_WORKERS = "minWorkers"  # Integer
+NODE_IDLE_TIME_LIMIT = "nodeIdleTimeLimit"  # Float
 VARIABLES = "variables"  # Dictionary
 NAME = "name"  # String
 NAMESPACE = "namespace"  # String
@@ -125,6 +126,7 @@ ALL_KEYS = [
     NAMESPACE,
     NAME_TAG,
     NODE_BOOT_TIME_LIMIT,
+    NODE_IDLE_TIME_LIMIT,
     OPTIONAL_INPUTS,
     OUTPUT_FILES,
     OUTPUT_FILES_REQUIRED,
