@@ -298,9 +298,14 @@ def create_worker_pool():
             raise Exception(e)
 
     print_log(
-        f"Auto-Scaling node idle delay is "
-        f"{CONFIG_WP.auto_scaling_idle_delay} minute(s)"
+        f"Node boot time limit is "
+        f"{CONFIG_WP.node_boot_time_limit} minute(s) | "
+        f"Node idle grace period is "
+        f"{CONFIG_WP.node_idle_grace_period} minute(s) | "
+        f"Node idle time limit is "
+        f"{CONFIG_WP.node_idle_time_limit} minute(s)"
     )
+
     auto_shutdown = "enabled" if CONFIG_WP.auto_shutdown is True else "disabled"
     auto_shutdown_msg = f"Auto-Shutdown is {auto_shutdown}"
     auto_shutdown_msg = (
