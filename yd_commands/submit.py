@@ -48,11 +48,11 @@ from yd_commands.csv_data import (
 )
 from yd_commands.interactive import confirmed
 from yd_commands.mustache import (
-    TASK_COUNT,
-    TASK_GROUP_COUNT,
-    TASK_GROUP_NUMBER,
-    TASK_NUMBER,
-    WR_NAME,
+    L_TASK_COUNT,
+    L_TASK_GROUP_COUNT,
+    L_TASK_GROUP_NUMBER,
+    L_TASK_NUMBER,
+    L_WR_NAME,
     add_substitutions,
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
@@ -209,10 +209,10 @@ def submit_work_requirement(
     # Overwrite the WR name?
     global ID, CONFIG_WR
     ID = format_yd_name(
-        wr_data.get(WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
+        wr_data.get(L_WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
     )
     # Lazy substitution of the Work Requirement name, now it's defined
-    add_substitutions(subs={WR_NAME: ID})
+    add_substitutions(subs={L_WR_NAME: ID})
     process_mustache_substitutions(wr_data)
     CONFIG_WR = update_config_work_requirement(CONFIG_WR)
 
@@ -818,19 +818,19 @@ def get_task_name(
 
     if name:
         name = name.replace(
-            f"{{{{{TASK_NUMBER}}}}}",
+            f"{{{{{L_TASK_NUMBER}}}}}",
             formatted_number_str(task_number, num_tasks),
         )
         name = name.replace(
-            f"{{{{{TASK_COUNT}}}}}",
+            f"{{{{{L_TASK_COUNT}}}}}",
             str(num_tasks),
         )
         name = name.replace(
-            f"{{{{{TASK_GROUP_NUMBER}}}}}",
+            f"{{{{{L_TASK_GROUP_NUMBER}}}}}",
             formatted_number_str(task_group_number, num_task_groups),
         )
         name = name.replace(
-            f"{{{{{TASK_GROUP_COUNT}}}}}",
+            f"{{{{{L_TASK_GROUP_COUNT}}}}}",
             str(num_task_groups),
         )
 
@@ -853,15 +853,15 @@ def get_task_group_name(
 
     if name:
         name = name.replace(
-            f"{{{{{TASK_GROUP_NUMBER}}}}}",
+            f"{{{{{L_TASK_GROUP_NUMBER}}}}}",
             formatted_number_str(task_group_number, num_task_groups),
         )
         name = name.replace(
-            f"{{{{{TASK_GROUP_COUNT}}}}}",
+            f"{{{{{L_TASK_GROUP_COUNT}}}}}",
             str(num_task_groups),
         )
         name = name.replace(
-            f"{{{{{TASK_COUNT}}}}}",
+            f"{{{{{L_TASK_COUNT}}}}}",
             str(task_count),
         )
 
@@ -1039,7 +1039,7 @@ def submit_json_raw(wr_file: str):
     # Lazy substitution of Work Requirement name
     wr_data["name"] = format_yd_name(wr_data["name"])
     wr_name = wr_data["name"]
-    add_substitutions(subs={WR_NAME: wr_name})
+    add_substitutions(subs={L_WR_NAME: wr_name})
     process_mustache_substitutions(wr_data)
 
     if ARGS_PARSER.dry_run:

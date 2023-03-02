@@ -31,11 +31,11 @@ MUSTACHE_SUBSTITUTIONS = {
 
 # Lazy substitutions: 'submit' only
 if "submit" in sys.argv[0]:
-    WR_NAME = "wr_name"
-    TASK_NUMBER = "task_number"
-    TASK_GROUP_NUMBER = "task_group_number"
-    TASK_COUNT = "task_count"
-    TASK_GROUP_COUNT = "task_group_count"
+    L_WR_NAME = "wr_name"
+    L_TASK_NUMBER = "task_number"
+    L_TASK_GROUP_NUMBER = "task_group_number"
+    L_TASK_COUNT = "task_count"
+    L_TASK_GROUP_COUNT = "task_group_count"
 
 # Type annotations for Mustache type substitutions
 NUMBER_SUB = "num:"
