@@ -19,7 +19,7 @@ def check_for_jsonnet() -> str:
     try:
         from _jsonnet import evaluate_file, version
 
-        return f"Jsonnet is installed (version {version})"
+        return f"Jsonnet is installed ({version})"
     except ImportError:
         return "Jsonnet is not installed"
 

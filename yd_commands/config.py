@@ -115,8 +115,8 @@ class ConfigWorkerPool:
     min_nodes: int = 0
     name: Optional[str] = None
     node_boot_time_limit: float = 10
-    node_idle_grace_period: float = 10
-    node_idle_time_limit: float = 10
+    node_idle_grace_period: float = 2
+    node_idle_time_limit: float = 5
     target_instance_count: int = 0
     template_id: Optional[str] = None
     user_data: Optional[str] = None
@@ -378,9 +378,9 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
                 wp_section.get(WP_NAME, None),
             ),
             node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
-            node_idle_grace_period=wp_section.get(NODE_IDLE_GRACE_PERIOD, 10),
+            node_idle_grace_period=wp_section.get(NODE_IDLE_GRACE_PERIOD, 2),
             node_idle_time_limit=wp_section.get(
-                NODE_IDLE_TIME_LIMIT, wp_section.get(AUTO_SCALING_IDLE_DELAY, 10)
+                NODE_IDLE_TIME_LIMIT, wp_section.get(AUTO_SCALING_IDLE_DELAY, 5)
             ),
             target_instance_count=wp_section.get(TARGET_INSTANCE_COUNT, 1),
             template_id=wp_section.get(TEMPLATE_ID, None),

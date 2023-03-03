@@ -1201,8 +1201,8 @@ The following properties are available:
 | `maxNodes`            | The maximum number of nodes to which the Worker Pool can be scaled up.                                     | `1`            |
 | `name`                | The name of the Worker Pool.                                                                               | Automatic      |
 | `nodeBootTimeLimit`   | The time in minutes allowed for a node to boot and register with the platform before it is terminated.     | `10.0` minutes |
-| `nodeIdleGracePeriod` | The time in minutes after a node registers during which the idle check is not applied.                     | `10.0` minutes |
-| `nodeIdleTimeLimit`   | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.               | `10.0` minutes |
+| `nodeIdleGracePeriod` | The time in minutes after a node registers during which the idle check is not applied.                     | `2.0` minutes  |
+| `nodeIdleTimeLimit`   | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.               | `5.0` minutes  |
 | `targetInstanceCount` | The initial number of nodes to create for the Worker Pool.                                                 | `1`            |
 | `templateId`          | The YellowDog Compute Template ID to use for provisioning.                                                 |                |
 | `userData`            | User Data to be supplied to instances on boot.                                                             |                |
