@@ -777,7 +777,7 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 The dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON is a consolidated form of exactly what will be submitted to the API, with Tasks included directly within their Task Group properties for convenience. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are added to Task Groups separately in subsequent API calls, so the unified JSON document is just for convenience.
+Note that the generated JSON is a consolidated form of exactly what will be submitted to the API, with Tasks included directly within their Task Group properties for convenience. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are added to Task Groups separately in subsequent API calls.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
@@ -1384,9 +1384,9 @@ When a JSON Worker Pool specification is used, the following properties from the
 
 **Properties Inherited within the `requirementTemplateUsage` property**
 
-- `name`: (mapped to `requirementName` in JSON. The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
-- `requirementNamespace`
-- `requirementTag`
+- `requirementName`: derived from the `name` property in the `TOML` configuration. (The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
+- `requirementNamespace`: derived from the `namespace` property in the `TOML` configuration
+- `requirementTag`: : derived from the `tag` property in the `TOML` configuration
 - `targetInstanceCount`
 - `templateId`
 - `userData`
@@ -1396,8 +1396,8 @@ When a JSON Worker Pool specification is used, the following properties from the
 **Properties Inherited within the `provisionedProperties` Property**
 
 - `autoShutdown`
-- `autoShutdownConditions`
-- `createNodeWorkers` (derived from the `workersPerVCPU` or `workersPerNode` properties in the TOML file)
+- `autoShutdownConditions`: derived from the `autoShutdownDelay` property in the `TOML` configuration
+- `createNodeWorkers`: derived from the `workersPerVCPU` or `workersPerNode` properties in the `TOML` configuration
 - `maxNodes`
 - `minNodes`
 - `nodeBootTimeLimit`
