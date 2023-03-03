@@ -2,6 +2,9 @@
 # A template for creating TOML configuration files for the YellowDog Python
 # script examples. TOML key names are case sensitive.
 #
+# Note that this is only a subset of the available properties. Please consult
+# The README file for a complete list.
+#
 
 [common]  ######################################################################
 
@@ -146,7 +149,7 @@
     # The delay in minutes before idle nodes are shut down due to auto-scaling
     # Optional
     # --------------------------------------------------------------------------
-    # autoscalingIdleDelay = 10
+    # nodeIdleTimeLimit = 10
 
     # The time in minutes to allow for a node to boot and register its
     # worker(s) before it is terminated
