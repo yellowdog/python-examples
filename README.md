@@ -421,7 +421,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `ram`                      | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                    | Yes  | Yes | Yes  |      |
 | `regions`                  | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                  | Yes  | Yes | Yes  |      |
 | `taskBatchSize`            | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                            | Yes  |     |      |      |
-| `taskCount`                | The number of times to execute the Task. Can be set in the TOML file or in any JSON Work Requirement or Task Group definition. Note: no inheritance from TOML to JSON.   | Yes  | Yes | Yes  |      |
+| `taskCount`                | The number of times to execute the Task. Can be set in the TOML file or in any JSON Task Group definition. Note: no inheritance from TOML to JSON.                       | Yes  |     | Yes  |      |
 | `taskData`                 | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when The Task executes.      | Yes  | Yes | Yes  | Yes  |
 | `taskDataFile`             | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                         | Yes  | Yes | Yes  | Yes  |
 | `taskName`                 | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                   | Yes  |     |      |      |
@@ -509,9 +509,9 @@ If the `executable` property is not supplied, the automatic processing above for
 
 This property will expand the number of Tasks to match `taskCount`.
 
-The `taskCount` property can be set in the `workRequirement` section of the `config.toml` file, or in the Work Requirement or `taskGroup` sections of a JSON Work Requirement definition. 
+The `taskCount` property can be set in the `workRequirement` section of the `config.toml` file, or in the `taskGroup` sections of a JSON Work Requirement definition. 
 
-In the former case, the `taskCount` applies only to the `Task` specified within the `config.toml` file and is not inherited by JSON Work Requirement specifications.
+In the former case, the `taskCount` applies only to the Task specified within the `config.toml` file and is not inherited by JSON Work Requirement specifications.
 
 In the latter case, the `taskCount` applies to the Task specified within the Task Group, and there must be zero or one Task(s) listed within the group or `taskCount` is ignored.
 
@@ -604,7 +604,6 @@ Showing all possible properties at the Work Requirement level:
   "providers": ["AWS"],
   "ram": [0.5, 2],
   "regions": ["eu-west-2"],
-  "taskCount": 100,
   "taskData": "my_task_data_string",
   "taskDataFile": "my_data_file.txt",
   "taskTypes": ["docker"],
