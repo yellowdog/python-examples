@@ -192,6 +192,13 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
     Directly create the Compute Requirement using the YellowDog REST API
     """
 
+    if ARGS_PARSER.report:
+        print_error(
+            "Compute Template reports aren't available when using JSON "
+            "Compute Requirement definitions"
+        )
+        return
+
     if cr_json_file.lower().endswith(".jsonnet"):
         cr_data = load_jsonnet_file_with_mustache_substitutions(
             cr_json_file, prefix=prefix

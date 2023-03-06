@@ -1704,7 +1704,11 @@ Use the `--dry-run` option to inspect the details of the Compute Requirement spe
 
 ### Test-Running a Dynamic Template
 
-When a the `templateId` of a Dynamic Requirement is used, the `yd-instantiate` command can be used to report on a test run of the Template, using the `--report` (or `-r`) command line option. No instances will be provisioned during the test run. For example:
+When a the `templateId` of a Dynamic Requirement is used, the `yd-instantiate` command can be used to report on a test run of the Template, using the `--report` (or `-r`) command line option. This can be used with TOML-defined Compute Requirement specifications, but not those that are JSON-defined.
+
+No instances will be provisioned during the test run.
+
+For example:
 
 ```shell
 % yd-instantiate --report --quiet
