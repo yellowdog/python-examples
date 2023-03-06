@@ -75,9 +75,10 @@
    * [yd-upload](#yd-upload)
    * [yd-shutdown](#yd-shutdown)
    * [yd-instantiate](#yd-instantiate)
+      * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Wed Mar  1 16:08:30 GMT 2023 -->
+<!-- Added by: pwt, at: Mon Mar  6 14:57:57 GMT 2023 -->
 
 <!--te-->
 
@@ -1661,7 +1662,7 @@ The `yd-upload` command uploads files from the local filesystem to the YellowDog
 ```shell
 yd-upload --directory my_work_requirement file_1 file_2 morefiles/file3
 ```
-To suppress the mirroring of the local directory structure within the object store, use the `--flatten-upload-paths` or `-f` option. Note that if this creates mutliple uploaded files with the same path in the Object Store folder, files will be overwritten.
+To suppress the mirroring of the local directory structure within the object store, use the `--flatten-upload-paths` or `-f` option. Note that if this creates multiple uploaded files with the same path in the Object Store folder, files will be overwritten.
 
 Files in directories may be recursively uploaded using the `--recursive` or `-r` option, e.g.:
 
@@ -1700,6 +1701,38 @@ Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifi
 If a Worker Pool is defined, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
 
 Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above (or with `-p` for Worker Pool specifications).
+
+### Test-Running a Dynamic Template
+
+When a the `templateId` of a Dynamic Requirement is used, the `yd-instantiate` command can be used to report on a test run of the Template, using the `--report` (or `-r`) command line option. No instances will be provisioned during the test run. For example:
+
+```shell
+% yd-instantiate --report --quiet
+
+┌────────┬────────────┬──────────────────────┬───────────┬────────────────┬─────────────────────────────────┐
+│   Rank │ Provider   │ Type                 │ Region    │ InstanceType   │ Source Name                     │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ eu-west-1 │ t2.medium      │ awsspot-eu-west-1-virtualscreen │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ eu-west-1 │ t3.medium      │ awsspot-eu-west-1-virtualscreen │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ eu-west-1 │ t3a.medium     │ awsspot-eu-west-1-virtualscreen │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ us-east-1 │ t3.medium      │ awsspot-us-east-1               │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ us-east-1 │ t3a.medium     │ awsspot-us-east-1               │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ eu-west-1 │ t2.medium      │ awsspot-eu-west-1               │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ eu-west-1 │ t3.medium      │ awsspot-eu-west-1               │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ eu-west-1 │ t3a.medium     │ awsspot-eu-west-1               │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t2.medium      │ awsspot-eu-west-2               │
+├────────┼────────────┼──────────────────────┼───────────┼────────────────┼─────────────────────────────────┤
+│      1 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3.medium      │ awsspot-eu-west-2               │
+└────────┴────────────┴──────────────────────┴───────────┴────────────────┴─────────────────────────────────┘
+```
 
 ## yd-terminate
 

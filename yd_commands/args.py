@@ -355,6 +355,13 @@ class CLIParser:
                 help="the compute requirement definition",
                 metavar="<compute_requirement.json>",
             )
+            parser.add_argument(
+                "--report",
+                "-r",
+                action="store_true",
+                required=False,
+                help="report on a Dynamic Template test run",
+            )
 
         if "admin" in sys.argv[0]:
             parser.add_argument(
@@ -540,6 +547,10 @@ class CLIParser:
     @property
     def content_path(self) -> Optional[str]:
         return self.args.content_path
+
+    @property
+    def report(self) -> Optional[bool]:
+        return self.args.report
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

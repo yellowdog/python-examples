@@ -9,7 +9,10 @@ from math import ceil, floor
 from typing import List, Optional
 
 import requests
-from yellowdog_client.model import ComputeRequirementTemplateUsage
+from yellowdog_client.model import (
+    ComputeRequirementTemplateTestResult,
+    ComputeRequirementTemplateUsage,
+)
 
 from yd_commands.config import (
     ARGS_PARSER,
@@ -22,7 +25,12 @@ from yd_commands.mustache import (
     load_json_file_with_mustache_substitutions,
     load_jsonnet_file_with_mustache_substitutions,
 )
-from yd_commands.printing import print_error, print_log, print_yd_object
+from yd_commands.printing import (
+    print_compute_template_test_result,
+    print_error,
+    print_log,
+    print_yd_object,
+)
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -62,10 +70,11 @@ def main():
     if CONFIG_WP.template_id is None:
         print_error("No 'templateId' supplied")
 
-    print_log(
-        f"Provisioning Compute Requirement with {CONFIG_WP.target_instance_count:,d} "
-        "instance(s)"
-    )
+    if not ARGS_PARSER.report:
+        print_log(
+            "Provisioning Compute Requirement with "
+            f"{CONFIG_WP.target_instance_count:,d} instance(s)"
+        )
 
     batches: List[CRBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
@@ -80,7 +89,7 @@ def main():
         id = generate_cr_batch_name(
             name=CONFIG_WP.name, batch_number=batch_number, num_batches=num_batches
         )
-        if not ARGS_PARSER.dry_run:
+        if not (ARGS_PARSER.dry_run or ARGS_PARSER.report):
             if num_batches > 1:
                 print_log(
                     f"Provisioning Compute Requirement {batch_number + 1} '{id}'"
@@ -101,6 +110,17 @@ def main():
                 imagesId=CONFIG_WP.images_id,
                 userData=CONFIG_WP.user_data,
             )
+
+            if ARGS_PARSER.report:
+                print_log("Generating provisioning report only")
+                test_result: ComputeRequirementTemplateTestResult = (
+                    CLIENT.compute_client.test_compute_requirement_template(
+                        compute_requirement_template_usage
+                    )
+                )
+                print_compute_template_test_result(test_result)
+                return
+
             if not ARGS_PARSER.dry_run:
                 compute_requirement = (
                     CLIENT.compute_client.provision_compute_requirement_template(

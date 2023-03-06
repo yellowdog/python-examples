@@ -12,7 +12,11 @@ from tabulate import tabulate
 from yellowdog_client import PlatformClient
 from yellowdog_client.common.json import Json
 from yellowdog_client.model import (
+    BestComputeSourceReport,
+    BestComputeSourceReportSource,
+    ComputeRequirementDynamicTemplateTestResult,
     ComputeRequirementSummary,
+    ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
     ConfiguredWorkerPool,
     ObjectPath,
@@ -317,3 +321,32 @@ class WorkRequirementSnapshot:
         print_log("Dry-run: Printing JSON Work Requirement specification:")
         print_json(self.wr_data)
         print_log("Dry-run: Complete")
+
+
+def print_compute_template_test_result(result: ComputeRequirementTemplateTestResult):
+    """
+    Print the results of a test submission of a Dynamic Compute Template
+    """
+    if not isinstance(result, ComputeRequirementDynamicTemplateTestResult):
+        print_log("Reports are only available for Dynamic Templates")
+        return
+
+    report: BestComputeSourceReport = result.report
+    sources: List[BestComputeSourceReportSource] = report.sources
+    source_table = [
+        ["Rank", "Provider", "Type", "Region", "InstanceType", "Source Name"]
+    ]
+    for source in sources:
+        source_table.append(
+            [
+                source.rank,
+                source.provider,
+                source.type,
+                source.region,
+                source.instanceType,
+                source.name,
+            ]
+        )
+    print()
+    print(tabulate(source_table, headers="firstrow", tablefmt="simple_grid"))
+    print()
