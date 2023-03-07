@@ -394,7 +394,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `arguments`                | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                  | Yes  | Yes | Yes  | Yes  |
 | `captureTaskOutput`        | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                     | Yes  | Yes | Yes  | Yes  |
 | `completedTaskTtl`         | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                     | Yes  | Yes | Yes  |      |
-| `csvFile`                  | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv".                  | Yes  |     |      |      |
+| `csvFile`                  | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                 | Yes  |     |      |      |
 | `csvFiles`                 | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                        | Yes  |     |      |      |
 | `dependentOn`              | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.             |      |     | Yes  |      |
 | `dockerEnvironment`        | The environment to be passed to a Docker container. Only used by the `docker` Task Type. E.g., JSON: `{"VAR_1": "abc"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.         | Yes  | Yes | Yes  | Yes  |
@@ -470,15 +470,14 @@ is equivalent to:
 ```toml
 taskType = "bash"
 inputs = ["my_bash_script.sh"]
-arguments = ["my_bash_script.sh", "1", "2", "3"]
+arguments = ["{{wr_name}}/my_bash_script.sh", "1", "2", "3"]
 ```
 (For completeness, note that this is also equivalent to:
 ```toml
 taskType = "bash"
 uploadFiles = [{localPath = "my_bash_script.sh", uploadPath = "my_bash_script.sh"}]
-verifyAtStart = ["my_bash_script.sh"]
-flattenInputPaths = true
-arguments = ["my_bash_script.sh", "1", "2", "3"]
+verifyAtStart = ["{{wr_name}}/my_bash_script.sh"]
+arguments = ["{{wr_name}}/my_bash_script.sh", "1", "2", "3"]
 ```
 The use of `uploadFiles` and `verifyAtStart` is discussed [below](#file-storage-locations-and-file-usage).)
 

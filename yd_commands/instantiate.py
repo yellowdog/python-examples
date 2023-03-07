@@ -195,7 +195,7 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
     if ARGS_PARSER.report:
         print_error(
             "Compute Template reports aren't available when using JSON "
-            "Compute Requirement definitions"
+            "Compute Requirement / Worker Pool specifications"
         )
         return
 
