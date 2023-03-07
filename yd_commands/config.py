@@ -202,9 +202,16 @@ def load_config_common() -> ConfigCommon:
         url = substitute_mustache_str(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
             print_log(f"Using the YellowDog API at: {url}")
+
+        # Exhaustive Mustache processing for common section variables
+        # Note that add_substitutions() will perform all possible
+        # substitutions for the items in its dictionary each time it's
+        # called
+        add_substitutions(subs={URL: url})
         namespace = substitute_mustache_str(common_section[NAMESPACE])
+        add_substitutions(subs={NAMESPACE: namespace})
         name_tag = substitute_mustache_str(common_section[NAME_TAG])
-        add_substitutions(subs={NAMESPACE: namespace, NAME_TAG: name_tag, URL: url})
+        add_substitutions(subs={NAME_TAG: name_tag})
 
         return ConfigCommon(
             # Required

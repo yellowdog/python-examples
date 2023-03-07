@@ -74,7 +74,8 @@ if ARGS_PARSER.variables is not None:
 
 def add_substitutions(subs: Dict):
     """
-    Add a dictionary of substitutions. Do not overwrite existing values.
+    Add a dictionary of substitutions. Do not overwrite existing values, but
+    resolve remaining variables if possible.
     """
     global MUSTACHE_SUBSTITUTIONS
     subs.update(MUSTACHE_SUBSTITUTIONS)
