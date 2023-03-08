@@ -297,15 +297,15 @@ Substitutions can also be performed for non-string (number and boolean) values u
 
 The following substitutions are automatically provided and can be used in any section of the configuration file, or in any JSON specification:
 
-| Directive       | Description                                                    | Example of Substitution |
-|:----------------|:---------------------------------------------------------------|:------------------------|
-| `{{username}}`  | The current user's login username, lower case, spaces replaced | jane_smith              |
-| `{{date}}`      | The current date (UTC): YYYYMMDD                               | 20221027                |
-| `{{time}}`      | The current time (UTC): HHMMSS                                 | 163026                  |
-| `{{datetime}}`  | Concatenation of the date and time above, with a '-' separator | 20221027-163026         |
-| `{{random}}`    | A random, three digit hexadecimal number (lower case)          | a1c                     |
-| `{{namespace}}` | The `namespace` property. Note that `namespace` must be set.   | my_namespace            |
-| `{{tag}}`       | The `tag` property. Note that `tag` must be set.               | my_tag                  |
+| Directive       | Description                                                              | Example of Substitution |
+|:----------------|:-------------------------------------------------------------------------|:------------------------|
+| `{{username}}`  | The current user's login username, lower case, spaces replaced           | jane_smith              |
+| `{{date}}`      | The current date (UTC): YYYYMMDD                                         | 20221027                |
+| `{{time}}`      | The current time (UTC): HHMMSS                                           | 163026                  |
+| `{{datetime}}`  | Concatenation of the date and time above, with a '-' separator           | 20221027-163026         |
+| `{{random}}`    | A random, three digit hexadecimal number (lower case)                    | a1c                     |
+| `{{namespace}}` | The `namespace` property. Note that `namespace` must, of course, be set. | my_namespace            |
+| `{{tag}}`       | The `tag` property. Note that `tag` must be set.                         | my_tag                  |
 
 For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
