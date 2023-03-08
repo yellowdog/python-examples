@@ -97,10 +97,10 @@ The scripts provide the following capabilities:
 - **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
 - **Instantiating** Compute Requirements with the **`yd-instantiate`** command
 - **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
+- **Aborting** running Tasks with the **`yd-abort`** command
+- **Cancelling** Work Requirements with the **`yd-cancel`** command
 - **Shutting Down** Worker Pools with the **`yd-shutdown`** command
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
-- **Cancelling** Work Requirements with the **`yd-cancel`** command
-- **Aborting** running Tasks with the **`yd-abort`** command
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
@@ -233,10 +233,10 @@ The `[common]` section of the configuration file can contain the following prope
 |:------------|:------------------------------------------------------------------------------------|
 | `key`       | The **key** of the YellowDog Application under which the commands will run          |
 | `secret`    | The **secret** of the YellowDog Application under which the commands will run       |
-| `namespace` | The **namespace** to be used to manage resources                                    |
+| `namespace` | The **namespace** to be used for grouping resources                                 |
 | `tag`       | The **tag** to be used for tagging resources and naming objects                     |
 | `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't to be used |
-| `variables` | A dictionary containing **Mustache substitutions** (see the Mustache section below) |
+| `variables` | A table containing **Mustache substitutions** (see the Mustache section below)      |
 
 An example `common` section is shown below:
 
@@ -248,7 +248,7 @@ An example `common` section is shown below:
     tag = "testing-{{username}}"
 ```
 
-The indentation is optional in TOML files and is for readability only.
+Indentation is optional in TOML files and is for readability only.
 
 ## Specifying Common Properties using the Command Line or Environment Variables
 
@@ -372,13 +372,13 @@ A very simple example document is shown below with a top-level Work Requirement 
 
 ```
 
-To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file with the JSON filename, or specify it on the command line using the `--work-requirement` or `-r` options (which will override any value set in the TOML file), e.g.
+To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file with the JSON filename, or specify it on the command line using the `--work-requirement` or `-r` options (which will override the property in the TOML file), e.g.
 
 `yd-submit --config myconfig.toml --work-requirement my_workreq.json`
 
 ## Property Inheritance
 
-To simplify and streamline the definition of Work Requirements, there is a property inheritance mechanism. Properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
+To simplify the definition of Work Requirements, there is a property inheritance mechanism. Properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
 
 This means that a property set in the `workRequirement` section of the TOML file can be inherited successively by the Work Requirement, Task Groups and Tasks in the JSON document (assuming the property is valid at each level).  Hence, Tasks inherit from Task Groups, which inherit from the Work Requirement in the JSON document, which inherits from the `workRequirement` properties in the TOML file.
 
@@ -417,7 +417,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `optionalInputs`           | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                     | Yes  | Yes | Yes  | Yes  |
 | `name`                     | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                 | Yes  | Yes | Yes  | Yes  |
 | `outputs`                  | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                           | Yes  | Yes | Yes  | Yes  |
-| `outputsRequired`          | The files that *must* be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. The Task will fail if no outputs are available.              | Yes  | Yes | Yes  | Yes  |
+| `outputsRequired`          | The files that *must* be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. The Task will fail if any outputs are unavailable.           | Yes  | Yes | Yes  | Yes  |
 | `priority`                 | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. E.g., `0.0`.                                                | Yes  | Yes | Yes  |      |
 | `providers`                | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                           | Yes  | Yes | Yes  |      |
 | `ram`                      | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                    | Yes  | Yes | Yes  |      |
@@ -463,23 +463,17 @@ For the **`bash`** Task Type, the script nominated in the `executable` property 
 For example (in TOML form):
 ```toml
 taskType = "bash"
-inputs = []
 executable = "my_bash_script.sh"
 arguments = ["1", "2", "3"]
 ```
 is equivalent to:
+
 ```toml
 taskType = "bash"
 inputs = ["my_bash_script.sh"]
 arguments = ["{{wr_name}}/my_bash_script.sh", "1", "2", "3"]
 ```
-(For completeness, note that this is also equivalent to:
-```toml
-taskType = "bash"
-uploadFiles = [{localPath = "my_bash_script.sh", uploadPath = "my_bash_script.sh"}]
-verifyAtStart = ["{{wr_name}}/my_bash_script.sh"]
-arguments = ["{{wr_name}}/my_bash_script.sh", "1", "2", "3"]
-```
+
 The use of `uploadFiles` and `verifyAtStart` is discussed [below](#file-storage-locations-and-file-usage).)
 
 #### Docker Tasks
@@ -495,7 +489,9 @@ dockerUsername = "my_user"
 dockerPassword = "my_password"
 arguments = ["1", "2", "3"]
 ```
+
 is equivalent to the following being sent for processing by the `docker` Task Type, the YellowDog version of which will log in to the Docker repo (if required) then issue a `docker run` command with the arguments supplied:
+
 ```toml
 taskType = "docker"
 arguments = ["--env TASK_NAME=<task_name> --env E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
@@ -510,7 +506,7 @@ If the `executable` property is not supplied, the automatic processing above for
 
 This property will expand the number of Tasks to match `taskCount`.
 
-The `taskCount` property can be set in the `workRequirement` section of the `config.toml` file, or in the `taskGroup` sections of a JSON Work Requirement definition. 
+The `taskCount` property can be set only in the `workRequirement` section of the `config.toml` file, or in the `taskGroup` section(s) of a JSON Work Requirement definition.
 
 In the former case, the `taskCount` applies only to the Task specified within the `config.toml` file and is not inherited by JSON Work Requirement specifications.
 
@@ -769,7 +765,7 @@ As an example, the following JSON Work Requirement:
 
 ### Work Requirement Name Substitution
 
-The name of the Work Requirement itself can be used via the Mustache substitution `{{wr_name}}`.
+The name of the Work Requirement itself can be used via the Mustache substitution `{{wr_name}}`. This can be used anywhere in a TOML configuration file or in a JSON Work Requirement.
 
 ## Dry-Running Work Requirement Submissions
 
@@ -777,7 +773,7 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 The dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON is a consolidated form of exactly what will be submitted to the API, with Tasks included directly within their Task Group properties for convenience. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are added to Task Groups separately in subsequent API calls.
+Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are defined directly within their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are then added to Task Groups separately in subsequent API calls.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
@@ -831,7 +827,7 @@ This will submit the Work Requirement, then add all the specified Tasks.
 
 Mustache directives **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
 
-Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload files beforehand.
+Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload these files, and `yd-submit` will pause to allow this to happen.
 
 ## File Storage Locations and File Usage
 
@@ -856,11 +852,11 @@ Files are uploaded to the Namespace specified in the configuration. Within the N
 Assuming a Namespace called `development` and a Work Requirement named `testrun_221108-120404-7d2`, the following locations are used when uploading files following the patterns above:
 
 ```shell
-"inputs" : ["file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["dev/file_1.txt"] -> development:testrun_221108-120404-7d2/dev/file_1.txt
-"inputs" : ["/home/dev/file_1.txt"] -> development:testrun_221108-120404-7d2/home/dev/file_1.txt
-"inputs" : ["../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/1/dev/file_1.txt
-"inputs" : ["../../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/2/dev/file_1.txt
+"inputs" : ["file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["dev/file_1.txt"] -> development::testrun_221108-120404-7d2/dev/file_1.txt
+"inputs" : ["/home/dev/file_1.txt"] -> development::testrun_221108-120404-7d2/home/dev/file_1.txt
+"inputs" : ["../dev/file_1.txt"] -> development::testrun_221108-120404-7d2/1/dev/file_1.txt
+"inputs" : ["../../dev/file_1.txt"] -> development::testrun_221108-120404-7d2/2/dev/file_1.txt
 ```
 
 **Using `flattenUploadPaths`**
@@ -868,11 +864,11 @@ Assuming a Namespace called `development` and a Work Requirement named `testrun_
 The `flattenUploadPaths` property can be used to suppress the mirroring of any local directory structure when uploading files to the Object Store. If set to `true`, all files will be uploaded to the root of the Work Requirement folder. For example:
 
 ```shell
-"inputs" : ["file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["dev/file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["/home/dev/file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["../../dev/file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["dev/file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["/home/dev/file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["../dev/file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
+"inputs" : ["../../dev/file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
 ```
 
 The property default is `false`. This property **can only be set at the Work Requirement level** and will therefore apply to all Task Groups and Tasks within a Work Requirement.
@@ -1005,9 +1001,9 @@ If Task outputs are created in subdirectories below the Task's working directory
 When output files are uploaded to the Object Store, they are placed in a Task Group and Task specific directory. So, if the Namespace is `development`, the Work Requirement is `testrun_221108-120404-7d2`, the Task Group is `task_group_1` and the Task is `task_1`, then the files above would be uploaded to the Object Store as follows:
 
 ```shell
-development:testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.tar.gz
-development:testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.log
-development:testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
+development::testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.tar.gz
+development::testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.log
+development::testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
 ```
 
 The **`outputsRequired`** property can be used instead of (or in addition to) the `outputs` property, if the output file(s) **must** be available for upload to the Object Store at the conclusion of the Task or the Task will be marked as `Failed`, e.g.:
@@ -1035,7 +1031,7 @@ development
             └── taskoutput.txt
 ```
 
-Note that everything within the `namespace:work-requirement` directory in the Object Store is downloaded, including any files that were specified in `inputs` and uploaded as part of the Work Requirement submission. Multiple Task Groups, and multiple Tasks will all appear in the directory structure.
+Note that everything within the `namespace::work-requirement` directory in the Object Store is downloaded, including any files that were specified in `inputs` and uploaded as part of the Work Requirement submission. Multiple Task Groups, and multiple Tasks will all appear in the directory structure.
 
 If the `development` directory already exists, `yd-download` will try `development.01`, etc., to avoid overwriting previous downloads.
 
