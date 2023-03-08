@@ -90,17 +90,18 @@ This documentation should be read in conjunction with the main **[YellowDog Docu
 
 The scripts are intended to be helpful starting points for experimenting with the YellowDog Platform. They are not assured to be of production quality nor to represent a standard or recommended method for using YellowDog.
 
-The scripts provide commands for:
+The scripts provide the following capabilities:
 
-- **Provisioning** Worker Pools
-- **Submitting** Work Requirements
-- **Uploading** files to the YellowDog Object Store
-- **Instantiating** Compute Requirements
-- **Downloading** Results from the YellowDog Object Store
-- **Shutting Down** Worker Pools and **Terminating** Compute Requirements
-- **Cancelling** Work Requirements
-- **Aborting** running Tasks
-- **Deleting** objects in the YellowDog Object Store
+- **Provisioning** Worker Pools with the **`yd-provision`** command
+- **Submitting** Work Requirements with the **`yd-submit`** command
+- **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
+- **Instantiating** Compute Requirements with the **`yd-instantiate`** command
+- **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
+- **Shutting Down** Worker Pools with the **`yd-shutdown`** command
+- **Terminating** Compute Requirements with the **`yd-terminate`** command
+- **Cancelling** Work Requirements with the **`yd-cancel`** command
+- **Aborting** running Tasks with the **`yd-abort`** command
+- **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
