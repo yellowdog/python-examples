@@ -536,10 +536,10 @@ def add_tasks_to_task_group(
             )
             optional_inputs_list = check_list(
                 task.get(
-                    OPTIONAL_INPUTS,
+                    INPUTS_OPTIONAL,
                     task_group_data.get(
-                        OPTIONAL_INPUTS,
-                        wr_data.get(OPTIONAL_INPUTS, CONFIG_WR.optional_inputs),
+                        INPUTS_OPTIONAL,
+                        wr_data.get(INPUTS_OPTIONAL, CONFIG_WR.optional_inputs),
                     ),
                 )
             )

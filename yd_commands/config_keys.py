@@ -27,6 +27,7 @@ FULFIL_ON_SUBMIT = "fulfilOnSubmit"  # Boolean
 IMAGES_ID = "imagesId"  # String
 IMPORT = "import"  # String
 INPUT_FILES = "inputs"  # List of Strings
+INPUTS_OPTIONAL = "inputsOptional"  # List of Strings
 INSTANCE_TAGS = "instanceTags"  # List of Strings
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
@@ -42,7 +43,6 @@ NAME_TAG = "tag"  # String
 NODE_BOOT_TIME_LIMIT = "nodeBootTimeLimit"  # Float
 NODE_IDLE_GRACE_PERIOD = "nodeIdleGracePeriod"  # Float
 NODE_IDLE_TIME_LIMIT = "nodeIdleTimeLimit"  # Float
-OPTIONAL_INPUTS = "optionalInputs"  # List of Strings
 OUTPUT_FILES = "outputs"  # List of Strings
 OUTPUT_FILES_REQUIRED = "outputsRequired"  # List of Strings
 PRIORITY = "priority"  # Float
@@ -114,6 +114,7 @@ ALL_KEYS = [
     IMAGES_ID,
     IMPORT,
     INPUT_FILES,
+    INPUTS_OPTIONAL,
     INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
@@ -128,7 +129,6 @@ ALL_KEYS = [
     NODE_BOOT_TIME_LIMIT,
     NODE_IDLE_GRACE_PERIOD,
     NODE_IDLE_TIME_LIMIT,
-    OPTIONAL_INPUTS,
     OUTPUT_FILES,
     OUTPUT_FILES_REQUIRED,
     PRIORITY,

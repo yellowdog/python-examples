@@ -41,7 +41,7 @@
          * [Files in the inputs List](#files-in-the-inputs-list)
          * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
       * [File Dependencies Using verifyAtStart and verifyWait](#file-dependencies-using-verifyatstart-and-verifywait)
-      * [Files Downloaded Using optionalInputs](#files-downloaded-using-optionalinputs)
+      * [Files Downloaded Using inputsOptional](#files-downloaded-using-optionalinputs)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
@@ -410,11 +410,11 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                        | Yes  | Yes |      |      |
 | `fulfilOnSubmit`           | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |      |      |
 | `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]`.                       | Yes  | Yes | Yes  | Yes  |
+| `inputsOptional`           | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                     | Yes  | Yes | Yes  | Yes  |
 | `instanceTypes`            | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes  |      |
 | `maximumTaskRetries`       | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                        | Yes  | Yes | Yes  |      |
 | `maxWorkers`               | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                             | Yes  | Yes | Yes  |      |
 | `minWorkers`               | The minimum number of Workers that the associated Task Group requires. This many workers must be claimed before the associated Task Group will start working. E.g., `1`. | Yes  | Yes | Yes  |      |
-| `optionalInputs`           | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                     | Yes  | Yes | Yes  | Yes  |
 | `name`                     | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                 | Yes  | Yes | Yes  | Yes  |
 | `outputs`                  | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                           | Yes  | Yes | Yes  | Yes  |
 | `outputsRequired`          | The files that *must* be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. The Task will fail if any outputs are unavailable.           | Yes  | Yes | Yes  | Yes  |
@@ -540,12 +540,12 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
         "../app/main.py",
         "../app/requirements.txt"
     ]
+    inputsOptional = ["optional.txt"]
     instanceTypes = ["t3a.micro", "t3.micro"]
     maxWorkers = 1
     maximumTaskRetries = 0
     minWorkers = 1
     name = "my-work-requirement"
-    optionalInputs = ["optional.txt"]
     outputs = ["results.txt"]
     outputsRequired = ["results_required.txt"]
     priority = 0.0
@@ -589,12 +589,12 @@ Showing all possible properties at the Work Requirement level:
   "flattenUploadPaths": false,
   "fulfilOnSubmit": false,
   "inputs": ["app/main.py", "app/requirements.txt"],
+  "inputsOptional": ["optional.txt"],
   "instanceTypes": ["t3a.micro", "t3.micro"],
   "maxWorkers": 1,
   "maximumTaskRetries": 0,
   "minWorkers": 1,
   "name": "my-work-requirement",
-  "optionalInputs": ["optional.txt"],
   "outputs": ["results.txt"],
   "outputsRequired": ["results_required.txt"],
   "priority": 0.0,
@@ -642,12 +642,12 @@ Showing all possible properties at the Task Group level:
       "finishIfAnyTaskFailed": false,
       "flattenInputPaths": false,
       "inputs": ["app/main.py", "app/requirements.txt"],
+      "inputsOptional": ["optional.txt"],
       "instanceTypes": ["t3a.micro", "t3.micro"],
       "maximumTaskRetries": 0,
       "maxWorkers": 1,
       "minWorkers": 1,
       "name": "first-task-group",
-      "optionalInputs": ["optional.txt"],
       "outputs": ["results.txt"],
       "outputsRequired": ["results_required.txt"],
       "priority": 0.0,
@@ -698,8 +698,8 @@ Showing all possible properties at the Task level:
           "executable": "my-container",
           "flattenInputPaths": false,
           "inputs": ["app/main.py", "app/requirements.txt"],
+          "inputsOptional": ["optional.txt"],
           "name": "my-task",
-          "optionalInputs": ["optional.txt"],
           "outputs": ["results.txt"],
           "outputsRequired": ["results_required.txt"],
           "taskData": "my_task_data_string",
@@ -912,7 +912,7 @@ And in JSON, with the property set at the Task level, the same specification wou
 ```
 The `uploadFiles` property can also be set at the Work Requirement and Task Group levels, and property inheritance operates as normal.
 
-For `uploadPath`, the same `::` naming convention is available as is used in the `verifyAtStart`, `verifyWait` and `optionalInputs` properties discussed below:
+For `uploadPath`, the same `::` naming convention is available as is used in the `verifyAtStart`, `verifyWait` and `inputsOptional` properties discussed below:
 
 - If `::` is not used, then the file is uploaded relative to the current namespace in a directory named after the name of the Work Requirement
 - If `::` is used at the start of the `uploadPath`, the file is uploaded relative to the root of the current namespace
@@ -952,13 +952,13 @@ The use of the three different forms can be mixed within a single list, e.g.:
 "verifyAtStart": ["file_1.txt", "::dir_2/file_2.txt", "other_namespace::dir_3/file_3.txt"]
 ```
 
-### Files Downloaded Using `optionalInputs`
+### Files Downloaded Using `inputsOptional`
 
-The `optionalInputs` property works in a similar fashion to the `verify*` properties above, but the files specified in this list are optional. This property also allows for the use of wildcards `*` and `**` to collect files using wildcard paths.
+The `inputsOptional` property works in a similar fashion to the `verify*` properties above, but the files specified in this list are optional. This property also allows for the use of wildcards `*` and `**` to collect files using wildcard paths.
 
 ### Files Downloaded to a Node for use in Task Execution
 
-When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. Files specified using the `optionalInputs` property are optionally downloaded from the Object Store. (Note that a file should only appear in one of these four lists, otherwise `yd-submit` will return an error.)
+When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. Files specified using the `inputsOptional` property are optionally downloaded from the Object Store. (Note that a file should only appear in one of these four lists, otherwise `yd-submit` will return an error.)
 
 When a Task is started by the Agent, its working directory has a pattern something like:
 

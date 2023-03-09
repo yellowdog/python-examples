@@ -320,7 +320,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             max_retries=wr_section.get(MAX_RETRIES, 0),
             max_workers=wr_section.get(MAX_WORKERS, None),
             min_workers=wr_section.get(MIN_WORKERS, None),
-            optional_inputs=wr_section.get(OPTIONAL_INPUTS, []),
+            optional_inputs=wr_section.get(INPUTS_OPTIONAL, []),
             output_files=wr_section.get(OUTPUT_FILES, []),
             output_files_required=wr_section.get(OUTPUT_FILES_REQUIRED, []),
             priority=wr_section.get(PRIORITY, 0.0),
