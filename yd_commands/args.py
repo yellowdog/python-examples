@@ -83,7 +83,7 @@ class CLIParser:
         )
         parser.add_argument(
             "--variable",
-            "-V",
+            "-v",
             type=str,
             required=False,
             action="append",
@@ -164,7 +164,7 @@ class CLIParser:
             )
             parser.add_argument(
                 "--csv-file",
-                "-v",
+                "-V",
                 type=str,
                 required=False,
                 action="append",

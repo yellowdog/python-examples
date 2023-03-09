@@ -184,7 +184,7 @@ optional arguments:
                         the tag to use for tagging and naming entities
   --url <url>, -u <url>
                         the URL of the YellowDog Platform API
-  --variable <var1=v1>, -V <var1=v1>
+  --variable <var1=v1>, -v <var1=v1>
                         user-defined Mustache variable substitution; can be supplied multiple times
   --quiet, -q           suppress (non-error, non-interactive) status and progress messages
   --debug               print a stack trace (etc.) on error
@@ -314,7 +314,7 @@ For the `date`, `time`, `datetime` and `random` directives, the same values will
 
 Arbitrary Mustache directives can be supplied using command line options, by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
 
-1. The **command line** option is `--variable` (or `-V`). For example, `yd-submit -V project_code=pr-213-a -V run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
+1. The **command line** option is `--variable` (or `-v`). For example, `yd-submit -v project_code=pr-213-a -v run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
 
 2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
@@ -330,7 +330,7 @@ run_id = "1234"
 
 Directives set on the command line take precedence over directives set in environment variables, and both of them take precedence over directives set in a TOML file.
 
-This method can be used to override the default directives, e.g., setting `-V username="other-user"` will override the default `{{username}}` directive.
+This method can be used to override the default directives, e.g., setting `-v username="other-user"` will override the default `{{username}}` directive.
 
 # Work Requirement Properties
 
@@ -1077,7 +1077,7 @@ G,     H,     I,     E-3
 
 Note that the (optional) leading spaces after each comma are ignored, but trailing spaces are not and will form part of the imported data.
 
-If these files are processed using `yd-submit -r wr.json -v wr_data.csv`, the following expanded list of three Tasks will be created prior to further processing by the `yd-submit` script:
+If these files are processed using `yd-submit -r wr.json -V wr_data.csv`, the following expanded list of three Tasks will be created prior to further processing by the `yd-submit` script:
 
 ```json
 {
@@ -1146,7 +1146,7 @@ The CSV files are supplied on the command line in the order of the Task Groups t
 The `yd-submit` command would then be invoked with a separate CSV file for each Task Group, e.g.:
 
 ```shell
-yd-submit -r wr.json -v wr_data_task_group_1.csv -v wr_data_task_group_2.csv
+yd-submit -r wr.json -V wr_data_task_group_1.csv -V wr_data_task_group_2.csv
 ```
 
 If there are **fewer** CSV files than Task Groups a warning will be printed and, if there are 'n' CSV files, CSV data processing will be applied to the first 'n' Task Groups in the Work Requirement by default, in the order in which the CSV files were supplied. If there are **more** CSV files than Task Groups, an error will be raised and processing will stop.
@@ -1154,13 +1154,13 @@ If there are **fewer** CSV files than Task Groups a warning will be printed and,
 It is possible to apply CSV files explicitly to specific Task Groups, by using an optional **index postfix** (e.g., `:2`) at the end of each CSV filename. For example, if there are two CSV files to be applied to the second and fourth Task Groups in a JSON Work Requirement, use the following syntax:
 
 ```shell
-yd-submit -r wr.json -v wr_data_task_group_2.csv:2 -v wr_data_task_group_4.csv:4
+yd-submit -r wr.json -V wr_data_task_group_2.csv:2 -V wr_data_task_group_4.csv:4
 ```
 
 Alternatively, the **Task Group name** (if supplied in the JSON file) can be used as the postfix. For example, if the Task Groups above are named `tg_two` and `tg_four`, the `yd-submit` command would become:
 
 ```shell
-yd-submit -r wr.json -v wr_data_task_group_2.csv:tg_two -v wr_data_task_group_4.csv:tg_four
+yd-submit -r wr.json -V wr_data_task_group_2.csv:tg_two -V wr_data_task_group_4.csv:tg_four
 ```
 
 Note that only one CSV file can be applied to any given Task Group. A single CSV file can, however, be reused for multiple Task Groups.
@@ -1173,7 +1173,7 @@ To make use of this:
 
 1. Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or `--work-requirement` on the command line)
 2. Insert the required CSV-supplied Mustache substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
-3. Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`, or provide the CSV file on the command line `-v wr_data.csv`
+3. Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`, or provide the CSV file on the command line `-V wr_data.csv`
 
 When `yd-submit` is run, it will expand the Task list to match the number of data rows in the CSV file.
 
