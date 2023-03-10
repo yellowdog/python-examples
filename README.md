@@ -1380,22 +1380,19 @@ When a JSON Worker Pool specification is used, the following properties from the
 
 **Properties Inherited within the `requirementTemplateUsage` property**
 
+- `imagesId`
+- `instanceTags`
 - `requirementName`: derived from the `name` property in the `TOML` configuration. (The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
 - `requirementNamespace`: derived from the `namespace` property in the `TOML` configuration
 - `requirementTag`: : derived from the `tag` property in the `TOML` configuration
 - `targetInstanceCount`
 - `templateId`
 - `userData`
-- `imagesId`
-- `instanceTags`
 
 **Properties Inherited within the `provisionedProperties` Property**
 
 - `autoShutdown`
 - `autoShutdownConditions`: derived from the `autoShutdownDelay` property in the `TOML` configuration
-- `createNodeWorkers`: derived from the `workersPerVCPU` or `workersPerNode` properties in the `TOML` configuration
-- `maxNodes`
-- `minNodes`
 - `nodeBootTimeLimit`
 - `nodeIdleGracePeriod`
 - `nodeIdleTimeLimit`

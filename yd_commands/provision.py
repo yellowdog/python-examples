@@ -147,17 +147,6 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                     },
                 ],
             ),
-            ("maxNodes", CONFIG_WP.max_nodes),
-            ("minNodes", CONFIG_WP.min_nodes),
-            (
-                "createNodeWorkers",
-                {"targetCount": CONFIG_WP.workers_per_vcpu, "targetType": "PER_VCPU"}
-                if CONFIG_WP.workers_per_vcpu
-                else {
-                    "targetCount": CONFIG_WP.workers_per_node,
-                    "targetType": "PER_NODE",
-                },
-            ),
             ("workerTag", CONFIG_WP.worker_tag),
             ("nodeBootTimeLimit", f"PT{CONFIG_WP.node_boot_time_limit}M"),
             ("nodeIdleGracePeriod", f"PT{CONFIG_WP.node_idle_grace_period}M"),
