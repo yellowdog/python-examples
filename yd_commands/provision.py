@@ -153,7 +153,13 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ("nodeIdleTimeLimit", f"PT{CONFIG_WP.node_idle_time_limit}M"),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
-                print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
+                if key == "autoShutdownConditions":
+                    for condition in value:
+                        print_log(
+                            f"Setting '{condition['type']}': '{condition['delay']}'"
+                        )
+                else:
+                    print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
                 provisioned_properties[key] = value
 
     except KeyError as e:
