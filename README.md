@@ -11,10 +11,10 @@
 * [Naming Rules](#naming-rules)
 * [Common Properties](#common-properties)
    * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
-   * [Mustache Template Directives in Common Properties](#mustache-template-directives-in-common-properties)
-* [Mustache Template Directives](#mustache-template-directives)
-   * [Default Mustache Directives](#default-mustache-directives)
-   * [User-Defined Mustache Directives](#user-defined-mustache-directives)
+   * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
+* [Variable Substitutions](#variable-substitutions)
+   * [Default Variables](#default-variables)
+   * [User-Defined Variable Substitutions](#user-defined-variable-substitutions)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
@@ -31,7 +31,7 @@
       * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
       * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
       * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
-   * [Mustache Directives in Work Requirement Properties](#mustache-directives-in-work-requirement-properties)
+   * [Variable Substitutions in Work Requirement Properties](#variable-substitutions-in-work-requirement-properties)
       * [Task and Task Group Name Substitution](#task-and-task-group-name-substitution)
       * [Work Requirement Name Substitution](#work-requirement-name-substitution)
    * [Dry-Running Work Requirement Submissions](#dry-running-work-requirement-submissions)
@@ -41,13 +41,13 @@
          * [Files in the inputs List](#files-in-the-inputs-list)
          * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
       * [File Dependencies Using verifyAtStart and verifyWait](#file-dependencies-using-verifyatstart-and-verifywait)
-      * [Files Downloaded Using inputsOptional](#files-downloaded-using-optionalinputs)
+      * [Files Downloaded Using inputsOptional](#files-downloaded-using-inputsoptional)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
    * [Specifying Work Requirements using CSV Data](#specifying-work-requirements-using-csv-data)
       * [Work Requirement CSV Data Example](#work-requirement-csv-data-example)
-      * [CSV Mustache Substitutions](#csv-mustache-substitutions)
+      * [CSV Variable Substitutions](#csv-variable-substitutions)
       * [Property Inheritance](#property-inheritance-1)
       * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
       * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
@@ -58,11 +58,11 @@
    * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
       * [Worker Pool JSON Examples](#worker-pool-json-examples)
       * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
-   * [Mustache Directives in Worker Pool Properties](#mustache-directives-in-worker-pool-properties)
+   * [Variable Substitutions in Worker Pool Properties](#variable-substitutions-in-worker-pool-properties)
    * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
-   * [Mustache Substitutions in Jsonnet Files](#mustache-substitutions-in-jsonnet-files)
+   * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
    * [Checking Jsonnet Processing](#checking-jsonnet-processing)
    * [Jsonnet Example](#jsonnet-example)
 * [Command List](#command-list)
@@ -78,7 +78,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Mon Mar  6 14:57:57 GMT 2023 -->
+<!-- Added by: pwt, at: Sat Mar 11 20:59:46 GMT 2023 -->
 
 <!--te-->
 
@@ -185,7 +185,7 @@ optional arguments:
   --url <url>, -u <url>
                         the URL of the YellowDog Platform API
   --variable <var1=v1>, -v <var1=v1>
-                        user-defined Mustache variable substitution; can be supplied multiple times
+                        user-defined variable substitutions; can be supplied multiple times
   --quiet, -q           suppress (non-error, non-interactive) status and progress messages
   --debug               print a stack trace (etc.) on error
   --abort, -a           abort all running tasks with immediate effect
@@ -236,7 +236,7 @@ The `[common]` section of the configuration file can contain the following prope
 | `namespace` | The **namespace** to be used for grouping resources                                 |
 | `tag`       | The **tag** to be used for tagging resources and naming objects                     |
 | `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't to be used |
-| `variables` | A table containing **Mustache substitutions** (see the Mustache section below)      |
+| `variables` | A table containing **variable substitutions** (see the Variables section below)     |
 
 An example `common` section is shown below:
 
@@ -276,25 +276,25 @@ When setting the value of the above properties, a property set on the command li
 
 If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
 
-## Mustache Template Directives in Common Properties
+## Variable Substitutions in Common Properties
 
-Note the use of `{{username}}` in the value of the `tag` property: this is a **Mustache** template directive that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
+Note the use of `{{username}}` in the value of the `tag` property: this is a **variable substitution** that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
 
-Mustache substitutions are discussed below.
+Variable substitutions are discussed below.
 
-# Mustache Template Directives
+# Variable Substitutions
 
-Mustache template substitutions provide a powerful way of introducing variable values into TOML configuration files, Work Requirement JSON definitions, and Worker Pool JSON definitions. They can be included in the value of any property in each of these objects, including in values within lists (e.g., for the `arguments` property) and arrays (e.g., the `environment` property).
+Variable substitutions provide a powerful way of introducing variable values into TOML configuration files, Work Requirement JSON definitions, and Worker Pool JSON definitions. They can be included in the value of any property in each of these objects, including in values within lists (e.g., for the `arguments` property) and arrays (e.g., the `environment` property).
 
-Mustache substitutions are expressed using `{{variable}}` notation, where the expression is replaced by the value of `variable`.
+Variable substitutions are expressed using `{{variable}}` notation, where the expression is replaced by the value of `variable`.
 
-Substitutions can also be performed for non-string (number and boolean) values using the `num:` and `bool:` prefixes within the Mustache directive:
+Substitutions can also be performed for non-string (number and boolean) values using the `num:` and `bool:` prefixes within the variable substitution:
 
-- Define the Mustache directive using one of the following patterns: `"{{num:my_int}}"`, `"{{num:my_float}}"`, `"{{bool:my_bool}}"`
+- Define the variable substitution using one of the following patterns: `"{{num:my_int}}"`, `"{{num:my_float}}"`, `"{{bool:my_bool}}"`
 - Variable definitions supplied on the command line would then be of the form: `-m my_int=5 -m my_float=2.5 -m my_bool=true`
 - In the processed JSON or TOML, these values would become `5`, `2.5` and `true`, respectively, converted from strings to their correct JSON types
 
-## Default Mustache Directives
+## Default Variables
 
 The following substitutions are automatically provided and can be used in any section of the configuration file, or in any JSON specification:
 
@@ -310,14 +310,14 @@ The following substitutions are automatically provided and can be used in any se
 
 For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
-## User-Defined Mustache Directives
+## User-Defined Variable Substitutions
 
-Arbitrary Mustache directives can be supplied using command line options, by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
+Arbitrary variable substitutions can be supplied using command line options, by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
 
-1. The **command line** option is `--variable` (or `-v`). For example, `yd-submit -v project_code=pr-213-a -v run_id=1234` will establish two new Mustache directives `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
+1. The **command line** option is `--variable` (or `-v`). For example, `yd-submit -v project_code=pr-213-a -v run_id=1234` will establish two new variable substitutions `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
 
-2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new Mustache directive `{{project_code}}`, which will be substituted by `pr-213-a`.
+2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new variable substitution `{{project_code}}`, which will be substituted by `pr-213-a`.
 
 
 3. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. E.g., `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
@@ -445,8 +445,8 @@ In addition to the inheritance mechanism, some properties are set automatically 
 ### Work Requirement, Task Group and Task Naming
 
 - The **Work Requirement** name is automatically set using a concatenation of the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `mytag_221024-155524-40a`.
-- **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` Mustache substitution discussed below.
-- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` Mustache substitution discussed below.
+- **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
+- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
 
 ### Task Types
 
@@ -715,9 +715,9 @@ Showing all possible properties at the Task level:
 }
 ```
 
-## Mustache Directives in Work Requirement Properties
+## Variable Substitutions in Work Requirement Properties
 
-Mustache template directives can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
+Variable substitutions can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
 
 ### Task and Task Group Name Substitution
 
@@ -765,7 +765,7 @@ As an example, the following JSON Work Requirement:
 
 ### Work Requirement Name Substitution
 
-The name of the Work Requirement itself can be used via the Mustache substitution `{{wr_name}}`. This can be used anywhere in a TOML configuration file or in a JSON Work Requirement.
+The name of the Work Requirement itself can be used via the variable substitution `{{wr_name}}`. This can be used anywhere in a TOML configuration file or in a JSON Work Requirement.
 
 ## Dry-Running Work Requirement Submissions
 
@@ -825,7 +825,7 @@ It's possible to use the JSON output of `yd-submit --dry-run` (such as the examp
 
 This will submit the Work Requirement, then add all the specified Tasks.
 
-Mustache directives **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
+Note that variable substitutions **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
 
 Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload these files, and `yd-submit` will pause to allow this to happen.
 
@@ -1040,8 +1040,8 @@ If the `development` directory already exists, `yd-download` will try `developme
 CSV data files can be used to drive the generation of lists of Tasks, as follows:
 
 - A **prototype** Task specification is created within a JSON Work Requirement specification or in the `workRequirement` section of the TOML configuration file
-- The prototype task includes one or more Mustache substitutions
-- A CSV file is created, with the **headers** (first row) matching the names of the Mustache substitutions in the Task prototype
+- The prototype task includes one or more variable substitutions
+- A CSV file is created, with the **headers** (first row) matching the names of the variable substitutions in the Task prototype
 - Each subsequent row of the CSV file represents a new Task built using the prototype, with the variables substituted by the values in the row
 - A Task will be created for each data row
 
@@ -1102,11 +1102,11 @@ If these files are processed using `yd-submit -r wr.json -V wr_data.csv`, the fo
 }
 ```
 
-### CSV Mustache Substitutions
+### CSV Variable Substitutions
 
-When the CSV file data is processed, the only substitutions made are those which match the Mustache directives in the prototype Task. The CSV file is the **only** source of substitutions used for this processing phase; all other Mustache substitutions (supplied on the command line, in the TOML configuration file, or from environment variables) are ignored -- i.e., they do not override the contents of the CSV file.
+When the CSV file data is processed, the only substitutions made are those which match the variable substitutions in the prototype Task. The CSV file is the **only** source of substitutions used for this processing phase; all other variable substitutions (supplied on the command line, in the TOML configuration file, or from environment variables) are ignored -- i.e., they do not override the contents of the CSV file.
 
-All Mustache directives unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
+All variable substitutions unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
 
 If the value to be inserted is a number (an integer or floating point value) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification. The substituted value will assume the nominated type rather than being a string.
 
@@ -1172,7 +1172,7 @@ It's possible to use TOML exclusively to derive a list of Tasks from CSV data --
 To make use of this:
 
 1. Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or `--work-requirement` on the command line)
-2. Insert the required CSV-supplied Mustache substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
+2. Insert the required CSV-supplied variable substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
 3. Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`, or provide the CSV file on the command line `-V wr_data.csv`
 
 When `yd-submit` is run, it will expand the Task list to match the number of data rows in the CSV file.
@@ -1398,17 +1398,17 @@ When a JSON Worker Pool specification is used, the following properties from the
 - `nodeIdleTimeLimit`
 - `workerTag`
 
-## Mustache Directives in Worker Pool Properties
+## Variable Substitutions in Worker Pool Properties
 
-Mustache template directives can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#mustache-template-directives) for more details on Mustache directives. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
+Variable substitutions can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
-An important distinction **only** when using Mustache directives within Worker Pool JSON documents is that each directive **must be preceded by a `__` (double underscore)** to disambiguate it from Mustache directives that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` default substitution.
+An important distinction **only** when using variable substitutions within Worker Pool JSON documents is that each directive **must be preceded by a `__` (double underscore)** to disambiguate it from variable substitutions that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` default substitution.
 
 ## Dry-Running Worker Pool Provisioning
 
 To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-provision`. This will print the JSON specification for the Worker Pool. Nothing will be submitted to the platform.
 
-The generated JSON is produced after all processing (incorporating `config.toml` properties, Mustache substitutions, etc.) has been concluded, so the dry-run is useful for inspecting the results of all the processing that's been performed.
+The generated JSON is produced after all processing (incorporating `config.toml` properties, variable substitutions, etc.) has been concluded, so the dry-run is useful for inspecting the results of all the processing that's been performed.
 
 To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
@@ -1457,11 +1457,11 @@ If both of these methods fail, you'll need to ensure that the platform on which 
 
 Please get in touch with YellowDog if you get stuck.
 
-## Mustache Substitutions in Jsonnet Files
+## Variable Substitutions in Jsonnet Files
 
-The scripts provide full support for Mustache substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** specifications, Mustache substitutions must be prefixed by `__`, e.g. `"__{{username}}}"`.
+The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** specifications, variable substitutions must be prefixed by `__`, e.g. `"__{{username}}}"`.
 
-Mustache processing is performed before Jsonnet expansion into JSON, and again after the expansion.
+Variable substitution is performed before Jsonnet expansion into JSON, and again after the expansion.
 
 ## Checking Jsonnet Processing
 

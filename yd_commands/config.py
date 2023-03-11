@@ -21,15 +21,15 @@ from yellowdog_client.model import (
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config_keys import *
-from yd_commands.mustache import (
-    UTCNOW,
-    add_substitutions,
-    load_toml_file_with_mustache_substitutions,
-    substitute_mustache_str,
-)
 from yd_commands.printing import print_error, print_log
 from yd_commands.type_check import check_list, check_str
 from yd_commands.validate_properties import validate_properties
+from yd_commands.variables import (
+    UTCNOW,
+    add_substitutions,
+    load_toml_file_with_variable_substitutions,
+    substitute_variable_str,
+)
 
 
 @dataclass
@@ -136,7 +136,7 @@ config_file = (
 
 try:
     print_log(f"Loading configuration data from: '{config_file}'")
-    CONFIG_TOML: Dict = load_toml_file_with_mustache_substitutions(config_file)
+    CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(config_file)
     try:
         validate_properties(CONFIG_TOML, f"'{config_file}'")
     except Exception as e:
@@ -199,24 +199,24 @@ def load_config_common() -> ConfigCommon:
                     f"for '{key_name}'"
                 )
 
-        url = substitute_mustache_str(common_section.get(URL, DEFAULT_URL))
+        url = substitute_variable_str(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
             print_log(f"Using the YellowDog API at: {url}")
 
-        # Exhaustive Mustache processing for common section variables
+        # Exhaustive variable processing for common section variables
         # Note that add_substitutions() will perform all possible
         # substitutions for the items in its dictionary each time it's
         # called
         add_substitutions(subs={URL: url})
-        namespace = substitute_mustache_str(common_section[NAMESPACE])
+        namespace = substitute_variable_str(common_section[NAMESPACE])
         add_substitutions(subs={NAMESPACE: namespace})
-        name_tag = substitute_mustache_str(common_section[NAME_TAG])
+        name_tag = substitute_variable_str(common_section[NAME_TAG])
         add_substitutions(subs={NAME_TAG: name_tag})
 
         return ConfigCommon(
             # Required
-            key=substitute_mustache_str(common_section[KEY]),
-            secret=substitute_mustache_str(common_section[SECRET]),
+            key=substitute_variable_str(common_section[KEY]),
+            secret=substitute_variable_str(common_section[SECRET]),
             namespace=namespace,
             name_tag=name_tag,
             # Optional
@@ -231,7 +231,7 @@ def load_config_common() -> ConfigCommon:
 def import_toml(filename: str) -> Dict:
     print_log(f"Loading imported common configuration data from: '{filename}'")
     try:
-        common_config: Dict = load_toml_file_with_mustache_substitutions(filename)
+        common_config: Dict = load_toml_file_with_variable_substitutions(filename)
         return common_config[COMMON_SECTION]
     except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
         print_error(f"Unable to load imported common configuration data: {e}")
@@ -257,12 +257,12 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         if worker_tags is not None:
             check_list(worker_tags)
             for index, worker_tag in enumerate(worker_tags):
-                worker_tags[index] = substitute_mustache_str(worker_tag)
+                worker_tags[index] = substitute_variable_str(worker_tag)
 
         wr_data_file = wr_section.get(WR_DATA, None)
         if wr_data_file is not None:
             check_str(wr_data_file)
-            wr_data_file = substitute_mustache_str(wr_data_file)
+            wr_data_file = substitute_variable_str(wr_data_file)
             wr_data_file = pathname_relative_to_config_file(wr_data_file)
 
         # Check for properties set on the command line
@@ -271,7 +271,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             if ARGS_PARSER.executable is None
             else ARGS_PARSER.executable
         )
-        executable = substitute_mustache_str(executable)
+        executable = substitute_variable_str(executable)
 
         task_type = (
             wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, None))
@@ -280,7 +280,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         )
         if task_type is not None:
             check_str(task_type)
-            task_type = substitute_mustache_str(task_type)
+            task_type = substitute_variable_str(task_type)
 
         csv_file = wr_section.get(CSV_FILE, None)
         csv_files = wr_section.get(CSV_FILES, None)
@@ -360,8 +360,8 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     except KeyError:
         return ConfigWorkerPool()
     try:
-        worker_tag = substitute_mustache_str(wp_section.get(WORKER_TAG, None))
-        worker_pool_data_file = substitute_mustache_str(wp_section.get(WP_DATA, None))
+        worker_tag = substitute_variable_str(wp_section.get(WORKER_TAG, None))
+        worker_pool_data_file = substitute_variable_str(wp_section.get(WP_DATA, None))
         if worker_pool_data_file is not None:
             worker_pool_data_file = pathname_relative_to_config_file(
                 worker_pool_data_file
@@ -381,7 +381,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
                 MAX_NODES, max(1, wp_section.get(TARGET_INSTANCE_COUNT, 1))
             ),
             min_nodes=wp_section.get(MIN_NODES, 0),
-            name=substitute_mustache_str(
+            name=substitute_variable_str(
                 wp_section.get(WP_NAME, None),
             ),
             node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
@@ -466,8 +466,8 @@ entities = {
 def update_config_work_requirement(config_wr: ConfigWorkRequirement):
     """
     Update a ConfigWorkRequirement Object with the current dictionary of
-    Mustache substitutions. Returns the updated object.
+    variable substitutions. Returns the updated object.
     """
-    config_wr_str_processed = substitute_mustache_str(str(config_wr))
+    config_wr_str_processed = substitute_variable_str(str(config_wr))
     # Note: 'literal_eval' doesn't work here
     return eval(config_wr_str_processed)

@@ -47,18 +47,6 @@ from yd_commands.csv_data import (
     load_toml_file_with_csv_task_expansion,
 )
 from yd_commands.interactive import confirmed
-from yd_commands.mustache import (
-    L_TASK_COUNT,
-    L_TASK_GROUP_COUNT,
-    L_TASK_GROUP_NUMBER,
-    L_TASK_NUMBER,
-    L_WR_NAME,
-    add_substitutions,
-    load_json_file_with_mustache_substitutions,
-    load_jsonnet_file_with_mustache_substitutions,
-    load_toml_file_with_mustache_substitutions,
-    process_mustache_substitutions,
-)
 from yd_commands.printing import (
     WorkRequirementSnapshot,
     print_error,
@@ -81,6 +69,18 @@ from yd_commands.type_check import (
 )
 from yd_commands.upload_utils import unique_upload_pathname
 from yd_commands.validate_properties import validate_properties
+from yd_commands.variables import (
+    L_TASK_COUNT,
+    L_TASK_GROUP_COUNT,
+    L_TASK_GROUP_NUMBER,
+    L_TASK_NUMBER,
+    L_WR_NAME,
+    add_substitutions,
+    load_json_file_with_variable_substitutions,
+    load_jsonnet_file_with_variable_substitutions,
+    load_toml_file_with_variable_substitutions,
+    process_variable_substitutions,
+)
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 # Import the Work Requirement configuration from the TOML file
@@ -135,7 +135,7 @@ def main():
                     csv_files=csv_files,
                 )
             else:
-                wr_data = load_json_file_with_mustache_substitutions(wr_data_file)
+                wr_data = load_json_file_with_variable_substitutions(wr_data_file)
 
         # Jsonnet file
         elif wr_data_file.lower().endswith("jsonnet"):
@@ -145,7 +145,7 @@ def main():
                     csv_files=csv_files,
                 )
             else:
-                wr_data = load_jsonnet_file_with_mustache_substitutions(wr_data_file)
+                wr_data = load_jsonnet_file_with_variable_substitutions(wr_data_file)
 
         # TOML file (undocumented)
         elif wr_data_file.lower().endswith("toml"):
@@ -155,7 +155,7 @@ def main():
                     csv_files=csv_files,
                 )
             else:
-                wr_data = load_toml_file_with_mustache_substitutions(wr_data_file)
+                wr_data = load_toml_file_with_variable_substitutions(wr_data_file)
 
         # None of the above
         else:
@@ -213,7 +213,7 @@ def submit_work_requirement(
     )
     # Lazy substitution of the Work Requirement name, now it's defined
     add_substitutions(subs={L_WR_NAME: ID})
-    process_mustache_substitutions(wr_data)
+    process_variable_substitutions(wr_data)
     CONFIG_WR = update_config_work_requirement(CONFIG_WR)
 
     # Handle any files that need to be uploaded
@@ -1024,11 +1024,11 @@ def submit_json_raw(wr_file: str):
     input files. These can be pre-uploaded using yd-upload.
     """
 
-    # Load file contents, with Mustache processing
+    # Load file contents, with variable substitutions
     if wr_file.lower().endswith(".jsonnet"):
-        wr_data = load_jsonnet_file_with_mustache_substitutions(wr_file)
+        wr_data = load_jsonnet_file_with_variable_substitutions(wr_file)
     elif wr_file.lower().endswith(".json"):
-        wr_data = load_json_file_with_mustache_substitutions(wr_file)
+        wr_data = load_json_file_with_variable_substitutions(wr_file)
     else:
         raise Exception(
             f"Work Requirement file '{wr_file}' must end in '.json' or '.jsonnet'"
@@ -1038,10 +1038,10 @@ def submit_json_raw(wr_file: str):
     wr_data["name"] = format_yd_name(wr_data["name"])
     wr_name = wr_data["name"]
     add_substitutions(subs={L_WR_NAME: wr_name})
-    process_mustache_substitutions(wr_data)
+    process_variable2_substitutions(wr_data)
 
     if ARGS_PARSER.dry_run:
-        # This will show the results of any Mustache processing
+        # This will show the results of any variable substitutions
         print_log("Dry-run: Printing JSON Work Requirement specification:")
         print_json(wr_data)
         print_log("Dry-run: Complete")

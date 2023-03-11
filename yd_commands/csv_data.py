@@ -14,13 +14,13 @@ from toml import load as toml_load
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import ConfigWorkRequirement
 from yd_commands.config_keys import *
-from yd_commands.mustache import (
+from yd_commands.printing import print_json, print_log
+from yd_commands.variables import (
     BOOL_SUB,
     NUMBER_SUB,
-    load_jsonnet_file_with_mustache_substitutions,
-    process_mustache_substitutions,
+    load_jsonnet_file_with_variable_substitutions,
+    process_variable_substitutions,
 )
-from yd_commands.printing import print_json, print_log
 
 
 class CSVTaskData:
@@ -125,7 +125,7 @@ def load_json_file_with_csv_task_expansion(
 ) -> Dict:
     """
     Load a JSON file, expanding its Task lists using data from CSV
-    files. Return the expanded and Mustache-processed Work Requirement data.
+    files. Return the expanded and variables-processed Work Requirement data.
     """
 
     with open(json_file, "r") as f:
@@ -139,10 +139,10 @@ def load_jsonnet_file_with_csv_task_expansion(
 ) -> Dict:
     """
     Load a Jsonnet file, expanding its Task lists using data from CSV
-    files. Return the expanded and Mustache-processed Work Requirement data.
+    files. Return the expanded and variables-processed Work Requirement data.
     """
 
-    wr_data = load_jsonnet_file_with_mustache_substitutions(jsonnet_file)
+    wr_data = load_jsonnet_file_with_variable_substitutions(jsonnet_file)
     return perform_csv_task_expansion(wr_data, csv_files)
 
 
@@ -151,7 +151,7 @@ def load_toml_file_with_csv_task_expansion(
 ) -> Dict:
     """
     Load a TOML file Work Requirement, expanding its Task lists using data
-    from CSV files. Return the expanded and Mustache-processed Work Requirement
+    from CSV files. Return the expanded and variables-processed Work Requirement
     data.
     """
 
@@ -203,7 +203,9 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
         generated_task_list = []
         for task_data in csv_data:
             generated_task_list.append(
-                csv_mustache_substitution(task_prototype, csv_data.var_names, task_data)
+                csv_variables_substitution(
+                    task_prototype, csv_data.var_names, task_data
+                )
             )
         task_group[TASKS] = generated_task_list
         print_log(f"Generated {len(generated_task_list)} Task(s) from CSV data")
@@ -214,11 +216,11 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
         exit(0)
 
     # Process remaining substitutions
-    process_mustache_substitutions(wr_data)
+    process_variable_substitutions(wr_data)
     return wr_data
 
 
-def csv_mustache_substitution(
+def csv_variables_substitution(
     task_prototype: Dict, csv_var_names: List, task_data: List
 ) -> Dict:
     """

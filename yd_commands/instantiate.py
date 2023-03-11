@@ -21,15 +21,15 @@ from yd_commands.config import (
     link_entity,
     load_config_worker_pool,
 )
-from yd_commands.mustache import (
-    load_json_file_with_mustache_substitutions,
-    load_jsonnet_file_with_mustache_substitutions,
-)
 from yd_commands.printing import (
     print_compute_template_test_result,
     print_error,
     print_log,
     print_yd_object,
+)
+from yd_commands.variables import (
+    load_json_file_with_variable_substitutions,
+    load_jsonnet_file_with_variable_substitutions,
 )
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -55,7 +55,7 @@ def main():
         CONFIG_WP.worker_pool_data_file if cr_json_file is None else cr_json_file
     )
 
-    # Use the Mustache prefix if this is a Worker Pool file
+    # Use the variable prefix if this is a Worker Pool file
     if cr_json_file is not None:
         if (
             ARGS_PARSER.worker_pool_file or CONFIG_WP.worker_pool_data_file
@@ -200,11 +200,11 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
         return
 
     if cr_json_file.lower().endswith(".jsonnet"):
-        cr_data = load_jsonnet_file_with_mustache_substitutions(
+        cr_data = load_jsonnet_file_with_variable_substitutions(
             cr_json_file, prefix=prefix
         )
     else:
-        cr_data = load_json_file_with_mustache_substitutions(
+        cr_data = load_json_file_with_variable_substitutions(
             cr_json_file, prefix=prefix
         )
 

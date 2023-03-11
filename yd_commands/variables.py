@@ -1,5 +1,5 @@
 """
-Utilities for applying Mustache substitutions.
+Utilities for applying variable substitutions.
 """
 import os
 import re
@@ -18,10 +18,10 @@ from yd_commands.check_imports import check_jsonnet_import
 from yd_commands.config_keys import *
 from yd_commands.printing import print_error, print_log
 
-# Set up default Mustache directives
+# Set up default variable substitutions
 UTCNOW = datetime.utcnow()
 RAND_SIZE = 0xFFF
-MUSTACHE_SUBSTITUTIONS = {
+VARIABLE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").lower(),
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S"),
@@ -37,19 +37,19 @@ if "submit" in sys.argv[0]:
     L_TASK_COUNT = "task_count"
     L_TASK_GROUP_COUNT = "task_group_count"
 
-# Type annotations for Mustache type substitutions
+# Type annotations for variable type substitutions
 NUMBER_SUB = "num:"
 BOOL_SUB = "bool:"
 
-# Add user-defined Mustache directives
-# Can supersede the existing directives above
+# Add user-defined variable substitutions
+# Can supersede the existing substitutions above
 ENV_VAR_PREFIX = "YD_VAR_"
 
 # Directives from environment variables
 for key, value in os.environ.items():
     if key.startswith(ENV_VAR_PREFIX):
         key = key[len(ENV_VAR_PREFIX) :]
-        MUSTACHE_SUBSTITUTIONS[key] = value
+        VARIABLE_SUBSTITUTIONS[key] = value
         print_log(
             f"Adding environment-defined variable substitution: '{key}' = '{value}'"
         )
@@ -59,14 +59,14 @@ if ARGS_PARSER.variables is not None:
     for variable in ARGS_PARSER.variables:
         key_value: List = variable.split("=")
         if len(key_value) == 2:
-            MUSTACHE_SUBSTITUTIONS[key_value[0]] = key_value[1]
+            VARIABLE_SUBSTITUTIONS[key_value[0]] = key_value[1]
             print_log(
                 f"Adding command-line-defined variable substitution: "
                 f"'{key_value[0]}' = '{key_value[1]}'"
             )
         else:
             print_error(
-                f"Error in Mustache substitution '{key_value[0]}'",
+                f"Error in variable substitution '{key_value[0]}'",
             )
             print_log("Done")
             exit(1)
@@ -77,29 +77,29 @@ def add_substitutions(subs: Dict):
     Add a dictionary of substitutions. Do not overwrite existing values, but
     resolve remaining variables if possible.
     """
-    global MUSTACHE_SUBSTITUTIONS
-    subs.update(MUSTACHE_SUBSTITUTIONS)
-    MUSTACHE_SUBSTITUTIONS = subs
+    global VARIABLE_SUBSTITUTIONS
+    subs.update(VARIABLE_SUBSTITUTIONS)
+    VARIABLE_SUBSTITUTIONS = subs
 
     # Populate variables that can now be substituted
-    for key, value in MUSTACHE_SUBSTITUTIONS.items():
-        MUSTACHE_SUBSTITUTIONS[key] = substitute_mustache_str(value)
+    for key, value in VARIABLE_SUBSTITUTIONS.items():
+        VARIABLE_SUBSTITUTIONS[key] = substitute_variable_str(value)
 
 
-def simple_mustache_substitution(input_string: Optional[str]) -> Optional[str]:
+def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
     """
-    Apply basic Mustache substitutions.
+    Apply basic variable substitutions.
     """
     if input_string is None:
         return None
 
-    for sub, value in MUSTACHE_SUBSTITUTIONS.items():
+    for sub, value in VARIABLE_SUBSTITUTIONS.items():
         input_string = input_string.replace(f"{{{{{sub}}}}}", value)
 
     return input_string
 
 
-def process_mustache_substitutions(
+def process_variable_substitutions(
     dict_data: Dict,
     prefix: str = "",
 ):
@@ -107,40 +107,40 @@ def process_mustache_substitutions(
     Process a dictionary representing JSON or TOML data.
     Edits the dictionary in-situ.
 
-    Optional 'prefix' allows Mustache directives intended for this
+    Optional 'prefix' allows variable substitutions intended for this
     preprocessor to be disambiguated from those to be passed through
     (specifically for Node Actions in WP JSON documents).
 
-    Allows the use of Mustache directives prefixed with 'num:' or
+    Allows the use of variable substitutions prefixed with 'num:' or
     'bool:' to be substituted for their correct types.
     """
 
     def _walk_data(data: Union[Dict, List]):
         """
         Helper function to walk the data structure performing
-        Mustache substitutions.
+        variable substitutions.
         """
         if isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, str):
-                    data[key] = substitute_mustache_str(value, prefix=prefix)
+                    data[key] = substitute_variable_str(value, prefix=prefix)
                 elif isinstance(value, dict) or isinstance(value, list):
                     _walk_data(value)
         elif isinstance(data, list):
             for index, item in enumerate(data):
                 if isinstance(item, str):
-                    data[index] = substitute_mustache_str(item, prefix=prefix)
+                    data[index] = substitute_variable_str(item, prefix=prefix)
                 elif isinstance(item, dict) or isinstance(item, list):
                     _walk_data(item)
 
     _walk_data(dict_data)
 
 
-def substitute_mustache_str(
+def substitute_variable_str(
     input: Optional[str], prefix: str = ""
 ) -> Optional[Union[str, int, bool, float]]:
     """
-    Transform type-tagged and normal Mustache
+    Transform type-tagged and normal variable
     substitutions into their required types.
     """
     if input is None:
@@ -151,16 +151,16 @@ def substitute_mustache_str(
 
     input = input.replace(prefix, "")
 
-    def _remove_mustache_brackets(mustache_str: str) -> str:
-        return mustache_str.replace("{{", "").replace("}}", "")
+    def _remove_variable_brackets(variable_str: str) -> str:
+        return variable_str.replace("{{", "").replace("}}", "")
 
     if input.startswith(f"{{{{{NUMBER_SUB}"):
-        input_var_mustache = input.replace(NUMBER_SUB, "")
-        if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
+        input_variable = input.replace(NUMBER_SUB, "")
+        if _remove_variable_brackets(input_variable) not in VARIABLE_SUBSTITUTIONS:
             if ARGS_PARSER.debug:
-                print_log(f"Note: No Mustache substitution found for '{input}'")
+                print_log(f"Note: No variable substitution found for '{input}'")
             return input
-        replaced = simple_mustache_substitution(input_var_mustache)
+        replaced = simple_variable_substitution(input_variable)
         try:
             replaced_number = int(replaced)
         except ValueError:
@@ -168,71 +168,71 @@ def substitute_mustache_str(
                 replaced_number = float(replaced)
             except ValueError:
                 raise Exception(
-                    f"Non-number used in Mustache number "
+                    f"Non-number used in variable number "
                     f"substitution: '{input}':'{replaced}'"
                 )
         return replaced_number
 
     if input.startswith(f"{{{{{BOOL_SUB}"):
-        input_var_mustache = input.replace(BOOL_SUB, "")
-        if _remove_mustache_brackets(input_var_mustache) not in MUSTACHE_SUBSTITUTIONS:
+        input_variable = input.replace(BOOL_SUB, "")
+        if _remove_variable_brackets(input_variable) not in VARIABLE_SUBSTITUTIONS:
             if ARGS_PARSER.debug:
-                print_log(f"Note: No Mustache substitution found for '{input}'")
+                print_log(f"Note: No variable substitution found for '{input}'")
             return input
-        replaced = simple_mustache_substitution(input_var_mustache)
+        replaced = simple_variable_substitution(input_variable)
         if replaced.lower() == "true":
             return True
         if replaced.lower() == "false":
             return False
         raise Exception(
-            f"Non-boolean used in Mustache boolean "
+            f"Non-boolean used in variable boolean "
             f"substitution: '{input}':'{replaced}'"
         )
 
-    # Note: this will break if Mustache substitutions intended for this
+    # Note: this will break if variable substitutions intended for this
     # preprocessor are mixed with those intended to be passed through
-    return simple_mustache_substitution(input)
+    return simple_variable_substitution(input)
 
 
-def load_json_file_with_mustache_substitutions(filename: str, prefix: str = "") -> Dict:
+def load_json_file_with_variable_substitutions(filename: str, prefix: str = "") -> Dict:
     """
-    Takes a JSON filename and returns a dictionary with its mustache
+    Takes a JSON filename and returns a dictionary with its variable
     substitutions processed.
     """
     with open(filename, "r") as f:
         file_contents = f.read()
-    file_contents = mustache_process_file_contents(file_contents, prefix=prefix)
+    file_contents = variable_process_file_contents(file_contents, prefix=prefix)
     return json_loads(file_contents)
 
 
-def load_jsonnet_file_with_mustache_substitutions(filename: str, prefix="") -> Dict:
+def load_jsonnet_file_with_variable_substitutions(filename: str, prefix="") -> Dict:
     """
-    Takes a Jsonnet filename and returns a dictionary with its mustache
+    Takes a Jsonnet filename and returns a dictionary with its variable
     substitutions processed.
     """
     check_jsonnet_import()
     from _jsonnet import evaluate_file
 
-    with MustachePreprocessedJsonnetFile(
+    with VariableSubstitutedJsonnetFile(
         filename=filename, prefix=prefix
     ) as preprocessed_filename:
         dict_data = json_loads(evaluate_file(preprocessed_filename))
 
     # Secondary processing after Jsonnet expansion
-    process_mustache_substitutions(dict_data, prefix)
+    process_variable_substitutions(dict_data, prefix)
 
     return dict_data
 
 
-def load_toml_file_with_mustache_substitutions(filename: str, prefix: str = "") -> Dict:
+def load_toml_file_with_variable_substitutions(filename: str, prefix: str = "") -> Dict:
     """
-    Takes a TOML filename and returns a dictionary with its mustache
+    Takes a TOML filename and returns a dictionary with its variable
     substitutions processed.
     """
     with open(filename, "r") as f:
         config = toml_load(f)
 
-    # Add any Mustache substitutions in the TOML file before processing the
+    # Add any variable substitutions in the TOML file before processing the
     # file as a whole
     try:
         # Convert all values to strings before adding
@@ -245,15 +245,15 @@ def load_toml_file_with_mustache_substitutions(filename: str, prefix: str = "") 
     except KeyError:
         pass
 
-    process_mustache_substitutions(config, prefix=prefix)
+    process_variable_substitutions(config, prefix=prefix)
     return config
 
 
-class MustachePreprocessedJsonnetFile:
+class VariableSubstitutedJsonnetFile:
     """
     The jsonnet 'evaluate_file' function will only operate on files,
     not strings, so this context manager class will create a
-    temporary, mustache-processed file that can be used by the
+    temporary, variable-processed file that can be used by the
     evaluator, then deleted.
     """
 
@@ -263,12 +263,12 @@ class MustachePreprocessedJsonnetFile:
 
     def __enter__(self) -> str:
         """
-        Return the filename of the temporary mustache-processed
+        Return the filename of the temporary variable-processed
         jsonnet file.
         """
         with open(self.filename, "r") as file:
             file_contents = file.read()
-        processed_file_contents: str = mustache_process_file_contents(
+        processed_file_contents: str = variable_process_file_contents(
             file_contents, self.prefix
         )
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
@@ -280,14 +280,14 @@ class MustachePreprocessedJsonnetFile:
         os.remove(self.temp_filename)
 
 
-def mustache_process_file_contents(file_contents: str, prefix: str) -> str:
+def variable_process_file_contents(file_contents: str, prefix: str) -> str:
     """
     Process substitutions in the raw contents of a complete file.
     """
-    mustache_regex = prefix + "{{[:,A-Z,a-z,0-9,_,-]*}}"
-    m_expressions = set(re.findall(mustache_regex, file_contents))
+    variable_regex = prefix + "{{[:,A-Z,a-z,0-9,_,-]*}}"
+    m_expressions = set(re.findall(variable_regex, file_contents))
     for m_expression in m_expressions:
-        replacement_expression = substitute_mustache_str(m_expression, prefix=prefix)
+        replacement_expression = substitute_variable_str(m_expression, prefix=prefix)
         if isinstance(replacement_expression, str):
             file_contents = file_contents.replace(m_expression, replacement_expression)
         else:

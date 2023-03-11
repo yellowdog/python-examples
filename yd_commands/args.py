@@ -87,7 +87,7 @@ class CLIParser:
             type=str,
             required=False,
             action="append",
-            help="user-defined Mustache variable substitution; can be supplied multiple times",
+            help="user-defined variable substitutions; can be supplied multiple times",
             metavar="<var1=v1>",
         )
         parser.add_argument(
@@ -447,10 +447,6 @@ class CLIParser:
     @property
     def abort(self) -> Optional[bool]:
         return self.args.abort
-
-    @property
-    def no_mustache(self) -> Optional[bool]:
-        return self.args.no_mustache
 
     @property
     def interactive(self) -> Optional[bool]:
