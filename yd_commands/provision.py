@@ -10,6 +10,7 @@ from math import ceil, floor
 from typing import Dict, List, Optional
 
 import requests
+from yellowdog_client.common.iso_datetime import iso_timedelta_format
 from yellowdog_client.model import (
     AllNodesInactiveShutdownCondition,
     AllWorkersReleasedShutdownCondition,
@@ -112,34 +113,37 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
 
         # provisionedProperties insertions
         provisioned_properties = wp_data["provisionedProperties"]
+        autoshutdown_iso: str = iso_timedelta_format(
+            timedelta(minutes=CONFIG_WP.auto_shutdown_delay)
+        )
         for key, value in [
             ("autoShutdown", CONFIG_WP.auto_shutdown),
             (
                 "autoShutdownConditions",
                 [
                     {
-                        "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
+                        "delay": autoshutdown_iso,
                         "type": (
                             "co.yellowdog.platform.model."
                             "AllWorkersReleasedShutdownCondition"
                         ),
                     },
                     {
-                        "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
+                        "delay": autoshutdown_iso,
                         "type": (
                             "co.yellowdog.platform.model."
                             "AllNodesInactiveShutdownCondition"
                         ),
                     },
                     {
-                        "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
+                        "delay": autoshutdown_iso,
                         "type": (
                             "co.yellowdog.platform.model."
                             "UnclaimedAfterStartupShutdownCondition"
                         ),
                     },
                     {
-                        "delay": f"PT{CONFIG_WP.auto_shutdown_delay}M",
+                        "delay": autoshutdown_iso,
                         "type": (
                             "co.yellowdog.platform.model."
                             "NodeActionFailedShutdownCondition"
@@ -148,9 +152,18 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                 ],
             ),
             ("workerTag", CONFIG_WP.worker_tag),
-            ("nodeBootTimeLimit", f"PT{CONFIG_WP.node_boot_time_limit}M"),
-            ("nodeIdleGracePeriod", f"PT{CONFIG_WP.node_idle_grace_period}M"),
-            ("nodeIdleTimeLimit", f"PT{CONFIG_WP.node_idle_time_limit}M"),
+            (
+                "nodeBootTimeLimit",
+                iso_timedelta_format(timedelta(CONFIG_WP.node_boot_time_limit)),
+            ),
+            (
+                "nodeIdleGracePeriod",
+                iso_timedelta_format(timedelta(CONFIG_WP.node_idle_grace_period)),
+            ),
+            (
+                "nodeIdleTimeLimit",
+                iso_timedelta_format(timedelta(CONFIG_WP.node_idle_time_limit)),
+            ),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
                 if key == "autoShutdownConditions":
