@@ -27,7 +27,7 @@ from yd_commands.printing import (
     print_log,
     print_yd_object,
 )
-from yd_commands.provision import get_user_data_property
+from yd_commands.provision_utils import get_user_data_property
 from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
@@ -109,7 +109,7 @@ def main():
                 maintainInstanceCount=CONFIG_WP.maintainInstanceCount,
                 instanceTags=CONFIG_WP.instance_tags,
                 imagesId=CONFIG_WP.images_id,
-                userData=get_user_data_property(),
+                userData=get_user_data_property(CONFIG_WP),
             )
 
             if ARGS_PARSER.report:
@@ -227,7 +227,7 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
             ("templateId", CONFIG_WP.template_id),
-            ("userData", get_user_data_property()),
+            ("userData", get_user_data_property(CONFIG_WP)),
             ("imagesId", CONFIG_WP.images_id),
             ("instanceTags", CONFIG_WP.instance_tags),
             ("targetInstanceCount", CONFIG_WP.target_instance_count),

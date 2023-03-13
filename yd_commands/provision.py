@@ -36,6 +36,7 @@ from yd_commands.printing import (
     print_worker_pool,
     print_yd_object,
 )
+from yd_commands.provision_utils import get_user_data_property
 from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
@@ -102,7 +103,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
             ("templateId", CONFIG_WP.template_id),
-            ("userData", get_user_data_property()),
+            ("userData", get_user_data_property(CONFIG_WP)),
             ("imagesId", CONFIG_WP.images_id),
             ("instanceTags", CONFIG_WP.instance_tags),
             ("targetInstanceCount", CONFIG_WP.target_instance_count),
@@ -291,7 +292,7 @@ def create_worker_pool():
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].initial_nodes,
                 requirementTag=CONFIG_COMMON.name_tag,
-                userData=get_user_data_property(),
+                userData=get_user_data_property(CONFIG_WP),
                 imagesId=CONFIG_WP.images_id,
                 instanceTags=CONFIG_WP.instance_tags,
                 maintainInstanceCount=False,  # Must be false for Worker Pools
@@ -404,21 +405,6 @@ def generate_wp_batch_name(
     if num_batches > 1:
         name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
     return name
-
-
-def get_user_data_property() -> Optional[str]:
-    """
-    Get the 'userData' property, either using the contents of the file
-    specified in 'userDataFile' or using the string specified in 'userData'.
-    Raise exception if both 'userData' and 'userDataFile' are set.
-    """
-    if CONFIG_WP.user_data and CONFIG_WP.user_data_file:
-        raise Exception(f"Only one of '{USERDATA}' or '{USERDATAFILE}' should be set")
-    if CONFIG_WP.user_data:
-        return CONFIG_WP.user_data
-    if CONFIG_WP.user_data_file:
-        with open(CONFIG_WP.user_data_file, "r") as f:
-            return f.read()
 
 
 # Entry point
