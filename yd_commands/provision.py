@@ -155,15 +155,17 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ("workerTag", CONFIG_WP.worker_tag),
             (
                 "nodeBootTimeLimit",
-                iso_timedelta_format(timedelta(CONFIG_WP.node_boot_time_limit)),
+                iso_timedelta_format(timedelta(minutes=CONFIG_WP.node_boot_time_limit)),
             ),
             (
                 "nodeIdleGracePeriod",
-                iso_timedelta_format(timedelta(CONFIG_WP.node_idle_grace_period)),
+                iso_timedelta_format(
+                    timedelta(minutes=CONFIG_WP.node_idle_grace_period)
+                ),
             ),
             (
                 "nodeIdleTimeLimit",
-                iso_timedelta_format(timedelta(CONFIG_WP.node_idle_time_limit)),
+                iso_timedelta_format(timedelta(minutes=CONFIG_WP.node_idle_time_limit)),
             ),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
