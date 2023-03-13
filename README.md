@@ -14,7 +14,7 @@
    * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
 * [Variable Substitutions](#variable-substitutions)
    * [Default Variables](#default-variables)
-   * [User-Defined Variable Substitutions](#user-defined-variable-substitutions)
+   * [User-Defined Variables](#user-defined-variables)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
@@ -78,7 +78,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Mar 11 20:59:46 GMT 2023 -->
+<!-- Added by: pwt, at: Mon Mar 13 14:01:55 GMT 2023 -->
 
 <!--te-->
 
@@ -310,14 +310,14 @@ The following substitutions are automatically provided and can be used in any se
 
 For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 
-## User-Defined Variable Substitutions
+## User-Defined Variables
 
-Arbitrary variable substitutions can be supplied using command line options, by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
+Arbitrary variables can be supplied using command line options, by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
 
-1. The **command line** option is `--variable` (or `-v`). For example, `yd-submit -v project_code=pr-213-a -v run_id=1234` will establish two new variable substitutions `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
+1. The **command line** option is `--variable` (or `-v`). For example, `yd-submit -v project_code=pr-213-a -v run_id=1234` will establish two new variables that can be used as `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
 
-2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new variable substitution `{{project_code}}`, which will be substituted by `pr-213-a`.
+2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new variable that can be used as `{{project_code}}`, which will be substituted by `pr-213-a`.
 
 
 3. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. E.g., `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
