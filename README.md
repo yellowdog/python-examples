@@ -474,8 +474,6 @@ inputs = ["my_bash_script.sh"]
 arguments = ["{{wr_name}}/my_bash_script.sh", "1", "2", "3"]
 ```
 
-The use of `uploadFiles` and `verifyAtStart` is discussed [below](#file-storage-locations-and-file-usage).)
-
 #### Docker Tasks
 
 For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property. The `dockerUsername` and `dockerPassword` properties, if supplied, are added to the `environment` property.
@@ -494,7 +492,7 @@ is equivalent to the following being sent for processing by the `docker` Task Ty
 
 ```toml
 taskType = "docker"
-arguments = ["--env TASK_NAME=<task_name> --env E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
+arguments = ["--env E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
 environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password"}
 ```
 
