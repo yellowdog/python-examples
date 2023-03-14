@@ -1187,26 +1187,30 @@ The `workerPool` section of the TOML file defines the properties of the Worker P
 
 The following properties are available:
 
-| Property              | Description                                                                                                | Default        |
-|:----------------------|:-----------------------------------------------------------------------------------------------------------|:---------------|
-| `autoShutdown`        | Whether the Worker Pool is shut down after all nodes have been idle for the `autoShutdownDelay`.           | `true`         |
-| `autoShutdownDelay`   | The delay in minutes for which all nodes can be idle before the Worker Pool is shut down.                  | `10.0` minutes |
-| `imagesId`            | The images ID to use when booting instances.                                                               |                |
-| `instanceTags`        | The dictionary of instance tags to apply to the instances.                                                 |                |
-| `minNodes`            | The minimum number of nodes to which the Worker Pool can be scaled down.                                   | `0`            |
-| `maxNodes`            | The maximum number of nodes to which the Worker Pool can be scaled up.                                     | `1`            |
-| `name`                | The name of the Worker Pool.                                                                               | Automatic      |
-| `nodeBootTimeLimit`   | The time in minutes allowed for a node to boot and register with the platform before it is terminated.     | `10.0` minutes |
-| `nodeIdleGracePeriod` | The time in minutes after a node registers during which the idle check is not applied.                     | `2.0` minutes  |
-| `nodeIdleTimeLimit`   | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.               | `5.0` minutes  |
-| `targetInstanceCount` | The initial number of nodes to create for the Worker Pool.                                                 | `1`            |
-| `templateId`          | The YellowDog Compute Template ID to use for provisioning.                                                 |                |
-| `userData`            | User Data to be supplied to instances on boot.                                                             |                |
-| `userDataFile`        | As above, but read the User Data from the filename supplied in this property.                              |                |
-| `workersPerVCPU`      | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.) |                |
-| `workersPerNode`      | The number of Workers to establish on each node in the Worker Pool.                                        | `1`            |
-| `workerPoolData`      | The name of a file containing a JSON document defining a Worker Pool.                                      |                |
-| `workerTag`           | The Worker Tag to publish for the all of the Workers.                                                      |                |
+| Property                   | Description                                                                                                                     | Default        |
+|:---------------------------|:--------------------------------------------------------------------------------------------------------------------------------|:---------------|
+| `ascAllNodesInactive`      | The time in minutes for which all nodes can be inactive before Worker Pool auto-shutdown. Overrides `autoShutdownDelay`.        |                |
+| `ascAllWorkersReleased`    | The time in minutes for which all node Workers can be released before Worker Pool auto-shutdown. Overrides `autoShutdownDelay`. |                |
+| `ascNodeActionFailed`      | The time in minutes after a Node Action failure before Worker Pool auto-shutdown. Overrides `autoShutdownDelay`.                |                |
+| `ascUnclaimedAfterStartup` | The time in minutes for which no Workers have been claimed before Worker Pool auto-shutdown. Overrides `autoShutdownDelay`.     |                |
+| `autoShutdown`             | Whether the Worker Pool is shut down once an auto-shutdown condition is met.                                                    | `true`         |
+| `autoShutdownDelay`        | Default auto-shutdown delay in minutes before the Worker Pool is shut down.                                                     | `10.0` minutes |
+| `imagesId`                 | The images ID to use when booting instances.                                                                                    |                |
+| `instanceTags`             | The dictionary of instance tags to apply to the instances.                                                                      |                |
+| `minNodes`                 | The minimum number of nodes to which the Worker Pool can be scaled down.                                                        | `0`            |
+| `maxNodes`                 | The maximum number of nodes to which the Worker Pool can be scaled up.                                                          | `1`            |
+| `name`                     | The name of the Worker Pool.                                                                                                    | Automatic      |
+| `nodeBootTimeLimit`        | The time in minutes allowed for a node to boot and register with the platform before it is terminated.                          | `10.0` minutes |
+| `nodeIdleGracePeriod`      | The time in minutes after a node registers during which the idle check is not applied.                                          | `2.0` minutes  |
+| `nodeIdleTimeLimit`        | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.                                    | `5.0` minutes  |
+| `targetInstanceCount`      | The initial number of nodes to create for the Worker Pool.                                                                      | `1`            |
+| `templateId`               | The YellowDog Compute Template ID to use for provisioning.                                                                      |                |
+| `userData`                 | User Data to be supplied to instances on boot.                                                                                  |                |
+| `userDataFile`             | As above, but read the User Data from the filename supplied in this property.                                                   |                |
+| `workersPerVCPU`           | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.)                      |                |
+| `workersPerNode`           | The number of Workers to establish on each node in the Worker Pool.                                                             | `1`            |
+| `workerPoolData`           | The name of a file containing a JSON document defining a Worker Pool.                                                           |                |
+| `workerTag`                | The Worker Tag to publish for the all of the Workers.                                                                           |                |
 
 ## Automatic Properties
 
@@ -1218,6 +1222,10 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
 
 ```toml
 [workerPool]
+    ascAllNodesInactive = 10
+    ascAllWorkersReleased = 10
+    ascNodeActionFailed = 10
+    ascUnclaimedAfterStartup = 10
     autoShutdown = true
     autoShutdownDelay = 10
     imagesId = "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b"
@@ -1392,7 +1400,7 @@ When a JSON Worker Pool specification is used, the following properties from the
 **Properties Inherited within the `provisionedProperties` Property**
 
 - `autoShutdown`
-- `autoShutdownConditions`: derived from the `autoShutdownDelay` property in the `TOML` configuration
+- `autoShutdownConditions`: derived from the `autoShutdownDelay`, `ascAllNodesInactive`, `ascAllWorkersReleased`, `ascNodeActionFailed` and `ascUnclaimedAfterStartup` properties in the `TOML` configuration
 - `nodeBootTimeLimit`
 - `nodeIdleGracePeriod`
 - `nodeIdleTimeLimit`

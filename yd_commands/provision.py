@@ -114,40 +114,71 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
 
         # provisionedProperties insertions
         provisioned_properties = wp_data["provisionedProperties"]
-        autoshutdown_iso: str = iso_timedelta_format(
+
+        # determine shutdown delays
+        auto_shutdown_delay: str = iso_timedelta_format(
             timedelta(minutes=CONFIG_WP.auto_shutdown_delay)
         )
+        asc_all_nodes_inactive = (
+            auto_shutdown_delay
+            if CONFIG_WP.asc_all_nodes_inactive is None
+            else iso_timedelta_format(
+                timedelta(minutes=CONFIG_WP.asc_all_nodes_inactive)
+            )
+        )
+        asc_all_workers_released = (
+            auto_shutdown_delay
+            if CONFIG_WP.asc_all_workers_released is None
+            else iso_timedelta_format(
+                timedelta(minutes=CONFIG_WP.asc_all_workers_released)
+            )
+        )
+        asc_node_action_failed = (
+            auto_shutdown_delay
+            if CONFIG_WP.asc_node_action_failed is None
+            else iso_timedelta_format(
+                timedelta(minutes=CONFIG_WP.asc_node_action_failed)
+            )
+        )
+        asc_unclaimed_after_startup = (
+            auto_shutdown_delay
+            if CONFIG_WP.asc_unclaimed_after_startup is None
+            else iso_timedelta_format(
+                timedelta(minutes=CONFIG_WP.asc_unclaimed_after_startup)
+            )
+        )
+
         for key, value in [
             ("autoShutdown", CONFIG_WP.auto_shutdown),
             (
                 "autoShutdownConditions",
                 [
                     {
-                        "delay": autoshutdown_iso,
-                        "type": (
-                            "co.yellowdog.platform.model."
-                            "AllWorkersReleasedShutdownCondition"
-                        ),
-                    },
-                    {
-                        "delay": autoshutdown_iso,
+                        "delay": asc_all_nodes_inactive,
                         "type": (
                             "co.yellowdog.platform.model."
                             "AllNodesInactiveShutdownCondition"
                         ),
                     },
                     {
-                        "delay": autoshutdown_iso,
+                        "delay": asc_all_workers_released,
                         "type": (
                             "co.yellowdog.platform.model."
-                            "UnclaimedAfterStartupShutdownCondition"
+                            "AllWorkersReleasedShutdownCondition"
                         ),
                     },
                     {
-                        "delay": autoshutdown_iso,
+                        "delay": asc_node_action_failed,
                         "type": (
                             "co.yellowdog.platform.model."
                             "NodeActionFailedShutdownCondition"
+                        ),
+                    },
+                    {
+                        "delay": asc_unclaimed_after_startup,
+                        "type": (
+                            "co.yellowdog.platform.model."
+                            "UnclaimedAfterStartupShutdownCondition"
                         ),
                     },
                 ],
@@ -218,11 +249,31 @@ def create_worker_pool():
     # Set the Worker Pool auto-shutdown conditions
     if CONFIG_WP.auto_shutdown:
         shutdown_delay = timedelta(minutes=CONFIG_WP.auto_shutdown_delay)
+        asc_all_nodes_inactive = (
+            shutdown_delay
+            if CONFIG_WP.asc_all_nodes_inactive is None
+            else timedelta(minutes=CONFIG_WP.asc_all_nodes_inactive)
+        )
+        asc_all_workers_released = (
+            shutdown_delay
+            if CONFIG_WP.asc_all_workers_released is None
+            else timedelta(minutes=CONFIG_WP.asc_all_workers_released)
+        )
+        asc_node_action_failed = (
+            shutdown_delay
+            if CONFIG_WP.asc_node_action_failed is None
+            else timedelta(minutes=CONFIG_WP.asc_node_action_failed)
+        )
+        asc_unclaimed_after_startup = (
+            shutdown_delay
+            if CONFIG_WP.asc_unclaimed_after_startup is None
+            else timedelta(minutes=CONFIG_WP.asc_unclaimed_after_startup)
+        )
         auto_shutdown_conditions = [
-            AllWorkersReleasedShutdownCondition(delay=shutdown_delay),
-            AllNodesInactiveShutdownCondition(delay=shutdown_delay),
-            UnclaimedAfterStartupShutdownCondition(delay=shutdown_delay),
-            NodeActionFailedShutdownCondition(delay=shutdown_delay),
+            AllNodesInactiveShutdownCondition(delay=asc_all_nodes_inactive),
+            AllWorkersReleasedShutdownCondition(delay=asc_all_workers_released),
+            NodeActionFailedShutdownCondition(delay=asc_node_action_failed),
+            UnclaimedAfterStartupShutdownCondition(delay=asc_unclaimed_after_startup),
             # NoRegisteredWorkersShutdownCondition(),
         ]
     else:

@@ -3,6 +3,10 @@ Configuration key strings
 """
 
 ARGS = "arguments"  # List
+ASC_ALL_NODES_INACTIVE = "ascAllNodesInactive"  # Float
+ASC_ALL_WORKERS_RELEASED = "ascAllWorkersReleased"  # Float
+ASC_NODE_ACTION_FAILED = "ascNodeActionFailed"  # Float
+ASC_UNCLAIMED_AFTER_STARTUP = "ascUnclaimedAfterStartup"  # Float
 AUTO_SCALING_IDLE_DELAY = "autoscalingIdleDelay"  # Float
 AUTO_SHUTDOWN = "autoShutdown"  # Boolean
 AUTO_SHUTDOWN_DELAY = "autoShutdownDelay"  # Float
@@ -89,6 +93,10 @@ BASH_SCRIPT = "bashScript"  # String
 
 ALL_KEYS = [
     ARGS,
+    ASC_ALL_NODES_INACTIVE,
+    ASC_ALL_WORKERS_RELEASED,
+    ASC_NODE_ACTION_FAILED,
+    ASC_UNCLAIMED_AFTER_STARTUP,
     AUTO_SCALING_IDLE_DELAY,
     AUTO_SHUTDOWN,
     AUTO_SHUTDOWN_DELAY,

@@ -104,6 +104,10 @@ CR_BATCH_SIZE = 2000
 
 @dataclass
 class ConfigWorkerPool:
+    asc_all_nodes_inactive: Optional[float] = None
+    asc_all_workers_released: Optional[float] = None
+    asc_node_action_failed: Optional[float] = None
+    asc_unclaimed_after_startup: Optional[float] = None
     auto_scaling_idle_delay: float = 10  # Deprecated
     auto_shutdown: bool = True
     auto_shutdown_delay: float = 10
@@ -368,6 +372,12 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             )
 
         return ConfigWorkerPool(
+            asc_all_nodes_inactive=wp_section.get(ASC_ALL_NODES_INACTIVE, None),
+            asc_all_workers_released=wp_section.get(ASC_ALL_WORKERS_RELEASED, None),
+            asc_node_action_failed=wp_section.get(ASC_NODE_ACTION_FAILED, None),
+            asc_unclaimed_after_startup=wp_section.get(
+                ASC_UNCLAIMED_AFTER_STARTUP, None
+            ),
             auto_scaling_idle_delay=wp_section.get(AUTO_SCALING_IDLE_DELAY, 10),
             auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
             auto_shutdown_delay=wp_section.get(AUTO_SHUTDOWN_DELAY, 10),
