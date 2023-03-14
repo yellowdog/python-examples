@@ -2,6 +2,7 @@
 Utility functions for uploading objects.
 """
 
+from os import stat
 from os.path import basename
 from pathlib import Path
 from typing import Optional
@@ -21,11 +22,15 @@ def upload_file(
     url: str,
     inputs_folder_name: Optional[str] = None,
     flatten_upload_paths: bool = False,
-):
+) -> bool:
     """
     Upload a local file to the YD Object Store using a calculated
     unique upload pathname
     """
+
+    if stat(filename).st_size == 0:
+        print_log(f"Not uploading zero-byte file '{filename}'")
+        return False
 
     dest_filename = unique_upload_pathname(
         filename,
@@ -41,6 +46,7 @@ def upload_file(
         namespace=namespace,
         remote_file=dest_filename,
     )
+    return True
 
 
 def unique_upload_pathname(

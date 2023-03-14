@@ -52,16 +52,22 @@ def main():
 
     if ARGS_PARSER.flatten:
         print_log("Flattening upload paths")
+
+    uploaded_file_count = 0
     for file in files_set:
-        upload_file(
-            client=CLIENT,
-            filename=file,
-            id=ARGS_PARSER.directory,
-            namespace=CONFIG_COMMON.namespace,
-            url=CONFIG_COMMON.url,
-            flatten_upload_paths=ARGS_PARSER.flatten,
-        )
-    print_log(f"Uploaded {len(files_set)} files")
+        if (
+            upload_file(
+                client=CLIENT,
+                filename=file,
+                id=ARGS_PARSER.directory,
+                namespace=CONFIG_COMMON.namespace,
+                url=CONFIG_COMMON.url,
+                flatten_upload_paths=ARGS_PARSER.flatten,
+            )
+            is True
+        ):
+            uploaded_file_count += 1
+    print_log(f"Uploaded {uploaded_file_count} files")
 
 
 # Standalone entry point
