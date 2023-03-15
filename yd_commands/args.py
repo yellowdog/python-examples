@@ -301,7 +301,7 @@ class CLIParser:
                 "--directory",
                 "-d",
                 type=str,
-                required=True,
+                required=False,
                 help="the Object Store directory name to use when uploading objects",
                 metavar="<directory>",
             )
@@ -493,8 +493,8 @@ class CLIParser:
         return self.args.debug
 
     @property
-    def directory(self) -> Optional[str]:
-        return self.args.directory
+    def directory(self) -> str:
+        return "" if self.args.directory is None else self.args.directory
 
     @property
     def files(self) -> List[str]:
