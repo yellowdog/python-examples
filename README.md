@@ -1471,7 +1471,9 @@ Variable substitution is performed before Jsonnet expansion into JSON, and again
 
 ## Checking Jsonnet Processing
 
-The `dry-run` (`-D`) option of the `yd-submit` and `yd-provision` commands will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
+The `jsonnet-dry-run` (`-J`) option of the `yd-submit`, `yd-provision` and `yd-instantiate` commands will generate JSON output representing the Jsonnet to JSON processing only, including applicable variable substitutions, but before full property expansion into the JSON that will be submitted to the Platform.
+
+The `dry-run` (`-D`) option will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
 
 ## Jsonnet Example
 
@@ -1495,6 +1497,40 @@ local Task(arguments=[], environment={}) = {
         Task(["2", "3"], {}),     # arguments and empty environment
         Task(["4"]),              # arguments and default environment
         Task()                    # default arguments and environment
+      ]
+    }
+  ]
+}
+```
+
+When this is inspected using the `jsonnet-dry-run` option (`yd-submit -Jq -r my_work_req.jsonnet`), this is the processed output:
+
+```json
+{
+  "name": "workreq_230114-140645",
+  "taskGroups": [
+    {
+      "tasks": [
+        {
+          "arguments": ["1"],
+          "environment": {"A": "A_1"},
+          "name": "my_task_{{task_number}}"
+        },
+        {
+          "arguments": ["2", "3"],
+          "environment": {},
+          "name": "my_task_{{task_number}}"
+        },
+        {
+          "arguments": ["4"],
+          "environment": {},
+          "name": "my_task_{{task_number}}"
+        },
+        {
+          "arguments": [],
+          "environment": {},
+          "name": "my_task_{{task_number}}"
+        }
       ]
     }
   ]

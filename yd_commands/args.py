@@ -372,6 +372,17 @@ class CLIParser:
                 help="work requirement to be refreshed",
             )
 
+        if any(
+            module in sys.argv[0] for module in ["submit", "provision", "instantiate"]
+        ):
+            parser.add_argument(
+                "--jsonnet-dry-run",
+                "-J",
+                action="store_true",
+                required=False,
+                help="dry-run Jsonnet processing into JSON",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -547,6 +558,10 @@ class CLIParser:
     @property
     def report(self) -> Optional[bool]:
         return self.args.report
+
+    @property
+    def jsonnet_dry_run(self) -> Optional[bool]:
+        return self.args.jsonnet_dry_run
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

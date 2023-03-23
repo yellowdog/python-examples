@@ -16,7 +16,7 @@ from toml import load as toml_load
 from yd_commands.args import ARGS_PARSER
 from yd_commands.check_imports import check_jsonnet_import
 from yd_commands.config_keys import *
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import print_error, print_json, print_log
 
 # Set up default variable substitutions
 UTCNOW = datetime.utcnow()
@@ -220,6 +220,12 @@ def load_jsonnet_file_with_variable_substitutions(filename: str, prefix="") -> D
 
     # Secondary processing after Jsonnet expansion
     process_variable_substitutions(dict_data, prefix)
+
+    if ARGS_PARSER.jsonnet_dry_run:
+        print_log("Dry-run: Printing Jsonnet to JSON conversion")
+        print_json(dict_data)
+        print_log("Dry run: Complete")
+        exit(0)
 
     return dict_data
 
