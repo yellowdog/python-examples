@@ -334,7 +334,15 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
     report: BestComputeSourceReport = result.report
     sources: List[BestComputeSourceReportSource] = report.sources
     source_table = [
-        ["Sequence", "Rank", "Provider", "Type", "Region", "InstanceType", "Source Name"]
+        [
+            "Sequence",
+            "Rank",
+            "Provider",
+            "Type",
+            "Region",
+            "InstanceType",
+            "Source Name",
+        ]
     ]
     for index, source in enumerate(sources):
         source_table.append(
