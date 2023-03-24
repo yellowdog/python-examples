@@ -99,7 +99,7 @@ class ConfigWorkRequirement:
     wr_name: Optional[str] = None
 
 
-CR_BATCH_SIZE = 2000
+CR_BATCH_SIZE_DEFAULT = 2000
 
 
 @dataclass
@@ -111,7 +111,7 @@ class ConfigWorkerPool:
     auto_scaling_idle_delay: float = 10  # Deprecated
     auto_shutdown: bool = True
     auto_shutdown_delay: float = 10
-    compute_requirement_batch_size: int = CR_BATCH_SIZE
+    compute_requirement_batch_size: int = CR_BATCH_SIZE_DEFAULT
     images_id: Optional[str] = (None,)
     instance_tags: Optional[Dict] = None
     maintainInstanceCount: bool = False  # Only for yd-instantiate
@@ -382,7 +382,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
             auto_shutdown_delay=wp_section.get(AUTO_SHUTDOWN_DELAY, 10),
             compute_requirement_batch_size=wp_section.get(
-                COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE
+                COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
             ),
             images_id=wp_section.get(IMAGES_ID, None),
             instance_tags=wp_section.get(INSTANCE_TAGS, None),
