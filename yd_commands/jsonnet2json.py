@@ -5,9 +5,11 @@ Simple utility to take a Jsonnet file and output its JSON representation
 to stdout. General purpose, not YellowDog specific.
 """
 
+import json
 import sys
 
 from yd_commands.check_imports import check_jsonnet_import
+from yd_commands.compact_json import CompactJSONEncoder
 
 
 def main():
@@ -15,11 +17,12 @@ def main():
     from _jsonnet import evaluate_file
 
     if len(sys.argv) != 2:
-        print("Usage: yd-jsonnet2json <file.jsonnet>")
+        print("Error: Usage: yd-jsonnet2json <file.jsonnet>")
         exit(1)
 
     try:
-        print(evaluate_file(sys.argv[1]))
+        json_data = json.loads(evaluate_file(sys.argv[1]))
+        print(json.dumps(json_data, indent=2, cls=CompactJSONEncoder))
     except Exception as e:
         print(f"Error: {e}")
         exit(1)
