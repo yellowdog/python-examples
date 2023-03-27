@@ -335,7 +335,7 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
     sources: List[BestComputeSourceReportSource] = report.sources
     source_table = [
         [
-            "Sequence",
+            "",
             "Rank",
             "Provider",
             "Type",
