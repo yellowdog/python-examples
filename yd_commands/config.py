@@ -107,6 +107,7 @@ class ConfigWorkerPool:
     asc_all_nodes_inactive: Optional[float] = None
     asc_all_workers_released: Optional[float] = None
     asc_node_action_failed: Optional[float] = None
+    asc_no_registered_workers: Optional[bool] = None
     asc_unclaimed_after_startup: Optional[float] = None
     auto_scaling_idle_delay: float = 10  # Deprecated
     auto_shutdown: bool = True
@@ -375,6 +376,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             asc_all_nodes_inactive=wp_section.get(ASC_ALL_NODES_INACTIVE, None),
             asc_all_workers_released=wp_section.get(ASC_ALL_WORKERS_RELEASED, None),
             asc_node_action_failed=wp_section.get(ASC_NODE_ACTION_FAILED, None),
+            asc_no_registered_workers=wp_section.get(ASC_NO_REGISTERED_WORKERS, None),
             asc_unclaimed_after_startup=wp_section.get(
                 ASC_UNCLAIMED_AFTER_STARTUP, None
             ),

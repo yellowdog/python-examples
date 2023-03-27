@@ -148,41 +148,33 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             )
         )
 
+        type_prefix = "co.yellowdog.platform.model"
+        auto_shutdown_conditions = [
+            {
+                "delay": asc_all_nodes_inactive,
+                "type": (f"{type_prefix}.AllNodesInactiveShutdownCondition"),
+            },
+            {
+                "delay": asc_all_workers_released,
+                "type": (f"{type_prefix}.AllWorkersReleasedShutdownCondition"),
+            },
+            {
+                "delay": asc_node_action_failed,
+                "type": (f"{type_prefix}.NodeActionFailedShutdownCondition"),
+            },
+            {
+                "delay": asc_unclaimed_after_startup,
+                "type": (f"{type_prefix}.UnclaimedAfterStartupShutdownCondition"),
+            },
+        ]
+        if CONFIG_WP.asc_no_registered_workers is True:
+            auto_shutdown_conditions.append(
+                {"type": f"{type_prefix}.NoRegisteredWorkersShutdownCondition"}
+            )
+
         for key, value in [
             ("autoShutdown", CONFIG_WP.auto_shutdown),
-            (
-                "autoShutdownConditions",
-                [
-                    {
-                        "delay": asc_all_nodes_inactive,
-                        "type": (
-                            "co.yellowdog.platform.model."
-                            "AllNodesInactiveShutdownCondition"
-                        ),
-                    },
-                    {
-                        "delay": asc_all_workers_released,
-                        "type": (
-                            "co.yellowdog.platform.model."
-                            "AllWorkersReleasedShutdownCondition"
-                        ),
-                    },
-                    {
-                        "delay": asc_node_action_failed,
-                        "type": (
-                            "co.yellowdog.platform.model."
-                            "NodeActionFailedShutdownCondition"
-                        ),
-                    },
-                    {
-                        "delay": asc_unclaimed_after_startup,
-                        "type": (
-                            "co.yellowdog.platform.model."
-                            "UnclaimedAfterStartupShutdownCondition"
-                        ),
-                    },
-                ],
-            ),
+            ("autoShutdownConditions", auto_shutdown_conditions),
             ("workerTag", CONFIG_WP.worker_tag),
             (
                 "nodeBootTimeLimit",
@@ -202,15 +194,18 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             if provisioned_properties.get(key) is None and value is not None:
                 if key == "autoShutdownConditions":
                     for condition in value:
-                        print_log(
-                            f"Setting '{condition['type']}': '{condition['delay']}'"
-                        )
+                        if not "NoRegisteredWorkers" in condition["type"]:
+                            print_log(
+                                f"Setting '{condition['type']}': '{condition['delay']}'"
+                            )
+                        else:
+                            print_log(f"Setting '{condition['type']}' to 'true'")
                 else:
                     print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
                 provisioned_properties[key] = value
 
     except KeyError as e:
-        raise Exception(f"Missing key error in JSON Worker Pool definition: {e}")
+        raise Exception(f"Key error in JSON Worker Pool definition: {e}")
 
     if ARGS_PARSER.dry_run:
         print_log("Dry-run: Printing JSON Worker Pool specification")
@@ -274,8 +269,9 @@ def create_worker_pool():
             AllWorkersReleasedShutdownCondition(delay=asc_all_workers_released),
             NodeActionFailedShutdownCondition(delay=asc_node_action_failed),
             UnclaimedAfterStartupShutdownCondition(delay=asc_unclaimed_after_startup),
-            # NoRegisteredWorkersShutdownCondition(),
         ]
+        if CONFIG_WP.asc_no_registered_workers is True:
+            auto_shutdown_conditions.append(NoRegisteredWorkersShutdownCondition())
     else:
         auto_shutdown_conditions = []
 

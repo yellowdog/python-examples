@@ -6,6 +6,7 @@ ARGS = "arguments"  # List
 ASC_ALL_NODES_INACTIVE = "ascAllNodesInactive"  # Float
 ASC_ALL_WORKERS_RELEASED = "ascAllWorkersReleased"  # Float
 ASC_NODE_ACTION_FAILED = "ascNodeActionFailed"  # Float
+ASC_NO_REGISTERED_WORKERS = "ascNoRegisteredWorkers"  # Bool
 ASC_UNCLAIMED_AFTER_STARTUP = "ascUnclaimedAfterStartup"  # Float
 AUTO_SCALING_IDLE_DELAY = "autoscalingIdleDelay"  # Float
 AUTO_SHUTDOWN = "autoShutdown"  # Boolean
@@ -96,6 +97,7 @@ ALL_KEYS = [
     ASC_ALL_NODES_INACTIVE,
     ASC_ALL_WORKERS_RELEASED,
     ASC_NODE_ACTION_FAILED,
+    ASC_NO_REGISTERED_WORKERS,
     ASC_UNCLAIMED_AFTER_STARTUP,
     AUTO_SCALING_IDLE_DELAY,
     AUTO_SHUTDOWN,
