@@ -83,7 +83,7 @@ def main():
     )
 
     num_batches = len(batches)
-    if num_batches > 1:
+    if num_batches > 1 and not ARGS_PARSER.report:
         print_log(f"Batching into {num_batches} Compute Requirements")
 
     for batch_number in range(num_batches):
@@ -148,8 +148,11 @@ def _allocate_nodes_to_batches(
     Helper function to distribute the number of requested instances
     as evenly as possible over Compute Requirements when batches are required.
     """
-    num_batches = ceil(initial_nodes / max_batch_size)
-    nodes_per_batch = floor(initial_nodes / num_batches)
+    try:
+        num_batches = ceil(initial_nodes / max_batch_size)
+        nodes_per_batch = floor(initial_nodes / num_batches)
+    except ZeroDivisionError:
+        return [CRBatch(target_instances=0)]
 
     # First pass population of batches with equal number of instances
     batches = [
