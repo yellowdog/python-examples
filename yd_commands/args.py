@@ -9,12 +9,15 @@ import sys
 from datetime import datetime
 from typing import List, Optional
 
-from yd_commands import __version__
+from yd_commands.__init__ import __version__
 from yd_commands.version import DOCS_URL
 
 
 def docs():
-    print(f"Online documentation for v{__version__}: {DOCS_URL}", flush=True)
+    print(
+        f"Online documentation for Python Examples v{__version__}: {DOCS_URL}",
+        flush=True,
+    )
 
 
 class CLIParser:
