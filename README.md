@@ -296,7 +296,7 @@ Substitutions can also be performed for non-string (number and boolean) values u
 
 ## Default Variables
 
-The following substitutions are automatically provided and can be used in any section of the configuration file, or in any JSON specification:
+The following substitutions are automatically created and can be used in any section of the configuration file, or in any JSON specification:
 
 | Directive       | Description                                                              | Example of Substitution |
 |:----------------|:-------------------------------------------------------------------------|:------------------------|
@@ -307,6 +307,9 @@ The following substitutions are automatically provided and can be used in any se
 | `{{random}}`    | A random, three digit hexadecimal number (lower case)                    | a1c                     |
 | `{{namespace}}` | The `namespace` property. Note that `namespace` must, of course, be set. | my_namespace            |
 | `{{tag}}`       | The `tag` property. Note that `tag` must be set.                         | my_tag                  |
+| `{{key}}`       | The application `key` property.                                          |                         |
+| `{{secret}}`    | The application `secret` property.                                       |                         |
+| `{{url}}`       | The Platform `url` property.                                             |                         |
 
 For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
 

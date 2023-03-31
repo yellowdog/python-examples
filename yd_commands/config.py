@@ -213,6 +213,10 @@ def load_config_common() -> ConfigCommon:
         # substitutions for the items in its dictionary each time it's
         # called
         add_substitutions(subs={URL: url})
+        key = substitute_variable_str(common_section[KEY])
+        add_substitutions(subs={KEY: key})
+        secret = substitute_variable_str(common_section[SECRET])
+        add_substitutions(subs={SECRET: secret})
         namespace = substitute_variable_str(common_section[NAMESPACE])
         add_substitutions(subs={NAMESPACE: namespace})
         name_tag = substitute_variable_str(common_section[NAME_TAG])
@@ -220,8 +224,8 @@ def load_config_common() -> ConfigCommon:
 
         return ConfigCommon(
             # Required
-            key=substitute_variable_str(common_section[KEY]),
-            secret=substitute_variable_str(common_section[SECRET]),
+            key=key,
+            secret=secret,
             namespace=namespace,
             name_tag=name_tag,
             # Optional
