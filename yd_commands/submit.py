@@ -1038,7 +1038,7 @@ def submit_json_raw(wr_file: str):
     wr_data["name"] = format_yd_name(wr_data["name"])
     wr_name = wr_data["name"]
     add_substitutions(subs={L_WR_NAME: wr_name})
-    process_variable2_substitutions(wr_data)
+    process_variable_substitutions(wr_data)
 
     if ARGS_PARSER.dry_run:
         # This will show the results of any variable substitutions
