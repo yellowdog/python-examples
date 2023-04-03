@@ -1485,15 +1485,19 @@ Variable substitution is performed before Jsonnet expansion into JSON, and again
 
 ## Checking Jsonnet Processing
 
-To inspect the basic conversion of Jsonnet into JSON, without any additional processing by the Python Examples scripts, the `yd-jsonnet2json` command can be used. This takes a single command line argument which is the name of the jsonnet file to be processed:
+There are three possibilities for verifying that a Jsonnet specification is doing what is intended:
+
+1. To inspect the basic conversion of Jsonnet into JSON, without any additional processing by the Python Examples scripts, the `yd-jsonnet2json` command can be used. This takes a single command line argument which is the name of the jsonnet file to be processed:
 
 ```shell
 yd-jsonnet2json my_file.jsonnet
 ```
 
-The `jsonnet-dry-run` (`-J`) option of the `yd-submit`, `yd-provision` and `yd-instantiate` commands will generate JSON output representing the Jsonnet to JSON processing only, including applicable variable substitutions, but before full property expansion into the JSON that will be submitted to the Platform.
 
-The `dry-run` (`-D`) option will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
+2. The `jsonnet-dry-run` (`-J`) option of the `yd-submit`, `yd-provision` and `yd-instantiate` commands will generate JSON output representing the Jsonnet to JSON processing only, including applicable variable substitutions, but before full property expansion into the JSON that will be submitted to the Platform.
+
+
+3. The `dry-run` (`-D`) option will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
 
 ## Jsonnet Example
 
