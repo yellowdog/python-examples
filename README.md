@@ -969,7 +969,7 @@ When a Task is started by the Agent, its working directory has a pattern somethi
 
 Files that are downloaded by the Agent prior to Task execution are located as follows:
 
-1. If the `flattenInputPaths` property is set to `false` for the Task (this is the default), the downloaded objects are placed in subdirectories that mirror those in the Object Store, including the Work Requirement name, situated beneath the working directory.
+1. If the `flattenInputPaths` property is set to the default of `false` for the Task, the downloaded objects are placed in subdirectories that mirror those in the Object Store, including the Work Requirement name, situated beneath the working directory.
 
 
 2. If the `flattenInputPaths` property is set to `true` for the Task, the downloaded objects are all placed directly in root of the Task's working directory.
@@ -988,6 +988,14 @@ else, if flattenInputPaths is true, the file will be found at:
 where <working_directory> is:
   /var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
 ```
+
+Note that Work Requirement name (e.g., `testrun_221108-120404-7d2`) is available via the variable substitution `wr_name`, so this could be supplied to the Task to help it locate its downloaded files. For example, in the `workRequirement` section of the `config.toml` file, I could specify:
+
+```toml
+environment = {WR_DIRECTORY = "{{wr_name}}"}
+```
+
+The Work Requirement name would then be available to the Task in the environment variable `$WR_DIRECTORY`.
 
 ### Files Uploaded from a Node to the Object Store after Task Execution
 
