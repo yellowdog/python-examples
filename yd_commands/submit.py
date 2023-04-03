@@ -304,6 +304,12 @@ def create_task_group(
     # Name the Task Group
     num_task_groups = len(wr_data[TASK_GROUPS])
     num_tasks = len(task_group_data[TASKS])
+    # The following handles possible CSV substitution at the config.toml level
+    try:
+        if task_group_data.get(NAME, None) is None:
+            task_group_data[NAME] = task_group_data[TASKS][0][TASK_GROUP_NAME]
+    except KeyError:
+        pass
     task_group_name = format_yd_name(
         get_task_group_name(
             task_group_data.get(NAME, CONFIG_WR.task_group_name),
@@ -482,7 +488,7 @@ def add_tasks_to_task_group(
             task = tasks[task_number] if task_count is None else tasks[0]
             task_name = format_yd_name(
                 get_task_name(
-                    task.get(NAME, CONFIG_WR.task_name),
+                    task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
                     task_number,
                     num_tasks,
                     tg_number,
