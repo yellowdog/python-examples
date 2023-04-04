@@ -350,7 +350,7 @@ def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Di
         (config_wr.output_files_required, OUTPUT_FILES_REQUIRED),
         (config_wr.task_data, TASK_DATA),
         (config_wr.task_data_file, TASK_DATA_FILE),
-        (config_wr.task_group_name, TASK_GROUP_NAME),
+        (config_wr.task_group_name, TASK_GROUP_NAME),  # Note: oddity
         (config_wr.task_name, TASK_NAME),
         (config_wr.task_type, TASK_TYPE),
         (config_wr.upload_files, UPLOAD_FILES),
