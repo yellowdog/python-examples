@@ -45,6 +45,11 @@
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
+   * [Task Execution Context](#task-execution-context)
+      * [Task Execution Steps](#task-execution-steps)
+      * [The User and Group used for Tasks](#the-user-and-group-used-for-tasks)
+      * [Home Directory for yd-agent](#home-directory-for-yd-agent)
+      * [Task Execution Directory](#task-execution-directory)
    * [Specifying Work Requirements using CSV Data](#specifying-work-requirements-using-csv-data)
       * [Work Requirement CSV Data Example](#work-requirement-csv-data-example)
       * [CSV Variable Substitutions](#csv-variable-substitutions)
@@ -78,7 +83,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Mon Mar 13 14:01:55 GMT 2023 -->
+<!-- Added by: pwt, at: Tue Apr  4 09:23:24 BST 2023 -->
 
 <!--te-->
 
@@ -977,7 +982,7 @@ Files that are downloaded by the Agent prior to Task execution are located as fo
 For example:
 
 ```shell
-If the required object is: development:testrun_221108-120404-7d2/dev/file_1.txt
+If the required object is: development::testrun_221108-120404-7d2/dev/file_1.txt
 
 then, if flattenInputPaths is false, the file will be found at:
  -> <working_directory>/testrun_221108-120404-7d2/dev/file_1.txt
@@ -999,7 +1004,7 @@ The Work Requirement name would then be available to the Task in the environment
 
 ### Files Uploaded from a Node to the Object Store after Task Execution
 
-After Task completion, the Agent will upload specified output files to the Object Store. The files to be uploaded are those listed in the `outputs` property for the Task.
+After Task completion, the Agent will upload specified output files to the Object Store. The files to be uploaded are those listed in the `outputs` and `outputsRequired` properties for the Task.
 
 In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded to the Object Store is determined by the `captureTaskOutput` property for the Task, and this is set to 'true' by default.
 
@@ -1043,6 +1048,69 @@ development
 Note that everything within the `namespace::work-requirement` directory in the Object Store is downloaded, including any files that were specified in `inputs` and uploaded as part of the Work Requirement submission. Multiple Task Groups, and multiple Tasks will all appear in the directory structure.
 
 If the `development` directory already exists, `yd-download` will try `development.01`, etc., to avoid overwriting previous downloads.
+
+## Task Execution Context
+
+This section discusses the context within which a Task operates when it's executed by a Worker on a node. It applies specifically to the YellowDog Agent running on a Linux node, and configured using the default username, directories, etc. Configurations can vary.
+
+### Task Execution Steps
+
+When a Task is allocated to a Worker on a node by the YellowDog Scheduler, the following steps are followed:
+
+1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list.
+2. These files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also placed by default.
+2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess.
+3. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
+4. The Agent then gathers any files in the `outputs` and `outputsRequired` lists and uploads them to the Object Store. If a file in the `outputsRequired` list is not found, the Task will be reported as failed. The Agent will also optionally upload the console output (including both `stdout` and `stderr`) of the Task, contained in the `taskoutput.txt` file.
+5. The ephemeral Task directory is then deleted.
+
+Note that if a Task is aborted during execution, the Task's subprocess is sent a `SIGINT`, allowing the Task an opportunity to terminate any child processes or other resources (e.g., containers) that may have been started as part of Task execution.
+
+Once the steps above have been completed, the Worker is ready to accept its next Task from the YellowDog scheduler.
+
+Note that if the Agent on a node has multiple Workers, then Tasks are executed in parallel on the node and can start and stop independently.
+
+### The User and Group used for Tasks
+
+By default, the Agent runs as user and group `yd-agent`, and hence Tasks also execute under this user.
+
+`yd-agent` does not have `sudo` privileges as standard, but this can be added if required at instance boot time via the `userData` property of a provisioning request. E.g. (for Ubuntu):
+
+```shell
+usermod -aG wheel yd-agent
+echo -e "yd-agent\tALL=(ALL)\tNOPASSWD: ALL" > /etc/sudoers.d/020-yd-agent
+```
+
+### Home Directory for `yd-agent`
+
+By default, the home directory of the `yd-agent` user is `/opt/yellowdog/agent`. This directory typically contains the `application.yaml` file used to configure the Agent, as well as any scripts that are used to execute the Task Types that the node supports.
+
+If one wants to SSH to an instance as user `yd-agent`, perhaps for debugging purposes, SSH keys can be inserted via instance `userData`, e.g.:
+
+```shell
+YDA_HOME=/opt/yellowdog/agent
+mkdir -p $YDA_HOME/.ssh
+chmod og-rwx $YDA_HOME/.ssh
+cat >> $YDA_HOME/.ssh/authorized_keys << EOF
+<<Insert_Public_key_Here>>
+EOF
+chmod og-rw $YDA_HOME/.ssh/authorized_keys
+chown -R yd-agent:yd-agent $YDA_HOME/.ssh
+```
+
+### Task Execution Directory
+
+Ephemeral Task directories are created under `/var/opt/yellowdog/agent/data/workers`. This directory contains one or more numbered subdirectories where each numbered directory corresponds to a Worker on the node.
+
+When a Task is allocated to a node, an ephemeral directory is created under the applicable Worker directory, with a name corresponding the YellowDog ID for the Task. For example, this is an ephemeral directory being used by Worker number `1`:
+
+`/var/opt/yellowdog/agent/data/workers/1/ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1`
+
+This is the directory into which downloaded objects are placed, and in which output files are created by default. The console output `taskoutput.txt` file will also be created in this directory.
+
+See the [Files Downloaded to a Node](#files-downloaded-to-a-node-for-use-in-task-execution) section above for more details on how files in this directory are handled.
+
+At the conclusion of the Task, after any files requested for upload have been uploaded to the Object Store (see the [Files Uploaded from a Node](#files-uploaded-from-a-node-to-the-object-store-after-task-execution) section for more information), the `ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1` will be removed.
 
 ## Specifying Work Requirements using CSV Data
 
