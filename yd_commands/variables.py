@@ -41,6 +41,9 @@ if "submit" in sys.argv[0]:
 NUMBER_SUB = "num:"
 BOOL_SUB = "bool:"
 
+# Nested variables depth supported in TOML files
+NESTED_DEPTH = 3
+
 # Add user-defined variable substitutions
 # Can supersede the existing substitutions above
 ENV_VAR_PREFIX = "YD_VAR_"
@@ -251,7 +254,9 @@ def load_toml_file_with_variable_substitutions(filename: str, prefix: str = "") 
     except KeyError:
         pass
 
-    process_variable_substitutions(config, prefix=prefix)
+    for _ in range(NESTED_DEPTH):
+        process_variable_substitutions(config, prefix=prefix)
+
     return config
 
 

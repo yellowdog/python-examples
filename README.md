@@ -15,6 +15,7 @@
 * [Variable Substitutions](#variable-substitutions)
    * [Default Variables](#default-variables)
    * [User-Defined Variables](#user-defined-variables)
+   * [Nested Variables](#nested-variables)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
@@ -83,7 +84,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Apr  4 09:23:24 BST 2023 -->
+<!-- Added by: pwt, at: Fri Apr 14 15:14:49 BST 2023 -->
 
 <!--te-->
 
@@ -339,6 +340,26 @@ run_id = "1234"
 Directives set on the command line take precedence over directives set in environment variables, and both of them take precedence over directives set in a TOML file.
 
 This method can be used to override the default directives, e.g., setting `-v username="other-user"` will override the default `{{username}}` directive.
+
+## Nested Variables
+
+In the case of **TOML properties only**, variable substitutions can be nested.
+
+For example, if one wanted to select a different `templateId` for a Worker Pool depending on the value of a `region` variable, one could use the following:
+
+```toml
+[common.variables]
+    template_london = "ydid:crt:65EF4F:a4d757cf-b67a-4eb6-bd39-8a6ffd46c8f4"
+    template_phoenix = "ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"
+    template_frankfurt = "ydid:crt:65EF4F:329602cf-5945-4aad-a288-ea424d64d55e"
+
+[common.workerPool]
+    templateId = "{{template_{{region}}}}"
+```
+
+Then, if one used `yd-provision -v region=phoenix`, the `templateId` property would first resolve to `"{{template_pheonix}}"`, and then to `"ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"`.
+
+Nesting can be up to three levels deep including the top level.
 
 # Work Requirement Properties
 
