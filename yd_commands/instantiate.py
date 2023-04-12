@@ -114,12 +114,16 @@ def main():
 
             if ARGS_PARSER.report:
                 print_log("Generating provisioning report only")
-                test_result: ComputeRequirementTemplateTestResult = (
-                    CLIENT.compute_client.test_compute_requirement_template(
-                        compute_requirement_template_usage
+                try:
+                    test_result: ComputeRequirementTemplateTestResult = (
+                        CLIENT.compute_client.test_compute_requirement_template(
+                            compute_requirement_template_usage
+                        )
                     )
-                )
-                print_compute_template_test_result(test_result)
+                    print_compute_template_test_result(test_result)
+                except requests.HTTPError as http_error:
+                    if "No sources" in http_error.response.text:
+                        print_log("No Compute Sources match the Template's constraints")
                 return
 
             if not ARGS_PARSER.dry_run:
