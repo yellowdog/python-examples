@@ -209,7 +209,7 @@ def submit_work_requirement(
     # Overwrite the WR name?
     global ID, CONFIG_WR
     ID = format_yd_name(
-        wr_data.get(L_WR_NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
+        wr_data.get(NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
     )
     # Lazy substitution of the Work Requirement name, now it's defined
     add_substitutions(subs={L_WR_NAME: ID})
