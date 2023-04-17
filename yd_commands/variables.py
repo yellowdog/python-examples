@@ -85,8 +85,9 @@ def add_substitutions(subs: Dict):
     VARIABLE_SUBSTITUTIONS = subs
 
     # Populate variables that can now be substituted
+    # Ensure that the value is stored as a string
     for key, value in VARIABLE_SUBSTITUTIONS.items():
-        VARIABLE_SUBSTITUTIONS[key] = substitute_variable_str(value)
+        VARIABLE_SUBSTITUTIONS[key] = substitute_variable_str(str(value))
 
 
 def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
@@ -97,7 +98,7 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
         return None
 
     for sub, value in VARIABLE_SUBSTITUTIONS.items():
-        input_string = input_string.replace(f"{{{{{sub}}}}}", value)
+        input_string = input_string.replace(f"{{{{{sub}}}}}", str(value))
 
     return input_string
 
