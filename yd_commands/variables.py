@@ -32,7 +32,9 @@ VARIABLE_SUBSTITUTIONS = {
 # Lazy substitutions: 'submit' only
 if "submit" in sys.argv[0]:
     L_WR_NAME = "wr_name"
+    L_TASK_NAME = "task_name"
     L_TASK_NUMBER = "task_number"
+    L_TASK_GROUP_NAME = "task_group_name"
     L_TASK_GROUP_NUMBER = "task_group_number"
     L_TASK_COUNT = "task_count"
     L_TASK_GROUP_COUNT = "task_group_count"
@@ -88,6 +90,13 @@ def add_substitutions(subs: Dict):
     # Ensure that the value is stored as a string
     for key, value in VARIABLE_SUBSTITUTIONS.items():
         VARIABLE_SUBSTITUTIONS[key] = substitute_variable_str(str(value))
+
+
+def add_substitution_overwrite(key: str, value: str):
+    """
+    Add a substitution to the dictionary, overwriting existing values.
+    """
+    VARIABLE_SUBSTITUTIONS[key] = str(value)
 
 
 def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:

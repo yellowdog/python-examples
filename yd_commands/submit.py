@@ -72,9 +72,12 @@ from yd_commands.validate_properties import validate_properties
 from yd_commands.variables import (
     L_TASK_COUNT,
     L_TASK_GROUP_COUNT,
+    L_TASK_GROUP_NAME,
     L_TASK_GROUP_NUMBER,
+    L_TASK_NAME,
     L_TASK_NUMBER,
     L_WR_NAME,
+    add_substitution_overwrite,
     add_substitutions,
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
@@ -477,6 +480,14 @@ def add_tasks_to_task_group(
             f"{num_task_batches} batches"
         )
 
+    # Add lazy substitutions for use in any Task property
+    add_substitution_overwrite(L_TASK_COUNT, str(num_tasks))
+    add_substitution_overwrite(L_TASK_GROUP_NAME, task_group.name)
+    add_substitution_overwrite(
+        L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
+    )
+    add_substitution_overwrite(L_TASK_GROUP_COUNT, str(num_task_groups))
+
     # Iterate through batches
     for batch_number in range(num_task_batches):
         # Iterate through tasks in the batch
@@ -495,6 +506,13 @@ def add_tasks_to_task_group(
                     num_task_groups,
                 )
             )
+
+            add_substitution_overwrite(L_TASK_NAME, str(task_name))
+            add_substitution_overwrite(
+                L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
+            )
+            process_variable_substitutions(task)
+
             executable = check_str(
                 task.get(
                     EXECUTABLE,

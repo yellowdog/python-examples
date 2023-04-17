@@ -748,14 +748,18 @@ Variable substitutions can be used within any property value in TOML configurati
 
 ### Task and Task Group Name Substitution
 
-The following numbering substitutions are available for use in Task and Task Group naming, i.e., they can be used in the `name` properties for Tasks and Task Groups respectively in JSON Work Requirements. Note that Task Group names cannot use the `{{task_number}}` directive.
+The following numbering and naming substitutions are available for use in Task and Task Group naming, i.e., they can be used in the `name` properties for Tasks and Task Groups respectively in JSON Work Requirements. Note that Task Group names cannot use the `{{task_number}}` directive.
 
-| Directive               | Description                                       | Task Group | Task |
-|:------------------------|:--------------------------------------------------|:-----------|:-----|
-| `{{task_group_count}}`  | The number of Task Groups in the Work Requirement | Yes        | Yes  |
-| `{{task_group_number}}` | The current Task Group number                     | Yes        | Yes  |
-| `{{task_count}}`        | The number of Tasks in the current Task Group     | Yes        | Yes  |
-| `{{task_number}}`       | The current Task number                           |            | Yes  |
+**Tasks** can also use any of the substitutions in any of their properties.
+
+| Directive               | Description                                       | Task | Task Group |
+|:------------------------|:--------------------------------------------------|:-----|:-----------|
+| `{{task_number}}`       | The current Task number                           | Yes  |            |
+| `{{task_name}}`         | The current Task name                             | Yes  |            |
+| `{{task_group_name}}`   | The current Task Group name                       | Yes  |            |
+| `{{task_count}}`        | The number of Tasks in the current Task Group     | Yes  | Yes        |
+| `{{task_group_number}}` | The current Task Group number                     | Yes  | Yes        |
+| `{{task_group_count}}`  | The number of Task Groups in the Work Requirement | Yes  | Yes        |
 
 Numbers are zero-padded for neat formatting and sorting, e.g., Task number 37 of 1000 Tasks would be substituted as `0037`.
 
