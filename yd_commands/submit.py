@@ -4,6 +4,7 @@
 A script to submit a Work Requirement.
 """
 
+from copy import deepcopy
 from datetime import timedelta
 from math import ceil
 from os import chdir
@@ -460,7 +461,11 @@ def add_tasks_to_task_group(
     task_group_task_count = wr_data[TASK_GROUPS][tg_number].get(TASK_COUNT, None)
     if task_group_task_count is not None:
         if num_tasks == 1:
-            task_count = check_int(task_group_task_count)
+            # Expand the number of Tasks to match the specified Task count
+            for _ in range(1, int(task_group_task_count)):
+                wr_data[TASK_GROUPS][tg_number][TASKS].append(
+                    deepcopy(wr_data[TASK_GROUPS][tg_number][TASKS][0])
+                )
         else:
             print_log(
                 f"Warning: Task Group '{task_group.name}' contains {num_tasks} "
@@ -471,7 +476,7 @@ def add_tasks_to_task_group(
 
     # Determine Task batching
     tasks = wr_data[TASK_GROUPS][tg_number][TASKS]
-    num_tasks = len(tasks) if task_count is None else task_count
+    num_tasks = len(tasks)
     num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
     tasks_list: List[Task] = []
     if num_task_batches > 1 and not ARGS_PARSER.dry_run:
@@ -496,7 +501,7 @@ def add_tasks_to_task_group(
             min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
         ):
             task_group_data = wr_data[TASK_GROUPS][tg_number]
-            task = tasks[task_number] if task_count is None else tasks[0]
+            task = tasks[task_number]
             task_name = format_yd_name(
                 get_task_name(
                     task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
