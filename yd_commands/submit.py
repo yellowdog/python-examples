@@ -476,7 +476,7 @@ def add_tasks_to_task_group(
 
     # Determine Task batching
     tasks = wr_data[TASK_GROUPS][tg_number][TASKS]
-    num_tasks = len(tasks)
+    num_tasks = len(tasks) if task_count is None else task_count
     num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
     tasks_list: List[Task] = []
     if num_task_batches > 1 and not ARGS_PARSER.dry_run:
@@ -501,7 +501,7 @@ def add_tasks_to_task_group(
             min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
         ):
             task_group_data = wr_data[TASK_GROUPS][tg_number]
-            task = tasks[task_number]
+            task = tasks[task_number] if task_count is None else tasks[0]
             task_name = format_yd_name(
                 get_task_name(
                     task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
