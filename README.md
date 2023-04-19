@@ -748,9 +748,9 @@ Variable substitutions can be used within any property value in TOML configurati
 
 ### Task and Task Group Name Substitution
 
-The following numbering and naming substitutions are available for use in Task and Task Group naming, i.e., they can be used in the `name` properties for Tasks and Task Groups respectively in JSON Work Requirements. Note that Task Group names cannot use the `{{task_number}}` directive.
+The following numbering and naming substitutions are available for use in Task and Task Group naming, only when the Work Requirement is specified as  JSON document, i.e., they can be used in the `name` properties for Tasks and Task Groups in JSON specifications.
 
-**Tasks** can also use any of the substitutions in any of their properties.
+The following table defines the context(s) in which each variable can be used:
 
 | Directive               | Description                                       | Task | Task Group |
 |:------------------------|:--------------------------------------------------|:-----|:-----------|
@@ -761,7 +761,9 @@ The following numbering and naming substitutions are available for use in Task a
 | `{{task_group_number}}` | The current Task Group number                     | Yes  | Yes        |
 | `{{task_group_count}}`  | The number of Task Groups in the Work Requirement | Yes  | Yes        |
 
-Numbers are zero-padded for neat formatting and sorting, e.g., Task number 37 of 1000 Tasks would be substituted as `0037`.
+In addition, **Tasks** defined in JSON documents can use any of the substitutions above in any of their properties, not just `name`.
+
+Numbers are zero-padded for neat formatting and sorting, e.g., Task number `37` of `1000` Tasks would be substituted as `0037`.
 
 As an example, the following JSON Work Requirement:
 
@@ -774,7 +776,8 @@ As an example, the following JSON Work Requirement:
       "taskCount": 2,
       "tasks": [
         {
-          "name": "my_task_{{task_number}}-of-{{task_count}}"
+          "name": "my_task_{{task_number}}-of-{{task_count}}",
+          "environment": {"TASK_NUMBER": "{{task_number}}"}
         }
       ]
     },
