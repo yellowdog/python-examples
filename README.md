@@ -92,9 +92,12 @@
 
 This repository contains a set of example Python scripts for interacting with the YellowDog Platform. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
 
+
+*(Note: these scripts are intended to be a helpful starting point for experimenting with the YellowDog Platform. They are not assured to be of production quality nor do they represent a standard or recommended method for using YellowDog.)*
+
 This documentation should be read in conjunction with the main **[YellowDog Documentation](https://docs.yellowdog.co)**, which provides a comprehensive description of the concepts and operation of the YellowDog Platform.
 
-The scripts are intended to be helpful starting points for experimenting with the YellowDog Platform. They are not assured to be of production quality nor to represent a standard or recommended method for using YellowDog.
+Template solutions for experimenting with these scripts can be found in the **[python-examples-templates](https://github.com/yellowdog/python-examples-templates)** repository.
 
 The scripts provide the following capabilities:
 
