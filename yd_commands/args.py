@@ -40,8 +40,10 @@ class CLIParser:
             "-c",
             required=False,
             type=str,
-            help="configuration file in TOML format; "
-            "default is 'config.toml' in the current directory",
+            help=(
+                "configuration file in TOML format; "
+                "default is 'config.toml' in the current directory"
+            ),
             metavar="<config_file.toml>",
         )
         parser.add_argument(
@@ -179,7 +181,10 @@ class CLIParser:
                 "-p",
                 action="store_true",
                 required=False,
-                help="process CSV variable substitutions only and output intermediate JSON",
+                help=(
+                    "process CSV variable substitutions only and output intermediate"
+                    " JSON"
+                ),
             )
 
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
@@ -402,8 +407,10 @@ class CLIParser:
             print(
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 ":",
-                "Note: the '--follow' ('-f') option is partially supported "
-                "for Python versions 3.10 and above",
+                (
+                    "Note: the '--follow' ('-f') option is partially supported "
+                    "for Python versions 3.10 and above"
+                ),
             )
 
     @property

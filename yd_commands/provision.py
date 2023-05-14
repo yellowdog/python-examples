@@ -96,9 +96,11 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             # Generate a default name
             (
                 "requirementName",
-                CONFIG_WP.name
-                if CONFIG_WP.name is not None
-                else generate_id("wp" + "_" + CONFIG_COMMON.name_tag),
+                (
+                    CONFIG_WP.name
+                    if CONFIG_WP.name is not None
+                    else generate_id("wp" + "_" + CONFIG_COMMON.name_tag)
+                ),
             ),
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
@@ -152,19 +154,19 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         auto_shutdown_conditions = [
             {
                 "delay": asc_all_nodes_inactive,
-                "type": (f"{type_prefix}.AllNodesInactiveShutdownCondition"),
+                "type": f"{type_prefix}.AllNodesInactiveShutdownCondition",
             },
             {
                 "delay": asc_all_workers_released,
-                "type": (f"{type_prefix}.AllWorkersReleasedShutdownCondition"),
+                "type": f"{type_prefix}.AllWorkersReleasedShutdownCondition",
             },
             {
                 "delay": asc_node_action_failed,
-                "type": (f"{type_prefix}.NodeActionFailedShutdownCondition"),
+                "type": f"{type_prefix}.NodeActionFailedShutdownCondition",
             },
             {
                 "delay": asc_unclaimed_after_startup,
-                "type": (f"{type_prefix}.UnclaimedAfterStartupShutdownCondition"),
+                "type": f"{type_prefix}.UnclaimedAfterStartupShutdownCondition",
             },
         ]
         if CONFIG_WP.asc_no_registered_workers is True:
@@ -374,11 +376,11 @@ def create_worker_pool():
             raise Exception(e)
 
     print_log(
-        f"Node boot time limit is "
+        "Node boot time limit is "
         f"{CONFIG_WP.node_boot_time_limit} minute(s) | "
-        f"Node idle grace period is "
+        "Node idle grace period is "
         f"{CONFIG_WP.node_idle_grace_period} minute(s) | "
-        f"Node idle time limit is "
+        "Node idle time limit is "
         f"{CONFIG_WP.node_idle_time_limit} minute(s)"
     )
 

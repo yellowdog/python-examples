@@ -95,8 +95,7 @@ def select(
     if len(selected_list) > 0:
         print(
             print_string(
-                f"Selected item number(s): "
-                f"{', '.join([str(x) for x in selected_list])}"
+                f"Selected item number(s): {', '.join([str(x) for x in selected_list])}"
             )
         )
     else:

@@ -24,13 +24,13 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        f"Shutting down Worker Pools with Compute Requirements in "
+        "Shutting down Worker Pools with Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
         f"tag starting with '{CONFIG_COMMON.name_tag}'"
     )
-    worker_pool_summaries: List[
-        WorkerPoolSummary
-    ] = CLIENT.worker_pool_client.find_all_worker_pools()
+    worker_pool_summaries: List[WorkerPoolSummary] = (
+        CLIENT.worker_pool_client.find_all_worker_pools()
+    )
     shutdown_count = 0
 
     selected_worker_pool_summaries: List[WorkerPoolSummary] = []

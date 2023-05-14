@@ -227,9 +227,11 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
             # Generate a default name
             (
                 "requirementName",
-                CONFIG_WP.name
-                if CONFIG_WP.name is not None
-                else generate_id("cr" + "_" + CONFIG_COMMON.name_tag),
+                (
+                    CONFIG_WP.name
+                    if CONFIG_WP.name is not None
+                    else generate_id("cr" + "_" + CONFIG_COMMON.name_tag)
+                ),
             ),
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),

@@ -168,7 +168,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
     if len(wr_data[TASK_GROUPS]) > len(csv_files):
         print_log(
             f"Note: Number of Task Groups ({len(wr_data[TASK_GROUPS])}) "
-            f"in Work Requirement is greater than number of CSV files "
+            "in Work Requirement is greater than number of CSV files "
             f"({len(csv_files)})"
         )
 
@@ -195,7 +195,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
 
         if not substitions_present(csv_data.var_names, str(task_prototype)):
             print_log(
-                f"Warning: No CSV substitutions to apply to Task Group "
+                "Warning: No CSV substitutions to apply to Task Group "
                 f"{index + 1}; not expanding Task list"
             )
             continue

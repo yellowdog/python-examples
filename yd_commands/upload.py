@@ -20,8 +20,7 @@ def main():
     if ARGS_PARSER.content_path is not None and ARGS_PARSER.content_path != "":
         chdir(ARGS_PARSER.content_path)
         print_log(
-            "Uploading files relative to local directory: "
-            f"'{ARGS_PARSER.content_path}'"
+            f"Uploading files relative to local directory: '{ARGS_PARSER.content_path}'"
         )
 
     print_log(

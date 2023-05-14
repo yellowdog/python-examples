@@ -65,9 +65,9 @@ def get_filtered_work_requirements(
 
     filtered_work_summaries: List[WorkRequirementSummary] = []
 
-    work_requirement_summaries: List[
-        WorkRequirementSummary
-    ] = client.work_client.find_all_work_requirements()
+    work_requirement_summaries: List[WorkRequirementSummary] = (
+        client.work_client.find_all_work_requirements()
+    )
 
     for work_summary in work_requirement_summaries:
         work_summary.tag = "" if work_summary.tag is None else work_summary.tag

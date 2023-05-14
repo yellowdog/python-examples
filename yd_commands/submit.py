@@ -254,7 +254,7 @@ def submit_work_requirement(
     if not ARGS_PARSER.dry_run:
         work_requirement = CLIENT.work_client.add_work_requirement(work_requirement)
         print_log(
-            f"Created "
+            "Created "
             f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
             f"({work_requirement.name})"
         )
@@ -717,9 +717,9 @@ def add_tasks_to_task_group(
         if not ARGS_PARSER.dry_run:
             if num_task_batches > 1:
                 print_log(
-                    f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} : "
-                    f"Added {len(tasks_list):,d} "
-                    f"Task(s) to Work Requirement Task Group '{task_group.name}'"
+                    f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} :"
+                    f" Added {len(tasks_list):,d} Task(s) to Work Requirement Task"
+                    f" Group '{task_group.name}'"
                 )
 
         # Empty the task list for the next batch
@@ -728,7 +728,8 @@ def add_tasks_to_task_group(
     if not ARGS_PARSER.dry_run:
         if num_tasks > 0:
             print_log(
-                f"Added a total of {num_tasks} Task(s) to Task Group '{task_group.name}'"
+                f"Added a total of {num_tasks} Task(s) to Task Group"
+                f" '{task_group.name}'"
             )
         else:
             print_log(f"No Tasks added to Task Group '{task_group.name}'")
@@ -790,7 +791,7 @@ def on_update(work_req: WorkRequirement):
         total += task_group.taskSummary.taskCount
     print_log(
         f"WORK REQUIREMENT is {work_req.status} with {completed}/{total} "
-        f"COMPLETED TASKS"
+        "COMPLETED TASKS"
     )
 
 
@@ -976,14 +977,16 @@ def create_task(
         if task_input.objectNamePattern not in [x.objectNamePattern for x in inputs]:
             inputs.append(task_input)
         args = [
-            unique_upload_pathname(
-                filename=executable,
-                id=ID,
-                inputs_folder_name=INPUTS_FOLDER_NAME,
-                flatten_upload_paths=flatten_upload_paths,
+            (
+                unique_upload_pathname(
+                    filename=executable,
+                    id=ID,
+                    inputs_folder_name=INPUTS_FOLDER_NAME,
+                    flatten_upload_paths=flatten_upload_paths,
+                )
+                if flatten_input_paths is None
+                else basename(executable)
             )
-            if flatten_input_paths is None
-            else basename(executable)
         ] + args
         return _make_task(flatten_input_paths)
 
@@ -1151,7 +1154,9 @@ def submit_json_raw(wr_file: str):
                     f"taskGroups/{task_group_name}/tasks"
                 ),
                 headers={
-                    "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
+                    "Authorization": (
+                        f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
+                    )
                 },
                 json=task_batch,
             )

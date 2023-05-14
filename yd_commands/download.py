@@ -28,10 +28,10 @@ def main():
         f"names starting with '{tag}'"
     )
 
-    object_paths: List[
-        ObjectPath
-    ] = CLIENT.object_store_client.get_namespace_object_paths(
-        ObjectPathsRequest(CONFIG_COMMON.namespace)
+    object_paths: List[ObjectPath] = (
+        CLIENT.object_store_client.get_namespace_object_paths(
+            ObjectPathsRequest(CONFIG_COMMON.namespace)
+        )
     )
     object_paths_to_download: List[ObjectPath] = []
     for object_path in object_paths:

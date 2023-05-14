@@ -27,7 +27,7 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        f"Finding Work Requirements in "
+        "Finding Work Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
         f"tag starting with '{CONFIG_COMMON.name_tag}'"
     )
@@ -35,17 +35,17 @@ def main():
     # Abort Tasks is always interactive
     ARGS_PARSER.interactive = True
 
-    selected_work_requirement_summaries: List[
-        WorkRequirementSummary
-    ] = get_filtered_work_requirements(
-        CLIENT,
-        namespace=CONFIG_COMMON.namespace,
-        tag=CONFIG_COMMON.name_tag,
-        exclude_filter=[
-            WorkRequirementStatus.COMPLETED,
-            WorkRequirementStatus.CANCELLED,
-            WorkRequirementStatus.FAILED,
-        ],
+    selected_work_requirement_summaries: List[WorkRequirementSummary] = (
+        get_filtered_work_requirements(
+            CLIENT,
+            namespace=CONFIG_COMMON.namespace,
+            tag=CONFIG_COMMON.name_tag,
+            exclude_filter=[
+                WorkRequirementStatus.COMPLETED,
+                WorkRequirementStatus.CANCELLED,
+                WorkRequirementStatus.FAILED,
+            ],
+        )
     )
 
     if len(selected_work_requirement_summaries) != 0:
@@ -90,9 +90,9 @@ def abort_tasks_selectively(
                 try:
                     CLIENT.work_client.cancel_task(task, abort=True)
                     print_log(
-                        f"Aborting Task '{task.name}' "
-                        f"in Task Group '{get_task_group_name(CLIENT, wr_summary, task)}' "
-                        f"in Work Requirement '{wr_summary.name}'"
+                        f"Aborting Task '{task.name}' in Task Group"
+                        f" '{get_task_group_name(CLIENT, wr_summary, task)}' in Work"
+                        f" Requirement '{wr_summary.name}'"
                     )
                     aborted_tasks += 1
                 except Exception as e:

@@ -19,10 +19,10 @@ def main():
         f"Deleting Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
         f"names starting with '{CONFIG_COMMON.name_tag}'"
     )
-    object_paths: List[
-        ObjectPath
-    ] = CLIENT.object_store_client.get_namespace_object_paths(
-        ObjectPathsRequest(CONFIG_COMMON.namespace)
+    object_paths: List[ObjectPath] = (
+        CLIENT.object_store_client.get_namespace_object_paths(
+            ObjectPathsRequest(CONFIG_COMMON.namespace)
+        )
     )
     object_paths_to_delete: List[ObjectPath] = []
     for object_path in object_paths:

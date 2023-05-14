@@ -80,8 +80,10 @@ def list_work_requirements():
     options chosen.
     """
     print_log(
-        f"Listing Work Requirements in 'namespace={CONFIG_COMMON.namespace}' "
-        f"and names starting with 'tag={CONFIG_COMMON.name_tag}'",
+        (
+            f"Listing Work Requirements in 'namespace={CONFIG_COMMON.namespace}' "
+            f"and names starting with 'tag={CONFIG_COMMON.name_tag}'"
+        ),
         override_quiet=True,
     )
     exclude_filter = (
@@ -93,13 +95,13 @@ def list_work_requirements():
         if ARGS_PARSER.live_only
         else []
     )
-    work_requirement_summaries: List[
-        WorkRequirementSummary
-    ] = get_filtered_work_requirements(
-        CLIENT,
-        namespace=CONFIG_COMMON.namespace,
-        tag=CONFIG_COMMON.name_tag,
-        exclude_filter=exclude_filter,
+    work_requirement_summaries: List[WorkRequirementSummary] = (
+        get_filtered_work_requirements(
+            CLIENT,
+            namespace=CONFIG_COMMON.namespace,
+            tag=CONFIG_COMMON.name_tag,
+            exclude_filter=exclude_filter,
+        )
     )
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
     if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
@@ -141,23 +143,23 @@ def list_object_paths():
         f"Listing Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
         f"names starting with '{CONFIG_COMMON.name_tag}'"
     )
-    object_paths: List[
-        ObjectPath
-    ] = CLIENT.object_store_client.get_namespace_object_paths(
-        ObjectPathsRequest(CONFIG_COMMON.namespace)
+    object_paths: List[ObjectPath] = (
+        CLIENT.object_store_client.get_namespace_object_paths(
+            ObjectPathsRequest(CONFIG_COMMON.namespace)
+        )
     )
     print_numbered_object_list(CLIENT, object_paths)
 
 
 def list_worker_pools():
     print_log(
-        f"Listing Provisioned Worker Pools with Compute Requirements in "
+        "Listing Provisioned Worker Pools with Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
         f"names starting with '{CONFIG_COMMON.name_tag}'"
     )
-    worker_pool_summaries: List[
-        WorkerPoolSummary
-    ] = CLIENT.worker_pool_client.find_all_worker_pools()
+    worker_pool_summaries: List[WorkerPoolSummary] = (
+        CLIENT.worker_pool_client.find_all_worker_pools()
+    )
 
     selected_worker_pool_summaries: List[WorkerPoolSummary] = []
     excluded_states = (
@@ -198,14 +200,14 @@ def list_worker_pools():
 
 def list_compute_requirements():
     print_log(
-        f"Listing Compute Requirements in "
+        "Listing Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
         f" names starting with '{CONFIG_COMMON.name_tag}'"
     )
 
-    compute_requirement_summaries: List[
-        ComputeRequirementSummary
-    ] = CLIENT.compute_client.find_all_compute_requirements()
+    compute_requirement_summaries: List[ComputeRequirementSummary] = (
+        CLIENT.compute_client.find_all_compute_requirements()
+    )
 
     filtered_compute_requirement_summaries: List[ComputeRequirementSummary] = []
     excluded_states = (

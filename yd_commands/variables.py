@@ -66,7 +66,7 @@ if ARGS_PARSER.variables is not None:
         if len(key_value) == 2:
             VARIABLE_SUBSTITUTIONS[key_value[0]] = key_value[1]
             print_log(
-                f"Adding command-line-defined variable substitution: "
+                "Adding command-line-defined variable substitution: "
                 f"'{key_value[0]}' = '{key_value[1]}'"
             )
         else:
@@ -181,7 +181,7 @@ def substitute_variable_str(
                 replaced_number = float(replaced)
             except ValueError:
                 raise Exception(
-                    f"Non-number used in variable number "
+                    "Non-number used in variable number "
                     f"substitution: '{input}':'{replaced}'"
                 )
         return replaced_number
@@ -198,8 +198,7 @@ def substitute_variable_str(
         if replaced.lower() == "false":
             return False
         raise Exception(
-            f"Non-boolean used in variable boolean "
-            f"substitution: '{input}':'{replaced}'"
+            f"Non-boolean used in variable boolean substitution: '{input}':'{replaced}'"
         )
 
     # Note: this will break if variable substitutions intended for this

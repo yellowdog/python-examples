@@ -32,22 +32,22 @@ ABORT_RETRY_INTERVAL = 20  # Seconds
 @main_wrapper
 def main():
     print_log(
-        f"Cancelling Work Requirements in "
+        "Cancelling Work Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
         f"tag starting with '{CONFIG_COMMON.name_tag}'"
     )
 
-    selected_work_requirement_summaries: List[
-        WorkRequirementSummary
-    ] = get_filtered_work_requirements(
-        client=CLIENT,
-        namespace=CONFIG_COMMON.namespace,
-        tag=CONFIG_COMMON.name_tag,
-        exclude_filter=[
-            WorkRequirementStatus.COMPLETED,
-            WorkRequirementStatus.CANCELLED,
-            WorkRequirementStatus.FAILED,
-        ],
+    selected_work_requirement_summaries: List[WorkRequirementSummary] = (
+        get_filtered_work_requirements(
+            client=CLIENT,
+            namespace=CONFIG_COMMON.namespace,
+            tag=CONFIG_COMMON.name_tag,
+            exclude_filter=[
+                WorkRequirementStatus.COMPLETED,
+                WorkRequirementStatus.CANCELLED,
+                WorkRequirementStatus.FAILED,
+            ],
+        )
     )
 
     cancelled_count = 0
@@ -126,9 +126,9 @@ def abort_all_tasks(
                 try:
                     CLIENT.work_client.cancel_task(task, abort=True)
                     print_log(
-                        f"Aborting Task '{task.name}' "
-                        f"in Task Group '{get_task_group_name(CLIENT, wr_summary, task)}' "
-                        f"in Work Requirement '{wr_summary.name}'"
+                        f"Aborting Task '{task.name}' in Task Group"
+                        f" '{get_task_group_name(CLIENT, wr_summary, task)}' in Work"
+                        f" Requirement '{wr_summary.name}'"
                     )
                     aborted_tasks += 1
                 except Exception as e:

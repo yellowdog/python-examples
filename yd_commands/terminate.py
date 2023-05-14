@@ -21,14 +21,14 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        f"Terminating Compute Requirements in "
+        "Terminating Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and tag "
         f"starting with '{CONFIG_COMMON.name_tag}'"
     )
 
-    compute_requirement_summaries: List[
-        ComputeRequirementSummary
-    ] = CLIENT.compute_client.find_all_compute_requirements()
+    compute_requirement_summaries: List[ComputeRequirementSummary] = (
+        CLIENT.compute_client.find_all_compute_requirements()
+    )
 
     terminated_count = 0
     selected_compute_requirement_summaries: List[ComputeRequirementSummary] = []
