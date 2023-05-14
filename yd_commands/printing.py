@@ -357,5 +357,5 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
             ]
         )
     print()
-    print(tabulate(source_table, headers="firstrow", tablefmt="simple_grid"))
+    print(tabulate(source_table, headers="firstrow", tablefmt="simple_outline"))
     print()
