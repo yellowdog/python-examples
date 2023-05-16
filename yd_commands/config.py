@@ -99,7 +99,7 @@ class ConfigWorkRequirement:
     wr_name: Optional[str] = None
 
 
-CR_BATCH_SIZE_DEFAULT = 2000
+CR_BATCH_SIZE_DEFAULT = 10000
 
 
 @dataclass
