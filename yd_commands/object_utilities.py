@@ -7,7 +7,7 @@ from typing import List, Optional, TypeVar
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
-    ComputeRequirementSummary,
+    ComputeRequirement,
     ConfiguredWorkerPool,
     ObjectPath,
     ProvisionedWorkerPool,
@@ -85,7 +85,7 @@ def get_filtered_work_requirements(
 Item = TypeVar(
     "Item",
     ConfiguredWorkerPool,
-    ComputeRequirementSummary,
+    ComputeRequirement,
     ObjectPath,
     ProvisionedWorkerPool,
     Task,

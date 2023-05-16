@@ -14,8 +14,8 @@ from yellowdog_client.common.json import Json
 from yellowdog_client.model import (
     BestComputeSourceReport,
     BestComputeSourceReportSource,
+    ComputeRequirement,
     ComputeRequirementDynamicTemplateTestResult,
-    ComputeRequirementSummary,
     ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
     ConfiguredWorkerPool,
@@ -80,7 +80,7 @@ TYPE_MAP = {
     ConfiguredWorkerPool: "Configured Worker Pool",
     ProvisionedWorkerPool: "Provisioned Worker Pool",
     WorkerPoolSummary: "Worker Pool",
-    ComputeRequirementSummary: "Compute Requirement",
+    ComputeRequirement: "Compute Requirement",
     Task: "Task",
     TaskGroup: "Task Group",
     WorkRequirementSummary: "Work Requirement",
@@ -96,16 +96,16 @@ def get_type_name(obj: Item) -> str:
 
 
 def compute_requirement_table(
-    cr_summary_list: List[ComputeRequirementSummary],
+    cr_list: List[ComputeRequirement],
 ) -> List[List]:
     table = []
-    for index, cr_summary in enumerate(cr_summary_list):
+    for index, cr in enumerate(cr_list):
         table.append(
             [
                 index + 1,
                 ":",
-                cr_summary.name,
-                f"[{cr_summary.status}]",
+                cr.name,
+                f"[{cr.status}]",
             ]
         )
     return table
@@ -191,7 +191,7 @@ def print_numbered_object_list(
     )
     print()
 
-    if isinstance(objects[0], ComputeRequirementSummary):
+    if isinstance(objects[0], ComputeRequirement):
         table = compute_requirement_table(objects)
     elif isinstance(objects[0], WorkRequirementSummary):
         table = work_requirement_table(objects)

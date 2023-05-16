@@ -6,10 +6,11 @@ A script to terminate Compute Requirements.
 
 from typing import List
 
+from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     ComputeRequirement,
+    ComputeRequirementSearch,
     ComputeRequirementStatus,
-    ComputeRequirementSummary,
 )
 
 from yd_commands.config import link_entity
@@ -26,43 +27,46 @@ def main():
         f"starting with '{CONFIG_COMMON.name_tag}'"
     )
 
-    compute_requirement_summaries: List[ComputeRequirementSummary] = (
-        CLIENT.compute_client.find_all_compute_requirements()
+    cr_search = ComputeRequirementSearch(
+        namespace=CONFIG_COMMON.namespace,
+        statuses=[
+            ComputeRequirementStatus.NEW,
+            ComputeRequirementStatus.PROVISIONING,
+            ComputeRequirementStatus.STARTING,
+            ComputeRequirementStatus.RUNNING,
+            ComputeRequirementStatus.STOPPING,
+        ],
+        # Excludes TERMINATED, TERMINATING
     )
+    search_client: SearchClient = CLIENT.compute_client.get_compute_requirements(
+        cr_search
+    )
+    compute_requirements: List[ComputeRequirement] = search_client.list_all()
 
     terminated_count = 0
-    selected_compute_requirement_summaries: List[ComputeRequirementSummary] = []
+    selected_compute_requirements: List[ComputeRequirement] = []
 
-    for compute_summary in compute_requirement_summaries:
-        compute_summary.tag = "" if compute_summary.tag is None else compute_summary.tag
-        if (
-            compute_summary.tag.startswith(CONFIG_COMMON.name_tag)
-            and compute_summary.namespace == CONFIG_COMMON.namespace
-            and compute_summary.status
-            not in [
-                ComputeRequirementStatus.TERMINATED,
-                ComputeRequirementStatus.TERMINATING,
-            ]
-        ):
-            selected_compute_requirement_summaries.append(compute_summary)
-
-    if len(selected_compute_requirement_summaries) > 0:
-        selected_compute_requirement_summaries = select(
-            CLIENT, selected_compute_requirement_summaries
+    for compute_requirement in compute_requirements:
+        compute_requirement.tag = (
+            "" if compute_requirement.tag is None else compute_requirement.tag
         )
+        if compute_requirement.tag.startswith(CONFIG_COMMON.name_tag):
+            selected_compute_requirements.append(compute_requirement)
 
-    if len(selected_compute_requirement_summaries) > 0 and confirmed(
-        f"Terminate {len(selected_compute_requirement_summaries)} "
-        "Compute Requirement(s)?"
+    if len(selected_compute_requirements) > 0:
+        selected_compute_requirements = select(CLIENT, selected_compute_requirements)
+
+    if len(selected_compute_requirements) > 0 and confirmed(
+        f"Terminate {len(selected_compute_requirements)} Compute Requirement(s)?"
     ):
-        for compute_summary in selected_compute_requirement_summaries:
+        for compute_requirement in selected_compute_requirements:
             try:
                 CLIENT.compute_client.terminate_compute_requirement_by_id(
-                    compute_summary.id
+                    compute_requirement.id
                 )
                 compute_requirement: ComputeRequirement = (
                     CLIENT.compute_client.get_compute_requirement_by_id(
-                        compute_summary.id
+                        compute_requirement.id
                     )
                 )
                 terminated_count += 1
@@ -70,7 +74,7 @@ def main():
                     f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement)}"
                 )
             except:
-                print_error(f"Unable to terminate '{compute_summary.name}'")
+                print_error(f"Unable to terminate '{compute_requirement.name}'")
 
     if terminated_count > 0:
         print_log(f"Terminated {terminated_count} Compute Requirement(s)")

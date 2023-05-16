@@ -7,10 +7,11 @@ Command to list YellowDog entities.
 from typing import List
 
 from requests import HTTPError
+from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     ComputeRequirement,
+    ComputeRequirementSearch,
     ComputeRequirementStatus,
-    ComputeRequirementSummary,
     ObjectPath,
     ObjectPathsRequest,
     Task,
@@ -205,28 +206,34 @@ def list_compute_requirements():
         f" names starting with '{CONFIG_COMMON.name_tag}'"
     )
 
-    compute_requirement_summaries: List[ComputeRequirementSummary] = (
-        CLIENT.compute_client.find_all_compute_requirements()
+    cr_search = ComputeRequirementSearch(
+        namespace=CONFIG_COMMON.namespace,
     )
+    search_client: SearchClient = CLIENT.compute_client.get_compute_requirements(
+        cr_search
+    )
+    compute_requirements: List[ComputeRequirement] = search_client.list_all()
 
-    filtered_compute_requirement_summaries: List[ComputeRequirementSummary] = []
+    filtered_compute_requirements: List[ComputeRequirement] = []
     excluded_states = (
         [ComputeRequirementStatus.TERMINATED, ComputeRequirementStatus.TERMINATING]
         if ARGS_PARSER.live_only
         else []
     )
-    for compute_summary in compute_requirement_summaries:
-        compute_summary.tag = "" if compute_summary.tag is None else compute_summary.tag
+    for compute_requirement in compute_requirements:
+        compute_requirement.tag = (
+            "" if compute_requirement.tag is None else compute_requirement.tag
+        )
         if (
-            compute_summary.tag.startswith(CONFIG_COMMON.name_tag)
-            and compute_summary.namespace == CONFIG_COMMON.namespace
-            and compute_summary.status not in excluded_states
+            compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
+            and compute_requirement.namespace == CONFIG_COMMON.namespace
+            and compute_requirement.status not in excluded_states
         ):
-            filtered_compute_requirement_summaries.append(compute_summary)
+            filtered_compute_requirements.append(compute_requirement)
 
     print_numbered_object_list(
         CLIENT,
-        sorted_objects(filtered_compute_requirement_summaries),
+        sorted_objects(filtered_compute_requirements),
         override_quiet=True,
     )
 
