@@ -1291,7 +1291,9 @@ The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output
 
 # Worker Pool Properties
 
-The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. The only mandatory property is `templateId`. All other properties have defaults (or are not required).
+The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. A subset of the properties is also used by the `yd-instantiate` command, for creating standalone Compute Requirements that are not associated with Worker Pools.
+
+The only mandatory property is `templateId`. All other properties have defaults (or are not required).
 
 The following properties are available:
 
