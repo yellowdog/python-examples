@@ -23,9 +23,9 @@
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
       * [Task Types](#task-types)
-         * [Bash and PowerShell Tasks](#bash-and-powershell-tasks)
+         * [Bash, Python and PowerShell Tasks](#bash-python-and-powershell-tasks)
          * [Docker Tasks](#docker-tasks)
-         * [Bash, PowerShell &amp; Docker without Automatic Processing](#bash-powershell--docker-without-automatic-processing)
+         * [Bash, Python, PowerShell and Docker without Automatic Processing](#bash-python-powershell-and-docker-without-automatic-processing)
       * [Task Counts](#task-counts)
    * [Examples](#examples)
       * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
@@ -84,7 +84,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Jun  3 10:58:37 BST 2023 -->
+<!-- Added by: pwt, at: Sat Jun  3 18:22:49 BST 2023 -->
 
 <!--te-->
 
@@ -488,11 +488,12 @@ In addition to the inheritance mechanism, some properties are set automatically 
 
 For the **`bash`**, **`powershell`** and **`docker`** task types, some automatic processing will be performed if the **`executable`** property is set.
 
-#### Bash and PowerShell Tasks
+#### Bash, Python and PowerShell Tasks
 
-For the **`bash`** and **`powershell`** Task Types, the script nominated in the `executable` property is automatically added to the `inputs` list (if not already present). This means the script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
+As a convenience, for the **`bash`**, **`python`**, and **`powershell`** Task Types, the script nominated in the **`executable`** property is automatically added to the `inputs` list (if not already present). This means the script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
 
-Using a `bash` Task as an example (in TOML form):
+Using a Bash Task as an example (in TOML form):
+
 ```toml
 taskType = "bash"
 executable = "my_bash_script.sh"
@@ -528,9 +529,9 @@ arguments = ["--env E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2",
 environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password"}
 ```
 
-#### Bash, PowerShell & Docker without Automatic Processing
+#### Bash, Python, PowerShell and Docker without Automatic Processing
 
-If the `executable` property is not supplied, the automatic processing described above for `bash`, `powershell` and `docker` taskTypes is not applied.
+If the `executable` property is not supplied, the automatic processing described above for `bash`, `python`, `powershell`, and `docker` taskTypes is not applied.
 
 ### Task Counts
 
