@@ -952,12 +952,13 @@ def create_task(
     ):
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
-    # Special processing for Bash tasks if the 'executable' property is set
-    # The Bash script is uploaded if this hasn't already been done, and
+    # Special processing for Bash & PowerShell tasks if the 'executable'
+    # property is set
+    # The script is uploaded if this hasn't already been done, and
     # added to the list of required files.
-    if task_type == "bash":
+    if task_type in ["bash", "powershell"]:
         if executable is None:
-            print_log("Note: no 'executable' specified for 'bash' Task Type")
+            print_log(f"Note: no 'executable' specified for '{task_type}' Task Type")
             return _make_task(flatten_input_paths)
 
         UPLOADED_FILES.add_input_file(
