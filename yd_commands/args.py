@@ -144,14 +144,6 @@ class CLIParser:
                 metavar="<executable>",
             )
             parser.add_argument(
-                "--task-batch-size",
-                "-b",
-                type=int,
-                required=False,
-                help="the batch size for task submission",
-                metavar="<batch_size>",
-            )
-            parser.add_argument(
                 "--task-type",
                 "-T",
                 type=str,
@@ -166,6 +158,20 @@ class CLIParser:
                 required=False,
                 help="the number of times to submit the task",
                 metavar="<task_count>",
+            )
+            parser.add_argument(
+                "--task-batch-size",
+                "-b",
+                type=int,
+                required=False,
+                help="the batch size for task submission",
+                metavar="<batch_size>",
+            )
+            parser.add_argument(
+                "--pause-between-batches",
+                action="store_true",
+                required=False,
+                help="pause for user input between batches (for debugging)",
             )
             parser.add_argument(
                 "--csv-file",
@@ -572,6 +578,10 @@ class CLIParser:
     @property
     def jsonnet_dry_run(self) -> Optional[bool]:
         return self.args.jsonnet_dry_run
+
+    @property
+    def pause_between_batches(self) -> Optional[bool]:
+        return self.args.pause_between_batches
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

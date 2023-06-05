@@ -495,6 +495,12 @@ def add_tasks_to_task_group(
 
     # Iterate through batches
     for batch_number in range(num_task_batches):
+        if ARGS_PARSER.pause_between_batches and batch_number > 0:
+            print_log(
+                f"Pausing before submitting batch number {batch_number + 1}. "
+                "Press enter to continue:"
+            )
+            input()
         # Iterate through tasks in the batch
         for task_number in range(
             (TASK_BATCH_SIZE * batch_number),
