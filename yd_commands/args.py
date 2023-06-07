@@ -169,6 +169,7 @@ class CLIParser:
             )
             parser.add_argument(
                 "--pause-between-batches",
+                "-P",
                 action="store_true",
                 required=False,
                 help="pause for user input between batches (for debugging)",
