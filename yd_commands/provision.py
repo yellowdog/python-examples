@@ -12,14 +12,10 @@ from typing import Dict, List, Optional
 import requests
 from yellowdog_client.common.iso_datetime import iso_timedelta_format
 from yellowdog_client.model import (
-    AllNodesInactiveShutdownCondition,
-    AllWorkersReleasedShutdownCondition,
+    AutoShutdown,
     ComputeRequirementTemplateUsage,
-    NodeActionFailedShutdownCondition,
     NodeWorkerTarget,
-    NoRegisteredWorkersShutdownCondition,
     ProvisionedWorkerPoolProperties,
-    UnclaimedAfterStartupShutdownCondition,
 )
 
 from yd_commands.args import ARGS_PARSER
@@ -29,7 +25,7 @@ from yd_commands.config import (
     link_entity,
     load_config_worker_pool,
 )
-from yd_commands.config_keys import MAINTAIN_INSTANCE_COUNT, USERDATA, USERDATAFILE
+from yd_commands.config_keys import MAINTAIN_INSTANCE_COUNT
 from yd_commands.printing import (
     print_error,
     print_log,
@@ -117,93 +113,41 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         # provisionedProperties insertions
         provisioned_properties = wp_data["provisionedProperties"]
 
-        # determine shutdown delays
-        auto_shutdown_delay: str = iso_timedelta_format(
-            timedelta(minutes=CONFIG_WP.auto_shutdown_delay)
-        )
-        asc_all_nodes_inactive = (
-            auto_shutdown_delay
-            if CONFIG_WP.asc_all_nodes_inactive is None
-            else iso_timedelta_format(
-                timedelta(minutes=CONFIG_WP.asc_all_nodes_inactive)
-            )
-        )
-        asc_all_workers_released = (
-            auto_shutdown_delay
-            if CONFIG_WP.asc_all_workers_released is None
-            else iso_timedelta_format(
-                timedelta(minutes=CONFIG_WP.asc_all_workers_released)
-            )
-        )
-        asc_node_action_failed = (
-            auto_shutdown_delay
-            if CONFIG_WP.asc_node_action_failed is None
-            else iso_timedelta_format(
-                timedelta(minutes=CONFIG_WP.asc_node_action_failed)
-            )
-        )
-        asc_unclaimed_after_startup = (
-            auto_shutdown_delay
-            if CONFIG_WP.asc_unclaimed_after_startup is None
-            else iso_timedelta_format(
-                timedelta(minutes=CONFIG_WP.asc_unclaimed_after_startup)
-            )
-        )
-
-        type_prefix = "co.yellowdog.platform.model"
-        auto_shutdown_conditions = [
-            {
-                "delay": asc_all_nodes_inactive,
-                "type": f"{type_prefix}.AllNodesInactiveShutdownCondition",
-            },
-            {
-                "delay": asc_all_workers_released,
-                "type": f"{type_prefix}.AllWorkersReleasedShutdownCondition",
-            },
-            {
-                "delay": asc_node_action_failed,
-                "type": f"{type_prefix}.NodeActionFailedShutdownCondition",
-            },
-            {
-                "delay": asc_unclaimed_after_startup,
-                "type": f"{type_prefix}.UnclaimedAfterStartupShutdownCondition",
-            },
-        ]
-        if CONFIG_WP.asc_no_registered_workers is True:
-            auto_shutdown_conditions.append(
-                {"type": f"{type_prefix}.NoRegisteredWorkersShutdownCondition"}
-            )
-
         for key, value in [
-            ("autoShutdown", CONFIG_WP.auto_shutdown),
-            ("autoShutdownConditions", auto_shutdown_conditions),
             ("workerTag", CONFIG_WP.worker_tag),
             (
-                "nodeBootTimeLimit",
-                iso_timedelta_format(timedelta(minutes=CONFIG_WP.node_boot_time_limit)),
+                "nodeBootTimeout",
+                iso_timedelta_format(timedelta(minutes=CONFIG_WP.node_boot_timeout)),
             ),
             (
-                "nodeIdleGracePeriod",
-                iso_timedelta_format(
-                    timedelta(minutes=CONFIG_WP.node_idle_grace_period)
+                "idleNodeShutdown",
+                (
+                    {
+                        "enabled": True,
+                        "timeout": iso_timedelta_format(
+                            timedelta(minutes=CONFIG_WP.idle_node_shutdown_timeout)
+                        ),
+                    }
+                    if CONFIG_WP.idle_node_shutdown_enabled
+                    else {"enabled": False}
                 ),
             ),
             (
-                "nodeIdleTimeLimit",
-                iso_timedelta_format(timedelta(minutes=CONFIG_WP.node_idle_time_limit)),
+                "idlePoolShutdown",
+                (
+                    {
+                        "enabled": True,
+                        "timeout": iso_timedelta_format(
+                            timedelta(minutes=CONFIG_WP.idle_pool_shutdown_timeout)
+                        ),
+                    }
+                    if CONFIG_WP.idle_pool_shutdown_enabled
+                    else {"enabled": False}
+                ),
             ),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
-                if key == "autoShutdownConditions":
-                    for condition in value:
-                        if not "NoRegisteredWorkers" in condition["type"]:
-                            print_log(
-                                f"Setting '{condition['type']}': '{condition['delay']}'"
-                            )
-                        else:
-                            print_log(f"Setting '{condition['type']}' to 'true'")
-                else:
-                    print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
+                print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
                 provisioned_properties[key] = value
 
     except KeyError as e:
@@ -243,55 +187,28 @@ def create_worker_pool():
         )
         raise Exception("Malformed configuration")
 
-    # Set the Worker Pool auto-shutdown conditions
-    if CONFIG_WP.auto_shutdown:
-        shutdown_delay = timedelta(minutes=CONFIG_WP.auto_shutdown_delay)
-        asc_all_nodes_inactive = (
-            shutdown_delay
-            if CONFIG_WP.asc_all_nodes_inactive is None
-            else timedelta(minutes=CONFIG_WP.asc_all_nodes_inactive)
-        )
-        asc_all_workers_released = (
-            shutdown_delay
-            if CONFIG_WP.asc_all_workers_released is None
-            else timedelta(minutes=CONFIG_WP.asc_all_workers_released)
-        )
-        asc_node_action_failed = (
-            shutdown_delay
-            if CONFIG_WP.asc_node_action_failed is None
-            else timedelta(minutes=CONFIG_WP.asc_node_action_failed)
-        )
-        asc_unclaimed_after_startup = (
-            shutdown_delay
-            if CONFIG_WP.asc_unclaimed_after_startup is None
-            else timedelta(minutes=CONFIG_WP.asc_unclaimed_after_startup)
-        )
-        auto_shutdown_conditions = [
-            AllNodesInactiveShutdownCondition(delay=asc_all_nodes_inactive),
-            AllWorkersReleasedShutdownCondition(delay=asc_all_workers_released),
-            NodeActionFailedShutdownCondition(delay=asc_node_action_failed),
-            UnclaimedAfterStartupShutdownCondition(delay=asc_unclaimed_after_startup),
-        ]
-        if CONFIG_WP.asc_no_registered_workers is True:
-            auto_shutdown_conditions.append(NoRegisteredWorkersShutdownCondition())
-    else:
-        auto_shutdown_conditions = []
+    node_boot_timeout = (
+        None
+        if CONFIG_WP.node_boot_timeout is None
+        else timedelta(minutes=CONFIG_WP.node_boot_timeout)
+    )
 
-    # Set auto-scaling time limits
-    node_boot_time_limit = (
-        None
-        if CONFIG_WP.node_boot_time_limit is None
-        else timedelta(minutes=CONFIG_WP.node_boot_time_limit)
+    idle_node_auto_shutdown = (
+        AutoShutdown(
+            enabled=True,
+            timeout=timedelta(minutes=CONFIG_WP.idle_node_shutdown_timeout),
+        )
+        if CONFIG_WP.idle_node_shutdown_enabled
+        else AutoShutdown(enabled=False)
     )
-    node_idle_time_limit = (
-        None
-        if CONFIG_WP.node_idle_time_limit is None
-        else timedelta(minutes=CONFIG_WP.node_idle_time_limit)
-    )
-    node_idle_grace_period = (
-        None
-        if CONFIG_WP.node_idle_grace_period is None
-        else timedelta(minutes=CONFIG_WP.node_idle_grace_period)
+
+    idle_pool_auto_shutdown = (
+        AutoShutdown(
+            enabled=True,
+            timeout=timedelta(minutes=CONFIG_WP.idle_pool_shutdown_timeout),
+        )
+        if CONFIG_WP.idle_pool_shutdown_enabled
+        else AutoShutdown(enabled=False)
     )
 
     # Establish the number of Workers to create
@@ -353,11 +270,9 @@ def create_worker_pool():
                 minNodes=batches[batch_number].min_nodes,
                 maxNodes=batches[batch_number].max_nodes,
                 workerTag=CONFIG_WP.worker_tag,
-                autoShutdown=CONFIG_WP.auto_shutdown,
-                autoShutdownConditions=auto_shutdown_conditions,
-                nodeIdleTimeLimit=node_idle_time_limit,
-                nodeIdleGracePeriod=node_idle_grace_period,
-                nodeBootTimeLimit=node_boot_time_limit,
+                idleNodeShutdown=idle_node_auto_shutdown,
+                idlePoolShutdown=idle_pool_auto_shutdown,
+                nodeBootTimeout=node_boot_timeout,
             )
             if not ARGS_PARSER.dry_run:
                 worker_pool = CLIENT.worker_pool_client.provision_worker_pool(
@@ -375,24 +290,30 @@ def create_worker_pool():
             print_error(f"Unable to provision worker pool")
             raise Exception(e)
 
-    print_log(
-        "Node boot time limit is "
-        f"{CONFIG_WP.node_boot_time_limit} minute(s) | "
-        "Node idle grace period is "
-        f"{CONFIG_WP.node_idle_grace_period} minute(s) | "
-        "Node idle time limit is "
-        f"{CONFIG_WP.node_idle_time_limit} minute(s)"
+    idle_node_shutdown_string = (
+        f"time limit is {CONFIG_WP.idle_node_shutdown_timeout} minute(s)"
+        if CONFIG_WP.idle_node_shutdown_enabled
+        else "is **disabled**"
     )
 
-    auto_shutdown = "enabled" if CONFIG_WP.auto_shutdown is True else "disabled"
-    auto_shutdown_msg = f"Auto-Shutdown is {auto_shutdown}"
-    auto_shutdown_msg = (
-        auto_shutdown_msg
-        + f" with a delay of {CONFIG_WP.auto_shutdown_delay} minute(s)"
-        if CONFIG_WP.auto_shutdown is True
-        else auto_shutdown_msg
+    print_log(
+        "Node boot time limit is "
+        f"{CONFIG_WP.node_boot_timeout} minute(s) | "
+        "Node idle shutdown "
+        f"{idle_node_shutdown_string}"
     )
-    print_log(auto_shutdown_msg)
+
+    idle_pool_shutdown = (
+        "enabled" if CONFIG_WP.idle_pool_shutdown_enabled else "disabled"
+    )
+    idle_pool_shutdown_msg = f"Worker Pool auto-shutdown is {idle_pool_shutdown}"
+    idle_pool_shutdown_msg = (
+        idle_pool_shutdown_msg
+        + f" with a delay of {CONFIG_WP.idle_pool_shutdown_timeout} minute(s)"
+        if CONFIG_WP.idle_pool_shutdown_enabled
+        else idle_pool_shutdown_msg
+    )
+    print_log(idle_pool_shutdown_msg)
 
     if ARGS_PARSER.dry_run:
         print_log("Dry run: Complete")

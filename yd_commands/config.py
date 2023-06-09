@@ -55,7 +55,6 @@ DEFAULT_URL = "https://portal.yellowdog.co/api"
 @dataclass
 class ConfigWorkRequirement:
     args: List[str] = field(default_factory=list)
-    bash_script: Optional[str] = None  # Deprecated
     capture_taskoutput: bool = True
     completed_task_ttl: Optional[float] = None  # In minutes
     csv_files: Optional[List[str]] = None
@@ -104,24 +103,18 @@ CR_BATCH_SIZE_DEFAULT = 10000
 
 @dataclass
 class ConfigWorkerPool:
-    asc_all_nodes_inactive: Optional[float] = None
-    asc_all_workers_released: Optional[float] = None
-    asc_node_action_failed: Optional[float] = None
-    asc_no_registered_workers: Optional[bool] = None
-    asc_unclaimed_after_startup: Optional[float] = None
-    auto_scaling_idle_delay: float = 10  # Deprecated
-    auto_shutdown: bool = True
-    auto_shutdown_delay: float = 10
     compute_requirement_batch_size: int = CR_BATCH_SIZE_DEFAULT
+    idle_node_shutdown_enabled: bool = True
+    idle_node_shutdown_timeout: float = 5.0
+    idle_pool_shutdown_enabled: bool = True
+    idle_pool_shutdown_timeout: float = 30.0
     images_id: Optional[str] = (None,)
     instance_tags: Optional[Dict] = None
     maintainInstanceCount: bool = False  # Only for yd-instantiate
     max_nodes: int = 0
     min_nodes: int = 0
     name: Optional[str] = None
-    node_boot_time_limit: float = 10
-    node_idle_grace_period: float = 2
-    node_idle_time_limit: float = 5
+    node_boot_timeout: float = 10.0
     target_instance_count: int = 0
     template_id: Optional[str] = None
     user_data: Optional[str] = None
@@ -308,7 +301,6 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
 
         return ConfigWorkRequirement(
             args=wr_section.get(ARGS, []),
-            bash_script=wr_section.get(BASH_SCRIPT, None),  # Deprecated
             capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, True),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             csv_files=csv_files,
@@ -378,19 +370,13 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             )
 
         return ConfigWorkerPool(
-            asc_all_nodes_inactive=wp_section.get(ASC_ALL_NODES_INACTIVE, None),
-            asc_all_workers_released=wp_section.get(ASC_ALL_WORKERS_RELEASED, None),
-            asc_node_action_failed=wp_section.get(ASC_NODE_ACTION_FAILED, None),
-            asc_no_registered_workers=wp_section.get(ASC_NO_REGISTERED_WORKERS, None),
-            asc_unclaimed_after_startup=wp_section.get(
-                ASC_UNCLAIMED_AFTER_STARTUP, None
-            ),
-            auto_scaling_idle_delay=wp_section.get(AUTO_SCALING_IDLE_DELAY, 10),
-            auto_shutdown=wp_section.get(AUTO_SHUTDOWN, True),
-            auto_shutdown_delay=wp_section.get(AUTO_SHUTDOWN_DELAY, 10),
             compute_requirement_batch_size=wp_section.get(
                 COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
             ),
+            idle_node_shutdown_enabled=wp_section.get(IDLE_NODE_SHUTDOWN_ENABLED, True),
+            idle_node_shutdown_timeout=wp_section.get(IDLE_NODE_SHUTDOWN_TIMEOUT, 5.0),
+            idle_pool_shutdown_enabled=wp_section.get(IDLE_POOL_SHUTDOWN_ENABLED, True),
+            idle_pool_shutdown_timeout=wp_section.get(IDLE_POOL_SHUTDOWN_TIMEOUT, 30.0),
             images_id=wp_section.get(IMAGES_ID, None),
             instance_tags=wp_section.get(INSTANCE_TAGS, None),
             maintainInstanceCount=wp_section.get(MAINTAIN_INSTANCE_COUNT, False),
@@ -401,11 +387,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             name=substitute_variable_str(
                 wp_section.get(WP_NAME, None),
             ),
-            node_boot_time_limit=wp_section.get(NODE_BOOT_TIME_LIMIT, 10),
-            node_idle_grace_period=wp_section.get(NODE_IDLE_GRACE_PERIOD, 2),
-            node_idle_time_limit=wp_section.get(
-                NODE_IDLE_TIME_LIMIT, wp_section.get(AUTO_SCALING_IDLE_DELAY, 5)
-            ),
+            node_boot_timeout=wp_section.get(NODE_BOOT_TIMEOUT, 10.0),
             target_instance_count=wp_section.get(TARGET_INSTANCE_COUNT, 1),
             template_id=wp_section.get(TEMPLATE_ID, None),
             user_data=wp_section.get(USERDATA, None),

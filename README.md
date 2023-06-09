@@ -84,7 +84,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Jun  3 18:22:49 BST 2023 -->
+<!-- Added by: pwt, at: Mon Jun  5 18:32:03 BST 2023 -->
 
 <!--te-->
 
@@ -1298,32 +1298,27 @@ The only mandatory property is `templateId`. All other properties have defaults 
 
 The following properties are available:
 
-| Property                   | Description                                                                                                                     | Default   |
-|:---------------------------|:--------------------------------------------------------------------------------------------------------------------------------|:----------|
-| `ascAllNodesInactive`      | The time in minutes for which all nodes can be inactive before Worker Pool auto-shutdown. Overrides `autoShutdownDelay`.        |           |
-| `ascAllWorkersReleased`    | The time in minutes for which all node Workers can be released before Worker Pool auto-shutdown. Overrides `autoShutdownDelay`. |           |
-| `ascNodeActionFailed`      | The time in minutes after a Node Action failure before Worker Pool auto-shutdown. Overrides `autoShutdownDelay`.                |           |
-| `ascUnclaimedAfterStartup` | The time in minutes for which no Workers have been claimed before Worker Pool auto-shutdown. Overrides `autoShutdownDelay`.     |           |
-| `ascNoRegisteredWorkers`   | Whether to shut down the Worker Pool if no Workers have registered within `nodeBootTimeLimit`.                                  | `false`   |
-| `autoShutdown`             | Whether the Worker Pool is shut down once an auto-shutdown condition is met.                                                    | `true`    |
-| `autoShutdownDelay`        | Default auto-shutdown delay in minutes before the Worker Pool is shut down.                                                     | `10.0`    |
-| `imagesId`                 | The images ID to use when booting instances.                                                                                    |           |
-| `instanceTags`             | The dictionary of instance tags to apply to the instances.                                                                      |           |
-| `minNodes`                 | The minimum number of nodes to which the Worker Pool can be scaled down.                                                        | `0`       |
-| `maxNodes`                 | The maximum number of nodes to which the Worker Pool can be scaled up.                                                          | `1`       |
-| `name`                     | The name of the Worker Pool.                                                                                                    | Automatic |
-| `nodeBootTimeLimit`        | The time in minutes allowed for a node to boot and register with the platform before it is terminated.                          | `10.0`    |
-| `nodeIdleGracePeriod`      | The time in minutes after a node registers during which the idle check is not applied.                                          | `2.0`     |
-| `nodeIdleTimeLimit`        | The time in minutes for which a node can be idle before it can be shut down by auto-scaling.                                    | `5.0`     |
-| `targetInstanceCount`      | The initial number of nodes to create for the Worker Pool.                                                                      | `1`       |
-| `templateId`               | The YellowDog Compute Template ID to use for provisioning.                                                                      |           |
-| `userData`                 | User Data to be supplied to instances on boot.                                                                                  |           |
-| `userDataFile`             | As above, but read the User Data from the filename supplied in this property.                                                   |           |
-| `userDataFiles`            | As above, but create the User Data by concatenating the contents of a list of filenames supplied in this property.              |           |
-| `workersPerVCPU`           | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.)                      |           |
-| `workersPerNode`           | The number of Workers to establish on each node in the Worker Pool.                                                             | `1`       |
-| `workerPoolData`           | The name of a file containing a JSON document defining a Worker Pool.                                                           |           |
-| `workerTag`                | The Worker Tag to publish for the all of the Workers.                                                                           |           |
+| Property                  | Description                                                                                                             | Default                 |
+|:--------------------------|:------------------------------------------------------------------------------------------------------------------------|:------------------------|
+| `idleNodeShutdownEnabled` | Whether to shut down nodes that have been idle for `idleNodeShutdownTimeout` minutes.                                   | `True`                  |
+| `idleNodeShutdownTimeout` | The timeout in minutes after which an idle node will be shut down if `idleNodeShutdownEnabled` is set to `True`.        | `5.0`                   |
+| `idlePoolShutdownEnabled` | Whether to shut down the Worker Pool when it has been idle for `idlePoolShutdownTimeout` minutes.                       | `True`                  |
+| `idlePoolShutdownTimeout` | The timeout in minutes after which an idle Worker Pool will be shut down if `idlePoolShutdownEnabled` is set to `True`. | `30.0`                  |
+| `imagesId`                | The images ID to use when booting instances.                                                                            |                         |
+| `instanceTags`            | The dictionary of instance tags to apply to the instances.                                                              |                         |
+| `minNodes`                | The minimum number of nodes to which the Worker Pool can be scaled down.                                                | `0`                     |
+| `maxNodes`                | The maximum number of nodes to which the Worker Pool can be scaled up.                                                  | `1`                     |
+| `name`                    | The name of the Worker Pool.                                                                                            | Automatically Generated |
+| `nodeBootTimeout`         | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.         | `10.0`                  |
+| `targetInstanceCount`     | The initial number of nodes to create for the Worker Pool.                                                              | `1`                     |
+| `templateId`              | The YellowDog Compute Template ID to use for provisioning. (**Required**, no default provided.)                         |                         |
+| `userData`                | User Data to be supplied to instances on boot.                                                                          |                         |
+| `userDataFile`            | As above, but read the User Data from the filename supplied in this property.                                           |                         |
+| `userDataFiles`           | As above, but create the User Data by concatenating the contents of the list of filenames supplied in this property.    |                         |
+| `workersPerVCPU`          | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.)              |                         |
+| `workersPerNode`          | The number of Workers to establish on each node in the Worker Pool.                                                     | `1`                     |
+| `workerPoolData`          | The name of a file containing a JSON document defining a Worker Pool.                                                   |                         |
+| `workerTag`               | The Worker Tag to publish for the all of the Workers on the node.                                                       |                         |
 
 ## Automatic Properties
 
@@ -1335,21 +1330,16 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
 
 ```toml
 [workerPool]
-    ascAllNodesInactive = 10
-    ascAllWorkersReleased = 10
-    ascNodeActionFailed = 10
-    ascUnclaimedAfterStartup = 10
-    ascNoRegisteredWorkers = true
-    autoShutdown = true
-    autoShutdownDelay = 10
+    idleNodeShutdownEnabled = true
+    idleNodeShutdownTimeout = 10.0
+    idlePoolShutdownEnabled = true
+    idlePoolShutdownTimeout = 60.0
     imagesId = "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b"
     instanceTags = {}
     maxNodes = 1
     minNodes = 1
     name = "my-worker-pool"
-    nodeBootTimeLimit = 5
-    nodeIdleGracePeriod = 5
-    nodeIdleTimeLimit = 3
+    nodeBootTimeout = 5
     targetInstanceCount = 1
     templateId = "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
     # Note: only one of 'userData'/'userDataFile'/'userDataFiles' should be set
@@ -1371,7 +1361,7 @@ When using a JSON document to specify the Worker Pool, the schema of the documen
 
 ### Worker Pool JSON Examples
 
-The example below is of a simple JSON specification of a Worker Pool with one initial node,  shutdown conditions, etc.
+The example below is of a simple JSON specification of a Worker Pool with one initial node, Worker Pool shutdown, etc.
 
 ```json
 {
@@ -1384,18 +1374,12 @@ The example below is of a simple JSON specification of a Worker Pool with one in
     "templateId": "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
   },
   "provisionedProperties": {
-    "autoShutdown": true,
-    "autoShutdownConditions": [
-      {"delay": "PT1H", "type": "co.yellowdog.platform.model.AllWorkersReleasedShutdownCondition"},
-      {"delay": "PT1H", "type": "co.yellowdog.platform.model.AllNodesInactiveShutdownCondition"},
-      {"delay": "PT1H", "type": "co.yellowdog.platform.model.UnclaimedAfterStartupShutdownCondition"},
-      {"delay": "PT1H", "type": "co.yellowdog.platform.model.NodeActionFailedShutdownCondition"},
-      {"type": "co.yellowdog.platform.model.NoRegisteredWorkersShutdownCondition"}
-    ],
+    "idleNodeShutdown": {"enabled": true, "timeout": "PT10M"},
+    "idlePoolShutdown": {"enabled": true, "timeout": "PT1H"},
     "createNodeWorkers": {"targetCount": 1, "targetType": "PER_VCPU"},
     "maxNodes": 5,
     "minNodes": 0,
-    "nodeBootTimeLimit": "PT5M",
+    "nodeBootTimeout": "PT5M",
     "nodeIdleGracePeriod": "PT3M",
     "nodeIdleTimeLimit": "PT3M",
     "workerTag": "pyex-bash-docker"
@@ -1416,7 +1400,6 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
     "requirementTag": "pyex-slurm"
   },
   "provisionedProperties": {
-    "autoShutdown": true,
     "createNodeWorkers": {"targetCount": 0, "targetType": "PER_NODE"},
     "nodeConfiguration": {
       "nodeTypes": [
@@ -1517,11 +1500,11 @@ When a JSON Worker Pool specification is used, the following properties from the
 
 **Properties Inherited within the `provisionedProperties` Property**
 
-- `autoShutdown`
-- `autoShutdownConditions`: derived from the `autoShutdownDelay`, `ascAllNodesInactive`, `ascAllWorkersReleased`, `ascNodeActionFailed`, `ascUnclaimedAfterStartup` and `ascNoRegisteredWorkers` properties in the `TOML` configuration
-- `nodeBootTimeLimit`
-- `nodeIdleGracePeriod`
-- `nodeIdleTimeLimit`
+- `idleNodeShutdownEnabled`
+- `idleNodeShutdownTimeout`
+- `idlePoolShutdownEnabled`
+- `idlePoolShutdownTimeout`
+- `nodeBootTimeout`
 - `workerTag`
 
 ## Variable Substitutions in Worker Pool Properties

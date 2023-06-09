@@ -3,14 +3,6 @@ Configuration key strings
 """
 
 ARGS = "arguments"  # List
-ASC_ALL_NODES_INACTIVE = "ascAllNodesInactive"  # Float
-ASC_ALL_WORKERS_RELEASED = "ascAllWorkersReleased"  # Float
-ASC_NODE_ACTION_FAILED = "ascNodeActionFailed"  # Float
-ASC_NO_REGISTERED_WORKERS = "ascNoRegisteredWorkers"  # Bool
-ASC_UNCLAIMED_AFTER_STARTUP = "ascUnclaimedAfterStartup"  # Float
-AUTO_SCALING_IDLE_DELAY = "autoscalingIdleDelay"  # Float
-AUTO_SHUTDOWN = "autoShutdown"  # Boolean
-AUTO_SHUTDOWN_DELAY = "autoShutdownDelay"  # Float
 CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
 COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
@@ -29,6 +21,10 @@ FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
 FLATTEN_PATHS = "flattenInputPaths"  # Boolean
 FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
 FULFIL_ON_SUBMIT = "fulfilOnSubmit"  # Boolean
+IDLE_NODE_SHUTDOWN_ENABLED = "idleNodeShutdownEnabled"  # Bool
+IDLE_NODE_SHUTDOWN_TIMEOUT = "idleNodeShutdownTimeout"  # Float
+IDLE_POOL_SHUTDOWN_ENABLED = "idlePoolShutdownEnabled"  # Bool
+IDLE_POOL_SHUTDOWN_TIMEOUT = "idlePoolShutdownTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
 IMPORT = "import"  # String
 INPUT_FILES = "inputs"  # List of Strings
@@ -45,9 +41,7 @@ MIN_WORKERS = "minWorkers"  # Integer
 NAME = "name"  # String
 NAMESPACE = "namespace"  # String
 NAME_TAG = "tag"  # String
-NODE_BOOT_TIME_LIMIT = "nodeBootTimeLimit"  # Float
-NODE_IDLE_GRACE_PERIOD = "nodeIdleGracePeriod"  # Float
-NODE_IDLE_TIME_LIMIT = "nodeIdleTimeLimit"  # Float
+NODE_BOOT_TIMEOUT = "nodeBootTimeout"  # Float
 OUTPUT_FILES = "outputs"  # List of Strings
 OUTPUT_FILES_REQUIRED = "outputsRequired"  # List of Strings
 PRIORITY = "priority"  # Float
@@ -90,20 +84,8 @@ WP_NAME = "name"  # String
 WR_DATA = "workRequirementData"  # String
 WR_NAME = "name"  # String
 
-# Legacy
-BASH_SCRIPT = "bashScript"  # String
-
 ALL_KEYS = [
     ARGS,
-    ASC_ALL_NODES_INACTIVE,
-    ASC_ALL_WORKERS_RELEASED,
-    ASC_NODE_ACTION_FAILED,
-    ASC_NO_REGISTERED_WORKERS,
-    ASC_UNCLAIMED_AFTER_STARTUP,
-    AUTO_SCALING_IDLE_DELAY,
-    AUTO_SHUTDOWN,
-    AUTO_SHUTDOWN_DELAY,
-    BASH_SCRIPT,
     CAPTURE_TASKOUTPUT,
     COMMON_SECTION,
     COMPLETED_TASK_TTL,
@@ -122,6 +104,10 @@ ALL_KEYS = [
     FLATTEN_PATHS,
     FLATTEN_UPLOAD_PATHS,
     FULFIL_ON_SUBMIT,
+    IDLE_NODE_SHUTDOWN_ENABLED,
+    IDLE_NODE_SHUTDOWN_TIMEOUT,
+    IDLE_POOL_SHUTDOWN_ENABLED,
+    IDLE_POOL_SHUTDOWN_TIMEOUT,
     IMAGES_ID,
     IMPORT,
     INPUT_FILES,
@@ -137,9 +123,7 @@ ALL_KEYS = [
     MIN_WORKERS,
     NAMESPACE,
     NAME_TAG,
-    NODE_BOOT_TIME_LIMIT,
-    NODE_IDLE_GRACE_PERIOD,
-    NODE_IDLE_TIME_LIMIT,
+    NODE_BOOT_TIMEOUT,
     OUTPUT_FILES,
     OUTPUT_FILES_REQUIRED,
     PRIORITY,

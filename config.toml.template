@@ -134,29 +134,6 @@
     # --------------------------------------------------------------------------
     # workerTag = "My_Worker_Tag"
 
-    # Whether the Worker Pool and its associated Compute Requirement should
-    # be shut down when all workers on all workers on all nodes are idle
-    # Optional
-    # --------------------------------------------------------------------------
-    # autoShutdown = true
-
-    # The delay in minutes before the Worker Pool is shut down
-    # if autoShutdown is true
-    # Optional
-    # --------------------------------------------------------------------------
-    # autoShutdownDelay = 10
-
-    # The delay in minutes before idle nodes are shut down due to auto-scaling
-    # Optional
-    # --------------------------------------------------------------------------
-    # nodeIdleTimeLimit = 10
-
-    # The time in minutes to allow for a node to boot and register its
-    # worker(s) before it is terminated
-    # Optional
-    # --------------------------------------------------------------------------
-    # nodeBootTimeLimit = 10
-
     # name of a JSON file containing the full description of a Worker Pool
     # The specification will overwrite all values in this file except for
     # the namespace and tag.

@@ -1,5 +1,5 @@
 """
-Module for handling Task data supplied in a CSV file
+Module for handling Task data supplied in CSV files.
 """
 
 import csv
@@ -336,7 +336,6 @@ def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Di
     # Populate properties that can be set at Task level only
     for config_value, config_name in [
         (config_wr.args, ARGS),
-        (config_wr.bash_script, BASH_SCRIPT),
         (config_wr.capture_taskoutput, CAPTURE_TASKOUTPUT),
         (config_wr.docker_env, DOCKER_ENV),
         (config_wr.docker_password, DOCKER_PASSWORD),
