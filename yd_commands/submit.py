@@ -959,10 +959,9 @@ def create_task(
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
     # Special processing for Bash, Python & PowerShell tasks if the 'executable'
-    # property is set
-    # The script is uploaded if this hasn't already been done, and
-    # added to the list of required files.
-    if task_type in ["bash", "powershell", "python"]:
+    # property is set. The script is uploaded if this hasn't already been done,
+    # and added to the list of required files.
+    if task_type in ["bash", "powershell", "python", "cmd", "bat"]:
         if executable is None:
             print_log(f"Note: no 'executable' specified for '{task_type}' Task Type")
             return _make_task(flatten_input_paths)
@@ -983,18 +982,19 @@ def create_task(
         # Avoid duplicate TaskInputs
         if task_input.objectNamePattern not in [x.objectNamePattern for x in inputs]:
             inputs.append(task_input)
+        executable_pathname = unique_upload_pathname(
+            filename=executable,
+            id=ID,
+            inputs_folder_name=INPUTS_FOLDER_NAME,
+            flatten_upload_paths=flatten_upload_paths,
+        )
+        if task_type in ["powershell", "cmd", "bat"]:
+            executable_pathname = executable_pathname.replace("/", "\\")
         args = [
-            (
-                unique_upload_pathname(
-                    filename=executable,
-                    id=ID,
-                    inputs_folder_name=INPUTS_FOLDER_NAME,
-                    flatten_upload_paths=flatten_upload_paths,
-                )
-                if flatten_input_paths is None
-                else basename(executable)
-            )
+            executable_pathname if flatten_input_paths is None else basename(executable)
         ] + args
+        if task_type in ["cmd", "bat"]:
+            args.insert(0, "/c")
         return _make_task(flatten_input_paths)
 
     # Special processing for Docker tasks if the 'executable property is set.

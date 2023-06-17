@@ -23,9 +23,9 @@
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
       * [Task Types](#task-types)
-         * [Bash, Python and PowerShell Tasks](#bash-python-and-powershell-tasks)
+         * [Bash, Python, PowerShell and cmd/bat Tasks](#bash-python-powershell-and-cmdbat-tasks)
          * [Docker Tasks](#docker-tasks)
-         * [Bash, Python, PowerShell and Docker without Automatic Processing](#bash-python-powershell-and-docker-without-automatic-processing)
+         * [Bash, Python, PowerShell, cmd/bat and Docker without Automatic Processing](#bash-python-powershell-cmdbat-and-docker-without-automatic-processing)
       * [Task Counts](#task-counts)
    * [Examples](#examples)
       * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
@@ -84,7 +84,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Mon Jun  5 18:32:03 BST 2023 -->
+<!-- Added by: pwt, at: Sat Jun 17 14:37:49 BST 2023 -->
 
 <!--te-->
 
@@ -486,11 +486,11 @@ In addition to the inheritance mechanism, some properties are set automatically 
 - If `taskType` is set at the Task level, then `taskTypes` is automatically populated for the Task Groups level using the accumulated Task Types from the Tasks included in each Task Group, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
 
-For the **`bash`**, **`powershell`** and **`docker`** task types, some automatic processing will be performed if the **`executable`** property is set.
+For the **`bash`**, **`powershell`**, **`cmd`**/**`bat`** and **`docker`** task types, some automatic processing will be performed if the **`executable`** property is set.
 
-#### Bash, Python and PowerShell Tasks
+#### Bash, Python, PowerShell and cmd/bat Tasks
 
-As a convenience, for the **`bash`**, **`python`**, and **`powershell`** Task Types, the script nominated in the **`executable`** property is automatically added to the `inputs` list (if not already present). This means the script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
+As a convenience, for the **`bash`**, **`python`**, **`powershell`**, and **`cmd`** (or **`bat`**) Task Types, the script nominated in the **`executable`** property is automatically added to the `inputs` list (if not already present). This means the script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
 
 Using a Bash Task as an example (in TOML form):
 
@@ -507,6 +507,22 @@ inputs = ["my_bash_script.sh"]
 arguments = ["{{wr_name}}/my_bash_script.sh", "1", "2", "3"]
 ```
 
+In the case of Windows batch (`.bat`) files, a `/c` flag is prepended to the `cmd.exe` argument list to ensure correct execution bahaviour. For example:
+
+```toml
+taskType = "cmd"  # or "bat"
+executable = "my_script.bat"
+arguments = ["1", "2", "3"]
+```
+
+is equivalent to:
+
+```toml
+taskType = "cmd"  # or "bat"
+inputs = ["my_script.bat"]
+arguments = ["/c", "{{wr_name}}\\my_bash_script.sh", "1", "2", "3"]
+```
+
 #### Docker Tasks
 
 For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property. The `dockerUsername` and `dockerPassword` properties, if supplied, are added to the `environment` property.
@@ -515,7 +531,7 @@ For example:
 ```toml
 taskType = "docker"
 executable = "my_dockerhub_repo/my_container_image"
-dockerEnvironment = { E1 = "EeeOne"}
+dockerEnvironment = {E1 = "EeeOne"}
 dockerUsername = "my_user"
 dockerPassword = "my_password"
 arguments = ["1", "2", "3"]
@@ -529,9 +545,9 @@ arguments = ["--env E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2",
 environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password"}
 ```
 
-#### Bash, Python, PowerShell and Docker without Automatic Processing
+#### Bash, Python, PowerShell, cmd/bat and Docker without Automatic Processing
 
-If the `executable` property is not supplied, the automatic processing described above for `bash`, `python`, `powershell`, and `docker` taskTypes is not applied.
+If the `executable` property is not supplied, the automatic processing described above for `bash`, `python`, `powershell`, `cmd` (or `bat`) and `docker` task types is not applied.
 
 ### Task Counts
 
