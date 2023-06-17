@@ -1347,7 +1347,9 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     userDataFile = "myuserdata.txt"
     userDataFiles = ["myuserdata1.txt", "myuserdata2.txt"]
     workerTag = "tag-{{username}}"
+    # Specify either workersPerNode or workersPerVCPU
     workersPerNode = 1
+    workersPerVCPU = 1
 #   workerPoolData = "worker_pool.json"
 ```
 
