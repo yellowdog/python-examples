@@ -26,7 +26,7 @@
       * [Task Types](#task-types)
          * [Bash, Python, PowerShell and cmd/bat Tasks](#bash-python-powershell-and-cmdbat-tasks)
          * [Docker Tasks](#docker-tasks)
-         * [Bash, Python, PowerShell, cmd/bat and Docker without Automatic Processing](#bash-python-powershell-cmdbat-and-docker-without-automatic-processing)
+         * [Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing](#bash-python-powershell-cmdexebatch-and-docker-without-automatic-processing)
       * [Task Counts](#task-counts)
    * [Examples](#examples)
       * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
@@ -85,7 +85,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Jun 20 11:50:52 BST 2023 -->
+<!-- Added by: pwt, at: Tue Jun 20 16:19:51 BST 2023 -->
 
 <!--te-->
 
@@ -559,7 +559,7 @@ arguments = ["--env E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2",
 environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password"}
 ```
 
-#### Bash, Python, PowerShell, cmd/bat and Docker without Automatic Processing
+#### Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing
 
 If the `executable` property is not supplied, the automatic processing described above for `bash`, `python`, `powershell`, `cmd` (or `bat`) and `docker` task types is not applied.
 
@@ -978,6 +978,15 @@ And in JSON, with the property set at the Task level, the same specification wou
   ]
 }
 ```
+
+When running the Python Examples commands on **Windows** hosts, note that either Windows or Unix directory separators can be used for the `localPath` pathnames (or the pathnames in `inputs`), but the Unix convention must be used for the `uploadPath` names, e.g.:
+
+```toml
+uploadFiles = [
+    {localPath = "dir_2\\file_2.txt", uploadPath = "::my_directory/file_2.txt"},
+]
+```
+
 The `uploadFiles` property can also be set at the Work Requirement and Task Group levels, and property inheritance operates as normal.
 
 For `uploadPath`, the same `::` naming convention is available as is used in the `verifyAtStart`, `verifyWait` and `inputsOptional` properties discussed below:
@@ -1022,7 +1031,7 @@ The use of the three different forms can be mixed within a single list, e.g.:
 
 ### Files Downloaded Using `inputsOptional`
 
-The `inputsOptional` property works in a similar fashion to the `verify*` properties above, but the files specified in this list are optional. This property also allows for the use of wildcards `*` and `**` to collect files using wildcard paths.
+The `inputsOptional` property works in a similar fashion to the `verify*` properties above, but the files specified in this list are optional. This property also allows for the use of wildcards `*` and `**` to collect files using wildcard paths. The **ant** conventions are used for these wildcards.
 
 ### Files Downloaded to a Node for use in Task Execution
 
@@ -1162,7 +1171,9 @@ chown -R yd-agent:yd-agent $YDA_HOME/.ssh
 
 ### Task Execution Directory
 
-Ephemeral Task directories are created under `/var/opt/yellowdog/agent/data/workers`. This directory contains one or more numbered subdirectories where each numbered directory corresponds to a Worker on the node.
+Ephemeral Task directories are by default created under `/var/opt/yellowdog/agent/data/workers`. This directory contains one or more numbered subdirectories where each numbered directory corresponds to a Worker on the node.
+
+(On Windows hosts, the Task directories are found under `%AppData%\yellowdog\agent\data\workers`.)
 
 When a Task is allocated to a node, an ephemeral directory is created under the applicable Worker directory, with a name corresponding the YellowDog ID for the Task. For example, this is an ephemeral directory being used by Worker number `1`:
 
