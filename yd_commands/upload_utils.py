@@ -33,7 +33,8 @@ def upload_file(
         return False
 
     dest_filename = unique_upload_pathname(
-        filename,
+        # Convert Windows path naming to Unix
+        filename.replace("\\", "/").replace(":", ""),
         id=id,
         inputs_folder_name=inputs_folder_name,
         flatten_upload_paths=flatten_upload_paths,
