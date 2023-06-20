@@ -108,6 +108,12 @@ class CLIParser:
             required=False,
             help="print a stack trace (etc.) on error",
         )
+        parser.add_argument(
+            "--pac",
+            action="store_true",
+            required=False,
+            help="enable PAC (proxy auto-configuration) support",
+        )
 
         # Module-specific argument sets
 
@@ -519,6 +525,10 @@ class CLIParser:
     @property
     def debug(self) -> Optional[bool]:
         return self.args.debug
+
+    @property
+    def pac_enabled(self) -> Optional[bool]:
+        return self.args.pac
 
     @property
     def directory(self) -> str:

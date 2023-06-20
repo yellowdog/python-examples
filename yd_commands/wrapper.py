@@ -3,8 +3,10 @@ Decorator to handle standard setup, shutdown and exception handling
 for all commands.
 """
 
+import os
 from typing import List
 
+from pypac import pac_context_for_url
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ApiKey, KeyringSummary, ServicesSchema
 
@@ -52,11 +54,27 @@ def print_account():
             )
 
 
+def set_proxy_using_pac_if_enabled():
+    """
+    Set the HTTPS proxy using autoconfiguration (PAC)
+    """
+    if ARGS_PARSER.pac_enabled:
+        print_log("Using Proxy Auto-Configuration (PAC)")
+        with pac_context_for_url(CONFIG_COMMON.url):
+            https_proxy = os.getenv("HTTPS_PROXY", None)
+        if https_proxy is not None:
+            print_log(f"Setting 'HTTPS_PROXY' to '{https_proxy}'")
+            os.environ["HTTPS_PROXY"] = https_proxy
+        else:
+            print_log("No PAC proxy settings found")
+
+
 def main_wrapper(func):
     def wrapper():
         if not ARGS_PARSER.debug:
             exit_code = 0
             try:
+                set_proxy_using_pac_if_enabled()
                 print_account()
                 func()
             except Exception as e:
@@ -71,6 +89,7 @@ def main_wrapper(func):
                     print_log("Done")
                 exit(exit_code)
         else:
+            set_proxy_using_pac_if_enabled()
             print_account()
             func()
             CLIENT.close()

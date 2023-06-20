@@ -7,6 +7,7 @@
 * [Script Installation with Pip](#script-installation-with-pip)
 * [Script Installation with Pipx](#script-installation-with-pipx)
 * [Usage](#usage)
+   * [HTTTPS Proxy Support](#htttps-proxy-support)
 * [Configuration](#configuration)
 * [Naming Rules](#naming-rules)
 * [Common Properties](#common-properties)
@@ -84,7 +85,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Sat Jun 17 14:37:49 BST 2023 -->
+<!-- Added by: pwt, at: Tue Jun 20 11:26:56 BST 2023 -->
 
 <!--te-->
 
@@ -171,10 +172,11 @@ Both of the installation methods above will install a number of **`yd-`** comman
 Commands are run from the command line. Invoking the command with the `--help` or `-h` option will display the command line options applicable to a given command, e.g.:
 
 ```text
-% yd-cancel --help
-usage: yd-cancel [-h] [--docs] [--config <config_file.toml>] [--key <app-key>] [--secret <app-secret>]
-                 [--namespace <namespace>] [--tag <tag>] [--url <url>] [--variable <var1=v1>] [--quiet] [--debug]
-                 [--abort] [--follow] [--interactive] [--yes]
+ % yd-cancel --help
+usage: yd-cancel [-h] [--docs] [--config <config_file.toml>] [--key <app-key>]
+                 [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>] [--url <url>]
+                 [--variable <var1=v1>] [--quiet] [--debug] [--pac] [--abort] [--follow]
+                 [--interactive] [--yes]
 
 YellowDog example utility for cancelling Work Requirements
 
@@ -182,7 +184,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --docs                provide a link to the documentation for this version
   --config <config_file.toml>, -c <config_file.toml>
-                        configuration file in TOML format; default is 'config.toml' in the current directory
+                        configuration file in TOML format; default is 'config.toml' in the current
+                        directory
   --key <app-key>, -k <app-key>
                         the YellowDog Application key
   --secret <app-secret>, -s <app-secret>
@@ -197,11 +200,16 @@ optional arguments:
                         user-defined variable substitutions; can be supplied multiple times
   --quiet, -q           suppress (non-error, non-interactive) status and progress messages
   --debug               print a stack trace (etc.) on error
+  --pac                 enable PAC (proxy auto-configuration) support
   --abort, -a           abort all running tasks with immediate effect
   --follow, -f          when using --abort, poll until all Tasks have been aborted
   --interactive, -i     list, and interactively select, items to act on
   --yes, -y             perform destructive actions without requiring user confirmation
 ```
+
+## HTTTPS Proxy Support
+
+The commands will use the value of the environment variable `HTTPS_PROXY` if routing through a proxy is required. In addition, the commands can use Proxy Auto-Configuration (PAC) if the `--pac` command line option is specified.
 
 # Configuration
 
