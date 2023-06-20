@@ -66,6 +66,7 @@ UPLOAD_FILES = "uploadFiles"  # List of Dicts
 LOCAL_PATH = "localPath"  # String
 UPLOAD_PATH = "uploadPath"  # String
 URL = "url"  # String
+USE_PAC = "usePAC"  # Boolean
 USERDATA = "userData"  # String
 USERDATAFILE = "userDataFile"  # String
 USERDATAFILES = "userDataFiles"  # List of Strings
@@ -148,6 +149,7 @@ ALL_KEYS = [
     LOCAL_PATH,
     UPLOAD_PATH,
     URL,
+    USE_PAC,
     USERDATA,
     USERDATAFILE,
     USERDATAFILES,

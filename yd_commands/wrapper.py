@@ -58,7 +58,7 @@ def set_proxy_using_pac_if_enabled():
     """
     Set the HTTPS proxy using autoconfiguration (PAC)
     """
-    if ARGS_PARSER.pac_enabled:
+    if CONFIG_COMMON.use_pac:
         print_log("Using Proxy Auto-Configuration (PAC)")
         with pac_context_for_url(CONFIG_COMMON.url):
             https_proxy = os.getenv("HTTPS_PROXY", None)

@@ -39,6 +39,7 @@ class ConfigCommon:
     secret: str
     namespace: str
     name_tag: str
+    use_pac: bool
 
 
 # Environment variable names for 'common' settings
@@ -224,6 +225,9 @@ def load_config_common() -> ConfigCommon:
             name_tag=name_tag,
             # Optional
             url=url,
+            use_pac=(
+                True if ARGS_PARSER.use_pac else common_section.get(USE_PAC, False)
+            ),
         )
 
     except KeyError as e:

@@ -7,10 +7,10 @@
 * [Script Installation with Pip](#script-installation-with-pip)
 * [Script Installation with Pipx](#script-installation-with-pipx)
 * [Usage](#usage)
-   * [HTTTPS Proxy Support](#htttps-proxy-support)
 * [Configuration](#configuration)
 * [Naming Rules](#naming-rules)
 * [Common Properties](#common-properties)
+   * [HTTPS Proxy Support](#https-proxy-support)
    * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
    * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
 * [Variable Substitutions](#variable-substitutions)
@@ -85,7 +85,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Jun 20 11:26:56 BST 2023 -->
+<!-- Added by: pwt, at: Tue Jun 20 11:50:52 BST 2023 -->
 
 <!--te-->
 
@@ -207,10 +207,6 @@ optional arguments:
   --yes, -y             perform destructive actions without requiring user confirmation
 ```
 
-## HTTTPS Proxy Support
-
-The commands will use the value of the environment variable `HTTPS_PROXY` if routing through a proxy is required. In addition, the commands can use Proxy Auto-Configuration (PAC) if the `--pac` command line option is specified.
-
 # Configuration
 
 By default, the operation of all commands is configured using a TOML configuration file.
@@ -253,6 +249,7 @@ The `[common]` section of the configuration file can contain the following prope
 | `namespace` | The **namespace** to be used for grouping resources                                 |
 | `tag`       | The **tag** to be used for tagging resources and naming objects                     |
 | `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't to be used |
+| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                  |
 | `variables` | A table containing **variable substitutions** (see the Variables section below)     |
 
 An example `common` section is shown below:
@@ -267,6 +264,12 @@ An example `common` section is shown below:
 
 Indentation is optional in TOML files and is for readability only.
 
+## HTTPS Proxy Support
+
+The commands will use the value of the environment variable `HTTPS_PROXY` if routing through a proxy is required.
+
+In addition, the commands can use Proxy Auto-Configuration (PAC) if the `--pac` command line option is specified, or if the `usePAC` property is set to `true` in the `[common]` section of the `config.toml` file.
+
 ## Specifying Common Properties using the Command Line or Environment Variables
 
 All the common properties can be set using command line options, or in environment variables.
@@ -278,6 +281,7 @@ The **command line options** are as follows:
 - `--namespace` or `-n`
 - `--tag` or `-t`
 - `--url` or `-u`
+- `--pac`
 
 These options can also be listed by running a command with the `--help` or `-h` option.
 

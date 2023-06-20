@@ -527,7 +527,7 @@ class CLIParser:
         return self.args.debug
 
     @property
-    def pac_enabled(self) -> Optional[bool]:
+    def use_pac(self) -> Optional[bool]:
         return self.args.pac
 
     @property
