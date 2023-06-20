@@ -532,8 +532,10 @@ is equivalent to:
 ```toml
 taskType = "cmd"  # or "bat"
 inputs = ["my_script.bat"]
-arguments = ["/c", "{{wr_name}}\\my_bash_script.sh", "1", "2", "3"]
+arguments = ["/c", "{{wr_name}}\\my_script.bat", "1", "2", "3"]
 ```
+
+Note the `\\` requirement for directory separators when defining Tasks on Windows hosts. Note also that the `/c` is required when running commands or batch scripts using `cmd.exe`, otherwise the `cmd.exe` process created to execute the Task will not terminate.
 
 #### Docker Tasks
 
