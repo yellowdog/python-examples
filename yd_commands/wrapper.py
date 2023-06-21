@@ -58,19 +58,20 @@ def set_proxy():
     """
     Set the HTTPS proxy using autoconfiguration (PAC) if enabled.
     """
-    proxy_var = "HTTPS_PROXY"
-    if CONFIG_COMMON.use_pac:
-        print_log("Using Proxy Auto-Configuration (PAC)")
-        with pac_context_for_url(CONFIG_COMMON.url):
+    if not dry_run():
+        proxy_var = "HTTPS_PROXY"
+        if CONFIG_COMMON.use_pac:
+            print_log("Using Proxy Auto-Configuration (PAC)")
+            with pac_context_for_url(CONFIG_COMMON.url):
+                https_proxy = os.getenv(proxy_var, None)
+            if https_proxy is not None:
+                os.environ[proxy_var] = https_proxy
+            else:
+                print_log("No PAC proxy settings found")
+        else:
             https_proxy = os.getenv(proxy_var, None)
         if https_proxy is not None:
-            os.environ[proxy_var] = https_proxy
-        else:
-            print_log("No PAC proxy settings found")
-    else:
-        https_proxy = os.getenv(proxy_var, None)
-    if https_proxy is not None:
-        print_log(f"Using {proxy_var}={https_proxy}")
+            print_log(f"Using {proxy_var}={https_proxy}")
 
 
 def main_wrapper(func):
