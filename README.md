@@ -268,7 +268,7 @@ Indentation is optional in TOML files and is for readability only.
 
 The commands will use the value of the environment variable `HTTPS_PROXY` if routing through a proxy is required.
 
-In addition, the commands can use Proxy Auto-Configuration (PAC) if the `--pac` command line option is specified, or if the `usePAC` property is set to `true` in the `[common]` section of the `config.toml` file.
+In addition, the commands can use proxy autoconfiguration (PAC) if the `--pac` command line option is specified, or if the `usePAC` property is set to `true` in the `[common]` section of the `config.toml` file.
 
 ## Specifying Common Properties using the Command Line or Environment Variables
 

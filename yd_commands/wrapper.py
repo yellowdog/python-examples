@@ -54,23 +54,23 @@ def print_account():
             )
 
 
-def set_proxy_using_pac_if_enabled():
+def set_proxy():
     """
-    Set the HTTPS proxy using autoconfiguration (PAC)
+    Set the HTTPS proxy using autoconfiguration (PAC) if enabled.
     """
-    HTTPS_PROXY_VAR = "HTTPS_PROXY"
+    proxy_var = "HTTPS_PROXY"
     if CONFIG_COMMON.use_pac:
         print_log("Using Proxy Auto-Configuration (PAC)")
         with pac_context_for_url(CONFIG_COMMON.url):
-            https_proxy = os.getenv(HTTPS_PROXY_VAR, None)
+            https_proxy = os.getenv(proxy_var, None)
         if https_proxy is not None:
-            os.environ[HTTPS_PROXY_VAR] = https_proxy
+            os.environ[proxy_var] = https_proxy
         else:
             print_log("No PAC proxy settings found")
     else:
-        https_proxy = os.getenv(HTTPS_PROXY_VAR, None)
+        https_proxy = os.getenv(proxy_var, None)
     if https_proxy is not None:
-        print_log(f"Using {HTTPS_PROXY_VAR}={https_proxy}")
+        print_log(f"Using {proxy_var}={https_proxy}")
 
 
 def main_wrapper(func):
@@ -78,7 +78,7 @@ def main_wrapper(func):
         if not ARGS_PARSER.debug:
             exit_code = 0
             try:
-                set_proxy_using_pac_if_enabled()
+                set_proxy()
                 print_account()
                 func()
             except Exception as e:
@@ -93,7 +93,7 @@ def main_wrapper(func):
                     print_log("Done")
                 exit(exit_code)
         else:
-            set_proxy_using_pac_if_enabled()
+            set_proxy()
             print_account()
             func()
             CLIENT.close()
