@@ -2,6 +2,7 @@
 Utility functions for uploading objects.
 """
 
+from os import name as os_name
 from os import stat
 from os.path import basename
 from pathlib import Path
@@ -33,8 +34,7 @@ def upload_file(
         return False
 
     dest_filename = unique_upload_pathname(
-        # Convert Windows path naming to Unix
-        filename.replace("\\", "/").replace(":", ""),
+        filename=filename,
         id=id,
         inputs_folder_name=inputs_folder_name,
         flatten_upload_paths=flatten_upload_paths,
@@ -59,8 +59,14 @@ def unique_upload_pathname(
 ) -> str:
     """
     Maps the local filename into a uniquely identified upload object
-    in the YD Object Store. Optionally replaces forward slashes.
+    in the YD Object Store. Optionally replaces forward slashes for use
+    in URLs.
     """
+
+    if os_name == "nt":
+        # Convert Windows path naming to Unix style for upload
+        filename = filename.replace("/", "_").replace(":", "_").replace("\\", "/")
+
     forward_slash = "%2F" if urlencode_forward_slash else "/"
     prefix = "" if id == "" else id + forward_slash
 
