@@ -368,7 +368,7 @@ For example, if one wanted to select a different `templateId` for a Worker Pool 
     template_phoenix = "ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"
     template_frankfurt = "ydid:crt:65EF4F:329602cf-5945-4aad-a288-ea424d64d55e"
 
-[common.workerPool]
+[workerPool]
     templateId = "{{template_{{region}}}}"
 ```
 
@@ -1065,7 +1065,7 @@ where <working_directory> is:
   /var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
 ```
 
-Note that Work Requirement name (e.g., `testrun_221108-120404-7d2`) is available via the variable substitution `wr_name`, so this could be supplied to the Task to help it locate its downloaded files. For example, in the `workRequirement` section of the `config.toml` file, I could specify:
+Note that the Work Requirement name (e.g., `testrun_221108-120404-7d2`) is available via the variable substitution `wr_name`, so this could be supplied to the Task to help it locate its downloaded files. For example, in the `workRequirement` section of the `config.toml` file, I could specify:
 
 ```toml
 environment = {WR_DIRECTORY = "{{wr_name}}"}
