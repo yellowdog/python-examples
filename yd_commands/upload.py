@@ -4,7 +4,9 @@
 A script to upload files to the YellowDog Object Store.
 """
 
+from glob import glob
 from os import chdir
+from os import name as os_name
 from os import walk as os_walk
 from os.path import join as os_path_join
 from pathlib import Path
@@ -29,6 +31,14 @@ def main():
     )
 
     files_set = set(ARGS_PARSER.files)
+    if os_name == "nt":
+        # Windows wildcard expansion (not done natively by the Windows shell)
+        files_set = {f for files in files_set for f in glob(files)}
+
+    if len(files_set) == 0:
+        print_log("No files to upload")
+        return
+
     added_files_set = set()
     removed_dirs_set = set()
 
