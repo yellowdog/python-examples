@@ -42,6 +42,7 @@
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
          * [Files in the inputs List](#files-in-the-inputs-list)
          * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
+         * [Using Wildcards in the uploadFiles List](#using-wildcards-in-the-uploadfiles-list)
       * [File Dependencies Using verifyAtStart and verifyWait](#file-dependencies-using-verifyatstart-and-verifywait)
       * [Files Downloaded Using inputsOptional](#files-downloaded-using-inputsoptional)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
@@ -85,7 +86,7 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
 
-<!-- Added by: pwt, at: Tue Jun 20 16:19:51 BST 2023 -->
+<!-- Added by: pwt, at: Mon Jun 26 15:39:46 BST 2023 -->
 
 <!--te-->
 
@@ -1000,6 +1001,18 @@ For `uploadPath`, the same `::` naming convention is available as is used in the
 Each file specified in the `uploadFiles` lists will only be uploaded once to each unique upload location for any given invocation of `yd-submit`.
 
 If a file in the `uploadFiles` list is required by a Task, it must separately be added to the `verifyAtStart` or `verifyWait` lists discussed below. This is not done automatically. Note also that the `flattenUploadPaths` property is ignored for files in the `uploadFiles` list.
+
+#### Using Wildcards in the `uploadFiles` List
+
+File and directory name wildcards can be used in `localPath` properties. If wildcards are used, then the `uploadPath` property must end with a `*`, which will be replaced with the name of each file that matches the wildcard, e.g.:
+
+```toml
+uploadFiles = [
+    {localPath = "*.sh", uploadPath = "scripts/*"},
+    {localPath = "text/*.txt", uploadPath = "::top-level/*"},
+    {localPath = "src/*.py", uploadPath = "other-namespace::*"},
+]
+```
 
 ### File Dependencies Using `verifyAtStart` and `verifyWait`
 

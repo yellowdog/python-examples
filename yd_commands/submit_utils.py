@@ -106,35 +106,59 @@ class UploadedFiles:
     def add_upload_file(self, upload_file: str, upload_path: str):
         """
         Upload a file if it hasn't already been uploaded to the same location.
+        Handle wildcards.
         """
         if ARGS_PARSER.dry_run:
             return
 
-        if upload_file in [
-            f.local_file_path for f in self._uploaded_files
-        ] and upload_path in [f.specified_upload_path for f in self._uploaded_files]:
-            return
+        # Handle wildcard expansion
+        expanded_files = glob(pathname=upload_file, recursive=True)
+        if len(expanded_files) > 1:
+            if not upload_path.endswith("*"):
+                raise Exception(
+                    "'uploadPath' must end in '*' when using'uploadFiles' wildcards"
+                )
 
-        namespace, uploaded_file_path = get_namespace_and_filepath(
-            upload_path, self._wr_name
-        )
-        namespace = self._config.namespace if namespace is None else namespace
-        upload_file_core(
-            client=self._client,
-            url=self._config.url,
-            local_file=upload_file,
-            namespace=namespace,
-            remote_file=uploaded_file_path,
-        )
-
-        self._uploaded_files.append(
-            UploadedFile(
-                local_file_path=upload_file,
-                specified_upload_path=upload_path,
-                upload_namespace=namespace,
-                uploaded_file_path=uploaded_file_path,
+        for upload_file in expanded_files:
+            namespace, uploaded_file_path = get_namespace_and_filepath(
+                upload_path, self._wr_name
             )
-        )
+
+            # Adjust upload file path for a wildcard upload
+            if "*" in uploaded_file_path:
+                uploaded_file_path = uploaded_file_path.replace(
+                    "*", upload_file.split("/")[-1]
+                )
+            uploaded_file_path = uploaded_file_path.lstrip("/")
+
+            # Check for duplicate upload
+            if upload_file in [
+                f.local_file_path for f in self._uploaded_files
+            ] and uploaded_file_path in [
+                f.uploaded_file_path for f in self._uploaded_files
+            ]:
+                print_log(
+                    f"Not uploading duplicate: {upload_file} -> {uploaded_file_path}"
+                )
+                continue
+
+            namespace = self._config.namespace if namespace is None else namespace
+            upload_file_core(
+                client=self._client,
+                url=self._config.url,
+                local_file=upload_file,
+                namespace=namespace,
+                remote_file=uploaded_file_path,
+            )
+
+            self._uploaded_files.append(
+                UploadedFile(
+                    local_file_path=upload_file,
+                    specified_upload_path=upload_path,
+                    upload_namespace=namespace,
+                    uploaded_file_path=uploaded_file_path,
+                )
+            )
 
     def add_input_file(self, filename: str, flatten_upload_paths: bool) -> List[str]:
         """
