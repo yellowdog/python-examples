@@ -86,7 +86,6 @@ def get_namespace_and_filepath(
 @dataclass
 class UploadedFile:
     local_file_path: str
-    specified_upload_path: str
     upload_namespace: str
     uploaded_file_path: str
 
@@ -160,7 +159,6 @@ class UploadedFiles:
             self._uploaded_files.append(
                 UploadedFile(
                     local_file_path=upload_file,
-                    specified_upload_path=upload_path,
                     upload_namespace=namespace,
                     uploaded_file_path=uploaded_file_path,
                 )
