@@ -108,8 +108,6 @@ class UploadedFiles:
         Upload a file if it hasn't already been uploaded to the same location.
         Handle wildcards.
         """
-        if ARGS_PARSER.dry_run:
-            return
 
         # Handle wildcard expansion
         expanded_files = glob(pathname=upload_file, recursive=True)
@@ -123,12 +121,14 @@ class UploadedFiles:
             namespace, uploaded_file_path = get_namespace_and_filepath(
                 upload_path, self._wr_name
             )
+            namespace = self._config.namespace if namespace is None else namespace
 
             # Adjust upload file path for a wildcard upload
             if "*" in uploaded_file_path:
                 uploaded_file_path = uploaded_file_path.replace(
                     "*", upload_file.split("/")[-1]
                 )
+
             uploaded_file_path = uploaded_file_path.lstrip("/")
 
             # Check for duplicate upload
@@ -138,18 +138,24 @@ class UploadedFiles:
                 f.uploaded_file_path for f in self._uploaded_files
             ]:
                 print_log(
-                    f"Not uploading duplicate: {upload_file} -> {uploaded_file_path}"
+                    f"Not uploading duplicate: '{upload_file}' ->"
+                    f" '{namespace}::{uploaded_file_path}'"
                 )
                 continue
 
-            namespace = self._config.namespace if namespace is None else namespace
-            upload_file_core(
-                client=self._client,
-                url=self._config.url,
-                local_file=upload_file,
-                namespace=namespace,
-                remote_file=uploaded_file_path,
-            )
+            if not ARGS_PARSER.dry_run:
+                upload_file_core(
+                    client=self._client,
+                    url=self._config.url,
+                    local_file=upload_file,
+                    namespace=namespace,
+                    remote_file=uploaded_file_path,
+                )
+            else:
+                print_log(
+                    f"Dry-run: would upload '{upload_file}' to"
+                    f" '{namespace}::{uploaded_file_path}'"
+                )
 
             self._uploaded_files.append(
                 UploadedFile(

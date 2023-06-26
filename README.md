@@ -1014,6 +1014,8 @@ uploadFiles = [
 ]
 ```
 
+The `--dry-run` (`-D`) option can be used with `yd-submit` to print out the files that would be uploaded, and their upload locations. 
+
 ### File Dependencies Using `verifyAtStart` and `verifyWait`
 
 It's possible to make Tasks dependent on the presence of files in the Object Store by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are either uploaded manually (e.g., by using `yd-upload`), or are created as a result of the execution of other Tasks.
