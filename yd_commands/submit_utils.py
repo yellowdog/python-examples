@@ -130,16 +130,20 @@ class UploadedFiles:
 
             uploaded_file_path = uploaded_file_path.lstrip("/")
 
-            # Check for duplicate upload
-            if upload_file in [
-                f.local_file_path for f in self._uploaded_files
-            ] and uploaded_file_path in [
-                f.uploaded_file_path for f in self._uploaded_files
-            ]:
-                print_log(
-                    f"Not uploading duplicate: '{upload_file}' ->"
-                    f" '{namespace}::{uploaded_file_path}'"
-                )
+            duplicate = False
+            for uploaded_file in self._uploaded_files:
+                if (
+                    upload_file == uploaded_file.local_file_path
+                    and uploaded_file_path == uploaded_file.uploaded_file_path
+                    and namespace == uploaded_file.upload_namespace
+                ):
+                    print_log(
+                        f"Not uploading duplicate: '{upload_file}' ->"
+                        f" '{namespace}::{uploaded_file_path}'"
+                    )
+                    duplicate = True
+                    break
+            if duplicate:
                 continue
 
             if not ARGS_PARSER.dry_run:
