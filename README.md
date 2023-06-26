@@ -453,7 +453,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `flattenInputPaths`        | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                               | Yes  | Yes | Yes  | Yes  |
 | `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                        | Yes  | Yes |      |      |
 | `fulfilOnSubmit`           | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |      |      |
-| `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]`.                       | Yes  | Yes | Yes  | Yes  |
+| `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]` or `["*.sh"]`.         | Yes  | Yes | Yes  | Yes  |
 | `inputsOptional`           | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                     | Yes  | Yes | Yes  | Yes  |
 | `instanceTypes`            | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes  |      |
 | `maximumTaskRetries`       | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                        | Yes  | Yes | Yes  |      |
@@ -906,6 +906,8 @@ This section discusses how to upload files from local storage to the YellowDog O
 #### Files in the `inputs` List
 
 When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the case of the `bash` Task Type, the script specified in the `executable` property is also automatically uploaded as a convenience, even if not included in the `inputs` list.)
+
+The `inputs` property accepts wildcard filenames, e.g.: `["*.sh", "*.txt"]`. This can be used to add the contents of directories, e.g.: `["my_dir/*", "data*/*"]`.
 
 Files are uploaded to the Namespace specified in the configuration. Within the Namespace, each Work Requirement has a separate folder that shares the name of the Work Requirement, and in which all files related to the Work Requirement are stored.
 

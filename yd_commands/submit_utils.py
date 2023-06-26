@@ -4,6 +4,7 @@ Utility functions for use with the submit command.
 
 import re
 from dataclasses import dataclass
+from glob import glob
 from typing import List, Optional
 
 from yellowdog_client import PlatformClient
@@ -135,20 +136,28 @@ class UploadedFiles:
             )
         )
 
-    def add_input_file(self, filename: str, flatten_upload_paths: bool):
+    def add_input_file(self, filename: str, flatten_upload_paths: bool) -> List[str]:
         """
-        Add a file from the inputs list.
+        Add a filename from the inputs list, processing wildcards if present.
+        Return the expanded list of filenames.
         """
-        # Apply Work Requirement name prefix, etc.
-        upload_file_name = unique_upload_pathname(
-            filename=filename,
-            id=self._wr_name,
-            inputs_folder_name=None,
-            urlencode_forward_slash=False,
-            flatten_upload_paths=flatten_upload_paths,
-        )
-        # Force 'uploaded_file_name' to be at the root of the namespace
-        self.add_upload_file(filename, f"{NAMESPACE_SEPARATOR}{upload_file_name}")
+
+        # Expand wildcards
+        expanded_files = glob(pathname=filename, recursive=True)
+
+        for filename in expanded_files:
+            # Apply Work Requirement name prefix, etc.
+            upload_file_name = unique_upload_pathname(
+                filename=filename,
+                id=self._wr_name,
+                inputs_folder_name=None,
+                urlencode_forward_slash=False,
+                flatten_upload_paths=flatten_upload_paths,
+            )
+            # Force 'uploaded_file_name' to be at the root of the namespace
+            self.add_upload_file(filename, f"{NAMESPACE_SEPARATOR}{upload_file_name}")
+
+        return expanded_files
 
     def delete(self):
         """

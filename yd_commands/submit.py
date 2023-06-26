@@ -586,12 +586,15 @@ def add_tasks_to_task_group(
                 optional_inputs_list,
             )
 
-            # Upload files in the 'inputs' list
+            # Upload files in the 'inputs' list, applying wildcard expansion.
             # (Duplicates won't be re-added)
+            expanded_files_list: List[str] = []
             for file in input_files_list:
-                UPLOADED_FILES.add_input_file(
+                expanded_files = UPLOADED_FILES.add_input_file(
                     filename=file, flatten_upload_paths=flatten_upload_paths
                 )
+                expanded_files_list += expanded_files
+            input_files_list = expanded_files_list
 
             # Upload files in the 'uploadFiles' list
             upload_files = check_list(
