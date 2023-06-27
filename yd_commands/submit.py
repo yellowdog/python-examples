@@ -24,6 +24,7 @@ from yellowdog_client.model import (
     Task,
     TaskGroup,
     TaskInput,
+    TaskInputSource,
     TaskInputVerification,
     TaskOutput,
     TaskStatus,
@@ -636,6 +637,8 @@ def add_tasks_to_task_group(
                 files=optional_inputs_list, verification=None, wr_name=ID
             )
 
+            inputs = deduplicate_inputs(inputs)
+
             # Set up the 'outputs' property
             outputs = [
                 TaskOutput.from_worker_directory(file_pattern=file, required=False)
@@ -816,6 +819,30 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
 
     # Delete uploaded objects
     UPLOADED_FILES.delete()
+
+
+def deduplicate_inputs(task_inputs: List[TaskInput]) -> List[TaskInput]:
+    """
+    Deduplicate a list of TaskInputs. This is useful when wildcards
+    are used. Note that TaskInputs that differ only in their verification
+    type will be caught by 'check_for_duplicates_in_file_lists()'.
+    """
+    deduplicated_task_inputs: List[TaskInput] = []
+    for task_input in task_inputs:
+        if task_input not in deduplicated_task_inputs:
+            deduplicated_task_inputs.append(task_input)
+        else:
+            namespace = (
+                CONFIG_COMMON.namespace
+                if task_input.source == TaskInputSource.TASK_NAMESPACE
+                else task_input.namespace
+            )
+            print_log(
+                f"Removing '{task_input.verification}' duplicate:"
+                f" '{namespace}::{task_input.objectNamePattern}'"
+            )
+
+    return deduplicated_task_inputs
 
 
 def check_for_duplicates_in_file_lists(*args: List[str]):
