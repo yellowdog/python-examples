@@ -138,10 +138,6 @@ class UploadedFiles:
                     and uploaded_file_path == uploaded_file.uploaded_file_path
                     and namespace == uploaded_file.upload_namespace
                 ):
-                    print_log(
-                        f"Not uploading duplicate: '{upload_file}' ->"
-                        f" '{namespace}::{uploaded_file_path}'"
-                    )
                     duplicate = True
                     break
             if duplicate:
@@ -157,7 +153,7 @@ class UploadedFiles:
                 )
             else:
                 print_log(
-                    f"Dry-run: would upload '{upload_file}' to"
+                    f"Dry-run: Would upload '{upload_file}' to"
                     f" '{namespace}::{uploaded_file_path}'"
                 )
 
