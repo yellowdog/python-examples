@@ -275,6 +275,13 @@ class CLIParser:
                 help="list YellowDog Object Store object paths",
             )
             parser.add_argument(
+                "--tree",
+                "-T",
+                action="store_true",
+                required=False,
+                help="when used with '--object-paths', list the full object tree",
+            )
+            parser.add_argument(
                 "--work-requirements",
                 "-w",
                 action="store_true",
@@ -521,6 +528,10 @@ class CLIParser:
     @property
     def live_only(self) -> Optional[bool]:
         return self.args.live_only
+
+    @property
+    def object_tree(self) -> Optional[bool]:
+        return self.args.tree
 
     @property
     def debug(self) -> Optional[bool]:

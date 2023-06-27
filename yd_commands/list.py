@@ -146,10 +146,14 @@ def list_object_paths():
     )
     object_paths: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(CONFIG_COMMON.namespace)
+            ObjectPathsRequest(
+                CONFIG_COMMON.namespace,
+                prefix=CONFIG_COMMON.name_tag,
+                flat=ARGS_PARSER.object_tree,
+            )
         )
     )
-    print_numbered_object_list(CLIENT, object_paths)
+    print_numbered_object_list(CLIENT, sorted_objects(object_paths))
 
 
 def list_worker_pools():
