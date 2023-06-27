@@ -41,6 +41,7 @@ def generate_task_input(
     and relative to the directory specific to this Work Requirement.
     """
     namespace, filepath = get_namespace_and_filepath(file, wr_name)
+    filepath = filepath.lstrip("/")
     if namespace is None:
         return TaskInput.from_task_namespace(
             object_name_pattern=filepath, verification=verification
