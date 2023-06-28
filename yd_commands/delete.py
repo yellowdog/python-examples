@@ -15,19 +15,19 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
+    tag = CONFIG_COMMON.name_tag.lstrip("/")
     print_log(
         f"Deleting Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
-        f"names starting with '{CONFIG_COMMON.name_tag}'"
+        f"names starting with '{tag}'"
     )
-    object_paths: List[ObjectPath] = (
+
+    object_paths_to_delete: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(CONFIG_COMMON.namespace)
+            ObjectPathsRequest(
+                CONFIG_COMMON.namespace, prefix=tag, flat=True
+            )
         )
     )
-    object_paths_to_delete: List[ObjectPath] = []
-    for object_path in object_paths:
-        if object_path.name.startswith(CONFIG_COMMON.name_tag):
-            object_paths_to_delete.append(object_path)
 
     if len(object_paths_to_delete) > 0:
         object_paths_to_delete = select(CLIENT, object_paths_to_delete)

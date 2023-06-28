@@ -1865,6 +1865,13 @@ yd-delete -t ""
 
 This can be extended to any other namespace by using the `--namespace`/`-n` option.
 
+To delete a specific directory or object, supply the directory or object name using the `--tag` option, e.g.:
+
+```shell
+yd-delete --tag "path/to/my/directory"
+yd-delete -t "path/to/my/directory/object"
+```
+
 ## yd-upload
 
 The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory supplied using the (required) `--directory` option, e.g.:
