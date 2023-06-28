@@ -85,7 +85,6 @@ def list_work_requirements():
             f"Listing Work Requirements in 'namespace={CONFIG_COMMON.namespace}' "
             f"and names starting with 'tag={CONFIG_COMMON.name_tag}'"
         ),
-        override_quiet=True,
     )
     exclude_filter = (
         [
@@ -106,13 +105,13 @@ def list_work_requirements():
     )
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
     if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
-        print_numbered_object_list(
-            CLIENT, work_requirement_summaries, override_quiet=True
-        )
+        print_numbered_object_list(CLIENT, work_requirement_summaries)
     else:
-        selected_work_summaries = select(CLIENT, work_requirement_summaries)
+        selected_work_summaries = select(
+            CLIENT, work_requirement_summaries, single_result=True
+        )
         for work_summary in selected_work_summaries:
-            print_log(f"Work Requirement {work_summary.name}", override_quiet=True)
+            print_log(f"Work Requirement {work_summary.name}")
             list_task_groups(work_summary)
 
 
@@ -122,9 +121,9 @@ def list_task_groups(work_summary: WorkRequirementSummary):
     )
     task_groups = sorted_objects(task_groups)
     if not ARGS_PARSER.tasks:
-        print_numbered_object_list(CLIENT, task_groups, override_quiet=True)
+        print_numbered_object_list(CLIENT, task_groups)
     else:
-        task_groups = select(CLIENT, task_groups, override_quiet=True)
+        task_groups = select(CLIENT, task_groups, single_result=True)
         for task_group in task_groups:
             list_tasks(task_group, work_summary)
 
@@ -136,7 +135,7 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
     )
     tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
     tasks = sorted_objects(tasks)
-    print_numbered_object_list(CLIENT, tasks, parent=work_summary, override_quiet=True)
+    print_numbered_object_list(CLIENT, tasks, parent=work_summary)
 
 
 def list_object_paths():
@@ -144,6 +143,8 @@ def list_object_paths():
         f"Listing Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
         f"names starting with '{CONFIG_COMMON.name_tag}'"
     )
+    if ARGS_PARSER.object_tree:
+        print_log("Listing complete Object tree")
     object_paths: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(
@@ -198,9 +199,7 @@ def list_worker_pools():
                 selected_worker_pool_summaries.append(worker_pool_summary)
 
     selected_worker_pool_summaries = sorted_objects(selected_worker_pool_summaries)
-    print_numbered_object_list(
-        CLIENT, selected_worker_pool_summaries, override_quiet=True
-    )
+    print_numbered_object_list(CLIENT, selected_worker_pool_summaries)
 
 
 def list_compute_requirements():
@@ -238,7 +237,6 @@ def list_compute_requirements():
     print_numbered_object_list(
         CLIENT,
         sorted_objects(filtered_compute_requirements),
-        override_quiet=True,
     )
 
 

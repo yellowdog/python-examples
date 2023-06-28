@@ -232,7 +232,6 @@ class CLIParser:
                 "cancel",
                 "delete",
                 "download",
-                "list",
                 "shutdown",
                 "terminate",
             ]

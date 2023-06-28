@@ -32,12 +32,17 @@ def select(
     objects: List[Item],
     parent: Optional[Item] = None,
     override_quiet: bool = False,
+    single_result: bool = False,
 ) -> List[Item]:
     """
     Print a numbered list of objects.
     Manually select objects from a list if --interactive is set.
     Return the list of objects.
     """
+
+    if len(objects) == 0:
+        return objects
+
     objects = sorted_objects(objects)
 
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
@@ -56,11 +61,13 @@ def select(
             return False
 
     while True:
-        selector_string = input(
-            print_string(
+        if single_result:
+            input_string = "Please select item number or press <Return> to cancel: "
+        else:
+            input_string = (
                 "Please select items (e.g.: 1,2,4-7) or press <Return> for none: "
             )
-        )
+        selector_string = input(print_string(input_string))
         selector_list = selector_string.split(",")
         selector_set: Set[int] = set()
         error_flag = False
@@ -84,9 +91,14 @@ def select(
                     else:
                         error_flag = True
             except ValueError:
-                print(print_string(f"Error: '{selector}' is not a valid selection"))
+                print_error(f"'{selector}' is not a valid selection")
                 error_flag = True
         if error_flag:
+            continue
+        elif len(selector_set) == 0:
+            break
+        elif single_result and len(selector_set) != 1:
+            print_error("please enter a single item number")
             continue
         else:
             break
