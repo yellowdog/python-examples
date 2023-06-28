@@ -47,10 +47,10 @@ def print_account():
     """
     if not dry_run():
         keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
-        for keyring_summary in keyrings:
+        if len(keyrings) > 0:
             # This is a little brittle, obviously
             print_log(
-                f"YellowDog Account short identifier is: '{keyring_summary.id[13:19]}'"
+                f"YellowDog Account short identifier is: '{keyrings[0].id[13:19]}'"
             )
 
 
