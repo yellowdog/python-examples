@@ -85,8 +85,9 @@
    * [yd-instantiate](#yd-instantiate)
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
+   * [yd-list](#yd-list)
 
-<!-- Added by: pwt, at: Mon Jun 26 15:39:46 BST 2023 -->
+<!-- Added by: pwt, at: Wed Jun 28 11:11:25 BST 2023 -->
 
 <!--te-->
 
@@ -113,6 +114,7 @@ The scripts provide the following capabilities:
 - **Shutting Down** Worker Pools with the **`yd-shutdown`** command
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
+- **Listing** YellowDog items using the **`yd-list`** command
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -1949,3 +1951,16 @@ For example:
 ## yd-terminate
 
 The `yd-terminate` command immediately terminates Compute Requirements that match the `namespace` and `tag` found in the configuration file. Any executing Tasks will be terminated immediately, and the Worker Pool will be shut down.
+
+## yd-list
+
+The `yd-list` command can be used to list various YellowDog items, using the `namespace` and `tag` properties to target the scope of what to list:
+
+- Compute Requirements
+- Worker Pools
+- Objects in the Object Store
+- Work Requirements
+- Task Groups
+- Tasks
+
+Please use `yd-list --help` to inspect the various options.
