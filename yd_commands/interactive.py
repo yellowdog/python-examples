@@ -61,12 +61,11 @@ def select(
             return False
 
     while True:
-        if single_result:
-            input_string = "Please select item number or press <Return> to cancel: "
-        else:
-            input_string = (
-                "Please select items (e.g.: 1,2,4-7) or press <Return> for none: "
-            )
+        input_string = (
+            "Please select an item number or press <Return> to cancel: "
+            if single_result
+            else "Please select items (e.g.: 1,2,4-7) or press <Return> to cancel: "
+        )
         selector_string = input(print_string(input_string))
         selector_list = selector_string.split(",")
         selector_set: Set[int] = set()
@@ -105,11 +104,13 @@ def select(
 
     selected_list = sorted(list(selector_set))
     if len(selected_list) > 0:
-        print(
-            print_string(
-                f"Selected item number(s): {', '.join([str(x) for x in selected_list])}"
+        if not single_result:
+            print(
+                print_string(
+                    "Selected item number(s):"
+                    f" {', '.join([str(x) for x in selected_list])}"
+                )
             )
-        )
     else:
         print_log("No items selected")
 
