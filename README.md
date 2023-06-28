@@ -1849,15 +1849,16 @@ The `namespace` and `tag` values in the `config.toml` file are used to identify 
 
 ## yd-download
 
-The `yd-download` command downloads any objects created in the YellowDog Object Store.
+The `yd-download` command downloads objects from the YellowDog Object Store.
 
-The `namespace` and `tag` values are used to determine which objects to download. Objects will be downloaded to a directory with the same name as `namespace`. If a directory already exists, a new directory with name `<namespace>.01` (etc.) will be created.
 
-To download a specific object or directory, specify it using the `--tag` option, e.g.:
+The `namespace` and `tag` values are used to determine which objects to download. To download a specific object or directory, specify it using the `--tag` option, e.g.:
 
 ```shell
 yd-download --tag "path/to/my/object"
 ```
+
+Objects will be downloaded to a directory with the same name as `namespace`. Alternatively, a local download directory can be specified with the `--directory` option. Directories will be created if they don't already exist. Files that are downloaded will overwrite existing local files **without warning**.
 
 ## yd-delete
 

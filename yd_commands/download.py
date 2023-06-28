@@ -5,7 +5,7 @@ A script to download YellowDog Object Store objects.
 """
 
 from concurrent import futures
-from os import mkdir, path
+from pathlib import Path
 from typing import List
 
 from yellowdog_client.model import ObjectPath, ObjectPathsRequest
@@ -17,7 +17,7 @@ from yellowdog_client.object_store.model import FileTransferStatus
 
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_log
-from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
@@ -46,7 +46,11 @@ def main():
 
     print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
 
-    download_dir: str = _create_download_directory(CONFIG_COMMON.namespace)
+    download_dir: str = _create_download_directory(
+        CONFIG_COMMON.namespace
+        if ARGS_PARSER.directory == ""
+        else ARGS_PARSER.directory
+    )
 
     for object_path in object_paths_to_download:
         download_batch_builder: AbstractDownloadBatchBuilder = (
@@ -76,24 +80,18 @@ def main():
     )
 
 
-def _create_download_directory(namespace: str) -> str:
+def _create_download_directory(directory_name: str) -> str:
     """
     Create a new local download directory in the current working directory,
-    using a sequence of names as follows to avoid over-writes:
-       <namespace>, <namespace>.01, ..., <namespace>.99
+    if it doesn't exist, and return the absolute pathname.
     """
-    new_dir = namespace
-    if path.exists(new_dir):
-        for index in range(1, 100):
-            new_dir = namespace + "." + str(index).zfill(2)
-            if not path.exists(new_dir):
-                break
-        else:
-            raise Exception(f"Too many download directories for {namespace}")
-    mkdir(new_dir)
-    new_dir = path.abspath(new_dir)
-    print_log(f"Created local download directory: {new_dir}")
-    return new_dir
+    path = Path(directory_name).resolve()
+    if path.exists():
+        print_log(f"Downloading to existing directory: '{path}'")
+    else:
+        print_log(f"Creating download directory: {path}")
+    path.mkdir(parents=True, exist_ok=True)
+    return str(path)
 
 
 # Entry point

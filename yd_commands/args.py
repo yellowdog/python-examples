@@ -264,6 +264,14 @@ class CLIParser:
                 required=False,
                 help="download without requiring user confirmation",
             )
+            parser.add_argument(
+                "--directory",
+                "-d",
+                type=str,
+                required=False,
+                help="the directory to use for downloaded objects",
+                metavar="<directory>",
+            )
 
         if "list" in sys.argv[0]:
             parser.add_argument(
