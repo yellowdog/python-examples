@@ -286,6 +286,7 @@ class CLIParser:
         if "list" in sys.argv[0]:
             parser.add_argument(
                 "--object-paths",
+                "--objects",
                 "-o",
                 action="store_true",
                 required=False,
@@ -338,7 +339,7 @@ class CLIParser:
                 "-l",
                 action="store_true",
                 required=False,
-                help="list live objects only",
+                help="list only running requirements/pools",
             )
 
         if "upload" in sys.argv[0]:
