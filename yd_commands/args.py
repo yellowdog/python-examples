@@ -73,9 +73,10 @@ class CLIParser:
         parser.add_argument(
             "--tag",
             "-t",
+            "--prefix",
             type=str,
             required=False,
-            help="the tag to use for tagging and naming entities",
+            help="the tag/prefix for naming or selecting entities",
             metavar="<tag>",
         )
         parser.add_argument(
