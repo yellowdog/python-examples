@@ -139,17 +139,18 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
 
 
 def list_object_paths():
+    tag = CONFIG_COMMON.name_tag.lstrip("/")
     print_log(
         f"Listing Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
-        f"names starting with '{CONFIG_COMMON.name_tag}'"
+        f"names starting with '{tag}'"
     )
     if ARGS_PARSER.all:
-        print_log("Listing complete Object tree")
+        print_log("Listing all Objects")
     object_paths: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(
                 CONFIG_COMMON.namespace,
-                prefix=CONFIG_COMMON.name_tag,
+                prefix=tag,
                 flat=ARGS_PARSER.all,
             )
         )
