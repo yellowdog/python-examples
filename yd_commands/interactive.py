@@ -109,12 +109,15 @@ def select(
     selected_list = sorted(list(selector_set))
     if len(selected_list) > 0:
         if not single_result:
-            print(
-                print_string(
-                    "Selected item number(s):"
-                    f" {', '.join([str(x) for x in selected_list])}"
+            if len(selected_list) > 30:
+                display_selections = (
+                    ", ".join([str(x) for x in selected_list[:15]])
+                    + " ... "
+                    + ", ".join([str(x) for x in selected_list[-15:]])
                 )
-            )
+            else:
+                display_selections = ", ".join([str(x) for x in selected_list])
+            print(print_string(f"Selected item number(s): {display_selections}"))
     else:
         print_log("No items selected")
 
