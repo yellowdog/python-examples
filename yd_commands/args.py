@@ -273,6 +273,15 @@ class CLIParser:
                 metavar="<directory>",
             )
 
+        if any(module in sys.argv[0] for module in ["delete", "download"]):
+            parser.add_argument(
+                "--tree",
+                "-T",
+                action="store_true",
+                required=False,
+                help="list the detailed object tree, not just the top level",
+            )
+
         if "list" in sys.argv[0]:
             parser.add_argument(
                 "--object-paths",

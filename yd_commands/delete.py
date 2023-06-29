@@ -10,7 +10,7 @@ from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_log
-from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
@@ -23,7 +23,9 @@ def main():
 
     object_paths_to_delete: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(CONFIG_COMMON.namespace, prefix=tag, flat=True)
+            ObjectPathsRequest(
+                CONFIG_COMMON.namespace, prefix=tag, flat=ARGS_PARSER.object_tree
+            )
         )
     )
 

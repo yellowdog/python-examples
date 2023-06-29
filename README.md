@@ -1851,12 +1851,13 @@ The `namespace` and `tag` values in the `config.toml` file are used to identify 
 
 The `yd-download` command downloads objects from the YellowDog Object Store.
 
-
 The `namespace` and `tag` values are used to determine which objects to download. To download a specific object or directory, specify it using the `--tag` option, e.g.:
 
 ```shell
 yd-download --tag "path/to/my/object"
 ```
+
+Use the `--tree` (`-T`) option to see the full directory/object structure.
 
 Objects will be downloaded to a directory with the same name as `namespace`. Alternatively, a local download directory can be specified with the `--directory` option. Directories will be created if they don't already exist. Files that are downloaded will overwrite existing local files **without warning**.
 
@@ -1878,6 +1879,8 @@ To delete a specific directory or object, supply the directory or object name us
 yd-delete --tag "path/to/my/directory"
 yd-delete -t "path/to/my/directory/object"
 ```
+
+Use the `--tree` (`-T`) option to see the full directory/object structure.
 
 ## yd-upload
 
