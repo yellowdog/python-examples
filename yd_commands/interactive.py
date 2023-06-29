@@ -64,9 +64,13 @@ def select(
         input_string = (
             "Please select an item number or press <Return> to cancel: "
             if single_result
-            else "Please select items (e.g.: 1,2,4-7) or press <Return> to cancel: "
+            else (
+                "Please select items (e.g.: 1,2,4-7 / *) or press <Return> to cancel: "
+            )
         )
         selector_string = input(print_string(input_string))
+        if selector_string.strip() == "*":
+            selector_string = f"1-{len(objects)}"
         selector_list = selector_string.split(",")
         selector_set: Set[int] = set()
         error_flag = False
