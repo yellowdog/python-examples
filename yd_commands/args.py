@@ -270,17 +270,19 @@ class CLIParser:
                 "-d",
                 type=str,
                 required=False,
-                help="the directory to use for downloaded objects",
+                help=(
+                    "the directory to use for downloaded objects (namespace is default)"
+                ),
                 metavar="<directory>",
             )
 
         if any(module in sys.argv[0] for module in ["delete", "download"]):
             parser.add_argument(
-                "--tree",
-                "-T",
+                "--all",
+                "-a",
                 action="store_true",
                 required=False,
-                help="list the detailed object tree, not just the top level",
+                help="list all objects, not just the top level",
             )
 
         if "list" in sys.argv[0]:
@@ -293,11 +295,14 @@ class CLIParser:
                 help="list YellowDog Object Store object paths",
             )
             parser.add_argument(
-                "--tree",
-                "-T",
+                "--all",
+                "-a",
                 action="store_true",
                 required=False,
-                help="when used with '--object-paths', list the full object tree",
+                help=(
+                    "when used with '--objects', list all objects, not just the top"
+                    " level"
+                ),
             )
             parser.add_argument(
                 "--work-requirements",
@@ -315,7 +320,7 @@ class CLIParser:
             )
             parser.add_argument(
                 "--tasks",
-                "-a",
+                "-T",
                 action="store_true",
                 required=False,
                 help="list Tasks in selected Work Requirements",
@@ -348,7 +353,9 @@ class CLIParser:
                 "-d",
                 type=str,
                 required=False,
-                help="the Object Store directory name to use when uploading objects",
+                help=(
+                    "the Object Store directory (prefix) to use when uploading objects"
+                ),
                 metavar="<directory>",
             )
             parser.add_argument(
@@ -371,7 +378,7 @@ class CLIParser:
                 "-f",
                 action="store_true",
                 required=False,
-                help="suppress mirroring of local directory paths when uploading files",
+                help="flatten/remove local directories when uploading files",
             )
             parser.add_argument(
                 "--recursive",
@@ -548,8 +555,8 @@ class CLIParser:
         return self.args.live_only
 
     @property
-    def object_tree(self) -> Optional[bool]:
-        return self.args.tree
+    def all(self) -> Optional[bool]:
+        return self.args.all
 
     @property
     def debug(self) -> Optional[bool]:

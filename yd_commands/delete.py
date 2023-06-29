@@ -24,7 +24,7 @@ def main():
     object_paths_to_delete: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(
-                CONFIG_COMMON.namespace, prefix=tag, flat=ARGS_PARSER.object_tree
+                CONFIG_COMMON.namespace, prefix=tag, flat=ARGS_PARSER.all
             )
         )
     )

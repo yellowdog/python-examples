@@ -143,14 +143,14 @@ def list_object_paths():
         f"Listing Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
         f"names starting with '{CONFIG_COMMON.name_tag}'"
     )
-    if ARGS_PARSER.object_tree:
+    if ARGS_PARSER.all:
         print_log("Listing complete Object tree")
     object_paths: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(
                 CONFIG_COMMON.namespace,
                 prefix=CONFIG_COMMON.name_tag,
-                flat=ARGS_PARSER.object_tree,
+                flat=ARGS_PARSER.all,
             )
         )
     )
