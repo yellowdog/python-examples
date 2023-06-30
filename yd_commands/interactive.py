@@ -109,11 +109,11 @@ def select(
     selected_list = sorted(list(selector_set))
     if len(selected_list) > 0:
         if not single_result:
-            if len(selected_list) > 30:
+            if len(selected_list) > 20:
                 display_selections = (
-                    ", ".join([str(x) for x in selected_list[:15]])
+                    ", ".join([str(x) for x in selected_list[:10]])
                     + " ... "
-                    + ", ".join([str(x) for x in selected_list[-15:]])
+                    + ", ".join([str(x) for x in selected_list[-8:]])
                 )
             else:
                 display_selections = ", ".join([str(x) for x in selected_list])
