@@ -8,6 +8,7 @@ from typing import List
 
 from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 
+from yd_commands.config import unpack_namespace_in_prefix
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_log
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -15,17 +16,17 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
-    tag = CONFIG_COMMON.name_tag.lstrip("/")
+    namespace, tag = unpack_namespace_in_prefix(
+        CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
+    )
     print_log(
-        f"Deleting Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
+        f"Deleting Object Paths in namespace '{namespace}' and "
         f"names starting with '{tag}'"
     )
 
     object_paths_to_delete: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(
-                CONFIG_COMMON.namespace, prefix=tag, flat=ARGS_PARSER.all
-            )
+            ObjectPathsRequest(namespace=namespace, prefix=tag, flat=ARGS_PARSER.all)
         )
     )
 
@@ -37,7 +38,7 @@ def main():
     ):
         print_log(f"{len(object_paths_to_delete)} Object Path(s) to Delete")
         CLIENT.object_store_client.delete_objects(
-            CONFIG_COMMON.namespace, object_paths=object_paths_to_delete
+            namespace=namespace, object_paths=object_paths_to_delete
         )
         for object_path in object_paths_to_delete:
             print_log(f"Deleted Object Path: {object_path.displayName}")

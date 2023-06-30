@@ -52,6 +52,8 @@ YD_URL = "YD_URL"
 TASK_BATCH_SIZE_DEFAULT = 2000
 DEFAULT_URL = "https://portal.yellowdog.co/api"
 
+NAMESPACE_SEPARATOR = "::"
+
 
 @dataclass
 class ConfigWorkRequirement:
@@ -475,3 +477,15 @@ def update_config_work_requirement(config_wr: ConfigWorkRequirement):
     config_wr_str_processed = substitute_variable_str(str(config_wr))
     # Note: 'literal_eval' doesn't work here
     return eval(config_wr_str_processed)
+
+
+def unpack_namespace_in_prefix(namespace: str, prefix: str) -> (str, str):
+    """
+    Allow the prefix to include the namespace. Return the unpacked
+    namespace, prefix.
+    """
+    elems = prefix.split(NAMESPACE_SEPARATOR)
+    if len(elems) == 1:
+        return namespace, prefix.lstrip("/")
+    if len(elems) == 2:
+        return elems[0] if elems[0] != "" else namespace, elems[1].lstrip("/")

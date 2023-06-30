@@ -25,6 +25,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.config import unpack_namespace_in_prefix
 from yd_commands.interactive import select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
@@ -139,9 +140,11 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
 
 
 def list_object_paths():
-    tag = CONFIG_COMMON.name_tag.lstrip("/")
+    namespace, tag = unpack_namespace_in_prefix(
+        CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
+    )
     print_log(
-        f"Listing Object Paths in namespace '{CONFIG_COMMON.namespace}' and "
+        f"Listing Object Paths in namespace '{namespace}' and "
         f"names starting with '{tag}'"
     )
     if ARGS_PARSER.all:
@@ -149,7 +152,7 @@ def list_object_paths():
     object_paths: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(
-                CONFIG_COMMON.namespace,
+                namespace=namespace,
                 prefix=tag,
                 flat=ARGS_PARSER.all,
             )
