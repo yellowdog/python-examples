@@ -349,16 +349,6 @@ class CLIParser:
 
         if "upload" in sys.argv[0]:
             parser.add_argument(
-                "--directory",
-                "-d",
-                type=str,
-                required=False,
-                help=(
-                    "the Object Store directory (prefix) to use when uploading objects"
-                ),
-                metavar="<directory>",
-            )
-            parser.add_argument(
                 "--content-path",
                 "-C",
                 type=str,

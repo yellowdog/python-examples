@@ -12,6 +12,7 @@ from os.path import join as os_path_join
 from pathlib import Path
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.config import unpack_namespace_in_prefix
 from yd_commands.printing import print_log
 from yd_commands.upload_utils import upload_file
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
@@ -25,10 +26,11 @@ def main():
             f"Uploading files relative to local directory: '{ARGS_PARSER.content_path}'"
         )
 
-    print_log(
-        f"Using Object Store namespace '{CONFIG_COMMON.namespace}' "
-        f"and directory '{ARGS_PARSER.directory}'"
+    namespace, prefix = unpack_namespace_in_prefix(
+        CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
+
+    print_log(f"Using Object Store namespace '{namespace}' and prefix '{prefix}'")
 
     files_set = set(ARGS_PARSER.files)
     if os_name == "nt":
@@ -68,8 +70,8 @@ def main():
             upload_file(
                 client=CLIENT,
                 filename=file,
-                id=ARGS_PARSER.directory,
-                namespace=CONFIG_COMMON.namespace,
+                id=prefix,
+                namespace=namespace,
                 url=CONFIG_COMMON.url,
                 flatten_upload_paths=ARGS_PARSER.flatten,
             )

@@ -1886,17 +1886,17 @@ Use the `--all` (`-a`) option to see the list directory/object structure and all
 
 ## yd-upload
 
-The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory supplied using the (required) `--directory` option, e.g.:
+The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory supplied using the (required) `--prefix` option, e.g.:
 
 ```shell
-yd-upload --directory my_work_requirement file_1 file_2 morefiles/file3
+yd-upload --prefix my_work_requirement file_1 file_2 morefiles/file3
 ```
 To suppress the mirroring of the local directory structure within the object store, use the `--flatten-upload-paths` or `-f` option. Note that if this creates multiple uploaded files with the same path in the Object Store folder, files will be overwritten.
 
 Files in directories may be recursively uploaded using the `--recursive` or `-r` option, e.g.:
 
 ```shell
-yd-upload --directory my_work_requirement -r mydir myotherdir
+yd-upload --prefix my_work_requirement -r mydir myotherdir
 ```
 
 To upload to other namespaces, use the `--namespace`/`-n` option.
