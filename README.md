@@ -1566,6 +1566,8 @@ When a JSON Worker Pool specification is used, the following properties from the
 - `idleNodeShutdownTimeout`
 - `idlePoolShutdownEnabled`
 - `idlePoolShutdownTimeout`
+- `maxNodes`
+- `minNodes`
 - `nodeBootTimeout`
 - `workerTag`
 

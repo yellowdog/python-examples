@@ -150,6 +150,18 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                 print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
                 provisioned_properties[key] = value
 
+        for key, value, is_set in [
+            ("minNodes", CONFIG_WP.min_nodes, CONFIG_WP.min_nodes_set),
+            ("maxNodes", CONFIG_WP.max_nodes, CONFIG_WP.max_nodes_set),
+        ]:
+            if (
+                provisioned_properties.get(key) is None
+                and value is not None
+                and is_set is True
+            ):
+                print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
+                provisioned_properties[key] = value
+
     except KeyError as e:
         raise Exception(f"Key error in JSON Worker Pool definition: {e}")
 

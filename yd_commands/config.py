@@ -115,7 +115,9 @@ class ConfigWorkerPool:
     instance_tags: Optional[Dict] = None
     maintainInstanceCount: bool = False  # Only for yd-instantiate
     max_nodes: int = 0
+    max_nodes_set: bool = False  # Is max_nodes explicitly set?
     min_nodes: int = 0
+    min_nodes_set: bool = False
     name: Optional[str] = None
     node_boot_timeout: float = 10.0
     target_instance_count: int = 0
@@ -375,6 +377,9 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
                 worker_pool_data_file
             )
 
+        max_nodes_set = True if wp_section.get(MAX_NODES, None) is not None else False
+        min_nodes_set = True if wp_section.get(MIN_NODES, None) is not None else False
+
         return ConfigWorkerPool(
             compute_requirement_batch_size=wp_section.get(
                 COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
@@ -389,7 +394,9 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             max_nodes=wp_section.get(
                 MAX_NODES, max(1, wp_section.get(TARGET_INSTANCE_COUNT, 1))
             ),
+            max_nodes_set=max_nodes_set,
             min_nodes=wp_section.get(MIN_NODES, 0),
+            min_nodes_set=min_nodes_set,
             name=substitute_variable_str(
                 wp_section.get(WP_NAME, None),
             ),
