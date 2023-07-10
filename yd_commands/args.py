@@ -377,6 +377,16 @@ class CLIParser:
                 required=False,
                 help="recursively upload files from directories",
             )
+            parser.add_argument(
+                "--batch",
+                "-b",
+                action="store_true",
+                required=False,
+                help=(
+                    "use batch upload; file_patterns must contain wildcards and "
+                    "be quoted to prevent shell expansion"
+                ),
+            )
 
         if any(
             module in sys.argv[0] for module in ["submit", "provision", "instantiate"]
@@ -571,6 +581,10 @@ class CLIParser:
     @property
     def recursive(self) -> Optional[bool]:
         return self.args.recursive
+
+    @property
+    def batch(self) -> Optional[bool]:
+        return self.args.batch
 
     @property
     def dry_run(self) -> Optional[bool]:

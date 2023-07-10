@@ -4,12 +4,17 @@
 A script to upload files to the YellowDog Object Store.
 """
 
+from concurrent import futures
 from glob import glob
-from os import chdir
+from os import chdir, getcwd
 from os import name as os_name
 from os import walk as os_walk
 from os.path import join as os_path_join
 from pathlib import Path
+
+from yellowdog_client.object_store.abstracts import AbstractTransferBatch
+from yellowdog_client.object_store.model import FileTransferStatus
+from yellowdog_client.object_store.upload import UploadBatchBuilder
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import unpack_namespace_in_prefix
@@ -30,8 +35,42 @@ def main():
         CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
 
-    print_log(f"Using Object Store namespace '{namespace}' and prefix '{prefix}'")
+    if ARGS_PARSER.batch:  # Use the batch uploader
+        print_log(
+            f"Batch uploading Using Object Store namespace '{namespace}' (prefix"
+            f" '{prefix}' is ignored for batch upload)"
+        )
+        if ARGS_PARSER.recursive or ARGS_PARSER.flatten:
+            print_log(
+                "Warning: '--recursive', '--flatten-upload-paths' options are ignored"
+                " for batch upload"
+            )
+        for file_pattern in ARGS_PARSER.files:
+            print_log(f"Uploading files matching '{file_pattern}'")
+            upload_batch_builder: UploadBatchBuilder = (
+                CLIENT.object_store_client.build_upload_batch()
+            )
+            upload_batch_builder.find_source_objects(
+                getcwd(),
+                file_pattern,
+            )
+            upload_batch_builder.namespace = namespace
+            upload_batch: AbstractTransferBatch = (
+                upload_batch_builder.get_batch_if_objects_found()
+            )
+            if upload_batch is not None:
+                upload_batch.start()
+                future: futures.Future = upload_batch.when_status_matches(
+                    lambda status: status == FileTransferStatus.Completed
+                )
+                CLIENT.object_store_client.start_transfers()
+                futures.wait((future,))
+            else:
+                print_log(f"No objects matching '{file_pattern}'")
+        return
 
+    # Use the sequential uploader
+    print_log(f"Using Object Store namespace '{namespace}' and prefix '{prefix}'")
     files_set = set(ARGS_PARSER.files)
     if os_name == "nt":
         # Windows wildcard expansion (not done natively by the Windows shell)
