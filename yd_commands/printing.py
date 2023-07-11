@@ -369,5 +369,5 @@ def print_object_detail(object_detail: ObjectDetail):
     indent: str = 4 * " "
     print(f"{indent}Namespace:         {object_detail.namespace}")
     print(f"{indent}Object Name:       {object_detail.objectName}")
-    print(f"{indent}Object Size:       {object_detail.objectSize} byte(s)")
+    print(f"{indent}Object Size:       {object_detail.objectSize:,d} byte(s)")
     print(f"{indent}Last Modified At:  {object_detail.lastModified}")
