@@ -25,7 +25,18 @@ from yd_commands.config import (
     link_entity,
     load_config_worker_pool,
 )
-from yd_commands.config_keys import MAINTAIN_INSTANCE_COUNT
+from yd_commands.config_keys import (
+    IMAGES_ID,
+    INSTANCE_TAGS,
+    MAINTAIN_INSTANCE_COUNT,
+    MAX_NODES,
+    MIN_NODES,
+    NODE_BOOT_TIMEOUT,
+    TARGET_INSTANCE_COUNT,
+    TEMPLATE_ID,
+    USERDATA,
+    WORKER_TAG,
+)
 from yd_commands.printing import (
     print_error,
     print_log,
@@ -100,33 +111,33 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ),
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
-            ("templateId", CONFIG_WP.template_id),
-            ("userData", get_user_data_property(CONFIG_WP)),
-            ("imagesId", CONFIG_WP.images_id),
-            ("instanceTags", CONFIG_WP.instance_tags),
+            (TEMPLATE_ID, CONFIG_WP.template_id),
+            (USERDATA, get_user_data_property(CONFIG_WP)),
+            (IMAGES_ID, CONFIG_WP.images_id),
+            (INSTANCE_TAGS, CONFIG_WP.instance_tags),
         ]:
             if reqt_template_usage.get(key) is None and value is not None:
                 print_log(f"Setting 'requirementTemplateUsage.{key}': '{value}'")
                 reqt_template_usage[key] = value
 
         if (
-            reqt_template_usage.get("targetInstanceCount") is None
+            reqt_template_usage.get(TARGET_INSTANCE_COUNT) is None
             and CONFIG_WP.target_instance_count is not None
             and CONFIG_WP.target_instance_count_set is True
         ):
             print_log(
-                "Setting 'requirementTemplateUsage.targetInstanceCount':"
+                f"Setting 'requirementTemplateUsage.{TARGET_INSTANCE_COUNT}':"
                 f" '{CONFIG_WP.target_instance_count}'"
             )
-            reqt_template_usage["targetInstanceCount"] = CONFIG_WP.target_instance_count
+            reqt_template_usage[TARGET_INSTANCE_COUNT] = CONFIG_WP.target_instance_count
 
         # provisionedProperties insertions
         provisioned_properties = wp_data["provisionedProperties"]
 
         for key, value in [
-            ("workerTag", CONFIG_WP.worker_tag),
+            (WORKER_TAG, CONFIG_WP.worker_tag),
             (
-                "nodeBootTimeout",
+                NODE_BOOT_TIMEOUT,
                 iso_timedelta_format(timedelta(minutes=CONFIG_WP.node_boot_timeout)),
             ),
             (
@@ -161,8 +172,8 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                 provisioned_properties[key] = value
 
         for key, value, is_set in [
-            ("minNodes", CONFIG_WP.min_nodes, CONFIG_WP.min_nodes_set),
-            ("maxNodes", CONFIG_WP.max_nodes, CONFIG_WP.max_nodes_set),
+            (MIN_NODES, CONFIG_WP.min_nodes, CONFIG_WP.min_nodes_set),
+            (MAX_NODES, CONFIG_WP.max_nodes, CONFIG_WP.max_nodes_set),
         ]:
             if (
                 provisioned_properties.get(key) is None
