@@ -121,6 +121,7 @@ class ConfigWorkerPool:
     name: Optional[str] = None
     node_boot_timeout: float = 10.0
     target_instance_count: int = 0
+    target_instance_count_set: bool = False
     template_id: Optional[str] = None
     user_data: Optional[str] = None
     user_data_file: Optional[str] = None
@@ -391,18 +392,17 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             max_nodes=wp_section.get(
                 MAX_NODES, max(1, wp_section.get(TARGET_INSTANCE_COUNT, 1))
             ),
-            max_nodes_set=(
-                True if wp_section.get(MAX_NODES, None) is not None else False
-            ),
+            max_nodes_set=(False if wp_section.get(MAX_NODES) is None else True),
             min_nodes=wp_section.get(MIN_NODES, 0),
-            min_nodes_set=(
-                True if wp_section.get(MIN_NODES, None) is not None else False
-            ),
+            min_nodes_set=(False if wp_section.get(MIN_NODES) is None else True),
             name=substitute_variable_str(
                 wp_section.get(WP_NAME, None),
             ),
             node_boot_timeout=wp_section.get(NODE_BOOT_TIMEOUT, 10.0),
             target_instance_count=wp_section.get(TARGET_INSTANCE_COUNT, 1),
+            target_instance_count_set=(
+                False if wp_section.get(TARGET_INSTANCE_COUNT) is None else True
+            ),
             template_id=wp_section.get(TEMPLATE_ID, None),
             user_data=wp_section.get(USERDATA, None),
             user_data_file=wp_section.get(USERDATAFILE, None),

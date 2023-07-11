@@ -104,11 +104,21 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ("userData", get_user_data_property(CONFIG_WP)),
             ("imagesId", CONFIG_WP.images_id),
             ("instanceTags", CONFIG_WP.instance_tags),
-            ("targetInstanceCount", CONFIG_WP.target_instance_count),
         ]:
             if reqt_template_usage.get(key) is None and value is not None:
                 print_log(f"Setting 'requirementTemplateUsage.{key}': '{value}'")
                 reqt_template_usage[key] = value
+
+        if (
+            reqt_template_usage.get("targetInstanceCount") is None
+            and CONFIG_WP.target_instance_count is not None
+            and CONFIG_WP.target_instance_count_set is True
+        ):
+            print_log(
+                "Setting 'requirementTemplateUsage.targetInstanceCount':"
+                f" '{CONFIG_WP.target_instance_count}'"
+            )
+            reqt_template_usage["targetInstanceCount"] = CONFIG_WP.target_instance_count
 
         # provisionedProperties insertions
         provisioned_properties = wp_data["provisionedProperties"]
