@@ -19,6 +19,7 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
     ConfiguredWorkerPool,
+    ObjectDetail,
     ObjectPath,
     ProvisionedWorkerPool,
     ProvisionedWorkerPoolProperties,
@@ -359,3 +360,14 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
     print()
     print(tabulate(source_table, headers="firstrow", tablefmt="simple_outline"))
     print()
+
+
+def print_object_detail(object_detail: ObjectDetail):
+    """
+    Pretty print an Object Detail
+    """
+    indent: str = 4 * " "
+    print(f"{indent}Namespace:         {object_detail.namespace}")
+    print(f"{indent}Object Name:       {object_detail.objectName}")
+    print(f"{indent}Object Size:       {object_detail.objectSize} byte(s)")
+    print(f"{indent}Last Modified At:  {object_detail.lastModified}")

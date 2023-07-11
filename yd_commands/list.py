@@ -12,6 +12,7 @@ from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
+    ObjectDetail,
     ObjectPath,
     ObjectPathsRequest,
     Task,
@@ -23,6 +24,7 @@ from yellowdog_client.model import (
     WorkRequirementStatus,
     WorkRequirementSummary,
 )
+from yellowdog_client.model.exceptions import ObjectNotFoundException
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import unpack_namespace_in_prefix
@@ -31,7 +33,12 @@ from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
 )
-from yd_commands.printing import print_log, print_numbered_object_list, sorted_objects
+from yd_commands.printing import (
+    print_log,
+    print_numbered_object_list,
+    print_object_detail,
+    sorted_objects,
+)
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -147,7 +154,7 @@ def list_object_paths():
         f"Listing Object Paths in namespace '{namespace}' and "
         f"names starting with '{tag}'"
     )
-    if ARGS_PARSER.all:
+    if ARGS_PARSER.all and not ARGS_PARSER.details:
         print_log("Listing all Objects")
     object_paths: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
@@ -158,7 +165,27 @@ def list_object_paths():
             )
         )
     )
-    print_numbered_object_list(CLIENT, sorted_objects(object_paths))
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, sorted_objects(object_paths))
+        return
+
+    # Print object details for selected objects
+    # Skip interactive selection if there are five or fewer results
+    if len(object_paths) > 5:
+        object_paths = select(CLIENT, object_paths, override_quiet=True)
+    if len(object_paths) != 0:
+        print_log(f"Showing Object details for {len(object_paths)} Object(s)")
+    for index, object_path in enumerate(object_paths):
+        try:
+            if index == 0:
+                print()
+            object_detail: ObjectDetail = CLIENT.object_store_client.get_object_detail(
+                namespace=namespace, name=object_path.name
+            )
+            print_object_detail(object_detail)
+        except ObjectNotFoundException:
+            print_log(f"Note: '{object_path.name}' is a prefix not an object")
+        print()
 
 
 def list_worker_pools():

@@ -301,7 +301,17 @@ class CLIParser:
                 required=False,
                 help=(
                     "when used with '--objects', list all objects, not just the top"
-                    " level"
+                    " level structure"
+                ),
+            )
+            parser.add_argument(
+                "--details",
+                "-d",
+                action="store_true",
+                required=False,
+                help=(
+                    "when used with '--objects', select objects from the list of"
+                    " matches and show their details"
                 ),
             )
             parser.add_argument(
@@ -557,6 +567,10 @@ class CLIParser:
     @property
     def all(self) -> Optional[bool]:
         return self.args.all
+
+    @property
+    def details(self) -> Optional[bool]:
+        return self.args.details
 
     @property
     def debug(self) -> Optional[bool]:
