@@ -16,6 +16,7 @@ from yellowdog_client.model import (
 
 from yd_commands.config import (
     ARGS_PARSER,
+    WP_VARIABLES_PREFIX,
     ConfigWorkerPool,
     generate_id,
     link_entity,
@@ -61,7 +62,7 @@ def main():
         if (
             ARGS_PARSER.worker_pool_file or CONFIG_WP.worker_pool_data_file
         ) and not ARGS_PARSER.compute_requirement:
-            prefix = "__"
+            prefix = WP_VARIABLES_PREFIX
         else:
             prefix = ""
         print_log(f"Loading Compute Requirement data from: '{cr_json_file}'")

@@ -20,6 +20,7 @@ from yellowdog_client.model import (
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import (
+    WP_VARIABLES_PREFIX,
     ConfigWorkerPool,
     generate_id,
     link_entity,
@@ -82,16 +83,13 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     """
     Directly create the Worker Pool using the YellowDog REST API
     """
-
-    wp_variables_prefix = "__"
-
     if wp_json_file.lower().endswith(".jsonnet"):
         wp_data = load_jsonnet_file_with_variable_substitutions(
-            wp_json_file, prefix=wp_variables_prefix
+            wp_json_file, prefix=WP_VARIABLES_PREFIX
         )
     else:
         wp_data = load_json_file_with_variable_substitutions(
-            wp_json_file, prefix=wp_variables_prefix
+            wp_json_file, prefix=WP_VARIABLES_PREFIX
         )
 
     # Some values are configurable via the TOML configuration file;

@@ -102,6 +102,7 @@ class ConfigWorkRequirement:
 
 
 CR_BATCH_SIZE_DEFAULT = 10000
+WP_VARIABLES_PREFIX = "__"
 
 
 @dataclass
