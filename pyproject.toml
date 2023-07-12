@@ -40,6 +40,7 @@
     yd-list = "yd_commands.list:main"
     yd-provision = "yd_commands.provision:main"
     yd-reformat-json = "yd_commands.reformat_json:main"
+    yd-resize = "yd_commands.resize:main"
     yd-shutdown = "yd_commands.shutdown:main"
     yd-submit = "yd_commands.submit:main"
     yd-terminate = "yd_commands.terminate:main"

@@ -247,7 +247,14 @@ class CLIParser:
 
         if any(
             module in sys.argv[0]
-            for module in ["abort", "cancel", "delete", "shutdown", "terminate"]
+            for module in [
+                "abort",
+                "cancel",
+                "delete",
+                "shutdown",
+                "terminate",
+                "resize",
+            ]
         ):
             parser.add_argument(
                 "--yes",
@@ -444,6 +451,30 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="dry-run Jsonnet processing into JSON",
+            )
+
+        if "resize" in sys.argv[0]:
+            parser.add_argument(
+                "worker_pool",
+                metavar="<worker-pool-or-compute-requirement-name-or-ID>",
+                type=str,
+                help=(
+                    "the name or YellowDog ID of the Worker Pool or Compute Requirement"
+                    " to resize"
+                ),
+            )
+            parser.add_argument(
+                "worker_pool_size",
+                metavar="<new-node/instance-count>",
+                type=int,
+                help="the desired number of (total) nodes in the Worker Pool",
+            )
+            parser.add_argument(
+                "--compute-requirement",
+                "-C",
+                action="store_true",
+                required=False,
+                help="resize a Compute Requirement instead of a Worker Pool",
             )
 
         self.args = parser.parse_args()
@@ -648,6 +679,18 @@ class CLIParser:
     def pause_between_batches(self) -> Optional[bool]:
         return self.args.pause_between_batches
 
+    @property
+    def worker_pool_name(self) -> str:
+        return self.args.worker_pool
+
+    @property
+    def worker_pool_size(self) -> int:
+        return self.args.worker_pool_size
+
+    @property
+    def compute_req_resize(self) -> Optional[bool]:
+        return self.args.compute_requirement
+
 
 def lookup_module_description(module_name: str) -> Optional[str]:
     """
@@ -678,6 +721,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "provisioning a Compute Requirement"
     elif "upload" in module_name:
         suffix = "uploading objects to the Object Store"
+    elif "resize" in module_name:
+        suffix = "resizing Worker Pools"
 
     return None if suffix is None else prefix + suffix
 

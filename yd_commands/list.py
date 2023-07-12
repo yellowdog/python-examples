@@ -192,7 +192,7 @@ def list_worker_pools():
     print_log(
         "Listing Provisioned Worker Pools with Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
-        f"names starting with '{CONFIG_COMMON.name_tag}'"
+        f"tags starting with '{CONFIG_COMMON.name_tag}'"
     )
     worker_pool_summaries: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()

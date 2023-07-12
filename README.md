@@ -86,8 +86,9 @@
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
    * [yd-terminate](#yd-terminate)
    * [yd-list](#yd-list)
+   * [yd-resize](#yd-resize)
 
-<!-- Added by: pwt, at: Wed Jun 28 11:11:25 BST 2023 -->
+<!-- Added by: pwt, at: Tue Jul 11 11:49:08 BST 2023 -->
 
 <!--te-->
 
@@ -115,6 +116,7 @@ The scripts provide the following capabilities:
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Listing** YellowDog items using the **`yd-list`** command
+- **Resizing** Worker Pools
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -1979,7 +1981,7 @@ The `yd-terminate` command immediately terminates Compute Requirements that matc
 
 ## yd-list
 
-The `yd-list` command can be used to list various YellowDog items, using the `namespace` and `tag` properties to target the scope of what to list:
+The `yd-list` command is used to list various YellowDog items, using the `namespace` and `tag` properties to target the scope of what to list:
 
 - Compute Requirements
 - Worker Pools
@@ -1989,3 +1991,16 @@ The `yd-list` command can be used to list various YellowDog items, using the `na
 - Tasks
 
 Please use `yd-list --help` to inspect the various options.
+
+## yd-resize
+
+The `yd-resize` command is used to resize Worker Pools, and also Compute Requirements when used with the `--compute-requirement`/`-C` option. See `yd-resize --help` for more information.
+
+The name or ID of the Worker Pool or Compute Requirement is supplied along with the new target number of Nodes or Instances. Usage examples:
+
+```shell
+yd-resize wp_pyex-slurm-pwt_230711-124356-0d6 10
+yd-resize ydid:wrkrpool:D9C548:1f020696-ae9a-4786-bed2-c31b484b1d4f 10
+yd-resize --compute-requirement cr_pyex-slurm-pwt_230712-110226-04c 5
+yd-resize -C ydid:compreq:D9C548:600bef1f-7ccd-431c-afcc-b56208565aac 5
+```

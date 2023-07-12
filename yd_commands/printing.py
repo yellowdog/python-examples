@@ -19,12 +19,15 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
     ConfiguredWorkerPool,
+    NodeStatus,
+    NodeSummary,
     ObjectDetail,
     ObjectPath,
     ProvisionedWorkerPool,
     ProvisionedWorkerPoolProperties,
     Task,
     TaskGroup,
+    WorkerPool,
     WorkerPoolSummary,
     WorkRequirement,
     WorkRequirementSummary,
@@ -106,7 +109,16 @@ def compute_requirement_table(
                 index + 1,
                 ":",
                 cr.name,
-                f"[{cr.status}]",
+                f"[tag={cr.tag}]",
+                (
+                    f"[Instance counts: target={cr.targetInstanceCount:,d},"
+                    f" expected={cr.expectedInstanceCount:,d}]"
+                ),
+                (
+                    f"[{cr.status}]"
+                    if cr.nextStatus is None
+                    else f"[{cr.status} -> {cr.nextStatus}]"
+                ),
             ]
         )
     return table
@@ -158,16 +170,42 @@ def task_table(task_list: List[Task]) -> List[List]:
     return table
 
 
-def worker_pool_table(worker_pool_summaries: List[WorkerPoolSummary]) -> List[List]:
+def worker_pool_table(
+    client: PlatformClient, worker_pool_summaries: List[WorkerPoolSummary]
+) -> List[List]:
     table = []
     for index, worker_pool_summary in enumerate(worker_pool_summaries):
+        worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_id(
+            worker_pool_summary.id
+        )
+        try:
+            min_nodes = str(worker_pool.properties.minNodes)
+        except:
+            min_nodes = " "
+        try:
+            max_nodes = str(worker_pool.properties.maxNodes)
+        except:
+            max_nodes = " "
+        node_summary: NodeSummary = worker_pool.nodeSummary
+        nodes_running = node_summary.statusCounts[NodeStatus.RUNNING]
+        nodes_late = node_summary.statusCounts[NodeStatus.LATE]
+        nodes_lost = node_summary.statusCounts[NodeStatus.LOST]
+        nodes_terminated = node_summary.statusCounts[NodeStatus.TERMINATED]
+        nodes_deregistered = node_summary.statusCounts[NodeStatus.DEREGISTERED]
+
         table.append(
             [
                 index + 1,
                 ":",
                 worker_pool_summary.name,
                 f"[{worker_pool_summary.status}]",
-                f"[{worker_pool_summary.type.split('.')[-1:][0]}]",
+                # f"[{worker_pool_summary.type.split('.')[-1:][0]}]",
+                (
+                    "[Nodes:"
+                    f" min={min_nodes} running={nodes_running} max={max_nodes} "
+                    f"(terminated/late/lost/deregistered={nodes_terminated}/"
+                    f"{nodes_late}/{nodes_lost}/{nodes_deregistered})]"
+                ),
             ]
         )
     return table
@@ -201,7 +239,7 @@ def print_numbered_object_list(
     elif isinstance(objects[0], Task):
         table = task_table(objects)
     elif isinstance(objects[0], WorkerPoolSummary):
-        table = worker_pool_table(objects)
+        table = worker_pool_table(client, objects)
     else:
         table = []
         for index, obj in enumerate(objects):
