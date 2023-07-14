@@ -101,27 +101,33 @@ def get_type_name(obj: Item) -> str:
 
 def compute_requirement_table(
     cr_list: List[ComputeRequirement],
-) -> List[List]:
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Compute Requirement Name",
+        "Tag",
+        "Instance Counts",
+        "Status",
+    ]
     table = []
     for index, cr in enumerate(cr_list):
         table.append(
             [
                 index + 1,
-                ":",
                 cr.name,
-                f"[tag={cr.tag}]",
+                f"{cr.tag}",
                 (
-                    f"[Instance counts: target={cr.targetInstanceCount:,d},"
-                    f" expected={cr.expectedInstanceCount:,d}]"
+                    f"Target={cr.targetInstanceCount:,d},"
+                    f" Expected={cr.expectedInstanceCount:,d}"
                 ),
                 (
-                    f"[{cr.status}]"
+                    f"{cr.status}"
                     if cr.nextStatus is None
-                    else f"[{cr.status} -> {cr.nextStatus}]"
+                    else f"{cr.status} -> {cr.nextStatus}"
                 ),
             ]
         )
-    return table
+    return headers, table
 
 
 def work_requirement_table(
@@ -148,7 +154,6 @@ def task_group_table(
         table.append(
             [
                 index + 1,
-                ":",
                 task_group.name,
                 f"[{task_group.status}]",
             ]
@@ -172,7 +177,19 @@ def task_table(task_list: List[Task]) -> List[List]:
 
 def worker_pool_table(
     client: PlatformClient, worker_pool_summaries: List[WorkerPoolSummary]
-) -> List[List]:
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Provisioned Worker Pool Name",
+        "Status",
+        "Nodes: Running",
+        "Min",
+        "Max",
+        "Terminated",
+        "Late",
+        "Lost",
+        "Deregistered",
+    ]
     table = []
     for index, worker_pool_summary in enumerate(worker_pool_summaries):
         worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_id(
@@ -196,19 +213,19 @@ def worker_pool_table(
         table.append(
             [
                 index + 1,
-                ":",
                 worker_pool_summary.name,
-                f"[{worker_pool_summary.status}]",
+                f"{worker_pool_summary.status}",
                 # f"[{worker_pool_summary.type.split('.')[-1:][0]}]",
-                (
-                    "[Nodes:"
-                    f" min={min_nodes} running={nodes_running} max={max_nodes} "
-                    f"(terminated/late/lost/deregistered={nodes_terminated}/"
-                    f"{nodes_late}/{nodes_lost}/{nodes_deregistered})]"
-                ),
+                f"{nodes_running}",
+                f"{min_nodes}",
+                f"{max_nodes}",
+                f"{nodes_terminated}",
+                f"{nodes_late}",
+                f"{nodes_lost}",
+                f"{nodes_deregistered}",
             ]
         )
-    return table
+    return headers, table
 
 
 def print_numbered_object_list(
@@ -230,8 +247,9 @@ def print_numbered_object_list(
     )
     print()
 
+    headers = None
     if isinstance(objects[0], ComputeRequirement):
-        table = compute_requirement_table(objects)
+        headers, table = compute_requirement_table(objects)
     elif isinstance(objects[0], WorkRequirementSummary):
         table = work_requirement_table(objects)
     elif isinstance(objects[0], TaskGroup):
@@ -239,13 +257,17 @@ def print_numbered_object_list(
     elif isinstance(objects[0], Task):
         table = task_table(objects)
     elif isinstance(objects[0], WorkerPoolSummary):
-        table = worker_pool_table(client, objects)
+        headers, table = worker_pool_table(client, objects)
     else:
         table = []
         for index, obj in enumerate(objects):
             table.append([index + 1, ":", obj.name])
-
-    print(indent(tabulate(table, tablefmt="plain"), indent_width=4))
+    if headers is None:
+        print(indent(tabulate(table, tablefmt="plain"), indent_width=4))
+    else:
+        print(
+            indent(tabulate(table, headers=headers, tablefmt="simple"), indent_width=4)
+        )
     print()
 
 
