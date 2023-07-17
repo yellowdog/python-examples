@@ -48,7 +48,20 @@ def main():
         for file_pattern in ARGS_PARSER.files:
             # Remove quotes passed through by the shell
             file_pattern = file_pattern.lstrip("'\"").rstrip("'\"")
+            # Compensate for issues with file matching by prepending an initial
+            # '.\' or './' when a path is not explicitly supplied
+            if not (
+                file_pattern.startswith("/")
+                or file_pattern.startswith("\\")
+                or file_pattern.startswith("./")
+                or file_pattern.startswith(".\\")
+            ):
+                if os_name == "nt":
+                    file_pattern = f".\\{file_pattern}"
+                else:
+                    file_pattern = f"./{file_pattern}"
             print_log(f"Uploading files matching '{file_pattern}'")
+
             upload_batch_builder: UploadBatchBuilder = (
                 CLIENT.object_store_client.build_upload_batch()
             )
