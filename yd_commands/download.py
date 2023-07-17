@@ -17,7 +17,7 @@ from yellowdog_client.object_store.model import FileTransferStatus
 
 from yd_commands.config import unpack_namespace_in_prefix
 from yd_commands.interactive import confirmed, select
-from yd_commands.printing import print_log
+from yd_commands.printing import print_batch_download_files, print_log
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -53,28 +53,35 @@ def main():
         namespace if ARGS_PARSER.directory == "" else ARGS_PARSER.directory
     )
 
+    download_batch_builder: AbstractDownloadBatchBuilder = (
+        CLIENT.object_store_client.build_download_batch()
+    )
+    download_batch_builder.destination_folder = download_dir
+
     for object_path in object_paths_to_download:
-        download_batch_builder: AbstractDownloadBatchBuilder = (
-            CLIENT.object_store_client.build_download_batch()
-        )
-        download_batch_builder.destination_folder = download_dir
+        print_log(f"Finding object paths matching '{object_path.name}*'")
         download_batch_builder.find_source_objects(
             namespace=namespace,
             object_name_pattern=f"{object_path.name}*",
         )
-        download_batch: AbstractTransferBatch = (
-            download_batch_builder.get_batch_if_objects_found()
-        )
-        if download_batch is None:
-            print_log(f"No Objects found in Object Path {object_path.displayName}")
-            continue
-        download_batch.start()
-        future: futures.Future = download_batch.when_status_matches(
-            lambda status: status == FileTransferStatus.Completed
-        )
-        CLIENT.object_store_client.start_transfers()
-        futures.wait((future,))
-        print_log(f"Downloaded {object_path.displayName}")
+
+    download_batch: AbstractTransferBatch = (
+        download_batch_builder.get_batch_if_objects_found()
+    )
+
+    if download_batch is None:
+        print_log(f"No Objects found in selected Object Paths")
+        return
+
+    print_batch_download_files(download_batch_builder)
+
+    print_log("Starting batch download")
+    download_batch.start()
+    future: futures.Future = download_batch.when_status_matches(
+        lambda status: status == FileTransferStatus.Completed
+    )
+    CLIENT.object_store_client.start_transfers()
+    futures.wait((future,))
 
     print_log(
         f"Downloaded all Objects in {len(object_paths_to_download)} Object Path(s)"

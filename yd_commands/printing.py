@@ -5,6 +5,7 @@ Functions focused on print outputs.
 import sys
 from datetime import datetime
 from json import dumps as json_dumps
+from os import name as os_name
 from textwrap import indent as text_indent
 from typing import Dict, List, Optional, TypeVar
 
@@ -32,6 +33,7 @@ from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementSummary,
 )
+from yellowdog_client.object_store.download import DownloadBatchBuilder
 from yellowdog_client.object_store.upload import UploadBatchBuilder
 
 from yd_commands.args import ARGS_PARSER
@@ -451,6 +453,34 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
                 file_entry.source_file_path,
                 "->",
                 f"{upload_batch_builder.namespace}::{file_entry.default_object_name}",
+            ]
+        )
+    print()
+    print(indent(tabulate(table, headers=headers, tablefmt="simple"), indent_width=4))
+    print()
+
+
+def print_batch_download_files(download_batch_builder: DownloadBatchBuilder):
+    """
+    Print the list of files that will be batch downloaded
+    """
+    if ARGS_PARSER.quiet:
+        return
+
+    headers = ["Item", "Source Object", "->", "Target Object"]
+    directory_separator = "\\" if os_name == "nt" else "/"
+    table = []
+    # Yes, I know I shouldn't be accessing '_source_object_entries'
+    for index, object_entry in enumerate(download_batch_builder._source_object_entries):
+        table.append(
+            [
+                index + 1,
+                f"{object_entry.namespace}::{object_entry.object_name}",
+                "->",
+                (
+                    f"{download_batch_builder.destination_folder}"
+                    f"{directory_separator}{object_entry.object_name}"
+                ),
             ]
         )
     print()
