@@ -32,6 +32,7 @@ from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementSummary,
 )
+from yellowdog_client.object_store.upload import UploadBatchBuilder
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.compact_json import CompactJSONEncoder
@@ -431,3 +432,27 @@ def print_object_detail(object_detail: ObjectDetail):
     print(f"{indent}Object Name:       {object_detail.objectName}")
     print(f"{indent}Object Size:       {object_detail.objectSize:,d} byte(s)")
     print(f"{indent}Last Modified At:  {object_detail.lastModified}")
+
+
+def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
+    """
+    Print the list of files that will be batch uploaded
+    """
+    if ARGS_PARSER.quiet:
+        return
+
+    headers = ["Item", "Source Object", "->", "Target Object"]
+    table = []
+    # Yes, I know I shouldn't be accessing '_source_file_entries'
+    for index, file_entry in enumerate(upload_batch_builder._source_file_entries):
+        table.append(
+            [
+                index + 1,
+                file_entry.source_file_path,
+                "->",
+                f"{upload_batch_builder.namespace}::{file_entry.default_object_name}",
+            ]
+        )
+    print()
+    print(indent(tabulate(table, headers=headers, tablefmt="simple"), indent_width=4))
+    print()

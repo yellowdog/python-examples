@@ -18,7 +18,7 @@ from yellowdog_client.object_store.upload import UploadBatchBuilder
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import unpack_namespace_in_prefix
-from yd_commands.printing import print_log
+from yd_commands.printing import print_batch_upload_files, print_log
 from yd_commands.upload_utils import upload_file
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -60,6 +60,7 @@ def main():
             upload_batch: AbstractTransferBatch = (
                 upload_batch_builder.get_batch_if_objects_found()
             )
+            print_batch_upload_files(upload_batch_builder)
             if upload_batch is not None:
                 upload_batch.start()
                 future: futures.Future = upload_batch.when_status_matches(
@@ -67,6 +68,7 @@ def main():
                 )
                 CLIENT.object_store_client.start_transfers()
                 futures.wait((future,))
+                print_log("Batch upload complete")
             else:
                 print_log(f"No objects matching '{file_pattern}'")
         return
