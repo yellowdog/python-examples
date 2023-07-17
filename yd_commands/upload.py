@@ -46,12 +46,14 @@ def main():
                 " for batch upload"
             )
         for file_pattern in ARGS_PARSER.files:
+            # Remove quotes passed through by the shell
+            file_pattern = file_pattern.lstrip("'\"").rstrip("'\"")
             print_log(f"Uploading files matching '{file_pattern}'")
             upload_batch_builder: UploadBatchBuilder = (
                 CLIENT.object_store_client.build_upload_batch()
             )
             upload_batch_builder.find_source_objects(
-                getcwd(),
+                ".",
                 file_pattern,
             )
             upload_batch_builder.namespace = namespace
