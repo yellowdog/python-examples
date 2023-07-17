@@ -479,7 +479,8 @@ def print_batch_download_files(download_batch_builder: DownloadBatchBuilder):
                 "->",
                 (
                     f"{download_batch_builder.destination_folder}"
-                    f"{directory_separator}{object_entry.object_name}"
+                    f"{directory_separator}"
+                    f"{object_entry.object_name.replace('/', directory_separator)}"
                 ),
             ]
         )
