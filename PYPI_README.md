@@ -7,11 +7,15 @@ This is a set of command line Python scripts for interacting with the YellowDog 
 The scripts support:
 
 - **Provisioning** Worker Pools
+- **Instantiating** Compute Requirements
+- **Resizing** Worker Pools and Compute Requirements
 - **Submitting** Work Requirements
-- **Downloading** Results
+- **Uploading** Object Store objects
+- **Downloading** results
 - **Shutting Down** Worker Pools and **Terminating** Compute Requirements
 - **Cancelling** Work Requirements
-- **Aborting** running Tasks
-- **Deleting** objects in the YellowDog Object Store
+- **Aborting** Tasks
+- **Deleting** objects in the Object Store
+- **Listing** Worker Pools, Compure Requirements, Objects, Work Requirements, Task Groups and Tasks
 
 Please see the [GitHub repository](https://github.com/yellowdog/python-examples) for more details.
