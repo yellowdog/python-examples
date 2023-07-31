@@ -16,6 +16,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.interactive import confirmed
+from yd_commands.object_utilities import get_worker_pool_id_by_name
 from yd_commands.printing import print_log
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -39,7 +40,9 @@ def _resize_worker_pool():
     if "ydid:wrkrpool:" in ARGS_PARSER.worker_pool_name:
         worker_pool_id = ARGS_PARSER.worker_pool_name
     else:
-        worker_pool_id = _get_worker_pool_id_by_name(ARGS_PARSER.worker_pool_name)
+        worker_pool_id = get_worker_pool_id_by_name(
+            CLIENT, ARGS_PARSER.worker_pool_name
+        )
         if worker_pool_id is None:
             raise Exception(f"Worker Pool '{ARGS_PARSER.worker_pool_name}' not found")
 
@@ -52,18 +55,6 @@ def _resize_worker_pool():
         CLIENT.worker_pool_client.resize_worker_pool(
             worker_pool=worker_pool, size=ARGS_PARSER.worker_pool_size
         )
-
-
-def _get_worker_pool_id_by_name(worker_pool_name: str) -> Optional[str]:
-    """
-    Find a Worker Pool ID by its name
-    """
-    worker_pool_summaries: List[WorkerPoolSummary] = (
-        CLIENT.worker_pool_client.find_all_worker_pools()
-    )
-    for wp_summary in worker_pool_summaries:
-        if wp_summary.name == worker_pool_name:
-            return wp_summary.id
 
 
 def _resize_compute_requirement():

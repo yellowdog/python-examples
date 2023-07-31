@@ -103,3 +103,17 @@ def get_worker_pool_by_id(client: PlatformClient, worker_pool_id: str) -> Worker
     return client.worker_pool_client.get_worker_pool_by_id(
         worker_pool_id=worker_pool_id
     )
+
+
+def get_worker_pool_id_by_name(
+    client: PlatformClient, worker_pool_name: str
+) -> Optional[str]:
+    """
+    Find a Worker Pool ID by its name.
+    """
+    worker_pool_summaries: List[WorkerPoolSummary] = (
+        client.worker_pool_client.find_all_worker_pools()
+    )
+    for wp_summary in worker_pool_summaries:
+        if wp_summary.name == worker_pool_name:
+            return wp_summary.id

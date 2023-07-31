@@ -16,13 +16,20 @@ from yellowdog_client.model import (
 
 from yd_commands.config import link_entity
 from yd_commands.interactive import confirmed, select
-from yd_commands.object_utilities import get_worker_pool_by_id
+from yd_commands.object_utilities import (
+    get_worker_pool_by_id,
+    get_worker_pool_id_by_name,
+)
 from yd_commands.printing import print_error, print_log
-from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
 def main():
+    if ARGS_PARSER.worker_pool_name != "":
+        shutdown_by_name_or_id(ARGS_PARSER.worker_pool_name)
+        return
+
     print_log(
         "Shutting down Worker Pools with Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
@@ -85,6 +92,25 @@ def main():
         print_log(f"Shut down {shutdown_count} Worker Pool(s)")
     else:
         print_log("No Worker Pools shut down")
+
+
+def shutdown_by_name_or_id(name_or_id: str):
+    """
+    Shutdown a Worker Pool by its name or ID.
+    """
+    if "ydid:wrkrpool:" in name_or_id:
+        worker_pool_id = name_or_id
+    else:
+        worker_pool_id = get_worker_pool_id_by_name(CLIENT, name_or_id)
+        if worker_pool_id is None:
+            raise Exception(f"Worker Pool '{name_or_id}' not found")
+
+    try:
+        CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool_id)
+        print_log(f"Shut down Worker Pool '{name_or_id}'")
+    except Exception as e:
+        print_error(f"Unable to shut down Worker Pool '{name_or_id}'")
+        print_error(f"{e}")
 
 
 # Entry point

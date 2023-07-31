@@ -477,6 +477,16 @@ class CLIParser:
                 help="resize a Compute Requirement instead of a Worker Pool",
             )
 
+        if "shutdown" in sys.argv[0]:
+            parser.add_argument(
+                "worker_pool",
+                nargs="?",
+                default="",
+                metavar="<worker-pool-name-or-ID>",
+                type=str,
+                help="the name or YellowDog ID of the Worker Pool",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
