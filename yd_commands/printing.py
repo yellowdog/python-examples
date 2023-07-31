@@ -42,13 +42,26 @@ from yd_commands.config_keys import NAME, TASK_GROUPS, TASKS
 from yd_commands.object_utilities import Item
 
 JSON_INDENT = 2
+MAX_LOG_WIDTH = 160
 
 
 def print_string(msg: str = "") -> str:
     """
-    Message output format.
+    Message output format. Line-wrap tidily.
     """
-    return f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} : {msg}"
+    msg = msg.replace("\n", "")  # Remove any existing newlines
+    prefix = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " : "
+    num_lines = int((len(prefix) + len(msg)) / MAX_LOG_WIDTH) + 1
+    string_chunk_len = MAX_LOG_WIDTH - len(prefix)
+    formatted_msg = prefix + msg[:string_chunk_len]
+    indent = " " * len(prefix)
+    for line_number in range(1, num_lines):
+        formatted_msg += (
+            "\n"
+            + indent
+            + msg[string_chunk_len * line_number : string_chunk_len * (line_number + 1)]
+        )
+    return formatted_msg
 
 
 def print_log(
