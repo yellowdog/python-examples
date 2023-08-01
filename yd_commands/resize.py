@@ -4,7 +4,7 @@
 A script to resize Worker Pools and Compute Requirements.
 """
 
-from typing import List, Optional
+from typing import List
 
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
@@ -12,7 +12,6 @@ from yellowdog_client.model import (
     ComputeRequirementSearch,
     ComputeRequirementStatus,
     WorkerPool,
-    WorkerPoolSummary,
 )
 
 from yd_commands.interactive import confirmed

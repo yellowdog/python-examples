@@ -6,8 +6,11 @@ from functools import lru_cache
 from typing import List, Optional, TypeVar
 
 from yellowdog_client import PlatformClient
+from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     ComputeRequirement,
+    ComputeRequirementSearch,
+    ComputeRequirementStatus,
     ConfiguredWorkerPool,
     ObjectPath,
     ProvisionedWorkerPool,
@@ -117,3 +120,23 @@ def get_worker_pool_id_by_name(
     for wp_summary in worker_pool_summaries:
         if wp_summary.name == worker_pool_name:
             return wp_summary.id
+
+
+def get_compute_requirement_id_by_name(
+    client: PlatformClient,
+    compute_requirement_name: str,
+    statuses: List[ComputeRequirementStatus],
+) -> Optional[str]:
+    """
+    Find a Compute Requirement ID by its name.
+    Restrict search by status.
+    """
+    cr_search = ComputeRequirementSearch(statuses=statuses)
+    search_client: SearchClient = client.compute_client.get_compute_requirements(
+        cr_search
+    )
+    compute_requirements: List[ComputeRequirement] = search_client.list_all()
+
+    for compute_requirement in compute_requirements:
+        if compute_requirement.name == compute_requirement_name:
+            return compute_requirement.id
