@@ -1165,15 +1165,16 @@ def submit_json_raw(wr_file: str):
 
     # Warn about VERIFY_AT_START files & halt to allow upload or
     # Work Requirement cancellation
-    if len(verify_at_start_files) != 0:
+    if ARGS_PARSER.quiet is False and len(verify_at_start_files) != 0:
         print_log(
             "The following files may be required ('VERIFY_AT_START') "
             "before Tasks are submitted, or the Tasks will fail."
         )
         print_log(
             "You now have an opportunity to upload the required files "
-            "before Tasks are submitted:\n"
+            "before Tasks are submitted:"
         )
+        print()
         print_numbered_strings(sorted(list(verify_at_start_files)))
         if not confirmed("Proceed now (y), or Cancel Work Requirement (n)?"):
             print_log(f"Cancelling Work Requirement '{wr_name}'")

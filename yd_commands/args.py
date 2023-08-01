@@ -595,7 +595,12 @@ class CLIParser:
 
     @property
     def yes(self) -> Optional[bool]:
-        return self.args.yes
+        # This attribute is used in 'submit' without the '--yes' option
+        # being enabled for that module. Ensure that 'None' is returned.
+        try:
+            return self.args.yes
+        except AttributeError:
+            return None
 
     @property
     def object_paths(self) -> Optional[bool]:

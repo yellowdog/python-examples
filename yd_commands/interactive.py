@@ -129,7 +129,7 @@ def confirmed(msg: str) -> bool:
     Confirm an action.
     """
     # Confirmed on the command line?
-    if ARGS_PARSER.yes:
+    if ARGS_PARSER is not None and ARGS_PARSER.yes:
         print_log("Action proceeding without user confirmation")
         return True
 
