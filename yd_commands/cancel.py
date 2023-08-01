@@ -161,6 +161,8 @@ def cancel_work_requirement_by_name_or_id(name_or_id: str):
     if work_requirement_summary.status == WorkRequirementStatus.CANCELLING:
         print_log(f"Work Requirement '{name_or_id}' is already cancelling")
     else:
+        if not confirmed(f"Cancel Work Requirement '{name_or_id}'?"):
+            return
         try:
             CLIENT.work_client.cancel_work_requirement_by_id(
                 work_requirement_summary.id

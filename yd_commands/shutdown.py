@@ -105,6 +105,9 @@ def shutdown_by_name_or_id(name_or_id: str):
         if worker_pool_id is None:
             raise Exception(f"Worker Pool '{name_or_id}' not found")
 
+    if not confirmed(f"Shut down Worker Pool '{name_or_id}'?"):
+        return
+
     try:
         CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool_id)
         print_log(f"Shut down Worker Pool '{name_or_id}'")

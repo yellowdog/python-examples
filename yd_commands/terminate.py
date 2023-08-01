@@ -103,6 +103,9 @@ def terminate_cr_by_name_or_id(name_or_id: str):
         else:
             print_log(f"Found Compute Requirement ID: {compute_requirement_id}")
 
+    if not confirmed(f"Terminate Compute Requirement '{name_or_id}'?"):
+        return
+
     try:
         CLIENT.compute_client.terminate_compute_requirement_by_id(
             compute_requirement_id
