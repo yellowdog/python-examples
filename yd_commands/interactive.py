@@ -62,13 +62,13 @@ def select(
 
     while True:
         input_string = (
-            "Please select an item number or press <Return> to cancel: "
+            "Please select an item number or press <Return> to cancel:"
             if single_result
             else (
-                "Please select items (e.g.: 1,2,4-7 / *) or press <Return> to cancel: "
+                "Please select items (e.g.: 1,2,4-7 / *) or press <Return> to cancel:"
             )
         )
-        selector_string = input(print_string(input_string))
+        selector_string = input(print_string(input_string) + " ")
         if selector_string.strip() == "*":
             selector_string = f"1-{len(objects)}"
         selector_list = selector_string.split(",")
@@ -141,7 +141,7 @@ def confirmed(msg: str) -> bool:
 
     # Seek user confirmation
     while True:
-        response = input(print_string(f"{msg} (y/N): "))
+        response = input(print_string(f"{msg} (y/N):") + " ")
         if response.lower() in ["y", "yes"]:
             print_log("Action confirmed by user")
             return True
