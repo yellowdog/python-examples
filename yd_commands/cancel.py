@@ -168,14 +168,19 @@ def cancel_work_requirement_by_name_or_id(name_or_id: str):
     ]:
         raise Exception(
             f"Work Requirement '{name_or_id}' is not in a valid state"
-            f" ('{work_requirement_summary.status}') to cancel"
+            f" ('{work_requirement_summary.status}') for cancellation"
         )
 
-    try:
-        CLIENT.work_client.cancel_work_requirement_by_id(work_requirement_summary.id)
-        print_log(f"Cancelled Work Requirement '{name_or_id}'")
-    except Exception as e:
-        raise Exception(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
+    if work_requirement_summary.status == WorkRequirementStatus.CANCELLING:
+        print_log(f"Work Requirement '{name_or_id}' is already cancelling")
+    else:
+        try:
+            CLIENT.work_client.cancel_work_requirement_by_id(
+                work_requirement_summary.id
+            )
+            print_log(f"Cancelled Work Requirement '{name_or_id}'")
+        except Exception as e:
+            raise Exception(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
 
     # ToDo: Refactoring required for the following to remove duplication
     if ARGS_PARSER.follow:
