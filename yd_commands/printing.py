@@ -62,6 +62,7 @@ def print_string(msg: str = "") -> str:
         subsequent_indent=" " * len(prefix),
         drop_whitespace=True,
         break_long_words=False,  # Preserve URLs
+        break_on_hyphens=False,  # Preserve names
     )
 
 
