@@ -133,6 +133,8 @@ def main():
                         compute_requirement_template_usage
                     )
                 )
+                if ARGS_PARSER.quiet:
+                    print(compute_requirement.name)
                 print_log(
                     f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
                 )
@@ -266,6 +268,8 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
     name = cr_data["requirementName"]
     if response.status_code == 200:
         print_log(f"Provisioned Compute Requirement '{name}'")
+        if ARGS_PARSER.quiet:
+            print(name)
     else:
         print_error(f"Failed to provision Compute Requirement '{name}'")
         raise Exception(f"{response.text}")
