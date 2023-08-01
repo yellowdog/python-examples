@@ -159,6 +159,18 @@ def cancel_work_requirement_by_name_or_id(name_or_id: str):
     if work_requirement_summary is None:
         raise Exception(f"Work Requirement '{name_or_id}' not found")
 
+    if work_requirement_summary.status not in [
+        WorkRequirementStatus.NEW,
+        WorkRequirementStatus.PENDING,
+        WorkRequirementStatus.RUNNING,
+        WorkRequirementStatus.STARVED,
+        WorkRequirementStatus.HELD,
+    ]:
+        raise Exception(
+            f"Work Requirement '{name_or_id}' is not in a valid state"
+            f" ('{work_requirement_summary.status}') to cancel"
+        )
+
     try:
         CLIENT.work_client.cancel_work_requirement_by_id(work_requirement_summary.id)
         print_log(f"Cancelled Work Requirement '{name_or_id}'")
