@@ -183,18 +183,19 @@ def cancel_work_requirement_by_name_or_id(name_or_id: str):
             raise Exception(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
 
     # ToDo: Refactoring required for the following to remove duplication
-    if ARGS_PARSER.follow:
-        attempt = 0
-        while True:
-            attempt += 1
-            print_log(f"Collecting Tasks to abort (attempt {attempt})")
-            if abort_all_tasks([work_requirement_summary]) == 0:
-                break
-            print_log(f"Waiting {ABORT_RETRY_INTERVAL}s for abort confirmation ...")
-            sleep(ABORT_RETRY_INTERVAL)
-    else:
-        print_log("Aborting all currently running Tasks")
-        abort_all_tasks([work_requirement_summary])
+    if ARGS_PARSER.abort:
+        if ARGS_PARSER.follow:
+            attempt = 0
+            while True:
+                attempt += 1
+                print_log(f"Collecting Tasks to abort (attempt {attempt})")
+                if abort_all_tasks([work_requirement_summary]) == 0:
+                    break
+                print_log(f"Waiting {ABORT_RETRY_INTERVAL}s for abort confirmation ...")
+                sleep(ABORT_RETRY_INTERVAL)
+        else:
+            print_log("Aborting all currently running Tasks")
+            abort_all_tasks([work_requirement_summary])
 
 
 # Entry point
