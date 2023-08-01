@@ -101,33 +101,32 @@ def abort_all_tasks(
     selected_work_requirement_summaries: List[WorkRequirementSummary],
 ) -> int:
     """
-    Abort all Tasks in CANCELLING Work Requirements.
+    Abort all Tasks in selected Work Requirements.
     """
     aborted_tasks = 0
-    for wr_summary in get_filtered_work_requirements(
-        client=CLIENT,
-        namespace=CONFIG_COMMON.namespace,
-        tag=CONFIG_COMMON.name_tag,
-        include_filter=[WorkRequirementStatus.CANCELLING],
-    ):
-        if wr_summary.id in [x.id for x in selected_work_requirement_summaries]:
-            task_search = TaskSearch(
-                workRequirementId=wr_summary.id,
-                statuses=[TaskStatus.EXECUTING],
-            )
-            tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
-            for task in tasks:
-                try:
-                    CLIENT.work_client.cancel_task(task, abort=True)
-                    print_log(
-                        f"Aborting Task '{task.name}' in Task Group"
-                        f" '{get_task_group_name(CLIENT, wr_summary, task)}' in Work"
-                        f" Requirement '{wr_summary.name}'"
-                    )
-                    aborted_tasks += 1
-                except Exception as e:
-                    print_log(f"Error: {e}")
-                    continue
+    for wr_summary in selected_work_requirement_summaries:
+        task_search = TaskSearch(
+            workRequirementId=wr_summary.id,
+            statuses=[
+                TaskStatus.EXECUTING,
+                TaskStatus.DOWNLOADING,
+                TaskStatus.UPLOADING,
+            ],
+        )
+        tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
+        for task in tasks:
+            try:
+                CLIENT.work_client.cancel_task(task, abort=True)
+                print_log(
+                    f"Aborting Task '{task.name}' in Task Group"
+                    f" '{get_task_group_name(CLIENT, wr_summary, task)}' in Work"
+                    f" Requirement '{wr_summary.name}'"
+                )
+                aborted_tasks += 1
+            except Exception as e:
+                print_log(f"Error: {e}")
+                continue
+
     if aborted_tasks == 0:
         print_log("No Tasks to abort")
     if aborted_tasks <= 5:
