@@ -42,7 +42,7 @@ from yd_commands.config_keys import NAME, TASK_GROUPS, TASKS
 from yd_commands.object_utilities import Item
 
 JSON_INDENT = 2
-MAX_LOG_WIDTH = 160
+MAX_LOG_WIDTH = 200
 
 
 def print_string(msg: str = "") -> str:

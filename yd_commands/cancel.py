@@ -22,6 +22,7 @@ from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_task_group_name,
+    get_work_requirement_summary_by_name_or_id,
 )
 from yd_commands.printing import print_log
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
@@ -31,6 +32,10 @@ ABORT_RETRY_INTERVAL = 20  # Seconds
 
 @main_wrapper
 def main():
+    if ARGS_PARSER.work_requirement_name != "":
+        cancel_work_requirement_by_name_or_id(ARGS_PARSER.work_requirement_name)
+        return
+
     print_log(
         "Cancelling Work Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
@@ -82,6 +87,7 @@ def main():
         elif cancelling_count == 0:
             print_log("No Work Requirements to cancel")
 
+        # ToDo: Refactoring required for the following to remove duplication
         if ARGS_PARSER.abort:
             if cancelled_count == 0 and cancelling_count == 0:
                 print_log("No Tasks to abort")
@@ -141,6 +147,37 @@ def abort_all_tasks(
     else:
         print_log(f"Aborting {aborted_tasks} Task(s)")
     return aborted_tasks
+
+
+def cancel_work_requirement_by_name_or_id(name_or_id: str):
+    """
+    Cancel a Work Requirement by its name or ID.
+    """
+    work_requirement_summary: WorkRequirementSummary = (
+        get_work_requirement_summary_by_name_or_id(CLIENT, name_or_id)
+    )
+    if work_requirement_summary is None:
+        raise Exception(f"Work Requirement '{name_or_id}' not found")
+
+    try:
+        CLIENT.work_client.cancel_work_requirement_by_id(work_requirement_summary.id)
+        print_log(f"Cancelled Work Requirement '{name_or_id}'")
+    except Exception as e:
+        raise Exception(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
+
+    # ToDo: Refactoring required for the following to remove duplication
+    if ARGS_PARSER.follow:
+        attempt = 0
+        while True:
+            attempt += 1
+            print_log(f"Collecting Tasks to abort (attempt {attempt})")
+            if abort_all_tasks([work_requirement_summary]) == 0:
+                break
+            print_log(f"Waiting {ABORT_RETRY_INTERVAL}s for abort confirmation ...")
+            sleep(ABORT_RETRY_INTERVAL)
+    else:
+        print_log("Aborting all currently running Tasks")
+        abort_all_tasks([work_requirement_summary])
 
 
 # Entry point

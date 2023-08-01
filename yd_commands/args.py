@@ -497,6 +497,16 @@ class CLIParser:
                 help="the name or YellowDog ID of the Compute Requirement",
             )
 
+        if "cancel" in sys.argv[0]:
+            parser.add_argument(
+                "work_requirement",
+                nargs="?",
+                default="",
+                metavar="<work-requirement-name-or-ID>",
+                type=str,
+                help="the name or YellowDog ID of the Work Requirement",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -706,6 +716,10 @@ class CLIParser:
     @property
     def compute_requirement_name(self) -> str:
         return self.args.compute_requirement
+
+    @property
+    def work_requirement_name(self) -> str:
+        return self.args.work_requirement
 
     @property
     def worker_pool_size(self) -> int:
