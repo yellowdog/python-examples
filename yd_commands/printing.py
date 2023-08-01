@@ -5,7 +5,9 @@ Functions focused on print outputs.
 import sys
 from datetime import datetime
 from json import dumps as json_dumps
+from os import get_terminal_size
 from os import name as os_name
+from textwrap import fill
 from textwrap import indent as text_indent
 from typing import Dict, List, Optional, TypeVar
 
@@ -41,27 +43,26 @@ from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.config_keys import NAME, TASK_GROUPS, TASKS
 from yd_commands.object_utilities import Item
 
-JSON_INDENT = 2
-MAX_LOG_WIDTH = 200
+try:
+    LOG_WIDTH = get_terminal_size().columns
+except OSError:
+    LOG_WIDTH = 120  # Default log line width
 
 
 def print_string(msg: str = "") -> str:
     """
-    Message output format. Line-wrap tidily.
+    Message output format, with tidy line-wrapping calibrated
+    for the terminal width.
     """
-    msg = msg.replace("\n", "")  # Remove any existing newlines
     prefix = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " : "
-    num_lines = int((len(prefix) + len(msg)) / MAX_LOG_WIDTH) + 1
-    string_chunk_len = MAX_LOG_WIDTH - len(prefix)
-    formatted_msg = prefix + msg[:string_chunk_len]
-    indent = " " * len(prefix)
-    for line_number in range(1, num_lines):
-        formatted_msg += (
-            "\n"
-            + indent
-            + msg[string_chunk_len * line_number : string_chunk_len * (line_number + 1)]
-        )
-    return formatted_msg
+    return fill(
+        msg,
+        width=LOG_WIDTH,
+        initial_indent=prefix,
+        subsequent_indent=" " * len(prefix),
+        drop_whitespace=True,
+        break_long_words=False,  # Preserve URLs
+    )
 
 
 def print_log(
