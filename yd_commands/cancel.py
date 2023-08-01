@@ -87,24 +87,12 @@ def main():
         elif cancelling_count == 0:
             print_log("No Work Requirements to cancel")
 
-        # ToDo: Refactoring required for the following to remove duplication
         if ARGS_PARSER.abort:
             if cancelled_count == 0 and cancelling_count == 0:
                 print_log("No Tasks to abort")
-            elif ARGS_PARSER.follow:
-                attempt = 0
-                while True:
-                    attempt += 1
-                    print_log(f"Collecting Tasks to abort (attempt {attempt})")
-                    if abort_all_tasks(selected_work_requirement_summaries) == 0:
-                        break
-                    print_log(
-                        f"Waiting {ABORT_RETRY_INTERVAL}s for abort confirmation ..."
-                    )
-                    sleep(ABORT_RETRY_INTERVAL)
             else:
-                print_log("Aborting all currently running Tasks")
-                abort_all_tasks(selected_work_requirement_summaries)
+                abort_and_follow(selected_work_requirement_summaries)
+
     else:
         print_log("No Work Requirements to cancel")
 
@@ -182,20 +170,27 @@ def cancel_work_requirement_by_name_or_id(name_or_id: str):
         except Exception as e:
             raise Exception(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
 
-    # ToDo: Refactoring required for the following to remove duplication
     if ARGS_PARSER.abort:
-        if ARGS_PARSER.follow:
-            attempt = 0
-            while True:
-                attempt += 1
-                print_log(f"Collecting Tasks to abort (attempt {attempt})")
-                if abort_all_tasks([work_requirement_summary]) == 0:
-                    break
-                print_log(f"Waiting {ABORT_RETRY_INTERVAL}s for abort confirmation ...")
-                sleep(ABORT_RETRY_INTERVAL)
-        else:
-            print_log("Aborting all currently running Tasks")
-            abort_all_tasks([work_requirement_summary])
+        abort_and_follow([work_requirement_summary])
+
+
+def abort_and_follow(work_requirement_summaries: List[WorkRequirementSummary]):
+    """
+    Abort Tasks in one or more Work Requirements and optionally follow
+    abort progress.
+    """
+    if ARGS_PARSER.follow:
+        attempt = 0
+        while True:
+            attempt += 1
+            print_log(f"Collecting Tasks to abort (attempt {attempt})")
+            if abort_all_tasks(work_requirement_summaries) == 0:
+                break
+            print_log(f"Waiting {ABORT_RETRY_INTERVAL}s for abort confirmation ...")
+            sleep(ABORT_RETRY_INTERVAL)
+    else:
+        print_log("Aborting all currently running Tasks")
+        abort_all_tasks(work_requirement_summaries)
 
 
 # Entry point
