@@ -43,6 +43,8 @@ from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.config_keys import NAME, TASK_GROUPS, TASKS
 from yd_commands.object_utilities import Item
 
+JSON_INDENT = 2
+
 try:
     LOG_WIDTH = get_terminal_size().columns
 except OSError:
