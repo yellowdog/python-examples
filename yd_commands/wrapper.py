@@ -26,15 +26,13 @@ def dry_run() -> bool:
     Is this a dry-run?
     """
     try:
-        if ARGS_PARSER.dry_run is not None:
-            if ARGS_PARSER.dry_run:
-                return True
+        if ARGS_PARSER.dry_run is not None and ARGS_PARSER.dry_run:
+            return True
     except AttributeError:
         pass
     try:
-        if ARGS_PARSER.process_csv_only is not None:
-            if ARGS_PARSER.process_csv_only:
-                return True
+        if ARGS_PARSER.process_csv_only is not None and ARGS_PARSER.process_csv_only:
+            return True
     except AttributeError:
         pass
     return False
