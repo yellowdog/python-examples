@@ -202,13 +202,13 @@ def worker_pool_table(
         "#",
         "Provisioned Worker Pool Name",
         "Status",
-        "Nodes: Running",
+        "Running",
         "Min",
         "Max",
-        "Terminated",
+        "Term.",
         "Late",
         "Lost",
-        "Deregistered",
+        "Dereg.",
     ]
     table = []
     for index, worker_pool_summary in enumerate(worker_pool_summaries):
