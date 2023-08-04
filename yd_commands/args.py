@@ -507,6 +507,16 @@ class CLIParser:
                 help="the name or YellowDog ID of the Work Requirement",
             )
 
+        if "delete" in sys.argv[0]:
+            parser.add_argument(
+                "object_paths_to_delete",
+                nargs="*",
+                default=[""],
+                metavar="<object_path>",
+                type=str,
+                help="the object paths to delete; optional, overrides --tag/prefix",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -725,6 +735,10 @@ class CLIParser:
     @property
     def work_requirement_name(self) -> str:
         return self.args.work_requirement
+
+    @property
+    def object_paths_to_delete(self) -> List[str]:
+        return self.args.object_paths_to_delete
 
     @property
     def worker_pool_size(self) -> int:
