@@ -517,6 +517,16 @@ class CLIParser:
                 help="the object paths to delete; optional, overrides --tag/prefix",
             )
 
+        if "download" in sys.argv[0]:
+            parser.add_argument(
+                "object_paths_to_download",
+                nargs="*",
+                default=[""],
+                metavar="<object_path>",
+                type=str,
+                help="the object paths to download; optional, overrides --tag/prefix",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -739,6 +749,10 @@ class CLIParser:
     @property
     def object_paths_to_delete(self) -> List[str]:
         return self.args.object_paths_to_delete
+
+    @property
+    def object_paths_to_download(self) -> List[str]:
+        return self.args.object_paths_to_download
 
     @property
     def worker_pool_size(self) -> int:
