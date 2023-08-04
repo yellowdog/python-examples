@@ -110,9 +110,10 @@ def upload_file_core(
         print_error(f"Failed to upload file: {local_file}")
         # Continue here?
     else:
+        print_log(f"Uploaded file '{local_file}' to '{namespace}::{remote_file}'")
         remote_file = remote_file.replace("/", "%2F")
         link_ = link(
             url,
             f"#/objects/{namespace}/{remote_file}?object=true",
         )
-        print_log(f"Uploaded file '{local_file}': {link_}")
+        print_log(f"Object URL: {link_}")
