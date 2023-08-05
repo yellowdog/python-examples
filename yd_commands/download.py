@@ -64,13 +64,14 @@ def download_object_paths(namespace: str, prefix: str, flat: bool):
         print_log("No Objects to download")
         return
 
+    print_log("Note: existing local objects will be overwritten without warning")
     if not confirmed(f"Download {len(object_paths_to_download)} Object Path(s)?"):
         return
 
     print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
 
     download_dir: str = _create_download_directory(
-        namespace if ARGS_PARSER.directory == "" else ARGS_PARSER.directory
+        "." if ARGS_PARSER.directory == "" else ARGS_PARSER.directory
     )
 
     download_batch_builder: AbstractDownloadBatchBuilder = (
@@ -121,7 +122,7 @@ def _create_download_directory(directory_name: str) -> str:
     if path.exists():
         print_log(f"Downloading to existing directory: '{path}'")
     else:
-        print_log(f"Creating download directory: {path}")
+        print_log(f"Creating download directory: '{path}'")
         path.mkdir(parents=True, exist_ok=True)
     return str(path)
 

@@ -287,8 +287,8 @@ class CLIParser:
                 type=str,
                 required=False,
                 help=(
-                    "the directory to use for downloaded objects (defaults to using the"
-                    " namespace)"
+                    "the directory to use for downloaded objects (defaults to the"
+                    " current directory)"
                 ),
                 metavar="<directory>",
             )
