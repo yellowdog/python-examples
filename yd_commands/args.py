@@ -242,7 +242,7 @@ class CLIParser:
                 "-i",
                 action="store_true",
                 required=False,
-                help="list, and interactively select, items to act on",
+                help="list, and interactively select, the items to act on",
             )
 
         if any(
@@ -264,6 +264,15 @@ class CLIParser:
                 help="perform destructive actions without requiring user confirmation",
             )
 
+        if any(module in sys.argv[0] for module in ["delete", "download"]):
+            parser.add_argument(
+                "--all",
+                "-a",
+                action="store_true",
+                required=False,
+                help="list all objects, at all levels in the prefix hierarchy",
+            )
+
         if "download" in sys.argv[0]:
             parser.add_argument(
                 "--yes",
@@ -278,18 +287,20 @@ class CLIParser:
                 type=str,
                 required=False,
                 help=(
-                    "the directory to use for downloaded objects (namespace is default)"
+                    "the directory to use for downloaded objects (defaults to using the"
+                    " namespace)"
                 ),
                 metavar="<directory>",
             )
-
-        if any(module in sys.argv[0] for module in ["delete", "download"]):
             parser.add_argument(
-                "--all",
-                "-a",
+                "--flatten",
+                "-f",
                 action="store_true",
                 required=False,
-                help="list all objects, not just the top level",
+                help=(
+                    "flatten download paths (objects with the same name will be"
+                    " overwritten)"
+                ),
             )
 
         if "list" in sys.argv[0]:
@@ -370,7 +381,7 @@ class CLIParser:
                 "-C",
                 type=str,
                 required=False,
-                help="the path where the items to be uploaded are found",
+                help="the directory where the items to be uploaded are found",
                 metavar="<directory>",
             )
             parser.add_argument(
@@ -385,7 +396,10 @@ class CLIParser:
                 "-f",
                 action="store_true",
                 required=False,
-                help="flatten/remove local directories when uploading files",
+                help=(
+                    "don't mirror local directory structure when uploading files (files"
+                    " may be overwritten)"
+                ),
             )
             parser.add_argument(
                 "--recursive",
@@ -761,6 +775,10 @@ class CLIParser:
     @property
     def compute_req_resize(self) -> Optional[bool]:
         return self.args.compute_requirement
+
+    @property
+    def flatten_download_paths(self) -> Optional[bool]:
+        return self.args.flatten
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

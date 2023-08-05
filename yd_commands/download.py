@@ -12,6 +12,7 @@ from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 from yellowdog_client.object_store.download.abstracts.abstract_download_batch_builder import (
     AbstractDownloadBatchBuilder,
     AbstractTransferBatch,
+    FlattenPath,
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
@@ -76,6 +77,8 @@ def download_object_paths(namespace: str, prefix: str, flat: bool):
         CLIENT.object_store_client.build_download_batch()
     )
     download_batch_builder.destination_folder = download_dir
+    if ARGS_PARSER.flatten_download_paths:
+        download_batch_builder.set_flatten_file_name_mapper(FlattenPath.FILE_NAME_ONLY)
 
     for object_path in object_paths_to_download:
         print_log(f"Finding object paths matching '{object_path.name}*'")
@@ -92,7 +95,9 @@ def download_object_paths(namespace: str, prefix: str, flat: bool):
         print_log(f"No Objects found in selected Object Paths")
         return
 
-    print_batch_download_files(download_batch_builder)
+    print_batch_download_files(
+        download_batch_builder, ARGS_PARSER.flatten_download_paths
+    )
 
     print_log("Starting batch download")
     download_batch.start()

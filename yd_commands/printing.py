@@ -477,9 +477,11 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
     print()
 
 
-def print_batch_download_files(download_batch_builder: DownloadBatchBuilder):
+def print_batch_download_files(
+    download_batch_builder: DownloadBatchBuilder, flatten_downloads: bool = False
+):
     """
-    Print the list of files that will be batch downloaded
+    Print the list of files that will be batch downloaded.
     """
     if ARGS_PARSER.quiet:
         return
@@ -489,15 +491,21 @@ def print_batch_download_files(download_batch_builder: DownloadBatchBuilder):
     table = []
     # Yes, I know I shouldn't be accessing '_source_object_entries'
     for index, object_entry in enumerate(download_batch_builder._source_object_entries):
+        object_source = f"{object_entry.namespace}::{object_entry.object_name}"
+        object_target = (
+            f"{object_entry.object_name.replace('/', directory_separator)}"
+            if flatten_downloads is False
+            else (f"{object_entry.object_name.split('/')[-1:][0]}")
+        )
         table.append(
             [
                 index + 1,
-                f"{object_entry.namespace}::{object_entry.object_name}",
+                object_source,
                 "->",
                 (
                     f"{download_batch_builder.destination_folder}"
                     f"{directory_separator}"
-                    f"{object_entry.object_name.replace('/', directory_separator)}"
+                    f"{object_target}"
                 ),
             ]
         )
