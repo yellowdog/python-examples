@@ -511,7 +511,7 @@ class CLIParser:
             parser.add_argument(
                 "object_paths_to_delete",
                 nargs="*",
-                default=[""],
+                default=[],
                 metavar="<object_path>",
                 type=str,
                 help="the object paths to delete; optional, overrides --tag/prefix",
