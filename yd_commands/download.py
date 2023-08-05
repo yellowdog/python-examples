@@ -23,74 +23,88 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
-    # There's always at least one default object_paths_to_download argument ("")
-    for object_path in ARGS_PARSER.object_paths_to_download:
-        namespace, tag = unpack_namespace_in_prefix(
-            namespace=CONFIG_COMMON.namespace,
-            prefix=CONFIG_COMMON.name_tag if object_path == "" else object_path,
-        )
-        print_log(
-            f"Downloading all Objects in namespace '{namespace}' and "
-            f"prefix starting with '{tag}'"
-        )
-
-        object_paths_to_download: List[ObjectPath] = (
-            CLIENT.object_store_client.get_namespace_object_paths(
-                ObjectPathsRequest(
-                    namespace=namespace, prefix=tag, flat=ARGS_PARSER.all
-                )
+    # Direct command line argument overrides tag/prefix
+    if len(ARGS_PARSER.object_paths_to_download) > 0:
+        for object_path in ARGS_PARSER.object_paths_to_download:
+            namespace, tag = unpack_namespace_in_prefix(
+                namespace=CONFIG_COMMON.namespace,
+                prefix=object_path,
             )
+            download_object_paths(namespace, tag, ARGS_PARSER.all)
+        return
+
+    # Use tag/prefix
+    namespace, tag = unpack_namespace_in_prefix(
+        namespace=CONFIG_COMMON.namespace, prefix=CONFIG_COMMON.name_tag
+    )
+    download_object_paths(namespace, tag, ARGS_PARSER.all)
+    return
+
+
+def download_object_paths(namespace: str, prefix: str, flat: bool):
+    """
+    Download Object Paths matching namespace and prefix.
+    """
+    print_log(
+        f"Downloading all Objects in namespace '{namespace}' and "
+        f"prefix starting with '{prefix}'"
+    )
+
+    object_paths_to_download: List[ObjectPath] = (
+        CLIENT.object_store_client.get_namespace_object_paths(
+            ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=ARGS_PARSER.all)
+        )
+    )
+
+    if len(object_paths_to_download) > 0:
+        object_paths_to_download = select(CLIENT, object_paths_to_download)
+
+    if len(object_paths_to_download) == 0:
+        print_log("No Objects to download")
+        return
+
+    if not confirmed(f"Download {len(object_paths_to_download)} Object Path(s)?"):
+        return
+
+    print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
+
+    download_dir: str = _create_download_directory(
+        namespace if ARGS_PARSER.directory == "" else ARGS_PARSER.directory
+    )
+
+    download_batch_builder: AbstractDownloadBatchBuilder = (
+        CLIENT.object_store_client.build_download_batch()
+    )
+    download_batch_builder.destination_folder = download_dir
+
+    for object_path in object_paths_to_download:
+        print_log(f"Finding object paths matching '{object_path.name}*'")
+        download_batch_builder.find_source_objects(
+            namespace=namespace,
+            object_name_pattern=f"{object_path.name}*",
         )
 
-        if len(object_paths_to_download) > 0:
-            object_paths_to_download = select(CLIENT, object_paths_to_download)
+    download_batch: AbstractTransferBatch = (
+        download_batch_builder.get_batch_if_objects_found()
+    )
 
-        if len(object_paths_to_download) == 0:
-            print_log("No Objects to download")
-            return
+    if download_batch is None:
+        print_log(f"No Objects found in selected Object Paths")
+        return
 
-        if not confirmed(f"Download {len(object_paths_to_download)} Object Path(s)?"):
-            return
+    print_batch_download_files(download_batch_builder)
 
-        print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
+    print_log("Starting batch download")
+    download_batch.start()
+    future: futures.Future = download_batch.when_status_matches(
+        lambda status: status == FileTransferStatus.Completed
+    )
+    CLIENT.object_store_client.start_transfers()
+    futures.wait((future,))
 
-        download_dir: str = _create_download_directory(
-            namespace if ARGS_PARSER.directory == "" else ARGS_PARSER.directory
-        )
-
-        download_batch_builder: AbstractDownloadBatchBuilder = (
-            CLIENT.object_store_client.build_download_batch()
-        )
-        download_batch_builder.destination_folder = download_dir
-
-        for object_path in object_paths_to_download:
-            print_log(f"Finding object paths matching '{object_path.name}*'")
-            download_batch_builder.find_source_objects(
-                namespace=namespace,
-                object_name_pattern=f"{object_path.name}*",
-            )
-
-        download_batch: AbstractTransferBatch = (
-            download_batch_builder.get_batch_if_objects_found()
-        )
-
-        if download_batch is None:
-            print_log(f"No Objects found in selected Object Paths")
-            return
-
-        print_batch_download_files(download_batch_builder)
-
-        print_log("Starting batch download")
-        download_batch.start()
-        future: futures.Future = download_batch.when_status_matches(
-            lambda status: status == FileTransferStatus.Completed
-        )
-        CLIENT.object_store_client.start_transfers()
-        futures.wait((future,))
-
-        print_log(
-            f"Downloaded all Objects in {len(object_paths_to_download)} Object Path(s)"
-        )
+    print_log(
+        f"Downloaded all Objects in {len(object_paths_to_download)} Object Path(s)"
+    )
 
 
 def _create_download_directory(directory_name: str) -> str:

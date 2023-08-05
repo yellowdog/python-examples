@@ -521,7 +521,7 @@ class CLIParser:
             parser.add_argument(
                 "object_paths_to_download",
                 nargs="*",
-                default=[""],
+                default=[],
                 metavar="<object_path>",
                 type=str,
                 help="the object paths to download; optional, overrides --tag/prefix",
