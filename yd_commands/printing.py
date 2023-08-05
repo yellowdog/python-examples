@@ -7,6 +7,7 @@ from datetime import datetime
 from json import dumps as json_dumps
 from os import get_terminal_size
 from os import name as os_name
+from os.path import relpath
 from textwrap import fill
 from textwrap import indent as text_indent
 from typing import Dict, List, Optional, TypeVar
@@ -495,14 +496,14 @@ def print_batch_download_files(
         object_target = (
             f"{object_entry.object_name.replace('/', directory_separator)}"
             if flatten_downloads is False
-            else (f"{object_entry.object_name.split('/')[-1:][0]}")
+            else f"{object_entry.object_name.split('/')[-1:][0]}"
         )
         table.append(
             [
                 index + 1,
                 object_source,
                 "->",
-                (
+                relpath(
                     f"{download_batch_builder.destination_folder}"
                     f"{directory_separator}"
                     f"{object_target}"
