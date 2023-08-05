@@ -22,7 +22,7 @@ try:
 except ImportError:
     pass
 
-# Environment variable to use --no-confirmation by default
+# Environment variable to use --yes by default
 # Set to any non-empty string
 YD_YES = "YD_YES"
 

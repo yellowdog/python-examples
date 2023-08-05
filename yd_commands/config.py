@@ -491,8 +491,7 @@ def update_config_work_requirement(config_wr: ConfigWorkRequirement):
 def unpack_namespace_in_prefix(namespace: str, prefix: str) -> (str, str):
     """
     Allow the prefix to include the namespace, which can override the supplied
-    namespace.
-    Return the unpacked (namespace, prefix) tuple.
+    namespace. Return the unpacked (namespace, prefix) tuple.
     """
     elems = prefix.split(NAMESPACE_SEPARATOR)
     if len(elems) == 1:
