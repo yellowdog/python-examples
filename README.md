@@ -1384,7 +1384,7 @@ The following properties are available:
 
 ## Automatic Properties
 
-The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `wp_mytag_221024-155524-b0a`.
+The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,: `wp_mytag_221024-155524-b0a`.
 
 ## TOML Properties in the `workerPool` Section
 
@@ -1456,19 +1456,14 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
 ```json
 {
   "requirementTemplateUsage": {
-    "maintainInstanceCount": false,
-    "targetInstanceCount": 6,
-    "templateId": "ydid:crt:D9C548:a7eda287-f9d6-4bc8-b2dc-455344057257",
-    "requirementName": "wp_pyex-slurm_230113-165615-2b7",
-    "requirementNamespace": "pyexamples",
-    "requirementTag": "pyex-slurm"
+    "maintainInstanceCount": false
   },
   "provisionedProperties": {
     "createNodeWorkers": {"targetCount": 0, "targetType": "PER_NODE"},
     "nodeConfiguration": {
       "nodeTypes": [
         {"name": "slurmctld", "count": 1},
-        {"name": "slurmd", "min": 5, "slotNumbering": "REUSABLE"}
+        {"name": "slurmd", "min": 2, "slotNumbering": "REUSABLE"}
       ],
       "nodeEvents": {
         "STARTUP_NODES_ADDED": [
@@ -1477,14 +1472,13 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
               {
                 "action": "WRITE_FILE",
                 "path": "nodes.json",
-                "content": "{\n  \"nodes\": [\n{{#otherNodes}}\n    {\n      \"name\": \"slurmd{{details.nodeSlot}}\",\n      \"ip\": \"{{details.privateIpAddress}}\"\n    }{{^-last}},{{/-last}}\n{{/otherNodes}}\n  ]\n}",
+                "content": "{\"nodes\":[{{#otherNodes}}{\"name\":\"slurmd{{details.nodeSlot}}\",\"ip\":\"{{details.privateIpAddress}}\"}{{^-last}},{{/-last}}{{/otherNodes}}]}",
                 "nodeTypes": ["slurmctld"]
               },
               {
                 "action": "RUN_COMMAND",
                 "path": "start_simple_slurmctld",
                 "arguments": ["nodes.json"],
-                "environment": {"EXAMPLE": "FOO"},
                 "nodeTypes": ["slurmctld"]
               }
             ]
@@ -1515,7 +1509,7 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
               {
                 "action": "WRITE_FILE",
                 "path": "nodes.json",
-                "content": "{\n  \"nodes\": [\n{{#filteredNodes}}\n    {\n      \"name\": \"slurmd{{details.nodeSlot}}\",\n      \"ip\": \"{{details.privateIpAddress}}\"\n    }{{^-last}},{{/-last}}\n{{/filteredNodes}}\n  ]\n}",
+                "content": "{\"nodes\":[{{#filteredNodes}}{\"name\":\"slurmd{{details.nodeSlot}}\",\"ip\":\"{{details.privateIpAddress}}\"}{{^-last}},{{/-last}}{{/filteredNodes}}]}",
                 "nodeTypes": ["slurmctld"]
               },
               {
@@ -1539,8 +1533,7 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
           }
         ]
       }
-    },
-    "workerTag": "pyex-slurm-cluster"
+    }
   }
 }
 ```
@@ -1917,7 +1910,7 @@ The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and
 
 The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool).
 
-This command uses the data from the `workerPool` configuration section, but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
+This command uses the data from the `workerPool` configuration section (or, synonymously, the `computeRequirement` section), but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
 Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
 
@@ -1935,7 +1928,7 @@ Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifi
 }
 ```
 
-If a Worker Pool is defined, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
+If a Worker Pool is defined in JSON, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
 
 Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above (or with `-p` for Worker Pool specifications).
 
