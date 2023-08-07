@@ -365,12 +365,25 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
 
 def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     """
-    Load the configuration data for a Worker Pool
+    Load the configuration data for a Worker Pool or a Compute Requirement.
     """
-    try:
-        wp_section = CONFIG_TOML[WORKER_POOL_SECTION]
-    except KeyError:
+
+    # Allow the use of values in a 'computeRequirement' section, which acts
+    # as a configuration synonym for 'workerPool'. Check for duplicates.
+    wp_section = CONFIG_TOML.get(WORKER_POOL_SECTION, {})
+    cr_section = CONFIG_TOML.get(COMPUTE_REQUIREMENT_SECTION, {})
+    duplicate_keys = set(wp_section.keys()).intersection(set(cr_section.keys()))
+    if len(duplicate_keys) != 0:
+        print_error(
+            f"Duplicate keys in '{WORKER_POOL_SECTION}' and"
+            f" '{COMPUTE_REQUIREMENT_SECTION}': {duplicate_keys}"
+        )
+        exit(1)
+    wp_section.update(cr_section)
+
+    if len(wp_section) == 0:
         return ConfigWorkerPool()
+
     try:
         worker_tag = substitute_variable_str(wp_section.get(WORKER_TAG, None))
         worker_pool_data_file = substitute_variable_str(wp_section.get(WP_DATA, None))

@@ -7,6 +7,7 @@ CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
 COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
+COMPUTE_REQUIREMENT_SECTION = "computeRequirement"  # No value
 CSV_FILE = "csvFile"  # String
 CSV_FILES = "csvFiles"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String
@@ -91,6 +92,7 @@ ALL_KEYS = [
     COMMON_SECTION,
     COMPLETED_TASK_TTL,
     COMPUTE_REQUIREMENT_BATCH_SIZE,
+    COMPUTE_REQUIREMENT_SECTION,
     CSV_FILE,
     CSV_FILES,
     DEPENDENT_ON,
