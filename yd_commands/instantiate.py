@@ -70,7 +70,7 @@ def main():
         return
 
     if CONFIG_WP.template_id is None:
-        print_error("No 'templateId' supplied")
+        raise Exception("No 'templateId' supplied")
 
     if not ARGS_PARSER.report:
         print_log(
@@ -204,11 +204,10 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
     """
 
     if ARGS_PARSER.report:
-        print_error(
+        raise Exception(
             "Compute Template reports aren't available when using JSON "
             "Compute Requirement / Worker Pool specifications"
         )
-        return
 
     if cr_json_file.lower().endswith(".jsonnet"):
         cr_data = load_jsonnet_file_with_variable_substitutions(
