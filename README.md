@@ -1912,7 +1912,7 @@ The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of 
 
 This command uses the data from the `workerPool` configuration section (or, synonymously, the `computeRequirement` section), but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
-Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
+Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename, or by using the `computeRequirementData` property in the `workerPool`/`computeRequirement` section. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
 
 ```json
 {

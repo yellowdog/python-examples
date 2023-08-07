@@ -47,7 +47,7 @@ CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
 
 @main_wrapper
 def main():
-    # -C > -P > workerPoolData
+    # -C > -P > workerPoolData / computeRequirementData
     cr_json_file = (
         ARGS_PARSER.worker_pool_file
         if ARGS_PARSER.compute_requirement is None
@@ -56,6 +56,8 @@ def main():
     cr_json_file = (
         CONFIG_WP.worker_pool_data_file if cr_json_file is None else cr_json_file
     )
+    if cr_json_file is None:  # Finally, try 'computeRequirementData'
+        cr_json_file = CONFIG_WP.compute_requirement_data_file
 
     # Use the variable prefix if this is a Worker Pool file
     if cr_json_file is not None:

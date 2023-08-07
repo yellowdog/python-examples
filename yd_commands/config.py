@@ -108,6 +108,7 @@ WP_VARIABLES_PREFIX = "__"
 @dataclass
 class ConfigWorkerPool:
     compute_requirement_batch_size: int = CR_BATCH_SIZE_DEFAULT
+    compute_requirement_data_file: Optional[str] = None
     idle_node_shutdown_enabled: bool = True
     idle_node_shutdown_timeout: float = 5.0
     idle_pool_shutdown_enabled: bool = True
@@ -387,15 +388,31 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     try:
         worker_tag = substitute_variable_str(wp_section.get(WORKER_TAG, None))
         worker_pool_data_file = substitute_variable_str(wp_section.get(WP_DATA, None))
+        compute_requirement_data_file = substitute_variable_str(
+            wp_section.get(COMPUTE_REQUIREMENT_DATA, None)
+        )
+        if (
+            worker_pool_data_file is not None
+            and compute_requirement_data_file is not None
+        ):
+            print_error(
+                f"Only one of '{WP_DATA}' or '{COMPUTE_REQUIREMENT_DATA}' should be set"
+            )
+            exit(1)
         if worker_pool_data_file is not None:
             worker_pool_data_file = pathname_relative_to_config_file(
                 worker_pool_data_file
+            )
+        if compute_requirement_data_file is not None:
+            compute_requirement_data_file = pathname_relative_to_config_file(
+                compute_requirement_data_file
             )
 
         return ConfigWorkerPool(
             compute_requirement_batch_size=wp_section.get(
                 COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
             ),
+            compute_requirement_data_file=compute_requirement_data_file,
             idle_node_shutdown_enabled=wp_section.get(IDLE_NODE_SHUTDOWN_ENABLED, True),
             idle_node_shutdown_timeout=wp_section.get(IDLE_NODE_SHUTDOWN_TIMEOUT, 5.0),
             idle_pool_shutdown_enabled=wp_section.get(IDLE_POOL_SHUTDOWN_ENABLED, True),
