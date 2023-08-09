@@ -557,10 +557,8 @@ class CLIParser:
             print(
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 ":",
-                (
-                    "Note: the '--follow' ('-f') option is partially supported "
-                    "for Python versions 3.10 and above"
-                ),
+                "Note: the '--follow' ('-f') option is partially supported "
+                "for Python versions 3.10 and above",
             )
 
     @property
