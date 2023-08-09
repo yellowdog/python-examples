@@ -7,7 +7,7 @@ CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
 COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
-COMPUTE_REQUIREMENT_DATA = "computeRequirementData"  # String
+COMPUTE_REQUIREMENT_DATA_FILE = "computeRequirementData"  # String
 COMPUTE_REQUIREMENT_SECTION = "computeRequirement"  # No value
 CSV_FILE = "csvFile"  # String
 CSV_FILES = "csvFiles"  # List of Strings
@@ -29,11 +29,12 @@ IDLE_POOL_SHUTDOWN_ENABLED = "idlePoolShutdownEnabled"  # Bool
 IDLE_POOL_SHUTDOWN_TIMEOUT = "idlePoolShutdownTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
 IMPORT = "import"  # String
-INPUT_FILES = "inputs"  # List of Strings
 INPUTS_OPTIONAL = "inputsOptional"  # List of Strings
+INPUT_FILES = "inputs"  # List of Strings
 INSTANCE_TAGS = "instanceTags"  # List of Strings
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
+LOCAL_PATH = "localPath"  # String
 MAINTAIN_INSTANCE_COUNT = "maintainInstanceCount"  # Bool
 MAX_NODES = "maxNodes"  # Integer
 MAX_RETRIES = "maximumTaskRetries"  # Integer
@@ -53,8 +54,8 @@ REGIONS = "regions"  # List of Strings
 SECRET = "secret"  # String
 TARGET_INSTANCE_COUNT = "targetInstanceCount"  # Integer
 TASKS = "tasks"  # List of Tasks
-TASK_BATCH_SIZE = "taskBatchSize"  # Integer
 TASKS_PER_WORKER = "tasksPerWorker"  # Integer
+TASK_BATCH_SIZE = "taskBatchSize"  # Integer
 TASK_COUNT = "taskCount"  # Integer
 TASK_DATA = "taskData"  # String
 TASK_DATA_FILE = "taskDataFile"  # String
@@ -65,24 +66,23 @@ TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
 UPLOAD_FILES = "uploadFiles"  # List of Dicts
-LOCAL_PATH = "localPath"  # String
 UPLOAD_PATH = "uploadPath"  # String
 URL = "url"  # String
-USE_PAC = "usePAC"  # Boolean
 USERDATA = "userData"  # String
 USERDATAFILE = "userDataFile"  # String
 USERDATAFILES = "userDataFiles"  # List of Strings
+USE_PAC = "usePAC"  # Boolean
 VARIABLES = "variables"  # Dictionary
 VCPUS = "vcpus"  # List of two Floats
 VERIFY_AT_START = "verifyAtStart"  # List of Strings
 VERIFY_WAIT = "verifyWait"  # List of Strings
-WORKERS_PER_VCPU = "workersPerVCPU"  # Integer
 WORKERS_PER_NODE = "workersPerNode"  # Integer
+WORKERS_PER_VCPU = "workersPerVCPU"  # Integer
+WORKER_POOL_DATA_FILE = "workerPoolData"  # String
 WORKER_POOL_SECTION = "workerPool"  # No value
 WORKER_TAG = "workerTag"  # String
 WORKER_TAGS = "workerTags"  # List of Strings
 WORK_REQUIREMENT_SECTION = "workRequirement"  # No value
-WP_DATA = "workerPoolData"  # String
 WP_NAME = "name"  # String
 WR_DATA = "workRequirementData"  # String
 WR_NAME = "name"  # String
@@ -93,7 +93,7 @@ ALL_KEYS = [
     COMMON_SECTION,
     COMPLETED_TASK_TTL,
     COMPUTE_REQUIREMENT_BATCH_SIZE,
-    COMPUTE_REQUIREMENT_DATA,
+    COMPUTE_REQUIREMENT_DATA_FILE,
     COMPUTE_REQUIREMENT_SECTION,
     CSV_FILE,
     CSV_FILES,
@@ -115,11 +115,12 @@ ALL_KEYS = [
     IDLE_POOL_SHUTDOWN_TIMEOUT,
     IMAGES_ID,
     IMPORT,
-    INPUT_FILES,
     INPUTS_OPTIONAL,
+    INPUT_FILES,
     INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
+    LOCAL_PATH,
     MAINTAIN_INSTANCE_COUNT,
     MAX_NODES,
     MAX_RETRIES,
@@ -138,8 +139,8 @@ ALL_KEYS = [
     SECRET,
     TARGET_INSTANCE_COUNT,
     TASKS,
-    TASK_BATCH_SIZE,
     TASKS_PER_WORKER,
+    TASK_BATCH_SIZE,
     TASK_COUNT,
     TASK_DATA,
     TASK_DATA_FILE,
@@ -150,24 +151,23 @@ ALL_KEYS = [
     TASK_TYPES,
     TEMPLATE_ID,
     UPLOAD_FILES,
-    LOCAL_PATH,
     UPLOAD_PATH,
     URL,
-    USE_PAC,
     USERDATA,
     USERDATAFILE,
     USERDATAFILES,
+    USE_PAC,
     VARIABLES,
     VCPUS,
     VERIFY_AT_START,
     VERIFY_WAIT,
-    WORKERS_PER_VCPU,
     WORKERS_PER_NODE,
+    WORKERS_PER_VCPU,
+    WORKER_POOL_DATA_FILE,
     WORKER_POOL_SECTION,
     WORKER_TAG,
     WORKER_TAGS,
     WORK_REQUIREMENT_SECTION,
-    WP_DATA,
     WP_NAME,
     WR_DATA,
     WR_NAME,

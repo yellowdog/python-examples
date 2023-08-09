@@ -387,16 +387,19 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
 
     try:
         worker_tag = substitute_variable_str(wp_section.get(WORKER_TAG, None))
-        worker_pool_data_file = substitute_variable_str(wp_section.get(WP_DATA, None))
+        worker_pool_data_file = substitute_variable_str(
+            wp_section.get(WORKER_POOL_DATA_FILE, None)
+        )
         compute_requirement_data_file = substitute_variable_str(
-            wp_section.get(COMPUTE_REQUIREMENT_DATA, None)
+            wp_section.get(COMPUTE_REQUIREMENT_DATA_FILE, None)
         )
         if (
             worker_pool_data_file is not None
             and compute_requirement_data_file is not None
         ):
             print_error(
-                f"Only one of '{WP_DATA}' or '{COMPUTE_REQUIREMENT_DATA}' should be set"
+                f"Only one of '{WORKER_POOL_DATA_FILE}' or"
+                f" '{COMPUTE_REQUIREMENT_DATA_FILE}' should be set"
             )
             exit(1)
         if worker_pool_data_file is not None:
