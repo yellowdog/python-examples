@@ -381,6 +381,13 @@ class CLIParser:
                 required=False,
                 help="list Compute Requirement Templates",
             )
+            parser.add_argument(
+                "--source-templates",
+                "-S",
+                action="store_true",
+                required=False,
+                help="list Compute Source Templates",
+            )
 
         if "upload" in sys.argv[0]:
             parser.add_argument(
@@ -464,7 +471,8 @@ class CLIParser:
             )
 
         if any(
-            module in sys.argv[0] for module in ["submit", "provision", "instantiate"]
+            module in sys.argv[0]
+            for module in ["submit", "provision", "instantiate", "create"]
         ):
             parser.add_argument(
                 "--jsonnet-dry-run",
@@ -546,6 +554,22 @@ class CLIParser:
                 metavar="<object_path>",
                 type=str,
                 help="the object paths to download; optional, overrides --tag/prefix",
+            )
+        if any(module in sys.argv[0] for module in ["create", "remove"]):
+            parser.add_argument(
+                "resource_specifications",
+                nargs="+",
+                default=[],
+                metavar="<resource_specification>",
+                type=str,
+                help="the resource specifications to process",
+            )
+            parser.add_argument(
+                "--yes",
+                "-y",
+                action="store_true",
+                required=False,
+                help="allow updates without user confirmation",
             )
 
         self.args = parser.parse_args()
@@ -789,6 +813,14 @@ class CLIParser:
     def compute_templates(self) -> Optional[bool]:
         return self.args.compute_templates
 
+    @property
+    def source_templates(self) -> Optional[bool]:
+        return self.args.source_templates
+
+    @property
+    def resource_specifications(self) -> List[str]:
+        return self.args.resource_specifications
+
 
 def lookup_module_description(module_name: str) -> Optional[str]:
     """
@@ -805,6 +837,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "aborting Tasks"
     elif "cancel" in module_name:
         suffix = "cancelling Work Requirements"
+    elif "create" in module_name:
+        suffix = "creating/updating assets"
     elif "download" in module_name:
         suffix = "downloading objects from the Object Store"
     elif "delete" in module_name:
@@ -819,6 +853,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "provisioning a Compute Requirement"
     elif "upload" in module_name:
         suffix = "uploading objects to the Object Store"
+    elif "remove" in module_name:
+        suffix = "removing assets"
     elif "resize" in module_name:
         suffix = "resizing Worker Pools"
 

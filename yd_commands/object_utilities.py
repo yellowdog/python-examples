@@ -12,6 +12,8 @@ from yellowdog_client.model import (
     ComputeRequirementSearch,
     ComputeRequirementStatus,
     ComputeRequirementTemplateSummary,
+    ComputeSourceTemplate,
+    ComputeSourceTemplateSummary,
     ConfiguredWorkerPool,
     ObjectPath,
     ProvisionedWorkerPool,
@@ -91,6 +93,8 @@ Item = TypeVar(
     ConfiguredWorkerPool,
     ComputeRequirement,
     ComputeRequirementTemplateSummary,
+    ComputeSourceTemplate,
+    ComputeSourceTemplateSummary,
     ObjectPath,
     ProvisionedWorkerPool,
     Task,
@@ -159,3 +163,43 @@ def get_work_requirement_summary_by_name_or_id(
             or work_requirement_summary.id == work_requirement_name_or_id
         ):
             return work_requirement_summary
+
+
+def find_compute_source_id_by_name(client: PlatformClient, name: str) -> Optional[str]:
+    """
+    Find a compute source id by its name.
+    """
+    for source in get_all_compute_sources(client):
+        if source.name == name:
+            return source.id
+
+
+@lru_cache
+def get_all_compute_sources(
+    client: PlatformClient,
+) -> List[ComputeSourceTemplateSummary]:
+    """
+    Cache the list of Sources.
+    """
+    return client.compute_client.find_all_compute_source_templates()
+
+
+def find_compute_template_id_by_name(
+    client: PlatformClient, name: str
+) -> Optional[str]:
+    """
+    Find a Compute Template ID by name.
+    """
+    for template in get_all_compute_templates(client):
+        if template.name == name:
+            return template.id
+
+
+@lru_cache
+def get_all_compute_templates(
+    client: PlatformClient,
+) -> List[ComputeRequirementTemplateSummary]:
+    """
+    Cache the list of Compute Templates
+    """
+    return client.compute_client.find_all_compute_requirement_templates()

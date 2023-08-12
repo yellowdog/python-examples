@@ -10,7 +10,7 @@ from os import name as os_name
 from os.path import relpath
 from textwrap import fill
 from textwrap import indent as text_indent
-from typing import Dict, List, Optional, TypeVar
+from typing import Dict, List, Optional, TypeVar, Union
 
 from tabulate import tabulate
 from yellowdog_client import PlatformClient
@@ -23,6 +23,7 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateSummary,
     ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
+    ComputeSourceTemplateSummary,
     ConfiguredWorkerPool,
     NodeStatus,
     NodeSummary,
@@ -256,7 +257,7 @@ def compute_requirement_template_table(
 ) -> (List[str], List[List]):
     headers = [
         "#",
-        "Template Name",
+        "Name",
         "Namespace",
         "Type",
         "Strategy Type",
@@ -282,6 +283,40 @@ def compute_requirement_template_table(
                 type,
                 strategy_type,
                 crt_summary.id,
+            ]
+        )
+    return headers, table
+
+
+def compute_source_template_table(
+    cst_summaries: List[ComputeSourceTemplateSummary],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Name",
+        "Namespace",
+        "Provider",
+        "Type",
+        "ID",
+    ]
+    table = []
+    for index, cst_summary in enumerate(cst_summaries):
+        try:
+            type = cst_summary.sourceType.split(".")[-1]
+        except:
+            type = None
+        try:
+            provider = cst_summary.provider
+        except:
+            provider = None
+        table.append(
+            [
+                index + 1,
+                cst_summary.name,
+                cst_summary.namespace,
+                provider,
+                type,
+                cst_summary.id,
             ]
         )
     return headers, table
@@ -319,6 +354,8 @@ def print_numbered_object_list(
         headers, table = worker_pool_table(client, objects)
     elif isinstance(objects[0], ComputeRequirementTemplateSummary):
         headers, table = compute_requirement_template_table(objects)
+    elif isinstance(objects[0], ComputeSourceTemplateSummary):
+        headers, table = compute_source_template_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
@@ -361,7 +398,7 @@ def indent(txt: str, indent_width: int = 4) -> str:
 
 
 def print_json(
-    data: Dict,
+    data: Union[Dict, List],
     initial_indent: int = 0,
     drop_first_line: bool = False,
     with_final_comma: bool = False,

@@ -14,6 +14,8 @@ from yellowdog_client.model import (
     ComputeRequirementStatus,
     ComputeRequirementTemplate,
     ComputeRequirementTemplateSummary,
+    ComputeSourceTemplate,
+    ComputeSourceTemplateSummary,
     ObjectDetail,
     ObjectPath,
     ObjectPathsRequest,
@@ -71,6 +73,9 @@ def main():
     if ARGS_PARSER.compute_templates:
         list_compute_templates()
 
+    if ARGS_PARSER.source_templates:
+        list_source_templates()
+
 
 def check_for_valid_option() -> bool:
     """
@@ -84,6 +89,7 @@ def check_for_valid_option() -> bool:
         or ARGS_PARSER.worker_pools
         or ARGS_PARSER.compute_requirements
         or ARGS_PARSER.compute_templates
+        or ARGS_PARSER.source_templates
     )
 
 
@@ -306,6 +312,38 @@ def list_compute_templates():
             print_yd_object(cr_template_detail)
     else:
         print_numbered_object_list(CLIENT, sorted_objects(cr_templates))
+
+
+def list_source_templates():
+    """
+    Print the list of Compute Source Templates, filtered on Namespace
+    and Name. Set these both to empty strings to generate an unfiltered list.
+    """
+    cs_templates: List[ComputeSourceTemplateSummary] = (
+        CLIENT.compute_client.find_all_compute_source_templates()
+    )
+    print_log(
+        "Listing Compute Source Templates with Namespaces including"
+        f" '{CONFIG_COMMON.namespace}' and Names including"
+        f" '{CONFIG_COMMON.name_tag}'"
+    )
+    cs_templates = [
+        cst
+        for cst in cs_templates
+        if (cst.namespace is None or CONFIG_COMMON.namespace in cst.namespace)
+        and CONFIG_COMMON.name_tag in cst.name
+    ]
+    if ARGS_PARSER.details:
+        print_log(
+            "Please select Compute Source Template(s) for which to obtain details"
+        )
+        for cs_template in select(CLIENT, cs_templates):
+            cs_template_detail: ComputeSourceTemplate = (
+                CLIENT.compute_client.get_compute_source_template(cs_template.id)
+            )
+            print_yd_object(cs_template_detail)
+    else:
+        print_numbered_object_list(CLIENT, sorted_objects(cs_templates))
 
 
 # Entry point
