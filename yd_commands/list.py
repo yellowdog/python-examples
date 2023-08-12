@@ -299,6 +299,7 @@ def list_compute_templates():
     )
 
 
+
 # Entry point
 if __name__ == "__main__":
     main()
