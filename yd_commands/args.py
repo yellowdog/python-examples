@@ -328,8 +328,8 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "when used with '--objects', select objects from the list of"
-                    " matches and show their details"
+                    "select objects from the list of matches and show their details"
+                    " (for Objects, Compute Requirement Templates)"
                 ),
             )
             parser.add_argument(

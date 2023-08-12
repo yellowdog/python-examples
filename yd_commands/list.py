@@ -12,6 +12,7 @@ from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
+    ComputeRequirementTemplate,
     ComputeRequirementTemplateSummary,
     ObjectDetail,
     ObjectPath,
@@ -38,6 +39,7 @@ from yd_commands.printing import (
     print_log,
     print_numbered_object_list,
     print_object_detail,
+    print_yd_object,
     sorted_objects,
 )
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
@@ -293,11 +295,17 @@ def list_compute_templates():
         if (crt.namespace is None or CONFIG_COMMON.namespace in crt.namespace)
         and CONFIG_COMMON.name_tag in crt.name
     ]
-    print_numbered_object_list(
-        CLIENT,
-        sorted_objects(cr_templates),
-    )
-
+    if ARGS_PARSER.details:
+        print_log(
+            "Please select Compute Requirement Template(s) for which to obtain details"
+        )
+        for cr_template in select(CLIENT, cr_templates):
+            cr_template_detail: ComputeRequirementTemplate = (
+                CLIENT.compute_client.get_compute_requirement_template(cr_template.id)
+            )
+            print_yd_object(cr_template_detail)
+    else:
+        print_numbered_object_list(CLIENT, sorted_objects(cr_templates))
 
 
 # Entry point
