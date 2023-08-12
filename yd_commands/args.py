@@ -374,6 +374,13 @@ class CLIParser:
                 required=False,
                 help="list only running requirements/pools",
             )
+            parser.add_argument(
+                "--compute-templates",
+                "-C",
+                action="store_true",
+                required=False,
+                help="list Compute Requirement Templates",
+            )
 
         if "upload" in sys.argv[0]:
             parser.add_argument(
@@ -777,6 +784,10 @@ class CLIParser:
     @property
     def flatten_download_paths(self) -> Optional[bool]:
         return self.args.flatten
+
+    @property
+    def compute_templates(self) -> Optional[bool]:
+        return self.args.compute_templates
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

@@ -12,6 +12,7 @@ from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
+    ComputeRequirementTemplateSummary,
     ObjectDetail,
     ObjectPath,
     ObjectPathsRequest,
@@ -65,6 +66,9 @@ def main():
     if ARGS_PARSER.compute_requirements:
         list_compute_requirements()
 
+    if ARGS_PARSER.compute_templates:
+        list_compute_templates()
+
 
 def check_for_valid_option() -> bool:
     """
@@ -77,6 +81,7 @@ def check_for_valid_option() -> bool:
         or ARGS_PARSER.tasks
         or ARGS_PARSER.worker_pools
         or ARGS_PARSER.compute_requirements
+        or ARGS_PARSER.compute_templates
     )
 
 
@@ -266,6 +271,31 @@ def list_compute_requirements():
     print_numbered_object_list(
         CLIENT,
         sorted_objects(filtered_compute_requirements),
+    )
+
+
+def list_compute_templates():
+    """
+    Print the list of Compute Requirement Templates, filtered on Namespace
+    and Name. Set these both to empty strings to generate an unfiltered list.
+    """
+    cr_templates: List[ComputeRequirementTemplateSummary] = (
+        CLIENT.compute_client.find_all_compute_requirement_templates()
+    )
+    print_log(
+        "Listing Compute Requirement Templates with Namespaces including"
+        f" '{CONFIG_COMMON.namespace}' and Names including"
+        f" '{CONFIG_COMMON.name_tag}'"
+    )
+    cr_templates = [
+        crt
+        for crt in cr_templates
+        if (crt.namespace is None or CONFIG_COMMON.namespace in crt.namespace)
+        and CONFIG_COMMON.name_tag in crt.name
+    ]
+    print_numbered_object_list(
+        CLIENT,
+        sorted_objects(cr_templates),
     )
 
 

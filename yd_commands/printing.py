@@ -20,6 +20,7 @@ from yellowdog_client.model import (
     BestComputeSourceReportSource,
     ComputeRequirement,
     ComputeRequirementDynamicTemplateTestResult,
+    ComputeRequirementTemplateSummary,
     ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
     ConfiguredWorkerPool,
@@ -110,6 +111,7 @@ TYPE_MAP = {
     TaskGroup: "Task Group",
     WorkRequirementSummary: "Work Requirement",
     ObjectPath: "Object Path",
+    ComputeRequirementTemplateSummary: "Compute Requirement Template",
 }
 
 
@@ -249,6 +251,42 @@ def worker_pool_table(
     return headers, table
 
 
+def compute_requirement_template_table(
+    crt_summaries: List[ComputeRequirementTemplateSummary],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Template Name",
+        "Namespace",
+        "Type",
+        "Strategy Type",
+        "ID",
+    ]
+    table = []
+    for index, crt_summary in enumerate(crt_summaries):
+        try:
+            type = crt_summary.type.split(".")[-1].replace("ComputeRequirement", "")
+        except:
+            type = None
+        try:
+            strategy_type = crt_summary.strategyType.split(".")[-1].replace(
+                "ProvisionStrategy", ""
+            )
+        except:
+            strategy_type = None
+        table.append(
+            [
+                index + 1,
+                crt_summary.name,
+                crt_summary.namespace,
+                type,
+                strategy_type,
+                crt_summary.id,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Item],
@@ -279,6 +317,8 @@ def print_numbered_object_list(
         table = task_table(objects)
     elif isinstance(objects[0], WorkerPoolSummary):
         headers, table = worker_pool_table(client, objects)
+    elif isinstance(objects[0], ComputeRequirementTemplateSummary):
+        headers, table = compute_requirement_template_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
