@@ -7,13 +7,14 @@ A script to create YellowDog items.
 from typing import Dict, List
 
 import yellowdog_client.model as model
+from requests.exceptions import HTTPError
 
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
     find_compute_template_id_by_name,
 )
-from yd_commands.printing import print_log
+from yd_commands.printing import print_error, print_log
 from yd_commands.resource_config import load_resource_specifications
 from yd_commands.wrapper import CLIENT, main_wrapper
 
@@ -29,6 +30,8 @@ def main():
             create_cr_template(resource)
         if resource_type == "Keyring":
             create_keyring(resource)
+        if resource_type == "Credential":
+            create_credential(resource)
 
 
 def create_compute_source(resource: Dict):
@@ -130,16 +133,40 @@ def create_keyring(resource: Dict):
     keyrings: List[model.KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
     for keyring in keyrings:
         if keyring.name == name:
-            if not confirmed(
-                    f"Keyring '{name}' already exists: delete and recreate?"):
+            if not confirmed(f"Keyring '{name}' already exists: delete and recreate?"):
                 return
             CLIENT.keyring_client.delete_keyring_by_name(name)
-            print_log(
-                f"Deleted Keyring '{name}'"
-            )
+            print_log(f"Deleted Keyring '{name}'")
 
     CLIENT.keyring_client.create_keyring(name, description)
     print_log(f"Created Keyring '{name}'")
+
+
+def create_credential(resource: Dict):
+    """
+    Create or update a Credential.
+    """
+    try:
+        keyring_name = resource["keyringName"]
+        credential_data = resource["credential"]
+        credential_type = credential_data.pop("type").split(".")[
+            -1
+        ]  # Extract Source type
+        name = credential_data["name"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    credential = get_model_class(credential_type)(**credential_data)
+    try:
+        CLIENT.keyring_client.put_credential_by_name(keyring_name, credential)
+        print_log(f"Added Credential '{name}' to Keyring '{keyring_name}'")
+    except HTTPError as e:
+        if e.response.status_code == 400:
+            print_error(f"{e.response.text}")
+        elif e.response.status_code == 404:
+            print_error(f"Keyring '{keyring_name}' not found")
+        else:
+            print_error(e)
 
 
 def get_model_class(classname):
