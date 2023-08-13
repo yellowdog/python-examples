@@ -4,7 +4,7 @@
 A script to create YellowDog items.
 """
 
-from typing import Dict
+from typing import Dict, List
 
 import yellowdog_client.model as model
 
@@ -27,6 +27,8 @@ def main():
             create_compute_source(resource)
         if resource_type == "ComputeRequirementTemplate":
             create_cr_template(resource)
+        if resource_type == "Keyring":
+            create_keyring(resource)
 
 
 def create_compute_source(resource: Dict):
@@ -113,6 +115,31 @@ def create_cr_template(resource: Dict):
             f"Updated existing Compute Requirement Template '{template.name}'"
             f" ({template.id})"
         )
+
+
+def create_keyring(resource: Dict):
+    """
+    Create or delete/recreate a Keyring.
+    """
+    try:
+        name = resource["name"]
+        description = resource["description"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    keyrings: List[model.KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
+    for keyring in keyrings:
+        if keyring.name == name:
+            if not confirmed(
+                    f"Keyring '{name}' already exists: delete and recreate?"):
+                return
+            CLIENT.keyring_client.delete_keyring_by_name(name)
+            print_log(
+                f"Deleted Keyring '{name}'"
+            )
+
+    CLIENT.keyring_client.create_keyring(name, description)
+    print_log(f"Created Keyring '{name}'")
 
 
 def get_model_class(classname):

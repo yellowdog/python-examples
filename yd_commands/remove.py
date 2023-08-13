@@ -6,6 +6,8 @@ A script to remove YellowDog items.
 
 from typing import Dict
 
+from requests.exceptions import HTTPError
+
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
@@ -25,6 +27,8 @@ def main():
             remove_compute_source(resource)
         if resource_type == "ComputeRequirementTemplate":
             remove_compute_template(resource)
+        if resource_type == "Keyring":
+            remove_keyring(resource)
 
 
 def remove_compute_source(resource: Dict):
@@ -65,6 +69,28 @@ def remove_compute_template(resource: Dict):
             return
         CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
         print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
+
+
+def remove_keyring(resource: Dict):
+    """
+    Remove a Keyring.
+    """
+    try:
+        name = resource["name"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    if not confirmed(f"Delete Keyring '{name}'?"):
+        return
+
+    try:
+        CLIENT.keyring_client.delete_keyring_by_name(name)
+        print_log(f"Deleted Keyring '{name}'")
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            print_error(f"Keyring '{name}' not found")
+        else:
+            raise e
 
 
 # Entry point
