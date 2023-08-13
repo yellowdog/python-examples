@@ -29,6 +29,8 @@ def main():
             remove_compute_template(resource)
         if resource_type == "Keyring":
             remove_keyring(resource)
+        if resource_type == "Credential":
+            remove_credential(resource)
 
 
 def remove_compute_source(resource: Dict):
@@ -91,6 +93,35 @@ def remove_keyring(resource: Dict):
             print_error(f"Keyring '{name}' not found")
         else:
             raise e
+
+
+def remove_credential(resource: Dict):
+    """
+    Remove a Credential from a Keyring.
+    """
+    try:
+        keyring_name = resource["keyringName"]
+        credential_data = resource["credential"]
+        credential_name = credential_data["name"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    if not confirmed(
+        f"Remove Credential '{credential_name}' from Keyring '{keyring_name}'?"
+    ):
+        return
+
+    try:
+        CLIENT.keyring_client.delete_credential_by_name(keyring_name, credential_name)
+        print_log(
+            f"Removed Credential '{credential_name}' from Keyring '{keyring_name}' (if"
+            " it was present)"
+        )
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            print_error(f"Keyring '{keyring_name}' not found")
+        else:
+            print_error(e)
 
 
 # Entry point
