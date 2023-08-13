@@ -25,6 +25,7 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateUsage,
     ComputeSourceTemplateSummary,
     ConfiguredWorkerPool,
+    KeyringSummary,
     NodeStatus,
     NodeSummary,
     ObjectDetail,
@@ -113,6 +114,8 @@ TYPE_MAP = {
     WorkRequirementSummary: "Work Requirement",
     ObjectPath: "Object Path",
     ComputeRequirementTemplateSummary: "Compute Requirement Template",
+    ComputeSourceTemplateSummary: "Compute Source Template",
+    KeyringSummary: "Keyring",
 }
 
 
@@ -322,6 +325,28 @@ def compute_source_template_table(
     return headers, table
 
 
+def keyring_table(
+    keyring_summaries: List[KeyringSummary],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Name",
+        "Description",
+        "ID",
+    ]
+    table = []
+    for index, keyring in enumerate(keyring_summaries):
+        table.append(
+            [
+                index + 1,
+                keyring.name,
+                keyring.description,
+                keyring.id,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Item],
@@ -356,6 +381,8 @@ def print_numbered_object_list(
         headers, table = compute_requirement_template_table(objects)
     elif isinstance(objects[0], ComputeSourceTemplateSummary):
         headers, table = compute_source_template_table(objects)
+    elif isinstance(objects[0], KeyringSummary):
+        headers, table = keyring_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):

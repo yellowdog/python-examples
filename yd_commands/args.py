@@ -388,6 +388,13 @@ class CLIParser:
                 required=False,
                 help="list Compute Source Templates",
             )
+            parser.add_argument(
+                "--keyrings",
+                "-K",
+                action="store_true",
+                required=False,
+                help="list Keyrings",
+            )
 
         if "upload" in sys.argv[0]:
             parser.add_argument(
@@ -816,6 +823,10 @@ class CLIParser:
     @property
     def source_templates(self) -> Optional[bool]:
         return self.args.source_templates
+
+    @property
+    def keyrings(self) -> Optional[bool]:
+        return self.args.keyrings
 
     @property
     def resource_specifications(self) -> List[str]:

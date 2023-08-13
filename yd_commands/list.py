@@ -16,6 +16,7 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
+    KeyringSummary,
     ObjectDetail,
     ObjectPath,
     ObjectPathsRequest,
@@ -77,6 +78,9 @@ def main():
     if ARGS_PARSER.source_templates:
         list_source_templates()
 
+    if ARGS_PARSER.keyrings:
+        list_keyrings()
+
 
 def check_for_valid_option() -> bool:
     """
@@ -91,6 +95,7 @@ def check_for_valid_option() -> bool:
         or ARGS_PARSER.compute_requirements
         or ARGS_PARSER.compute_templates
         or ARGS_PARSER.source_templates
+        or ARGS_PARSER.keyrings
     )
 
 
@@ -302,25 +307,29 @@ def list_compute_templates():
         if (crt.namespace is None or CONFIG_COMMON.namespace in crt.namespace)
         and CONFIG_COMMON.name_tag in crt.name
     ]
-    if ARGS_PARSER.details:
-        print_log(
-            "Please select Compute Requirement Template(s) for which to obtain details"
-        )
-        cr_templates = select(CLIENT, cr_templates)
-        print("[")  # Open JSON list
-        for index, cr_template in enumerate(cr_templates):
-            cr_template_detail: ComputeRequirementTemplate = (
-                CLIENT.compute_client.get_compute_requirement_template(cr_template.id)
-            )
-            print_yd_object(
-                cr_template_detail,
-                initial_indent=JSON_INDENT,
-                with_final_comma=False if index + 1 == len(cr_templates) else True,
-                add_fields={"resource": "ComputeRequirementTemplate"},
-            )
-        print("]")  # Close JSON list
-    else:
+    if len(cr_templates) == 0:
+        print_log("No matching Compute Requirement Templates found")
+        return
+    if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, sorted_objects(cr_templates))
+        return
+
+    print_log(
+        "Please select Compute Requirement Template(s) for which to obtain details"
+    )
+    cr_templates = select(CLIENT, cr_templates)
+    print("[")  # Open JSON list
+    for index, cr_template in enumerate(cr_templates):
+        cr_template_detail: ComputeRequirementTemplate = (
+            CLIENT.compute_client.get_compute_requirement_template(cr_template.id)
+        )
+        print_yd_object(
+            cr_template_detail,
+            initial_indent=JSON_INDENT,
+            with_final_comma=False if index + 1 == len(cr_templates) else True,
+            add_fields={"resource": "ComputeRequirementTemplate"},
+        )
+    print("]")  # Close JSON list
 
 
 def list_source_templates():
@@ -342,25 +351,42 @@ def list_source_templates():
         if (cst.namespace is None or CONFIG_COMMON.namespace in cst.namespace)
         and CONFIG_COMMON.name_tag in cst.name
     ]
-    if ARGS_PARSER.details:
-        print_log(
-            "Please select Compute Source Template(s) for which to obtain details"
-        )
-        cs_templates = select(CLIENT, cs_templates)
-        print("[")  # Open JSON list
-        for index, cs_template in enumerate(cs_templates):
-            cs_template_detail: ComputeSourceTemplate = (
-                CLIENT.compute_client.get_compute_source_template(cs_template.id)
-            )
-            print_yd_object(
-                cs_template_detail,
-                initial_indent=JSON_INDENT,
-                with_final_comma=False if index + 1 == len(cs_templates) else True,
-                add_fields={"resource": "ComputeSourceTemplate"},
-            )
-        print("]")  # Close JSON list
-    else:
+    if len(cs_templates) == 0:
+        print_log("No matching Compute Source Templates found")
+        return
+    if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, sorted_objects(cs_templates))
+        return
+
+    print_log(
+        "Please select Compute Source Template(s) for which to obtain details"
+    )
+    cs_templates = select(CLIENT, cs_templates)
+    print("[")  # Open JSON list
+    for index, cs_template in enumerate(cs_templates):
+        cs_template_detail: ComputeSourceTemplate = (
+            CLIENT.compute_client.get_compute_source_template(cs_template.id)
+        )
+        print_yd_object(
+            cs_template_detail,
+            initial_indent=JSON_INDENT,
+            with_final_comma=False if index + 1 == len(cs_templates) else True,
+            add_fields={"resource": "ComputeSourceTemplate"},
+        )
+    print("]")  # Close JSON list
+
+
+def list_keyrings():
+    """
+    Print the list of Keyrings
+    """
+    keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
+    if len(keyrings) == 0:
+        print_log("No Keyrings found")
+        return
+    print_numbered_object_list(CLIENT, sorted_objects(keyrings))
+
+
 
 
 # Entry point
