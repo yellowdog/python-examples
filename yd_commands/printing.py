@@ -10,7 +10,7 @@ from os import name as os_name
 from os.path import relpath
 from textwrap import fill
 from textwrap import indent as text_indent
-from typing import Dict, List, Optional, TypeVar, Union
+from typing import Any, Dict, List, Optional, TypeVar
 
 from tabulate import tabulate
 from yellowdog_client import PlatformClient
@@ -398,7 +398,7 @@ def indent(txt: str, indent_width: int = 4) -> str:
 
 
 def print_json(
-    data: Union[Dict, List],
+    data: Any,
     initial_indent: int = 0,
     drop_first_line: bool = False,
     with_final_comma: bool = False,
@@ -423,12 +423,23 @@ def print_yd_object(
     initial_indent: int = 0,
     drop_first_line: bool = False,
     with_final_comma: bool = False,
+    add_fields: Optional[Dict] = None,
 ):
     """
     Print a YellowDog object as a JSON data structure,
     using the compact JSON encoder
     """
-    print_json(Json.dump(yd_object), initial_indent, drop_first_line, with_final_comma)
+    object_data: object = Json.dump(yd_object)
+    if add_fields is not None:
+        # Requires a copy of the 'object' datatype to be made,
+        # in order to insert additional fields
+        object_data_new = {}
+        for key, value in add_fields.items():
+            object_data_new[key] = value
+        for key, value in object_data.items():
+            object_data_new[key] = value
+        object_data = object_data_new
+    print_json(object_data, initial_indent, drop_first_line, with_final_comma)
 
 
 def print_worker_pool(

@@ -38,6 +38,7 @@ from yd_commands.object_utilities import (
     get_task_groups_from_wr_summary,
 )
 from yd_commands.printing import (
+    JSON_INDENT,
     print_log,
     print_numbered_object_list,
     print_object_detail,
@@ -305,11 +306,19 @@ def list_compute_templates():
         print_log(
             "Please select Compute Requirement Template(s) for which to obtain details"
         )
-        for cr_template in select(CLIENT, cr_templates):
+        cr_templates = select(CLIENT, cr_templates)
+        print("[")  # Open JSON list
+        for index, cr_template in enumerate(cr_templates):
             cr_template_detail: ComputeRequirementTemplate = (
                 CLIENT.compute_client.get_compute_requirement_template(cr_template.id)
             )
-            print_yd_object(cr_template_detail)
+            print_yd_object(
+                cr_template_detail,
+                initial_indent=JSON_INDENT,
+                with_final_comma=False if index + 1 == len(cr_templates) else True,
+                add_fields={"resource": "ComputeRequirementTemplate"},
+            )
+        print("]")  # Close JSON list
     else:
         print_numbered_object_list(CLIENT, sorted_objects(cr_templates))
 
@@ -337,11 +346,19 @@ def list_source_templates():
         print_log(
             "Please select Compute Source Template(s) for which to obtain details"
         )
-        for cs_template in select(CLIENT, cs_templates):
+        cs_templates = select(CLIENT, cs_templates)
+        print("[")  # Open JSON list
+        for index, cs_template in enumerate(cs_templates):
             cs_template_detail: ComputeSourceTemplate = (
                 CLIENT.compute_client.get_compute_source_template(cs_template.id)
             )
-            print_yd_object(cs_template_detail)
+            print_yd_object(
+                cs_template_detail,
+                initial_indent=JSON_INDENT,
+                with_final_comma=False if index + 1 == len(cs_templates) else True,
+                add_fields={"resource": "ComputeSourceTemplate"},
+            )
+        print("]")  # Close JSON list
     else:
         print_numbered_object_list(CLIENT, sorted_objects(cs_templates))
 
