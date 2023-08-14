@@ -8,7 +8,11 @@ from typing import Dict, List
 
 import yellowdog_client.model as model
 from requests.exceptions import HTTPError
-from yellowdog_client.model import ImageOsType, MachineImageFamily
+from yellowdog_client.model import (
+    ImageOsType,
+    MachineImageFamily,
+    NamespaceStorageConfiguration,
+)
 
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import (
@@ -35,6 +39,8 @@ def main():
             create_credential(resource)
         if resource_type == "MachineImageFamily":
             create_image_family(resource)
+        if resource_type == "NamespaceStorageConfiguration":
+            create_namespace_configuration(resource)
 
 
 def create_compute_source(resource: Dict):
@@ -210,6 +216,36 @@ def create_image_family(resource):
         image_family = MachineImageFamily(osType=os_type, **resource)
         CLIENT.images_client.add_image_family(image_family)
         print_log(f"Created Machine Image Family '{family_name}'")
+
+
+def create_namespace_configuration(resource: Dict):
+    """
+    Create or update a Namespace Configuration.
+    """
+    try:
+        namespace_type = resource.pop("type").split(".")[-1]  # Extract Source type
+        namespace = resource["namespace"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    namespace_configurations: List[NamespaceStorageConfiguration] = (
+        CLIENT.object_store_client.get_namespace_storage_configurations()
+    )
+    for config in namespace_configurations:
+        if config.namespace == namespace:
+            print_error(
+                f"Namespace '{namespace}' already exists and must be removed"
+                " before it can be (re-)created"
+            )
+            return
+
+    namespace_configuration = get_model_class(namespace_type)(**resource)
+    try:
+        CLIENT.object_store_client.put_namespace_storage_configuration(
+            namespace_configuration
+        )
+    except Exception as e:
+        print_error(f"Unable to create Namespace Configuration '{namespace}': {e}")
 
 
 def get_model_class(classname):
