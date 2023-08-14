@@ -421,12 +421,25 @@ def get_keyring(name: str) -> dict:
 
 def list_image_families():
     """
-    List the Image Families
+    List the Machine Image Families.
     """
     image_search = MachineImageFamilySearch(includePublic=True)
     search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)
     image_family_summaries: List[MachineImageFamilySummary] = search_client.list_all()
-    print_numbered_object_list(CLIENT, sorted_objects(image_family_summaries))
+    if len(image_family_summaries) == 0:
+        print_log("No Machine Image Families found")
+        return
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, sorted_objects(image_family_summaries))
+        return
+
+    print_log("Please select Image Families for which to obtain details")
+    for image_family_summary in select(CLIENT, sorted_objects(image_family_summaries)):
+        image_family = CLIENT.images_client.get_image_family_by_id(
+            image_family_summary.id
+        )
+        print_yd_object(image_family)
 
 
 # Entry point

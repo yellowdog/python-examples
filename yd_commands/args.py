@@ -330,7 +330,7 @@ class CLIParser:
                 help=(
                     "select objects from the list of matches and show their details"
                     " (for Objects, Compute Requirement Templates, Compute Source"
-                    " Templates, Keyrings)"
+                    " Templates, Keyrings, Machine Image Families)"
                 ),
             )
             parser.add_argument(
