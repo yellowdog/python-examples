@@ -31,6 +31,8 @@ def main():
             remove_keyring(resource)
         if resource_type == "Credential":
             remove_credential(resource)
+        if resource_type == "MachineImageFamily":
+            remove_image_family(resource)
 
 
 def remove_compute_source(resource: Dict):
@@ -122,6 +124,34 @@ def remove_credential(resource: Dict):
             print_error(f"Keyring '{keyring_name}' not found")
         else:
             print_error(e)
+
+
+def remove_image_family(resource: Dict):
+    """
+    Remove an Image Family.
+    """
+    try:
+        family_name = resource["name"]
+        namespace = resource["namespace"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    # Check for existence of Image Family
+    try:
+        image_family = CLIENT.images_client.get_image_family_by_name(
+            namespace=namespace, family_name=family_name
+        )
+        if not confirmed(f"Remove Machine Image Family '{namespace}/{family_name}'?"):
+            return
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            print_error(f"Machine Image Family '{namespace}/{family_name}' not found")
+            return
+        else:
+            raise e
+
+    CLIENT.images_client.delete_image_family(image_family)
+    print_log(f"Deleted Image Family '{namespace}/{family_name}'")
 
 
 # Entry point

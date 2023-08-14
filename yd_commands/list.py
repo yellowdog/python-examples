@@ -4,9 +4,10 @@
 Command to list YellowDog entities.
 """
 
+from json import loads
 from typing import List
 
-from requests import HTTPError
+from requests import HTTPError, get
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     ComputeRequirement,
@@ -16,6 +17,7 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
+    Keyring,
     KeyringSummary,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
@@ -42,7 +44,6 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import (
     JSON_INDENT,
-    print_json,
     print_log,
     print_numbered_object_list,
     print_object_detail,
@@ -396,25 +397,19 @@ def list_keyrings():
     print_log("Please select Keyring(s) for which to obtain details")
     keyrings = select(CLIENT, keyrings)
     for keyring_summary in keyrings:
-        keyring_json = get_keyring(keyring_summary.name)
-        print_json(keyring_json)
+        print_yd_object(get_keyring(keyring_summary.name))
 
 
-def get_keyring(name: str) -> dict:
+def get_keyring(name: str) -> Keyring:
     """
-    Temporary placeholder function for what appears to be a missing SDK call.
-    Returns Keyring detail in dict form.
+    Temporary function in place of a missing KeyringClient SDK call.
     """
-    from json import loads
-
-    from requests import get
-
     response = get(
         url=f"{CONFIG_COMMON.url}/keyrings/{name}",
         headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
     )
     if response.status_code == 200:
-        return loads(response.content)
+        return Keyring(**loads(response.content))
     else:
         raise Exception(f"Failed to get Keyring '{name}' ({response.text})")
 

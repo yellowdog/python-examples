@@ -8,6 +8,7 @@ from typing import Dict, List
 
 import yellowdog_client.model as model
 from requests.exceptions import HTTPError
+from yellowdog_client.model import ImageOsType, MachineImageFamily
 
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import (
@@ -32,6 +33,8 @@ def main():
             create_keyring(resource)
         if resource_type == "Credential":
             create_credential(resource)
+        if resource_type == "MachineImageFamily":
+            create_image_family(resource)
 
 
 def create_compute_source(resource: Dict):
@@ -167,6 +170,46 @@ def create_credential(resource: Dict):
             print_error(f"Keyring '{keyring_name}' not found")
         else:
             print_error(e)
+
+
+def create_image_family(resource):
+    """
+    Create or update an Image Family.
+    """
+    try:
+        family_name = resource["name"]
+        namespace = resource["namespace"]
+        os_type = (
+            ImageOsType.WINDOWS
+            if resource.pop("osType") == "WINDOWS"
+            else ImageOsType.LINUX
+        )  # The osType argument at the Family level needs to use the Enum
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    # Check for existing Image Family
+    try:
+        existing_image_family = CLIENT.images_client.get_image_family_by_name(
+            namespace=namespace, family_name=family_name
+        )
+        if not confirmed(f"Update existing Machine Image Family '{family_name}'?"):
+            return
+        existing = True
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            existing = False
+        else:
+            raise e
+
+    if existing:
+        print_error("Temporary: Cannot currently update Image Families")
+        return
+        # CLIENT.images_client.update_image_family(image_family)
+        # print_log(f"Updated existing Machine Image Family '{family_name}'")
+    else:
+        image_family = MachineImageFamily(osType=os_type, **resource)
+        CLIENT.images_client.add_image_family(image_family)
+        print_log(f"Created Machine Image Family '{family_name}'")
 
 
 def get_model_class(classname):
