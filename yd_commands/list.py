@@ -9,6 +9,7 @@ from typing import List
 
 from requests import HTTPError, get
 from yellowdog_client.common import SearchClient
+from yellowdog_client.common.json import NestedDeserializationError
 from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementSearch,
@@ -44,6 +45,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import (
     JSON_INDENT,
+    print_error,
     print_log,
     print_numbered_object_list,
     print_object_detail,
@@ -369,10 +371,18 @@ def list_source_templates():
     print_log("Please select Compute Source Template(s) for which to obtain details")
     cs_templates = select(CLIENT, sorted_objects(cs_templates))
     print("[")  # Open JSON list
+    deserialisation_failures = []  # Temporary bug workaround
     for index, cs_template in enumerate(cs_templates):
-        cs_template_detail: ComputeSourceTemplate = (
-            CLIENT.compute_client.get_compute_source_template(cs_template.id)
-        )
+        try:
+            cs_template_detail: ComputeSourceTemplate = (
+                CLIENT.compute_client.get_compute_source_template(cs_template.id)
+            )
+        except NestedDeserializationError:
+            deserialisation_failures.append(
+                f"    Source '{cs_template.name}' ({cs_template.id})"
+            )
+            continue
+
         print_yd_object(
             cs_template_detail,
             initial_indent=JSON_INDENT,
@@ -380,6 +390,13 @@ def list_source_templates():
             add_fields={"resource": "ComputeSourceTemplate"},
         )
     print("]")  # Close JSON list
+    if len(deserialisation_failures) > 0:
+        print_error(
+            "Failed to deserialise the following Source Templates due to the presence"
+            " of User Attributes. This is a temporary issue awaiting an SDK bugfix."
+        )
+        for failure in deserialisation_failures:
+            print_error(failure)
 
 
 def list_keyrings():
