@@ -367,7 +367,7 @@ def list_source_templates():
         return
 
     print_log("Please select Compute Source Template(s) for which to obtain details")
-    cs_templates = select(CLIENT, cs_templates)
+    cs_templates = select(CLIENT, sorted_objects(cs_templates))
     print("[")  # Open JSON list
     for index, cs_template in enumerate(cs_templates):
         cs_template_detail: ComputeSourceTemplate = (
