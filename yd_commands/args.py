@@ -396,6 +396,13 @@ class CLIParser:
                 required=False,
                 help="list Keyrings",
             )
+            parser.add_argument(
+                "--image-families",
+                "-I",
+                action="store_true",
+                required=False,
+                help="list Machine Image Families",
+            )
 
         if "upload" in sys.argv[0]:
             parser.add_argument(
@@ -828,6 +835,10 @@ class CLIParser:
     @property
     def keyrings(self) -> Optional[bool]:
         return self.args.keyrings
+
+    @property
+    def image_families(self) -> Optional[bool]:
+        return self.args.image_families
 
     @property
     def resource_specifications(self) -> List[str]:

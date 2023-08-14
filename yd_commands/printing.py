@@ -26,6 +26,7 @@ from yellowdog_client.model import (
     ComputeSourceTemplateSummary,
     ConfiguredWorkerPool,
     KeyringSummary,
+    MachineImageFamilySummary,
     NodeStatus,
     NodeSummary,
     ObjectDetail,
@@ -116,6 +117,7 @@ TYPE_MAP = {
     ComputeRequirementTemplateSummary: "Compute Requirement Template",
     ComputeSourceTemplateSummary: "Compute Source Template",
     KeyringSummary: "Keyring",
+    MachineImageFamilySummary: "Machine Image Family",
 }
 
 
@@ -347,6 +349,32 @@ def keyring_table(
     return headers, table
 
 
+def image_family_table(
+    image_family_summaries: List[MachineImageFamilySummary],
+) -> (List[str], List[str]):
+    headers = [
+        "#",
+        "Name",
+        "Access",
+        "Namespace",
+        "OS Type",
+        "ID",
+    ]
+    table = []
+    for index, image_family in enumerate(image_family_summaries):
+        table.append(
+            [
+                index + 1,
+                image_family.name,
+                image_family.access,
+                image_family.namespace,
+                image_family.osType,
+                image_family.id,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Item],
@@ -383,6 +411,8 @@ def print_numbered_object_list(
         headers, table = compute_source_template_table(objects)
     elif isinstance(objects[0], KeyringSummary):
         headers, table = keyring_table(objects)
+    elif isinstance(objects[0], MachineImageFamilySummary):
+        headers, table = image_family_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):

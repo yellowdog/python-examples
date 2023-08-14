@@ -17,6 +17,8 @@ from yellowdog_client.model import (
     ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
     KeyringSummary,
+    MachineImageFamilySearch,
+    MachineImageFamilySummary,
     ObjectDetail,
     ObjectPath,
     ObjectPathsRequest,
@@ -82,6 +84,9 @@ def main():
     if ARGS_PARSER.keyrings:
         list_keyrings()
 
+    if ARGS_PARSER.image_families:
+        list_image_families()
+
 
 def check_for_valid_option() -> bool:
     """
@@ -97,6 +102,7 @@ def check_for_valid_option() -> bool:
         or ARGS_PARSER.compute_templates
         or ARGS_PARSER.source_templates
         or ARGS_PARSER.keyrings
+        or ARGS_PARSER.image_families
     )
 
 
@@ -411,6 +417,16 @@ def get_keyring(name: str) -> dict:
         return loads(response.content)
     else:
         raise Exception(f"Failed to get Keyring '{name}' ({response.text})")
+
+
+def list_image_families():
+    """
+    List the Image Families
+    """
+    image_search = MachineImageFamilySearch(includePublic=True)
+    search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)
+    image_family_summaries: List[MachineImageFamilySummary] = search_client.list_all()
+    print_numbered_object_list(CLIENT, sorted_objects(image_family_summaries))
 
 
 # Entry point
