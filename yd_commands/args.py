@@ -403,6 +403,13 @@ class CLIParser:
                 required=False,
                 help="list Machine Image Families",
             )
+            parser.add_argument(
+                "--namespaces",
+                "-N",
+                action="store_true",
+                required=False,
+                help="list Storage Namespaces",
+            )
 
         if "upload" in sys.argv[0]:
             parser.add_argument(
@@ -839,6 +846,10 @@ class CLIParser:
     @property
     def image_families(self) -> Optional[bool]:
         return self.args.image_families
+
+    @property
+    def namespaces(self) -> Optional[bool]:
+        return self.args.namespaces
 
     @property
     def resource_specifications(self) -> List[str]:

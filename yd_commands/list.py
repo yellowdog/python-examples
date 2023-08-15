@@ -4,10 +4,12 @@
 Command to list YellowDog entities.
 """
 
+from dataclasses import asdict, fields
 from json import loads
-from typing import List
+from typing import Dict, List
 
 from requests import HTTPError, get
+from tabulate import tabulate
 from yellowdog_client.common import SearchClient
 from yellowdog_client.common.json import NestedDeserializationError
 from yellowdog_client.model import (
@@ -22,6 +24,7 @@ from yellowdog_client.model import (
     KeyringSummary,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
+    NamespaceStorageConfiguration,
     ObjectDetail,
     ObjectPath,
     ObjectPathsRequest,
@@ -90,6 +93,9 @@ def main():
     if ARGS_PARSER.image_families:
         list_image_families()
 
+    if ARGS_PARSER.namespaces:
+        list_namespaces()
+
 
 def check_for_valid_option() -> bool:
     """
@@ -106,6 +112,7 @@ def check_for_valid_option() -> bool:
         or ARGS_PARSER.source_templates
         or ARGS_PARSER.keyrings
         or ARGS_PARSER.image_families
+        or ARGS_PARSER.namespaces
     )
 
 
@@ -452,6 +459,64 @@ def list_image_families():
             image_family_summary.id
         )
         print_yd_object(image_family)
+
+
+def list_namespaces():
+    """
+    List Storage Namespaces. For now, prints a table directly rather than
+    calling the printing module, due to it being a bit fiddly.
+    """
+
+    # Get the configured namespaces
+    namespaces_config: List[NamespaceStorageConfiguration] = (
+        CLIENT.object_store_client.get_namespace_storage_configurations()
+    )
+    namespace_config_names = [namespace.namespace for namespace in namespaces_config]
+
+    # Create dicts for the default object store namespaces, and give them
+    # a type name. Exclude configured namespaces.
+    namespaces_default = [
+        {"namespace": namespace, "type": "Default Storage Configuration"}
+        for namespace in sorted(CLIENT.object_store_client.get_namespaces())
+        if namespace not in namespace_config_names
+    ]
+
+    # Convert NamespaceStorageConfiguration objects to dicts, and simplify
+    # the type names
+    namespace_list: List[Dict] = [asdict(x) for x in namespaces_config]
+    for namespace in namespace_list:
+        namespace["type"] = namespace["type"].split(".")[-1]
+
+    # Combine configured and default Namespaces
+    namespace_list += namespaces_default
+
+    if len(namespace_list) == 0:
+        print_log("No Namespaces found")
+        return
+    print_log("Displaying all Object Store Namespaces")
+
+    # Accumulate all available headings; keep "namespace", "type"
+    # at the start
+    all_fields = set()
+    for config in namespaces_config:
+        for field in fields(config):
+            if not (field.name == "namespace" or field.name == "type"):
+                all_fields.add(field.name)
+    all_fields = sorted(list(all_fields))
+    all_fields.insert(0, "type")
+    all_fields.insert(0, "namespace")
+
+    # Assemble and print the table
+    headings = [field.capitalize() for field in all_fields]
+    rows = sorted(
+        [
+            [namespace.get(field, "") for field in all_fields]
+            for namespace in namespace_list
+        ]
+    )
+    print()
+    print(tabulate(rows, headings, tablefmt="simple_outline"))
+    print()
 
 
 # Entry point
