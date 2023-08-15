@@ -28,19 +28,28 @@ from yd_commands.wrapper import CLIENT, main_wrapper
 def main():
     resources = load_resource_specifications()
     for resource in resources:
-        resource_type = resource.pop("resource", "")
+        try:
+            resource_type = resource.pop("resource")
+        except KeyError:
+            print_error(
+                "Missing required 'resource' property in the following resource"
+                f" specification: {resource}"
+            )
+            continue
         if resource_type == "ComputeSourceTemplate":
             create_compute_source(resource)
-        if resource_type == "ComputeRequirementTemplate":
+        elif resource_type == "ComputeRequirementTemplate":
             create_cr_template(resource)
-        if resource_type == "Keyring":
+        elif resource_type == "Keyring":
             create_keyring(resource)
-        if resource_type == "Credential":
+        elif resource_type == "Credential":
             create_credential(resource)
-        if resource_type == "MachineImageFamily":
+        elif resource_type == "MachineImageFamily":
             create_image_family(resource)
-        if resource_type == "NamespaceStorageConfiguration":
+        elif resource_type == "NamespaceStorageConfiguration":
             create_namespace_configuration(resource)
+        else:
+            print_error(f"Unknown resource type '{resource_type}'")
 
 
 def create_compute_source(resource: Dict):
