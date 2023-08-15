@@ -243,8 +243,8 @@ def create_namespace_configuration(resource: Dict):
     for config in namespace_configurations:
         if config.namespace == namespace:
             print_error(
-                f"Namespace '{namespace}' already exists and must be removed"
-                " before it can be (re-)created"
+                f"Namespace Storage Configuration '{namespace}' already exists and must"
+                " be removed before it can be (re-)created"
             )
             return
 
@@ -253,8 +253,11 @@ def create_namespace_configuration(resource: Dict):
         CLIENT.object_store_client.put_namespace_storage_configuration(
             namespace_configuration
         )
+        print_log(f"Created Namespace Storage Configuration '{namespace}'")
     except Exception as e:
-        print_error(f"Unable to create Namespace Configuration '{namespace}': {e}")
+        print_error(
+            f"Unable to create Namespace Storage Configuration '{namespace}': {e}"
+        )
 
 
 def get_model_class(classname):

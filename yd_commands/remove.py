@@ -4,9 +4,10 @@
 A script to remove YellowDog items.
 """
 
-from typing import Dict
+from typing import Dict, List
 
 from requests.exceptions import HTTPError
+from yellowdog_client.model import NamespaceStorageConfiguration
 
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import (
@@ -22,17 +23,28 @@ from yd_commands.wrapper import CLIENT, main_wrapper
 def main():
     resources = load_resource_specifications()
     for resource in resources:
-        resource_type = resource.pop("resource", "")
+        try:
+            resource_type = resource.pop("resource")
+        except KeyError:
+            print_error(
+                "Missing required 'resource' property in the following resource"
+                f" specification: {resource}"
+            )
+            continue
         if resource_type == "ComputeSourceTemplate":
             remove_compute_source(resource)
-        if resource_type == "ComputeRequirementTemplate":
+        elif resource_type == "ComputeRequirementTemplate":
             remove_compute_template(resource)
-        if resource_type == "Keyring":
+        elif resource_type == "Keyring":
             remove_keyring(resource)
-        if resource_type == "Credential":
+        elif resource_type == "Credential":
             remove_credential(resource)
-        if resource_type == "MachineImageFamily":
+        elif resource_type == "MachineImageFamily":
             remove_image_family(resource)
+        elif resource_type == "NamespaceStorageConfiguration":
+            remove_namespace_configuration(resource)
+        else:
+            print_error(f"Unknown resource type '{resource_type}'")
 
 
 def remove_compute_source(resource: Dict):
@@ -152,6 +164,32 @@ def remove_image_family(resource: Dict):
 
     CLIENT.images_client.delete_image_family(image_family)
     print_log(f"Deleted Image Family '{namespace}/{family_name}'")
+
+
+def remove_namespace_configuration(resource: Dict):
+    """
+    Remove a Namespace Storage Configuration.
+    """
+    try:
+        namespace = resource["namespace"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    namespaces: List[NamespaceStorageConfiguration] = (
+        CLIENT.object_store_client.get_namespace_storage_configurations()
+    )
+    if namespace not in [x.namespace for x in namespaces]:
+        print_error(f"Namespace Storage Configuration '{namespace}' not found")
+        return
+
+    if not confirmed(f"Remove Namespace Storage Configuration '{namespace}'?"):
+        return
+
+    try:
+        CLIENT.object_store_client.delete_namespace_storage_configuration(namespace)
+        print_log(f"Removed Namespace Storage Configuration '{namespace}'")
+    except Exception as e:
+        print(e)
 
 
 # Entry point
