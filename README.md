@@ -87,8 +87,16 @@
    * [yd-terminate](#yd-terminate)
    * [yd-list](#yd-list)
    * [yd-resize](#yd-resize)
+* [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
+   * [Overview of Operation](#overview-of-operation)
+      * [Resource Creation](#resource-creation)
+      * [Resource Update](#resource-update)
+      * [Resource Removal](#resource-removal)
+   * [Keyrings](#keyrings)
+   * [Credentials](#credentials)
+   * [Compute Sources](#compute-sources)
 
-<!-- Added by: pwt, at: Tue Jul 11 11:49:08 BST 2023 -->
+<!-- Added by: pwt, at: Wed Aug 16 16:03:12 BST 2023 -->
 
 <!--te-->
 
@@ -116,7 +124,8 @@ The scripts provide the following capabilities:
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Listing** YellowDog items using the **`yd-list`** command
-- **Resizing** Worker Pools
+- **Resizing** Worker Pools and Compute Requirements
+- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, and Image Families
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -1942,30 +1951,20 @@ For example:
 
 ```shell
 % yd-instantiate --report --quiet
-
-┌────┬────────┬────────────┬──────────────────────┬───────────┬────────────────┬───────────────────┐
-│    │   Rank │ Provider   │ Type                 │ Region    │ InstanceType   │ Source Name       │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  1 │      1 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.nano       │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  2 │      2 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.micro      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  3 │      3 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.small      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  4 │      4 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ c5a.large      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  5 │      4 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ c6a.large      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  6 │      4 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.medium     │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  7 │      5 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ m5a.large      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  8 │      5 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ m5ad.large     │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  9 │      5 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ m6a.large      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│ 10 │      5 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.large      │ awsspot-eu-west-2 │
-└────┴────────┴────────────┴──────────────────────┴───────────┴────────────────┴───────────────────┘
+┌────┬────────┬────────────┬───────────────────────────┬───────────┬────────────────┬───────────────────┐
+│    │   Rank │ Provider   │ Type                      │ Region    │ InstanceType   │ Source Name       │
+├────┼────────┼────────────┼───────────────────────────┼───────────┼────────────────┼───────────────────┤
+│  1 │      1 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.micro      │ awsspot-eu-west-2 │
+│  2 │      2 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.small      │ awsspot-eu-west-2 │
+│  3 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ c5a.large      │ awsspot-eu-west-2 │
+│  4 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ c6a.large      │ awsspot-eu-west-2 │
+│  5 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.medium     │ awsspot-eu-west-2 │
+│  6 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m5a.large      │ awsspot-eu-west-2 │
+│  7 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m5ad.large     │ awsspot-eu-west-2 │
+│  8 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m6a.large      │ awsspot-eu-west-2 │
+│  9 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.large      │ awsspot-eu-west-2 │
+│ 10 │      5 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ r5a.large      │ awsspot-eu-west-2 │
+└────┴────────┴────────────┴───────────────────────────┴───────────┴────────────────┴───────────────────┘
 ```
 
 ## yd-terminate
@@ -1982,8 +1981,15 @@ The `yd-list` command is used to list various YellowDog items, using the `namesp
 - Work Requirements
 - Task Groups
 - Tasks
+- Compute Sources
+- Compute Templates
+- Namespace Storage Configurations
+- Keyrings
+- Image Families
 
 Please use `yd-list --help` to inspect the various options.
+
+In some cases a `--details/-d` option can be supplied to drill down into additional detail on selected resources. For example `yd-list --keyrings --details` allows inspection of the Credentials within the selected Keyrings.
 
 ## yd-resize
 
@@ -1996,4 +2002,191 @@ yd-resize wp_pyex-slurm-pwt_230711-124356-0d6 10
 yd-resize ydid:wrkrpool:D9C548:1f020696-ae9a-4786-bed2-c31b484b1d4f 10
 yd-resize --compute-requirement cr_pyex-slurm-pwt_230712-110226-04c 5
 yd-resize -C ydid:compreq:D9C548:600bef1f-7ccd-431c-afcc-b56208565aac 5
+```
+
+# Creating, Updating and Removing Resources
+
+This is an **experimental feature**.
+
+The commands **yd-create** and **yd-remove** allow the creation, update and removal of the following YellowDog resources:
+
+- Keyrings
+- Credentials
+- Compute Sources
+- Compute Templates
+- Namespace Storage Configurations
+- Image Families (and their constituent Image Groups and Images)
+
+## Overview of Operation
+
+The **yd-create** and **yd-remove** commands operate on a list of one or more resource specification files in JSON (or JSonnet) format.
+
+Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are processed in the order found in each list, and in the order of the resource specification files found on the command line.
+
+Resource specification files can use **variable substitutions** just as in the case of Work Requirements.
+
+### Resource Creation
+
+To create resources, use the `yd-create` command as follows:
+
+```shell
+yd-create resources_1.json <resources_2.json, ...>
+```
+
+### Resource Update
+
+Resources are updated by re-running the `yd-create` command with the same (edited) resource specifications. Update operations will prompt the user for approval: as in other commands, this can be overridden using the `--yes` command line option.
+
+The update action will create any resources that are not already present in the Platform, and it will update any resources that are already present (whether the resources have changed or not). It does **not** delete resources that are present in the Platform but not in the resource specifications. 
+
+### Resource Removal
+
+Resources are removed by running the `yd-remove` command, with the same form of resource specifications. For example:
+
+```shell
+yd-remove resources_1.json <resources_2.json, ...>
+```
+Destructive operations will prompt the user for approval: as in other commands, this can be overridden using the `--yes` command line option.
+
+**Caution**: When updating or removing resources, resource matching is done using the **name** of the resource alone -- i.e., the system-generated `ydid` IDs are not used. This means that a resource could have been removed/replaced in Platform by some other means, and the resource specifications would still match it.
+
+Below, we'll discuss each item type, with specification schemas and examples of use.
+
+## Keyrings
+
+An example Keyring specification is shown below:
+
+```json
+{"resource": "Keyring", "name": "my-keyring-1", "description": "My First Keyring"}
+```
+
+or to specify two Keyrings at once:
+
+```json
+[
+  {"resource": "Keyring", "name": "my-keyring-1", "description": "My First Keyring"},
+  {"resource": "Keyring", "name": "my-keyring-2", "description": "My Second Keyring"}
+]
+```
+
+When a new Keyring is created, a **system-generated password** is returned as a one-off response. For security reasons this password is not displayed, but this behaviour can be overridden using the `--show-keyring-passwords` command line option, e.g.:
+
+```shell
+% yd-create --quiet --show-keyring-passwords keyring.json
+Keyring 'my-keyring-1': Password = 4OQAdcZagUX7ZiHaYvqC4yuKb4KCyN9lk4Z7mCcTYXA
+```
+
+Note that Keyrings cannot be updated; they must instead be removed and recreated, and in doing so, any contained credentials will be lost.
+
+## Credentials
+
+Credentials types for each of the supported cloud providers can be added to specific Keyrings using the following resource specification schemas (shown here as a list of Credential resource specifications):
+
+```json
+[
+  {
+    "resource": "Credential",
+    "keyringName": "my-keyring-1",
+    "credential": {
+      "type": "co.yellowdog.platform.account.credentials.AlibabaCredential",
+      "name": "<insert-value-here>",
+      "description": "<insert-value-here>",
+      "accessKeyId": "<insert-value-here>",
+      "secretAccessKey": "<insert-value-here>"
+    }
+  },
+  {
+    "resource": "Credential",
+    "keyringName": "my-keyring-1",
+    "credential": {
+      "type": "co.yellowdog.platform.account.credentials.AwsCredential",
+      "name": "<insert-value-here>",
+      "description": "<insert-value-here>",
+      "accessKeyId": "<insert-value-here>",
+      "secretAccessKey": "<insert-value-here>"
+    }
+  },
+  {
+    "resource": "Credential",
+    "keyringName": "my-keyring-1",
+    "credential": {
+      "type": "co.yellowdog.platform.account.credentials.AzureClientCredential",
+      "name": "<insert-value-here>",
+      "description": "<insert-value-here>",
+      "clientId": "<insert-value-here>",
+      "tenantId": "<insert-value-here>",
+      "subscriptionId": "<insert-value-here>",
+      "key": "<insert-value-here>"
+    }
+  },
+  {
+    "resource": "Credential",
+    "keyringName": "my-keyring-1",
+    "credential": {
+      "type": "co.yellowdog.platform.account.credentials.AzureInstanceCredential",
+      "name": "<insert-value-here>",
+      "description": "<insert-value-here>",
+      "adminUsername": "<insert-value-here>",
+      "adminPassword": "<insert-value-here>"
+    }
+  },
+  {
+    "resource": "Credential",
+    "keyringName": "my-keyring-1",
+    "credential": {
+      "type": "co.yellowdog.platform.account.credentials.AzureStorageCredential",
+      "name": "<insert-value-here>",
+      "description": "<insert-value-here>",
+      "accountName": "<insert-value-here>",
+      "accountKey": "<insert-value-here>"
+    }
+  },
+  {
+    "resource": "Credential",
+    "keyringName": "my-keyring-1",
+    "credential": {
+      "type": "co.yellowdog.platform.account.credentials.GoogleCloudCredential",
+      "name": "<insert-value-here>",
+      "description": "<insert-value-here>",
+      "serviceAccountKeyJson": "<insert-value-here>"
+    }
+  },
+  {
+    "resource": "Credential",
+    "keyringName": "my-keyring-1",
+    "credential": {
+      "type": "co.yellowdog.platform.account.credentials.OciCredential",
+      "name": "<insert-value-here>",
+      "description": "<insert-value-here>",
+      "userId": "<insert-value-here>",
+      "tenantId": "<insert-value-here>",
+      "fingerprint": "<insert-value-here>",
+      "privateKey": "<insert-value-here>",
+      "passphrase": "<insert-value-here>"
+    }
+  }
+]
+```
+The chosen resource specification(s) need each `<insert-value-here>` property to be populated, with the other properties remaining unchanged. For example, to add a single AWS credential to a Keyring, the following resource specification might be used:
+```json
+{
+  "resource": "Credential",
+  "keyringName": "my-keyring-1",
+  "credential": {
+    "type": "co.yellowdog.platform.account.credentials.AwsCredential",
+    "name": "my-aws-creds",
+    "description": "Fake AWS credentials",
+    "accessKeyId": "AKIAIOSFODNN7EXAMPLE",
+    "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  }
+}
+```
+To **update** a Credential, make the modifications to the resource specification and run `yd-create` again, and to remove a credential, run `yd-remove`.
+
+## Compute Sources
+
+The Compute Source schemas for the various types of Compute Sources are shown below:
+
+```json
+
 ```
