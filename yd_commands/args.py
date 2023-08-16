@@ -593,6 +593,13 @@ class CLIParser:
                 required=False,
                 help="allow updates without user confirmation",
             )
+        if "create" in sys.argv[0]:
+            parser.add_argument(
+                "--show-keyring-passwords",
+                action="store_true",
+                required=False,
+                help="display YellowDog-generated password when creating a Keyring",
+            )
 
         self.args = parser.parse_args()
 
@@ -850,6 +857,10 @@ class CLIParser:
     @property
     def namespaces(self) -> Optional[bool]:
         return self.args.namespaces
+
+    @property
+    def show_keyring_passwords(self) -> Optional[bool]:
+        return self.args.show_keyring_passwords
 
     @property
     def resource_specifications(self) -> List[str]:

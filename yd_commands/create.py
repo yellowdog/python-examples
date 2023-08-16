@@ -7,6 +7,7 @@ A script to create YellowDog items.
 from typing import Dict, List
 
 import yellowdog_client.model as model
+from requests import post
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
     CloudProvider,
@@ -25,7 +26,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import print_error, print_log
 from yd_commands.resource_config import load_resource_specifications
-from yd_commands.wrapper import CLIENT, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
@@ -160,8 +161,35 @@ def create_keyring(resource: Dict):
             CLIENT.keyring_client.delete_keyring_by_name(name)
             print_log(f"Deleted Keyring '{name}'")
 
-    CLIENT.keyring_client.create_keyring(name, description)
-    print_log(f"Created Keyring '{name}'")
+    try:
+        keyring_password = create_keyring_via_api(name, description)
+        if ARGS_PARSER.show_keyring_passwords:
+            if not ARGS_PARSER.quiet:
+                print_log(f"Created Keyring '{name}': Password = {keyring_password}")
+            else:
+                print(f"Keyring '{name}': Password = {keyring_password}")
+        else:
+            print_log(f"Created Keyring '{name}'")
+    except Exception as e:
+        print_error(f"Failed to create Keyring '{name}': {e}")
+
+
+def create_keyring_via_api(name: str, description: str) -> str:
+    """
+    Temporary direct API call to create a Keyring and return the shown-once
+    password. The password is not available via the SDK call.
+    """
+    response = post(
+        url=f"{CONFIG_COMMON.url}/keyrings",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+        json={
+            "name": name,
+            "description": description,
+        },
+    )
+    if response.status_code != 200:
+        raise Exception(f"HTTP {response.status_code} ({response.text})")
+    return response.json()["keyringPassword"]
 
 
 def create_credential(resource: Dict):
