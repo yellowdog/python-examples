@@ -10,12 +10,16 @@ import yellowdog_client.model as model
 from requests import post
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
+    AddConfiguredWorkerPoolRequest,
+    AddConfiguredWorkerPoolResponse,
     CloudProvider,
     ImageOsType,
     MachineImage,
     MachineImageFamily,
     MachineImageGroup,
     NamespaceStorageConfiguration,
+    WorkerPoolStatus,
+    WorkerPoolSummary,
 )
 from yellowdog_client.model.exceptions import InvalidRequestException
 
@@ -53,6 +57,8 @@ def main():
             create_image_family(resource)
         elif resource_type == "NamespaceStorageConfiguration":
             create_namespace_configuration(resource)
+        elif resource_type == "ConfiguredWorkerPool":
+            create_configured_worker_pool(resource)
         else:
             print_error(f"Unknown resource type '{resource_type}'")
 
@@ -353,6 +359,45 @@ def create_namespace_configuration(resource: Dict):
             "Unable to create/update Namespace Storage Configuration"
             f" '{namespace}': {e}"
         )
+
+
+def create_configured_worker_pool(resource: Dict):
+    """
+    Create a Configured Worker Pool. There's no API support for update.
+    """
+    try:
+        name = resource["name"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    # Multiple Worker Pools with the same name can be created.
+    # Check for existing pool with the same name in an active state.
+    worker_pools: List[WorkerPoolSummary] = (
+        CLIENT.worker_pool_client.find_all_worker_pools()
+    )
+    for worker_pool in worker_pools:
+        if (
+            worker_pool.name == name
+            and worker_pool.type.split(".")[-1] == "ConfiguredWorkerPool"
+            and worker_pool.status
+            not in [WorkerPoolStatus.SHUTDOWN, WorkerPoolStatus.TERMINATED]
+        ):
+            print_log(
+                f"Existing Configured Worker Pool '{name}' ({worker_pool.status}) found"
+                " ... creation aborted"
+            )
+            return
+
+    try:
+        cwp_request = AddConfiguredWorkerPoolRequest(**resource)
+        cwp_response: AddConfiguredWorkerPoolResponse = (
+            CLIENT.worker_pool_client.add_configured_worker_pool(cwp_request)
+        )
+        print_log(
+            f"Created Configured Worker Pool '{name}': Token = {cwp_response.token}"
+        )
+    except Exception as e:
+        print_error(f"Unable to created Configured Worker Pool '{name}'")
 
 
 def get_model_class(classname):
