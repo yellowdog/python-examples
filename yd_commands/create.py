@@ -9,10 +9,14 @@ from typing import Dict, List
 import yellowdog_client.model as model
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
+    CloudProvider,
     ImageOsType,
+    MachineImage,
     MachineImageFamily,
+    MachineImageGroup,
     NamespaceStorageConfiguration,
 )
+from yellowdog_client.model.exceptions import InvalidRequestException
 
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import (
@@ -194,37 +198,101 @@ def create_image_family(resource):
     try:
         family_name = resource["name"]
         namespace = resource["namespace"]
-        os_type = (
-            ImageOsType.WINDOWS
-            if resource.pop("osType") == "WINDOWS"
-            else ImageOsType.LINUX
-        )  # The osType argument at the Family level needs to use the Enum
+        os_type = ImageOsType[resource.pop("osType")]  # Change to Enum
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
+    # Start by updating the outer Image Family
+    image_family = MachineImageFamily(osType=os_type, **resource)
+
     # Check for existing Image Family
     try:
-        existing_image_family = CLIENT.images_client.get_image_family_by_name(
-            namespace=namespace, family_name=family_name
-        )
+        existing_image_family: MachineImageFamily = (
+            CLIENT.images_client.get_image_family_by_name(
+                namespace=namespace, family_name=family_name
+            )
+        )  # Raises HTTP 404 Error if not found
         if not confirmed(f"Update existing Machine Image Family '{family_name}'?"):
             return
-        existing = True
+        image_family.id = existing_image_family.id
+        CLIENT.images_client.update_image_family(image_family)
+        print_log(f"Updated existing Machine Image Family '{family_name}'")
     except HTTPError as e:
         if e.response.status_code == 404:
-            existing = False
+            CLIENT.images_client.add_image_family(image_family)
+            print_log(f"Created Machine Image Family '{family_name}'")
         else:
-            raise e
-
-    if existing:
-        print_error("Temporary: Cannot currently update Image Families")
+            print_error(f"Failed to create/update Image Family '{image_family}': {e}")
         return
-        # CLIENT.images_client.update_image_family(image_family)
-        # print_log(f"Updated existing Machine Image Family '{family_name}'")
-    else:
-        image_family = MachineImageFamily(osType=os_type, **resource)
-        CLIENT.images_client.add_image_family(image_family)
-        print_log(f"Created Machine Image Family '{family_name}'")
+
+    # This is an update, so Image Groups have been ignored
+    image_groups: List[MachineImageGroup] = image_family.imageGroups
+    for image_group in image_groups:
+        # Ensure well-formed MachineImageGroup object
+        image_group = MachineImageGroup(**image_group)
+        image_group.osType = ImageOsType[str(image_group.osType)]  # Replace with Enum
+        _create_image_group(namespace, image_family, image_group)
+
+
+def _create_image_group(
+    namespace: str, image_family: MachineImageFamily, image_group: MachineImageGroup
+):
+    """
+    Create or update a Machine Image Group.
+    """
+    # Check for existing Image Group
+    try:
+        existing_image_group: MachineImageGroup = (
+            CLIENT.images_client.get_image_group_by_name(
+                namespace=namespace,
+                family_name=image_family.name,
+                group_name=image_group.name,
+            )
+        )  # Raises HTTP 404 Error if not found
+        if not confirmed(f"Update existing Machine Image Group '{image_group.name}'?"):
+            return
+        image_group.id = existing_image_group.id
+        CLIENT.images_client.update_image_group(image_group)
+        print_log(f"Updated existing Machine Image Group '{image_group.name}'")
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            CLIENT.images_client.add_image_group(image_family, image_group)
+            print_log(f"Created Machine Image Group '{image_group.name}'")
+        else:
+            print_error(
+                f"Failed to create/update Image Group '{image_group.name}': {e}"
+            )
+        return
+
+    # This is an update, so Images have been ignored
+    images: List[MachineImage] = image_group.images
+    for image in images:
+        # Ensure well-formed MachineImage object
+        image = MachineImage(**image)
+        image.osType = ImageOsType[str(image.osType)]  # Replace with Enum
+        image.provider = CloudProvider[str(image.provider)]  # Replace with Enum
+        # Populate the Image ID (this could be made more efficient)
+        for existing_image in existing_image_group.images:
+            if image.name == existing_image.name:
+                image.id = existing_image.id
+                break
+        _create_image(image, image_group)
+
+
+def _create_image(image: MachineImage, image_group: MachineImageGroup):
+    """
+    Create or update a Machine Image.
+    """
+    try:
+        if image.id is not None:  # Existing Image
+            if confirmed(f"Update existing Machine Image '{image.name}'?"):
+                CLIENT.images_client.update_image(image)
+                print_log(f"Updated existing Machine Image '{image.name}'")
+        else:  # New Image
+            CLIENT.images_client.add_image(image_group, image)
+            print_log(f"Created Machine Image '{image.name}'")
+    except InvalidRequestException as e:
+        print_error(f"Unable to create/update Image '{image.name}': {e}")
 
 
 def create_namespace_configuration(resource: Dict):
