@@ -7,7 +7,11 @@ A script to remove YellowDog items.
 from typing import Dict, List
 
 from requests.exceptions import HTTPError
-from yellowdog_client.model import NamespaceStorageConfiguration
+from yellowdog_client.model import (
+    NamespaceStorageConfiguration,
+    WorkerPoolStatus,
+    WorkerPoolSummary,
+)
 
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import (
@@ -43,6 +47,8 @@ def main():
             remove_image_family(resource)
         elif resource_type == "NamespaceStorageConfiguration":
             remove_namespace_configuration(resource)
+        elif resource_type == "ConfiguredWorkerPool":
+            remove_configured_worker_pool(resource)
         else:
             print_error(f"Unknown resource type '{resource_type}'")
 
@@ -190,6 +196,47 @@ def remove_namespace_configuration(resource: Dict):
         print_log(f"Removed Namespace Storage Configuration '{namespace}'")
     except Exception as e:
         print(e)
+
+
+def remove_configured_worker_pool(resource: Dict):
+    """
+    Shutdown a Configured Worker Pool.
+    """
+    try:
+        name = resource["name"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    worker_pools: List[WorkerPoolSummary] = (
+        CLIENT.worker_pool_client.find_all_worker_pools()
+    )
+
+    # Shut down all matching Configured Worker Pools in appropriate states.
+    for worker_pool in worker_pools:
+        if (
+            worker_pool.name == name
+            and worker_pool.type.split(".")[-1] == "ConfiguredWorkerPool"
+        ):
+            if worker_pool.status not in [
+                WorkerPoolStatus.SHUTDOWN,
+                WorkerPoolStatus.TERMINATED,
+            ]:
+                try:
+                    CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
+                    print_log(
+                        f"Shutting down Configured Worker Pool '{name}' in state"
+                        f" '{worker_pool.status}' ({worker_pool.id})"
+                    )
+                except Exception as e:
+                    print_error(
+                        "Failed to shut down Configured Worker Pool '{name}' in state"
+                        " '{worker_pool.status}' ({worker_pool.id}): {e}"
+                    )
+            else:
+                print_log(
+                    f"Not shutting down Configured Worker Pool '{name}' in state"
+                    f" '{worker_pool.status}' ({worker_pool.id})"
+                )
 
 
 # Entry point
