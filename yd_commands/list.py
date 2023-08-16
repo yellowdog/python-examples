@@ -48,6 +48,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import (
     JSON_INDENT,
+    indent,
     print_error,
     print_log,
     print_numbered_object_list,
@@ -508,14 +509,15 @@ def list_namespaces():
 
     # Assemble and print the table
     headings = [field.capitalize() for field in all_fields]
+    headings.insert(0, "#")
     rows = sorted(
         [
-            [namespace.get(field, "") for field in all_fields]
-            for namespace in namespace_list
+            [index + 1] + [namespace.get(field, "") for field in all_fields]
+            for index, namespace in enumerate(namespace_list)
         ]
     )
     print()
-    print(tabulate(rows, headings, tablefmt="simple_outline"))
+    print(indent(tabulate(rows, headings)))
     print()
 
 
