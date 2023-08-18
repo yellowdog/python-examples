@@ -92,11 +92,16 @@
       * [Resource Creation](#resource-creation)
       * [Resource Update](#resource-update)
       * [Resource Removal](#resource-removal)
+      * [Resource Matching](#resource-matching)
+   * [Resource Specification Definitions](#resource-specification-definitions)
    * [Keyrings](#keyrings)
    * [Credentials](#credentials)
-   * [Compute Sources](#compute-sources)
+   * [Compute Source Templates](#compute-source-templates)
+   * [Compute Requirement Templates](#compute-requirement-templates)
+   * [Image Families](#image-families)
+   * [Namespace Storage Configurations](#namespace-storage-configurations)
 
-<!-- Added by: pwt, at: Wed Aug 16 16:03:12 BST 2023 -->
+<!-- Added by: pwt, at: Fri Aug 18 11:41:38 BST 2023 -->
 
 <!--te-->
 
