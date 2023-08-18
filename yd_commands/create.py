@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-A script to create YellowDog items.
+A script to create or update YellowDog resources.
 """
 
 from typing import Dict, List
@@ -14,6 +14,7 @@ from yellowdog_client.model import (
     AddConfiguredWorkerPoolResponse,
     CloudProvider,
     ImageOsType,
+    Keyring,
     MachineImage,
     MachineImageFamily,
     MachineImageGroup,
@@ -66,7 +67,7 @@ def main():
 def create_compute_source(resource: Dict):
     """
     Create or update a Compute Source using a resource specification.
-    Should handle any Source Type.
+    Handles all Source types.
     """
     try:
         source = resource.pop("source")  # Extract the Source properties
@@ -110,11 +111,14 @@ def create_compute_source(resource: Dict):
             f"Updated existing Compute Source '{compute_source.source.name}'"
             f" ({compute_source.id})"
         )
+    if ARGS_PARSER.quiet:
+        print(compute_source.id)
 
 
 def create_cr_template(resource: Dict):
     """
-    Create or update a Compute Requirement Template.
+    Create or update a Compute Requirement Template. Handles all
+    Compute Requirement types.
     """
     try:
         type = resource.pop("type").split(".")[-1]  # Extract type
@@ -147,6 +151,8 @@ def create_cr_template(resource: Dict):
             f"Updated existing Compute Requirement Template '{template.name}'"
             f" ({template.id})"
         )
+    if ARGS_PARSER.quiet:
+        print(template.id)
 
 
 def create_keyring(resource: Dict):
@@ -168,19 +174,20 @@ def create_keyring(resource: Dict):
             print_log(f"Deleted Keyring '{name}'")
 
     try:
-        keyring_password = create_keyring_via_api(name, description)
+        keyring, keyring_password = create_keyring_via_api(name, description)
         if ARGS_PARSER.show_keyring_passwords:
             if not ARGS_PARSER.quiet:
-                print_log(f"Created Keyring '{name}': Password = {keyring_password}")
+                print_log(f"Created Keyring '{name}' ({keyring.id}): Password = {keyring_password}")
             else:
-                print(f"Keyring '{name}': Password = {keyring_password}")
-        else:
-            print_log(f"Created Keyring '{name}'")
+                print(f"{keyring.id} : Password = {keyring_password}")
+        print_log(f"Created Keyring '{name}'")
+        if ARGS_PARSER.quiet:
+            print(keyring.id)
     except Exception as e:
         print_error(f"Failed to create Keyring '{name}': {e}")
 
 
-def create_keyring_via_api(name: str, description: str) -> str:
+def create_keyring_via_api(name: str, description: str) -> (Keyring, str):
     """
     Temporary direct API call to create a Keyring and return the shown-once
     password. The password is not available via the SDK call.
@@ -195,7 +202,7 @@ def create_keyring_via_api(name: str, description: str) -> str:
     )
     if response.status_code != 200:
         raise Exception(f"HTTP {response.status_code} ({response.text})")
-    return response.json()["keyringPassword"]
+    return Keyring(**response.json()["keyring"]), response.json()["keyringPassword"]
 
 
 def create_credential(resource: Dict):
@@ -249,12 +256,20 @@ def create_image_family(resource):
         if not confirmed(f"Update existing Machine Image Family '{family_name}'?"):
             return
         image_family.id = existing_image_family.id
+        # This will update the Image Family but not its constituent
+        # Image Group/Image resources
         CLIENT.images_client.update_image_family(image_family)
         print_log(f"Updated existing Machine Image Family '{family_name}'")
+        if ARGS_PARSER.quiet:
+            print(image_family.id)
     except HTTPError as e:
         if e.response.status_code == 404:
-            CLIENT.images_client.add_image_family(image_family)
+            # This will create the Image Family and all of its constituent
+            # Image Group/Image resources
+            image_family = CLIENT.images_client.add_image_family(image_family)
             print_log(f"Created Machine Image Family '{family_name}'")
+            if ARGS_PARSER.quiet:
+                print(image_family.id)
         else:
             print_error(f"Failed to create/update Image Family '{image_family}': {e}")
         return
@@ -288,10 +303,14 @@ def _create_image_group(
         image_group.id = existing_image_group.id
         CLIENT.images_client.update_image_group(image_group)
         print_log(f"Updated existing Machine Image Group '{image_group.name}'")
+        if ARGS_PARSER.quiet:
+            print(image_group.id)
     except HTTPError as e:
         if e.response.status_code == 404:
-            CLIENT.images_client.add_image_group(image_family, image_group)
+            image_group = CLIENT.images_client.add_image_group(image_family, image_group)
             print_log(f"Created Machine Image Group '{image_group.name}'")
+            if ARGS_PARSER.quiet:
+                print(image_group.id)
         else:
             print_error(
                 f"Failed to create/update Image Group '{image_group.name}': {e}"
@@ -320,13 +339,16 @@ def _create_image(image: MachineImage, image_group: MachineImageGroup):
     try:
         if image.id is not None:  # Existing Image
             if confirmed(f"Update existing Machine Image '{image.name}'?"):
-                CLIENT.images_client.update_image(image)
+                image = CLIENT.images_client.update_image(image)
                 print_log(f"Updated existing Machine Image '{image.name}'")
         else:  # New Image
-            CLIENT.images_client.add_image(image_group, image)
+            image = CLIENT.images_client.add_image(image_group, image)
             print_log(f"Created Machine Image '{image.name}'")
     except InvalidRequestException as e:
         print_error(f"Unable to create/update Image '{image.name}': {e}")
+
+    if ARGS_PARSER.quiet:
+        print(image.id)
 
 
 def create_namespace_configuration(resource: Dict):
@@ -396,6 +418,8 @@ def create_configured_worker_pool(resource: Dict):
         print_log(
             f"Created Configured Worker Pool '{name}': Token = {cwp_response.token}"
         )
+        if ARGS_PARSER.quiet:
+            print(cwp_response.workerPool.id)
     except Exception as e:
         print_error(f"Unable to created Configured Worker Pool '{name}'")
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-A script to remove YellowDog items.
+A script to remove YellowDog resources.
 """
 
 from typing import Dict, List
