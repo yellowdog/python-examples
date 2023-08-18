@@ -87,8 +87,16 @@
    * [yd-terminate](#yd-terminate)
    * [yd-list](#yd-list)
    * [yd-resize](#yd-resize)
+* [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
+   * [Overview of Operation](#overview-of-operation)
+      * [Resource Creation](#resource-creation)
+      * [Resource Update](#resource-update)
+      * [Resource Removal](#resource-removal)
+   * [Keyrings](#keyrings)
+   * [Credentials](#credentials)
+   * [Compute Sources](#compute-sources)
 
-<!-- Added by: pwt, at: Tue Jul 11 11:49:08 BST 2023 -->
+<!-- Added by: pwt, at: Wed Aug 16 16:03:12 BST 2023 -->
 
 <!--te-->
 
@@ -116,7 +124,8 @@ The scripts provide the following capabilities:
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Listing** YellowDog items using the **`yd-list`** command
-- **Resizing** Worker Pools
+- **Resizing** Worker Pools and Compute Requirements
+- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, and Image Families
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -1942,30 +1951,20 @@ For example:
 
 ```shell
 % yd-instantiate --report --quiet
-
-┌────┬────────┬────────────┬──────────────────────┬───────────┬────────────────┬───────────────────┐
-│    │   Rank │ Provider   │ Type                 │ Region    │ InstanceType   │ Source Name       │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  1 │      1 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.nano       │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  2 │      2 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.micro      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  3 │      3 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.small      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  4 │      4 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ c5a.large      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  5 │      4 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ c6a.large      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  6 │      4 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.medium     │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  7 │      5 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ m5a.large      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  8 │      5 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ m5ad.large     │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│  9 │      5 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ m6a.large      │ awsspot-eu-west-2 │
-├────┼────────┼────────────┼──────────────────────┼───────────┼────────────────┼───────────────────┤
-│ 10 │      5 │ AWS        │ AwsSpotComputeSource │ eu-west-2 │ t3a.large      │ awsspot-eu-west-2 │
-└────┴────────┴────────────┴──────────────────────┴───────────┴────────────────┴───────────────────┘
+┌────┬────────┬────────────┬───────────────────────────┬───────────┬────────────────┬───────────────────┐
+│    │   Rank │ Provider   │ Type                      │ Region    │ InstanceType   │ Source Name       │
+├────┼────────┼────────────┼───────────────────────────┼───────────┼────────────────┼───────────────────┤
+│  1 │      1 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.micro      │ awsspot-eu-west-2 │
+│  2 │      2 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.small      │ awsspot-eu-west-2 │
+│  3 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ c5a.large      │ awsspot-eu-west-2 │
+│  4 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ c6a.large      │ awsspot-eu-west-2 │
+│  5 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.medium     │ awsspot-eu-west-2 │
+│  6 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m5a.large      │ awsspot-eu-west-2 │
+│  7 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m5ad.large     │ awsspot-eu-west-2 │
+│  8 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m6a.large      │ awsspot-eu-west-2 │
+│  9 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.large      │ awsspot-eu-west-2 │
+│ 10 │      5 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ r5a.large      │ awsspot-eu-west-2 │
+└────┴────────┴────────────┴───────────────────────────┴───────────┴────────────────┴───────────────────┘
 ```
 
 ## yd-terminate
@@ -1982,8 +1981,15 @@ The `yd-list` command is used to list various YellowDog items, using the `namesp
 - Work Requirements
 - Task Groups
 - Tasks
+- Compute Sources
+- Compute Templates
+- Namespace Storage Configurations
+- Keyrings
+- Image Families
 
 Please use `yd-list --help` to inspect the various options.
+
+In some cases a `--details/-d` option can be supplied to drill down into additional detail on selected resources. For example `yd-list --keyrings --details` allows inspection of the Credentials within the selected Keyrings.
 
 ## yd-resize
 
@@ -1996,4 +2002,291 @@ yd-resize wp_pyex-slurm-pwt_230711-124356-0d6 10
 yd-resize ydid:wrkrpool:D9C548:1f020696-ae9a-4786-bed2-c31b484b1d4f 10
 yd-resize --compute-requirement cr_pyex-slurm-pwt_230712-110226-04c 5
 yd-resize -C ydid:compreq:D9C548:600bef1f-7ccd-431c-afcc-b56208565aac 5
+```
+
+# Creating, Updating and Removing Resources
+
+This is an **experimental feature**.
+
+The commands **yd-create** and **yd-remove** allow the creation, update and removal of the following YellowDog resources:
+
+- Keyrings
+- Credentials
+- Compute Sources
+- Compute Templates
+- Image Families (and their constituent Image Groups and Images)
+- Namespace Storage Configurations
+
+## Overview of Operation
+
+The **yd-create** and **yd-remove** commands operate on a list of one or more resource specification files in JSON (or JSonnet) format.
+
+Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are processed in the order found in each list, and in the order of the resource specification files found on the command line.
+
+Resource specification files can use **variable substitutions** just as in the case of Work Requirements.
+
+### Resource Creation
+
+To create resources, use the `yd-create` command as follows:
+
+```shell
+yd-create resources_1.json <resources_2.json, ...>
+```
+
+### Resource Update
+
+Resources are updated by re-running the `yd-create` command with the same (edited) resource specifications. Update operations will prompt the user for approval: as in other commands, this can be overridden using the `--yes` command line option.
+
+The update action will create any resources that are not already present in the Platform, and it will update any resources that are already present. The command does not check for specific differences, so an unchanged resource specification will still cause an update.
+
+### Resource Removal
+
+Resources are removed by running the `yd-remove` command, with the same form of resource specifications. For example:
+
+```shell
+yd-remove resources_1.json <resources_2.json, ...>
+```
+Destructive operations will prompt the user for approval: as in other commands, this can be overridden using the `--yes` command line option.
+
+### Resource Matching
+
+**Caution**: When updating or removing resources, resource matching is done using the **name** of the resource alone -- i.e., the system-generated `ydid` IDs are not used. This means that a resource could have been removed/replaced in Platform by some other means, and the resource specifications would still match it.
+
+## Resource Specification Definitions
+
+The JSON specification used to define each type of resource can be found by inspecting the YellowDog Platform REST API documentation at https://docs.yellowdog.co/api.
+
+For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API call for adding a new Compute Source template: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeSourceTemplate. This will display an **Example Value**, and an adjacent tab will show the **Schema**.
+
+When using the `yd-create` and `yd-remove` commands, note that an additional property `resource` must be supplied, to identify the type of resource being specified.
+
+To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
+
+```shell
+yd-list --keyrings --details
+yd-list --source-templates --details
+yd-list --compute-templates --details
+yd-list --image-families --details
+```
+
+Below, we'll discuss each item type with example specifications.
+
+## Keyrings
+
+The Keyring example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Account%20API#/Keyring/createKeyring.
+
+An example Keyring specification is shown below:
+
+```json
+{"resource": "Keyring", "name": "my-keyring-1", "description": "My First Keyring"}
+```
+
+or to specify two Keyrings at once:
+
+```json
+[
+  {"resource": "Keyring", "name": "my-keyring-1", "description": "My First Keyring"},
+  {"resource": "Keyring", "name": "my-keyring-2", "description": "My Second Keyring"}
+]
+```
+
+When a new Keyring is created, a **system-generated password** is returned as a once-only response. For security reasons this password is not displayed, but this behaviour can be changed using the `--show-keyring-passwords` command line option, e.g.:
+
+```shell
+% yd-create --quiet --show-keyring-passwords keyring.json
+Keyring 'my-keyring-1': Password = 4OQAdcZagUX7ZiHaYvqC4yuKb4KCyN9lk4Z7mCcTYXA
+```
+
+Note that Keyrings cannot be updated; they must instead be removed and recreated, and in doing so, any contained credentials will be lost.
+
+## Credentials
+
+The Credential example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Account%20API#/Keyring/putCredential.
+
+For example, to add a single AWS credential to a Keyring, the following resource specification might be used:
+
+```json
+{
+  "resource": "Credential",
+  "keyringName": "my-keyring-1",
+  "credential": {
+    "type": "co.yellowdog.platform.account.credentials.AwsCredential",
+    "name": "my-aws-creds",
+    "description": "Fake AWS credentials",
+    "accessKeyId": "AKIAIOSFODNN7EXAMPLE",
+    "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  }
+}
+```
+To **update** a Credential, make the modifications to the resource specification and run `yd-create` again, and to remove a credential, run `yd-remove`.
+
+## Compute Source Templates
+
+The Compute Source Template example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeSourceTemplate.
+
+An example Compute Source resource specification is found below:
+
+```json
+{
+  "resource": "ComputeSourceTemplate",
+  "namespace": null,
+  "description": "one",
+  "attributes": [],
+  "source": {
+    "type": "co.yellowdog.platform.model.AwsInstancesComputeSource",
+    "provider": "AWS",
+    "id": null,
+    "createdFromId": null,
+    "name": "my-compute-source-template",
+    "credential": "my-keyring/my-aws-credential",
+    "region": "eu-west-1",
+    "availabilityZone": null,
+    "securityGroupId": "sg-07bcbfb052873888",
+    "instanceType": "*",
+    "imageId": "*",
+    "limit": 0,
+    "specifyMinimum": false,
+    "assignPublicIp": true,
+    "createClusterPlacementGroup": null,
+    "createElasticFabricAdapter": null,
+    "enableDetailedMonitoring": null,
+    "keyName": null,
+    "iamRoleArn": null,
+    "subnetId": "subnet-0d241e541249e9fdc",
+    "userData": null,
+    "instanceTags": {"environment": "demo-prod"}
+  }
+}
+```
+
+## Compute Requirement Templates
+
+The Compute Requirement Template example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeRequirementTemplate.
+
+An example Compute Requirement resource specification is found below, for a **static** tempate:
+
+```json
+{
+  "resource": "ComputeRequirementTemplate",
+  "imagesId": "ami-097767a3a3e071555",
+  "instanceTags": {},
+  "name": "my-static-compute-template",
+  "sources": [
+    {"instanceType": "t3a.small", "sourceTemplateId": "ydid:cst:D9C548:d41c36a7-0630-4fa2-87e7-4e20bf472bcd"},
+    {"instanceType": "t3a.medium", "sourceTemplateId": "ydid:cst:D9C548:d41c36a7-0630-4fa2-87e7-4e20bf472bcd"}
+  ],
+  "strategyType": "co.yellowdog.platform.model.WaterfallProvisionStrategy",
+  "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate"
+}
+```
+
+A **dynamic** template example is:
+
+```json
+{
+  "resource": "ComputeRequirementTemplate",
+  "constraints": [
+    {
+      "anyOf": ["AWS"],
+      "attribute": "source.provider",
+      "type": "co.yellowdog.platform.model.StringAttributeConstraint"
+    },
+    {"attribute": "yd.cost", "max": 0.05, "min": 0, "type": "co.yellowdog.platform.model.NumericAttributeConstraint"},
+    {
+      "anyOf": ["UK", "Ireland"],
+      "attribute": "yd.country",
+      "type": "co.yellowdog.platform.model.StringAttributeConstraint"
+    },
+    {"attribute": "yd.ram", "max": 4096, "min": 2, "type": "co.yellowdog.platform.model.NumericAttributeConstraint"}
+  ],
+  "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
+  "instanceTags": {},
+  "maximumSourceCount": 10,
+  "minimumSourceCount": 1,
+  "name": "my-dynamic-compute-template",
+  "preferences": [
+    {
+      "attribute": "yd.cpu",
+      "rankOrder": "PREFER_HIGHER",
+      "type": "co.yellowdog.platform.model.NumericAttributePreference",
+      "weight": 3
+    },
+    {
+      "attribute": "yd.ram",
+      "rankOrder": "PREFER_HIGHER",
+      "type": "co.yellowdog.platform.model.NumericAttributePreference",
+      "weight": 2
+    },
+    {
+      "attribute": "yd.cpu-type",
+      "preferredValues": ["AMD"],
+      "type": "co.yellowdog.platform.model.StringAttributePreference",
+      "weight": 1
+    }
+  ],
+  "sourceTraits": {},
+  "strategyType": "co.yellowdog.platform.model.SplitProvisionStrategy",
+  "type": "co.yellowdog.platform.model.ComputeRequirementDynamicTemplate"
+}
+```
+
+## Image Families
+
+The Image Family example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Images%20API#/Images/addImageFamily.
+
+An example specification, illustrating a containment hierarchy of Image Family -> Image Group -> Image, is shown below:
+
+```json
+{
+  "resource": "MachineImageFamily",
+  "access": "PRIVATE",
+  "imageGroups": [
+    {
+      "images": [
+        {
+          "metadata": {},
+          "name": "win-2022-yd-agent-5_0_16",
+          "osType": "WINDOWS",
+          "provider": "AWS",
+          "providerImageId": "ami-0cb09e7f49c1eb021",
+          "regions": ["eu-west-1"],
+          "supportedInstanceTypes": []
+        },
+        {
+          "metadata": {},
+          "name": "win-2022-yd-agent-5_0_16",
+          "osType": "WINDOWS",
+          "provider": "AWS",
+          "providerImageId": "ami-0cb09e7f49c1eb022",
+          "regions": ["eu-west-2"],
+          "supportedInstanceTypes": []
+        }
+      ],
+      "metadataSpecification": {},
+      "name": "v5_0_16",
+      "osType": "WINDOWS"
+    }
+  ],
+  "metadataSpecification": {},
+  "name": "my-windows-image-family",
+  "namespace": "my-namespace",
+  "osType": "WINDOWS"
+}
+```
+
+## Namespace Storage Configurations
+
+The Namespace Storage Configuration example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Object%20Store%20API#/Object%20Store/putNamespaceStorageConfiguration.
+
+Example:
+
+```json
+{
+  "resource": "NamespaceStorageConfiguration",
+  "type": "co.yellowdog.platform.model.S3NamespaceStorageConfiguration",
+  "namespace": "my-s3-namespace",
+  "bucketName": "com.my-company.test.my-yd-objects",
+  "region": "eu-west-2",
+  "credential": "my-keyring/my-aws-credential"
+}
 ```
