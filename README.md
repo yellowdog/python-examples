@@ -2014,8 +2014,8 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 - Credentials
 - Compute Sources
 - Compute Templates
-- Namespace Storage Configurations
 - Image Families (and their constituent Image Groups and Images)
+- Namespace Storage Configurations
 
 ## Overview of Operation
 
@@ -2037,7 +2037,7 @@ yd-create resources_1.json <resources_2.json, ...>
 
 Resources are updated by re-running the `yd-create` command with the same (edited) resource specifications. Update operations will prompt the user for approval: as in other commands, this can be overridden using the `--yes` command line option.
 
-The update action will create any resources that are not already present in the Platform, and it will update any resources that are already present (whether the resources have changed or not). It does **not** delete resources that are present in the Platform but not in the resource specifications. 
+The update action will create any resources that are not already present in the Platform, and it will update any resources that are already present. The command does not check for specific differences, so an unchanged resource specification will still cause an update.
 
 ### Resource Removal
 
@@ -2048,11 +2048,32 @@ yd-remove resources_1.json <resources_2.json, ...>
 ```
 Destructive operations will prompt the user for approval: as in other commands, this can be overridden using the `--yes` command line option.
 
+### Resource Matching
+
 **Caution**: When updating or removing resources, resource matching is done using the **name** of the resource alone -- i.e., the system-generated `ydid` IDs are not used. This means that a resource could have been removed/replaced in Platform by some other means, and the resource specifications would still match it.
 
-Below, we'll discuss each item type, with specification schemas and examples of use.
+## Resource Specification Definitions
+
+The JSON specification used to define each type of resource can be found by inspecting the YellowDog Platform REST API documentation at https://docs.yellowdog.co/api.
+
+For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API call for adding a new Compute Source template: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeSourceTemplate. This will display an **Example Value**, and an adjacent tab will show the **Schema**.
+
+When using the `yd-create` and `yd-remove` commands, note that an additional property `resource` must be supplied, to identify the type of resource being specified.
+
+To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
+
+```shell
+yd-list --keyrings --details
+yd-list --source-templates --details
+yd-list --compute-templates --details
+yd-list --image-families --details
+```
+
+Below, we'll discuss each item type with example specifications.
 
 ## Keyrings
+
+The Keyring example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Account%20API#/Keyring/createKeyring.
 
 An example Keyring specification is shown below:
 
@@ -2069,7 +2090,7 @@ or to specify two Keyrings at once:
 ]
 ```
 
-When a new Keyring is created, a **system-generated password** is returned as a one-off response. For security reasons this password is not displayed, but this behaviour can be overridden using the `--show-keyring-passwords` command line option, e.g.:
+When a new Keyring is created, a **system-generated password** is returned as a once-only response. For security reasons this password is not displayed, but this behaviour can be changed using the `--show-keyring-passwords` command line option, e.g.:
 
 ```shell
 % yd-create --quiet --show-keyring-passwords keyring.json
@@ -2080,94 +2101,10 @@ Note that Keyrings cannot be updated; they must instead be removed and recreated
 
 ## Credentials
 
-Credentials types for each of the supported cloud providers can be added to specific Keyrings using the following resource specification schemas (shown here as a list of Credential resource specifications):
+The Credential example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Account%20API#/Keyring/putCredential.
 
-```json
-[
-  {
-    "resource": "Credential",
-    "keyringName": "my-keyring-1",
-    "credential": {
-      "type": "co.yellowdog.platform.account.credentials.AlibabaCredential",
-      "name": "<insert-value-here>",
-      "description": "<insert-value-here>",
-      "accessKeyId": "<insert-value-here>",
-      "secretAccessKey": "<insert-value-here>"
-    }
-  },
-  {
-    "resource": "Credential",
-    "keyringName": "my-keyring-1",
-    "credential": {
-      "type": "co.yellowdog.platform.account.credentials.AwsCredential",
-      "name": "<insert-value-here>",
-      "description": "<insert-value-here>",
-      "accessKeyId": "<insert-value-here>",
-      "secretAccessKey": "<insert-value-here>"
-    }
-  },
-  {
-    "resource": "Credential",
-    "keyringName": "my-keyring-1",
-    "credential": {
-      "type": "co.yellowdog.platform.account.credentials.AzureClientCredential",
-      "name": "<insert-value-here>",
-      "description": "<insert-value-here>",
-      "clientId": "<insert-value-here>",
-      "tenantId": "<insert-value-here>",
-      "subscriptionId": "<insert-value-here>",
-      "key": "<insert-value-here>"
-    }
-  },
-  {
-    "resource": "Credential",
-    "keyringName": "my-keyring-1",
-    "credential": {
-      "type": "co.yellowdog.platform.account.credentials.AzureInstanceCredential",
-      "name": "<insert-value-here>",
-      "description": "<insert-value-here>",
-      "adminUsername": "<insert-value-here>",
-      "adminPassword": "<insert-value-here>"
-    }
-  },
-  {
-    "resource": "Credential",
-    "keyringName": "my-keyring-1",
-    "credential": {
-      "type": "co.yellowdog.platform.account.credentials.AzureStorageCredential",
-      "name": "<insert-value-here>",
-      "description": "<insert-value-here>",
-      "accountName": "<insert-value-here>",
-      "accountKey": "<insert-value-here>"
-    }
-  },
-  {
-    "resource": "Credential",
-    "keyringName": "my-keyring-1",
-    "credential": {
-      "type": "co.yellowdog.platform.account.credentials.GoogleCloudCredential",
-      "name": "<insert-value-here>",
-      "description": "<insert-value-here>",
-      "serviceAccountKeyJson": "<insert-value-here>"
-    }
-  },
-  {
-    "resource": "Credential",
-    "keyringName": "my-keyring-1",
-    "credential": {
-      "type": "co.yellowdog.platform.account.credentials.OciCredential",
-      "name": "<insert-value-here>",
-      "description": "<insert-value-here>",
-      "userId": "<insert-value-here>",
-      "tenantId": "<insert-value-here>",
-      "fingerprint": "<insert-value-here>",
-      "privateKey": "<insert-value-here>",
-      "passphrase": "<insert-value-here>"
-    }
-  }
-]
-```
-The chosen resource specification(s) need each `<insert-value-here>` property to be populated, with the other properties remaining unchanged. For example, to add a single AWS credential to a Keyring, the following resource specification might be used:
+For example, to add a single AWS credential to a Keyring, the following resource specification might be used:
+
 ```json
 {
   "resource": "Credential",
@@ -2183,10 +2120,173 @@ The chosen resource specification(s) need each `<insert-value-here>` property to
 ```
 To **update** a Credential, make the modifications to the resource specification and run `yd-create` again, and to remove a credential, run `yd-remove`.
 
-## Compute Sources
+## Compute Source Templates
 
-The Compute Source schemas for the various types of Compute Sources are shown below:
+The Compute Source Template example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeSourceTemplate.
+
+An example Compute Source resource specification is found below:
 
 ```json
+{
+  "resource": "ComputeSourceTemplate",
+  "namespace": null,
+  "description": "one",
+  "attributes": [],
+  "source": {
+    "type": "co.yellowdog.platform.model.AwsInstancesComputeSource",
+    "provider": "AWS",
+    "id": null,
+    "createdFromId": null,
+    "name": "my-compute-source-template",
+    "credential": "my-keyring/my-aws-credential",
+    "region": "eu-west-1",
+    "availabilityZone": null,
+    "securityGroupId": "sg-07bcbfb052873888",
+    "instanceType": "*",
+    "imageId": "*",
+    "limit": 0,
+    "specifyMinimum": false,
+    "assignPublicIp": true,
+    "createClusterPlacementGroup": null,
+    "createElasticFabricAdapter": null,
+    "enableDetailedMonitoring": null,
+    "keyName": null,
+    "iamRoleArn": null,
+    "subnetId": "subnet-0d241e541249e9fdc",
+    "userData": null,
+    "instanceTags": {"environment": "demo-prod"}
+  }
+}
+```
 
+## Compute Requirement Templates
+
+The Compute Requirement Template example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeRequirementTemplate.
+
+An example Compute Requirement resource specification is found below, for a **static** tempate:
+
+```json
+{
+  "resource": "ComputeRequirementTemplate",
+  "imagesId": "ami-097767a3a3e071555",
+  "instanceTags": {},
+  "name": "my-static-compute-template",
+  "sources": [
+    {"instanceType": "t3a.small", "sourceTemplateId": "ydid:cst:D9C548:d41c36a7-0630-4fa2-87e7-4e20bf472bcd"},
+    {"instanceType": "t3a.medium", "sourceTemplateId": "ydid:cst:D9C548:d41c36a7-0630-4fa2-87e7-4e20bf472bcd"}
+  ],
+  "strategyType": "co.yellowdog.platform.model.WaterfallProvisionStrategy",
+  "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate"
+}
+```
+
+A **dynamic** template example is:
+
+```json
+{
+  "resource": "ComputeRequirementTemplate",
+  "constraints": [
+    {
+      "anyOf": ["AWS"],
+      "attribute": "source.provider",
+      "type": "co.yellowdog.platform.model.StringAttributeConstraint"
+    },
+    {"attribute": "yd.cost", "max": 0.05, "min": 0, "type": "co.yellowdog.platform.model.NumericAttributeConstraint"},
+    {
+      "anyOf": ["UK", "Ireland"],
+      "attribute": "yd.country",
+      "type": "co.yellowdog.platform.model.StringAttributeConstraint"
+    },
+    {"attribute": "yd.ram", "max": 4096, "min": 2, "type": "co.yellowdog.platform.model.NumericAttributeConstraint"}
+  ],
+  "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
+  "instanceTags": {},
+  "maximumSourceCount": 10,
+  "minimumSourceCount": 1,
+  "name": "my-dynamic-compute-template",
+  "preferences": [
+    {
+      "attribute": "yd.cpu",
+      "rankOrder": "PREFER_HIGHER",
+      "type": "co.yellowdog.platform.model.NumericAttributePreference",
+      "weight": 3
+    },
+    {
+      "attribute": "yd.ram",
+      "rankOrder": "PREFER_HIGHER",
+      "type": "co.yellowdog.platform.model.NumericAttributePreference",
+      "weight": 2
+    },
+    {
+      "attribute": "yd.cpu-type",
+      "preferredValues": ["AMD"],
+      "type": "co.yellowdog.platform.model.StringAttributePreference",
+      "weight": 1
+    }
+  ],
+  "sourceTraits": {},
+  "strategyType": "co.yellowdog.platform.model.SplitProvisionStrategy",
+  "type": "co.yellowdog.platform.model.ComputeRequirementDynamicTemplate"
+}
+```
+
+## Image Families
+
+The Image Family example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Images%20API#/Images/addImageFamily.
+
+An example specification, illustrating a containment hierarchy of Image Family -> Image Group -> Image, is shown below:
+
+```json
+{
+  "resource": "MachineImageFamily",
+  "access": "PRIVATE",
+  "imageGroups": [
+    {
+      "images": [
+        {
+          "metadata": {},
+          "name": "win-2022-yd-agent-5_0_16",
+          "osType": "WINDOWS",
+          "provider": "AWS",
+          "providerImageId": "ami-0cb09e7f49c1eb021",
+          "regions": ["eu-west-1"],
+          "supportedInstanceTypes": []
+        },
+        {
+          "metadata": {},
+          "name": "win-2022-yd-agent-5_0_16",
+          "osType": "WINDOWS",
+          "provider": "AWS",
+          "providerImageId": "ami-0cb09e7f49c1eb022",
+          "regions": ["eu-west-2"],
+          "supportedInstanceTypes": []
+        }
+      ],
+      "metadataSpecification": {},
+      "name": "v5_0_16",
+      "osType": "WINDOWS"
+    }
+  ],
+  "metadataSpecification": {},
+  "name": "my-windows-image-family",
+  "namespace": "my-namespace",
+  "osType": "WINDOWS"
+}
+```
+
+## Namespace Storage Configurations
+
+The Namespace Storage Configuration example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Object%20Store%20API#/Object%20Store/putNamespaceStorageConfiguration.
+
+Example:
+
+```json
+{
+  "resource": "NamespaceStorageConfiguration",
+  "type": "co.yellowdog.platform.model.S3NamespaceStorageConfiguration",
+  "namespace": "my-s3-namespace",
+  "bucketName": "com.my-company.test.my-yd-objects",
+  "region": "eu-west-2",
+  "credential": "my-keyring/my-aws-credential"
+}
 ```
