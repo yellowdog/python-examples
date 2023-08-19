@@ -2276,6 +2276,8 @@ An example specification, illustrating a containment hierarchy of Image Family -
 }
 ```
 
+Note that if the name of an Image Group or an Image is changed in the resource specification, the existing resource with the previous name will be removed from the Platform because it's no longer present in the resource specification. To prevent this, retain the previous resource in your specification, and add resources as required. 
+
 ## Namespace Storage Configurations
 
 The Namespace Storage Configuration example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Object%20Store%20API#/Object%20Store/putNamespaceStorageConfiguration.

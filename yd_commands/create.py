@@ -269,6 +269,17 @@ def create_image_family(resource):
 
     # This is an update, so Image Groups have been ignored
     image_groups: List[MachineImageGroup] = image_family.imageGroups
+
+    # Delete Image Groups that have been removed from
+    # the new resource specification
+    updated_image_group_names = [image_group["name"] for image_group in image_groups]
+    for existing_image_group in existing_image_family.imageGroups:
+        if existing_image_group.name not in updated_image_group_names:
+            if confirmed(f"Remove existing Image Group '{existing_image_group.name}'?"):
+                CLIENT.images_client.delete_image_group(existing_image_group)
+                print_log(f"Deleted Image Group '{existing_image_group.name}'")
+
+    # Update Image Groups
     for image_group in image_groups:
         # Ensure well-formed MachineImageGroup object
         image_group = get_model_object("MachineImageGroup", image_group)
@@ -314,6 +325,17 @@ def _create_image_group(
 
     # This is an update, so Images have been ignored
     images: List[MachineImage] = image_group.images
+
+    # Delete Images that have been removed from
+    # the new resource specification
+    updated_image_names = [image["name"] for image in images]
+    for existing_image in existing_image_group.images:
+        if existing_image.name not in updated_image_names:
+            if confirmed(f"Remove existing Image '{existing_image.name}'?"):
+                CLIENT.images_client.delete_image(existing_image)
+                print_log(f"Deleted Image '{existing_image.name}'")
+
+    # Update Images
     for image in images:
         # Ensure well-formed MachineImage object
         image = get_model_object("MachineImage", image)
