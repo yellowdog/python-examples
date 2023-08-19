@@ -46,7 +46,6 @@ from yd_commands.object_utilities import (
     get_task_groups_from_wr_summary,
 )
 from yd_commands.printing import (
-    JSON_INDENT,
     indent,
     print_error,
     print_log,
@@ -335,18 +334,11 @@ def list_compute_templates():
         "Please select Compute Requirement Template(s) for which to obtain details"
     )
     cr_templates = select(CLIENT, cr_templates)
-    print("[")  # Open JSON list
-    for index, cr_template in enumerate(cr_templates):
+    for cr_template in cr_templates:
         cr_template_detail: ComputeRequirementTemplate = (
             CLIENT.compute_client.get_compute_requirement_template(cr_template.id)
         )
-        print_yd_object(
-            cr_template_detail,
-            initial_indent=JSON_INDENT,
-            with_final_comma=False if index + 1 == len(cr_templates) else True,
-            add_fields={"resource": "ComputeRequirementTemplate"},
-        )
-    print("]")  # Close JSON list
+        print_yd_object(cr_template_detail)
 
 
 def list_source_templates():
@@ -512,7 +504,7 @@ def list_namespaces():
     print(indent(tabulate(rows, headings)))
     print()
 
-    if ARGS_PARSER.details:
+    if ARGS_PARSER.details:  # Print the details for non-default only
         for namespace in select(CLIENT, namespaces_config):
             print_yd_object(namespace)
 
