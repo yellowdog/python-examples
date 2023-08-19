@@ -7,7 +7,7 @@ Command to list YellowDog entities.
 from dataclasses import asdict, fields
 from typing import Dict, List
 
-from requests import HTTPError, get
+from requests import get
 from tabulate import tabulate
 from yellowdog_client.common import SearchClient
 from yellowdog_client.common.json import NestedDeserializationError
@@ -222,48 +222,34 @@ def list_object_paths():
 
 
 def list_worker_pools():
-    print_log(
-        "Listing Provisioned Worker Pools with Compute Requirements in "
-        f"namespace '{CONFIG_COMMON.namespace}' and "
-        f"tags starting with '{CONFIG_COMMON.name_tag}'"
-    )
     worker_pool_summaries: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()
     )
-
-    selected_worker_pool_summaries: List[WorkerPoolSummary] = []
     excluded_states = (
         [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
         if ARGS_PARSER.live_only
         else []
     )
-    for worker_pool_summary in worker_pool_summaries:
-        if (
-            "ProvisionedWorkerPool" in worker_pool_summary.type
-            and not worker_pool_summary.status in excluded_states
+    if ARGS_PARSER.live_only:
+        print_log("Displaying active Worker Pools only")
+    worker_pool_summaries = [
+        wp_summary
+        for wp_summary in worker_pool_summaries
+        if wp_summary.status not in excluded_states
+    ]
+    if len(worker_pool_summaries) == 0:
+        print_log("No Worker Pools to display")
+        return
+    if ARGS_PARSER.details:
+        for worker_pool_summary in select(
+            CLIENT, sorted_objects(worker_pool_summaries)
         ):
             worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
                 worker_pool_summary.id
             )
-            try:
-                compute_requirement: ComputeRequirement = (
-                    CLIENT.compute_client.get_compute_requirement_by_id(
-                        worker_pool.computeRequirementId
-                    )
-                )
-            except HTTPError:
-                continue
-            if compute_requirement.tag is not None:
-                if (
-                    compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
-                    and compute_requirement.namespace == CONFIG_COMMON.namespace
-                ):
-                    selected_worker_pool_summaries.append(worker_pool_summary)
-            else:
-                selected_worker_pool_summaries.append(worker_pool_summary)
-
-    selected_worker_pool_summaries = sorted_objects(selected_worker_pool_summaries)
-    print_numbered_object_list(CLIENT, selected_worker_pool_summaries)
+            print_yd_object(worker_pool)
+    else:
+        print_numbered_object_list(CLIENT, sorted_objects(worker_pool_summaries))
 
 
 def list_compute_requirements():

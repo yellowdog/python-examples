@@ -213,7 +213,8 @@ def worker_pool_table(
 ) -> (List[str], List[List]):
     headers = [
         "#",
-        "Provisioned Worker Pool Name",
+        "Worker Pool Name",
+        "Type",
         "Status",
         "Running",
         "Min",
@@ -247,8 +248,8 @@ def worker_pool_table(
             [
                 index + 1,
                 worker_pool_summary.name,
+                f"{worker_pool_summary.type.split('.')[-1:][0]}",
                 f"{worker_pool_summary.status}",
-                # f"[{worker_pool_summary.type.split('.')[-1:][0]}]",
                 f"{nodes_running}",
                 f"{min_nodes}",
                 f"{max_nodes}",

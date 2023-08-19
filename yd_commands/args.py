@@ -329,9 +329,9 @@ class CLIParser:
                 required=False,
                 help=(
                     "select objects from the list of matches and show their details"
-                    " (for Objects, Compute Requirement Templates, Compute Source"
-                    " Templates, Keyrings, Machine Image Families, Namespace Storage"
-                    " Configurations)"
+                    " (for Objects, Worker Pools, Compute Requirement Templates,"
+                    " Compute Source Templates, Keyrings, Machine Image Families,"
+                    " Namespace Storage Configurations)"
                 ),
             )
             parser.add_argument(
@@ -374,7 +374,7 @@ class CLIParser:
                 "-l",
                 action="store_true",
                 required=False,
-                help="list only running requirements/pools",
+                help="list only active Compute Requirements/Worker Pools",
             )
             parser.add_argument(
                 "--compute-templates",
