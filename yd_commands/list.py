@@ -377,26 +377,18 @@ def list_source_templates():
 
     print_log("Please select Compute Source Template(s) for which to obtain details")
     cs_templates = select(CLIENT, sorted_objects(cs_templates))
-    print("[")  # Open JSON list
     deserialisation_failures = []  # Temporary bug workaround
-    for index, cs_template in enumerate(cs_templates):
+    for cs_template in cs_templates:
         try:
             cs_template_detail: ComputeSourceTemplate = (
                 CLIENT.compute_client.get_compute_source_template(cs_template.id)
             )
+            print_yd_object(cs_template_detail)
         except NestedDeserializationError:
             deserialisation_failures.append(
                 f"    Source '{cs_template.name}' ({cs_template.id})"
             )
-            continue
 
-        print_yd_object(
-            cs_template_detail,
-            initial_indent=JSON_INDENT,
-            with_final_comma=False if index + 1 == len(cs_templates) else True,
-            add_fields={"resource": "ComputeSourceTemplate"},
-        )
-    print("]")  # Close JSON list
     if len(deserialisation_failures) > 0:
         print_error(
             "Failed to deserialise the following Source Templates due to the presence"
