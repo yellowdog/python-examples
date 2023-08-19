@@ -86,6 +86,7 @@
    * [Compute Requirement Templates](#compute-requirement-templates)
    * [Image Families](#image-families)
    * [Namespace Storage Configurations](#namespace-storage-configurations)
+   * [Configured Worker Pools](#configured-worker-pools)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -103,7 +104,7 @@
    * [yd-create](#yd-create)
    * [yd-remove](#yd-remove)
 
-<!-- Added by: pwt, at: Sat Aug 19 17:11:17 BST 2023 -->
+<!-- Added by: pwt, at: Sat Aug 19 17:31:55 BST 2023 -->
 
 <!--te-->
 
@@ -132,7 +133,7 @@ The scripts provide the following capabilities:
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Listing** YellowDog items using the **`yd-list`** command
 - **Resizing** Worker Pools and Compute Requirements
-- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, and Image Families
+- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, and Configured Worker Pools
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -1828,6 +1829,7 @@ The commands **yd-create** and **yd-remove** allow the creation, update, and rem
 - Compute Templates
 - Image Families, Image Groups and Images
 - Namespace Storage Configurations
+- Configured Worker Pools
 
 ## Overview of Operation
 
@@ -2099,6 +2101,36 @@ Example:
   "bucketName": "com.my-company.test.my-yd-objects",
   "region": "eu-west-2",
   "credential": "my-keyring/my-aws-credential"
+}
+```
+
+## Configured Worker Pools
+
+The Configured Worker Pool example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Scheduler%20API#/Worker%20Pools/addConfiguredWorkerPool.
+
+Example:
+
+```json
+{
+  "resource": "ConfiguredWorkerPool",
+  "name": "my-configured-pool-pwt",
+  "properties": {
+    "nodeConfiguration": {
+      "nodeTypes": [
+        {
+          "name": "example",
+          "count": 0,
+          "min": 0,
+          "sourceNames": ["example"],
+          "slotNumbering": "REUSABLE"
+        }
+      ],
+      "nodeEvents": {
+        "STARTUP_NODES_ADDED": []
+      },
+      "targetNodeCount": 0
+    }
+  }
 }
 ```
 
