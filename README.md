@@ -134,6 +134,7 @@ The command scripts provide the following capabilities:
 - **Listing** YellowDog items using the **`yd-list`** command
 - **Resizing** Worker Pools and Compute Requirements
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, and Configured Worker Pools
+- **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements
 
 The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -2346,3 +2347,15 @@ The `yd-create` command is used to create or update YellowDog resources, specifi
 ## yd-remove
 
 The `yd-remove` command is used to remove YellowDog resources, specified in one or more JSON (or JSonnet) files supplied on the command line. Each file can contain one or more resources.
+
+## yd-follow
+
+The `yd-follow` command is used to follow the event streams for one or more Work Requirements, Worker Pools and Compute Requirements, specified by their YellowDog IDs (`ydids`), e.g.:
+
+```shell
+yd-follow ydid:workreq:D9C548:37d3c0cd-2651-4779-be17-89a8601b03b8 \
+          ydid:wrkrpool:D9C548:c22f0d9a-4a99-460d-ae42-15653ba264c3 \
+          ydid:compreq:D9C548:98879b5a-9192-4a56-ad25-fc1330e49185
+```
+
+The `yd-follow` command will continue to run until manually stopped using `CTRL-C`, unless all the IDs to be followed are in a terminal state.

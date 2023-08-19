@@ -587,7 +587,7 @@ class CLIParser:
                 "resource_specifications",
                 nargs="+",
                 default=[],
-                metavar="<resource_specification>",
+                metavar="<resource-specification>",
                 type=str,
                 help=(
                     "the resource specifications to process (or resource IDs if used"
@@ -615,6 +615,16 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="remove resources using their YellowDog IDs (ydids)",
+            )
+
+        if "follow" in sys.argv[0]:
+            parser.add_argument(
+                "yellowdog_ids",
+                nargs="+",
+                default=[],
+                metavar="<yellowdog-id>",
+                type=str,
+                help="the YellowDog ID(s) of the item(s) to follow",
             )
 
         self.args = parser.parse_args()
@@ -890,6 +900,10 @@ class CLIParser:
     def resource_specifications(self) -> List[str]:
         return self.args.resource_specifications
 
+    @property
+    def yellowdog_ids(self) -> List[str]:
+        return self.args.yellowdog_ids
+
 
 def lookup_module_description(module_name: str) -> Optional[str]:
     """
@@ -926,6 +940,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "removing resources"
     elif "resize" in module_name:
         suffix = "resizing Worker Pools"
+    elif "follow" in module_name:
+        suffix = "following event streams"
 
     return None if suffix is None else prefix + suffix
 

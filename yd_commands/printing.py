@@ -89,12 +89,16 @@ CONSOLE_JSON = Console(highlighter=JSONHighlighter())
 TABLE_OUTPUT_STYLE = "bold green"
 
 
-def print_string(msg: str = "") -> str:
+def print_string(msg: str = "", no_fill: bool = False) -> str:
     """
     Message output format, with tidy line-wrapping calibrated
     for the terminal width.
     """
     prefix = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " : "
+
+    if no_fill:
+        return prefix + msg
+
     return fill(
         msg,
         width=LOG_WIDTH,
@@ -110,6 +114,7 @@ def print_log(
     log_message: str,
     override_quiet: bool = False,
     flush: bool = True,
+    no_fill: bool = False,
 ):
     """
     Placeholder for logging.
@@ -118,7 +123,7 @@ def print_log(
     if ARGS_PARSER.quiet and override_quiet is False:
         return
 
-    CONSOLE.print(print_string(log_message))
+    CONSOLE.print(print_string(log_message, no_fill=no_fill))
 
 
 ErrorObject = TypeVar(

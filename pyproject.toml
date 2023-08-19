@@ -36,6 +36,7 @@
     yd-create = "yd_commands.create:main"
     yd-delete = "yd_commands.delete:main"
     yd-download = "yd_commands.download:main"
+    yd-follow = "yd_commands.follow:main"
     yd-instantiate = "yd_commands.instantiate:main"
     yd-jsonnet2json = "yd_commands.jsonnet2json:main"
     yd-list = "yd_commands.list:main"
