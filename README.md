@@ -2139,9 +2139,6 @@ An example Compute Source resource specification is found below:
   "attributes": [],
   "source": {
     "type": "co.yellowdog.platform.model.AwsInstancesComputeSource",
-    "provider": "AWS",
-    "id": null,
-    "createdFromId": null,
     "name": "my-compute-source-template",
     "credential": "my-keyring/my-aws-credential",
     "region": "eu-west-1",

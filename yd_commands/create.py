@@ -76,12 +76,6 @@ def create_compute_source(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    # Discard invalid keyword arguments (not sure if this
-    # is the exhaustive list)
-    source.pop("provider", None)
-    source.pop("createdFromId", None)
-    source.pop("id", None)
-
     # Create the matching Compute Source type
     compute_source = get_model_class(source_type)(**source)
 
