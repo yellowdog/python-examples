@@ -400,7 +400,8 @@ def list_source_templates():
     if len(deserialisation_failures) > 0:
         print_error(
             "Failed to deserialise the following Source Templates due to the presence"
-            " of User Attributes. This is a temporary issue awaiting an SDK bugfix."
+            " of User Attributes. This is a temporary issue awaiting an SDK bugfix"
+            " (YEL-12005)."
         )
         for failure in deserialisation_failures:
             print_error(failure)
