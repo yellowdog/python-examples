@@ -73,6 +73,19 @@
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
    * [Checking Jsonnet Processing](#checking-jsonnet-processing)
    * [Jsonnet Example](#jsonnet-example)
+* [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
+   * [Overview of Operation](#overview-of-operation)
+      * [Resource Creation](#resource-creation)
+      * [Resource Update](#resource-update)
+      * [Resource Removal](#resource-removal)
+      * [Resource Matching](#resource-matching)
+   * [Resource Specification Definitions](#resource-specification-definitions)
+   * [Keyrings](#keyrings)
+   * [Credentials](#credentials)
+   * [Compute Source Templates](#compute-source-templates)
+   * [Compute Requirement Templates](#compute-requirement-templates)
+   * [Image Families](#image-families)
+   * [Namespace Storage Configurations](#namespace-storage-configurations)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -87,21 +100,10 @@
    * [yd-terminate](#yd-terminate)
    * [yd-list](#yd-list)
    * [yd-resize](#yd-resize)
-* [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
-   * [Overview of Operation](#overview-of-operation)
-      * [Resource Creation](#resource-creation)
-      * [Resource Update](#resource-update)
-      * [Resource Removal](#resource-removal)
-      * [Resource Matching](#resource-matching)
-   * [Resource Specification Definitions](#resource-specification-definitions)
-   * [Keyrings](#keyrings)
-   * [Credentials](#credentials)
-   * [Compute Source Templates](#compute-source-templates)
-   * [Compute Requirement Templates](#compute-requirement-templates)
-   * [Image Families](#image-families)
-   * [Namespace Storage Configurations](#namespace-storage-configurations)
+   * [yd-create](#yd-create)
+   * [yd-remove](#yd-remove)
 
-<!-- Added by: pwt, at: Fri Aug 18 11:41:38 BST 2023 -->
+<!-- Added by: pwt, at: Sat Aug 19 17:11:17 BST 2023 -->
 
 <!--te-->
 
@@ -1814,212 +1816,17 @@ When this is inspected using the `dry-run` option (`yd-submit -Dq -r my_work_req
 }
 ```
 
-# Command List
-
-Help is available for all commands by invoking a command with the `--help` or `-h` option. Some command line parameters are common to all commands, while others are command-specific.
-
-All destructive commands require user confirmation before taking effect. This can be suppressed using the `--yes` or `-y` option, in which case the command will proceed without confirmation.
-
-Some commands support the `--interactive` or `-i` option, allowing user selections to be made. E.g., this can be used to select which object paths to delete.
-
-The `--quiet` or `-q` option reduces the command output down to essential messages only. So, for example, `yd-delete -yq` would delete all matching object paths silently.
-
-If you encounter an error it can be useful for support purposes to see the full Python stack trace. This can be enabled by running the command using the `--debug` option.
-
-## yd-submit
-
-The `yd-submit` command submits a new Work Requirement, according to the Work Requirement definition found in the `workRequirement` section of the TOML configuration file and/or the specification found in a Work Requirement JSON document supplied using the `--work-requirement` option.
-
-Use the `--dry-run` option to inspect the details of the Work Requirement, Task Groups, and Tasks that will be submitted, in JSON format.
-
-Once submitted, the Work Requirement will appear in the **Work** tab in the YellowDog Portal.
-
-The Work Requirement's progress can be tracked to completion by using the `--follow` (or `-f`) option when invoking `yd-submit`: the command will report on Tasks as they conclude and won't return until the Work Requirement has finished.
-
-## yd-provision
-
-The `yd-provision` command provisions a new Worker Pool according to the specifications in the `workerPool` section of the TOML configuration file and/or in the specification found in a Worker Pool JSON document supplied using the `--worker-pool` option.
-
-Use the `--dry-run` option to inspect the details of the Worker Pool specification that will be submitted, in JSON format.
-
-Once provisioned, the Worker Pool will appear in the **Workers** tab in the YellowDog Portal, and its associated Compute Requirement will appear in the **Compute** tab.
-
-## yd-cancel
-
-The `yd-cancel` command cancels any active Work Requirements, including any pending Task Groups and the Tasks they contain. 
-
-The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to cancel.
-
-By default, any Tasks that are currently running on Workers will continue to run to completion or until they fail. Tasks can be instructed to abort immediately by supplying the `--abort` or `-a` option to `yd-cancel`.
-
-## yd-abort
-
-The `yd-abort` command is used to abort Tasks that are currently running. The user interactively selects the Work Requirements to target, and then which Tasks within those Work Requirements to abort. The Work Requirements are not cancelled as part of this process.
-
-The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to list for selection.
-
-## yd-download
-
-The `yd-download` command downloads objects from the YellowDog Object Store.
-
-The `namespace` and `tag` values are used to determine which objects to download. To download a specific object or directory, specify it using the `--tag` option, e.g.:
-
-```shell
-yd-download --tag "path/to/my/object"
-```
-
-Use the `--all` (`-a`) option to list the full directory/object structure and all objects.
-
-Objects will be downloaded to a directory with the same name as `namespace`. Alternatively, a local download directory can be specified with the `--directory` option. Directories will be created if they don't already exist. Files that are downloaded will overwrite existing local files **without warning**.
-
-## yd-delete
-
-The `yd-delete` command deletes any objects created in the YellowDog Object Store.
-
-The `namespace` and `tag` values in the `config.toml` file are used to identify which objects to delete. Note that it's easy to use `yd-delete` to clear the contents of a namespace by using an empty `tag`, as follows:
-
-```shell
-yd-delete -t ""
-```
-
-This can be extended to any other namespace by using the `--namespace`/`-n` option.
-
-To delete a specific directory or object, supply the directory or object name using the `--tag` option, e.g.:
-
-```shell
-yd-delete --tag "path/to/my/directory"
-yd-delete -t "path/to/my/directory/object"
-```
-
-Use the `--all` (`-a`) option to see the list directory/object structure and all objects.
-
-## yd-upload
-
-The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory matching the `tag` property or using the value of the `--prefix` (`--tag`, `-t`) option, e.g.:
-
-```shell
-yd-upload --prefix my_work_requirement file_1 file_2 morefiles/file3
-```
-To suppress the mirroring of the local directory structure within the object store, use the `--flatten-upload-paths` or `-f` option. Note that if this creates multiple uploaded files with the same path in the Object Store folder, files will be overwritten.
-
-Files in directories may be recursively uploaded using the `--recursive` or `-r` option, e.g.:
-
-```shell
-yd-upload --prefix my_work_requirement -r mydir myotherdir myfile
-```
-
-To upload to other namespaces, use the `--namespace`/`-n` option.
-
-To use the **batch** uploader, use the `--batch`/`-b` option. Note that the `--prefix`, `--recursive`, and `--flatten-upload-paths` options are ignored when using batch uploads. Batch uploading only accepts file patterns with wildcards, and these should be quoted to prevent shell expansion. E.g.:
-
-```shell
-yd-upload --batch '*.sh' '*.json'
-```
-
-## yd-shutdown
-
-The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and `tag` found in the configuration file. All remaining work will be cancelled, but currently executing Tasks will be allowed to complete, after which the Compute Requirement will be terminated.
-
-## yd-instantiate
-
-The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool).
-
-This command uses the data from the `workerPool` configuration section (or, synonymously, the `computeRequirement` section), but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
-
-Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename, or by using the `computeRequirementData` property in the `workerPool`/`computeRequirement` section. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
-
-```json
-{
-  "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
-  "instanceTags": {"a1": "one", "a2": "two"},
-  "requirementName": "cr_test_{{datetime}}",
-  "requirementNamespace": "pyexamples",
-  "requirementTag": "pyexamples-test",
-  "templateId": "ydid:crt:000000:230e9a42-97db-4d69-aa91-29ff309951b4",
-  "userData": "#/bin/bash\n#Other stuff...",
-  "targetInstanceCount": 1,
-  "maintainInstanceCount": true
-}
-```
-
-If a Worker Pool is defined in JSON, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
-
-Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above (or with `-p` for Worker Pool specifications).
-
-### Test-Running a Dynamic Template
-
-When a the `templateId` of a Dynamic Requirement is used, the `yd-instantiate` command can be used to report on a test run of the Template, using the `--report` (or `-r`) command line option. This can be used with TOML-defined Compute Requirement specifications, but not those that are JSON-defined.
-
-No instances will be provisioned during the test run.
-
-For example:
-
-```shell
-% yd-instantiate --report --quiet
-┌────┬────────┬────────────┬───────────────────────────┬───────────┬────────────────┬───────────────────┐
-│    │   Rank │ Provider   │ Type                      │ Region    │ InstanceType   │ Source Name       │
-├────┼────────┼────────────┼───────────────────────────┼───────────┼────────────────┼───────────────────┤
-│  1 │      1 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.micro      │ awsspot-eu-west-2 │
-│  2 │      2 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.small      │ awsspot-eu-west-2 │
-│  3 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ c5a.large      │ awsspot-eu-west-2 │
-│  4 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ c6a.large      │ awsspot-eu-west-2 │
-│  5 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.medium     │ awsspot-eu-west-2 │
-│  6 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m5a.large      │ awsspot-eu-west-2 │
-│  7 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m5ad.large     │ awsspot-eu-west-2 │
-│  8 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m6a.large      │ awsspot-eu-west-2 │
-│  9 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.large      │ awsspot-eu-west-2 │
-│ 10 │      5 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ r5a.large      │ awsspot-eu-west-2 │
-└────┴────────┴────────────┴───────────────────────────┴───────────┴────────────────┴───────────────────┘
-```
-
-## yd-terminate
-
-The `yd-terminate` command immediately terminates Compute Requirements that match the `namespace` and `tag` found in the configuration file. Any executing Tasks will be terminated immediately, and the Worker Pool will be shut down.
-
-## yd-list
-
-The `yd-list` command is used to list various YellowDog items, using the `namespace` and `tag` properties to target the scope of what to list:
-
-- Compute Requirements
-- Worker Pools
-- Objects in the Object Store
-- Work Requirements
-- Task Groups
-- Tasks
-- Compute Sources
-- Compute Templates
-- Namespace Storage Configurations
-- Keyrings
-- Image Families
-
-Please use `yd-list --help` to inspect the various options.
-
-In some cases a `--details/-d` option can be supplied to drill down into additional detail on selected resources. For example `yd-list --keyrings --details` allows inspection of the Credentials within the selected Keyrings.
-
-## yd-resize
-
-The `yd-resize` command is used to resize Worker Pools, and also Compute Requirements when used with the `--compute-requirement`/`-C` option. See `yd-resize --help` for more information.
-
-The name or ID of the Worker Pool or Compute Requirement is supplied along with the new target number of Nodes or Instances. Usage examples:
-
-```shell
-yd-resize wp_pyex-slurm-pwt_230711-124356-0d6 10
-yd-resize ydid:wrkrpool:D9C548:1f020696-ae9a-4786-bed2-c31b484b1d4f 10
-yd-resize --compute-requirement cr_pyex-slurm-pwt_230712-110226-04c 5
-yd-resize -C ydid:compreq:D9C548:600bef1f-7ccd-431c-afcc-b56208565aac 5
-```
-
 # Creating, Updating and Removing Resources
 
 This is an **experimental feature**.
 
-The commands **yd-create** and **yd-remove** allow the creation, update and removal of the following YellowDog resources:
+The commands **yd-create** and **yd-remove** allow the creation, update, and removal of the following YellowDog resources:
 
 - Keyrings
 - Credentials
 - Compute Sources
 - Compute Templates
-- Image Families (and their constituent Image Groups and Images)
+- Image Families, Image Groups and Images
 - Namespace Storage Configurations
 
 ## Overview of Operation
@@ -2294,3 +2101,206 @@ Example:
   "credential": "my-keyring/my-aws-credential"
 }
 ```
+
+# Command List
+
+Help is available for all commands by invoking a command with the `--help` or `-h` option. Some command line parameters are common to all commands, while others are command-specific.
+
+All destructive commands require user confirmation before taking effect. This can be suppressed using the `--yes` or `-y` option, in which case the command will proceed without confirmation.
+
+Some commands support the `--interactive` or `-i` option, allowing user selections to be made. E.g., this can be used to select which object paths to delete.
+
+The `--quiet` or `-q` option reduces the command output down to essential messages only. So, for example, `yd-delete -yq` would delete all matching object paths silently.
+
+If you encounter an error it can be useful for support purposes to see the full Python stack trace. This can be enabled by running the command using the `--debug` option.
+
+## yd-submit
+
+The `yd-submit` command submits a new Work Requirement, according to the Work Requirement definition found in the `workRequirement` section of the TOML configuration file and/or the specification found in a Work Requirement JSON document supplied using the `--work-requirement` option.
+
+Use the `--dry-run` option to inspect the details of the Work Requirement, Task Groups, and Tasks that will be submitted, in JSON format.
+
+Once submitted, the Work Requirement will appear in the **Work** tab in the YellowDog Portal.
+
+The Work Requirement's progress can be tracked to completion by using the `--follow` (or `-f`) option when invoking `yd-submit`: the command will report on Tasks as they conclude and won't return until the Work Requirement has finished.
+
+## yd-provision
+
+The `yd-provision` command provisions a new Worker Pool according to the specifications in the `workerPool` section of the TOML configuration file and/or in the specification found in a Worker Pool JSON document supplied using the `--worker-pool` option.
+
+Use the `--dry-run` option to inspect the details of the Worker Pool specification that will be submitted, in JSON format.
+
+Once provisioned, the Worker Pool will appear in the **Workers** tab in the YellowDog Portal, and its associated Compute Requirement will appear in the **Compute** tab.
+
+## yd-cancel
+
+The `yd-cancel` command cancels any active Work Requirements, including any pending Task Groups and the Tasks they contain. 
+
+The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to cancel.
+
+By default, any Tasks that are currently running on Workers will continue to run to completion or until they fail. Tasks can be instructed to abort immediately by supplying the `--abort` or `-a` option to `yd-cancel`.
+
+## yd-abort
+
+The `yd-abort` command is used to abort Tasks that are currently running. The user interactively selects the Work Requirements to target, and then which Tasks within those Work Requirements to abort. The Work Requirements are not cancelled as part of this process.
+
+The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to list for selection.
+
+## yd-download
+
+The `yd-download` command downloads objects from the YellowDog Object Store.
+
+The `namespace` and `tag` values are used to determine which objects to download. To download a specific object or directory, specify it using the `--tag` option, e.g.:
+
+```shell
+yd-download --tag "path/to/my/object"
+```
+
+Use the `--all` (`-a`) option to list the full directory/object structure and all objects.
+
+Objects will be downloaded to a directory with the same name as `namespace`. Alternatively, a local download directory can be specified with the `--directory` option. Directories will be created if they don't already exist. Files that are downloaded will overwrite existing local files **without warning**.
+
+## yd-delete
+
+The `yd-delete` command deletes any objects created in the YellowDog Object Store.
+
+The `namespace` and `tag` values in the `config.toml` file are used to identify which objects to delete. Note that it's easy to use `yd-delete` to clear the contents of a namespace by using an empty `tag`, as follows:
+
+```shell
+yd-delete -t ""
+```
+
+This can be extended to any other namespace by using the `--namespace`/`-n` option.
+
+To delete a specific directory or object, supply the directory or object name using the `--tag` option, e.g.:
+
+```shell
+yd-delete --tag "path/to/my/directory"
+yd-delete -t "path/to/my/directory/object"
+```
+
+Use the `--all` (`-a`) option to see the list directory/object structure and all objects.
+
+## yd-upload
+
+The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory matching the `tag` property or using the value of the `--prefix` (`--tag`, `-t`) option, e.g.:
+
+```shell
+yd-upload --prefix my_work_requirement file_1 file_2 morefiles/file3
+```
+To suppress the mirroring of the local directory structure within the object store, use the `--flatten-upload-paths` or `-f` option. Note that if this creates multiple uploaded files with the same path in the Object Store folder, files will be overwritten.
+
+Files in directories may be recursively uploaded using the `--recursive` or `-r` option, e.g.:
+
+```shell
+yd-upload --prefix my_work_requirement -r mydir myotherdir myfile
+```
+
+To upload to other namespaces, use the `--namespace`/`-n` option.
+
+To use the **batch** uploader, use the `--batch`/`-b` option. Note that the `--prefix`, `--recursive`, and `--flatten-upload-paths` options are ignored when using batch uploads. Batch uploading only accepts file patterns with wildcards, and these should be quoted to prevent shell expansion. E.g.:
+
+```shell
+yd-upload --batch '*.sh' '*.json'
+```
+
+## yd-shutdown
+
+The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and `tag` found in the configuration file. All remaining work will be cancelled, but currently executing Tasks will be allowed to complete, after which the Compute Requirement will be terminated.
+
+## yd-instantiate
+
+The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool).
+
+This command uses the data from the `workerPool` configuration section (or, synonymously, the `computeRequirement` section), but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
+
+Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename, or by using the `computeRequirementData` property in the `workerPool`/`computeRequirement` section. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
+
+```json
+{
+  "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
+  "instanceTags": {"a1": "one", "a2": "two"},
+  "requirementName": "cr_test_{{datetime}}",
+  "requirementNamespace": "pyexamples",
+  "requirementTag": "pyexamples-test",
+  "templateId": "ydid:crt:000000:230e9a42-97db-4d69-aa91-29ff309951b4",
+  "userData": "#/bin/bash\n#Other stuff...",
+  "targetInstanceCount": 1,
+  "maintainInstanceCount": true
+}
+```
+
+If a Worker Pool is defined in JSON, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
+
+Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above (or with `-p` for Worker Pool specifications).
+
+### Test-Running a Dynamic Template
+
+When a the `templateId` of a Dynamic Requirement is used, the `yd-instantiate` command can be used to report on a test run of the Template, using the `--report` (or `-r`) command line option. This can be used with TOML-defined Compute Requirement specifications, but not those that are JSON-defined.
+
+No instances will be provisioned during the test run.
+
+For example:
+
+```shell
+% yd-instantiate --report --quiet
+┌────┬────────┬────────────┬───────────────────────────┬───────────┬────────────────┬───────────────────┐
+│    │   Rank │ Provider   │ Type                      │ Region    │ InstanceType   │ Source Name       │
+├────┼────────┼────────────┼───────────────────────────┼───────────┼────────────────┼───────────────────┤
+│  1 │      1 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.micro      │ awsspot-eu-west-2 │
+│  2 │      2 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.small      │ awsspot-eu-west-2 │
+│  3 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ c5a.large      │ awsspot-eu-west-2 │
+│  4 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ c6a.large      │ awsspot-eu-west-2 │
+│  5 │      3 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.medium     │ awsspot-eu-west-2 │
+│  6 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m5a.large      │ awsspot-eu-west-2 │
+│  7 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m5ad.large     │ awsspot-eu-west-2 │
+│  8 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ m6a.large      │ awsspot-eu-west-2 │
+│  9 │      4 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ t3a.large      │ awsspot-eu-west-2 │
+│ 10 │      5 │ AWS        │ AwsInstancesComputeSource │ eu-west-2 │ r5a.large      │ awsspot-eu-west-2 │
+└────┴────────┴────────────┴───────────────────────────┴───────────┴────────────────┴───────────────────┘
+```
+
+## yd-terminate
+
+The `yd-terminate` command immediately terminates Compute Requirements that match the `namespace` and `tag` found in the configuration file. Any executing Tasks will be terminated immediately, and the Worker Pool will be shut down.
+
+## yd-list
+
+The `yd-list` command is used to list various YellowDog items, using the `namespace` and `tag` properties to target the scope of what to list:
+
+- Compute Requirements
+- Worker Pools
+- Objects in the Object Store
+- Work Requirements
+- Task Groups
+- Tasks
+- Compute Sources
+- Compute Templates
+- Namespace Storage Configurations
+- Keyrings
+- Image Families
+
+Please use `yd-list --help` to inspect the various options.
+
+In some cases a `--details/-d` option can be supplied to drill down into additional detail on selected resources. For example `yd-list --keyrings --details` allows inspection of the Credentials within the selected Keyrings.
+
+## yd-resize
+
+The `yd-resize` command is used to resize Worker Pools, and also Compute Requirements when used with the `--compute-requirement`/`-C` option. See `yd-resize --help` for more information.
+
+The name or ID of the Worker Pool or Compute Requirement is supplied along with the new target number of Nodes or Instances. Usage examples:
+
+```shell
+yd-resize wp_pyex-slurm-pwt_230711-124356-0d6 10
+yd-resize ydid:wrkrpool:D9C548:1f020696-ae9a-4786-bed2-c31b484b1d4f 10
+yd-resize --compute-requirement cr_pyex-slurm-pwt_230712-110226-04c 5
+yd-resize -C ydid:compreq:D9C548:600bef1f-7ccd-431c-afcc-b56208565aac 5
+```
+
+## yd-create
+
+The `yd-create` command is used to create or update YellowDog resources, specified in one or more JSON (or JSonnet) files supplied on the command line. Each file can contain one or more resources.
+
+## yd-remove
+
+The `yd-remove` command is used to remove YellowDog resources, specified in one or more JSON (or JSonnet) files supplied on the command line. Each file can contain one or more resources.
