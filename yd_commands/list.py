@@ -5,7 +5,6 @@ Command to list YellowDog entities.
 """
 
 from dataclasses import asdict, fields
-from json import loads
 from typing import Dict, List
 
 from requests import HTTPError, get
@@ -434,7 +433,7 @@ def get_keyring(name: str) -> Keyring:
         headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
     )
     if response.status_code == 200:
-        return Keyring(**loads(response.content))
+        return Keyring(**response.json())
     else:
         raise Exception(f"Failed to get Keyring '{name}' ({response.text})")
 
