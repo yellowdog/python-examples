@@ -1980,12 +1980,12 @@ An example Compute Requirement resource specification is found below, for a **st
   "imagesId": "ami-097767a3a3e071555",
   "instanceTags": {},
   "name": "my-static-compute-template",
+  "strategyType": "co.yellowdog.platform.model.WaterfallProvisionStrategy",
+  "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
   "sources": [
     {"instanceType": "t3a.small", "sourceTemplateId": "ydid:cst:D9C548:d41c36a7-0630-4fa2-87e7-4e20bf472bcd"},
     {"instanceType": "t3a.medium", "sourceTemplateId": "ydid:cst:D9C548:d41c36a7-0630-4fa2-87e7-4e20bf472bcd"}
-  ],
-  "strategyType": "co.yellowdog.platform.model.WaterfallProvisionStrategy",
-  "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate"
+  ]
 }
 ```
 
@@ -1994,6 +1994,14 @@ A **dynamic** template example is:
 ```json
 {
   "resource": "ComputeRequirementTemplate",
+  "sourceTraits": {},
+  "strategyType": "co.yellowdog.platform.model.SplitProvisionStrategy",
+  "type": "co.yellowdog.platform.model.ComputeRequirementDynamicTemplate",
+  "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
+  "instanceTags": {},
+  "maximumSourceCount": 10,
+  "minimumSourceCount": 1,
+  "name": "my-dynamic-compute-template",
   "constraints": [
     {
       "anyOf": ["AWS"],
@@ -2008,11 +2016,6 @@ A **dynamic** template example is:
     },
     {"attribute": "yd.ram", "max": 4096, "min": 2, "type": "co.yellowdog.platform.model.NumericAttributeConstraint"}
   ],
-  "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
-  "instanceTags": {},
-  "maximumSourceCount": 10,
-  "minimumSourceCount": 1,
-  "name": "my-dynamic-compute-template",
   "preferences": [
     {
       "attribute": "yd.cpu",
@@ -2032,10 +2035,7 @@ A **dynamic** template example is:
       "type": "co.yellowdog.platform.model.StringAttributePreference",
       "weight": 1
     }
-  ],
-  "sourceTraits": {},
-  "strategyType": "co.yellowdog.platform.model.SplitProvisionStrategy",
-  "type": "co.yellowdog.platform.model.ComputeRequirementDynamicTemplate"
+  ]
 }
 ```
 
@@ -2049,8 +2049,15 @@ An example specification, illustrating a containment hierarchy of Image Family -
 {
   "resource": "MachineImageFamily",
   "access": "PRIVATE",
+  "metadataSpecification": {},
+  "name": "my-windows-image-family",
+  "namespace": "my-namespace",
+  "osType": "WINDOWS",
   "imageGroups": [
     {
+      "metadataSpecification": {},
+      "name": "v5_0_16",
+      "osType": "WINDOWS",
       "images": [
         {
           "metadata": {},
@@ -2070,16 +2077,9 @@ An example specification, illustrating a containment hierarchy of Image Family -
           "regions": ["eu-west-2"],
           "supportedInstanceTypes": []
         }
-      ],
-      "metadataSpecification": {},
-      "name": "v5_0_16",
-      "osType": "WINDOWS"
+      ]
     }
-  ],
-  "metadataSpecification": {},
-  "name": "my-windows-image-family",
-  "namespace": "my-namespace",
-  "osType": "WINDOWS"
+  ]
 }
 ```
 
