@@ -10,7 +10,6 @@ import yellowdog_client.model as model
 from requests import post
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
-    AddConfiguredWorkerPoolRequest,
     AddConfiguredWorkerPoolResponse,
     CloudProvider,
     ImageOsType,
@@ -76,12 +75,12 @@ def create_compute_source(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    # Create the matching Compute Source type
-    compute_source = get_model_class(source_type)(**source)
+    # Create the Compute Source
+    compute_source = get_model_object(source_type, source)
 
-    # Create the ComputeSourceTemplate
-    compute_source_template = model.ComputeSourceTemplate(
-        **resource, source=compute_source
+    # Create the Compute Source Template
+    compute_source_template = get_model_object(
+        "ComputeSourceTemplate", resource, source=compute_source
     )
 
     # Check for an existing ID
@@ -120,10 +119,7 @@ def create_cr_template(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    # Discard invalid properties
-    resource.pop("id", None)
-
-    compute_template = get_model_class(type)(**resource)
+    compute_template = get_model_object(type, resource)
 
     # Check for an existing ID
     template_id = find_compute_template_id_by_name(CLIENT, name)
@@ -216,7 +212,7 @@ def create_credential(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    credential = get_model_class(credential_type)(**credential_data)
+    credential = get_model_object(credential_type, credential_data)
     try:
         CLIENT.keyring_client.put_credential_by_name(keyring_name, credential)
         print_log(f"Added Credential '{name}' to Keyring '{keyring_name}'")
@@ -241,7 +237,7 @@ def create_image_family(resource):
         raise Exception(f"Expected property to be defined ({e})")
 
     # Start by updating the outer Image Family
-    image_family = MachineImageFamily(osType=os_type, **resource)
+    image_family = get_model_object("MachineImageFamily", resource, osType=os_type)
 
     # Check for existing Image Family
     try:
@@ -275,7 +271,7 @@ def create_image_family(resource):
     image_groups: List[MachineImageGroup] = image_family.imageGroups
     for image_group in image_groups:
         # Ensure well-formed MachineImageGroup object
-        image_group = MachineImageGroup(**image_group)
+        image_group = get_model_object("MachineImageGroup", image_group)
         image_group.osType = ImageOsType[str(image_group.osType)]  # Replace with Enum
         _create_image_group(namespace, image_family, image_group)
 
@@ -320,7 +316,7 @@ def _create_image_group(
     images: List[MachineImage] = image_group.images
     for image in images:
         # Ensure well-formed MachineImage object
-        image = MachineImage(**image)
+        image = get_model_object("MachineImage", image)
         image.osType = ImageOsType[str(image.osType)]  # Replace with Enum
         image.provider = CloudProvider[str(image.provider)]  # Replace with Enum
         # Populate the Image ID (this could be made more efficient)
@@ -369,7 +365,7 @@ def create_namespace_configuration(resource: Dict):
                 f"Updating existing Namespace Storage Configuration '{namespace}'"
             )
 
-    namespace_configuration = get_model_class(namespace_type)(**resource)
+    namespace_configuration = get_model_object(namespace_type, resource)
     try:
         CLIENT.object_store_client.put_namespace_storage_configuration(
             namespace_configuration
@@ -410,7 +406,7 @@ def create_configured_worker_pool(resource: Dict):
             return
 
     try:
-        cwp_request = AddConfiguredWorkerPoolRequest(**resource)
+        cwp_request = get_model_object("AddConfiguredWorkerPoolRequest", resource)
         cwp_response: AddConfiguredWorkerPoolResponse = (
             CLIENT.worker_pool_client.add_configured_worker_pool(cwp_request)
         )
@@ -423,7 +419,23 @@ def create_configured_worker_pool(resource: Dict):
         print_error(f"Unable to created Configured Worker Pool '{name}'")
 
 
-def get_model_class(classname):
+def get_model_object(classname: str, resource: Dict, **kwargs):
+    """
+    Return a populated YellowDog model object. Handle unexpected keywords.
+    """
+    while True:
+        try:
+            object = get_model_class(classname)(**resource, **kwargs)
+            return object
+        except Exception as e:
+            # Unexpected keyword argument Exception of form:
+            # __init__() got an unexpected keyword argument 'keyword'
+            keyword = str(e).split("'")[1]
+            print_error(f"Ignoring unexpected property '{keyword}'")
+            resource.pop(keyword)
+
+
+def get_model_class(classname: str):
     """
     Return a YellowDog model class using its classname.
     """
