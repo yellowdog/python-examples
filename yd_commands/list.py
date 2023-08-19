@@ -519,6 +519,10 @@ def list_namespaces():
     print(indent(tabulate(rows, headings)))
     print()
 
+    if ARGS_PARSER.details:
+        for namespace in select(CLIENT, namespaces_config):
+            print_yd_object(namespace)
+
 
 # Entry point
 if __name__ == "__main__":

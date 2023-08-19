@@ -330,7 +330,8 @@ class CLIParser:
                 help=(
                     "select objects from the list of matches and show their details"
                     " (for Objects, Compute Requirement Templates, Compute Source"
-                    " Templates, Keyrings, Machine Image Families)"
+                    " Templates, Keyrings, Machine Image Families, Namespace Storage"
+                    " Configurations)"
                 ),
             )
             parser.add_argument(
@@ -408,7 +409,7 @@ class CLIParser:
                 "-N",
                 action="store_true",
                 required=False,
-                help="list Storage Namespaces",
+                help="list Namespace Storage Configurations",
             )
 
         if "upload" in sys.argv[0]:

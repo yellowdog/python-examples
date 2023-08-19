@@ -125,6 +125,10 @@ def get_type_name(obj: Item) -> str:
     """
     Get the display name of an object's type.
     """
+    if type(obj).__name__.endswith("NamespaceStorageConfiguration"):
+        # Special case
+        return "Namespace Storage Configuration"
+
     return TYPE_MAP.get(type(obj), "")
 
 
@@ -416,7 +420,10 @@ def print_numbered_object_list(
     else:
         table = []
         for index, obj in enumerate(objects):
-            table.append([index + 1, ":", obj.name])
+            try:
+                table.append([index + 1, ":", obj.name])
+            except:  # Handle the Namespace Storage Configuration case
+                table.append([index + 1, ":", obj.namespace])
     if headers is None:
         print(indent(tabulate(table, tablefmt="plain"), indent_width=4))
     else:
@@ -442,9 +449,13 @@ def print_numbered_strings(objects: List[str], override_quiet: bool = False):
 
 def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
     """
-    Sort objects by their 'name' property.
+    Sort objects by their 'name' property, or 'namespace' in the case of
+    Namespace Storage Configurations.
     """
-    return sorted(objects, key=lambda x: x.name, reverse=reverse)
+    try:
+        return sorted(objects, key=lambda x: x.name, reverse=reverse)
+    except:
+        return sorted(objects, key=lambda x: x.namespace, reverse=reverse)
 
 
 def indent(txt: str, indent_width: int = 4) -> str:
