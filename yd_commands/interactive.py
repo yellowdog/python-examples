@@ -10,6 +10,7 @@ from yellowdog_client import PlatformClient
 from yd_commands.args import ARGS_PARSER
 from yd_commands.object_utilities import Item
 from yd_commands.printing import (
+    CONSOLE,
     print_error,
     print_log,
     print_numbered_object_list,
@@ -68,7 +69,7 @@ def select(
                 "Please select items (e.g.: 1,2,4-7 / *) or press <Return> to cancel:"
             )
         )
-        selector_string = input(print_string(input_string) + " ")
+        selector_string = CONSOLE.input(print_string(input_string) + " ")
         if selector_string.strip() == "*":
             selector_string = f"1-{len(objects)}"
         selector_list = selector_string.split(",")
@@ -117,7 +118,7 @@ def select(
                 )
             else:
                 display_selections = ", ".join([str(x) for x in selected_list])
-            print(print_string(f"Selected item number(s): {display_selections}"))
+            print_log(f"Selected item number(s): {display_selections}")
     else:
         print_log("No items selected")
 
@@ -141,7 +142,9 @@ def confirmed(msg: str) -> bool:
 
     # Seek user confirmation
     while True:
-        response = input(print_string(f"{msg} (y/N):") + " ")
+        response = CONSOLE.input(print_string(f"{msg} (y/N):") + " ")
+        if response == "":  # Seems to be a quirk of Rich
+            print()
         if response.lower() in ["y", "yes"]:
             print_log("Action confirmed by user")
             return True

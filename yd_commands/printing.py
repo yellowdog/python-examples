@@ -2,7 +2,6 @@
 Functions focused on print outputs.
 """
 
-import sys
 from datetime import datetime
 from json import dumps as json_dumps
 from os import get_terminal_size
@@ -12,6 +11,8 @@ from textwrap import fill
 from textwrap import indent as text_indent
 from typing import Any, Dict, List, Optional, TypeVar
 
+from rich.console import Console, Theme
+from rich.highlighter import RegexHighlighter
 from tabulate import tabulate
 from yellowdog_client import PlatformClient
 from yellowdog_client.common.json import Json
@@ -56,6 +57,31 @@ except OSError:
     LOG_WIDTH = 120  # Default log line width
 
 
+# Set up basic Rich formatting
+class PrintLogHighlighter(RegexHighlighter):
+    """
+    Apply styles to print_log() lines.
+    """
+
+    base_style = "pyexamples."
+    highlights = [
+        r"(?P<date_time>[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+        r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])",
+        r"(?P<quoted>'[a-zA-Z0-9-._]*')",
+    ]
+
+
+pyexamples_theme = Theme(
+    {
+        "pyexamples.date_time": "blue",
+        "pyexamples.quoted": "bold green",
+    }
+)
+
+CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
+CONSOLE_ERR = Console(stderr=True, highlighter=PrintLogHighlighter())
+
+
 def print_string(msg: str = "") -> str:
     """
     Message output format, with tidy line-wrapping calibrated
@@ -85,10 +111,7 @@ def print_log(
     if ARGS_PARSER.quiet and override_quiet is False:
         return
 
-    print(
-        print_string(log_message),
-        flush=flush,
-    )
+    CONSOLE.print(print_string(log_message))
 
 
 ErrorObject = TypeVar(
@@ -102,7 +125,7 @@ def print_error(error_obj: ErrorObject):
     """
     Print an error message to stderr.
     """
-    print(print_string(f"Error: {error_obj}"), file=sys.stderr, flush=True)
+    CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style="red")
 
 
 TYPE_MAP = {
