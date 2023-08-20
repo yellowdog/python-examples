@@ -429,7 +429,10 @@ def print_numbered_object_list(
         print(indent(tabulate(table, tablefmt="plain"), indent_width=4))
     else:
         print(
-            indent(tabulate(table, headers=headers, tablefmt="simple"), indent_width=4)
+            indent(
+                tabulate(table, headers=headers, tablefmt="simple_outline"),
+                indent_width=4,
+            )
         )
     print()
 

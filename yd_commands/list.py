@@ -487,7 +487,7 @@ def list_namespaces():
         ]
     )
     print()
-    print(indent(tabulate(rows, headings)))
+    print(indent(tabulate(rows, headings, tablefmt="simple_outline")))
     print()
 
     if ARGS_PARSER.details:  # Print the details for non-default only
