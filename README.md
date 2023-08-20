@@ -1862,6 +1862,12 @@ yd-remove resources_1.json <resources_2.json, ...>
 ```
 Destructive operations will prompt the user for approval: as in other commands, this can be overridden using the `--yes` command line option.
 
+The `yd-remove` command can also be used to remove resources by their `ydid` resource IDs, by using the `--ids` option. For example:
+
+```shell
+yd-remove --ids ydid:crt:D9C548:2a09093d-c74c-4bde-95d1-c576c6f03b13 ydid:imgfam:D9C548:4bc3cc57-1387-49a6-85d4-132bcf3a65fd
+```
+
 ### Resource Matching
 
 **Caution**: When updating or removing resources, resource matching is done using the **name** of the resource alone -- i.e., the system-generated `ydid` IDs are not used. This means that a resource could have been removed/replaced in Platform by some other means, and the resource specifications would still match it.

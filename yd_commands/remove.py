@@ -20,11 +20,16 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import print_error, print_log
 from yd_commands.resource_config import load_resource_specifications
-from yd_commands.wrapper import CLIENT, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 
 
 @main_wrapper
 def main():
+    if ARGS_PARSER.ids:
+        for resource_id in ARGS_PARSER.resource_specifications:
+            remove_resource_by_id(resource_id)
+        return
+
     resources = load_resource_specifications()
     for resource in resources:
         try:
@@ -237,6 +242,48 @@ def remove_configured_worker_pool(resource: Dict):
                     f"Not shutting down Configured Worker Pool '{name}' in state"
                     f" '{worker_pool.status}' ({worker_pool.id})"
                 )
+
+
+def remove_resource_by_id(resource_id: str):
+    """
+    Remove a resource by its ydid.
+    """
+    try:
+        if resource_id.startswith("ydid:cst:"):
+            if confirmed(f"Remove Compute Source Template '{resource_id}'?"):
+                CLIENT.compute_client.delete_compute_source_template_by_id(resource_id)
+                print_log(
+                    f"Removed Compute Source Template '{resource_id}' (if present)"
+                )
+        elif resource_id.startswith("ydid:crt:"):
+            if confirmed(f"Remove Compute Requirement Template '{resource_id}'?"):
+                CLIENT.compute_client.delete_compute_requirement_template_by_id(
+                    resource_id
+                )
+                print_log(
+                    f"Removed Compute Requirement Template '{resource_id}' (if present)"
+                )
+        elif resource_id.startswith("ydid:imgfam:"):
+            if confirmed(f"Remove Image Family '{resource_id}'?"):
+                CLIENT.images_client.delete_image_family(resource_id)
+                print_log(f"Removed Image Family '{resource_id}' (if present)")
+        elif resource_id.startswith("ydid:keyring:"):
+            if confirmed(f"Remove Keyring '{resource_id}'?"):
+                keyrings = CLIENT.keyring_client.find_all_keyrings()
+                for keyring in keyrings:
+                    if keyring.id == resource_id:
+                        CLIENT.keyring_client.delete_keyring_by_name(keyring.name)
+                        print_log(f"Removed Keyring '{resource_id}'")
+                        return
+                raise Exception(f"Keyring '{resource_id}' not found")
+        elif resource_id.startswith("ydid:wrkrpool:"):
+            if confirmed(f"Shut down Worker Pool '{resource_id}'?"):
+                CLIENT.worker_pool_client.shutdown_worker_pool_by_id(resource_id)
+                print_log(f"Shut down Worker Pool '{resource_id}'")
+        else:
+            print_error(f"Resource ID format is unknown/unsupported: '{resource_id}'")
+    except Exception as e:
+        print_error(f"Unable to remove resource with ID '{resource_id}' ({e})")
 
 
 # Entry point

@@ -585,7 +585,10 @@ class CLIParser:
                 default=[],
                 metavar="<resource_specification>",
                 type=str,
-                help="the resource specifications to process",
+                help=(
+                    "the resource specifications to process (or resource IDs if used"
+                    " with 'yd-remove --ids')"
+                ),
             )
             parser.add_argument(
                 "--yes",
@@ -600,6 +603,14 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="display YellowDog-generated password when creating a Keyring",
+            )
+
+        if "remove" in sys.argv[0]:
+            parser.add_argument(
+                "--ids",
+                action="store_true",
+                required=False,
+                help="remove resources using their YellowDog IDs (ydids)",
             )
 
         self.args = parser.parse_args()
@@ -862,6 +873,10 @@ class CLIParser:
     @property
     def show_keyring_passwords(self) -> Optional[bool]:
         return self.args.show_keyring_passwords
+
+    @property
+    def ids(self) -> Optional[bool]:
+        return self.args.ids
 
     @property
     def resource_specifications(self) -> List[str]:
