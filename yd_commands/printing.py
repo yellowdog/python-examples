@@ -163,6 +163,7 @@ def compute_requirement_table(
     headers = [
         "#",
         "Compute Requirement Name",
+        "Namespace",
         "Tag",
         "Instance Counts",
         "Status",
@@ -173,6 +174,7 @@ def compute_requirement_table(
             [
                 index + 1,
                 cr.name,
+                cr.namespace,
                 f"{cr.tag}",
                 (
                     f"Target={cr.targetInstanceCount:,d},"
