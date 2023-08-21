@@ -165,8 +165,8 @@ def compute_requirement_table(
         "Compute Requirement Name",
         "Namespace",
         "Tag",
-        "Instance Counts",
-        "Status",
+        "Status (Tgt/Exp)",
+        "ID",
     ]
     table = []
     for index, cr in enumerate(cr_list):
@@ -175,16 +175,14 @@ def compute_requirement_table(
                 index + 1,
                 cr.name,
                 cr.namespace,
-                f"{cr.tag}",
-                (
-                    f"Target={cr.targetInstanceCount:,d},"
-                    f" Expected={cr.expectedInstanceCount:,d}"
-                ),
+                cr.tag,
                 (
                     f"{cr.status}"
                     if cr.nextStatus is None
-                    else f"{cr.status} -> {cr.nextStatus}"
-                ),
+                    else (f"{cr.status} -> {cr.nextStatus}")
+                )
+                + f" ({cr.targetInstanceCount:,d}/{cr.expectedInstanceCount:,d})",
+                cr.id,
             ]
         )
     return headers, table
