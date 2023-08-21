@@ -303,14 +303,14 @@ def list_compute_templates():
         CLIENT.compute_client.find_all_compute_requirement_templates()
     )
     print_log(
-        "Listing Compute Requirement Templates with Namespaces including"
-        f" '{CONFIG_COMMON.namespace}' and Names including"
+        "Listing Compute Requirement Templates with namespaces including"
+        f" '{CONFIG_COMMON.namespace}' and names including"
         f" '{CONFIG_COMMON.name_tag}'"
     )
     cr_templates = [
         crt
         for crt in cr_templates
-        if (crt.namespace is None or CONFIG_COMMON.namespace in crt.namespace)
+        if (CONFIG_COMMON.namespace in ("" if crt.namespace is None else crt.namespace))
         and CONFIG_COMMON.name_tag in crt.name
     ]
     if len(cr_templates) == 0:
@@ -340,14 +340,14 @@ def list_source_templates():
         CLIENT.compute_client.find_all_compute_source_templates()
     )
     print_log(
-        "Listing Compute Source Templates with Namespaces including"
-        f" '{CONFIG_COMMON.namespace}' and Names including"
+        "Listing Compute Source Templates with namespaces including"
+        f" '{CONFIG_COMMON.namespace}' and names including"
         f" '{CONFIG_COMMON.name_tag}'"
     )
     cs_templates = [
         cst
         for cst in cs_templates
-        if (cst.namespace is None or CONFIG_COMMON.namespace in cst.namespace)
+        if (CONFIG_COMMON.namespace in ("" if cst.namespace is None else cst.namespace))
         and CONFIG_COMMON.name_tag in cst.name
     ]
     if len(cs_templates) == 0:
