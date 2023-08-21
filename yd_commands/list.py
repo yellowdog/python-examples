@@ -187,10 +187,11 @@ def list_object_paths():
     )
     print_log(
         f"Listing Object Paths in namespace '{namespace}' and "
-        f"names starting with '{tag}'"
+        f"names (prefixes) starting with '{tag}'"
     )
     if ARGS_PARSER.all and not ARGS_PARSER.details:
         print_log("Listing all Objects")
+
     object_paths: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(
@@ -200,6 +201,12 @@ def list_object_paths():
             )
         )
     )
+
+    # We shouldn't get a None return, but ...
+    if object_paths is None or len(object_paths) == 0:
+        print_log("No matching Object Paths found")
+        return
+
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, sorted_objects(object_paths))
         return
