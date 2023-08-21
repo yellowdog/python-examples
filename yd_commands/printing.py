@@ -420,6 +420,7 @@ def print_numbered_object_list(
     objects: List[Item],
     parent: Optional[Item] = None,
     override_quiet: bool = False,
+    showing_all: bool = False,
 ) -> None:
     """
     Print a numbered list of objects.
@@ -429,7 +430,8 @@ def print_numbered_object_list(
         return
 
     print_log(
-        f"Displaying matching {get_type_name(objects[0])}(s):",
+        "Displaying"
+        f" {'all' if showing_all else 'matching'} {get_type_name(objects[0])}(s):",
         override_quiet=override_quiet,
     )
     print()

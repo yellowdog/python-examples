@@ -244,14 +244,16 @@ def list_worker_pools():
         return
     if ARGS_PARSER.details:
         for worker_pool_summary in select(
-            CLIENT, sorted_objects(worker_pool_summaries)
+            CLIENT, sorted_objects(worker_pool_summaries), showing_all=True
         ):
             worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
                 worker_pool_summary.id
             )
             print_yd_object(worker_pool)
     else:
-        print_numbered_object_list(CLIENT, sorted_objects(worker_pool_summaries))
+        print_numbered_object_list(
+            CLIENT, sorted_objects(worker_pool_summaries), showing_all=True
+        )
 
 
 def list_compute_requirements():
@@ -496,7 +498,7 @@ def list_namespaces():
     print()
 
     if ARGS_PARSER.details:  # Print the details for non-default only
-        for namespace in select(CLIENT, namespaces_config):
+        for namespace in select(CLIENT, namespaces_config, showing_all=True):
             print_yd_object(namespace)
 
 

@@ -34,6 +34,7 @@ def select(
     parent: Optional[Item] = None,
     override_quiet: bool = False,
     single_result: bool = False,
+    showing_all: bool = False,
 ) -> List[Item]:
     """
     Print a numbered list of objects.
@@ -48,7 +49,11 @@ def select(
 
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(
-            client, objects, parent, override_quiet=override_quiet
+            client,
+            objects,
+            parent,
+            override_quiet=override_quiet,
+            showing_all=showing_all,
         )
 
     if not ARGS_PARSER.interactive:
