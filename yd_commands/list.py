@@ -212,22 +212,22 @@ def list_object_paths():
         return
 
     # Print object details for selected objects
-    # Skip interactive selection if there are five or fewer results
-    if len(object_paths) > 5:
-        object_paths = select(CLIENT, object_paths, override_quiet=True)
+    object_paths = select(CLIENT, object_paths, override_quiet=True)
     if len(object_paths) != 0:
         print_log(f"Showing Object details for {len(object_paths)} Object(s)")
     for index, object_path in enumerate(object_paths):
-        try:
-            if index == 0:
-                print()
-            object_detail: ObjectDetail = CLIENT.object_store_client.get_object_detail(
-                namespace=namespace, name=object_path.name
-            )
-            print_object_detail(object_detail)
-        except ObjectNotFoundException:
-            print_log(f"Note: '{object_path.name}' is a prefix not an object")
-        print()
+        if object_path.prefix:
+            print_log(f"Object Path '{object_path.name}' is a prefix not an object")
+            continue
+        if index == 0:
+            print()
+        object_detail: ObjectDetail = CLIENT.object_store_client.get_object_detail(
+            namespace=namespace, name=object_path.name
+        )
+        # print_object_detail(object_detail)  # Retired for now
+        print_yd_object(object_detail)
+        if index + 1 == len(object_paths):
+            print()
 
 
 def list_worker_pools():
