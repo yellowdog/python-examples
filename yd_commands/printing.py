@@ -192,18 +192,23 @@ def compute_requirement_table(
 
 def work_requirement_table(
     wr_summary_list: List[WorkRequirementSummary],
-) -> List[List]:
+) -> (List[str], List[List]):
+    headers = ["#", "Work Requirement Name", "Namespace", "Tag", "Status", "ID"]
     table = []
     for index, wr_summary in enumerate(wr_summary_list):
+        namespace = "" if wr_summary.namespace is None else wr_summary.namespace
+        tag = "" if wr_summary.tag is None else wr_summary.tag
         table.append(
             [
                 index + 1,
-                ":",
                 wr_summary.name,
-                f"[{wr_summary.status}]",
+                namespace,
+                tag,
+                str(wr_summary.status),
+                wr_summary.id,
             ]
         )
-    return table
+    return headers, table
 
 
 def task_group_table(
@@ -430,7 +435,7 @@ def print_numbered_object_list(
     if isinstance(objects[0], ComputeRequirement):
         headers, table = compute_requirement_table(objects)
     elif isinstance(objects[0], WorkRequirementSummary):
-        table = work_requirement_table(objects)
+        headers, table = work_requirement_table(objects)
     elif isinstance(objects[0], TaskGroup):
         table = task_group_table(objects)
     elif isinstance(objects[0], Task):
