@@ -7,9 +7,9 @@ import re
 from dataclasses import dataclass, field
 from os import getenv
 from os.path import abspath, dirname, join, normpath, relpath
+from random import randint
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
-from random import randint
 
 from toml import TomlDecodeError
 from yellowdog_client.model import (
@@ -464,9 +464,7 @@ def generate_id(prefix: str, max_length: int = 60) -> str:
     """
     global PREVIOUS_ID
 
-    generated_id = (
-        prefix + UTCNOW.strftime("_%y%m%d-%H%M%S")
-    )
+    generated_id = prefix + UTCNOW.strftime("_%y%m%d-%H%M%S")
 
     if generated_id == PREVIOUS_ID:
         generated_id = generated_id + f"-{randint(0, 9)}"

@@ -272,7 +272,9 @@ def worker_pool_table(
             [
                 index + 1,
                 worker_pool_summary.name,
-                f"{worker_pool_summary.type.split('.')[-1:][0]}",
+                (
+                    f"{worker_pool_summary.type.split('.')[-1:][0].replace('WorkerPool', '')}"
+                ),
                 f"{worker_pool_summary.status}",
                 f"{min_nodes}/{nodes_running}/{max_nodes}",
                 worker_pool_summary.id,
