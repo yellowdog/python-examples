@@ -12,7 +12,7 @@ from textwrap import indent as text_indent
 from typing import Any, Dict, List, Optional, TypeVar
 
 from rich.console import Console, Theme
-from rich.highlighter import RegexHighlighter
+from rich.highlighter import JSONHighlighter, RegexHighlighter
 from tabulate import tabulate
 from yellowdog_client import PlatformClient
 from yellowdog_client.common.json import Json
@@ -80,6 +80,7 @@ pyexamples_theme = Theme(
 
 CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
 CONSOLE_ERR = Console(stderr=True, highlighter=PrintLogHighlighter())
+CONSOLE_JSON = Console(highlighter=JSONHighlighter())
 TABLE_OUTPUT_STYLE = "bold green"
 
 
@@ -516,9 +517,9 @@ def print_json(
     if drop_first_line:
         json_string = "\n".join(json_string.splitlines()[1:])
     if with_final_comma:
-        print(json_string, end=",\n")
+        CONSOLE_JSON.print(json_string, end=",\n")
     else:
-        print(json_string)
+        CONSOLE_JSON.print(json_string)
 
 
 def print_yd_object(
