@@ -251,13 +251,8 @@ def worker_pool_table(
         "Worker Pool Name",
         "Type",
         "Status",
-        "Running",
-        "Min",
-        "Max",
-        "Term.",
-        "Late",
-        "Lost",
-        "Dereg.",
+        "Min/Run/Max",
+        "ID",
     ]
     table = []
     for index, worker_pool_summary in enumerate(worker_pool_summaries):
@@ -267,17 +262,13 @@ def worker_pool_table(
         try:
             min_nodes = str(worker_pool.properties.minNodes)
         except:
-            min_nodes = " "
+            min_nodes = "_"
         try:
             max_nodes = str(worker_pool.properties.maxNodes)
         except:
-            max_nodes = " "
+            max_nodes = "_"
         node_summary: NodeSummary = worker_pool.nodeSummary
         nodes_running = node_summary.statusCounts[NodeStatus.RUNNING]
-        nodes_late = node_summary.statusCounts[NodeStatus.LATE]
-        nodes_lost = node_summary.statusCounts[NodeStatus.LOST]
-        nodes_terminated = node_summary.statusCounts[NodeStatus.TERMINATED]
-        nodes_deregistered = node_summary.statusCounts[NodeStatus.DEREGISTERED]
 
         table.append(
             [
@@ -285,13 +276,8 @@ def worker_pool_table(
                 worker_pool_summary.name,
                 f"{worker_pool_summary.type.split('.')[-1:][0]}",
                 f"{worker_pool_summary.status}",
-                f"{nodes_running}",
-                f"{min_nodes}",
-                f"{max_nodes}",
-                f"{nodes_terminated}",
-                f"{nodes_late}",
-                f"{nodes_lost}",
-                f"{nodes_deregistered}",
+                f"{min_nodes}/{nodes_running}/{max_nodes}",
+                worker_pool_summary.id,
             ]
         )
     return headers, table
