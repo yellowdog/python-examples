@@ -68,11 +68,6 @@
       * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
    * [Variable Substitutions in Worker Pool Properties](#variable-substitutions-in-worker-pool-properties)
    * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
-* [Jsonnet Support](#jsonnet-support)
-   * [Jsonnet Installation](#jsonnet-installation)
-   * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
-   * [Checking Jsonnet Processing](#checking-jsonnet-processing)
-   * [Jsonnet Example](#jsonnet-example)
 * [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
    * [Overview of Operation](#overview-of-operation)
       * [Resource Creation](#resource-creation)
@@ -87,6 +82,11 @@
    * [Image Families](#image-families)
    * [Namespace Storage Configurations](#namespace-storage-configurations)
    * [Configured Worker Pools](#configured-worker-pools)
+* [Jsonnet Support](#jsonnet-support)
+   * [Jsonnet Installation](#jsonnet-installation)
+   * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
+   * [Checking Jsonnet Processing](#checking-jsonnet-processing)
+   * [Jsonnet Example](#jsonnet-example)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -104,7 +104,7 @@
    * [yd-create](#yd-create)
    * [yd-remove](#yd-remove)
 
-<!-- Added by: pwt, at: Sat Aug 19 17:31:55 BST 2023 -->
+<!-- Added by: pwt, at: Mon Aug 21 14:14:06 BST 2023 -->
 
 <!--te-->
 
@@ -119,7 +119,7 @@ This documentation should be read in conjunction with the main **[YellowDog Docu
 
 Template solutions for experimenting with these scripts can be found in the **[python-examples-templates](https://github.com/yellowdog/python-examples-templates)** repository.
 
-The scripts provide the following capabilities:
+The command scripts provide the following capabilities:
 
 - **Provisioning** Worker Pools with the **`yd-provision`** command
 - **Submitting** Work Requirements with the **`yd-submit`** command
@@ -1604,224 +1604,11 @@ yd-provision --dry-run -q > my_worker_pool.json
 yd-provision -p my_worker_pool.json
 ```
 
-# Jsonnet Support
-
-In all circumstances where JSON files are used by the Python Examples scripts,  **[Jsonnet](https://jsonnet.org)** files can be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
-
-A simple usage example might be:
-
-```shell
-yd-submit --work-requirement my_work_req.jsonnet
-```
-
-The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages: this file will have been deleted before the script stops.)
-
-## Jsonnet Installation
-
-Jsonnet is **not** installed by default when `yellowdog-python-examples` is installed, because the package has binary components which are not available on PyPI for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
-
-To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
-
-```
-pip install -U "yellowdog-python-examples[jsonnet]"
-```
-
-To install Jsonnet separately from `yellowdog-python-examples`, try:
-
-```shell
-pip install -U jsonnet
-```
-
-If this fails, try:
-
-```shell
-pip install -U jsonnet-binary
-```
-
-If both of these methods fail, you'll need to ensure that the platform on which you're running has the required build tools available, so that the Jsonnet binary components can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
-
-Please get in touch with YellowDog if you get stuck.
-
-## Variable Substitutions in Jsonnet Files
-
-The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** specifications, variable substitutions must be prefixed by `__`, e.g. `"__{{username}}}"`.
-
-Variable substitution is performed before Jsonnet expansion into JSON, and again after the expansion.
-
-## Checking Jsonnet Processing
-
-There are three possibilities for verifying that a Jsonnet specification is doing what is intended:
-
-1. To inspect the basic conversion of Jsonnet into JSON, without any additional processing by the Python Examples scripts, the `yd-jsonnet2json` command can be used. This takes a single command line argument which is the name of the jsonnet file to be processed:
-
-```shell
-yd-jsonnet2json my_file.jsonnet
-```
-
-
-2. The `jsonnet-dry-run` (`-J`) option of the `yd-submit`, `yd-provision` and `yd-instantiate` commands will generate JSON output representing the Jsonnet to JSON processing only, including applicable variable substitutions, but before full property expansion into the JSON that will be submitted to the Platform.
-
-
-3. The `dry-run` (`-D`) option will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
-
-## Jsonnet Example
-
-Here's an example of a Jsonnet file that generates a Work Requirement with four Tasks:
-
-```jsonnet
-# Function for synthesising Tasks
-local Task(arguments=[], environment={}) = {
-    arguments: arguments,
-    environment: environment,
-    name: "my_task_{{task_number}}"
-};
-
-# Work Requirement
-{
-  "name": "workreq_{{datetime}}",
-  "taskGroups": [
-    {
-      "tasks": [
-        Task(["1"], {A: "A_1"}),  # arguments and environment
-        Task(["2", "3"], {}),     # arguments and empty environment
-        Task(["4"]),              # arguments and default environment
-        Task()                    # default arguments and environment
-      ]
-    }
-  ]
-}
-```
-
-When this is inspected using the `jsonnet-dry-run` option (`yd-submit -Jq -r my_work_req.jsonnet`), this is the processed output:
-
-```json
-{
-  "name": "workreq_230114-140645",
-  "taskGroups": [
-    {
-      "tasks": [
-        {
-          "arguments": ["1"],
-          "environment": {"A": "A_1"},
-          "name": "my_task_{{task_number}}"
-        },
-        {
-          "arguments": ["2", "3"],
-          "environment": {},
-          "name": "my_task_{{task_number}}"
-        },
-        {
-          "arguments": ["4"],
-          "environment": {},
-          "name": "my_task_{{task_number}}"
-        },
-        {
-          "arguments": [],
-          "environment": {},
-          "name": "my_task_{{task_number}}"
-        }
-      ]
-    }
-  ]
-}
-```
-
-When this is inspected using the `dry-run` option (`yd-submit -Dq -r my_work_req.jsonnet`), this is the processed output:
-
-```json
-{
-  "fulfilOnSubmit": false,
-  "name": "workreq_230114-140645",
-  "namespace": "pyexamples",
-  "priority": 0,
-  "tag": "pyex-bash",
-  "taskGroups": [
-    {
-      "finishIfAllTasksFinished": true,
-      "finishIfAnyTaskFailed": false,
-      "name": "task_group_1",
-      "priority": 0,
-      "runSpecification": {
-        "maximumTaskRetries": 0,
-        "taskTypes": ["bash"],
-        "workerTags": ["pyex-bash-docker"]
-      },
-      "tasks": [
-        {
-          "arguments": ["workreq_230114-140645/sleep_script.sh", "1"],
-          "environment": {"A": "A_1"},
-          "inputs": [
-            {
-              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
-          "name": "my_task_1",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
-        },
-        {
-          "arguments": ["workreq_230114-140645/sleep_script.sh", "2", "3"],
-          "environment": {},
-          "inputs": [
-            {
-              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
-          "name": "my_task_2",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
-        },
-        {
-          "arguments": ["workreq_230114-140645/sleep_script.sh", "4"],
-          "environment": {},
-          "inputs": [
-            {
-              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
-          "name": "my_task_3",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
-        },
-        {
-          "arguments": ["workreq_230114-140645/sleep_script.sh"],
-          "environment": {},
-          "inputs": [
-            {
-              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
-          "name": "my_task_4",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
-        }
-      ]
-    }
-  ]
-}
-```
-
 # Creating, Updating and Removing Resources
 
 This is an **experimental feature**.
 
-The commands **yd-create** and **yd-remove** allow the creation, update, and removal of the following YellowDog resources:
+The commands **yd-create** and **yd-remove** allow the creation, update and removal of the following YellowDog resources:
 
 - Keyrings
 - Credentials
@@ -2137,6 +1924,219 @@ Example:
       "targetNodeCount": 0
     }
   }
+}
+```
+
+# Jsonnet Support
+
+In all circumstances where JSON files are used by the Python Examples scripts,  **[Jsonnet](https://jsonnet.org)** files can be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
+
+A simple usage example might be:
+
+```shell
+yd-submit --work-requirement my_work_req.jsonnet
+```
+
+The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages: this file will have been deleted before the script stops.)
+
+## Jsonnet Installation
+
+Jsonnet is **not** installed by default when `yellowdog-python-examples` is installed, because the package has binary components which are not available on PyPI for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
+
+To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
+
+```
+pip install -U "yellowdog-python-examples[jsonnet]"
+```
+
+To install Jsonnet separately from `yellowdog-python-examples`, try:
+
+```shell
+pip install -U jsonnet
+```
+
+If this fails, try:
+
+```shell
+pip install -U jsonnet-binary
+```
+
+If both of these methods fail, you'll need to ensure that the platform on which you're running has the required build tools available, so that the Jsonnet binary components can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
+
+Please get in touch with YellowDog if you get stuck.
+
+## Variable Substitutions in Jsonnet Files
+
+The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** specifications, variable substitutions must be prefixed by `__`, e.g. `"__{{username}}}"`.
+
+Variable substitution is performed before Jsonnet expansion into JSON, and again after the expansion.
+
+## Checking Jsonnet Processing
+
+There are three possibilities for verifying that a Jsonnet specification is doing what is intended:
+
+1. To inspect the basic conversion of Jsonnet into JSON, without any additional processing by the Python Examples scripts, the `yd-jsonnet2json` command can be used. This takes a single command line argument which is the name of the jsonnet file to be processed:
+
+```shell
+yd-jsonnet2json my_file.jsonnet
+```
+
+
+2. The `jsonnet-dry-run` (`-J`) option of the `yd-submit`, `yd-provision` and `yd-instantiate` commands will generate JSON output representing the Jsonnet to JSON processing only, including applicable variable substitutions, but before full property expansion into the JSON that will be submitted to the Platform.
+
+
+3. The `dry-run` (`-D`) option will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
+
+## Jsonnet Example
+
+Here's an example of a Jsonnet file that generates a Work Requirement with four Tasks:
+
+```jsonnet
+# Function for synthesising Tasks
+local Task(arguments=[], environment={}) = {
+    arguments: arguments,
+    environment: environment,
+    name: "my_task_{{task_number}}"
+};
+
+# Work Requirement
+{
+  "name": "workreq_{{datetime}}",
+  "taskGroups": [
+    {
+      "tasks": [
+        Task(["1"], {A: "A_1"}),  # arguments and environment
+        Task(["2", "3"], {}),     # arguments and empty environment
+        Task(["4"]),              # arguments and default environment
+        Task()                    # default arguments and environment
+      ]
+    }
+  ]
+}
+```
+
+When this is inspected using the `jsonnet-dry-run` option (`yd-submit -Jq -r my_work_req.jsonnet`), this is the processed output:
+
+```json
+{
+  "name": "workreq_230114-140645",
+  "taskGroups": [
+    {
+      "tasks": [
+        {
+          "arguments": ["1"],
+          "environment": {"A": "A_1"},
+          "name": "my_task_{{task_number}}"
+        },
+        {
+          "arguments": ["2", "3"],
+          "environment": {},
+          "name": "my_task_{{task_number}}"
+        },
+        {
+          "arguments": ["4"],
+          "environment": {},
+          "name": "my_task_{{task_number}}"
+        },
+        {
+          "arguments": [],
+          "environment": {},
+          "name": "my_task_{{task_number}}"
+        }
+      ]
+    }
+  ]
+}
+```
+
+When this is inspected using the `dry-run` option (`yd-submit -Dq -r my_work_req.jsonnet`), this is the processed output:
+
+```json
+{
+  "fulfilOnSubmit": false,
+  "name": "workreq_230114-140645",
+  "namespace": "pyexamples",
+  "priority": 0,
+  "tag": "pyex-bash",
+  "taskGroups": [
+    {
+      "finishIfAllTasksFinished": true,
+      "finishIfAnyTaskFailed": false,
+      "name": "task_group_1",
+      "priority": 0,
+      "runSpecification": {
+        "maximumTaskRetries": 0,
+        "taskTypes": ["bash"],
+        "workerTags": ["pyex-bash-docker"]
+      },
+      "tasks": [
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "1"],
+          "environment": {"A": "A_1"},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_1",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "2", "3"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_2",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh", "4"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_3",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        },
+        {
+          "arguments": ["workreq_230114-140645/sleep_script.sh"],
+          "environment": {},
+          "inputs": [
+            {
+              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
+              "source": "TASK_NAMESPACE",
+              "verification": "VERIFY_AT_START"
+            }
+          ],
+          "name": "my_task_4",
+          "outputs": [
+            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
+          ],
+          "taskType": "bash"
+        }
+      ]
+    }
+  ]
 }
 ```
 

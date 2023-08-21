@@ -180,7 +180,7 @@ def find_compute_source_id_by_name(client: PlatformClient, name: str) -> Optiona
             return source.id
 
 
-@lru_cache
+@lru_cache()
 def get_all_compute_sources(
     client: PlatformClient,
 ) -> List[ComputeSourceTemplateSummary]:
@@ -201,7 +201,7 @@ def find_compute_template_id_by_name(
             return template.id
 
 
-@lru_cache
+@lru_cache()
 def get_all_compute_templates(
     client: PlatformClient,
 ) -> List[ComputeRequirementTemplateSummary]:
