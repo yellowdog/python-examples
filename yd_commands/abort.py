@@ -27,9 +27,9 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        "Finding Work Requirements in "
-        f"namespace '{CONFIG_COMMON.namespace}' and "
-        f"tag starting with '{CONFIG_COMMON.name_tag}'"
+        "Finding Work Requirements with "
+        f"'{CONFIG_COMMON.namespace}' in namespace and "
+        f"'{CONFIG_COMMON.name_tag}' in tag"
     )
 
     # Abort Tasks is always interactive

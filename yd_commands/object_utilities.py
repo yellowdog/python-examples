@@ -80,11 +80,14 @@ def get_filtered_work_requirements(
 
     for work_summary in work_requirement_summaries:
         work_summary.tag = "" if work_summary.tag is None else work_summary.tag
+        work_summary.namespace = (
+            "" if work_summary.namespace is None else work_summary.namespace
+        )
         if (
             work_summary.status in include_filter
             or not work_summary.status in exclude_filter
-            and work_summary.namespace == namespace
-            and work_summary.tag.startswith(tag)
+            and namespace in work_summary.namespace
+            and tag in work_summary.tag
         ):
             filtered_work_summaries.append(work_summary)
 
