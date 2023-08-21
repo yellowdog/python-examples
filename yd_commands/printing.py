@@ -80,6 +80,7 @@ pyexamples_theme = Theme(
 
 CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
 CONSOLE_ERR = Console(stderr=True, highlighter=PrintLogHighlighter())
+TABLE_OUTPUT_STYLE = "bold green"
 
 
 def print_string(msg: str = "") -> str:
@@ -449,13 +450,17 @@ def print_numbered_object_list(
             except:  # Handle the Namespace Storage Configuration case
                 table.append([index + 1, ":", obj.namespace])
     if headers is None:
-        print(indent(tabulate(table, tablefmt="plain"), indent_width=4))
+        CONSOLE.print(
+            indent(tabulate(table, tablefmt="plain"), indent_width=4),
+            style=TABLE_OUTPUT_STYLE,
+        )
     else:
-        print(
+        CONSOLE.print(
             indent(
                 tabulate(table, headers=headers, tablefmt="simple_outline"),
                 indent_width=4,
-            )
+            ),
+            style=TABLE_OUTPUT_STYLE,
         )
     print()
 
@@ -470,7 +475,10 @@ def print_numbered_strings(objects: List[str], override_quiet: bool = False):
     table = []
     for index, obj in enumerate(objects):
         table.append([index + 1, ":", obj])
-    print(indent(tabulate(table, tablefmt="plain"), indent_width=4))
+    CONSOLE.print(
+        indent(tabulate(table, tablefmt="plain"), indent_width=4),
+        style=TABLE_OUTPUT_STYLE,
+    )
     print()
 
 

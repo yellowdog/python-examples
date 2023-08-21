@@ -46,6 +46,8 @@ from yd_commands.object_utilities import (
     get_task_groups_from_wr_summary,
 )
 from yd_commands.printing import (
+    CONSOLE,
+    TABLE_OUTPUT_STYLE,
     indent,
     print_error,
     print_log,
@@ -487,7 +489,10 @@ def list_namespaces():
         ]
     )
     print()
-    print(indent(tabulate(rows, headings, tablefmt="simple_outline")))
+    CONSOLE.print(
+        indent(tabulate(rows, headings, tablefmt="simple_outline")),
+        style=TABLE_OUTPUT_STYLE,
+    )
     print()
 
     if ARGS_PARSER.details:  # Print the details for non-default only
