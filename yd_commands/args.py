@@ -899,7 +899,7 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     elif "cancel" in module_name:
         suffix = "cancelling Work Requirements"
     elif "create" in module_name:
-        suffix = "creating/updating assets"
+        suffix = "creating/updating resources"
     elif "download" in module_name:
         suffix = "downloading objects from the Object Store"
     elif "delete" in module_name:
@@ -915,7 +915,7 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     elif "upload" in module_name:
         suffix = "uploading objects to the Object Store"
     elif "remove" in module_name:
-        suffix = "removing assets"
+        suffix = "removing resources"
     elif "resize" in module_name:
         suffix = "resizing Worker Pools"
 
