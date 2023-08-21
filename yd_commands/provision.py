@@ -197,9 +197,10 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     )
     name = wp_data["requirementTemplateUsage"]["requirementName"]
     if response.status_code == 200:
-        print_log(f"Provisioned Worker Pool '{name}'")
+        id = response.json()["id"]
+        print_log(f"Provisioned Worker Pool '{name}' ({id})")
         if ARGS_PARSER.quiet:
-            print(name)
+            print(id)
     else:
         print_error(f"Failed to provision Worker Pool '{name}'")
         raise Exception(f"{response.text}")
@@ -314,7 +315,7 @@ def create_worker_pool():
                 )
                 print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
                 if ARGS_PARSER.quiet:
-                    print(worker_pool.name)
+                    print(worker_pool.id)
             else:
                 print_worker_pool(
                     compute_requirement_template_usage,
