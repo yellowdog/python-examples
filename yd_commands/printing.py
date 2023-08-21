@@ -401,6 +401,16 @@ def image_family_table(
     return headers, table
 
 
+def object_path_table(
+    object_paths: List[ObjectPath],
+) -> (List[str], List[str]):
+    headers = ["#", "Name"]
+    table = []
+    for index, object_path in enumerate(object_paths):
+        table.append([index + 1, object_path.name])
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Item],
@@ -441,6 +451,8 @@ def print_numbered_object_list(
         headers, table = keyring_table(objects)
     elif isinstance(objects[0], MachineImageFamilySummary):
         headers, table = image_family_table(objects)
+    elif isinstance(objects[0], ObjectPath):
+        headers, table = object_path_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
