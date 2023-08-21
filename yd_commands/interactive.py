@@ -70,6 +70,8 @@ def select(
             )
         )
         selector_string = CONSOLE.input(print_string(input_string) + " ")
+        if selector_string == "":  # A quirk of Rich?
+            print()
         if selector_string.strip() == "*":
             selector_string = f"1-{len(objects)}"
         selector_list = selector_string.split(",")
