@@ -213,31 +213,34 @@ def work_requirement_table(
 
 def task_group_table(
     task_group_list: List[TaskGroup],
-) -> List[List]:
+) -> (List[str], List[List]):
+    headers = ["#", "Task Group Name", "Status", "ID"]
     table = []
     for index, task_group in enumerate(task_group_list):
         table.append(
             [
                 index + 1,
                 task_group.name,
-                f"[{task_group.status}]",
+                str(task_group.status),
+                task_group.id,
             ]
         )
-    return table
+    return headers, table
 
 
-def task_table(task_list: List[Task]) -> List[List]:
+def task_table(task_list: List[Task]) -> (List[str], List[List]):
+    headers = ["#", "Task Name", "Status", "ID"]
     table = []
     for index, task in enumerate(task_list):
         table.append(
             [
                 index + 1,
-                ":",
                 task.name,
-                f"[{task.status}]",
+                str(task.status),
+                task.id,
             ]
         )
-    return table
+    return headers, table
 
 
 def worker_pool_table(
@@ -437,9 +440,9 @@ def print_numbered_object_list(
     elif isinstance(objects[0], WorkRequirementSummary):
         headers, table = work_requirement_table(objects)
     elif isinstance(objects[0], TaskGroup):
-        table = task_group_table(objects)
+        headers, table = task_group_table(objects)
     elif isinstance(objects[0], Task):
-        table = task_table(objects)
+        headers, table = task_table(objects)
     elif isinstance(objects[0], WorkerPoolSummary):
         headers, table = worker_pool_table(client, objects)
     elif isinstance(objects[0], ComputeRequirementTemplateSummary):
