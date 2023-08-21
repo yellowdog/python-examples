@@ -255,7 +255,7 @@ def submit_work_requirement(
     if not ARGS_PARSER.dry_run:
         work_requirement = CLIENT.work_client.add_work_requirement(work_requirement)
         if ARGS_PARSER.quiet:
-            print(work_requirement.name)
+            print(work_requirement.id)
         print_log(
             "Created "
             f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
@@ -1139,9 +1139,9 @@ def submit_json_raw(wr_file: str):
 
     if response.status_code == 200:
         wr_id = jsons.loads(response.text)["id"]
-        print_log(f"Created Work Requirement '{wr_name}' [{wr_id}]")
+        print_log(f"Created Work Requirement '{wr_name}' ({wr_id})")
         if ARGS_PARSER.quiet:
-            print(wr_name)
+            print(wr_id)
     else:
         print_error(f"Failed to create Work Requirement '{wr_name}'")
         raise Exception(f"{response.text}")
