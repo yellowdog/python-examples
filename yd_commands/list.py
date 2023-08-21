@@ -256,9 +256,9 @@ def list_worker_pools():
 
 def list_compute_requirements():
     print_log(
-        "Listing Compute Requirements in "
-        f"namespace '{CONFIG_COMMON.namespace}' and "
-        f" names starting with '{CONFIG_COMMON.name_tag}'"
+        "Listing Compute Requirements with "
+        f"namespace containing '{CONFIG_COMMON.namespace}' and "
+        f" names containing '{CONFIG_COMMON.name_tag}'"
     )
 
     cr_search = ComputeRequirementSearch(
@@ -280,8 +280,8 @@ def list_compute_requirements():
             "" if compute_requirement.tag is None else compute_requirement.tag
         )
         if (
-            compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
-            and compute_requirement.namespace == CONFIG_COMMON.namespace
+            CONFIG_COMMON.name_tag in compute_requirement.tag
+            and CONFIG_COMMON.namespace in compute_requirement.namespace
             and compute_requirement.status not in excluded_states
         ):
             filtered_compute_requirements.append(compute_requirement)
