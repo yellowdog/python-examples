@@ -9,7 +9,7 @@ from os import getenv
 from os.path import abspath, dirname, join, normpath, relpath
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
-from uuid import uuid4
+from random import randint
 
 from toml import TomlDecodeError
 from yellowdog_client.model import (
@@ -455,20 +455,29 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
         exit(1)
 
 
+PREVIOUS_ID = ""
+
+
 def generate_id(prefix: str, max_length: int = 60) -> str:
     """
-    Adds a combination of a UTC timestamp plus
-    a few random hex characters. Checks length.
+    Add a UTC timestamp and check length. Mitigate against duplicates.
     """
+    global PREVIOUS_ID
+
     generated_id = (
-        prefix + UTCNOW.strftime("_%y%m%d-%H%M%S-") + str(uuid4())[:3].lower()
+        prefix + UTCNOW.strftime("_%y%m%d-%H%M%S")
     )
+
+    if generated_id == PREVIOUS_ID:
+        generated_id = generated_id + f"-{randint(0, 9)}"
+    PREVIOUS_ID = generated_id
+
     if len(generated_id) > max_length:
-        print_error(
+        raise Exception(
             f"Error: Generated ID '{generated_id}' would exceed "
             f"maximum length ({max_length})"
         )
-        exit(1)
+
     return generated_id
 
 

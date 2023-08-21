@@ -510,7 +510,7 @@ In addition to the inheritance mechanism, some properties are set automatically 
 
 ### Work Requirement, Task Group and Task Naming
 
-- The **Work Requirement** name is automatically set using a concatenation of the `tag` property, a UTC timestamp, and three random hex characters: e,g,. `mytag_221024-155524-40a`.
+- The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: e,g.: `mytag_221024-155524`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
 
@@ -1401,7 +1401,7 @@ The following properties are available:
 
 ## Automatic Properties
 
-The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, a UTC timestamp, and three random hex characters: e,g,: `wp_mytag_221024-155524-b0a`.
+The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, and a UTC timestamp, e,g,: `wp_mytag_221024-155524`.
 
 ## TOML Properties in the `workerPool` Section
 
@@ -1448,7 +1448,7 @@ The example below is of a simple JSON specification of a Worker Pool with one in
 {
   "requirementTemplateUsage": {
     "maintainInstanceCount": false,
-    "requirementName": "wp_pyex-primes_230113-161528-da0",
+    "requirementName": "wp_pyex-primes_230113-161528",
     "requirementNamespace": "pyexamples",
     "requirementTag": "pyex-primes",
     "targetInstanceCount": 1,
