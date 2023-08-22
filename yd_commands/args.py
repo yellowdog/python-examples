@@ -328,10 +328,7 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "select objects from the list of matches and show their details"
-                    " (for Objects, Worker Pools, Compute Requirement Templates,"
-                    " Compute Source Templates, Keyrings, Machine Image Families,"
-                    " Namespace Storage Configurations)"
+                    "select items from the list of matches and show their full details"
                 ),
             )
             parser.add_argument(

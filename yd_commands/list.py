@@ -36,7 +36,6 @@ from yellowdog_client.model import (
     WorkRequirementStatus,
     WorkRequirementSummary,
 )
-from yellowdog_client.model.exceptions import ObjectNotFoundException
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import unpack_namespace_in_prefix
@@ -61,60 +60,52 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
-    """
-    If multiple object types are selected, they're all listed.
-    """
     if not check_for_valid_option():
-        raise Exception("No object type options chosen")
+        raise Exception("Please choose a single, valid listing type")
 
     # Always use interactive mode for selections
     ARGS_PARSER.interactive = True
 
     if ARGS_PARSER.object_paths:
         list_object_paths()
-
-    if ARGS_PARSER.work_requirements or ARGS_PARSER.task_groups or ARGS_PARSER.tasks:
+    elif ARGS_PARSER.work_requirements or ARGS_PARSER.task_groups or ARGS_PARSER.tasks:
         list_work_requirements()
-
-    if ARGS_PARSER.worker_pools:
+    elif ARGS_PARSER.worker_pools:
         list_worker_pools()
-
-    if ARGS_PARSER.compute_requirements:
+    elif ARGS_PARSER.compute_requirements:
         list_compute_requirements()
-
-    if ARGS_PARSER.compute_templates:
+    elif ARGS_PARSER.compute_templates:
         list_compute_templates()
-
-    if ARGS_PARSER.source_templates:
+    elif ARGS_PARSER.source_templates:
         list_source_templates()
-
-    if ARGS_PARSER.keyrings:
+    elif ARGS_PARSER.keyrings:
         list_keyrings()
-
-    if ARGS_PARSER.image_families:
+    elif ARGS_PARSER.image_families:
         list_image_families()
-
-    if ARGS_PARSER.namespaces:
+    elif ARGS_PARSER.namespaces:
         list_namespaces()
 
 
 def check_for_valid_option() -> bool:
     """
-    At least one of the listing options must be selected.
+    Only one of the listing options must be selected.
     """
-    return (
-        ARGS_PARSER.object_paths
-        or ARGS_PARSER.work_requirements
-        or ARGS_PARSER.task_groups
-        or ARGS_PARSER.tasks
-        or ARGS_PARSER.worker_pools
-        or ARGS_PARSER.compute_requirements
-        or ARGS_PARSER.compute_templates
-        or ARGS_PARSER.source_templates
-        or ARGS_PARSER.keyrings
-        or ARGS_PARSER.image_families
-        or ARGS_PARSER.namespaces
-    )
+    if [
+        ARGS_PARSER.object_paths,
+        ARGS_PARSER.work_requirements,
+        ARGS_PARSER.task_groups,
+        ARGS_PARSER.tasks,
+        ARGS_PARSER.worker_pools,
+        ARGS_PARSER.compute_requirements,
+        ARGS_PARSER.compute_templates,
+        ARGS_PARSER.source_templates,
+        ARGS_PARSER.keyrings,
+        ARGS_PARSER.image_families,
+        ARGS_PARSER.namespaces,
+    ].count(True) == 1:
+        return True
+    else:
+        return False
 
 
 def list_work_requirements():
@@ -148,7 +139,11 @@ def list_work_requirements():
     )
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
     if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
-        print_numbered_object_list(CLIENT, work_requirement_summaries)
+        if ARGS_PARSER.details:
+            for wr_summary in select(CLIENT, work_requirement_summaries):
+                print_yd_object(wr_summary)
+        else:
+            print_numbered_object_list(CLIENT, work_requirement_summaries)
     else:
         selected_work_summaries = select(
             CLIENT, work_requirement_summaries, single_result=True
@@ -164,7 +159,11 @@ def list_task_groups(work_summary: WorkRequirementSummary):
     )
     task_groups = sorted_objects(task_groups)
     if not ARGS_PARSER.tasks:
-        print_numbered_object_list(CLIENT, task_groups)
+        if ARGS_PARSER.details:
+            for task_group in select(CLIENT, task_groups):
+                print_yd_object(task_group)
+        else:
+            print_numbered_object_list(CLIENT, task_groups)
     else:
         task_groups = select(CLIENT, task_groups, single_result=True)
         for task_group in task_groups:
@@ -178,7 +177,11 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
     )
     tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
     tasks = sorted_objects(tasks)
-    print_numbered_object_list(CLIENT, tasks, parent=work_summary)
+    if ARGS_PARSER.details:
+        for task in select(CLIENT, tasks):
+            print_yd_object(task)
+    else:
+        print_numbered_object_list(CLIENT, tasks, parent=work_summary)
 
 
 def list_object_paths():
@@ -291,10 +294,12 @@ def list_compute_requirements():
         ):
             filtered_compute_requirements.append(compute_requirement)
 
-    print_numbered_object_list(
-        CLIENT,
-        sorted_objects(filtered_compute_requirements),
-    )
+    filtered_compute_requirements = sorted_objects(filtered_compute_requirements)
+    if ARGS_PARSER.details:
+        for compute_requirement in select(CLIENT, filtered_compute_requirements):
+            print_yd_object(compute_requirement)
+    else:
+        print_numbered_object_list(CLIENT, filtered_compute_requirements)
 
 
 def list_compute_templates():
@@ -323,9 +328,6 @@ def list_compute_templates():
         print_numbered_object_list(CLIENT, sorted_objects(cr_templates))
         return
 
-    print_log(
-        "Please select Compute Requirement Template(s) for which to obtain details"
-    )
     cr_templates = select(CLIENT, cr_templates)
     for cr_template in cr_templates:
         cr_template_detail: ComputeRequirementTemplate = (
@@ -360,7 +362,6 @@ def list_source_templates():
         print_numbered_object_list(CLIENT, sorted_objects(cs_templates))
         return
 
-    print_log("Please select Compute Source Template(s) for which to obtain details")
     cs_templates = select(CLIENT, sorted_objects(cs_templates))
     deserialisation_failures = []  # Temporary bug workaround
     for cs_template in cs_templates:
@@ -396,7 +397,6 @@ def list_keyrings():
         print_numbered_object_list(CLIENT, sorted_objects(keyrings))
         return
 
-    print_log("Please select Keyring(s) for which to obtain details")
     keyrings = select(CLIENT, keyrings)
     for keyring_summary in keyrings:
         print_yd_object(get_keyring(keyring_summary.name))
@@ -431,7 +431,6 @@ def list_image_families():
         print_numbered_object_list(CLIENT, sorted_objects(image_family_summaries))
         return
 
-    print_log("Please select Image Families for which to obtain details")
     for image_family_summary in select(CLIENT, sorted_objects(image_family_summaries)):
         image_family = CLIENT.images_client.get_image_family_by_id(
             image_family_summary.id
