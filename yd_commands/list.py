@@ -120,6 +120,8 @@ def list_work_requirements():
         f"Listing Work Requirements with  '{CONFIG_COMMON.namespace}' in namespace "
         f"and '{CONFIG_COMMON.name_tag}' in tag",
     )
+    if ARGS_PARSER.live_only:
+        print_log("Showing active Work Requirements only")
     exclude_filter = (
         [
             WorkRequirementStatus.COMPLETED,
@@ -137,6 +139,10 @@ def list_work_requirements():
             exclude_filter=exclude_filter,
         )
     )
+    if len(work_requirement_summaries) == 0:
+        print_log("No matching Work Requirements")
+        return
+
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
     if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
         if ARGS_PARSER.details:
