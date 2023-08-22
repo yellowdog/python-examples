@@ -59,16 +59,9 @@ def main():
     if cr_json_file is None:  # Finally, try 'computeRequirementData'
         cr_json_file = CONFIG_WP.compute_requirement_data_file
 
-    # Use the variable prefix if this is a Worker Pool file
     if cr_json_file is not None:
-        if (
-            ARGS_PARSER.worker_pool_file or CONFIG_WP.worker_pool_data_file
-        ) and not ARGS_PARSER.compute_requirement:
-            prefix = WP_VARIABLES_PREFIX
-        else:
-            prefix = ""
         print_log(f"Loading Compute Requirement data from: '{cr_json_file}'")
-        create_compute_requirement_from_json(cr_json_file, prefix)
+        create_compute_requirement_from_json(cr_json_file, WP_VARIABLES_PREFIX)
         return
 
     if CONFIG_WP.template_id is None:
