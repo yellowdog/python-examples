@@ -68,13 +68,15 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<date_time>[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
         r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])",
         r"(?P<quoted>'[a-zA-Z0-9-._=;:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')",
+        r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]*)",
     ]
 
 
 pyexamples_theme = Theme(
     {
-        "pyexamples.date_time": "blue",
+        "pyexamples.date_time": "bold blue",
         "pyexamples.quoted": "bold green",
+        "pyexamples.url": "bold magenta",
     }
 )
 
