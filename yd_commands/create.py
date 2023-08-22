@@ -453,7 +453,7 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
             # Unexpected keyword argument Exception of form:
             # __init__() got an unexpected keyword argument 'keyword'
             keyword = str(e).split("'")[1]
-            print_error(f"Ignoring unexpected property '{keyword}'")
+            print_log(f"Warning: ignoring unexpected property '{keyword}'")
             resource.pop(keyword)
 
 
