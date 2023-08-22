@@ -124,7 +124,8 @@ def list_work_requirements():
         f"and '{CONFIG_COMMON.name_tag}' in tag",
     )
     if ARGS_PARSER.live_only:
-        print_log("Showing active Work Requirements only")
+        print_log("Listing active Work Requirements only")
+
     exclude_filter = (
         [
             WorkRequirementStatus.COMPLETED,
@@ -279,6 +280,9 @@ def list_compute_requirements():
         f"namespace containing '{CONFIG_COMMON.namespace}' and "
         f" names containing '{CONFIG_COMMON.name_tag}'"
     )
+
+    if ARGS_PARSER.live_only:
+        print_log("Listing active Compute Requirements only")
 
     cr_search = ComputeRequirementSearch(
         namespace=CONFIG_COMMON.namespace,
