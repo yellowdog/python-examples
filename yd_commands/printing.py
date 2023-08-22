@@ -533,8 +533,12 @@ def print_numbered_strings(objects: List[str], override_quiet: bool = False):
 def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
     """
     Sort objects by their 'name' property, or 'namespace' in the case of
-    Namespace Storage Configurations.
+    Namespace Storage Configurations, or 'instanceType' in the case of
+    Instances.
     """
+    if len(objects) == 0:
+        return objects
+
     if isinstance(objects[0], Instance):
         return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)
 
