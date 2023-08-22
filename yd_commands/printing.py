@@ -26,6 +26,7 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateUsage,
     ComputeSourceTemplateSummary,
     ConfiguredWorkerPool,
+    Instance,
     KeyringSummary,
     MachineImageFamilySummary,
     NodeStatus,
@@ -78,7 +79,7 @@ pyexamples_theme = Theme(
         "pyexamples.date_time": "bold blue",
         "pyexamples.quoted": "bold green",
         "pyexamples.url": "bold magenta",
-        "pyexamples.ydid" : "bold green",
+        "pyexamples.ydid": "bold green",
     }
 )
 
@@ -157,6 +158,10 @@ def get_type_name(obj: Item) -> str:
     if type(obj).__name__.endswith("NamespaceStorageConfiguration"):
         # Special case
         return "Namespace Storage Configuration"
+
+    if type(obj).__name__.endswith("Instance"):
+        # Special case
+        return "Instance"
 
     return TYPE_MAP.get(type(obj), "")
 
@@ -415,6 +420,32 @@ def object_path_table(
     return headers, table
 
 
+def instances_table(
+    instances: List[Instance],
+) -> (List[str], List[str]):
+    headers = [
+        "#",
+        "Type",
+        "Provider",
+        "Instance Type",
+        "Private IP",
+        "Public IP",
+    ]
+    table = []
+    for index, instance in enumerate(instances):
+        table.append(
+            [
+                index + 1,
+                instance.type.split(".")[-1],
+                instance.provider,
+                instance.instanceType,
+                instance.privateIpAddress,
+                instance.publicIpAddress,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Item],
@@ -457,6 +488,8 @@ def print_numbered_object_list(
         headers, table = image_family_table(objects)
     elif isinstance(objects[0], ObjectPath):
         headers, table = object_path_table(objects)
+    elif isinstance(objects[0], Instance):
+        headers, table = instances_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
@@ -502,6 +535,9 @@ def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
     Sort objects by their 'name' property, or 'namespace' in the case of
     Namespace Storage Configurations.
     """
+    if isinstance(objects[0], Instance):
+        return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)
+
     try:
         return sorted(objects, key=lambda x: x.name, reverse=reverse)
     except:

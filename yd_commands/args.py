@@ -408,6 +408,12 @@ class CLIParser:
                 required=False,
                 help="list Namespace Storage Configurations",
             )
+            parser.add_argument(
+                "--instances",
+                action="store_true",
+                required=False,
+                help="list compute instances",
+            )
 
         if "upload" in sys.argv[0]:
             parser.add_argument(
@@ -866,6 +872,10 @@ class CLIParser:
     @property
     def namespaces(self) -> Optional[bool]:
         return self.args.namespaces
+
+    @property
+    def instances(self) -> Optional[bool]:
+        return self.args.instances
 
     @property
     def show_keyring_passwords(self) -> Optional[bool]:

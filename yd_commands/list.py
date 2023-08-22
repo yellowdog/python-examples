@@ -19,6 +19,8 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
+    Instance,
+    InstanceSearch,
     Keyring,
     KeyringSummary,
     MachineImageFamilySearch,
@@ -72,7 +74,7 @@ def main():
         list_work_requirements()
     elif ARGS_PARSER.worker_pools:
         list_worker_pools()
-    elif ARGS_PARSER.compute_requirements:
+    elif ARGS_PARSER.compute_requirements or ARGS_PARSER.instances:
         list_compute_requirements()
     elif ARGS_PARSER.compute_templates:
         list_compute_templates()
@@ -102,6 +104,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.keyrings,
         ARGS_PARSER.image_families,
         ARGS_PARSER.namespaces,
+        ARGS_PARSER.instances,
     ].count(True) == 1:
         return True
     else:
@@ -303,11 +306,40 @@ def list_compute_requirements():
             filtered_compute_requirements.append(compute_requirement)
 
     filtered_compute_requirements = sorted_objects(filtered_compute_requirements)
+
+    if ARGS_PARSER.instances:
+        for compute_requirement in select(
+            CLIENT, filtered_compute_requirements, single_result=True
+        ):
+            list_instances(compute_requirement)
+        return
+
     if ARGS_PARSER.details:
         for compute_requirement in select(CLIENT, filtered_compute_requirements):
             print_yd_object(compute_requirement)
     else:
         print_numbered_object_list(CLIENT, filtered_compute_requirements)
+
+
+def list_instances(compute_requirement: ComputeRequirement):
+    """
+    List the instances within a Compute Requirement.
+    """
+    instance_search: InstanceSearch = InstanceSearch(
+        computeRequirementId=compute_requirement.id
+    )
+    search_client: SearchClient = CLIENT.compute_client.get_instances(
+        instance_search=instance_search
+    )
+    instances: List[Instance] = search_client.list_all()
+    if len(instances) == 0:
+        print_log("No instances to list")
+        return
+    if ARGS_PARSER.details:
+        for instance in select(CLIENT, search_client.list_all()):
+            print_yd_object(instance)
+    else:
+        print_numbered_object_list(CLIENT, search_client.list_all())
 
 
 def list_compute_templates():
