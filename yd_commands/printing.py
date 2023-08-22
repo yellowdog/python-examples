@@ -621,7 +621,7 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
     sources: List[BestComputeSourceReportSource] = report.sources
     source_table = [
         [
-            "",
+            "#",
             "Rank",
             "Provider",
             "Type",
@@ -643,7 +643,10 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
             ]
         )
     print()
-    print(tabulate(source_table, headers="firstrow", tablefmt="simple_outline"))
+    CONSOLE.print(
+        indent(tabulate(source_table, headers="firstrow", tablefmt="simple_outline")),
+        style=TABLE_OUTPUT_STYLE,
+    )
     print()
 
 
@@ -665,7 +668,7 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
     if ARGS_PARSER.quiet:
         return
 
-    headers = ["Item", "Source Object", "->", "Target Object"]
+    headers = ["#", "Source Object", "Target Object"]
     table = []
     # Yes, I know I shouldn't be accessing '_source_file_entries'
     for index, file_entry in enumerate(upload_batch_builder._source_file_entries):
@@ -673,12 +676,15 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
             [
                 index + 1,
                 file_entry.source_file_path,
-                "->",
                 f"{upload_batch_builder.namespace}::{file_entry.default_object_name}",
             ]
         )
     print()
-    print(indent(tabulate(table, headers=headers, tablefmt="simple"), indent_width=4))
+    print(
+        indent(
+            tabulate(table, headers=headers, tablefmt="simple_outline"), indent_width=4
+        )
+    )
     print()
 
 
@@ -691,7 +697,7 @@ def print_batch_download_files(
     if ARGS_PARSER.quiet:
         return
 
-    headers = ["Item", "Source Object", "->", "Target Object"]
+    headers = ["#", "Source Object", "Target Object"]
     directory_separator = "\\" if os_name == "nt" else "/"
     table = []
     # Yes, I know I shouldn't be accessing '_source_object_entries'
@@ -706,7 +712,6 @@ def print_batch_download_files(
             [
                 index + 1,
                 object_source,
-                "->",
                 relpath(
                     f"{download_batch_builder.destination_folder}"
                     f"{directory_separator}"
@@ -715,5 +720,10 @@ def print_batch_download_files(
             ]
         )
     print()
-    print(indent(tabulate(table, headers=headers, tablefmt="simple"), indent_width=4))
+    CONSOLE.print(
+        indent(
+            tabulate(table, headers=headers, tablefmt="simple_outline"), indent_width=4
+        ),
+        style=TABLE_OUTPUT_STYLE,
+    )
     print()
