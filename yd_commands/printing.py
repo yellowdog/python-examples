@@ -129,7 +129,7 @@ def print_error(error_obj: ErrorObject):
     """
     Print an error message to stderr.
     """
-    CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style="red")
+    CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style="bold red")
 
 
 TYPE_MAP = {
