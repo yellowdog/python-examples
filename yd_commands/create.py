@@ -28,7 +28,7 @@ from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
     find_compute_template_id_by_name,
 )
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.resource_config import load_resource_specifications
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -453,7 +453,7 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
             # Unexpected keyword argument Exception of form:
             # __init__() got an unexpected keyword argument 'keyword'
             keyword = str(e).split("'")[1]
-            print_log(f"Warning: ignoring unexpected property '{keyword}'")
+            print_warning(f"Ignoring unexpected property '{keyword}'")
             resource.pop(keyword)
 
 

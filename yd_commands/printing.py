@@ -135,6 +135,13 @@ def print_error(error_obj: ErrorObject):
     CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style="bold red")
 
 
+def print_warning(warning: str):
+    """
+    Print a warning.
+    """
+    CONSOLE.print(print_string(f"Warning: {warning}"), style="red")
+
+
 TYPE_MAP = {
     ConfiguredWorkerPool: "Configured Worker Pool",
     ProvisionedWorkerPool: "Provisioned Worker Pool",
