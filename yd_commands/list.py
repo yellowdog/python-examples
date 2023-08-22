@@ -309,6 +309,10 @@ def list_compute_requirements():
         ):
             filtered_compute_requirements.append(compute_requirement)
 
+    if len(filtered_compute_requirements) == 0:
+        print_log("No matching Compute Requirements")
+        return
+
     filtered_compute_requirements = sorted_objects(filtered_compute_requirements)
 
     if ARGS_PARSER.instances:
