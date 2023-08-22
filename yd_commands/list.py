@@ -238,8 +238,10 @@ def list_worker_pools():
         if ARGS_PARSER.live_only
         else []
     )
+    showing_all = True
     if ARGS_PARSER.live_only:
         print_log("Displaying active Worker Pools only")
+        showing_all = False
     worker_pool_summaries = [
         wp_summary
         for wp_summary in worker_pool_summaries
@@ -250,7 +252,7 @@ def list_worker_pools():
         return
     if ARGS_PARSER.details:
         for worker_pool_summary in select(
-            CLIENT, sorted_objects(worker_pool_summaries), showing_all=True
+            CLIENT, sorted_objects(worker_pool_summaries), showing_all=showing_all
         ):
             worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
                 worker_pool_summary.id
@@ -258,7 +260,7 @@ def list_worker_pools():
             print_yd_object(worker_pool)
     else:
         print_numbered_object_list(
-            CLIENT, sorted_objects(worker_pool_summaries), showing_all=True
+            CLIENT, sorted_objects(worker_pool_summaries), showing_all=showing_all
         )
 
 
