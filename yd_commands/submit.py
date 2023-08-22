@@ -261,6 +261,7 @@ def submit_work_requirement(
             f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
             f"({work_requirement.name})"
         )
+        print_log(f"YellowDog ID is '{work_requirement.id}'")
     else:
         global WR_SNAPSHOT
         WR_SNAPSHOT.set_work_requirement(work_requirement)

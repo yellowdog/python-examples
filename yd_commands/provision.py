@@ -198,7 +198,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     name = wp_data["requirementTemplateUsage"]["requirementName"]
     if response.status_code == 200:
         id = response.json()["id"]
-        print_log(f"Provisioned Worker Pool '{name}' ({id})")
+        print_log(f"Provisioned Worker Pool '{name}' ('{id}')")
         if ARGS_PARSER.quiet:
             print(id)
     else:
@@ -314,6 +314,7 @@ def create_worker_pool():
                     provisioned_worker_pool_properties,
                 )
                 print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
+                print_log(f"YellowDog ID is '{worker_pool.id}'")
                 if ARGS_PARSER.quiet:
                     print(worker_pool.id)
             else:

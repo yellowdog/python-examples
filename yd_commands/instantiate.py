@@ -140,6 +140,7 @@ def main():
                 print_log(
                     f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
                 )
+                print_log(f"YellowDog ID is '{compute_requirement.id}'")
             else:
                 print_log("Dry-run: Printing JSON Compute Requirement specification")
                 print_yd_object(compute_requirement_template_usage)
@@ -269,7 +270,7 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
     name = cr_data["requirementName"]
     if response.status_code == 200:
         id = response.json()["id"]
-        print_log(f"Provisioned Compute Requirement '{name}' ({id})")
+        print_log(f"Provisioned Compute Requirement '{name}' ('{id}')")
         if ARGS_PARSER.quiet:
             print(id)
     else:
