@@ -198,7 +198,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     name = wp_data["requirementTemplateUsage"]["requirementName"]
     if response.status_code == 200:
         id = response.json()["id"]
-        print_log(f"Provisioned Worker Pool '{name}' ('{id}')")
+        print_log(f"Provisioned Worker Pool '{name}' ({id})")
         if ARGS_PARSER.quiet:
             print(id)
     else:
