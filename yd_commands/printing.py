@@ -529,9 +529,9 @@ def print_json(
     if drop_first_line:
         json_string = "\n".join(json_string.splitlines()[1:])
     if with_final_comma:
-        CONSOLE_JSON.print(json_string, end=",\n")
+        CONSOLE_JSON.print(json_string, end=",\n", soft_wrap=True)
     else:
-        CONSOLE_JSON.print(json_string)
+        CONSOLE_JSON.print(json_string, soft_wrap=True)
 
 
 def print_yd_object(

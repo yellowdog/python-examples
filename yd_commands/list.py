@@ -117,7 +117,7 @@ def list_work_requirements():
     options chosen.
     """
     print_log(
-        f"Listing Work Requirements with  '{CONFIG_COMMON.namespace}'in namespace "
+        f"Listing Work Requirements with  '{CONFIG_COMMON.namespace}' in namespace "
         f"and '{CONFIG_COMMON.name_tag}' in tag",
     )
     exclude_filter = (
