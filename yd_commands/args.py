@@ -498,7 +498,7 @@ class CLIParser:
 
         if any(
             module in sys.argv[0]
-            for module in ["submit", "provision", "instantiate", "create"]
+            for module in ["submit", "provision", "instantiate", "create", "remove"]
         ):
             parser.add_argument(
                 "--jsonnet-dry-run",
