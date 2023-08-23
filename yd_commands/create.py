@@ -28,7 +28,7 @@ from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
     find_compute_template_id_by_name,
 )
-from yd_commands.printing import print_error, print_log, print_warning
+from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.resource_config import load_resource_specifications
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -36,9 +36,17 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     resources = load_resource_specifications()
+    if ARGS_PARSER.dry_run:
+        print_log(
+            "Dry run: displaying processed JSON resource specifications. Note:"
+            " 'resource' property is removed."
+        )
     for resource in resources:
         try:
             resource_type = resource.pop("resource")
+            if ARGS_PARSER.dry_run:
+                print_json(resource)
+                continue
         except KeyError:
             print_error(
                 "Missing required 'resource' property in the following resource"

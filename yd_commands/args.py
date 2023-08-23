@@ -460,7 +460,8 @@ class CLIParser:
             )
 
         if any(
-            module in sys.argv[0] for module in ["submit", "provision", "instantiate"]
+            module in sys.argv[0]
+            for module in ["submit", "provision", "instantiate", "create"]
         ):
             parser.add_argument(
                 "--dry-run",

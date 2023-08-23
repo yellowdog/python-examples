@@ -1676,6 +1676,8 @@ yd-list --compute-templates --details
 yd-list --image-families --details
 ```
 
+The `--dry-run`/`-D` and `--jsonnet-dry-run`/`-J` options can be used with `yd-create` to display the processed JSON data structures without any resources being created.
+
 Below, we'll discuss each item type with example specifications.
 
 ## Keyrings
