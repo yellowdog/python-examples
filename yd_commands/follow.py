@@ -11,7 +11,7 @@ from typing import Callable, Dict, List
 
 import requests
 
-from yd_commands.printing import print_error, print_json, print_log
+from yd_commands.printing import print_error, print_log
 from yd_commands.wrapper import ARGS_PARSER, CONFIG_COMMON, main_wrapper
 
 
@@ -35,37 +35,38 @@ def main():
 
     for ydid in ARGS_PARSER.yellowdog_ids:
         if ":workreq:" in ydid:
-            target = follow_events
             url = f"{CONFIG_COMMON.url}/work/requirements/{ydid}/updates"
             id_type = IdType.WORK_REQ
-            event_processor = print_event
         elif ":wrkrpool:" in ydid:
-            target = follow_events
             url = f"{CONFIG_COMMON.url}/workerPools/{ydid}/updates"
             id_type = IdType.WORKER_POOL
-            event_processor = print_event
         elif ":compreq:" in ydid:
-            target = follow_events
             url = f"{CONFIG_COMMON.url}/compute/requirements/{ydid}/updates"
             id_type = IdType.COMPUTE_REQ
-            event_processor = print_event
         else:
             print_error(
                 f"Invalid YellowDog ID '{ydid}' (Must be Work Requirement, Worker Pool"
                 " or Compute Requirement)"
             )
             continue
+
         thread = Thread(
-            target=target, args=(url, event_processor, id_type), daemon=True
+            target=follow_events, args=(url, print_event, id_type, ydid), daemon=True
         )
+        try:
+            thread.start()
+        except RuntimeError as e:
+            print_error(f"Unable to start event thread for '{ydid}': ({e})")
+            continue
         threads.append(thread)
-        thread.start()
 
     for thread in threads:
         thread.join()
 
+    print_log("All event streams have finished")
 
-def follow_events(url: str, event_handler: Callable, id_type: IdType):
+
+def follow_events(url: str, event_handler: Callable, id_type: IdType, ydid: str):
     """
     Follow events.
     """
@@ -74,11 +75,14 @@ def follow_events(url: str, event_handler: Callable, id_type: IdType):
         url=url,
         stream=True,
     )
+
     if response.status_code != 200:
-        print_error(f"{response.json()['message']}")
+        print_error(f"'{ydid}': {response.json()['message']}")
         return
+
     if response.encoding is None:
         response.encoding = "utf-8"
+
     for event in response.iter_lines(decode_unicode=True):
         if event:
             event_handler(event, id_type)
