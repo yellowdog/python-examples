@@ -58,7 +58,7 @@ except OSError:
     LOG_WIDTH = 120  # Default log line width
 
 
-# Set up basic Rich formatting
+# Set up Rich formatting for coloured output
 class PrintLogHighlighter(RegexHighlighter):
     """
     Apply styles to print_log() lines.
@@ -83,10 +83,13 @@ pyexamples_theme = Theme(
     }
 )
 
+TABLE_STYLE = "bold green"
+ERROR_STYLE = "bold red"
+WARNING_STYLE = "red"
+
 CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
 CONSOLE_ERR = Console(stderr=True, highlighter=PrintLogHighlighter())
 CONSOLE_JSON = Console(highlighter=JSONHighlighter())
-TABLE_OUTPUT_STYLE = "bold green"
 
 
 def print_string(msg: str = "", no_fill: bool = False) -> str:
@@ -113,7 +116,6 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
 def print_log(
     log_message: str,
     override_quiet: bool = False,
-    flush: bool = True,
     no_fill: bool = False,
 ):
     """
@@ -137,14 +139,14 @@ def print_error(error_obj: ErrorObject):
     """
     Print an error message to stderr.
     """
-    CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style="bold red")
+    CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style=ERROR_STYLE)
 
 
 def print_warning(warning: str):
     """
     Print a warning.
     """
-    CONSOLE.print(print_string(f"Warning: {warning}"), style="red")
+    CONSOLE.print(print_string(f"Warning: {warning}"), style=WARNING_STYLE)
 
 
 TYPE_MAP = {
@@ -512,7 +514,7 @@ def print_numbered_object_list(
     if headers is None:
         CONSOLE.print(
             indent(tabulate(table, tablefmt="plain"), indent_width=4),
-            style=TABLE_OUTPUT_STYLE,
+            style=TABLE_STYLE,
         )
     else:
         CONSOLE.print(
@@ -520,7 +522,7 @@ def print_numbered_object_list(
                 tabulate(table, headers=headers, tablefmt="simple_outline"),
                 indent_width=4,
             ),
-            style=TABLE_OUTPUT_STYLE,
+            style=TABLE_STYLE,
         )
     print()
 
@@ -537,7 +539,7 @@ def print_numbered_strings(objects: List[str], override_quiet: bool = False):
         table.append([index + 1, ":", obj])
     CONSOLE.print(
         indent(tabulate(table, tablefmt="plain"), indent_width=4),
-        style=TABLE_OUTPUT_STYLE,
+        style=TABLE_STYLE,
     )
     print()
 
@@ -699,7 +701,7 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
     print()
     CONSOLE.print(
         indent(tabulate(source_table, headers="firstrow", tablefmt="simple_outline")),
-        style=TABLE_OUTPUT_STYLE,
+        style=TABLE_STYLE,
     )
     print()
 
@@ -778,6 +780,6 @@ def print_batch_download_files(
         indent(
             tabulate(table, headers=headers, tablefmt="simple_outline"), indent_width=4
         ),
-        style=TABLE_OUTPUT_STYLE,
+        style=TABLE_STYLE,
     )
     print()

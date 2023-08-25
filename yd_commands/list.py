@@ -48,7 +48,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import (
     CONSOLE,
-    TABLE_OUTPUT_STYLE,
+    TABLE_STYLE,
     indent,
     print_error,
     print_log,
@@ -543,7 +543,7 @@ def list_namespaces():
     print()
     CONSOLE.print(
         indent(tabulate(rows, headings, tablefmt="simple_outline")),
-        style=TABLE_OUTPUT_STYLE,
+        style=TABLE_STYLE,
     )
     print()
 
