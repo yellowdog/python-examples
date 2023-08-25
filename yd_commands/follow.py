@@ -26,14 +26,13 @@ def main():
     """
     Creates an event thread for each ydid passed on the command line.
     """
-    print_log(
-        f"Following the event stream(s) for {len(ARGS_PARSER.yellowdog_ids)} YellowDog"
-        " ID(s)"
-    )
+
+    ydids = set(ARGS_PARSER.yellowdog_ids)  # Eliminate duplicates
+    print_log(f"Following the event stream(s) for {len(ydids)} YellowDog ID(s)")
 
     threads: List[Thread] = []
 
-    for ydid in ARGS_PARSER.yellowdog_ids:
+    for ydid in ydids:
         if ":workreq:" in ydid:
             url = f"{CONFIG_COMMON.url}/work/requirements/{ydid}/updates"
             id_type = IdType.WORK_REQ
