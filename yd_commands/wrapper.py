@@ -84,6 +84,7 @@ def main_wrapper(func):
                 print_error(e)
                 exit_code = 1
             except KeyboardInterrupt:
+                print("\r", end="")  # Overwrite the display of ^C
                 print_log("Cancelled")
                 exit_code = 1
             finally:
