@@ -11,7 +11,7 @@ def check_jsonnet_import():
         from _jsonnet import evaluate_file
     except ImportError:
         raise Exception(
-            "The 'jsonnet' package is not installed by default; "
-            "it can be installed using 'pip install jsonnet' "
-            "or (if that fails) try 'pip install jsonnet-binary'"
+            "Jsonnet support is not included by default. The 'jsonnet' Python package"
+            " can usually be installed using 'pip install jsonnet' or (if that fails)"
+            " try 'pip install jsonnet-binary'."
         )
