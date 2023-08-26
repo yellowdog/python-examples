@@ -1588,7 +1588,7 @@ When a JSON Worker Pool specification is used, the following properties from the
 
 Variable substitutions can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
-An important distinction when using variable substitutions within Worker Pool (or Compute Requirement) JSON (or JSonnet) documents is that each variable directive **must be preceded by a `__` (double underscore)** to disambiguate it from variable substitutions that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` default substitution.
+An important distinction when using variable substitutions within Worker Pool (or Compute Requirement) JSON (or Jsonnet) documents is that each variable directive **must be preceded by a `__` (double underscore)** to disambiguate it from variable substitutions that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` default substitution.
 
 ## Dry-Running Worker Pool Provisioning
 
@@ -1621,7 +1621,7 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 
 ## Overview of Operation
 
-The **yd-create** and **yd-remove** commands operate on a list of one or more resource specification files in JSON (or JSonnet) format.
+The **yd-create** and **yd-remove** commands operate on a list of one or more resource specification files in JSON (or Jsonnet) format.
 
 Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are processed in the order found in each list, and in the order of the resource specification files found on the command line.
 
@@ -2342,11 +2342,11 @@ yd-resize -C ydid:compreq:D9C548:600bef1f-7ccd-431c-afcc-b56208565aac 5
 
 ## yd-create
 
-The `yd-create` command is used to create or update YellowDog resources, specified in one or more JSON (or JSonnet) files supplied on the command line. Each file can contain one or more resources.
+The `yd-create` command is used to create or update YellowDog resources, specified in one or more JSON (or Jsonnet) files supplied on the command line. Each file can contain one or more resources.
 
 ## yd-remove
 
-The `yd-remove` command is used to remove YellowDog resources, specified in one or more JSON (or JSonnet) files supplied on the command line. Each file can contain one or more resources.
+The `yd-remove` command is used to remove YellowDog resources, specified in one or more JSON (or Jsonnet) files supplied on the command line. Each file can contain one or more resources.
 
 ## yd-follow
 
