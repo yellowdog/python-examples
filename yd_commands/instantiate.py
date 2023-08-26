@@ -5,6 +5,7 @@ A script to provision a Compute Requirement.
 """
 
 from dataclasses import dataclass
+from json import loads as json_loads
 from math import ceil, floor
 from typing import List, Optional
 
@@ -118,6 +119,12 @@ def main():
                     )
                     print_compute_template_test_result(test_result)
                 except requests.HTTPError as http_error:
+                    if http_error.response.status_code == 404:
+                        raise Exception(
+                            json_loads(http_error.response.text).get(
+                                "message", "Template ID not found"
+                            )
+                        )
                     if "No sources" in http_error.response.text:
                         print_log("No Compute Sources match the Template's constraints")
                 return
@@ -140,8 +147,11 @@ def main():
                 print_log("Dry-run: Complete")
 
         except Exception as e:
-            print_error(f"Unable to provision Compute Requirement")
-            raise Exception(e)
+            raise Exception(
+                "Unable to"
+                f" {'report on' if ARGS_PARSER.report else 'provision'} Compute"
+                f" Requirement: {e}"
+            )
 
 
 def _allocate_nodes_to_batches(
