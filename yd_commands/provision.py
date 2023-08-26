@@ -38,9 +38,11 @@ from yd_commands.config_keys import (
     USERDATA,
     WORKER_TAG,
 )
+from yd_commands.follow_utils import YDIDType, follow_events
 from yd_commands.printing import (
     print_error,
     print_log,
+    print_warning,
     print_worker_pool,
     print_yd_object,
 )
@@ -201,6 +203,9 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         print_log(f"Provisioned Worker Pool '{name}' ({id})")
         if ARGS_PARSER.quiet:
             print(id)
+        if ARGS_PARSER.follow:
+            print_log("Following Worker Pool event stream")
+            follow_events(id, YDIDType.WORKER_POOL)
     else:
         print_error(f"Failed to provision Worker Pool '{name}'")
         raise Exception(f"{response.text}")
@@ -354,6 +359,14 @@ def create_worker_pool():
 
     if ARGS_PARSER.dry_run:
         print_log("Dry run: Complete")
+        return
+
+    if ARGS_PARSER.follow:
+        if len(batches) == 1:
+            print_log("Following Worker Pool event stream")
+            follow_events(worker_pool.id, YDIDType.WORKER_POOL)
+        else:
+            print_warning("Follow option is ignored for multiple batches")
 
 
 def _allocate_nodes_to_batches(

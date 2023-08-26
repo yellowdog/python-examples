@@ -23,10 +23,12 @@ from yd_commands.config import (
     link_entity,
     load_config_worker_pool,
 )
+from yd_commands.follow_utils import YDIDType, follow_events
 from yd_commands.printing import (
     print_compute_template_test_result,
     print_error,
     print_log,
+    print_warning,
     print_yd_object,
 )
 from yd_commands.provision_utils import get_user_data_property
@@ -141,6 +143,12 @@ def main():
                     f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
                 )
                 print_log(f"YellowDog ID is '{compute_requirement.id}'")
+                if ARGS_PARSER.follow:
+                    if len(batches) == 1:
+                        print_log("Following Compute Requirement event stream")
+                        follow_events(compute_requirement.id, YDIDType.COMPUTE_REQ)
+                    else:
+                        print_warning("Follow option is ignored for multiple batches")
             else:
                 print_log("Dry-run: Printing JSON Compute Requirement specification")
                 print_yd_object(compute_requirement_template_usage)
@@ -276,6 +284,9 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
         print_log(f"Provisioned Compute Requirement '{name}' ({id})")
         if ARGS_PARSER.quiet:
             print(id)
+        if ARGS_PARSER.follow:
+            print_log("Following Compute Requirement event stream")
+            follow_events(id, YDIDType.COMPUTE_REQ)
     else:
         print_error(f"Failed to provision Compute Requirement '{name}'")
         raise Exception(f"{response.text}")

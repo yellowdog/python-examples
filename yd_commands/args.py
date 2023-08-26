@@ -210,6 +210,13 @@ class CLIParser:
                 help="worker pool definition file in JSON format",
                 metavar="<worker_pool.json>",
             )
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help="follow the event stream after provisioning",
+            )
 
         if any(module in sys.argv[0] for module in ["cancel"]):
             parser.add_argument(
