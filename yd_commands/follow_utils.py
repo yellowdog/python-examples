@@ -41,6 +41,8 @@ def follow_events(ydid: str, ydid_type: YDIDType):
         if event:
             print_event(event, ydid_type)
 
+    print_log(f"Event stream concluded for '{ydid}'")
+
 
 def print_event(event: str, id_type: YDIDType):
     """
