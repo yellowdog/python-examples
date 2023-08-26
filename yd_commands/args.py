@@ -640,20 +640,6 @@ class CLIParser:
             docs()
             exit(0)
 
-        # Temporary notification message while we figure out the problem
-        # with the use of concurrent futures in Python 3.10+
-        if (
-            any(module in sys.argv[0] for module in ["submit"])
-            and self.args.follow
-            and sys.version_info >= (3, 10)
-        ):
-            print(
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                ":",
-                "Note: the '--follow' ('-f') option is partially supported "
-                "for Python versions 3.10 and above",
-            )
-
     @property
     def config_file(self) -> Optional[str]:
         return self.args.config

@@ -48,6 +48,7 @@ from yd_commands.csv_data import (
     load_jsonnet_file_with_csv_task_expansion,
     load_toml_file_with_csv_task_expansion,
 )
+from yd_commands.follow_utils import YDIDType, follow_events
 from yd_commands.interactive import confirmed
 from yd_commands.printing import (
     WorkRequirementSnapshot,
@@ -780,9 +781,10 @@ def get_task_data_property(
                 return f.read()
 
 
-def follow_progress(work_requirement: WorkRequirement) -> None:
+def follow_progress_old(work_requirement: WorkRequirement) -> None:
     """
-    Follow and report the progress of a Work Requirement
+    Follow and report the progress of a Work Requirement.
+    Deprecated temporarily due to problems with Python 3.10+.
     """
     listener = DelegatedSubscriptionEventListener(on_update=on_update)
     CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
@@ -793,6 +795,15 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     )
     if work_requirement.status != WorkRequirementStatus.COMPLETED:
         print_log(f"Work Requirement did not complete: {work_requirement.status}")
+
+
+def follow_progress(work_requirement: WorkRequirement) -> None:
+    """
+    Follow and report the progress of a Work Requirement.
+    Replacement for the SDK version above.
+    """
+    print_log("Following Work Requirement Event Stream")
+    follow_events(work_requirement.id, YDIDType.WORK_REQ)
 
 
 def on_update(work_req: WorkRequirement):
