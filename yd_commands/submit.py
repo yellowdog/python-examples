@@ -48,7 +48,8 @@ from yd_commands.csv_data import (
     load_jsonnet_file_with_csv_task_expansion,
     load_toml_file_with_csv_task_expansion,
 )
-from yd_commands.follow_utils import YDIDType, follow_events
+from yd_commands.follow_utils import follow_events
+from yd_commands.id_utils import YDIDType
 from yd_commands.interactive import confirmed
 from yd_commands.printing import (
     WorkRequirementSnapshot,

@@ -38,7 +38,8 @@ from yd_commands.config_keys import (
     USERDATA,
     WORKER_TAG,
 )
-from yd_commands.follow_utils import YDIDType, follow_events
+from yd_commands.follow_utils import follow_events
+from yd_commands.id_utils import YDIDType
 from yd_commands.printing import (
     print_error,
     print_log,

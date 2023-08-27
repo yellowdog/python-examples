@@ -7,9 +7,10 @@ A script to follow event streams.
 from threading import Thread
 from typing import List
 
-from yd_commands.follow_utils import YDIDType, follow_events, get_ydid_type
+from yd_commands.follow_utils import follow_events
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.printing import print_error, print_log
-from yd_commands.wrapper import ARGS_PARSER, CONFIG_COMMON, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, main_wrapper
 
 
 @main_wrapper

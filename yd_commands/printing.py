@@ -4,6 +4,7 @@ Functions focused on print outputs.
 
 from datetime import datetime
 from json import dumps as json_dumps
+from json import loads as json_loads
 from os import get_terminal_size
 from os import name as os_name
 from os.path import relpath
@@ -48,6 +49,7 @@ from yellowdog_client.object_store.upload import UploadBatchBuilder
 from yd_commands.args import ARGS_PARSER
 from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.config_keys import NAME, TASK_GROUPS, TASKS
+from yd_commands.id_utils import YDIDType
 from yd_commands.object_utilities import Item
 
 JSON_INDENT = 2
@@ -783,3 +785,51 @@ def print_batch_download_files(
         style=TABLE_STYLE,
     )
     print()
+
+
+def print_event(event: str, id_type: YDIDType):
+    """
+    Print a YellowDog event.
+    """
+    data_prefix = "data:"
+
+    # Ignore events that don't have a 'data:' payload
+    if not event.startswith(data_prefix):
+        return
+
+    event_data: Dict = json_loads(event.replace(data_prefix, ""))
+
+    indent = "\n                      --> "
+
+    if id_type == YDIDType.WORK_REQ:
+        msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
+        for task_group in event_data["taskGroups"]:
+            msg += (
+                f"{indent}Task Group '{task_group['name']}':"
+                f" {task_group['taskSummary']['statusCounts']['COMPLETED']} of"
+                f" {task_group['taskSummary']['taskCount']} Task(s) completed"
+            )
+
+    elif id_type == YDIDType.WORKER_POOL:
+        msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
+        msg += (
+            f"{indent}{event_data['nodeSummary']['statusCounts']['RUNNING']} Node(s)"
+            " running"
+        )
+        msg += (
+            f"{indent}Worker(s):"
+            f" {event_data['workerSummary']['statusCounts']['DOING_TASK']} working,"
+            f" {event_data['workerSummary']['statusCounts']['SLEEPING']} sleeping"
+        )
+
+    elif id_type == YDIDType.COMPUTE_REQ:
+        msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
+        msg += (
+            f"{indent}{event_data['targetInstanceCount']} Target Instance(s),"
+            f" {event_data['expectedInstanceCount']} Expected Instance(s)"
+        )
+
+    else:
+        return
+
+    print_log(msg, override_quiet=True, no_fill=True)

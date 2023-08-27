@@ -23,7 +23,8 @@ from yd_commands.config import (
     link_entity,
     load_config_worker_pool,
 )
-from yd_commands.follow_utils import YDIDType, follow_events
+from yd_commands.follow_utils import follow_events
+from yd_commands.id_utils import YDIDType
 from yd_commands.printing import (
     print_compute_template_test_result,
     print_error,

@@ -1,23 +1,13 @@
-#!/usr/bin/env python3
-
 """
 Utility function to follow event streams.
 """
-
-from enum import Enum
-from json import loads as json_loads
-from typing import Dict, Optional
+from typing import Optional
 
 import requests
 
-from yd_commands.printing import print_error, print_log
+from yd_commands.id_utils import YDIDType
+from yd_commands.printing import print_error, print_event, print_log
 from yd_commands.wrapper import CONFIG_COMMON
-
-
-class YDIDType(Enum):
-    WORK_REQ = "Work Requirement"
-    WORKER_POOL = "Worker Pool"
-    COMPUTE_REQ = "Compute Requirement"
 
 
 def follow_events(ydid: str, ydid_type: YDIDType):
@@ -42,68 +32,6 @@ def follow_events(ydid: str, ydid_type: YDIDType):
             print_event(event, ydid_type)
 
     print_log(f"Event stream concluded for '{ydid}'")
-
-
-def print_event(event: str, id_type: YDIDType):
-    """
-    Print a YellowDog event.
-    """
-    data_prefix = "data:"
-
-    # Ignore events that don't have a 'data:' payload
-    if not event.startswith(data_prefix):
-        return
-
-    event_data: Dict = json_loads(event.replace(data_prefix, ""))
-
-    indent = "\n                      --> "
-
-    if id_type == YDIDType.WORK_REQ:
-        msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
-        for task_group in event_data["taskGroups"]:
-            msg += (
-                f"{indent}Task Group '{task_group['name']}':"
-                f" {task_group['taskSummary']['statusCounts']['COMPLETED']} of"
-                f" {task_group['taskSummary']['taskCount']} Task(s) completed"
-            )
-
-    elif id_type == YDIDType.WORKER_POOL:
-        msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
-        msg += (
-            f"{indent}{event_data['nodeSummary']['statusCounts']['RUNNING']} Node(s)"
-            " running"
-        )
-        msg += (
-            f"{indent}Worker(s):"
-            f" {event_data['workerSummary']['statusCounts']['DOING_TASK']} working,"
-            f" {event_data['workerSummary']['statusCounts']['SLEEPING']} sleeping"
-        )
-
-    elif id_type == YDIDType.COMPUTE_REQ:
-        msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
-        msg += (
-            f"{indent}{event_data['targetInstanceCount']} Target Instance(s),"
-            f" {event_data['expectedInstanceCount']} Expected Instance(s)"
-        )
-
-    else:
-        return
-
-    print_log(msg, override_quiet=True, no_fill=True)
-
-
-def get_ydid_type(ydid: str) -> Optional[YDIDType]:
-    """
-    Find the type of a YDID.
-    """
-    if ":workreq:" in ydid:
-        return YDIDType.WORK_REQ
-    elif ":wrkrpool:" in ydid:
-        return YDIDType.WORKER_POOL
-    elif ":compreq:" in ydid:
-        return YDIDType.COMPUTE_REQ
-    else:
-        return None
 
 
 def get_event_url(ydid: str, ydid_type: YDIDType) -> Optional[str]:

@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
-
 """
-Class to parse command line arguments.
+Class to parse command line arguments for all commands.
 """
 
 import argparse
 import sys
-from datetime import datetime
 from typing import List, Optional
 
 from yd_commands.__init__ import __version__
