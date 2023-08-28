@@ -11,7 +11,8 @@ from yellowdog_client import PlatformClient
 from yellowdog_client.model import ApiKey, KeyringSummary, ServicesSchema
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.config import ConfigCommon, load_config_common
+from yd_commands.config import load_config_common
+from yd_commands.config_types import ConfigCommon
 from yd_commands.printing import print_error, print_log
 
 CONFIG_COMMON: ConfigCommon = load_config_common()

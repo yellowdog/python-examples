@@ -4,8 +4,8 @@ Utility functions for provisioning
 
 from typing import Optional
 
-from yd_commands.config import ConfigWorkerPool
 from yd_commands.config_keys import USERDATA, USERDATAFILE, USERDATAFILES
+from yd_commands.config_types import ConfigWorkerPool
 
 
 def get_user_data_property(config: ConfigWorkerPool) -> Optional[str]:

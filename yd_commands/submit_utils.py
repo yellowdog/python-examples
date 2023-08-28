@@ -10,7 +10,8 @@ from typing import List, Optional
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ObjectPath, TaskInput, TaskInputVerification
 
-from yd_commands.config import NAMESPACE_SEPARATOR, ConfigCommon
+from yd_commands.config import NAMESPACE_SEPARATOR
+from yd_commands.config_types import ConfigCommon
 from yd_commands.printing import print_error, print_log
 from yd_commands.upload_utils import unique_upload_pathname, upload_file_core
 from yd_commands.wrapper import ARGS_PARSER
