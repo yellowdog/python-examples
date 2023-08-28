@@ -3,52 +3,36 @@ Common utility functions, mostly related to loading configuration data.
 """
 
 import os
-import re
 from os import getenv
-from os.path import abspath, dirname, join, normpath, relpath
-from random import randint
+from os.path import abspath, dirname
 from typing import Dict, Optional
-from urllib.parse import urlparse
 
 from toml import TomlDecodeError
-from yellowdog_client.model import (
-    ComputeRequirement,
-    ConfiguredWorkerPool,
-    ProvisionedWorkerPool,
-    WorkRequirement,
-)
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config_keys import *
 from yd_commands.config_types import (
+    CR_BATCH_SIZE_DEFAULT,
+    DEFAULT_URL,
+    TASK_BATCH_SIZE_DEFAULT,
+    YD_KEY,
+    YD_NAMESPACE,
+    YD_SECRET,
+    YD_TAG,
+    YD_URL,
     ConfigCommon,
     ConfigWorkerPool,
     ConfigWorkRequirement,
 )
 from yd_commands.printing import print_error, print_log
 from yd_commands.type_check import check_list, check_str
+from yd_commands.utils import pathname_relative_to_config_file
 from yd_commands.validate_properties import validate_properties
 from yd_commands.variables import (
-    UTCNOW,
     add_substitutions,
     load_toml_file_with_variable_substitutions,
     substitute_variable_str,
 )
-
-# Environment variable names for 'common' settings
-YD_KEY = "YD_KEY"
-YD_SECRET = "YD_SECRET"
-YD_NAMESPACE = "YD_NAMESPACE"
-YD_TAG = "YD_TAG"
-YD_URL = "YD_URL"
-
-TASK_BATCH_SIZE_DEFAULT = 2000
-DEFAULT_URL = "https://portal.yellowdog.co/api"
-
-NAMESPACE_SEPARATOR = "::"
-
-CR_BATCH_SIZE_DEFAULT = 10000
-WP_VARIABLES_PREFIX = "__"
 
 # CLI > YD_CONF > 'config.toml'
 config_file = (
@@ -196,7 +180,9 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         if wr_data_file is not None:
             check_str(wr_data_file)
             wr_data_file = substitute_variable_str(wr_data_file)
-            wr_data_file = pathname_relative_to_config_file(wr_data_file)
+            wr_data_file = pathname_relative_to_config_file(
+                CONFIG_FILE_DIR, wr_data_file
+            )
 
         # Check for properties set on the command line
         executable = (
@@ -323,11 +309,11 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             exit(1)
         if worker_pool_data_file is not None:
             worker_pool_data_file = pathname_relative_to_config_file(
-                worker_pool_data_file
+                CONFIG_FILE_DIR, worker_pool_data_file
             )
         if compute_requirement_data_file is not None:
             compute_requirement_data_file = pathname_relative_to_config_file(
-                compute_requirement_data_file
+                CONFIG_FILE_DIR, compute_requirement_data_file
             )
 
         return ConfigWorkerPool(
@@ -369,91 +355,3 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
         exit(1)
-
-
-PREVIOUS_ID = ""
-
-
-def generate_id(prefix: str, max_length: int = 60) -> str:
-    """
-    Add a UTC timestamp and check length. Mitigate against duplicates.
-    """
-    global PREVIOUS_ID
-
-    generated_id = prefix + UTCNOW.strftime("_%y%m%d-%H%M%S")
-
-    if generated_id == PREVIOUS_ID:
-        generated_id = generated_id + f"-{randint(0, 9)}"
-    PREVIOUS_ID = generated_id
-
-    if len(generated_id) > max_length:
-        raise Exception(
-            f"Error: Generated ID '{generated_id}' would exceed "
-            f"maximum length ({max_length})"
-        )
-
-    return generated_id
-
-
-def pathname_relative_to_config_file(file: str) -> str:
-    """
-    Find the pathname of a file relative to the location
-    of the config file
-    """
-    return normpath(relpath(join(CONFIG_FILE_DIR, file)))
-
-
-# Utility functions for creating links to YD entities
-def link_entity(base_url: str, entity: object) -> str:
-    entity_type = type(entity)
-    return link(
-        base_url,
-        "#/%s/%s" % ((entities.get(entity_type)), entity.id),
-        camel_case_split(entity_type.__name__).upper(),
-    )
-
-
-def link(base_url: str, url_suffix: str = "", text: Optional[str] = None) -> str:
-    url_parts = urlparse(base_url)
-    base_url = url_parts.scheme + "://" + url_parts.netloc
-    url = base_url + "/" + url_suffix
-    if not text:
-        text = url
-    if text == url:
-        return url
-    else:
-        return "%s (%s)" % (text, url)
-
-
-def camel_case_split(value: str) -> str:
-    return " ".join(re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", value))
-
-
-entities = {
-    ConfiguredWorkerPool: "workers",
-    ProvisionedWorkerPool: "workers",
-    WorkRequirement: "work",
-    ComputeRequirement: "compute",
-}
-
-
-def update_config_work_requirement(config_wr: ConfigWorkRequirement):
-    """
-    Update a ConfigWorkRequirement Object with the current dictionary of
-    variable substitutions. Returns the updated object.
-    """
-    config_wr_str_processed = substitute_variable_str(str(config_wr))
-    # Note: 'literal_eval' doesn't work here
-    return eval(config_wr_str_processed)
-
-
-def unpack_namespace_in_prefix(namespace: str, prefix: str) -> (str, str):
-    """
-    Allow the prefix to include the namespace, which can override the supplied
-    namespace. Return the unpacked (namespace, prefix) tuple.
-    """
-    elems = prefix.split(NAMESPACE_SEPARATOR)
-    if len(elems) == 1:
-        return namespace, prefix.lstrip("/")
-    if len(elems) == 2:
-        return elems[0] if elems[0] != "" else namespace, elems[1].lstrip("/")

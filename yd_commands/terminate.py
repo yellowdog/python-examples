@@ -13,10 +13,10 @@ from yellowdog_client.model import (
     ComputeRequirementStatus,
 )
 
-from yd_commands.config import link_entity
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import get_compute_requirement_id_by_name
 from yd_commands.printing import print_error, print_log
+from yd_commands.utils import link_entity
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 VALID_TERMINATION_STATUSES = [

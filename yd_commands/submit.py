@@ -33,13 +33,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.config import (
-    CONFIG_FILE_DIR,
-    generate_id,
-    link_entity,
-    load_config_work_requirement,
-    update_config_work_requirement,
-)
+from yd_commands.config import CONFIG_FILE_DIR, load_config_work_requirement
 from yd_commands.config_keys import *
 from yd_commands.config_types import ConfigWorkRequirement
 from yd_commands.csv_data import (
@@ -62,6 +56,7 @@ from yd_commands.submit_utils import (
     UploadedFiles,
     format_yd_name,
     generate_task_input_list,
+    update_config_work_requirement,
 )
 from yd_commands.type_check import (
     check_bool,
@@ -72,6 +67,7 @@ from yd_commands.type_check import (
     check_str,
 )
 from yd_commands.upload_utils import unique_upload_pathname
+from yd_commands.utils import generate_id, link_entity
 from yd_commands.validate_properties import validate_properties
 from yd_commands.variables import (
     L_TASK_COUNT,

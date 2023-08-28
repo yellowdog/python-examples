@@ -10,10 +10,14 @@ from typing import List, Optional
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ObjectPath, TaskInput, TaskInputVerification
 
-from yd_commands.config import NAMESPACE_SEPARATOR
-from yd_commands.config_types import ConfigCommon
+from yd_commands.config_types import (
+    NAMESPACE_SEPARATOR,
+    ConfigCommon,
+    ConfigWorkRequirement,
+)
 from yd_commands.printing import print_error, print_log
 from yd_commands.upload_utils import unique_upload_pathname, upload_file_core
+from yd_commands.variables import substitute_variable_str
 from yd_commands.wrapper import ARGS_PARSER
 
 
@@ -222,3 +226,13 @@ def format_yd_name(yd_name: str) -> str:
     if not yd_name[0].isalpha():
         yd_name = f"yd_{yd_name}"
     return yd_name[:60]
+
+
+def update_config_work_requirement(config_wr: ConfigWorkRequirement):
+    """
+    Update a ConfigWorkRequirement Object with the current dictionary of
+    variable substitutions. Returns the updated object.
+    """
+    config_wr_str_processed = substitute_variable_str(str(config_wr))
+    # Note: 'literal_eval' doesn't work here
+    return eval(config_wr_str_processed)

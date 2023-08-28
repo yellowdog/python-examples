@@ -19,12 +19,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.config import (
-    WP_VARIABLES_PREFIX,
-    generate_id,
-    link_entity,
-    load_config_worker_pool,
-)
+from yd_commands.config import load_config_worker_pool
 from yd_commands.config_keys import (
     IMAGES_ID,
     INSTANCE_TAGS,
@@ -37,7 +32,7 @@ from yd_commands.config_keys import (
     USERDATA,
     WORKER_TAG,
 )
-from yd_commands.config_types import ConfigWorkerPool
+from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
 from yd_commands.follow_utils import follow_events
 from yd_commands.id_utils import YDIDType
 from yd_commands.printing import (
@@ -48,6 +43,7 @@ from yd_commands.printing import (
     print_yd_object,
 )
 from yd_commands.provision_utils import get_user_data_property
+from yd_commands.utils import generate_id, link_entity
 from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,

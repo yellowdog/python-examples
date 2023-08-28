@@ -16,9 +16,9 @@ from yellowdog_client.object_store.download.abstracts.abstract_download_batch_bu
 )
 from yellowdog_client.object_store.model import FileTransferStatus
 
-from yd_commands.config import unpack_namespace_in_prefix
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_batch_download_files, print_log
+from yd_commands.utils import unpack_namespace_in_prefix
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 

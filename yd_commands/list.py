@@ -40,7 +40,6 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.config import unpack_namespace_in_prefix
 from yd_commands.interactive import select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
@@ -56,6 +55,7 @@ from yd_commands.printing import (
     print_yd_object,
     sorted_objects,
 )
+from yd_commands.utils import unpack_namespace_in_prefix
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
 

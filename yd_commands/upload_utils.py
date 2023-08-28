@@ -11,8 +11,8 @@ from typing import Optional
 from yellowdog_client import PlatformClient
 from yellowdog_client.object_store.model import FileTransferStatus
 
-from yd_commands.config import link
 from yd_commands.printing import print_error, print_log
+from yd_commands.utils import link
 
 
 def upload_file(
