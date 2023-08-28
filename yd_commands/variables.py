@@ -305,20 +305,20 @@ def variable_process_file_contents(file_contents: str, prefix: str) -> str:
     Process substitutions in the raw contents of a complete file.
     """
     variable_regex = prefix + "{{[:,A-Z,a-z,0-9,_,-]*}}"
-    m_expressions = set(re.findall(variable_regex, file_contents))
-    for m_expression in m_expressions:
-        replacement_expression = substitute_variable_str(m_expression, prefix=prefix)
+    v_expressions = set(re.findall(variable_regex, file_contents))
+    for v_expression in v_expressions:
+        replacement_expression = substitute_variable_str(v_expression, prefix=prefix)
         if isinstance(replacement_expression, str):
-            file_contents = file_contents.replace(m_expression, replacement_expression)
+            file_contents = file_contents.replace(v_expression, replacement_expression)
         else:
             # If the replacement is an int, float, or bool, we need to
             # remove the enclosing quotes when we substitute, and ensure
             # that lower case 'false' & 'true' are used. Account for both
             # double and single quotes (for Jsonnet support).
             file_contents = file_contents.replace(
-                f'"{m_expression}"', str(replacement_expression).lower()
+                f'"{v_expression}"', str(replacement_expression).lower()
             )
             file_contents = file_contents.replace(
-                f"'{m_expression}'", str(replacement_expression).lower()
+                f"'{v_expression}'", str(replacement_expression).lower()
             )
     return file_contents

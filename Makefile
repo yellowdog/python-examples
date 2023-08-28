@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := no_op
 
 SRC = yd_commands/*.py
-TESTS =
+TESTS = tests/*.py
 MANIFEST = LICENSE README.md requirements.txt
 BUILD_DIST = build dist yellowdog_python_examples.egg-info
 PYCACHE = __pycache__
@@ -19,7 +19,7 @@ install: build
 uninstall:
 	pip uninstall -y yellowdog-python-examples
 
-black: $(SRC)
+black: $(SRC) $(TESTS)
 	black --preview $(SRC) $(TESTS)
 
 isort: $(SRC)
