@@ -25,17 +25,11 @@ def dry_run() -> bool:
     """
     Is this a dry-run?
     """
-    try:
-        if ARGS_PARSER.dry_run is not None and ARGS_PARSER.dry_run:
-            return True
-    except AttributeError:
-        pass
-    try:
-        if ARGS_PARSER.process_csv_only is not None and ARGS_PARSER.process_csv_only:
-            return True
-    except AttributeError:
-        pass
-    return False
+    dry_run = ARGS_PARSER.dry_run or ARGS_PARSER.process_csv_only
+    if dry_run is None:
+        return False
+    else:
+        return dry_run
 
 
 def print_account():
