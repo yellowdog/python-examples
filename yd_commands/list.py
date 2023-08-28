@@ -53,7 +53,6 @@ from yd_commands.printing import (
     print_error,
     print_log,
     print_numbered_object_list,
-    print_object_detail,
     print_yd_object,
     sorted_objects,
 )

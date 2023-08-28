@@ -6,7 +6,7 @@ A script to upload files to the YellowDog Object Store.
 
 from concurrent import futures
 from glob import glob
-from os import chdir, getcwd
+from os import chdir
 from os import name as os_name
 from os import walk as os_walk
 from os.path import join as os_path_join
