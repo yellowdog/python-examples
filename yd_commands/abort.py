@@ -27,7 +27,7 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     print_log(
-        "Finding Work Requirements with "
+        "Finding active Work Requirements with "
         f"'{CONFIG_COMMON.namespace}' in namespace and "
         f"'{CONFIG_COMMON.name_tag}' in tag"
     )
