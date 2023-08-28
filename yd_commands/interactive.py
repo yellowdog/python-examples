@@ -49,11 +49,7 @@ def select(
 
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(
-            client,
-            objects,
-            parent,
-            override_quiet=override_quiet,
-            showing_all=showing_all,
+            client, objects, override_quiet=override_quiet, showing_all=showing_all
         )
 
     if not ARGS_PARSER.interactive:

@@ -465,7 +465,6 @@ def instances_table(
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Item],
-    parent: Optional[Item] = None,
     override_quiet: bool = False,
     showing_all: bool = False,
 ) -> None:

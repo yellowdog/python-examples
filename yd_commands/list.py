@@ -190,7 +190,7 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
         for task in select(CLIENT, tasks):
             print_yd_object(task)
     else:
-        print_numbered_object_list(CLIENT, tasks, parent=work_summary)
+        print_numbered_object_list(CLIENT, tasks)
 
 
 def list_object_paths():
