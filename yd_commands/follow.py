@@ -63,7 +63,8 @@ def main():
     for thread in threads:
         thread.join()
 
-    print_log("All event streams have concluded")
+    if len(threads) > 1:
+        print_log("All event streams have concluded")
 
 
 # Standalone entry point
