@@ -839,9 +839,18 @@ def print_event(event: str, id_type: YDIDType):
     elif id_type == YDIDType.COMPUTE_REQ:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         msg += (
-            f"{indent}{event_data['targetInstanceCount']} Target Instance(s),"
-            f" {event_data['expectedInstanceCount']} Expected Instance(s)"
+            f"{indent}Instance(s): "
+            f"{event_data['targetInstanceCount']} target,"
+            f" {event_data['expectedInstanceCount']} expected"
         )
+        for source in event_data["provisionStrategy"]["sources"]:
+            msg += (
+                f"{indent}Source: '{source['name']}':"
+                f" {source['instanceSummary']['statusCounts']['PENDING']} pending,"
+                f" {source['instanceSummary']['statusCounts']['RUNNING']} running,"
+                f" {source['instanceSummary']['statusCounts']['TERMINATING']} terminating,"
+                f" {source['instanceSummary']['statusCounts']['TERMINATED']} terminated"
+            )
 
     else:
         return
