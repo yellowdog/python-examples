@@ -14,6 +14,6 @@ class TestList:
         result = shell("yd-list -r -n='' -t=''")
         assert result.exit_code == 0
 
-    def test_task_groups(self):
-        result = shell("yd-list -g -n='' -t=''")
+    def test_objects(self):
+        result = shell("yd-list -o -n='' -t=''")
         assert result.exit_code == 0
