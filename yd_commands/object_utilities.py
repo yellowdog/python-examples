@@ -214,3 +214,16 @@ def get_all_compute_templates(
     Cache the list of Compute Templates
     """
     return client.compute_client.find_all_compute_requirement_templates()
+
+
+def get_compreq_id_by_worker_pool_id(
+    client: PlatformClient, worker_pool_id: str
+) -> Optional[str]:
+    """
+    Get a compute requirement ID from a Provisioned Worker Pool ID.
+    """
+    worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_id(
+        worker_pool_id
+    )
+    if isinstance(worker_pool, ProvisionedWorkerPool):
+        return worker_pool.computeRequirementId

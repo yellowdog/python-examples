@@ -645,6 +645,16 @@ class CLIParser:
                 type=str,
                 help="the YellowDog ID(s) of the item(s) to follow",
             )
+            parser.add_argument(
+                "--auto-follow-cr",
+                "-a",
+                action="store_true",
+                required=False,
+                help=(
+                    "automatically follow associated Compute Requirements when"
+                    " following Provisioned Worker Pools"
+                ),
+            )
 
         self.args = parser.parse_args()
 
@@ -965,6 +975,11 @@ class CLIParser:
     @allow_missing_attribute
     def yellowdog_ids(self) -> Optional[List[str]]:
         return self.args.yellowdog_ids
+
+    @property
+    @allow_missing_attribute
+    def auto_cr(self) -> Optional[bool]:
+        return self.args.auto_follow_cr
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
