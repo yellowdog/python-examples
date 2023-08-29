@@ -93,13 +93,18 @@ CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
 CONSOLE_ERR = Console(stderr=True, highlighter=PrintLogHighlighter())
 CONSOLE_JSON = Console(highlighter=JSONHighlighter())
 
+PREFIX_LEN = 0
+
 
 def print_string(msg: str = "", no_fill: bool = False) -> str:
     """
     Message output format, with tidy line-wrapping calibrated
     for the terminal width.
     """
+    global PREFIX_LEN
     prefix = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " : "
+    if PREFIX_LEN == 0:
+        PREFIX_LEN = len(prefix)
 
     if no_fill:
         return prefix + msg
@@ -798,7 +803,7 @@ def print_event(event: str, id_type: YDIDType):
 
     event_data: Dict = json_loads(event.replace(data_prefix, ""))
 
-    indent = "\n                      --> "
+    indent = "\n" + (" " * PREFIX_LEN) + "--> "
 
     if id_type == YDIDType.WORK_REQ:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
