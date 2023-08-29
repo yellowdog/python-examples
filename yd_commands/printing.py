@@ -812,13 +812,28 @@ def print_event(event: str, id_type: YDIDType):
     elif id_type == YDIDType.WORKER_POOL:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         msg += (
-            f"{indent}{event_data['nodeSummary']['statusCounts']['RUNNING']} Node(s)"
-            " running"
+            f"{indent}Node(s):       "
+            f" {event_data['nodeSummary']['statusCounts']['RUNNING']} running,"
+            f" {event_data['nodeSummary']['statusCounts']['TERMINATED']} terminated,"
+            f" {event_data['nodeSummary']['statusCounts']['DEREGISTERED']} deregistered"
         )
+        try:
+            msg += (
+                f"{indent}Node Action(s):"
+                f" {event_data['nodeSummary']['actionQueueStatuses']['WAITING']} waiting,"
+                f" {event_data['nodeSummary']['actionQueueStatuses']['EXECUTING']} executing,"
+                f" {event_data['nodeSummary']['actionQueueStatuses']['FAILED']} failed"
+            )
+        except TypeError:
+            pass
         msg += (
-            f"{indent}Worker(s):"
-            f" {event_data['workerSummary']['statusCounts']['DOING_TASK']} working,"
-            f" {event_data['workerSummary']['statusCounts']['SLEEPING']} sleeping"
+            f"{indent}Worker(s):     "
+            f" {event_data['workerSummary']['statusCounts']['DOING_TASK']} doing task,"
+            f" {event_data['workerSummary']['statusCounts']['SLEEPING']} sleeping,"
+            f" {event_data['workerSummary']['statusCounts']['SHUTDOWN']} shutdown,"
+            f" {event_data['workerSummary']['statusCounts']['LATE']} late,"
+            f" {event_data['workerSummary']['statusCounts']['LOST']} lost,"
+            f" {event_data['workerSummary']['statusCounts']['FOUND']} found"
         )
 
     elif id_type == YDIDType.COMPUTE_REQ:
