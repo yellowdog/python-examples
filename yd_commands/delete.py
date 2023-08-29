@@ -4,7 +4,7 @@
 A script to delete YellowDog Object Store items.
 """
 
-from typing import List
+from typing import List, Optional
 
 from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 
@@ -45,11 +45,15 @@ def delete_object_paths(namespace: str, prefix: str, flat: bool):
         f"prefix starting with '{prefix}'"
     )
 
-    object_paths_to_delete: List[ObjectPath] = (
+    object_paths_to_delete: Optional[List[ObjectPath]] = (
         CLIENT.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=flat)
         )
     )
+
+    if object_paths_to_delete is None:
+        print_log("No matching Object Paths")
+        return
 
     if len(object_paths_to_delete) > 0:
         object_paths_to_delete = select(CLIENT, object_paths_to_delete)
