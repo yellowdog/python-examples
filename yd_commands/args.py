@@ -574,12 +574,15 @@ class CLIParser:
 
         if "cancel" in sys.argv[0]:
             parser.add_argument(
-                "work_requirement",
-                nargs="?",
+                "work_requirements",
+                nargs="*",
                 default="",
                 metavar="<work-requirement-name-or-ID>",
                 type=str,
-                help="the name or YellowDog ID of the Work Requirement",
+                help=(
+                    "the name(s) or YellowDog ID(s) of the Work Requirement(s) to be"
+                    " cancelled"
+                ),
             )
 
         if "delete" in sys.argv[0]:
@@ -898,8 +901,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def work_requirement_name(self) -> Optional[str]:
-        return self.args.work_requirement
+    def work_requirement_names(self) -> Optional[str]:
+        return self.args.work_requirements
 
     @property
     @allow_missing_attribute

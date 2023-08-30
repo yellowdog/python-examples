@@ -24,7 +24,7 @@ from yd_commands.object_utilities import (
     get_task_group_name,
     get_work_requirement_summary_by_name_or_id,
 )
-from yd_commands.printing import print_log
+from yd_commands.printing import print_error, print_log
 from yd_commands.utils import link_entity
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -33,8 +33,8 @@ ABORT_RETRY_INTERVAL = 20  # Seconds
 
 @main_wrapper
 def main():
-    if ARGS_PARSER.work_requirement_name != "":
-        cancel_work_requirement_by_name_or_id(ARGS_PARSER.work_requirement_name)
+    if len(ARGS_PARSER.work_requirement_names) > 0:
+        cancel_work_requirements_by_name_or_id(ARGS_PARSER.work_requirement_names)
         return
 
     print_log(
@@ -142,46 +142,52 @@ def abort_all_tasks(
     return aborted_tasks
 
 
-def cancel_work_requirement_by_name_or_id(name_or_id: str):
+def cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
     """
     Cancel a Work Requirement by its name or ID.
     """
-    work_requirement_summary: WorkRequirementSummary = (
-        get_work_requirement_summary_by_name_or_id(CLIENT, name_or_id)
-    )
-    if work_requirement_summary is None:
-        raise Exception(f"Work Requirement '{name_or_id}' not found")
-
-    if work_requirement_summary.status not in [
-        WorkRequirementStatus.NEW,
-        WorkRequirementStatus.PENDING,
-        WorkRequirementStatus.RUNNING,
-        WorkRequirementStatus.STARVED,
-        WorkRequirementStatus.HELD,
-    ]:
-        raise Exception(
-            f"Work Requirement '{name_or_id}' is not in a valid state"
-            f" ('{work_requirement_summary.status}') for cancellation"
+    work_requirement_summaries: List[WorkRequirementSummary] = []
+    for name_or_id in names_or_ids:
+        work_requirement_summary: WorkRequirementSummary = (
+            get_work_requirement_summary_by_name_or_id(CLIENT, name_or_id)
         )
+        if work_requirement_summary is None:
+            print_error(f"Work Requirement '{name_or_id}' not found")
+            continue
 
-    if work_requirement_summary.status == WorkRequirementStatus.CANCELLING:
-        print_log(f"Work Requirement '{name_or_id}' is already cancelling")
-    else:
-        if not confirmed(f"Cancel Work Requirement '{name_or_id}'?"):
-            return
-        try:
-            CLIENT.work_client.cancel_work_requirement_by_id(
-                work_requirement_summary.id
+        if work_requirement_summary.status not in [
+            WorkRequirementStatus.NEW,
+            WorkRequirementStatus.PENDING,
+            WorkRequirementStatus.RUNNING,
+            WorkRequirementStatus.STARVED,
+            WorkRequirementStatus.HELD,
+        ]:
+            raise Exception(
+                f"Work Requirement '{name_or_id}' is not in a valid state"
+                f" ('{work_requirement_summary.status}') for cancellation"
             )
-            print_log(f"Cancelled Work Requirement '{name_or_id}'")
-        except Exception as e:
-            raise Exception(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
+
+        work_requirement_summaries.append(work_requirement_summary)
+        if work_requirement_summary.status == WorkRequirementStatus.CANCELLING:
+            print_log(f"Work Requirement '{name_or_id}' is already cancelling")
+        else:
+            if not confirmed(f"Cancel Work Requirement '{name_or_id}'?"):
+                return
+            try:
+                CLIENT.work_client.cancel_work_requirement_by_id(
+                    work_requirement_summary.id
+                )
+                print_log(f"Cancelled Work Requirement '{name_or_id}'")
+            except Exception as e:
+                raise Exception(
+                    f"Failed to cancel Work Requirement '{name_or_id}': {e}"
+                )
 
     if ARGS_PARSER.abort:
-        abort_and_follow([work_requirement_summary])
+        abort_and_follow(work_requirement_summaries)
 
     if ARGS_PARSER.follow:
-        follow_ids([work_requirement_summary.id])
+        follow_ids([wrs.id for wrs in work_requirement_summaries])
 
 
 def abort_and_follow(work_requirement_summaries: List[WorkRequirementSummary]):
