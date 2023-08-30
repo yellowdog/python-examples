@@ -14,6 +14,7 @@ from yellowdog_client.model import (
     WorkerPoolSummary,
 )
 
+from yd_commands.follow_utils import follow_ids
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_worker_pool_by_id,
@@ -90,6 +91,11 @@ def main():
 
     if shutdown_count > 0:
         print_log(f"Shut down {shutdown_count} Worker Pool(s)")
+        if ARGS_PARSER.follow:
+            follow_ids(
+                [wp.id for wp in selected_worker_pool_summaries],
+                auto_cr=ARGS_PARSER.auto_cr,
+            )
     else:
         print_log("No Worker Pools shut down")
 
@@ -122,6 +128,9 @@ def shutdown_by_names_or_ids(names_or_ids: List[str]):
             print_log(f"Shut down Worker Pool '{worker_pool_id}'")
         except Exception as e:
             print_error(f"Unable to shut down Worker Pool '{worker_pool_id}' ({e})")
+
+    if ARGS_PARSER.follow:
+        follow_ids(worker_pool_ids, auto_cr=ARGS_PARSER.auto_cr)
 
 
 # Entry point

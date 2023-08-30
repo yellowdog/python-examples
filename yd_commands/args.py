@@ -561,6 +561,13 @@ class CLIParser:
                 type=str,
                 help="the name(s) or YellowDog ID(s) of the Worker Pool(s)",
             )
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help="follow Worker Pool shutdown to completion",
+            )
 
         if "terminate" in sys.argv[0]:
             parser.add_argument(
@@ -655,6 +662,8 @@ class CLIParser:
                 type=str,
                 help="the YellowDog ID(s) of the item(s) to follow",
             )
+
+        if any(module in sys.argv[0] for module in ["follow", "shutdown"]):
             parser.add_argument(
                 "--auto-follow-cr",
                 "-a",
@@ -662,7 +671,7 @@ class CLIParser:
                 required=False,
                 help=(
                     "automatically follow associated Compute Requirements when"
-                    " following Provisioned Worker Pools"
+                    " following Worker Pools"
                 ),
             )
 
