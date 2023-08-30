@@ -195,14 +195,10 @@ def generate_cr_batch_name(
     name: Optional[str], batch_number: int, num_batches: int
 ) -> str:
     """
-    Generate the name of a Worker Pool
+    Generate the name of a Compute Requirement.
     """
-
-    # Standard automatic name generation
     if name is None:
-        return generate_id("cr" + "_" + CONFIG_COMMON.name_tag)
-
-    # Use supplied name, with counter if multiple batches
+        name = generate_id("cr" + "_" + CONFIG_COMMON.name_tag)
     if num_batches > 1:
         name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
     return name
@@ -210,7 +206,7 @@ def generate_cr_batch_name(
 
 def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") -> None:
     """
-    Directly create the Compute Requirement using the YellowDog REST API
+    Directly create the Compute Requirement using the YellowDog REST API.
     """
 
     if ARGS_PARSER.report:
