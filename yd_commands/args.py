@@ -665,7 +665,7 @@ class CLIParser:
 
         if any(module in sys.argv[0] for module in ["follow", "shutdown"]):
             parser.add_argument(
-                "--auto-follow-cr",
+                "--auto-follow-compute-requirements",
                 "-a",
                 action="store_true",
                 required=False,
@@ -1003,7 +1003,7 @@ class CLIParser:
     @property
     @allow_missing_attribute
     def auto_cr(self) -> Optional[bool]:
-        return self.args.auto_follow_cr
+        return self.args.auto_follow_compute_requirements
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
