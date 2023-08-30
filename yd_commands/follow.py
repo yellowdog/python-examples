@@ -4,67 +4,13 @@
 A script to follow event streams.
 """
 
-from threading import Thread
-from typing import List
-
-from yd_commands.follow_utils import follow_events
-from yd_commands.id_utils import YDIDType, get_ydid_type
-from yd_commands.object_utilities import get_compreq_id_by_worker_pool_id
-from yd_commands.printing import print_error, print_log
-from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
+from yd_commands.follow_utils import follow_ids
+from yd_commands.wrapper import ARGS_PARSER, main_wrapper
 
 
 @main_wrapper
 def main():
-    """
-    Creates an event thread for each ydid passed on the command line.
-    """
-    ydids = set(ARGS_PARSER.yellowdog_ids)  # Eliminate duplicates
-
-    if ARGS_PARSER.auto_cr:
-        # Automatically add Compute Requirements IDs for
-        # Provisioned Worker Pools, to follow both
-        cr_ydids = set()
-        for ydid in ydids:
-            if get_ydid_type(ydid) == YDIDType.WORKER_POOL:
-                cr_ydid = get_compreq_id_by_worker_pool_id(CLIENT, ydid)
-                if cr_ydid is not None:
-                    print_log(
-                        f"Adding event stream for Compute Requirement '{cr_ydid}'"
-                    )
-                    cr_ydids.add(cr_ydid)
-        ydids = ydids.union(cr_ydids)
-
-    print_log(f"Following the event stream(s) for {len(ydids)} YellowDog ID(s)")
-
-    threads: List[Thread] = []
-
-    for ydid in ydids:
-        ydid_type = get_ydid_type(ydid)
-        if ydid_type not in [
-            YDIDType.WORK_REQ,
-            YDIDType.WORKER_POOL,
-            YDIDType.COMPUTE_REQ,
-        ]:
-            print_error(
-                f"Invalid YellowDog ID '{ydid}' (Must be Work Requirement, Worker Pool"
-                " or Compute Requirement)"
-            )
-            continue
-
-        thread = Thread(target=follow_events, args=(ydid, ydid_type), daemon=True)
-        try:
-            thread.start()
-        except RuntimeError as e:
-            print_error(f"Unable to start event thread for '{ydid}': ({e})")
-            continue
-        threads.append(thread)
-
-    for thread in threads:
-        thread.join()
-
-    if len(threads) > 1:
-        print_log("All event streams have concluded")
+    follow_ids(ARGS_PARSER.yellowdog_ids, ARGS_PARSER.auto_cr)
 
 
 # Standalone entry point
