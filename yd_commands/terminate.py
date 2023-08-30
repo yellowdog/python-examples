@@ -30,8 +30,8 @@ VALID_TERMINATION_STATUSES = [
 
 @main_wrapper
 def main():
-    if ARGS_PARSER.compute_requirement_name != "":
-        terminate_cr_by_name_or_id(ARGS_PARSER.compute_requirement_name)
+    if len(ARGS_PARSER.compute_requirement_names) > 0:
+        terminate_cr_by_name_or_id(ARGS_PARSER.compute_requirement_names)
         return
 
     print_log(
@@ -88,32 +88,42 @@ def main():
         print_log("No Compute Requirements terminated")
 
 
-def terminate_cr_by_name_or_id(name_or_id: str):
+def terminate_cr_by_name_or_id(names_or_ids: List[str]):
     """
-    Terminate a Compute Requirement by its name or ID.
+    Terminate Compute Requirements by their names or IDs.
     """
-    if "ydid:compreq:" in name_or_id:
-        compute_requirement_id = name_or_id
-    else:
-        compute_requirement_id = get_compute_requirement_id_by_name(
-            CLIENT, name_or_id, VALID_TERMINATION_STATUSES
-        )
-        if compute_requirement_id is None:
-            raise Exception(f"Valid Compute Requirement not found for '{name_or_id}'")
+    compute_requirement_ids: List[str] = []
+    for name_or_id in names_or_ids:
+        if "ydid:compreq:" in name_or_id:
+            compute_requirement_id = name_or_id
         else:
-            print_log(f"Found Compute Requirement ID: {compute_requirement_id}")
+            compute_requirement_id = get_compute_requirement_id_by_name(
+                CLIENT, name_or_id, VALID_TERMINATION_STATUSES
+            )
+            if compute_requirement_id is None:
+                print_error(f"Valid Compute Requirement not found for '{name_or_id}'")
+                continue
+            else:
+                print_log(f"Found Compute Requirement ID: {compute_requirement_id}")
+        compute_requirement_ids.append(compute_requirement_id)
 
-    if not confirmed(f"Terminate Compute Requirement '{name_or_id}'?"):
+    if len(compute_requirement_ids) == 0:
+        print_log("No Compute Requirements to terminate")
         return
 
-    try:
-        CLIENT.compute_client.terminate_compute_requirement_by_id(
-            compute_requirement_id
-        )
-        print_log(f"Terminated '{name_or_id}'")
-    except Exception as e:
-        print_error(f"Unable to terminate '{name_or_id}'")
-        print_error(f"{e}")
+    if not confirmed(
+        f"Terminate {len(compute_requirement_ids)} Compute Requirement(s)?"
+    ):
+        return
+
+    for compute_requirement_id in compute_requirement_ids:
+        try:
+            CLIENT.compute_client.terminate_compute_requirement_by_id(
+                compute_requirement_id
+            )
+            print_log(f"Terminated '{compute_requirement_id}'")
+        except Exception as e:
+            print_error(f"Unable to terminate '{compute_requirement_id}': ({e})")
 
 
 # Entry point

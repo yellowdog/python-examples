@@ -564,12 +564,12 @@ class CLIParser:
 
         if "terminate" in sys.argv[0]:
             parser.add_argument(
-                "compute_requirement",
-                nargs="?",
+                "compute_reqs",
+                nargs="*",
                 default="",
                 metavar="<compute-requirement-name-or-ID>",
                 type=str,
-                help="the name or YellowDog ID of the Compute Requirement",
+                help="the name(s) or YellowDog ID(s) of the Compute Requirement(s)",
             )
 
         if "cancel" in sys.argv[0]:
@@ -896,8 +896,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def compute_requirement_name(self) -> Optional[str]:
-        return self.args.compute_requirement
+    def compute_requirement_names(self) -> Optional[str]:
+        return self.args.compute_reqs
 
     @property
     @allow_missing_attribute
