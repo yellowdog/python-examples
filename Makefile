@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := no_op
 
 SRC = yd_commands/*.py
-TESTS = tests/*.py
+TESTS = tests/*.py conftest.py
 MANIFEST = LICENSE README.md requirements.txt
 BUILD_DIST = build dist yellowdog_python_examples.egg-info
 PYCACHE = __pycache__

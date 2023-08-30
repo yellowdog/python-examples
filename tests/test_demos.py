@@ -1,9 +1,11 @@
+import pytest
 from cli_test_helpers import shell
 
 DEMO_DIR = "../python-examples-demos"
 CMD_SEQ = "yd-provision && yd-submit -f && yd-terminate -y && yd-delete -y"
 
 
+@pytest.mark.demos
 class TestDemos:
     def test_bash(self):
         result = shell(f"cd {DEMO_DIR}/bash && {CMD_SEQ}")
