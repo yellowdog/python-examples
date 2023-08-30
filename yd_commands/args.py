@@ -221,13 +221,6 @@ class CLIParser:
                 help="worker pool definition file in JSON format",
                 metavar="<worker_pool.json>",
             )
-            parser.add_argument(
-                "--follow",
-                "-f",
-                action="store_true",
-                required=False,
-                help="follow progress after provisioning",
-            )
 
         if any(module in sys.argv[0] for module in ["cancel"]):
             parser.add_argument(
@@ -663,7 +656,16 @@ class CLIParser:
                 help="the YellowDog ID(s) of the item(s) to follow",
             )
 
-        if any(module in sys.argv[0] for module in ["follow", "shutdown"]):
+        if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help="follow progress after provisioning",
+            )
+
+        if any(module in sys.argv[0] for module in ["follow", "shutdown", "provision"]):
             parser.add_argument(
                 "--auto-follow-compute-requirements",
                 "-a",

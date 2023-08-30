@@ -33,8 +33,7 @@ from yd_commands.config_keys import (
     WORKER_TAG,
 )
 from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
-from yd_commands.follow_utils import follow_events
-from yd_commands.id_utils import YDIDType
+from yd_commands.follow_utils import follow_ids
 from yd_commands.printing import (
     print_error,
     print_log,
@@ -202,7 +201,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             print(id)
         if ARGS_PARSER.follow:
             print_log("Following Worker Pool event stream")
-            follow_events(id, YDIDType.WORKER_POOL)
+            follow_ids([id], auto_cr=ARGS_PARSER.auto_cr)
     else:
         print_error(f"Failed to provision Worker Pool '{name}'")
         raise Exception(f"{response.text}")
@@ -274,8 +273,11 @@ def create_worker_pool():
         CONFIG_WP.max_nodes,
     )
     num_batches = len(batches)
+
+    worker_pool_ids: List[str] = []
     if num_batches > 1:
         print_log(f"Batching into {num_batches} Compute Requirements")
+
     for batch_number in range(num_batches):
         id = generate_wp_batch_name(
             name=CONFIG_WP.name, batch_number=batch_number, num_batches=num_batches
@@ -317,6 +319,7 @@ def create_worker_pool():
                 )
                 print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
                 print_log(f"YellowDog ID is '{worker_pool.id}'")
+                worker_pool_ids.append(worker_pool.id)
                 if ARGS_PARSER.quiet:
                     print(worker_pool.id)
             else:
@@ -359,11 +362,8 @@ def create_worker_pool():
         return
 
     if ARGS_PARSER.follow:
-        if len(batches) == 1:
-            print_log("Following Worker Pool event stream")
-            follow_events(worker_pool.id, YDIDType.WORKER_POOL)
-        else:
-            print_warning("Follow option is ignored for multiple batches")
+        print_log("Following Worker Pool event stream(s)")
+        follow_ids(worker_pool_ids, auto_cr=ARGS_PARSER.auto_cr)
 
 
 def _allocate_nodes_to_batches(
