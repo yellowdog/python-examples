@@ -38,27 +38,16 @@ def pathname_relative_to_config_file(config_file_dir: str, file: str) -> str:
     return normpath(relpath(join(config_file_dir, file)))
 
 
-PREVIOUS_ID = ""
-
-
 def generate_id(prefix: str, max_length: int = 60) -> str:
     """
-    Add a UTC timestamp and check length. Mitigate against duplicates.
+    Add a UTC timestamp and check length.
     """
-    global PREVIOUS_ID
-
     generated_id = prefix + UTCNOW.strftime("_%y%m%d-%H%M%S")
-
-    if generated_id == PREVIOUS_ID:
-        generated_id = generated_id + f"-{randint(0, 9)}"
-    PREVIOUS_ID = generated_id
-
     if len(generated_id) > max_length:
         raise Exception(
             f"Error: Generated ID '{generated_id}' would exceed "
             f"maximum length ({max_length})"
         )
-
     return generated_id
 
 
