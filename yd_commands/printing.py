@@ -535,7 +535,7 @@ def print_numbered_object_list(
 
 def print_numbered_strings(objects: List[str], override_quiet: bool = False):
     """
-    Print a simple list of strings with numbering
+    Print a simple list of strings with numbering.
     """
     if ARGS_PARSER.quiet and override_quiet is False:
         return
@@ -605,7 +605,7 @@ def print_yd_object(
 ):
     """
     Print a YellowDog object as a JSON data structure,
-    using the compact JSON encoder
+    using the compact JSON encoder.
     """
     object_data: object = Json.dump(yd_object)
     if add_fields is not None:
@@ -664,7 +664,7 @@ class WorkRequirementSnapshot:
 
     def print(self):
         """
-        Print the JSON representation
+        Print the JSON representation.
         """
         print_log("Dry-run: Printing JSON Work Requirement specification:")
         print_json(self.wr_data)
@@ -673,7 +673,7 @@ class WorkRequirementSnapshot:
 
 def print_compute_template_test_result(result: ComputeRequirementTemplateTestResult):
     """
-    Print the results of a test submission of a Dynamic Compute Template
+    Print the results of a test submission of a Dynamic Compute Template.
     """
     if not isinstance(result, ComputeRequirementDynamicTemplateTestResult):
         print_log("Reports are only available for Dynamic Templates")
@@ -714,7 +714,8 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
 
 def print_object_detail(object_detail: ObjectDetail):
     """
-    Pretty print an Object Detail
+    Pretty print an Object Detail.
+    Not currently used.
     """
     indent: str = 4 * " "
     print(f"{indent}Namespace:         {object_detail.namespace}")
@@ -725,7 +726,7 @@ def print_object_detail(object_detail: ObjectDetail):
 
 def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
     """
-    Print the list of files that will be batch uploaded
+    Print the list of files that will be batch uploaded.
     """
     if ARGS_PARSER.quiet:
         return
@@ -860,4 +861,4 @@ def print_event(event: str, id_type: YDIDType):
     else:
         return
 
-    print_log(msg, override_quiet=True, no_fill=True)
+    print_log(msg, no_fill=True)
