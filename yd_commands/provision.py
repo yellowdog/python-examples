@@ -37,7 +37,6 @@ from yd_commands.follow_utils import follow_ids
 from yd_commands.printing import (
     print_error,
     print_log,
-    print_warning,
     print_worker_pool,
     print_yd_object,
 )
@@ -413,14 +412,10 @@ def generate_wp_batch_name(
     name: Optional[str], batch_number: int, num_batches: int
 ) -> str:
     """
-    Generate the name of a Worker Pool
+    Generate the name of a Worker Pool.
     """
-
-    # Standard automatic name generation
     if name is None:
-        return generate_id("wp" + "_" + CONFIG_COMMON.name_tag)
-
-    # Use supplied name, with counter if multiple batches
+        name = generate_id("wp" + "_" + CONFIG_COMMON.name_tag)
     if num_batches > 1:
         name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
     return name
