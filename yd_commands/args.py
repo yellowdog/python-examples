@@ -571,6 +571,13 @@ class CLIParser:
                 type=str,
                 help="the name(s) or YellowDog ID(s) of the Compute Requirement(s)",
             )
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help="follow termination to completion",
+            )
 
         if "cancel" in sys.argv[0]:
             parser.add_argument(

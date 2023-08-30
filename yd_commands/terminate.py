@@ -13,6 +13,7 @@ from yellowdog_client.model import (
     ComputeRequirementStatus,
 )
 
+from yd_commands.follow_utils import follow_ids
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import get_compute_requirement_id_by_name
 from yd_commands.printing import print_error, print_log
@@ -84,6 +85,8 @@ def main():
 
     if terminated_count > 0:
         print_log(f"Terminated {terminated_count} Compute Requirement(s)")
+        if ARGS_PARSER.follow:
+            follow_ids([cr.id for cr in selected_compute_requirements])
     else:
         print_log("No Compute Requirements terminated")
 
@@ -124,6 +127,9 @@ def terminate_cr_by_name_or_id(names_or_ids: List[str]):
             print_log(f"Terminated '{compute_requirement_id}'")
         except Exception as e:
             print_error(f"Unable to terminate '{compute_requirement_id}': ({e})")
+
+    if ARGS_PARSER.follow:
+        follow_ids(compute_requirement_ids)
 
 
 # Entry point
