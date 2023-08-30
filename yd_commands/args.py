@@ -554,12 +554,12 @@ class CLIParser:
 
         if "shutdown" in sys.argv[0]:
             parser.add_argument(
-                "worker_pool",
-                nargs="?",
+                "worker_pool_list",
+                nargs="*",
                 default="",
                 metavar="<worker-pool-name-or-ID>",
                 type=str,
-                help="the name or YellowDog ID of the Worker Pool",
+                help="the name(s) or YellowDog ID(s) of the Worker Pool(s)",
             )
 
         if "terminate" in sys.argv[0]:
@@ -900,6 +900,11 @@ class CLIParser:
     @allow_missing_attribute
     def worker_pool_name(self) -> Optional[str]:
         return self.args.worker_pool
+
+    @property
+    @allow_missing_attribute
+    def worker_pool_list(self) -> Optional[List[str]]:
+        return self.args.worker_pool_list
 
     @property
     @allow_missing_attribute

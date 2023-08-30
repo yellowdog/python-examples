@@ -26,8 +26,8 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
-    if ARGS_PARSER.worker_pool_name != "":
-        shutdown_by_name_or_id(ARGS_PARSER.worker_pool_name)
+    if len(ARGS_PARSER.worker_pool_list) > 0:
+        shutdown_by_names_or_ids(ARGS_PARSER.worker_pool_list)
         return
 
     print_log(
@@ -94,26 +94,34 @@ def main():
         print_log("No Worker Pools shut down")
 
 
-def shutdown_by_name_or_id(name_or_id: str):
+def shutdown_by_names_or_ids(names_or_ids: List[str]):
     """
-    Shutdown a Worker Pool by its name or ID.
+    Shutdown Worker Pools by their names or IDs.
     """
-    if "ydid:wrkrpool:" in name_or_id:
-        worker_pool_id = name_or_id
-    else:
-        worker_pool_id = get_worker_pool_id_by_name(CLIENT, name_or_id)
-        if worker_pool_id is None:
-            raise Exception(f"Worker Pool '{name_or_id}' not found")
+    worker_pool_ids: List[str] = []
+    for name_or_id in names_or_ids:
+        if "ydid:wrkrpool:" in name_or_id:
+            worker_pool_id = name_or_id
+        else:
+            worker_pool_id = get_worker_pool_id_by_name(CLIENT, name_or_id)
+            if worker_pool_id is None:
+                print_error(f"Worker Pool '{name_or_id}' not found")
+                continue
+        worker_pool_ids.append(worker_pool_id)
 
-    if not confirmed(f"Shut down Worker Pool '{name_or_id}'?"):
+    if len(worker_pool_ids) == 0:
+        print_log("No Worker Pools to shut down")
         return
 
-    try:
-        CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool_id)
-        print_log(f"Shut down Worker Pool '{name_or_id}'")
-    except Exception as e:
-        print_error(f"Unable to shut down Worker Pool '{name_or_id}'")
-        print_error(f"{e}")
+    if not confirmed(f"Shut down {len(worker_pool_ids)} Worker Pool(s)?"):
+        return
+
+    for worker_pool_id in worker_pool_ids:
+        try:
+            CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool_id)
+            print_log(f"Shut down Worker Pool '{worker_pool_id}'")
+        except Exception as e:
+            print_error(f"Unable to shut down Worker Pool '{worker_pool_id}' ({e})")
 
 
 # Entry point
