@@ -226,7 +226,7 @@ class CLIParser:
                 "-f",
                 action="store_true",
                 required=False,
-                help="follow the event stream after provisioning",
+                help="follow progress after provisioning",
             )
 
         if any(module in sys.argv[0] for module in ["cancel"]):
@@ -242,7 +242,7 @@ class CLIParser:
                 "-f",
                 action="store_true",
                 required=False,
-                help="when using --abort, poll until all Tasks have been aborted",
+                help="follow progress after cancelling",
             )
 
         if any(

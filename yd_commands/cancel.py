@@ -17,6 +17,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.follow_utils import follow_ids
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
@@ -57,6 +58,7 @@ def main():
 
     cancelled_count = 0
     cancelling_count = 0
+    work_requirement_ids: List[str] = []
 
     if len(selected_work_requirement_summaries) > 0:
         selected_work_requirement_summaries = select(
@@ -82,6 +84,7 @@ def main():
                     f"Work Requirement '{work_summary.name}' is already cancelling"
                 )
                 cancelling_count += 1
+            work_requirement_ids.append(work_summary.id)
         if cancelled_count > 0:
             print_log(f"Cancelled {cancelled_count} Work Requirement(s)")
         elif cancelling_count == 0:
@@ -92,6 +95,9 @@ def main():
                 print_log("No Tasks to abort")
             else:
                 abort_and_follow(selected_work_requirement_summaries)
+
+        if ARGS_PARSER.follow:
+            follow_ids(work_requirement_ids)
 
     else:
         print_log("No Work Requirements to cancel")
@@ -173,6 +179,9 @@ def cancel_work_requirement_by_name_or_id(name_or_id: str):
 
     if ARGS_PARSER.abort:
         abort_and_follow([work_requirement_summary])
+
+    if ARGS_PARSER.follow:
+        follow_ids([work_requirement_summary.id])
 
 
 def abort_and_follow(work_requirement_summaries: List[WorkRequirementSummary]):
