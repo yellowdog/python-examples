@@ -17,7 +17,7 @@ from yellowdog_client.model import (
 
 from yd_commands.config import ARGS_PARSER, load_config_worker_pool
 from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
-from yd_commands.follow_utils import follow_events
+from yd_commands.follow_utils import follow_events, follow_ids
 from yd_commands.id_utils import YDIDType
 from yd_commands.printing import (
     print_compute_template_test_result,
@@ -81,6 +81,7 @@ def main():
     if num_batches > 1 and not ARGS_PARSER.report:
         print_log(f"Batching into {num_batches} Compute Requirements")
 
+    compute_requirement_ids: List[str] = []
     for batch_number in range(num_batches):
         id = generate_cr_batch_name(
             name=CONFIG_WP.name, batch_number=batch_number, num_batches=num_batches
@@ -133,18 +134,14 @@ def main():
                         compute_requirement_template_usage
                     )
                 )
+                compute_requirement_ids.append(compute_requirement.id)
                 if ARGS_PARSER.quiet:
                     print(compute_requirement.id)
                 print_log(
                     f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
                 )
                 print_log(f"YellowDog ID is '{compute_requirement.id}'")
-                if ARGS_PARSER.follow:
-                    if len(batches) == 1:
-                        print_log("Following Compute Requirement event stream")
-                        follow_events(compute_requirement.id, YDIDType.COMPUTE_REQ)
-                    else:
-                        print_warning("Follow option is ignored for multiple batches")
+
             else:
                 print_log("Dry-run: Printing JSON Compute Requirement specification")
                 print_yd_object(compute_requirement_template_usage)
@@ -156,6 +153,9 @@ def main():
                 f" {'report on' if ARGS_PARSER.report else 'provision'} Compute"
                 f" Requirement: {e}"
             )
+
+    if ARGS_PARSER.follow:
+        follow_ids(compute_requirement_ids)
 
 
 def _allocate_nodes_to_batches(
