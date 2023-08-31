@@ -7,7 +7,7 @@ A script to Provision a Worker Pool.
 from dataclasses import dataclass
 from datetime import timedelta
 from math import ceil, floor
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import requests
 from yellowdog_client.common.iso_datetime import iso_timedelta_format
@@ -41,7 +41,7 @@ from yd_commands.printing import (
     print_yd_object,
 )
 from yd_commands.provision_utils import get_user_data_property
-from yd_commands.utils import generate_id, link_entity
+from yd_commands.utils import add_batch_number_postfix, generate_id, link_entity
 from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
@@ -58,6 +58,7 @@ class WPBatch:
 
 
 CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
+GENERATED_ID = generate_id("wp" + "_" + CONFIG_COMMON.name_tag)
 
 
 @main_wrapper
@@ -98,11 +99,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             # Generate a default name
             (
                 "requirementName",
-                (
-                    CONFIG_WP.name
-                    if CONFIG_WP.name is not None
-                    else generate_id("wp" + "_" + CONFIG_COMMON.name_tag)
-                ),
+                (CONFIG_WP.name if CONFIG_WP.name is not None else GENERATED_ID),
             ),
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
@@ -278,8 +275,10 @@ def create_worker_pool():
         print_log(f"Batching into {num_batches} Compute Requirements")
 
     for batch_number in range(num_batches):
-        id = generate_wp_batch_name(
-            name=CONFIG_WP.name, batch_number=batch_number, num_batches=num_batches
+        id = add_batch_number_postfix(
+            name=(CONFIG_WP.name if CONFIG_WP.name is not None else GENERATED_ID),
+            batch_number=batch_number,
+            num_batches=num_batches,
         )
         if num_batches > 1:
             print_log(
@@ -406,19 +405,6 @@ def _allocate_nodes_to_batches(
         ):
             break
     return batches
-
-
-def generate_wp_batch_name(
-    name: Optional[str], batch_number: int, num_batches: int
-) -> str:
-    """
-    Generate the name of a Worker Pool.
-    """
-    if name is None:
-        name = generate_id("wp" + "_" + CONFIG_COMMON.name_tag)
-    if num_batches > 1:
-        name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
-    return name
 
 
 # Entry point

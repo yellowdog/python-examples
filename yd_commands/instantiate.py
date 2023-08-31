@@ -7,7 +7,7 @@ A script to provision a Compute Requirement.
 from dataclasses import dataclass
 from json import loads as json_loads
 from math import ceil, floor
-from typing import List, Optional
+from typing import List
 
 import requests
 from yellowdog_client.model import (
@@ -23,11 +23,10 @@ from yd_commands.printing import (
     print_compute_template_test_result,
     print_error,
     print_log,
-    print_warning,
     print_yd_object,
 )
 from yd_commands.provision_utils import get_user_data_property
-from yd_commands.utils import generate_id, link_entity
+from yd_commands.utils import add_batch_number_postfix, generate_id, link_entity
 from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
@@ -42,6 +41,7 @@ class CRBatch:
 
 
 CONFIG_WP: ConfigWorkerPool = load_config_worker_pool()
+GENERATED_ID = generate_id("cr" + "_" + CONFIG_COMMON.name_tag)
 
 
 @main_wrapper
@@ -83,8 +83,10 @@ def main():
 
     compute_requirement_ids: List[str] = []
     for batch_number in range(num_batches):
-        id = generate_cr_batch_name(
-            name=CONFIG_WP.name, batch_number=batch_number, num_batches=num_batches
+        id = add_batch_number_postfix(
+            name=CONFIG_WP.name if CONFIG_WP.name is not None else GENERATED_ID,
+            batch_number=batch_number,
+            num_batches=num_batches,
         )
         if not (ARGS_PARSER.dry_run or ARGS_PARSER.report):
             if num_batches > 1:
@@ -191,19 +193,6 @@ def _allocate_nodes_to_batches(
     return batches
 
 
-def generate_cr_batch_name(
-    name: Optional[str], batch_number: int, num_batches: int
-) -> str:
-    """
-    Generate the name of a Compute Requirement.
-    """
-    if name is None:
-        name = generate_id("cr" + "_" + CONFIG_COMMON.name_tag)
-    if num_batches > 1:
-        name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
-    return name
-
-
 def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") -> None:
     """
     Directly create the Compute Requirement using the YellowDog REST API.
@@ -235,11 +224,7 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
             # Generate a default name
             (
                 "requirementName",
-                (
-                    CONFIG_WP.name
-                    if CONFIG_WP.name is not None
-                    else generate_id("cr" + "_" + CONFIG_COMMON.name_tag)
-                ),
+                (CONFIG_WP.name if CONFIG_WP.name is not None else GENERATED_ID),
             ),
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),

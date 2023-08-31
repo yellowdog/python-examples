@@ -3,7 +3,6 @@ General utility functions.
 """
 import re
 from os.path import join, normpath, relpath
-from random import randint
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -83,3 +82,12 @@ entities = {
     WorkRequirement: "work",
     ComputeRequirement: "compute",
 }
+
+
+def add_batch_number_postfix(name: str, batch_number: int, num_batches: int) -> str:
+    """
+    Generate a name using batch details.
+    """
+    if num_batches > 1:
+        name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
+    return name
