@@ -14,6 +14,8 @@ from yellowdog_client.model import (
     WorkerPool,
 )
 
+from yd_commands.follow_utils import follow_events, follow_ids
+from yd_commands.id_utils import YDIDType
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import get_worker_pool_id_by_name
 from yd_commands.printing import print_log
@@ -48,12 +50,18 @@ def _resize_worker_pool():
     worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
         worker_pool_id=worker_pool_id
     )
-    if confirmed(
+    if not confirmed(
         f"Confirm resize Worker Pool to {ARGS_PARSER.worker_pool_size} node(s)?"
     ):
-        CLIENT.worker_pool_client.resize_worker_pool(
-            worker_pool=worker_pool, size=ARGS_PARSER.worker_pool_size
-        )
+        return
+
+    CLIENT.worker_pool_client.resize_worker_pool(
+        worker_pool=worker_pool, size=ARGS_PARSER.worker_pool_size
+    )
+
+    if ARGS_PARSER.follow:
+        print_log("Following event stream(s)")
+        follow_ids([worker_pool.id], auto_cr=ARGS_PARSER.auto_cr)
 
 
 def _resize_compute_requirement():
@@ -114,6 +122,9 @@ def _resize_compute_requirement():
                         "Resizing complete: new target instance count ="
                         f" {compute_requirement.targetInstanceCount}"
                     )
+                    if ARGS_PARSER.follow:
+                        print_log("Following event stream")
+                        follow_events(compute_requirement.id, YDIDType.COMPUTE_REQ)
                 return
     else:
         raise Exception(

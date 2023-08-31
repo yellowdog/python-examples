@@ -665,7 +665,19 @@ class CLIParser:
                 help="follow progress after provisioning",
             )
 
-        if any(module in sys.argv[0] for module in ["follow", "shutdown", "provision"]):
+        if any(module in sys.argv[0] for module in ["resize"]):
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help="follow progress after rezising",
+            )
+
+        if any(
+            module in sys.argv[0]
+            for module in ["follow", "shutdown", "provision", "resize"]
+        ):
             parser.add_argument(
                 "--auto-follow-compute-requirements",
                 "-a",
