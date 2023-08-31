@@ -46,8 +46,7 @@ from yd_commands.object_utilities import (
     get_task_groups_from_wr_summary,
 )
 from yd_commands.printing import (
-    CONSOLE,
-    TABLE_STYLE,
+    CONSOLE_TABLE,
     indent,
     print_error,
     print_log,
@@ -540,9 +539,8 @@ def list_namespaces():
         ]
     )
     print()
-    CONSOLE.print(
+    CONSOLE_TABLE.print(
         indent(tabulate(rows, headings, tablefmt="simple_outline")),
-        style=TABLE_STYLE,
     )
     print()
 

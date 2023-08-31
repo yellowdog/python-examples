@@ -82,14 +82,29 @@ pyexamples_theme = Theme(
         "pyexamples.quoted": "bold green",
         "pyexamples.url": "bold magenta",
         "pyexamples.ydid": "bold green",
+        "pyexamples.table_outline": "blue",
+        "pyexamples.table_content": "bold green",
     }
 )
 
-TABLE_STYLE = "bold green"
+
+class PrintTableHighlighter(RegexHighlighter):
+    """
+    Apply styles to table printing.
+    """
+
+    base_style = "pyexamples."
+    highlights = [
+        r"(?P<table_outline>[┌─┬│┼┐┤└┴┘├]*)",
+        r"(?P<table_content>[0-9a-zA-Z-_/\(\):#\\]*)",
+    ]
+
+
 ERROR_STYLE = "bold red"
 WARNING_STYLE = "red"
 
 CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
+CONSOLE_TABLE = Console(highlighter=PrintTableHighlighter(), theme=pyexamples_theme)
 CONSOLE_ERR = Console(stderr=True, highlighter=PrintLogHighlighter())
 CONSOLE_JSON = Console(highlighter=JSONHighlighter())
 
@@ -518,17 +533,15 @@ def print_numbered_object_list(
             except:  # Handle the Namespace Storage Configuration case
                 table.append([index + 1, ":", obj.namespace])
     if headers is None:
-        CONSOLE.print(
+        CONSOLE_TABLE.print(
             indent(tabulate(table, tablefmt="plain"), indent_width=4),
-            style=TABLE_STYLE,
         )
     else:
-        CONSOLE.print(
+        CONSOLE_TABLE.print(
             indent(
                 tabulate(table, headers=headers, tablefmt="simple_outline"),
                 indent_width=4,
             ),
-            style=TABLE_STYLE,
         )
     print()
 
@@ -543,9 +556,8 @@ def print_numbered_strings(objects: List[str], override_quiet: bool = False):
     table = []
     for index, obj in enumerate(objects):
         table.append([index + 1, ":", obj])
-    CONSOLE.print(
+    CONSOLE_TABLE.print(
         indent(tabulate(table, tablefmt="plain"), indent_width=4),
-        style=TABLE_STYLE,
     )
     print()
 
@@ -705,9 +717,8 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
             ]
         )
     print()
-    CONSOLE.print(
+    CONSOLE_TABLE.print(
         indent(tabulate(source_table, headers="firstrow", tablefmt="simple_outline")),
-        style=TABLE_STYLE,
     )
     print()
 
@@ -783,11 +794,10 @@ def print_batch_download_files(
             ]
         )
     print()
-    CONSOLE.print(
+    CONSOLE_TABLE.print(
         indent(
             tabulate(table, headers=headers, tablefmt="simple_outline"), indent_width=4
         ),
-        style=TABLE_STYLE,
     )
     print()
 
