@@ -41,7 +41,8 @@ def generate_id(prefix: str, max_length: int = 60) -> str:
     """
     Add a UTC timestamp and check length.
     """
-    generated_id = prefix + UTCNOW.strftime("_%y%m%d-%H%M%S")
+    # Include seconds to two decimals
+    generated_id = prefix + UTCNOW.strftime("_%y%m%d-%H%M%S%f")[:-4]
     if len(generated_id) > max_length:
         raise Exception(
             f"Error: Generated ID '{generated_id}' would exceed "
