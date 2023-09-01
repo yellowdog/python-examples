@@ -63,7 +63,7 @@ except OSError:
 # Set up Rich formatting for coloured output
 class PrintLogHighlighter(RegexHighlighter):
     """
-    Apply styles to print_log() lines.
+    Apply styles for print_log() lines.
     """
 
     base_style = "pyexamples."
@@ -73,6 +73,19 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<quoted>'[a-zA-Z0-9-._=;:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
         r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)",
+    ]
+
+
+class PrintTableHighlighter(RegexHighlighter):
+    """
+    Apply styles for table printing.
+    """
+
+    base_style = "pyexamples."
+    table_outline_chars = "┌─┬│┼┐┤└┴┘├"
+    highlights = [
+        rf"(?P<table_outline>[{table_outline_chars}]*)",
+        rf"(?P<table_content>[^{table_outline_chars}]*)",
     ]
 
 
@@ -86,19 +99,6 @@ pyexamples_theme = Theme(
         "pyexamples.table_content": "bold green",
     }
 )
-
-
-class PrintTableHighlighter(RegexHighlighter):
-    """
-    Apply styles to table printing.
-    """
-
-    base_style = "pyexamples."
-    highlights = [
-        r"(?P<table_outline>[┌─┬│┼┐┤└┴┘├]*)",
-        r"(?P<table_content>[0-9a-zA-Z-_/\(\):#\\]*)",
-    ]
-
 
 ERROR_STYLE = "bold red"
 WARNING_STYLE = "red"
