@@ -815,14 +815,21 @@ def print_event(event: str, id_type: YDIDType):
     event_data: Dict = json_loads(event.replace(data_prefix, ""))
 
     indent = "\n" + (" " * PREFIX_LEN) + "--> "
+    indent_2 = "\n" + (" " * (PREFIX_LEN + 4))
 
     if id_type == YDIDType.WORK_REQ:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         for task_group in event_data["taskGroups"]:
             msg += (
-                f"{indent}Task Group '{task_group['name']}':"
-                f" {task_group['taskSummary']['statusCounts']['COMPLETED']} of"
-                f" {task_group['taskSummary']['taskCount']} Task(s) completed"
+                f"{indent}Task Group '{task_group['name']}' [{task_group['status']}]:"
+                f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}{task_group['taskSummary']['statusCounts']['PENDING']} PENDING,"
+                f" {task_group['taskSummary']['statusCounts']['READY']} READY,"
+                f" {task_group['taskSummary']['statusCounts']['ALLOCATED']} ALLOCATED,"
+                f" {task_group['taskSummary']['statusCounts']['EXECUTING']} EXECUTING,"
+                f" {task_group['taskSummary']['statusCounts']['COMPLETED']} COMPLETED,"
+                f" {task_group['taskSummary']['statusCounts']['CANCELLED']} CANCELLED,"
+                f" {task_group['taskSummary']['statusCounts']['ABORTED']} ABORTED,"
+                f" {task_group['taskSummary']['statusCounts']['FAILED']} FAILED"
             )
 
     elif id_type == YDIDType.WORKER_POOL:
