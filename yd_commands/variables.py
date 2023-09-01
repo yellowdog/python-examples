@@ -15,8 +15,8 @@ from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.check_imports import check_jsonnet_import
-from yd_commands.config_keys import *
 from yd_commands.printing import print_error, print_json, print_log
+from yd_commands.property_names import *
 
 # Set up default variable substitutions
 UTCNOW = datetime.utcnow()

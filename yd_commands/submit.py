@@ -34,7 +34,6 @@ from yellowdog_client.model import (
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import CONFIG_FILE_DIR, load_config_work_requirement
-from yd_commands.config_keys import *
 from yd_commands.config_types import ConfigWorkRequirement
 from yd_commands.csv_data import (
     csv_expand_toml_tasks,
@@ -52,6 +51,7 @@ from yd_commands.printing import (
     print_log,
     print_numbered_strings,
 )
+from yd_commands.property_names import *
 from yd_commands.submit_utils import (
     UploadedFiles,
     format_yd_name,

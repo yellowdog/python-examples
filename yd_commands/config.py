@@ -10,7 +10,6 @@ from typing import Dict, Optional
 from toml import TomlDecodeError
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.config_keys import *
 from yd_commands.config_types import (
     CR_BATCH_SIZE_DEFAULT,
     DEFAULT_URL,
@@ -25,6 +24,7 @@ from yd_commands.config_types import (
     ConfigWorkRequirement,
 )
 from yd_commands.printing import print_error, print_log
+from yd_commands.property_names import *
 from yd_commands.type_check import check_list, check_str
 from yd_commands.utils import pathname_relative_to_config_file
 from yd_commands.validate_properties import validate_properties

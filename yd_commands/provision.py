@@ -20,7 +20,15 @@ from yellowdog_client.model import (
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config import load_config_worker_pool
-from yd_commands.config_keys import (
+from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
+from yd_commands.follow_utils import follow_ids
+from yd_commands.printing import (
+    print_error,
+    print_log,
+    print_worker_pool,
+    print_yd_object,
+)
+from yd_commands.property_names import (
     IMAGES_ID,
     INSTANCE_TAGS,
     MAINTAIN_INSTANCE_COUNT,
@@ -31,14 +39,6 @@ from yd_commands.config_keys import (
     TEMPLATE_ID,
     USERDATA,
     WORKER_TAG,
-)
-from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
-from yd_commands.follow_utils import follow_ids
-from yd_commands.printing import (
-    print_error,
-    print_log,
-    print_worker_pool,
-    print_yd_object,
 )
 from yd_commands.provision_utils import get_user_data_property
 from yd_commands.utils import add_batch_number_postfix, generate_id, link_entity

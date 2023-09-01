@@ -6,8 +6,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
-from yd_commands.config_keys import *
 from yd_commands.printing import print_log
+from yd_commands.property_names import *
 
 
 def validate_properties(data: Dict, context: str):

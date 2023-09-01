@@ -12,9 +12,9 @@ from typing import Dict, List, Optional
 from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.config_keys import *
 from yd_commands.config_types import ConfigWorkRequirement
 from yd_commands.printing import print_json, print_log
+from yd_commands.property_names import *
 from yd_commands.variables import (
     BOOL_SUB,
     NUMBER_SUB,

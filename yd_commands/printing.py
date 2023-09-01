@@ -48,9 +48,9 @@ from yellowdog_client.object_store.upload import UploadBatchBuilder
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.compact_json import CompactJSONEncoder
-from yd_commands.config_keys import NAME, TASK_GROUPS, TASKS
 from yd_commands.id_utils import YDIDType
 from yd_commands.object_utilities import Item
+from yd_commands.property_names import NAME, TASK_GROUPS, TASKS
 
 JSON_INDENT = 2
 
