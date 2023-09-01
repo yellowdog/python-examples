@@ -668,10 +668,6 @@ def add_tasks_to_task_group(
                 )
             ]
 
-            # Set 'alwaysUpload' to true for all outputs
-            for task_output in outputs:
-                task_output.alwaysUpload = True
-
             # Add TaskOutput to 'outputs'?
             if check_bool(
                 task.get(
@@ -683,6 +679,18 @@ def add_tasks_to_task_group(
                 )
             ):
                 outputs.append(TaskOutput.from_task_process())
+
+            always_upload = task.get(
+                ALWAYS_UPLOAD,
+                task_group_data.get(
+                    ALWAYS_UPLOAD,
+                    wr_data.get(ALWAYS_UPLOAD, CONFIG_WR.always_upload),
+                ),
+            )
+
+            # Set 'alwaysUpload' for all outputs
+            for task_output in outputs:
+                task_output.alwaysUpload = always_upload
 
             # If there's no task type in the task definition, AND
             # there's only one task type at the task group level,

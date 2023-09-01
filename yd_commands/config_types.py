@@ -29,6 +29,7 @@ class ConfigCommon:
 
 @dataclass
 class ConfigWorkRequirement:
+    always_upload: bool= True
     args: List[str] = field(default_factory=list)
     capture_taskoutput: bool = True
     completed_task_ttl: Optional[float] = None  # In minutes

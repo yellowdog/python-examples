@@ -2,6 +2,7 @@
 Configuration key strings
 """
 
+ALWAYS_UPLOAD = "alwaysUpload"  # Bool
 ARGS = "arguments"  # List
 CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
 COMMON_SECTION = "common"  # No value
@@ -88,6 +89,7 @@ WR_DATA = "workRequirementData"  # String
 WR_NAME = "name"  # String
 
 ALL_KEYS = [
+    ALWAYS_UPLOAD,
     ARGS,
     CAPTURE_TASKOUTPUT,
     COMMON_SECTION,

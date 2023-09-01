@@ -460,6 +460,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 
 | Property Name              | Description                                                                                                                                                              | TOML | WR  | TGrp | Task |
 |:---------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
+| `alwaysUpload`             | Whether to attempt to upload task outputs on failure. Default: `true`.                                                                                                   | Yes  | Yes | Yes  | Yes  |
 | `arguments`                | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                  | Yes  | Yes | Yes  | Yes  |
 | `captureTaskOutput`        | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                     | Yes  | Yes | Yes  | Yes  |
 | `completedTaskTtl`         | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                     | Yes  | Yes | Yes  |      |
@@ -605,6 +606,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
 
 ```toml
 [workRequirement]
+    alwaysUpload = true
     arguments = ["1", "TWO"]
     captureTaskOutput = true
     completedTaskTtl = 10
@@ -659,6 +661,7 @@ Showing all possible properties at the Work Requirement level:
 
 ```json
 {
+  "alwaysUpload": true,
   "arguments": [1, "TWO"],
   "captureTaskOutput": true,
   "completedTaskTtl": 10,
@@ -714,6 +717,7 @@ Showing all possible properties at the Task Group level:
 {
   "taskGroups": [
     {
+      "alwaysUpload": true,
       "arguments": [1, "TWO"],
       "captureTaskOutput": true,
       "completedTaskTtl": 10,
@@ -774,6 +778,7 @@ Showing all possible properties at the Task level:
     {
       "tasks": [
         {
+          "alwaysUpload": true,
           "arguments": [1, 2],
           "captureTaskOutput": true,
           "dockerEnvironment": {"MY_DOCKER_VAR": 100},

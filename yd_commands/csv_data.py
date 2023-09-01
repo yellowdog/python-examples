@@ -335,6 +335,7 @@ def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Di
     csv_data = CSV_DATA_CACHE.get_csv_task_data(csv_file.split(":")[0])
     # Populate properties that can be set at Task level only
     for config_value, config_name in [
+        (config_wr.always_upload, ALWAYS_UPLOAD),
         (config_wr.args, ARGS),
         (config_wr.capture_taskoutput, CAPTURE_TASKOUTPUT),
         (config_wr.docker_env, DOCKER_ENV),
