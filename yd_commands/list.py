@@ -121,7 +121,7 @@ def list_work_requirements():
         f"Listing Work Requirements with  '{CONFIG_COMMON.namespace}' in namespace "
         f"and '{CONFIG_COMMON.name_tag}' in tag",
     )
-    if ARGS_PARSER.live_only:
+    if ARGS_PARSER.active_only:
         print_log("Listing active Work Requirements only")
 
     exclude_filter = (
@@ -130,7 +130,7 @@ def list_work_requirements():
             WorkRequirementStatus.CANCELLED,
             WorkRequirementStatus.FAILED,
         ]
-        if ARGS_PARSER.live_only
+        if ARGS_PARSER.active_only
         else []
     )
     work_requirement_summaries: List[WorkRequirementSummary] = (
@@ -243,11 +243,11 @@ def list_worker_pools():
     )
     excluded_states = (
         [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
-        if ARGS_PARSER.live_only
+        if ARGS_PARSER.active_only
         else []
     )
     showing_all = True
-    if ARGS_PARSER.live_only:
+    if ARGS_PARSER.active_only:
         print_log("Displaying active Worker Pools only")
         showing_all = False
     worker_pool_summaries = [
@@ -279,7 +279,7 @@ def list_compute_requirements():
         f" names containing '{CONFIG_COMMON.name_tag}'"
     )
 
-    if ARGS_PARSER.live_only:
+    if ARGS_PARSER.active_only:
         print_log("Listing active Compute Requirements only")
 
     cr_search = ComputeRequirementSearch(
@@ -293,7 +293,7 @@ def list_compute_requirements():
     filtered_compute_requirements: List[ComputeRequirement] = []
     excluded_states = (
         [ComputeRequirementStatus.TERMINATED, ComputeRequirementStatus.TERMINATING]
-        if ARGS_PARSER.live_only
+        if ARGS_PARSER.active_only
         else []
     )
     for compute_requirement in compute_requirements:

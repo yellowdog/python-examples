@@ -379,11 +379,14 @@ class CLIParser:
                 help="list Compute Requirements",
             )
             parser.add_argument(
-                "--live-only",
+                "--active-only",
                 "-l",
                 action="store_true",
                 required=False,
-                help="list only active Compute Requirements/Worker Pools",
+                help=(
+                    "list only active Compute Requirements / Worker Pools / Work"
+                    " Requirements"
+                ),
             )
             parser.add_argument(
                 "--compute-templates",
@@ -811,8 +814,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def live_only(self) -> Optional[bool]:
-        return self.args.live_only
+    def active_only(self) -> Optional[bool]:
+        return self.args.active_only
 
     @property
     @allow_missing_attribute
