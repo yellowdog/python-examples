@@ -73,6 +73,11 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<quoted>'[a-zA-Z0-9-._=;:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
         r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)",
+        r"(?P<executing>EXECUTING)",
+        r"(?P<failed>FAILED)",
+        r"(?P<completed>COMPLETED)",
+        r"(?P<cancelled>CANCELLED)",
+        r"(?P<cancelled>ABORTED)",
     ]
 
 
@@ -86,6 +91,11 @@ class PrintTableHighlighter(RegexHighlighter):
     highlights = [
         rf"(?P<table_outline>[{table_outline_chars}]*)",
         rf"(?P<table_content>[^{table_outline_chars}]*)",
+        r"(?P<executing>EXECUTING)",
+        r"(?P<failed>FAILED)",
+        r"(?P<completed>COMPLETED)",
+        r"(?P<cancelled>CANCELLED)",
+        r"(?P<cancelled>ABORTED)",
     ]
 
 
@@ -97,6 +107,10 @@ pyexamples_theme = Theme(
         "pyexamples.ydid": "bold green",
         "pyexamples.table_outline": "blue",
         "pyexamples.table_content": "bold green",
+        "pyexamples.executing": "bold blue",
+        "pyexamples.failed": "bold red",
+        "pyexamples.completed": "bold green",
+        "pyexamples.cancelled": "bold grey35",
     }
 )
 
@@ -828,9 +842,10 @@ def print_event(event: str, id_type: YDIDType):
                 f" {task_group['taskSummary']['statusCounts']['EXECUTING']} EXECUTING,"
                 f" {task_group['taskSummary']['statusCounts']['COMPLETED']} COMPLETED,"
                 f" {task_group['taskSummary']['statusCounts']['CANCELLED']} CANCELLED,"
-                f" {task_group['taskSummary']['statusCounts']['ABORTED']} ABORTED,"
-                f" {task_group['taskSummary']['statusCounts']['FAILED']} FAILED"
+                f" {task_group['taskSummary']['statusCounts']['ABORTED']} ABORTED"
             )
+            if task_group["taskSummary"]["statusCounts"]["FAILED"] != 0:
+                msg += f", {task_group['taskSummary']['statusCounts']['FAILED']} FAILED"
 
     elif id_type == YDIDType.WORKER_POOL:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
