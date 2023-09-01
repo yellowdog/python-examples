@@ -550,7 +550,7 @@ def add_tasks_to_task_group(
                     INPUTS_REQUIRED,
                     task_group_data.get(
                         INPUTS_REQUIRED,
-                        wr_data.get(INPUTS_REQUIRED, CONFIG_WR.input_files),
+                        wr_data.get(INPUTS_REQUIRED, CONFIG_WR.inputs_required),
                     ),
                 )
             )
@@ -576,7 +576,7 @@ def add_tasks_to_task_group(
                     INPUTS_OPTIONAL,
                     task_group_data.get(
                         INPUTS_OPTIONAL,
-                        wr_data.get(INPUTS_OPTIONAL, CONFIG_WR.optional_inputs),
+                        wr_data.get(INPUTS_OPTIONAL, CONFIG_WR.inputs_optional),
                     ),
                 )
             )
@@ -648,7 +648,7 @@ def add_tasks_to_task_group(
                         OUTPUTS_OPTIONAL,
                         task_group_data.get(
                             OUTPUTS_OPTIONAL,
-                            wr_data.get(OUTPUTS_OPTIONAL, CONFIG_WR.output_files),
+                            wr_data.get(OUTPUTS_OPTIONAL, CONFIG_WR.outputs_optional),
                         ),
                     )
                 )
@@ -662,9 +662,7 @@ def add_tasks_to_task_group(
                         OUTPUTS_REQUIRED,
                         task_group_data.get(
                             OUTPUTS_REQUIRED,
-                            wr_data.get(
-                                OUTPUTS_REQUIRED, CONFIG_WR.output_files_required
-                            ),
+                            wr_data.get(OUTPUTS_REQUIRED, CONFIG_WR.outputs_required),
                         ),
                     )
                 )

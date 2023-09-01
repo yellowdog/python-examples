@@ -39,19 +39,19 @@ class ConfigWorkRequirement:
     env: Dict = field(default_factory=dict)
     exclusive_workers: Optional[bool] = None
     executable: Optional[str] = None
-    finish_if_any_task_failed: bool = False
     finish_if_all_tasks_finished: bool = True
+    finish_if_any_task_failed: bool = False
     flatten_input_paths: Optional[bool] = None
     flatten_upload_paths: Optional[bool] = None
     fulfil_on_submit: bool = False
-    input_files: List[str] = field(default_factory=list)
+    inputs_optional: List[str] = field(default_factory=list)
+    inputs_required: List[str] = field(default_factory=list)
     instance_types: Optional[List[str]] = None
     max_retries: int = 0
     max_workers: Optional[int] = None
     min_workers: Optional[int] = None
-    optional_inputs: List[Dict] = field(default_factory=list)
-    output_files: List[str] = field(default_factory=list)
-    output_files_required: List[str] = field(default_factory=list)
+    outputs_optional: List[str] = field(default_factory=list)
+    outputs_required: List[str] = field(default_factory=list)
     priority: float = 0.0
     providers: Optional[List[str]] = None
     ram: Optional[List[float]] = None
@@ -60,8 +60,8 @@ class ConfigWorkRequirement:
     task_count: int = 1
     task_data: Optional[str] = None
     task_data_file: Optional[str] = None
-    task_name: Optional[str] = None
     task_group_name: Optional[str] = None
+    task_name: Optional[str] = None
     task_type: Optional[str] = None
     tasks_per_worker: Optional[int] = None
     upload_files: List[Dict] = field(default_factory=list)
