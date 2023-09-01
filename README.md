@@ -44,7 +44,7 @@
          * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
          * [Using Wildcards in the uploadFiles List](#using-wildcards-in-the-uploadfiles-list)
       * [File Dependencies Using verifyAtStart and verifyWait](#file-dependencies-using-verifyatstart-and-verifywait)
-      * [Files Downloaded Using inputsOptional](#files-downloaded-using-inputsoptional)
+      * [Files Uploaded to the Object Store Using inputsOptional](#files-uploaded-to-the-object-store-using-inputsoptional)
       * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
       * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
       * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
@@ -103,8 +103,9 @@
    * [yd-resize](#yd-resize)
    * [yd-create](#yd-create)
    * [yd-remove](#yd-remove)
+   * [yd-follow](#yd-follow)
 
-<!-- Added by: pwt, at: Mon Aug 21 14:14:06 BST 2023 -->
+<!-- Added by: pwt, at: Fri Sep  1 15:16:54 BST 2023 -->
 
 <!--te-->
 
@@ -1068,7 +1069,7 @@ The use of the three different forms can be mixed within a single list, e.g.:
 "verifyAtStart": ["file_1.txt", "::dir_2/file_2.txt", "other_namespace::dir_3/file_3.txt"]
 ```
 
-### Files Downloaded Using `inputsOptional`
+### Files Uploaded to the Object Store Using `inputsOptional`
 
 The `inputsOptional` property works in a similar fashion to the `verify*` properties above, but the files specified in this list are optional. This property also allows for the use of wildcards `*` and `**` to collect files using wildcard paths. The **ant** conventions are used for these wildcards.
 
@@ -1136,14 +1137,14 @@ The **`outputsRequired`** property can be used instead of (or in addition to) th
 
 ### Files Downloaded from the Object Store to Local Storage
 
-The `yd-download` command will download all objects from the Object Store to a local directory, on a per Work Requirement basis (including any files that have been uploaded). A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
+The `yd-download` command can download all objects from the Object Store to a local directory, on a per Work Requirement basis (including any files that have been uploaded). A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
 
 Use the `--interactive` option with `yd-download` to select which Work Requirement(s) to download.
 
-For the example above, `yd-download` would create a directory called `development` in the current working directory, containing something like:
+For the example above, `yd-download` would create a directory called `testrun_221108-120404-7d2` in the current working directory, containing something like:
 
 ```shell
-development
+current_directory
 └── testrun_221108-120404-7d2
     ├── bash_script.sh
     ├── file_1.txt
@@ -1157,7 +1158,11 @@ development
 
 Note that everything within the `namespace::work-requirement` directory in the Object Store is downloaded, including any files that were specified in `inputs` and uploaded as part of the Work Requirement submission. Multiple Task Groups, and multiple Tasks will all appear in the directory structure.
 
-If the `development` directory already exists, `yd-download` will try `development.01`, etc., to avoid overwriting previous downloads.
+Finer-grained downloads are also possible: please consult the output of `yd-download --help` to see the available options. For example to download only the `openfoam.tar.gz` file, to a local directory `results`:
+
+```shell
+yd-download testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.tar.gz --directory ./results
+```
 
 ## Task Execution Context
 
