@@ -30,7 +30,7 @@ IDLE_POOL_SHUTDOWN_TIMEOUT = "idlePoolShutdownTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
 IMPORT = "import"  # String
 INPUTS_OPTIONAL = "inputsOptional"  # List of Strings
-INPUT_FILES = "inputs"  # List of Strings
+INPUTS_REQUIRED = "inputs"  # List of Strings
 INSTANCE_TAGS = "instanceTags"  # List of Strings
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
@@ -45,8 +45,8 @@ NAME = "name"  # String
 NAMESPACE = "namespace"  # String
 NAME_TAG = "tag"  # String
 NODE_BOOT_TIMEOUT = "nodeBootTimeout"  # Float
-OUTPUT_FILES = "outputs"  # List of Strings
-OUTPUT_FILES_REQUIRED = "outputsRequired"  # List of Strings
+OUTPUTS_OPTIONAL = "outputs"  # List of Strings
+OUTPUTS_REQUIRED = "outputsRequired"  # List of Strings
 PRIORITY = "priority"  # Float
 PROVIDERS = "providers"  # List of Strings
 RAM = "ram"  # List of two Floats
@@ -116,7 +116,7 @@ ALL_KEYS = [
     IMAGES_ID,
     IMPORT,
     INPUTS_OPTIONAL,
-    INPUT_FILES,
+    INPUTS_REQUIRED,
     INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
@@ -130,8 +130,8 @@ ALL_KEYS = [
     NAMESPACE,
     NAME_TAG,
     NODE_BOOT_TIMEOUT,
-    OUTPUT_FILES,
-    OUTPUT_FILES_REQUIRED,
+    OUTPUTS_OPTIONAL,
+    OUTPUTS_REQUIRED,
     PRIORITY,
     PROVIDERS,
     RAM,

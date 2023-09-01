@@ -547,10 +547,10 @@ def add_tasks_to_task_group(
             # Set up lists of files to input, verify
             input_files_list = check_list(
                 task.get(
-                    INPUT_FILES,
+                    INPUTS_REQUIRED,
                     task_group_data.get(
-                        INPUT_FILES,
-                        wr_data.get(INPUT_FILES, CONFIG_WR.input_files),
+                        INPUTS_REQUIRED,
+                        wr_data.get(INPUTS_REQUIRED, CONFIG_WR.input_files),
                     ),
                 )
             )
@@ -645,10 +645,10 @@ def add_tasks_to_task_group(
                 TaskOutput.from_worker_directory(file_pattern=file, required=False)
                 for file in check_list(
                     task.get(
-                        OUTPUT_FILES,
+                        OUTPUTS_OPTIONAL,
                         task_group_data.get(
-                            OUTPUT_FILES,
-                            wr_data.get(OUTPUT_FILES, CONFIG_WR.output_files),
+                            OUTPUTS_OPTIONAL,
+                            wr_data.get(OUTPUTS_OPTIONAL, CONFIG_WR.output_files),
                         ),
                     )
                 )
@@ -659,11 +659,11 @@ def add_tasks_to_task_group(
                 TaskOutput.from_worker_directory(file_pattern=file, required=True)
                 for file in check_list(
                     task.get(
-                        OUTPUT_FILES_REQUIRED,
+                        OUTPUTS_REQUIRED,
                         task_group_data.get(
-                            OUTPUT_FILES_REQUIRED,
+                            OUTPUTS_REQUIRED,
                             wr_data.get(
-                                OUTPUT_FILES_REQUIRED, CONFIG_WR.output_files_required
+                                OUTPUTS_REQUIRED, CONFIG_WR.output_files_required
                             ),
                         ),
                     )
