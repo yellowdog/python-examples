@@ -16,7 +16,6 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from yd_commands.args import ARGS_PARSER
 from yd_commands.follow_utils import follow_ids
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
@@ -26,7 +25,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import print_error, print_log
 from yd_commands.utils import link_entity
-from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 ABORT_RETRY_INTERVAL = 20  # Seconds
 

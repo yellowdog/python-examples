@@ -14,14 +14,13 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from yd_commands.config import ARGS_PARSER
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_task_group_name,
 )
 from yd_commands.printing import print_error, print_log, sorted_objects
-from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper

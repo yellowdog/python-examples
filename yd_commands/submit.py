@@ -32,7 +32,6 @@ from yellowdog_client.model import (
     WorkRequirementStatus,
 )
 
-from yd_commands.args import ARGS_PARSER
 from yd_commands.config import CONFIG_FILE_DIR, load_config_work_requirement
 from yd_commands.config_types import ConfigWorkRequirement
 from yd_commands.csv_data import (
@@ -84,7 +83,7 @@ from yd_commands.variables import (
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions,
 )
-from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 # Import the Work Requirement configuration from the TOML file
 CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()

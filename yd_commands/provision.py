@@ -18,7 +18,6 @@ from yellowdog_client.model import (
     ProvisionedWorkerPoolProperties,
 )
 
-from yd_commands.args import ARGS_PARSER
 from yd_commands.config import load_config_worker_pool
 from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
 from yd_commands.follow_utils import follow_ids
@@ -46,7 +45,7 @@ from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
 )
-from yd_commands.wrapper import CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
 # Specifies the cardinality for a Worker Pool batch
