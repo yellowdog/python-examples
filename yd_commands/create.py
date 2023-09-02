@@ -458,11 +458,18 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
             object = get_model_class(classname)(**resource, **kwargs)
             return object
         except Exception as e:
-            # Unexpected keyword argument Exception of form:
-            # __init__() got an unexpected keyword argument 'keyword'
-            keyword = str(e).split("'")[1]
-            print_warning(f"Ignoring unexpected property '{keyword}'")
-            resource.pop(keyword)
+            # Unexpected/missing keyword argument Exception of form:
+            # __init__() got an unexpected keyword argument 'keyword', or
+            # __init__() missing 1 required positional argument: 'credential'
+            if "unexpected" in str(e):
+                keyword = str(e).split("'")[1]
+                print_warning(f"Ignoring unexpected property '{keyword}'")
+                resource.pop(keyword)
+            elif "missing" in str(e):
+                keyword = str(e).split("'")[1]
+                raise Exception(f"Missing expected property '{keyword}'")
+            else:
+                raise e
 
 
 def get_model_class(classname: str):
