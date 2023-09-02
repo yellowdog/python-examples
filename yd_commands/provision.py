@@ -18,9 +18,9 @@ from yellowdog_client.model import (
     ProvisionedWorkerPoolProperties,
 )
 
-from yd_commands.config import load_config_worker_pool
 from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
 from yd_commands.follow_utils import follow_ids
+from yd_commands.load_config import load_config_worker_pool
 from yd_commands.printing import (
     print_error,
     print_log,

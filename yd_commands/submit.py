@@ -32,7 +32,6 @@ from yellowdog_client.model import (
     WorkRequirementStatus,
 )
 
-from yd_commands.config import CONFIG_FILE_DIR, load_config_work_requirement
 from yd_commands.config_types import ConfigWorkRequirement
 from yd_commands.csv_data import (
     csv_expand_toml_tasks,
@@ -43,6 +42,7 @@ from yd_commands.csv_data import (
 from yd_commands.follow_utils import follow_events
 from yd_commands.id_utils import YDIDType
 from yd_commands.interactive import confirmed
+from yd_commands.load_config import CONFIG_FILE_DIR, load_config_work_requirement
 from yd_commands.printing import (
     WorkRequirementSnapshot,
     print_error,
