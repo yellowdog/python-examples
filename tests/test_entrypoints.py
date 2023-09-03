@@ -1,5 +1,5 @@
 """
-Tests for the Python Examples scripts.
+Basic check that all the entrypoints are present, and can be invoked.
 """
 
 from cli_test_helpers import shell

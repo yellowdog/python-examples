@@ -1,3 +1,8 @@
+"""
+Tests that run the standard demos.
+Use 'pytest --run-demos', otherwise these will be skipped.
+"""
+
 import pytest
 from cli_test_helpers import shell
 
