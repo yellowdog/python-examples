@@ -19,13 +19,16 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
     if len(ydids) == 0:
         return
 
-    ydids = set(ydids)  # Eliminate duplicates
+    ydids_set = set(ydids)  # Eliminate duplicates
+    num_duplicates = len(ydids) - len(ydids_set)
+    if num_duplicates > 0:
+        print_log(f"Ignoring {num_duplicates} duplicate YellowDog ID(s)")
 
     if auto_cr:
         # Automatically add Compute Requirements IDs for
         # Provisioned Worker Pools, to follow both
         cr_ydids = set()
-        for ydid in ydids:
+        for ydid in ydids_set:
             if get_ydid_type(ydid) == YDIDType.WORKER_POOL:
                 cr_ydid = get_compreq_id_by_worker_pool_id(CLIENT, ydid)
                 if cr_ydid is not None:
@@ -33,13 +36,13 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
                         f"Adding event stream for Compute Requirement '{cr_ydid}'"
                     )
                     cr_ydids.add(cr_ydid)
-        ydids = ydids.union(cr_ydids)
+        ydids_set = ydids_set.union(cr_ydids)
 
-    print_log(f"Following the event stream(s) for {len(ydids)} YellowDog ID(s)")
+    print_log(f"Following the event stream(s) for {len(ydids_set)} YellowDog ID(s)")
 
     threads: List[Thread] = []
 
-    for ydid in ydids:
+    for ydid in ydids_set:
         ydid_type = get_ydid_type(ydid)
         if ydid_type not in [
             YDIDType.WORK_REQ,
