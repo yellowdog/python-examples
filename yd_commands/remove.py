@@ -14,12 +14,12 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.interactive import confirmed
+from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
     find_compute_template_id_by_name,
 )
 from yd_commands.printing import print_error, print_log
-from yd_commands.resource_config import load_resource_specifications
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 
 

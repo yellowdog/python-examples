@@ -24,12 +24,12 @@ from yellowdog_client.model import (
 from yellowdog_client.model.exceptions import InvalidRequestException
 
 from yd_commands.interactive import confirmed
+from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
     find_compute_template_id_by_name,
 )
 from yd_commands.printing import print_error, print_json, print_log, print_warning
-from yd_commands.resource_config import load_resource_specifications
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
