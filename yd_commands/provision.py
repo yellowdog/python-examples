@@ -326,8 +326,7 @@ def create_worker_pool():
                 )
 
         except Exception as e:
-            print_error(f"Unable to provision worker pool")
-            raise Exception(e)
+            raise Exception(f"Unable to provision worker pool: {e}")
 
     idle_node_shutdown_string = (
         f"time limit is {CONFIG_WP.idle_node_shutdown_timeout} minute(s)"

@@ -128,6 +128,8 @@ def main():
                         )
                     if "No sources" in http_error.response.text:
                         print_log("No Compute Sources match the Template's constraints")
+                    else:
+                        raise http_error
                 return
 
             if not ARGS_PARSER.dry_run:
