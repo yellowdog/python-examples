@@ -5,5 +5,6 @@ black
 isort
 build
 pytest
+pytest-xdist
 cli-test-helpers
 python-dispatch >= 0.2.2 # Eliminates packaging warnings, but conflicts with SDK requirement
