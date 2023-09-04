@@ -1027,7 +1027,7 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     """
     Descriptive string for the module's purpose.
     """
-    prefix = "YellowDog example utility for "
+    prefix = "YellowDog comand line utility for "
     suffix = None
 
     if "submit" in module_name:
@@ -1039,7 +1039,7 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     elif "cancel" in module_name:
         suffix = "cancelling Work Requirements"
     elif "create" in module_name:
-        suffix = "creating/updating resources"
+        suffix = "creating and updating resources"
     elif "download" in module_name:
         suffix = "downloading objects from the Object Store"
     elif "delete" in module_name:
@@ -1049,15 +1049,15 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     elif "terminate" in module_name:
         suffix = "terminating Compute Requirements"
     elif "list" in module_name:
-        suffix = "listing entities"
+        suffix = "listing all kinds of YellowDog items"
     elif "instantiate" in module_name:
-        suffix = "provisioning a Compute Requirement"
+        suffix = "instantiating a Compute Requirement"
     elif "upload" in module_name:
         suffix = "uploading objects to the Object Store"
     elif "remove" in module_name:
         suffix = "removing resources"
     elif "resize" in module_name:
-        suffix = "resizing Worker Pools"
+        suffix = "resizing Worker Pools and Compute Requirements"
     elif "follow" in module_name:
         suffix = "following event streams"
 
