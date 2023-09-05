@@ -29,11 +29,11 @@ class TestDemos:
         assert result.exit_code == 0
 
     def test_slurm_cluster(self):
-        result = shell(f"cd {DEMO_DIR}/primes && {CMD_SEQ}")
+        result = shell(f"cd {DEMO_DIR}/slurm-cluster && {CMD_SEQ}")
         assert result.exit_code == 0
 
     def test_common_factors(self):
-        result = shell(f"cd {DEMO_DIR}/common-factors && {CMD_SEQ}")
+        result = shell(f"cd {DEMO_DIR}/common-factors-csv && {CMD_SEQ}")
         assert result.exit_code == 0
 
     def test_virtual_screening(self):
