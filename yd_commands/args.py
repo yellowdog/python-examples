@@ -691,6 +691,25 @@ class CLIParser:
                     " following Worker Pools"
                 ),
             )
+        if any(
+            module in sys.argv[0]
+            for module in [
+                "follow",
+                "provision",
+                "instantiate",
+                "resize",
+                "shutdown",
+                "terminate",
+                "submit",
+                "cancel",
+            ]
+        ):
+            parser.add_argument(
+                "--raw-events",
+                action="store_true",
+                required=False,
+                help="print the raw JSON event stream when following events",
+            )
 
         self.args = parser.parse_args()
 
@@ -1021,6 +1040,11 @@ class CLIParser:
     @allow_missing_attribute
     def auto_cr(self) -> Optional[bool]:
         return self.args.auto_follow_compute_requirements
+
+    @property
+    @allow_missing_attribute
+    def raw_events(self) -> Optional[bool]:
+        return self.args.raw_events
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

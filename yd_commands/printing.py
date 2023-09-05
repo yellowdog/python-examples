@@ -843,6 +843,9 @@ def print_event(event: str, id_type: YDIDType):
         return
 
     event_data: Dict = json_loads(event.replace(data_prefix, ""))
+    if ARGS_PARSER.raw_events:
+        print_json(event_data)
+        return
 
     indent = "\n" + (" " * PREFIX_LEN) + "--> "
     indent_2 = "\n" + (" " * (PREFIX_LEN + 4))
