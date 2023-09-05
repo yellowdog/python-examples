@@ -81,7 +81,7 @@ def main():
         list_keyrings()
     elif ARGS_PARSER.image_families:
         list_image_families()
-    elif ARGS_PARSER.namespaces:
+    elif ARGS_PARSER.namespace_storage_configurations:
         list_namespaces()
 
 
@@ -100,7 +100,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.source_templates,
         ARGS_PARSER.keyrings,
         ARGS_PARSER.image_families,
-        ARGS_PARSER.namespaces,
+        ARGS_PARSER.namespace_storage_configurations,
         ARGS_PARSER.instances,
     ].count(True) == 1:
         return True

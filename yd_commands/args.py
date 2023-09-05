@@ -53,7 +53,7 @@ class CLIParser:
             type=str,
             help=(
                 "configuration file in TOML format; "
-                "default is 'config.toml' in the current directory"
+                "the default to use is 'config.toml' in the current directory"
             ),
             metavar="<config_file.toml>",
         )
@@ -87,7 +87,7 @@ class CLIParser:
             "--prefix",
             type=str,
             required=False,
-            help="the tag/prefix for naming or selecting entities",
+            help="the tag/prefix to use when naming, tagging, or selecting entities",
             metavar="<tag>",
         )
         parser.add_argument(
@@ -104,7 +104,10 @@ class CLIParser:
             type=str,
             required=False,
             action="append",
-            help="user-defined variable substitutions; can be supplied multiple times",
+            help=(
+                "user-defined variable substitution; the option can be supplied"
+                " multiple times, one per variable"
+            ),
             metavar="<var1=v1>",
         )
         parser.add_argument(
@@ -118,7 +121,7 @@ class CLIParser:
             "--debug",
             action="store_true",
             required=False,
-            help="print a stack trace (etc.) on error",
+            help="display the Python stack trace on error",
         )
         parser.add_argument(
             "--pac",
@@ -174,7 +177,7 @@ class CLIParser:
                 "-C",
                 type=int,
                 required=False,
-                help="the number of times to submit the task",
+                help="the number of times to submit the Task",
                 metavar="<task_count>",
             )
             parser.add_argument(
@@ -182,7 +185,7 @@ class CLIParser:
                 "-b",
                 type=int,
                 required=False,
-                help="the batch size for task submission",
+                help="the batch size for Task submission",
                 metavar="<batch_size>",
             )
             parser.add_argument(
@@ -190,7 +193,7 @@ class CLIParser:
                 "-P",
                 action="store_true",
                 required=False,
-                help="pause for user input between batches (for debugging)",
+                help="pause for user input between batches (mostly for debugging)",
             )
             parser.add_argument(
                 "--csv-file",
@@ -198,7 +201,7 @@ class CLIParser:
                 type=str,
                 required=False,
                 action="append",
-                help="the CSV file(s) from which to read task data",
+                help="the CSV file(s) from which to read Task data",
                 metavar="<data.csv>",
             )
             parser.add_argument(
@@ -207,8 +210,8 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "process CSV variable substitutions only and output intermediate"
-                    " JSON"
+                    "process CSV variable substitutions only and output the"
+                    " intermediate JSON Work Requirement specification"
                 ),
             )
 
@@ -228,14 +231,14 @@ class CLIParser:
                 "-a",
                 action="store_true",
                 required=False,
-                help="abort all running tasks with immediate effect",
+                help="abort all running Tasks with immediate effect",
             )
             parser.add_argument(
                 "--follow",
                 "-f",
                 action="store_true",
                 required=False,
-                help="follow progress after cancelling",
+                help="follow progress after cancelling the Work Requirement",
             )
 
         if any(
@@ -310,8 +313,8 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "flatten download paths (objects with the same name will be"
-                    " overwritten)"
+                    "flatten download paths (warning: objects with the same filenames"
+                    " will be overwritten)"
                 ),
             )
 
@@ -331,7 +334,7 @@ class CLIParser:
                 required=False,
                 help=(
                     "when used with '--objects', list all objects, not just the top"
-                    " level structure"
+                    " level prefixes"
                 ),
             )
             parser.add_argument(
@@ -339,9 +342,7 @@ class CLIParser:
                 "-d",
                 action="store_true",
                 required=False,
-                help=(
-                    "select items from the list of matches and show their full details"
-                ),
+                help="show the full details of (interactively) selected objects",
             )
             parser.add_argument(
                 "--work-requirements",
@@ -362,7 +363,7 @@ class CLIParser:
                 "-T",
                 action="store_true",
                 required=False,
-                help="list Tasks in selected Work Requirements",
+                help="list Tasks in selected Work Requirements / Task Groups",
             )
             parser.add_argument(
                 "--worker-pools",
@@ -417,7 +418,7 @@ class CLIParser:
                 help="list Machine Image Families",
             )
             parser.add_argument(
-                "--namespaces",
+                "--namespace-storage-configurations",
                 "-N",
                 action="store_true",
                 required=False,
@@ -1016,8 +1017,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def namespaces(self) -> Optional[bool]:
-        return self.args.namespaces
+    def namespace_storage_configurations(self) -> Optional[bool]:
+        return self.args.namespace_storage_configurations
 
     @property
     @allow_missing_attribute
