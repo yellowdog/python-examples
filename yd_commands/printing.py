@@ -73,19 +73,20 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<quoted>'[a-zA-Z0-9-._=;:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
         r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)",
-        r"(?P<executing>EXECUTING)",
+        r"(?P<active>EXECUTING)",
         r"(?P<failed>FAILED)",
         r"(?P<completed>COMPLETED)",
         r"(?P<cancelled>CANCELLED)",
         r"(?P<cancelled>ABORTED)",
-        r"(?P<executing>RUNNING)",
-        r"(?P<executing>PROVISIONING)",
-        r"(?P<cancelled>TERMINATING)",
+        r"(?P<active>RUNNING)",
+        r"(?P<transitioning>PROVISIONING)",
+        r"(?P<transitioning>TERMINATING)",
         r"(?P<cancelled>TERMINATED)",
         r"(?P<cancelled>SHUTDOWN)",
         r"(?P<cancelled>CANCELLING)",
-        r"(?P<executing>IDLE)",
-        r"(?P<executing>PENDING)",
+        r"(?P<idle>IDLE)",
+        r"(?P<transitioning>PENDING)",
+        r"(?P<transitioning>EMPTY)",
     ]
 
 
@@ -99,39 +100,47 @@ class PrintTableHighlighter(RegexHighlighter):
     highlights = [
         rf"(?P<table_outline>[{table_outline_chars}]*)",
         rf"(?P<table_content>[^{table_outline_chars}]*)",
-        r"(?P<executing>EXECUTING)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
+        r"(?P<active>EXECUTING)",
         r"(?P<failed>FAILED)",
         r"(?P<completed>COMPLETED)",
         r"(?P<cancelled>CANCELLED)",
         r"(?P<cancelled>ABORTED)",
-        r"(?P<executing>RUNNING)",
-        r"(?P<executing>PROVISIONING)",
-        r"(?P<cancelled>TERMINATING)",
+        r"(?P<active>RUNNING)",
+        r"(?P<transitioning>PROVISIONING)",
+        r"(?P<transitioning>TERMINATING)",
         r"(?P<cancelled>TERMINATED)",
         r"(?P<cancelled>SHUTDOWN)",
         r"(?P<cancelled>CANCELLING)",
-        r"(?P<executing>IDLE)",
-        r"(?P<executing>PENDING)",
+        r"(?P<idle>IDLE)",
+        r"(?P<transitioning>PENDING)",
+        r"(?P<idle>EMPTY)",
     ]
 
 
+# For Rich colour options, see colour list & swatches at:
+# https://rich.readthedocs.io/en/stable/appendix/colors.html
+
 pyexamples_theme = Theme(
     {
-        "pyexamples.date_time": "bold blue",
-        "pyexamples.quoted": "bold green",
-        "pyexamples.url": "bold magenta",
-        "pyexamples.ydid": "bold green",
-        "pyexamples.table_outline": "blue",
-        "pyexamples.table_content": "bold green",
-        "pyexamples.executing": "bold blue",
-        "pyexamples.failed": "bold red",
-        "pyexamples.completed": "bold green",
+        "pyexamples.date_time": "bold deep_sky_blue1",
+        "pyexamples.quoted": "bold green4",
+        "pyexamples.url": "bold green4",
+        "pyexamples.ydid": "bold dark_orange",
+        "pyexamples.table_outline": "bold deep_sky_blue4",
+        "pyexamples.table_content": "bold green4",
+        "pyexamples.transitioning": "bold dark_orange",
+        "pyexamples.executing": "bold deep_sky_blue4",
+        "pyexamples.failed": "bold red3",
+        "pyexamples.completed": "bold green4",
         "pyexamples.cancelled": "bold grey35",
+        "pyexamples.active": "bold deep_sky_blue4",
+        "pyexamples.idle": "bold orchid2",
     }
 )
 
-ERROR_STYLE = "bold red"
-WARNING_STYLE = "red"
+ERROR_STYLE = "bold red3"
+WARNING_STYLE = "red3"
 
 CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
 CONSOLE_TABLE = Console(highlighter=PrintTableHighlighter(), theme=pyexamples_theme)
