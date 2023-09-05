@@ -78,6 +78,14 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<completed>COMPLETED)",
         r"(?P<cancelled>CANCELLED)",
         r"(?P<cancelled>ABORTED)",
+        r"(?P<executing>RUNNING)",
+        r"(?P<executing>PROVISIONING)",
+        r"(?P<cancelled>TERMINATING)",
+        r"(?P<cancelled>TERMINATED)",
+        r"(?P<cancelled>SHUTDOWN)",
+        r"(?P<cancelled>CANCELLING)",
+        r"(?P<executing>IDLE)",
+        r"(?P<executing>PENDING)",
     ]
 
 
@@ -96,6 +104,14 @@ class PrintTableHighlighter(RegexHighlighter):
         r"(?P<completed>COMPLETED)",
         r"(?P<cancelled>CANCELLED)",
         r"(?P<cancelled>ABORTED)",
+        r"(?P<executing>RUNNING)",
+        r"(?P<executing>PROVISIONING)",
+        r"(?P<cancelled>TERMINATING)",
+        r"(?P<cancelled>TERMINATED)",
+        r"(?P<cancelled>SHUTDOWN)",
+        r"(?P<cancelled>CANCELLING)",
+        r"(?P<executing>IDLE)",
+        r"(?P<executing>PENDING)",
     ]
 
 
