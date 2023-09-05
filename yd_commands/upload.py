@@ -25,10 +25,17 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     if ARGS_PARSER.content_path is not None and ARGS_PARSER.content_path != "":
-        chdir(ARGS_PARSER.content_path)
-        print_log(
-            f"Uploading files relative to local directory: '{ARGS_PARSER.content_path}'"
-        )
+        try:
+            chdir(ARGS_PARSER.content_path)
+            print_log(
+                "Uploading files relative to local directory:"
+                f" '{ARGS_PARSER.content_path}'"
+            )
+        except Exception as e:
+            raise Exception(
+                "Unable to switch to content directory"
+                f" '{ARGS_PARSER.content_path}': {e}"
+            )
 
     namespace, prefix = unpack_namespace_in_prefix(
         CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag

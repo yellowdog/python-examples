@@ -103,7 +103,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ("requirementNamespace", CONFIG_COMMON.namespace),
             ("requirementTag", CONFIG_COMMON.name_tag),
             (TEMPLATE_ID, CONFIG_WP.template_id),
-            (USERDATA, get_user_data_property(CONFIG_WP)),
+            (USERDATA, get_user_data_property(CONFIG_WP, ARGS_PARSER.content_path)),
             (IMAGES_ID, CONFIG_WP.images_id),
             (INSTANCE_TAGS, CONFIG_WP.instance_tags),
         ]:
@@ -295,7 +295,7 @@ def create_worker_pool():
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].initial_nodes,
                 requirementTag=CONFIG_COMMON.name_tag,
-                userData=get_user_data_property(CONFIG_WP),
+                userData=get_user_data_property(CONFIG_WP, ARGS_PARSER.content_path),
                 imagesId=CONFIG_WP.images_id,
                 instanceTags=CONFIG_WP.instance_tags,
                 maintainInstanceCount=False,  # Must be false for Worker Pools

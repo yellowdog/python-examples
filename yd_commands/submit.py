@@ -167,7 +167,11 @@ def main():
             )
         validate_properties(wr_data, "Work Requirement JSON")
         submit_work_requirement(
-            directory_to_upload_from=dirname(wr_data_file),
+            directory_to_upload_from=(
+                dirname(wr_data_file)
+                if ARGS_PARSER.content_path is None
+                else ARGS_PARSER.content_path
+            ),
             wr_data=wr_data,
         )
 
@@ -178,7 +182,12 @@ def main():
             else ARGS_PARSER.task_count
         )
         submit_work_requirement(
-            directory_to_upload_from=CONFIG_FILE_DIR, task_count=task_count
+            directory_to_upload_from=(
+                CONFIG_FILE_DIR
+                if ARGS_PARSER.content_path is None
+                else ARGS_PARSER.content_path
+            ),
+            task_count=task_count,
         )
 
     if ARGS_PARSER.dry_run:
@@ -224,7 +233,13 @@ def submit_work_requirement(
 
     # Ensure we're in the correct directory for uploads
     if directory_to_upload_from != "":
-        chdir(directory_to_upload_from)
+        try:
+            chdir(directory_to_upload_from)
+        except Exception as e:
+            raise Exception(
+                "Unable to switch to content directory"
+                f" '{directory_to_upload_from}': {e}"
+            )
 
     # Flatten upload paths?
     flatten_upload_paths = check_bool(

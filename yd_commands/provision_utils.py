@@ -2,13 +2,16 @@
 Utility functions for provisioning
 """
 
+from os import chdir
 from typing import Optional
 
 from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.property_names import USERDATA, USERDATAFILE, USERDATAFILES
 
 
-def get_user_data_property(config: ConfigWorkerPool) -> Optional[str]:
+def get_user_data_property(
+    config: ConfigWorkerPool, content_path: str = None
+) -> Optional[str]:
     """
     Get the 'userData' property, either using the string specified in
     'userData', the file specified in 'userDataFile', or a concatenation
@@ -21,6 +24,15 @@ def get_user_data_property(config: ConfigWorkerPool) -> Optional[str]:
             f"Only one of '{USERDATA}', '{USERDATAFILE}' or '{USERDATAFILES}' "
             "should be set"
         )
+
+    if content_path is not None and content_path != "":
+        try:
+            chdir(content_path)
+        except Exception as e:
+            raise Exception(
+                f"Unable to switch to content directory '{content_path}': {e}"
+            )
+
     if config.user_data:
         return config.user_data
     if config.user_data_file:

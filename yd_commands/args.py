@@ -430,15 +430,7 @@ class CLIParser:
                 help="list compute instances",
             )
 
-        if "upload" in sys.argv[0]:
-            parser.add_argument(
-                "--content-path",
-                "-C",
-                type=str,
-                required=False,
-                help="the directory where the items to be uploaded are found",
-                metavar="<directory>",
-            )
+        if any(module in sys.argv[0] for module in ["upload"]):
             parser.add_argument(
                 "filenames",
                 metavar="<filename>",
@@ -657,6 +649,22 @@ class CLIParser:
                 metavar="<yellowdog-id>",
                 type=str,
                 help="the YellowDog ID(s) of the item(s) to follow",
+            )
+
+        if any(
+            module in sys.argv[0]
+            for module in ["upload", "submit", "provision", "instantiate"]
+        ):
+            parser.add_argument(
+                "--content-path",
+                "-F",
+                type=str,
+                required=False,
+                help=(
+                    "the directory in which files for upload (or for user data) are"
+                    " found"
+                ),
+                metavar="<directory>",
             )
 
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
