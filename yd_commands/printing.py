@@ -91,6 +91,8 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<active>ALLOCATED)",
         r"(?P<starved>STARVED)",
         r"(?P<transitioning>CONFIGURING)",
+        r"(?P<transitioning>UPLOADING)",
+        r"(?P<transitioning>DOWNLOADING)",
     ]
 
 
@@ -123,6 +125,8 @@ class PrintTableHighlighter(RegexHighlighter):
         r"(?P<active>ALLOCATED)",
         r"(?P<starved>STARVED)",
         r"(?P<transitioning>CONFIGURING)",
+        r"(?P<transitioning>UPLOADING)",
+        r"(?P<transitioning>DOWNLOADING)",
     ]
 
 
@@ -143,7 +147,7 @@ pyexamples_theme = Theme(
         "pyexamples.completed": "bold green4",
         "pyexamples.cancelled": "bold grey35",
         "pyexamples.active": "bold deep_sky_blue4",
-        "pyexamples.idle": "bold orchid2",
+        "pyexamples.idle": "bold bright_magenta",
         "pyexamples.starved": "bold dark_orange",
     }
 )
@@ -876,11 +880,23 @@ def print_event(event: str, id_type: YDIDType):
                 f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}{task_group['taskSummary']['statusCounts']['PENDING']} PENDING,"
                 f" {task_group['taskSummary']['statusCounts']['READY']} READY,"
                 f" {task_group['taskSummary']['statusCounts']['ALLOCATED']} ALLOCATED,"
-                f" {task_group['taskSummary']['statusCounts']['EXECUTING']} EXECUTING,"
-                f" {task_group['taskSummary']['statusCounts']['COMPLETED']} COMPLETED,"
-                f" {task_group['taskSummary']['statusCounts']['CANCELLED']} CANCELLED,"
-                f" {task_group['taskSummary']['statusCounts']['ABORTED']} ABORTED"
+                f" {task_group['taskSummary']['statusCounts']['EXECUTING']} EXECUTING"
             )
+            if task_group["taskSummary"]["statusCounts"]["UPLOADING"] != 0:
+                msg += (
+                    f", {task_group['taskSummary']['statusCounts']['UPLOADING']} UPLOADING"
+                )
+            if task_group["taskSummary"]["statusCounts"]["DOWNLOADING"] != 0:
+                msg += (
+                    f", {task_group['taskSummary']['statusCounts']['DOWNLOADING']} DOWNLOADING"
+                )
+            msg += (
+                f", {task_group['taskSummary']['statusCounts']['COMPLETED']} COMPLETED"
+            )
+            if task_group["taskSummary"]["statusCounts"]["CANCELLED"] != 0:
+                msg += f", {task_group['taskSummary']['statusCounts']['CANCELLED']} CANCELLED"
+            if task_group["taskSummary"]["statusCounts"]["ABORTED"] != 0:
+                msg += f", {task_group['taskSummary']['statusCounts']['ABORTED']} ABORTED"
             if task_group["taskSummary"]["statusCounts"]["FAILED"] != 0:
                 msg += f", {task_group['taskSummary']['statusCounts']['FAILED']} FAILED"
 
