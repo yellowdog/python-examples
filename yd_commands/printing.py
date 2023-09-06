@@ -2,6 +2,7 @@
 Functions focused on print outputs.
 """
 
+from dataclasses import dataclass
 from datetime import datetime
 from json import dumps as json_dumps
 from json import loads as json_loads
@@ -854,6 +855,26 @@ def print_batch_download_files(
     print()
 
 
+@dataclass
+class StatusCount:
+    name: str
+    include_if_zero: bool = False
+
+
+STATUS_COUNTS = [
+    StatusCount("PENDING"),
+    StatusCount("READY", True),
+    StatusCount("ALLOCATED"),
+    StatusCount("EXECUTING", True),
+    StatusCount("UPLOADING"),
+    StatusCount("DOWNLOADING"),
+    StatusCount("COMPLETED", True),
+    StatusCount("CANCELLED"),
+    StatusCount("ABORTED"),
+    StatusCount("FAILED"),
+]
+
+
 def print_event(event: str, id_type: YDIDType):
     """
     Print a YellowDog event.
@@ -877,28 +898,14 @@ def print_event(event: str, id_type: YDIDType):
         for task_group in event_data["taskGroups"]:
             msg += (
                 f"{indent}Task Group '{task_group['name']}' [{task_group['status']}]:"
-                f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}{task_group['taskSummary']['statusCounts']['PENDING']} PENDING,"
-                f" {task_group['taskSummary']['statusCounts']['READY']} READY,"
-                f" {task_group['taskSummary']['statusCounts']['ALLOCATED']} ALLOCATED,"
-                f" {task_group['taskSummary']['statusCounts']['EXECUTING']} EXECUTING"
+                f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}"
             )
-            if task_group["taskSummary"]["statusCounts"]["UPLOADING"] != 0:
-                msg += (
-                    f", {task_group['taskSummary']['statusCounts']['UPLOADING']} UPLOADING"
-                )
-            if task_group["taskSummary"]["statusCounts"]["DOWNLOADING"] != 0:
-                msg += (
-                    f", {task_group['taskSummary']['statusCounts']['DOWNLOADING']} DOWNLOADING"
-                )
-            msg += (
-                f", {task_group['taskSummary']['statusCounts']['COMPLETED']} COMPLETED"
-            )
-            if task_group["taskSummary"]["statusCounts"]["CANCELLED"] != 0:
-                msg += f", {task_group['taskSummary']['statusCounts']['CANCELLED']} CANCELLED"
-            if task_group["taskSummary"]["statusCounts"]["ABORTED"] != 0:
-                msg += f", {task_group['taskSummary']['statusCounts']['ABORTED']} ABORTED"
-            if task_group["taskSummary"]["statusCounts"]["FAILED"] != 0:
-                msg += f", {task_group['taskSummary']['statusCounts']['FAILED']} FAILED"
+            first_count = True
+            for status_count in STATUS_COUNTS:
+                count = task_group["taskSummary"]["statusCounts"][status_count.name]
+                if count > 0 or status_count.include_if_zero:
+                    msg += f"{'' if first_count else ', '}{count} {status_count.name}"
+                    first_count = False
 
     elif id_type == YDIDType.WORKER_POOL:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
