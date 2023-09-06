@@ -320,6 +320,12 @@ class CLIParser:
 
         if "list" in sys.argv[0]:
             parser.add_argument(
+                "--reverse",
+                action="store_true",
+                required=False,
+                help="list items in reverse-sorted name order",
+            )
+            parser.add_argument(
                 "--object-paths",
                 "--objects",
                 "-o",
@@ -1054,6 +1060,11 @@ class CLIParser:
     @allow_missing_attribute
     def raw_events(self) -> Optional[bool]:
         return self.args.raw_events
+
+    @property
+    @allow_missing_attribute
+    def reverse(self) -> Optional[bool]:
+        return self.args.reverse
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

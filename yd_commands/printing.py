@@ -624,6 +624,9 @@ def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
     if len(objects) == 0:
         return objects
 
+    if ARGS_PARSER.reverse is not None:
+        reverse = ARGS_PARSER.reverse
+
     if isinstance(objects[0], Instance):
         return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)
 
