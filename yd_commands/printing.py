@@ -85,8 +85,12 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<cancelled>SHUTDOWN)",
         r"(?P<cancelled>CANCELLING)",
         r"(?P<idle>IDLE)",
-        r"(?P<transitioning>PENDING)",
+        r"(?P<active>PENDING)",
         r"(?P<transitioning>EMPTY)",
+        r"(?P<active>READY)",
+        r"(?P<active>ALLOCATED)",
+        r"(?P<starved>STARVED)",
+        r"(?P<transitioning>CONFIGURING)",
     ]
 
 
@@ -113,8 +117,12 @@ class PrintTableHighlighter(RegexHighlighter):
         r"(?P<cancelled>SHUTDOWN)",
         r"(?P<cancelled>CANCELLING)",
         r"(?P<idle>IDLE)",
-        r"(?P<transitioning>PENDING)",
+        r"(?P<active>PENDING)",
         r"(?P<idle>EMPTY)",
+        r"(?P<active>READY)",
+        r"(?P<active>ALLOCATED)",
+        r"(?P<starved>STARVED)",
+        r"(?P<transitioning>CONFIGURING)",
     ]
 
 
@@ -136,6 +144,7 @@ pyexamples_theme = Theme(
         "pyexamples.cancelled": "bold grey35",
         "pyexamples.active": "bold deep_sky_blue4",
         "pyexamples.idle": "bold orchid2",
+        "pyexamples.starved": "bold dark_orange",
     }
 )
 
