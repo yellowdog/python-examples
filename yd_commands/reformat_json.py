@@ -15,6 +15,7 @@ def main():
     for filename in sys.argv[1:]:
         # Check file extension
         backup_filename = filename + ".backup"
+
         if not filename.lower().endswith("json"):
             print(f"Ignoring non-JSON file: '{filename}'")
             continue
@@ -30,13 +31,13 @@ def main():
             continue
 
         # Save the backup file
-        try:
-            with open(backup_filename, "w") as f:
-                f.write(contents)
-                print(f"Saved backup file to '{backup_filename}'")
-        except Exception as e:
-            print(f"Error writing backup '{backup_filename}': {e}")
-            continue
+        # try:
+        #     with open(backup_filename, "w") as f:
+        #         f.write(contents)
+        #         print(f"Saved backup file to '{backup_filename}'")
+        # except Exception as e:
+        #     print(f"Error writing backup '{backup_filename}': {e}")
+        #     continue
 
         # Write the reformatted JSON file
         try:
