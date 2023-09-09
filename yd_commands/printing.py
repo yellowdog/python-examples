@@ -94,6 +94,8 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<transitioning>CONFIGURING)",
         r"(?P<transitioning>UPLOADING)",
         r"(?P<transitioning>DOWNLOADING)",
+        r"(?P<idle>WAITING)",
+        r"(?P<failed>FAILING)",
     ]
 
 
@@ -128,6 +130,8 @@ class PrintTableHighlighter(RegexHighlighter):
         r"(?P<transitioning>CONFIGURING)",
         r"(?P<transitioning>UPLOADING)",
         r"(?P<transitioning>DOWNLOADING)",
+        r"(?P<idle>WAITING)",
+        r"(?P<failed>FAILING)",
     ]
 
 
