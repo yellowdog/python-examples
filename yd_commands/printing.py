@@ -904,7 +904,7 @@ def print_event(event: str, id_type: YDIDType):
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         for task_group in event_data["taskGroups"]:
             msg += (
-                f"{indent}Task Group '{task_group['name']}' [{task_group['status']}]:"
+                f"{indent}[{task_group['status']}] Task Group '{task_group['name']}':"
                 f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}"
             )
             first_count = True
