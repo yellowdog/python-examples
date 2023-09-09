@@ -723,6 +723,7 @@ def add_tasks_to_task_group(
                     task_group_data=task_group_data,
                     task_data=task,
                     name=task_name,
+                    tg_name=task_group.name,
                     task_type=task_type,
                     executable=executable,
                     args=arguments_list,
@@ -971,6 +972,7 @@ def create_task(
     task_group_data: Dict,
     task_data: Dict,
     name: str,
+    tg_name: str,
     task_type: str,
     executable: str,
     args: List[str],
@@ -1075,13 +1077,15 @@ def create_task(
                 ),
             )
         )
-        # 'TASK_NAME' env. var. is set for convenience
-        docker_env_string = f"--env TASK_NAME={name}"
+        # Names are set for convenience
+        docker_env_list = ["--env", f"YD_TASK_NAME={name}"]
+        docker_env_list += ["--env", f"YD_TASK_GROUP_NAME={tg_name}"]
+        docker_env_list += ["--env", f"YD_WORK_REQUIREMENT_NAME={ID}"]
         if docker_env is not None:
             for key, value in docker_env.items():
-                docker_env_string += f" --env {key}={value}"
+                docker_env_list += ["--env", f"{key}={value}"]
 
-        args = [docker_env_string, executable] + args
+        args = docker_env_list + [executable] + args
 
         # Set up the environment used by the script to run Docker
         # Add the username and password, if present
