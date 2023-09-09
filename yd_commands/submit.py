@@ -1021,6 +1021,16 @@ def create_task(
     ):
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
+    # Environment variable names
+    yd_task_name_str = "YD_TASK_NAME"
+    yd_tg_name_str = "YD_TASK_GROUP_NAME"
+    yd_wr_name_str = "YD_WORK_REQUIREMENT_NAME"
+
+    # Add names to the environment as a convenience
+    env[yd_task_name_str] = name
+    env[yd_tg_name_str] = tg_name
+    env[yd_wr_name_str] = ID
+
     # Special processing for Bash, Python & PowerShell tasks if the 'executable'
     # property is set. The script is uploaded if this hasn't already been done,
     # and added to the list of required files.
@@ -1061,7 +1071,7 @@ def create_task(
         return _make_task(flatten_input_paths)
 
     # Special processing for Docker tasks if the 'executable property is set.
-    # Sets up the '-e' environment strings and the DockerHub username and
+    # Sets up the '--env' environment strings and the DockerHub username and
     # password if specified.
     elif task_type == "docker":
         if executable is None:
@@ -1077,10 +1087,10 @@ def create_task(
                 ),
             )
         )
-        # Names are set for convenience
-        docker_env_list = ["--env", f"YD_TASK_NAME={name}"]
-        docker_env_list += ["--env", f"YD_TASK_GROUP_NAME={tg_name}"]
-        docker_env_list += ["--env", f"YD_WORK_REQUIREMENT_NAME={ID}"]
+        # Names are set in the container env. for convenience
+        docker_env_list = ["--env", f"{yd_task_name_str}={name}"]
+        docker_env_list += ["--env", f"{yd_tg_name_str}={tg_name}"]
+        docker_env_list += ["--env", f"{yd_wr_name_str}={ID}"]
         if docker_env is not None:
             for key, value in docker_env.items():
                 docker_env_list += ["--env", f"{key}={value}"]

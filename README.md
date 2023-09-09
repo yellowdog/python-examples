@@ -23,6 +23,7 @@
    * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
+         * [Obtaining Names from Environment Variables at Task Run Time](#obtaining-names-from-environment-variables-at-task-run-time)
       * [Task Types](#task-types)
          * [Bash, Python, PowerShell and cmd/bat Tasks](#bash-python-powershell-and-cmdbat-tasks)
          * [Docker Tasks](#docker-tasks)
@@ -105,7 +106,7 @@
    * [yd-remove](#yd-remove)
    * [yd-follow](#yd-follow)
 
-<!-- Added by: pwt, at: Fri Sep  1 15:16:54 BST 2023 -->
+<!-- Added by: pwt, at: Sat Sep  9 14:54:27 BST 2023 -->
 
 <!--te-->
 
@@ -517,6 +518,12 @@ In addition to the inheritance mechanism, some properties are set automatically 
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
 
+#### Obtaining Names from Environment Variables at Task Run Time
+
+When a Task executes, its Task name, Task Group name, and Work Requirement name are automatically available in the  environment variables `YD_TASK_NAME`, `YD_TASK_GROUP_NAME`, and `YD_WORK_REQUIREMENT_NAME`. This applies whether the names were set automatically or explicitly.
+
+For Tasks of type `docker` and where the `executable` property has been set, the variables above are also available **within** the container.
+
 ### Task Types
 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
@@ -580,7 +587,7 @@ is equivalent to the following being sent for processing by the `docker` Task Ty
 
 ```toml
 taskType = "docker"
-arguments = ["--env E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
+arguments = ["--env", "E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
 environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password"}
 ```
 
