@@ -173,17 +173,14 @@ def create_keyring(resource: Dict):
 
     try:
         keyring, keyring_password = create_keyring_via_api(name, description)
-        if ARGS_PARSER.show_keyring_passwords:
-            if not ARGS_PARSER.quiet:
-                print_log(
-                    f"Created Keyring '{name}' ({keyring.id}): Password ="
-                    f" {keyring_password}"
-                )
-            else:
-                print(f"{keyring.id} : Password = {keyring_password}")
-        print_log(f"Created Keyring '{name}'")
-        if ARGS_PARSER.quiet and not ARGS_PARSER.show_keyring_passwords:
-            print(keyring.id)
+        keyring_password = (
+            keyring_password if ARGS_PARSER.show_keyring_passwords else ""
+        )
+        print_log(
+            f"Created Keyring '{name}' ({keyring.id}): Password = {keyring_password}"
+        )
+        if ARGS_PARSER.quiet:
+            print(f"{keyring.id} {keyring_password}")
     except Exception as e:
         print_error(f"Failed to create Keyring '{name}': {e}")
 
