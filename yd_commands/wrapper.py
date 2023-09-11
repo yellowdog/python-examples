@@ -39,12 +39,15 @@ def print_account():
     being at least one Keyring in the account. Omit if this is a dry run.
     """
     if not dry_run():
-        keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
-        if len(keyrings) > 0:
-            # This is a little brittle, obviously
-            print_log(
-                f"YellowDog Account short identifier is: '{keyrings[0].id[13:19]}'"
-            )
+        try:
+            keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
+            if len(keyrings) > 0:
+                # This is a little brittle, obviously
+                print_log(
+                    f"YellowDog Account short identifier is: '{keyrings[0].id[13:19]}'"
+                )
+        except:
+            pass
 
 
 def set_proxy():
