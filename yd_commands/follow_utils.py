@@ -8,7 +8,7 @@ import requests
 
 from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.object_utilities import get_compreq_id_by_worker_pool_id
-from yd_commands.printing import print_error, print_event, print_log
+from yd_commands.printing import print_error, print_event, print_log, print_warning
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON
 
 
@@ -87,9 +87,12 @@ def follow_events(ydid: str, ydid_type: YDIDType):
     if response.encoding is None:
         response.encoding = "utf-8"
 
-    for event in response.iter_lines(decode_unicode=True):
-        if event:
-            print_event(event, ydid_type)
+    try:
+        for event in response.iter_lines(decode_unicode=True):
+            if event:
+                print_event(event, ydid_type)
+    except Exception as e:
+        print_warning(f"Event stream error: {e}")
 
     print_log(f"Event stream concluded for '{ydid}'")
 
