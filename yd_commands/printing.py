@@ -96,6 +96,7 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<transitioning>DOWNLOADING)",
         r"(?P<idle>WAITING)",
         r"(?P<failed>FAILING)",
+        r"(?P<transitioning>NEW)",
     ]
 
 
@@ -132,6 +133,7 @@ class PrintTableHighlighter(RegexHighlighter):
         r"(?P<transitioning>DOWNLOADING)",
         r"(?P<idle>WAITING)",
         r"(?P<failed>FAILING)",
+        r"(?P<transitioning>NEW)",
     ]
 
 
