@@ -15,7 +15,7 @@ from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.check_imports import check_jsonnet_import
-from yd_commands.printing import print_error, print_json, print_log
+from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.property_names import *
 
 # Set up default variable substitutions
@@ -111,17 +111,24 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
 
     # Find variable substitutions with default values
     default_re = re.compile(
-        "{{[a-zA-Z0-9._$!@#%-]*" + DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-{}]*}}"
+        "{{[a-zA-Z0-9._$!@#%-]*" + DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-]*}}"
     )
     substitutions_with_defaults = default_re.findall(input_string)
     default_subs = []  # List of [variable_name, default_value]
     for sub in substitutions_with_defaults:
-        default_subs.append(
+        variable_default = (
             sub.replace("{{", "", 1).replace("}}", "", 1).split(DEFAULT_VAR_SEPARATOR)
         )
+        if (
+            variable_default[0] == ""
+            or variable_default[1] == ""
+            or len(variable_default) != 2
+        ):
+            raise Exception(f"Malformed '<variable>:=<default>: '{sub}'")
+        default_subs.append(variable_default)
 
     # Remove default variable values if present (i.e., remove ':=<default>')
-    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-}{]*}}")
+    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-]*}}")
     input_string = default_value_re.sub("}}", input_string)
 
     # Perform substitutions from the substitutions dictionary
