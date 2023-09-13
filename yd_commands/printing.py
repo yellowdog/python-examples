@@ -97,6 +97,9 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<idle>WAITING)",
         r"(?P<failed>FAILING)",
         r"(?P<transitioning>NEW)",
+        r"(?P<transitioning>STOPPING)",
+        r"(?P<cancelled>STOPPED)",
+        r"(?P<transitioning>UNKNOWN)",
     ]
 
 
@@ -134,6 +137,9 @@ class PrintTableHighlighter(RegexHighlighter):
         r"(?P<idle>WAITING)",
         r"(?P<failed>FAILING)",
         r"(?P<transitioning>NEW)",
+        r"(?P<transitioning>STOPPING)",
+        r"(?P<cancelled>STOPPED)",
+        r"(?P<transitioning>UNKNOWN)",
     ]
 
 
@@ -870,7 +876,7 @@ class StatusCount:
     include_if_zero: bool = False
 
 
-STATUS_COUNTS = [
+STATUS_COUNTS_TASKS = [
     StatusCount("PENDING"),
     StatusCount("READY", True),
     StatusCount("ALLOCATED"),
@@ -881,6 +887,16 @@ STATUS_COUNTS = [
     StatusCount("CANCELLED"),
     StatusCount("ABORTED"),
     StatusCount("FAILED"),
+]
+
+STATUS_COUNTS_INSTANCES = [
+    StatusCount("PENDING"),
+    StatusCount("RUNNING", True),
+    StatusCount("STOPPING"),
+    StatusCount("STOPPED"),
+    StatusCount("TERMINATING"),
+    StatusCount("TERMINATED", True),
+    StatusCount("UNKNOWN"),
 ]
 
 
@@ -910,7 +926,7 @@ def print_event(event: str, id_type: YDIDType):
                 f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}"
             )
             first_count = True
-            for status_count in STATUS_COUNTS:
+            for status_count in STATUS_COUNTS_TASKS:
                 count = task_group["taskSummary"]["statusCounts"][status_count.name]
                 if count > 0 or status_count.include_if_zero:
                     msg += f"{'' if first_count else ', '}{count} {status_count.name}"
@@ -951,14 +967,13 @@ def print_event(event: str, id_type: YDIDType):
             f" {event_data['expectedInstanceCount']} expected"
         )
         for source in event_data["provisionStrategy"]["sources"]:
-            msg += (
-                f"{indent}Source: '{source['name']}':"
-                f" {source['instanceSummary']['statusCounts']['PENDING']} pending,"
-                f" {source['instanceSummary']['statusCounts']['RUNNING']} running,"
-                f" {source['instanceSummary']['statusCounts']['TERMINATING']} terminating,"
-                f" {source['instanceSummary']['statusCounts']['TERMINATED']} terminated"
-            )
-
+            msg += f"{indent}Source: '{source['name']}': "
+            first_count = True
+            for status_count in STATUS_COUNTS_INSTANCES:
+                count = source["instanceSummary"]["statusCounts"][status_count.name]
+                if count > 0 or status_count.include_if_zero:
+                    msg += f"{'' if first_count else ', '}{count} {status_count.name}"
+                    first_count = False
     else:
         return
 
