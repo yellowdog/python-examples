@@ -17,6 +17,7 @@
    * [Default Variables](#default-variables)
    * [User-Defined Variables](#user-defined-variables)
    * [Nested Variables](#nested-variables)
+   * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
@@ -106,7 +107,7 @@
    * [yd-remove](#yd-remove)
    * [yd-follow](#yd-follow)
 
-<!-- Added by: pwt, at: Sat Sep  9 14:54:27 BST 2023 -->
+<!-- Added by: pwt, at: Wed Sep 13 15:24:39 BST 2023 -->
 
 <!--te-->
 
@@ -400,6 +401,26 @@ For example, if one wanted to select a different `templateId` for a Worker Pool 
 Then, if one used `yd-provision -v region=phoenix`, the `templateId` property would first resolve to `"{{template_pheonix}}"`, and then to `"ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"`.
 
 Nesting can be up to three levels deep including the top level.
+
+## Providing Default Values for User-Defined Variables
+
+Each variable can be supplied with a default value to be used if a value is not provided for that variable name. The syntax for providing a default is:
+
+```shell
+{{variable_name:=default_value}} or
+{{num:numeric_variable_name:=default_numeric_value}} or
+{{bool:boolean_variable_name:=default_boolean_value}}
+```
+
+Examples of use in a TOML file:
+
+```toml
+name = "{{name:=my_name}}"
+taskCount = "{{num:task_count:=5}}"
+finishIfAllTasksFinished = "{{bool:fiaft:=true}}"
+```
+
+Default values can be used anywhere that variable substitutions are allowed.
 
 # Work Requirement Properties
 

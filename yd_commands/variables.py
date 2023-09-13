@@ -43,6 +43,9 @@ if "submit" in sys.argv[0]:
 NUMBER_SUB = "num:"
 BOOL_SUB = "bool:"
 
+# Allow the use of default variables
+DEFAULT_VAR_SEPARATOR = ":="
+
 # Nested variables depth supported in TOML files
 NESTED_DEPTH = 3
 
@@ -106,8 +109,32 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
     if input_string is None:
         return None
 
+    # Find variable substitutions with default values
+    default_re = re.compile(
+        "{{[a-zA-Z0-9._$!@#%-]*" + DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-{}]*}}"
+    )
+    substitutions_with_defaults = default_re.findall(input_string)
+    default_subs = []  # List of [variable_name, default_value]
+    for sub in substitutions_with_defaults:
+        default_subs.append(
+            sub.replace("{{", "", 1).replace("}}", "", 1).split(DEFAULT_VAR_SEPARATOR)
+        )
+
+    # Remove default variable values if present (i.e., remove ':=<default>')
+    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-}{]*}}")
+    input_string = default_value_re.sub("}}", input_string)
+
+    # Perform substitutions from the substitutions dictionary
     for sub, value in VARIABLE_SUBSTITUTIONS.items():
         input_string = input_string.replace(f"{{{{{sub}}}}}", str(value))
+
+    # Perform default substitutions for variables that remain unpopulated;
+    # allows for multiple variables with the same name, but with different
+    # defaults
+    for var_name, default_value in default_subs:
+        input_string = input_string.replace(
+            f"{{{{{var_name}}}}}", str(default_value), 1
+        )
 
     return input_string
 
@@ -164,15 +191,8 @@ def substitute_variable_str(
 
     input = input.replace(prefix, "")
 
-    def _remove_variable_brackets(variable_str: str) -> str:
-        return variable_str.replace("{{", "").replace("}}", "")
-
     if input.startswith(f"{{{{{NUMBER_SUB}"):
         input_variable = input.replace(NUMBER_SUB, "")
-        if _remove_variable_brackets(input_variable) not in VARIABLE_SUBSTITUTIONS:
-            if ARGS_PARSER.debug:
-                print_log(f"Note: No variable substitution found for '{input}'")
-            return input
         replaced = simple_variable_substitution(input_variable)
         try:
             replaced_number = int(replaced)
@@ -188,10 +208,6 @@ def substitute_variable_str(
 
     if input.startswith(f"{{{{{BOOL_SUB}"):
         input_variable = input.replace(BOOL_SUB, "")
-        if _remove_variable_brackets(input_variable) not in VARIABLE_SUBSTITUTIONS:
-            if ARGS_PARSER.debug:
-                print_log(f"Note: No variable substitution found for '{input}'")
-            return input
         replaced = simple_variable_substitution(input_variable)
         if replaced.lower() == "true":
             return True
@@ -304,14 +320,14 @@ def variable_process_file_contents(file_contents: str, prefix: str) -> str:
     """
     Process substitutions in the raw contents of a complete file.
     """
-    variable_regex = prefix + "{{[:,A-Z,a-z,0-9,_,-]*}}"
+    variable_regex = prefix + "{{[:=A-Za-z0-9.,_$!@#%-]*}}"
     v_expressions = set(re.findall(variable_regex, file_contents))
     for v_expression in v_expressions:
         replacement_expression = substitute_variable_str(v_expression, prefix=prefix)
         if isinstance(replacement_expression, str):
             file_contents = file_contents.replace(v_expression, replacement_expression)
         else:
-            # If the replacement is an int, float, or bool, we need to
+            # If the replacement is a number or a boolean, we need to
             # remove the enclosing quotes when we substitute, and ensure
             # that lower case 'false' & 'true' are used. Account for both
             # double and single quotes (for Jsonnet support).
