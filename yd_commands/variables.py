@@ -104,12 +104,18 @@ def add_substitution_overwrite(key: str, value: str):
 
 def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
     """
-    Apply basic variable substitutions.
+    Apply basic variable substitutions to a supplied input string,
+    including applying default values.
     """
     if input_string is None:
         return None
 
-    # Find variable substitutions with default values
+    # Perform initial substitutions from the substitutions dictionary; this
+    # will not substitute variables that have default values
+    for sub, value in VARIABLE_SUBSTITUTIONS.items():
+        input_string = input_string.replace(f"{{{{{sub}}}}}", str(value))
+
+    # Create list of variable substitutions with their default values
     default_re = re.compile(
         "{{[a-zA-Z0-9._$!@#%-]*" + DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-]*}}"
     )
@@ -131,13 +137,14 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
     default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-]*}}")
     input_string = default_value_re.sub("}}", input_string)
 
-    # Perform substitutions from the substitutions dictionary
+    # Repeat substitutions from the substitutions dictionary, now that defaults
+    # have been removed
     for sub, value in VARIABLE_SUBSTITUTIONS.items():
         input_string = input_string.replace(f"{{{{{sub}}}}}", str(value))
 
     # Perform default substitutions for variables that remain unpopulated;
     # allows for multiple variables with the same name, but with different
-    # defaults
+    # default values
     for var_name, default_value in default_subs:
         input_string = input_string.replace(
             f"{{{{{var_name}}}}}", str(default_value), 1
@@ -327,8 +334,8 @@ def variable_process_file_contents(file_contents: str, prefix: str) -> str:
     """
     Process substitutions in the raw contents of a complete file.
     """
-    variable_regex = prefix + "{{[:=A-Za-z0-9.,_$!@#%-]*}}"
-    v_expressions = set(re.findall(variable_regex, file_contents))
+    variable_regex = re.compile(prefix + "{{[:=A-Za-z0-9.,_$!@#%-]*}}")
+    v_expressions = set(variable_regex.findall(file_contents))
     for v_expression in v_expressions:
         replacement_expression = substitute_variable_str(v_expression, prefix=prefix)
         if isinstance(replacement_expression, str):
