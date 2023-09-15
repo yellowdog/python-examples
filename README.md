@@ -335,11 +335,17 @@ Variable substitutions provide a powerful way of introducing variable values int
 
 Variable substitutions are expressed using `{{variable}}` notation, where the expression is replaced by the value of `variable`.
 
-Substitutions can also be performed for non-string (number and boolean) values using the `num:` and `bool:` prefixes within the variable substitution:
+Substitutions can also be performed for non-string (number, boolean, array, and table) values using the `num:`, `bool:`, `array:`, and `table:` prefixes within the variable substitution:
 
-- Define the variable substitution using one of the following patterns: `"{{num:my_int}}"`, `"{{num:my_float}}"`, `"{{bool:my_bool}}"`
-- Variable definitions supplied on the command line would then be of the form: `-v my_int=5 -v my_float=2.5 -v my_bool=true`
-- In the processed JSON or TOML, these values would become `5`, `2.5` and `true`, respectively, converted from strings to their correct JSON types
+- Define the variable substitution using one of the following patterns: `"{{num:my_int}}"`, `"{{num:my_float}}"`, `"{{bool:my_bool}}"`, `"{{array:my_array}}"`, `"{{table:my_table}}"`
+- Variable definitions supplied on the command line would then be of the form, e.g.: 
+
+```shell
+ yd-submit -v my_int=5 -v my_float=2.5 -v my_bool=true \
+           -v my_array="[1,2,3]" -v my_table="{'A': 100, 'B': 200}"
+```
+
+- In the processed JSON (or TOML), these values would become `5`, `2.5`, `true`, `[1,2,3]`, and `{"A": 100, "B": 200}`, respectively, converted from strings to their correct JSON types
 
 ## Default Variables
 
@@ -406,10 +412,12 @@ Nesting can be up to three levels deep including the top level.
 
 Each variable can be supplied with a default value to be used if a value is not provided for that variable name. The syntax for providing a default is:
 
-```shell
+```
 {{variable_name:=default_value}} or
 {{num:numeric_variable_name:=default_numeric_value}} or
-{{bool:boolean_variable_name:=default_boolean_value}}
+{{bool:boolean_variable_name:=default_boolean_value}} or
+{{array:array_name:=default_array}} or
+{{table:table_name:=default_table}}
 ```
 
 Examples of use in a TOML file:
@@ -418,9 +426,17 @@ Examples of use in a TOML file:
 name = "{{name:=my_name}}"
 taskCount = "{{num:task_count:=5}}"
 finishIfAllTasksFinished = "{{bool:fiaft:=true}}"
+arguments = "{{array:args:=[1,2,3]}}"
+environment = "{{table:env:={'A':100,'B':200}}}"
 ```
 
 Default values can be used anywhere that variable substitutions are allowed.
+
+In TOML files only, nested variable substitutions can be used inside default values, e.g.:
+
+```toml
+name = "{{name_var:={{tag}}-{{datetime}}}}"
+```
 
 # Work Requirement Properties
 
@@ -1336,6 +1352,8 @@ When the CSV file data is processed, the only substitutions made are those which
 All variable substitutions unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
 
 If the value to be inserted is a number (an integer or floating point value) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification. The substituted value will assume the nominated type rather than being a string.
+
+The same is true for `array:` and `table:` for their respective data structures.
 
 ### Property Inheritance
 

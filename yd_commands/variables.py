@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import tempfile
+from ast import literal_eval
 from datetime import datetime
 from getpass import getuser
 from json import loads as json_loads
@@ -42,6 +43,8 @@ if "submit" in sys.argv[0]:
 # Type annotations for variable type substitutions
 NUMBER_SUB = "num:"
 BOOL_SUB = "bool:"
+ARRAY_SUB = "array:"
+TABLE_SUB = "table:"
 
 # Allow the use of default variables
 DEFAULT_VAR_SEPARATOR = ":="
@@ -116,14 +119,16 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
         input_string = input_string.replace(f"{{{{{sub}}}}}", str(value))
 
     # Create list of variable substitutions with their default values
-    default_re = re.compile(
-        "{{[a-zA-Z0-9._$!@#%-]*" + DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-]*}}"
-    )
+    default_re = re.compile("{{.*" + DEFAULT_VAR_SEPARATOR + ".*}}")
     substitutions_with_defaults = default_re.findall(input_string)
     default_subs = []  # List of [variable_name, default_value]
     for sub in substitutions_with_defaults:
+        # Remove the first instance of '{{' and the last instance of '}}'
+        # Requires the string first to be reversed for the latter
         variable_default = (
-            sub.replace("{{", "", 1).replace("}}", "", 1).split(DEFAULT_VAR_SEPARATOR)
+            sub.replace("{{", "", 1)[::-1]  # Reverse string
+            .replace("}}", "", 1)[::-1]  # Re-reverese
+            .split(DEFAULT_VAR_SEPARATOR)
         )
         if (
             variable_default[0] == ""
@@ -134,7 +139,7 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
         default_subs.append(variable_default)
 
     # Remove default variable values if present (i.e., remove ':=<default>')
-    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + "[a-zA-Z0-9._$!@#%-]*}}")
+    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + ".*}}")
     input_string = default_value_re.sub("}}", input_string)
 
     # Repeat substitutions from the substitutions dictionary, now that defaults
@@ -230,6 +235,24 @@ def substitute_variable_str(
         raise Exception(
             f"Non-boolean used in variable boolean substitution: '{input}':'{replaced}'"
         )
+
+    if input.startswith(f"{{{{{ARRAY_SUB}"):
+        input_list = input.replace(ARRAY_SUB, "")
+        replaced_list = simple_variable_substitution(input_list)
+        try:
+            replaced_list = literal_eval(replaced_list)
+        except Exception as e:
+            raise Exception(f"Property cannot be parsed as an array: '{replaced_list}'")
+        return replaced_list
+
+    if input.startswith(f"{{{{{TABLE_SUB}"):
+        input_array = input.replace(TABLE_SUB, "")
+        replaced_array = simple_variable_substitution(input_array)
+        try:
+            replaced_array = literal_eval(replaced_array)
+        except Exception as e:
+            raise Exception(f"Property cannot be parsed as a table: '{replaced_array}'")
+        return replaced_array
 
     # Note: this will break if variable substitutions intended for this
     # preprocessor are mixed with those intended to be passed through
@@ -334,17 +357,17 @@ def variable_process_file_contents(file_contents: str, prefix: str) -> str:
     """
     Process substitutions in the raw contents of a complete file.
     """
-    variable_regex = re.compile(prefix + "{{[:=A-Za-z0-9.,_$!@#%-]*}}")
+    variable_regex = re.compile(prefix + "{{.*}}")
     v_expressions = set(variable_regex.findall(file_contents))
     for v_expression in v_expressions:
         replacement_expression = substitute_variable_str(v_expression, prefix=prefix)
         if isinstance(replacement_expression, str):
             file_contents = file_contents.replace(v_expression, replacement_expression)
         else:
-            # If the replacement is a number or a boolean, we need to
-            # remove the enclosing quotes when we substitute, and ensure
-            # that lower case 'false' & 'true' are used. Account for both
-            # double and single quotes (for Jsonnet support).
+            # If the replacement is a number, a boolean, a table, or an array,
+            # we need to remove the enclosing quotes when we substitute, and
+            # also ensure that lower case 'false' & 'true' are used.
+            # Account for both double and single quotes (for Jsonnet support).
             file_contents = file_contents.replace(
                 f'"{v_expression}"', str(replacement_expression).lower()
             )
