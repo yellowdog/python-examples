@@ -338,7 +338,7 @@ Variable substitutions are expressed using `{{variable}}` notation, where the ex
 Substitutions can also be performed for non-string (number and boolean) values using the `num:` and `bool:` prefixes within the variable substitution:
 
 - Define the variable substitution using one of the following patterns: `"{{num:my_int}}"`, `"{{num:my_float}}"`, `"{{bool:my_bool}}"`
-- Variable definitions supplied on the command line would then be of the form: `-m my_int=5 -m my_float=2.5 -m my_bool=true`
+- Variable definitions supplied on the command line would then be of the form: `-v my_int=5 -v my_float=2.5 -v my_bool=true`
 - In the processed JSON or TOML, these values would become `5`, `2.5` and `true`, respectively, converted from strings to their correct JSON types
 
 ## Default Variables
