@@ -29,8 +29,10 @@ from yd_commands.type_check import check_list, check_str
 from yd_commands.utils import pathname_relative_to_config_file
 from yd_commands.validate_properties import validate_properties
 from yd_commands.variables import (
+    NESTED_DEPTH,
     add_substitutions,
     load_toml_file_with_variable_substitutions,
+    process_variable_substitutions,
     substitute_variable_str,
 )
 
@@ -163,6 +165,12 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         wr_section = CONFIG_TOML[WORK_REQUIREMENT_SECTION]
     except KeyError:
         return ConfigWorkRequirement()
+
+    # Process any new substitutions after the common config
+    # has been processed
+    for _ in range(NESTED_DEPTH):
+        process_variable_substitutions(wr_section)
+
     try:
         # Allow WORKER_TAG if WORKER_TAGS is empty
         worker_tags = wr_section.get(WORKER_TAGS, None)
@@ -279,6 +287,13 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     # as a configuration synonym for 'workerPool'. Check for duplicates.
     wp_section = CONFIG_TOML.get(WORKER_POOL_SECTION, {})
     cr_section = CONFIG_TOML.get(COMPUTE_REQUIREMENT_SECTION, {})
+
+    # Process any new substitutions after the common config
+    # has been processed
+    for _ in range(NESTED_DEPTH):
+        process_variable_substitutions(wp_section)
+        process_variable_substitutions(cr_section)
+
     duplicate_keys = set(wp_section.keys()).intersection(set(cr_section.keys()))
     if len(duplicate_keys) != 0:
         print_error(
