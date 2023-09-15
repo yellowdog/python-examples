@@ -54,6 +54,7 @@ from yd_commands.object_utilities import Item
 from yd_commands.property_names import NAME, TASK_GROUPS, TASKS
 
 JSON_INDENT = 2
+MAX_LINES_FORMATTED_JSON = 1024
 
 try:
     LOG_WIDTH = get_terminal_size().columns
@@ -670,10 +671,18 @@ def print_json(
     )
     if drop_first_line:
         json_string = "\n".join(json_string.splitlines()[1:])
-    if with_final_comma:
-        CONSOLE_JSON.print(json_string, end=",\n", soft_wrap=True)
+
+    # Coloured formatting of JSON console output is expensive
+    if json_string.count("\n") > MAX_LINES_FORMATTED_JSON:
+        if with_final_comma:
+            print(json_string, end=",\n")
+        else:
+            print(json_string)
     else:
-        CONSOLE_JSON.print(json_string, soft_wrap=True)
+        if with_final_comma:
+            CONSOLE_JSON.print(json_string, end=",\n", soft_wrap=True)
+        else:
+            CONSOLE_JSON.print(json_string, soft_wrap=True)
 
 
 def print_yd_object(
