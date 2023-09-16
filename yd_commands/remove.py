@@ -226,21 +226,23 @@ def remove_configured_worker_pool(resource: Dict):
                 WorkerPoolStatus.SHUTDOWN,
                 WorkerPoolStatus.TERMINATED,
             ]:
+                if not confirmed(
+                    f"Shut down Configured Worker Pool '{worker_pool.name}'"
+                    f" ({worker_pool.id})?"
+                ):
+                    continue
                 try:
                     CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
                     print_log(
-                        f"Shutting down Configured Worker Pool '{name}' in state"
-                        f" '{worker_pool.status}' ({worker_pool.id})"
+                        f"Shutting down [{worker_pool.status}] Configured Worker Pool"
+                        f" '{name}' ({worker_pool.id})"
                     )
                 except Exception as e:
-                    print_error(
-                        "Failed to shut down Configured Worker Pool '{name}' in state"
-                        " '{worker_pool.status}' ({worker_pool.id}): {e}"
-                    )
+                    print_error(f"Failed to shut down Configured Worker Pool: {e}")
             else:
                 print_log(
-                    f"Not shutting down Configured Worker Pool '{name}' in state"
-                    f" '{worker_pool.status}' ({worker_pool.id})"
+                    f"Not shutting down [{worker_pool.status}] Configured Worker Pool"
+                    f" '{name}' ({worker_pool.id})"
                 )
 
 
