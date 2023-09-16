@@ -62,6 +62,44 @@ except OSError:
     LOG_WIDTH = 120  # Default log line width
 
 
+HIGHLIGHTED_STATES = [
+    r"(?P<active>EXECUTING)",
+    r"(?P<failed>FAILED)",
+    r"(?P<completed>COMPLETED)",
+    r"(?P<cancelled>CANCELLED)",
+    r"(?P<cancelled>ABORTED)",
+    r"(?P<active>RUNNING)",
+    r"(?P<transitioning>PROVISIONING)",
+    r"(?P<transitioning>TERMINATING)",
+    r"(?P<cancelled>TERMINATED)",
+    r"(?P<cancelled>SHUTDOWN)",
+    r"(?P<cancelled>CANCELLING)",
+    r"(?P<idle>IDLE)",
+    r"(?P<active>PENDING)",
+    r"(?P<idle>EMPTY)",
+    r"(?P<active>READY)",
+    r"(?P<active>ALLOCATED)",
+    r"(?P<starved>STARVED)",
+    r"(?P<transitioning>CONFIGURING)",
+    r"(?P<transitioning>UPLOADING)",
+    r"(?P<transitioning>DOWNLOADING)",
+    r"(?P<idle>WAITING)",
+    r"(?P<failed>FAILING)",
+    r"(?P<transitioning>NEW)",
+    r"(?P<transitioning>STOPPING)",
+    r"(?P<cancelled>STOPPED)",
+    r"(?P<transitioning>UNKNOWN)",
+    r"(?P<transitioning>UNAVAILABLE)",
+    r"(?P<active>DOING_TASK)",
+    r"(?P<idle>SLEEPING)",
+    r"(?P<transitioning>LATE)",
+    r"(?P<idle>FOUND)",
+    r"(?P<failed>LOST)",
+    r"(?P<active>TARGET)",
+    r"(?P<active>EXPECTED)",
+]
+
+
 # Set up Rich formatting for coloured output
 class PrintLogHighlighter(RegexHighlighter):
     """
@@ -75,33 +113,7 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<quoted>'[a-zA-Z0-9-._=;:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
         r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)",
-        r"(?P<active>EXECUTING)",
-        r"(?P<failed>FAILED)",
-        r"(?P<completed>COMPLETED)",
-        r"(?P<cancelled>CANCELLED)",
-        r"(?P<cancelled>ABORTED)",
-        r"(?P<active>RUNNING)",
-        r"(?P<transitioning>PROVISIONING)",
-        r"(?P<transitioning>TERMINATING)",
-        r"(?P<cancelled>TERMINATED)",
-        r"(?P<cancelled>SHUTDOWN)",
-        r"(?P<cancelled>CANCELLING)",
-        r"(?P<idle>IDLE)",
-        r"(?P<active>PENDING)",
-        r"(?P<transitioning>EMPTY)",
-        r"(?P<active>READY)",
-        r"(?P<active>ALLOCATED)",
-        r"(?P<starved>STARVED)",
-        r"(?P<transitioning>CONFIGURING)",
-        r"(?P<transitioning>UPLOADING)",
-        r"(?P<transitioning>DOWNLOADING)",
-        r"(?P<idle>WAITING)",
-        r"(?P<failed>FAILING)",
-        r"(?P<transitioning>NEW)",
-        r"(?P<transitioning>STOPPING)",
-        r"(?P<cancelled>STOPPED)",
-        r"(?P<transitioning>UNKNOWN)",
-    ]
+    ] + HIGHLIGHTED_STATES
 
 
 class PrintTableHighlighter(RegexHighlighter):
@@ -115,33 +127,7 @@ class PrintTableHighlighter(RegexHighlighter):
         rf"(?P<table_outline>[{table_outline_chars}]*)",
         rf"(?P<table_content>[^{table_outline_chars}]*)",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        r"(?P<active>EXECUTING)",
-        r"(?P<failed>FAILED)",
-        r"(?P<completed>COMPLETED)",
-        r"(?P<cancelled>CANCELLED)",
-        r"(?P<cancelled>ABORTED)",
-        r"(?P<active>RUNNING)",
-        r"(?P<transitioning>PROVISIONING)",
-        r"(?P<transitioning>TERMINATING)",
-        r"(?P<cancelled>TERMINATED)",
-        r"(?P<cancelled>SHUTDOWN)",
-        r"(?P<cancelled>CANCELLING)",
-        r"(?P<idle>IDLE)",
-        r"(?P<active>PENDING)",
-        r"(?P<idle>EMPTY)",
-        r"(?P<active>READY)",
-        r"(?P<active>ALLOCATED)",
-        r"(?P<starved>STARVED)",
-        r"(?P<transitioning>CONFIGURING)",
-        r"(?P<transitioning>UPLOADING)",
-        r"(?P<transitioning>DOWNLOADING)",
-        r"(?P<idle>WAITING)",
-        r"(?P<failed>FAILING)",
-        r"(?P<transitioning>NEW)",
-        r"(?P<transitioning>STOPPING)",
-        r"(?P<cancelled>STOPPED)",
-        r"(?P<transitioning>UNKNOWN)",
-    ]
+    ] + HIGHLIGHTED_STATES
 
 
 # For Rich colour options, see colour list & swatches at:
@@ -899,14 +885,67 @@ STATUS_COUNTS_TASKS = [
 ]
 
 STATUS_COUNTS_INSTANCES = [
-    StatusCount("PENDING"),
+    StatusCount("PENDING", True),
     StatusCount("RUNNING", True),
     StatusCount("STOPPING"),
     StatusCount("STOPPED"),
     StatusCount("TERMINATING"),
     StatusCount("TERMINATED", True),
+    StatusCount("UNAVAILABLE"),
     StatusCount("UNKNOWN"),
 ]
+
+STATUS_COUNTS_WORKERS = [
+    StatusCount("DOING_TASK", True),
+    StatusCount("SLEEPING", True),
+    StatusCount("LATE"),
+    StatusCount("FOUND"),
+    StatusCount("LOST"),
+    StatusCount("SHUTDOWN"),
+]
+
+STATUS_COUNTS_NODES = [
+    StatusCount("RUNNING", True),
+    StatusCount("TERMINATED", True),
+    StatusCount("DEREGISTERED"),
+    StatusCount("LATE"),
+    StatusCount("LOST"),
+]
+
+STATUS_COUNTS_NODEACTIONS = [
+    # StatusCount("EMPTY", True),
+    StatusCount("WAITING", True),
+    StatusCount("EXECUTING", True),
+    StatusCount("FAILED"),
+]
+
+STATUS_COUNTS_COMPUTE_REQ = [
+    StatusCount("PENDING", True),
+    StatusCount("RUNNING", True),
+    StatusCount("STOPPING"),
+    StatusCount("STOPPED"),
+    StatusCount("TERMINATING"),
+    StatusCount("TERMINATED"),
+    StatusCount("UNAVAILABLE"),
+    StatusCount("UNKNOWN"),
+]
+
+
+def status_counts_msg(status_counts: List[StatusCount], counts_data: Dict) -> str:
+    """
+    Generate the count of items in specific statuses.
+    """
+    first_count = True
+    msg = ""
+    for status_count in status_counts:
+        try:
+            count = counts_data[status_count.name]
+            if count > 0 or status_count.include_if_zero:
+                msg += f"{'' if first_count else ', '}{count} {status_count.name}"
+                first_count = False
+        except (KeyError, TypeError):
+            continue  # Do nothing if a status is not present in the event data
+    return msg
 
 
 def print_event(event: str, id_type: YDIDType):
@@ -934,55 +973,37 @@ def print_event(event: str, id_type: YDIDType):
                 f"{indent}[{task_group['status']}] Task Group '{task_group['name']}':"
                 f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}"
             )
-            first_count = True
-            for status_count in STATUS_COUNTS_TASKS:
-                count = task_group["taskSummary"]["statusCounts"][status_count.name]
-                if count > 0 or status_count.include_if_zero:
-                    msg += f"{'' if first_count else ', '}{count} {status_count.name}"
-                    first_count = False
+            msg += status_counts_msg(
+                STATUS_COUNTS_TASKS, task_group["taskSummary"]["statusCounts"]
+            )
 
     elif id_type == YDIDType.WORKER_POOL:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
-        msg += (
-            f"{indent}Node(s):       "
-            f" {event_data['nodeSummary']['statusCounts']['RUNNING']} running,"
-            f" {event_data['nodeSummary']['statusCounts']['TERMINATED']} terminated,"
-            f" {event_data['nodeSummary']['statusCounts']['DEREGISTERED']} deregistered"
+        msg += f"{indent}Node(s):        " + status_counts_msg(
+            STATUS_COUNTS_NODES, event_data["nodeSummary"]["statusCounts"]
         )
-        try:
-            msg += (
-                f"{indent}Node Action(s):"
-                f" {event_data['nodeSummary']['actionQueueStatuses']['WAITING']} waiting,"
-                f" {event_data['nodeSummary']['actionQueueStatuses']['EXECUTING']} executing,"
-                f" {event_data['nodeSummary']['actionQueueStatuses']['FAILED']} failed"
-            )
-        except TypeError:
-            pass
-        msg += (
-            f"{indent}Worker(s):     "
-            f" {event_data['workerSummary']['statusCounts']['DOING_TASK']} doing task,"
-            f" {event_data['workerSummary']['statusCounts']['SLEEPING']} sleeping,"
-            f" {event_data['workerSummary']['statusCounts']['SHUTDOWN']} shutdown,"
-            f" {event_data['workerSummary']['statusCounts']['LATE']} late,"
-            f" {event_data['workerSummary']['statusCounts']['LOST']} lost,"
-            f" {event_data['workerSummary']['statusCounts']['FOUND']} found"
+        node_actions_msg = status_counts_msg(
+            STATUS_COUNTS_NODEACTIONS,
+            event_data["nodeSummary"]["actionQueueStatuses"],
+        )
+        if len(node_actions_msg) > 0:
+            msg += f"{indent}Node Action(s): " + node_actions_msg
+        msg += f"{indent}Worker(s):      " + status_counts_msg(
+            STATUS_COUNTS_WORKERS, event_data["workerSummary"]["statusCounts"]
         )
 
     elif id_type == YDIDType.COMPUTE_REQ:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         msg += (
             f"{indent}Instance(s): "
-            f"{event_data['targetInstanceCount']} target,"
-            f" {event_data['expectedInstanceCount']} expected"
+            f"{event_data['targetInstanceCount']} TARGET,"
+            f" {event_data['expectedInstanceCount']} EXPECTED"
         )
         for source in event_data["provisionStrategy"]["sources"]:
-            msg += f"{indent}Source: '{source['name']}': "
-            first_count = True
-            for status_count in STATUS_COUNTS_INSTANCES:
-                count = source["instanceSummary"]["statusCounts"][status_count.name]
-                if count > 0 or status_count.include_if_zero:
-                    msg += f"{'' if first_count else ', '}{count} {status_count.name}"
-                    first_count = False
+            msg += f"{indent}Source: '{source['name']}': " + status_counts_msg(
+                STATUS_COUNTS_INSTANCES, source["instanceSummary"]["statusCounts"]
+            )
+
     else:
         return
 
