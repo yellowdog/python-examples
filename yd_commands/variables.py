@@ -6,7 +6,6 @@ import re
 import sys
 import tempfile
 from ast import literal_eval
-from datetime import datetime
 from getpass import getuser
 from json import loads as json_loads
 from random import randint
@@ -16,11 +15,11 @@ from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.check_imports import check_jsonnet_import
-from yd_commands.printing import print_error, print_json, print_log, print_warning
+from yd_commands.printing import print_error, print_json, print_log
 from yd_commands.property_names import *
+from yd_commands.utils import UTCNOW, get_delimited_string_boundaries
 
 # Set up default variable substitutions
-UTCNOW = datetime.utcnow()
 RAND_SIZE = 0xFFF
 VARIABLE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").lower(),
@@ -109,7 +108,9 @@ def add_substitution_overwrite(key: str, value: str):
     VARIABLE_SUBSTITUTIONS[key] = str(value)
 
 
-def simple_variable_substitutions(input_string: Optional[str]) -> Optional[str]:
+def simple_variable_substitutions(
+    input_string: Optional[str], opening_delimiter: str, closing_delimiter: str
+) -> Optional[str]:
     """
     Apply basic variable substitutions to a supplied input string,
     including applying default values.
@@ -121,24 +122,22 @@ def simple_variable_substitutions(input_string: Optional[str]) -> Optional[str]:
     # will not substitute variables that have default values
     for sub, value in VARIABLE_SUBSTITUTIONS.items():
         input_string = input_string.replace(
-            f"{VAR_OPENING_DELIMITER}{sub}{VAR_CLOSING_DELIMITER}", str(value)
+            f"{opening_delimiter}{sub}{closing_delimiter}", str(value)
         )
 
     # Create list of variable substitutions with their default values
     default_re = re.compile(
-        f"{VAR_OPENING_DELIMITER}.*"
-        + DEFAULT_VAR_SEPARATOR
-        + f".*{VAR_CLOSING_DELIMITER}"
+        f"{opening_delimiter}.*" + DEFAULT_VAR_SEPARATOR + f".*{closing_delimiter}"
     )
     substitutions_with_defaults = default_re.findall(input_string)
     default_subs = []  # List of [variable_name, default_value]
     for sub in substitutions_with_defaults:
-        # Remove the first instance of VAR_OPENING_DELIMITER and the
-        # last instance of VAR_CLOSING_DELIMITER.
+        # Remove the first instance of 'opening_delimiter' and the
+        # last instance of 'closing_delimiter'.
         # Requires the string first to be reversed for the latter
         variable_default = (
-            sub.replace(f"{VAR_OPENING_DELIMITER}", "", 1)[::-1]  # Reverse string
-            .replace(f"{VAR_CLOSING_DELIMITER}", "", 1)[::-1]  # Re-reverese
+            sub.replace(f"{opening_delimiter}", "", 1)[::-1]  # Reverse string
+            .replace(f"{closing_delimiter}", "", 1)[::-1]  # Re-reverese
             .split(DEFAULT_VAR_SEPARATOR)
         )
         if (
@@ -150,14 +149,14 @@ def simple_variable_substitutions(input_string: Optional[str]) -> Optional[str]:
         default_subs.append(variable_default)
 
     # Remove default variable values if present (i.e., remove ':=<default>')
-    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + f".*{VAR_CLOSING_DELIMITER}")
-    input_string = default_value_re.sub(f"{VAR_CLOSING_DELIMITER}", input_string)
+    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + f".*{closing_delimiter}")
+    input_string = default_value_re.sub(f"{closing_delimiter}", input_string)
 
     # Repeat substitutions from the substitutions dictionary, now that defaults
     # have been removed
     for sub, value in VARIABLE_SUBSTITUTIONS.items():
         input_string = input_string.replace(
-            f"{VAR_OPENING_DELIMITER}{sub}{VAR_CLOSING_DELIMITER}", str(value)
+            f"{opening_delimiter}{sub}{closing_delimiter}", str(value)
         )
 
     # Perform default substitutions for variables that remain unpopulated;
@@ -165,7 +164,7 @@ def simple_variable_substitutions(input_string: Optional[str]) -> Optional[str]:
     # default values
     for var_name, default_value in default_subs:
         input_string = input_string.replace(
-            f"{VAR_OPENING_DELIMITER}{var_name}{VAR_CLOSING_DELIMITER}",
+            f"{opening_delimiter}{var_name}{closing_delimiter}",
             str(default_value),
             1,
         )
@@ -212,7 +211,7 @@ def process_variable_substitutions(
 
 def process_typed_variable_substitutions(
     input: Optional[str], prefix: str = "", postfix: str = ""
-) -> Optional[Union[str, int, bool, float]]:
+) -> Optional[Union[str, int, bool, float, List, Dict]]:
     """
     Transform type-tagged and normal variable
     substitutions into their required types.
@@ -220,60 +219,80 @@ def process_typed_variable_substitutions(
     if input is None:
         return None
 
-    if prefix not in input or postfix not in input:
-        return input
+    opening_delimiter = prefix + VAR_OPENING_DELIMITER
+    closing_delimiter = VAR_CLOSING_DELIMITER + postfix
 
-    # Remove prefixes and postfixes
-    input = input.replace(prefix + VAR_OPENING_DELIMITER, VAR_OPENING_DELIMITER)
-    input = input.replace(VAR_CLOSING_DELIMITER + postfix, VAR_CLOSING_DELIMITER)
+    if opening_delimiter not in input or closing_delimiter not in input:
+        return input  # Nothing to process
 
-    if input.startswith(f"{VAR_OPENING_DELIMITER}{NUMBER_SUB}"):
-        input_variable = input.replace(NUMBER_SUB, "")
-        replaced = simple_variable_substitutions(input_variable)
-        try:
-            replaced_number = int(replaced)
-        except ValueError:
+    # Iterate through the top-level variable substitutions
+    for start_delimiter, end_delimiter in get_delimited_string_boundaries(
+        input_string=input,
+        opening_delimiter=opening_delimiter,
+        closing_delimiter=closing_delimiter,
+    ):
+        sub_input = input[start_delimiter : end_delimiter + len(closing_delimiter)]
+
+        if input.startswith(f"{opening_delimiter}{NUMBER_SUB}"):
+            input_variable = sub_input.replace(NUMBER_SUB, "")
+            replaced = simple_variable_substitutions(
+                input_variable, opening_delimiter, closing_delimiter
+            )
             try:
-                replaced_number = float(replaced)
+                replaced_number = int(replaced)
             except ValueError:
+                try:
+                    replaced_number = float(replaced)
+                except ValueError:
+                    raise Exception(
+                        "Non-number used in variable number "
+                        f"substitution: '{input}':'{replaced}'"
+                    )
+            return replaced_number
+
+        if input.startswith(f"{VAR_OPENING_DELIMITER}{BOOL_SUB}"):
+            input_variable = sub_input.replace(BOOL_SUB, "")
+            replaced = simple_variable_substitutions(
+                input_variable, opening_delimiter, closing_delimiter
+            )
+            if replaced.lower() == "true":
+                return True
+            if replaced.lower() == "false":
+                return False
+            raise Exception(
+                "Non-boolean used in variable boolean substitution:"
+                f" '{input}':'{replaced}'"
+            )
+
+        if input.startswith(f"{VAR_OPENING_DELIMITER}{ARRAY_SUB}"):
+            input_list = sub_input.replace(ARRAY_SUB, "")
+            replaced_list = simple_variable_substitutions(
+                input_list, opening_delimiter, closing_delimiter
+            )
+            try:
+                replaced_list = literal_eval(replaced_list)
+            except Exception as e:
                 raise Exception(
-                    "Non-number used in variable number "
-                    f"substitution: '{input}':'{replaced}'"
+                    f"Property cannot be parsed as an array: '{replaced_list}'"
                 )
-        return replaced_number
+            return replaced_list
 
-    if input.startswith(f"{VAR_OPENING_DELIMITER}{BOOL_SUB}"):
-        input_variable = input.replace(BOOL_SUB, "")
-        replaced = simple_variable_substitutions(input_variable)
-        if replaced.lower() == "true":
-            return True
-        if replaced.lower() == "false":
-            return False
-        raise Exception(
-            f"Non-boolean used in variable boolean substitution: '{input}':'{replaced}'"
-        )
-
-    if input.startswith(f"{VAR_OPENING_DELIMITER}{ARRAY_SUB}"):
-        input_list = input.replace(ARRAY_SUB, "")
-        replaced_list = simple_variable_substitutions(input_list)
-        try:
-            replaced_list = literal_eval(replaced_list)
-        except Exception as e:
-            raise Exception(f"Property cannot be parsed as an array: '{replaced_list}'")
-        return replaced_list
-
-    if input.startswith(f"{VAR_OPENING_DELIMITER}{TABLE_SUB}"):
-        input_array = input.replace(TABLE_SUB, "")
-        replaced_array = simple_variable_substitutions(input_array)
-        try:
-            replaced_array = literal_eval(replaced_array)
-        except Exception as e:
-            raise Exception(f"Property cannot be parsed as a table: '{replaced_array}'")
-        return replaced_array
+        if input.startswith(f"{VAR_OPENING_DELIMITER}{TABLE_SUB}"):
+            input_array = sub_input.replace(TABLE_SUB, "")
+            replaced_array = simple_variable_substitutions(
+                input_array, opening_delimiter, closing_delimiter
+            )
+            try:
+                replaced_array = literal_eval(replaced_array)
+            except Exception as e:
+                raise Exception(
+                    f"Property cannot be parsed as a table: '{replaced_array}'"
+                )
+            return replaced_array
 
     # Note: this will break if variable substitutions intended for this
     # preprocessor are mixed with those intended to be passed through
-    return simple_variable_substitutions(input)
+    return simple_variable_substitutions(input, opening_delimiter, closing_delimiter)
 
 
 def load_json_file_with_variable_substitutions(
