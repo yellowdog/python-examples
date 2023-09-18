@@ -19,7 +19,7 @@ from yd_commands.variables import (
     BOOL_SUB,
     NUMBER_SUB,
     load_jsonnet_file_with_variable_substitutions,
-    process_variable_substitutions,
+    process_variable_substitutions_in_dict_insitu,
 )
 
 CSV_VAR_OPENING_DELIMITER = "{{"
@@ -219,7 +219,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
         exit(0)
 
     # Process remaining substitutions
-    process_variable_substitutions(wr_data)
+    process_variable_substitutions_in_dict_insitu(wr_data)
     return wr_data
 
 

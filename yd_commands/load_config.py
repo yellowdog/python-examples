@@ -33,7 +33,7 @@ from yd_commands.variables import (
     add_substitutions,
     load_toml_file_with_variable_substitutions,
     process_typed_variable_substitutions,
-    process_variable_substitutions,
+    process_variable_substitutions_in_dict_insitu,
 )
 
 # CLI > YD_CONF > 'config.toml'
@@ -169,7 +169,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
     # Process any new substitutions after the common config
     # has been processed
     for _ in range(NESTED_DEPTH):
-        process_variable_substitutions(wr_section)
+        process_variable_substitutions_in_dict_insitu(wr_section)
 
     try:
         # Allow WORKER_TAG if WORKER_TAGS is empty
@@ -291,8 +291,8 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
     # Process any new substitutions after the common config
     # has been processed
     for _ in range(NESTED_DEPTH):
-        process_variable_substitutions(wp_section)
-        process_variable_substitutions(cr_section)
+        process_variable_substitutions_in_dict_insitu(wp_section)
+        process_variable_substitutions_in_dict_insitu(cr_section)
 
     duplicate_keys = set(wp_section.keys()).intersection(set(cr_section.keys()))
     if len(duplicate_keys) != 0:

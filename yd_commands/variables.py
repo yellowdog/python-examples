@@ -108,11 +108,11 @@ def add_substitution_overwrite(key: str, value: str):
     VARIABLE_SUBSTITUTIONS[key] = str(value)
 
 
-def simple_variable_substitutions(
+def process_untyped_variable_substitutions(
     input_string: Optional[str], opening_delimiter: str, closing_delimiter: str
 ) -> Optional[str]:
     """
-    Apply basic variable substitutions to a supplied input string,
+    Apply untyped variable substitutions to a supplied input string,
     including applying default values.
     """
     if input_string is None:
@@ -172,7 +172,7 @@ def simple_variable_substitutions(
     return input_string
 
 
-def process_variable_substitutions(
+def process_variable_substitutions_in_dict_insitu(
     dict_data: Dict, prefix: str = "", postfix: str = ""
 ):
     """
@@ -232,10 +232,11 @@ def process_typed_variable_substitutions(
         closing_delimiter=closing_delimiter,
     ):
         sub_input = input[start_delimiter : end_delimiter + len(closing_delimiter)]
+        print("DEBUG:", sub_input)
 
         if input.startswith(f"{opening_delimiter}{NUMBER_SUB}"):
             input_variable = sub_input.replace(NUMBER_SUB, "")
-            replaced = simple_variable_substitutions(
+            replaced = process_untyped_variable_substitutions(
                 input_variable, opening_delimiter, closing_delimiter
             )
             try:
@@ -252,7 +253,7 @@ def process_typed_variable_substitutions(
 
         if input.startswith(f"{VAR_OPENING_DELIMITER}{BOOL_SUB}"):
             input_variable = sub_input.replace(BOOL_SUB, "")
-            replaced = simple_variable_substitutions(
+            replaced = process_untyped_variable_substitutions(
                 input_variable, opening_delimiter, closing_delimiter
             )
             if replaced.lower() == "true":
@@ -266,7 +267,7 @@ def process_typed_variable_substitutions(
 
         if input.startswith(f"{VAR_OPENING_DELIMITER}{ARRAY_SUB}"):
             input_list = sub_input.replace(ARRAY_SUB, "")
-            replaced_list = simple_variable_substitutions(
+            replaced_list = process_untyped_variable_substitutions(
                 input_list, opening_delimiter, closing_delimiter
             )
             try:
@@ -279,7 +280,7 @@ def process_typed_variable_substitutions(
 
         if input.startswith(f"{VAR_OPENING_DELIMITER}{TABLE_SUB}"):
             input_array = sub_input.replace(TABLE_SUB, "")
-            replaced_array = simple_variable_substitutions(
+            replaced_array = process_untyped_variable_substitutions(
                 input_array, opening_delimiter, closing_delimiter
             )
             try:
@@ -292,7 +293,9 @@ def process_typed_variable_substitutions(
 
     # Note: this will break if variable substitutions intended for this
     # preprocessor are mixed with those intended to be passed through
-    return simple_variable_substitutions(input, opening_delimiter, closing_delimiter)
+    return process_untyped_variable_substitutions(
+        input, opening_delimiter, closing_delimiter
+    )
 
 
 def load_json_file_with_variable_substitutions(
@@ -326,7 +329,7 @@ def load_jsonnet_file_with_variable_substitutions(
         dict_data = json_loads(evaluate_file(preprocessed_filename))
 
     # Secondary processing after Jsonnet expansion
-    process_variable_substitutions(dict_data, prefix, postfix)
+    process_variable_substitutions_in_dict_insitu(dict_data, prefix, postfix)
 
     if ARGS_PARSER.jsonnet_dry_run:
         print_log("Dry-run: Printing Jsonnet to JSON conversion")
@@ -361,7 +364,9 @@ def load_toml_file_with_variable_substitutions(
         pass
 
     for _ in range(NESTED_DEPTH):
-        process_variable_substitutions(config, prefix=prefix, postfix=postfix)
+        process_variable_substitutions_in_dict_insitu(
+            config, prefix=prefix, postfix=postfix
+        )
 
     return config
 

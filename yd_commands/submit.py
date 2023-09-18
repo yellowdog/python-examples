@@ -81,7 +81,7 @@ from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
     load_toml_file_with_variable_substitutions,
-    process_variable_substitutions,
+    process_variable_substitutions_in_dict_insitu,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -224,7 +224,7 @@ def submit_work_requirement(
     )
     # Lazy substitution of the Work Requirement name, now it's defined
     add_substitutions(subs={L_WR_NAME: ID})
-    process_variable_substitutions(wr_data)
+    process_variable_substitutions_in_dict_insitu(wr_data)
     CONFIG_WR = update_config_work_requirement(CONFIG_WR)
 
     # Handle any files that need to be uploaded
@@ -538,7 +538,7 @@ def add_tasks_to_task_group(
             add_substitution_overwrite(
                 L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
             )
-            process_variable_substitutions(task)
+            process_variable_substitutions_in_dict_insitu(task)
 
             executable = check_str(
                 task.get(
@@ -1152,7 +1152,7 @@ def submit_json_raw(wr_file: str):
     wr_data["name"] = format_yd_name(wr_data["name"])
     wr_name = wr_data["name"]
     add_substitutions(subs={L_WR_NAME: wr_name})
-    process_variable_substitutions(wr_data)
+    process_variable_substitutions_in_dict_insitu(wr_data)
 
     if ARGS_PARSER.dry_run:
         # This will show the results of any variable substitutions
