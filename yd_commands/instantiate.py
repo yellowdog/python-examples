@@ -15,7 +15,11 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateUsage,
 )
 
-from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
+from yd_commands.config_types import (
+    WP_VARIABLES_POSTFIX,
+    WP_VARIABLES_PREFIX,
+    ConfigWorkerPool,
+)
 from yd_commands.follow_utils import follow_events, follow_ids
 from yd_commands.id_utils import YDIDType
 from yd_commands.load_config import load_config_worker_pool
@@ -60,7 +64,9 @@ def main():
 
     if cr_json_file is not None:
         print_log(f"Loading Compute Requirement data from: '{cr_json_file}'")
-        create_compute_requirement_from_json(cr_json_file, WP_VARIABLES_PREFIX)
+        create_compute_requirement_from_json(
+            cr_json_file, WP_VARIABLES_PREFIX, WP_VARIABLES_POSTFIX
+        )
         return
 
     if CONFIG_WP.template_id is None:
@@ -195,7 +201,9 @@ def _allocate_nodes_to_batches(
     return batches
 
 
-def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") -> None:
+def create_compute_requirement_from_json(
+    cr_json_file: str, prefix: str = "", postfix: str = ""
+) -> None:
     """
     Directly create the Compute Requirement using the YellowDog REST API.
     """
@@ -208,11 +216,11 @@ def create_compute_requirement_from_json(cr_json_file: str, prefix: str = "") ->
 
     if cr_json_file.lower().endswith(".jsonnet"):
         cr_data = load_jsonnet_file_with_variable_substitutions(
-            cr_json_file, prefix=prefix
+            cr_json_file, prefix=prefix, postfix=postfix
         )
     else:
         cr_data = load_json_file_with_variable_substitutions(
-            cr_json_file, prefix=prefix
+            cr_json_file, prefix=prefix, postfix=postfix
         )
 
     # Use only the 'requirementTemplateUsage' value (if present);

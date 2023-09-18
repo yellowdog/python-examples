@@ -99,7 +99,7 @@ def add_substitutions(subs: Dict):
     # Populate variables that can now be substituted
     # Ensure that the value is stored as a string
     for key, value in VARIABLE_SUBSTITUTIONS.items():
-        VARIABLE_SUBSTITUTIONS[key] = substitute_variable_str(str(value))
+        VARIABLE_SUBSTITUTIONS[key] = process_typed_variable_substitutions(str(value))
 
 
 def add_substitution_overwrite(key: str, value: str):
@@ -109,7 +109,7 @@ def add_substitution_overwrite(key: str, value: str):
     VARIABLE_SUBSTITUTIONS[key] = str(value)
 
 
-def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
+def simple_variable_substitutions(input_string: Optional[str]) -> Optional[str]:
     """
     Apply basic variable substitutions to a supplied input string,
     including applying default values.
@@ -193,7 +193,7 @@ def process_variable_substitutions(
         if isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, str):
-                    data[key] = substitute_variable_str(
+                    data[key] = process_typed_variable_substitutions(
                         value, prefix=prefix, postfix=postfix
                     )
                 elif isinstance(value, dict) or isinstance(value, list):
@@ -201,7 +201,7 @@ def process_variable_substitutions(
         elif isinstance(data, list):
             for index, item in enumerate(data):
                 if isinstance(item, str):
-                    data[index] = substitute_variable_str(
+                    data[index] = process_typed_variable_substitutions(
                         item, prefix=prefix, postfix=postfix
                     )
                 elif isinstance(item, dict) or isinstance(item, list):
@@ -210,7 +210,7 @@ def process_variable_substitutions(
     _walk_data(dict_data)
 
 
-def substitute_variable_str(
+def process_typed_variable_substitutions(
     input: Optional[str], prefix: str = "", postfix: str = ""
 ) -> Optional[Union[str, int, bool, float]]:
     """
@@ -223,12 +223,13 @@ def substitute_variable_str(
     if prefix not in input or postfix not in input:
         return input
 
-    input = input.replace(prefix, "")
-    input = input.replace(postfix, "")
+    # Remove prefixes and postfixes
+    input = input.replace(prefix + VAR_OPENING_DELIMITER, VAR_OPENING_DELIMITER)
+    input = input.replace(VAR_CLOSING_DELIMITER + postfix, VAR_CLOSING_DELIMITER)
 
     if input.startswith(f"{VAR_OPENING_DELIMITER}{NUMBER_SUB}"):
         input_variable = input.replace(NUMBER_SUB, "")
-        replaced = simple_variable_substitution(input_variable)
+        replaced = simple_variable_substitutions(input_variable)
         try:
             replaced_number = int(replaced)
         except ValueError:
@@ -243,7 +244,7 @@ def substitute_variable_str(
 
     if input.startswith(f"{VAR_OPENING_DELIMITER}{BOOL_SUB}"):
         input_variable = input.replace(BOOL_SUB, "")
-        replaced = simple_variable_substitution(input_variable)
+        replaced = simple_variable_substitutions(input_variable)
         if replaced.lower() == "true":
             return True
         if replaced.lower() == "false":
@@ -254,7 +255,7 @@ def substitute_variable_str(
 
     if input.startswith(f"{VAR_OPENING_DELIMITER}{ARRAY_SUB}"):
         input_list = input.replace(ARRAY_SUB, "")
-        replaced_list = simple_variable_substitution(input_list)
+        replaced_list = simple_variable_substitutions(input_list)
         try:
             replaced_list = literal_eval(replaced_list)
         except Exception as e:
@@ -263,7 +264,7 @@ def substitute_variable_str(
 
     if input.startswith(f"{VAR_OPENING_DELIMITER}{TABLE_SUB}"):
         input_array = input.replace(TABLE_SUB, "")
-        replaced_array = simple_variable_substitution(input_array)
+        replaced_array = simple_variable_substitutions(input_array)
         try:
             replaced_array = literal_eval(replaced_array)
         except Exception as e:
@@ -272,7 +273,7 @@ def substitute_variable_str(
 
     # Note: this will break if variable substitutions intended for this
     # preprocessor are mixed with those intended to be passed through
-    return simple_variable_substitution(input)
+    return simple_variable_substitutions(input)
 
 
 def load_json_file_with_variable_substitutions(
@@ -389,7 +390,7 @@ def variable_process_file_contents(
     )
     v_expressions = set(variable_regex.findall(file_contents))
     for v_expression in v_expressions:
-        replacement_expression = substitute_variable_str(
+        replacement_expression = process_typed_variable_substitutions(
             v_expression, prefix=prefix, postfix=postfix
         )
         if isinstance(replacement_expression, str):

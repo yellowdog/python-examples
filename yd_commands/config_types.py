@@ -15,6 +15,7 @@ DEFAULT_URL = "https://portal.yellowdog.co/api"
 NAMESPACE_SEPARATOR = "::"
 CR_BATCH_SIZE_DEFAULT = 10000
 WP_VARIABLES_PREFIX = "__"
+WP_VARIABLES_POSTFIX = "__"
 
 
 @dataclass

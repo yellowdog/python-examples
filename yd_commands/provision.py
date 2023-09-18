@@ -18,7 +18,11 @@ from yellowdog_client.model import (
     ProvisionedWorkerPoolProperties,
 )
 
-from yd_commands.config_types import WP_VARIABLES_PREFIX, ConfigWorkerPool
+from yd_commands.config_types import (
+    WP_VARIABLES_POSTFIX,
+    WP_VARIABLES_PREFIX,
+    ConfigWorkerPool,
+)
 from yd_commands.follow_utils import follow_ids
 from yd_commands.load_config import load_config_worker_pool
 from yd_commands.printing import (
@@ -82,11 +86,11 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     """
     if wp_json_file.lower().endswith(".jsonnet"):
         wp_data = load_jsonnet_file_with_variable_substitutions(
-            wp_json_file, prefix=WP_VARIABLES_PREFIX
+            wp_json_file, prefix=WP_VARIABLES_PREFIX, postfix=WP_VARIABLES_POSTFIX
         )
     else:
         wp_data = load_json_file_with_variable_substitutions(
-            wp_json_file, prefix=WP_VARIABLES_PREFIX
+            wp_json_file, prefix=WP_VARIABLES_PREFIX, postfix=WP_VARIABLES_POSTFIX
         )
 
     # Some values are configurable via the TOML configuration file;

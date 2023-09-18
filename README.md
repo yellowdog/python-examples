@@ -107,7 +107,7 @@
    * [yd-remove](#yd-remove)
    * [yd-follow](#yd-follow)
 
-<!-- Added by: pwt, at: Wed Sep 13 15:24:39 BST 2023 -->
+<!-- Added by: pwt, at: Mon Sep 18 11:30:47 BST 2023 -->
 
 <!--te-->
 
@@ -1644,7 +1644,7 @@ When a JSON Worker Pool specification is used, the following properties from the
 
 Variable substitutions can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
-An important distinction when using variable substitutions within Worker Pool (or Compute Requirement) JSON (or Jsonnet) documents is that each variable directive **must be preceded by a `__` (double underscore)** to disambiguate it from variable substitutions that are to be passed directly to the API. For example, use: `__{{username}}` to apply a substitution for the `username` default substitution.
+An important distinction when using variable substitutions within Worker Pool (or Compute Requirement) JSON (or Jsonnet) documents is that each variable directive **must be prefixed and postfixed by a `__` (double underscore)** to disambiguate it from variable substitutions that are to be passed directly to the API. For example, use: `__{{username}}__` to apply a substitution for the `username` default substitution.
 
 ## Dry-Running Worker Pool Provisioning
 
@@ -2026,7 +2026,7 @@ Please get in touch with YellowDog if you get stuck.
 
 ## Variable Substitutions in Jsonnet Files
 
-The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** and **Compute Requirement** specifications, variable substitutions must be prefixed by `__`, e.g. `"__{{username}}}"`.
+The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** and **Compute Requirement** specifications, variable substitutions must be prefixed and postfixed by `__`, e.g. `"__{{username}}}__"`.
 
 Variable substitution is performed before Jsonnet expansion into JSON, and again after the expansion.
 
@@ -2311,15 +2311,17 @@ The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of 
 
 This command uses the data from the `workerPool` configuration section (or, synonymously, the `computeRequirement` section), but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
-Variable substitutions must be preceeded by a double underscore (`__`), e.g.: `"__{{my_variable}}"`.
+Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename, or by using the `computeRequirementData` property in the `workerPool`/`computeRequirement` section. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file.
 
-Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename, or by using the `computeRequirementData` property in the `workerPool`/`computeRequirement` section. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file. An example JSON specification is shown below:
+Variable substitutions must be prefixed and postfixed by a double underscore (`__`), e.g.: `"__{{my_variable}}__"`.
+
+An example JSON specification is shown below:
 
 ```json
 {
   "imagesId": "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b",
   "instanceTags": {"a1": "one", "a2": "two"},
-  "requirementName": "cr_test_{{datetime}}",
+  "requirementName": "cr_test___{{datetime}}__",
   "requirementNamespace": "pyexamples",
   "requirementTag": "pyexamples-test",
   "templateId": "ydid:crt:000000:230e9a42-97db-4d69-aa91-29ff309951b4",
