@@ -22,6 +22,9 @@ from yd_commands.variables import (
     process_variable_substitutions,
 )
 
+CSV_VAR_OPENING_DELIMITER = "{{"
+CSV_VAR_CLOSING_DELIMITER = "}}"
+
 
 class CSVTaskData:
     """
@@ -238,9 +241,13 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
     """
     Helper function to make string substitutions for CSV variables only.
     """
-    input = input.replace(f"{{{{{var_name}}}}}", value)
+    input = input.replace(
+        f"{CSV_VAR_OPENING_DELIMITER}{var_name}{CSV_VAR_CLOSING_DELIMITER}", value
+    )
 
-    num_sub_str = f"{{{{{NUMBER_SUB}{var_name}}}}}"
+    num_sub_str = (
+        f"{CSV_VAR_OPENING_DELIMITER}{NUMBER_SUB}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+    )
     if num_sub_str in input:
         try:
             float(value)
@@ -248,7 +255,9 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
             raise Exception(f"Invalid number substitution in CSV: '{value}'")
         input = input.replace(f"'{num_sub_str}'", value)
 
-    bool_sub_str = f"{{{{{BOOL_SUB}{var_name}}}}}"
+    bool_sub_str = (
+        f"{CSV_VAR_OPENING_DELIMITER}{BOOL_SUB}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+    )
     if bool_sub_str in input:
         if value.lower() == "true":
             value = "True"
@@ -314,13 +323,20 @@ def substitions_present(var_names: List[str], task_prototype: str) -> bool:
     Check if there are any CSV substitutions present in the Task prototype.
     """
     return (
-        any(f"{{{{{var_name}}}}}" in task_prototype for var_name in var_names)
-        or any(
-            f"{{{{{NUMBER_SUB}{var_name}}}}}" in task_prototype
+        any(
+            f"{CSV_VAR_OPENING_DELIMITER}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+            in task_prototype
             for var_name in var_names
         )
         or any(
-            f"{{{{{BOOL_SUB}{var_name}}}}}" in task_prototype for var_name in var_names
+            f"{CSV_VAR_OPENING_DELIMITER}{NUMBER_SUB}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+            in task_prototype
+            for var_name in var_names
+        )
+        or any(
+            f"{CSV_VAR_OPENING_DELIMITER}{BOOL_SUB}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+            in task_prototype
+            for var_name in var_names
         )
     )
 
