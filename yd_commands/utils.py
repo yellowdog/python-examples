@@ -3,7 +3,7 @@ General utility functions.
 """
 import re
 from os.path import join, normpath, relpath
-from typing import Optional
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 from yellowdog_client.model import (
@@ -92,3 +92,52 @@ def add_batch_number_postfix(name: str, batch_number: int, num_batches: int) -> 
     if num_batches > 1:
         name += "_" + str(batch_number + 1).zfill(len(str(num_batches)))
     return name
+
+
+def get_delimited_string_boundaries(
+    input_string: str,
+    opening_delimiter: str,
+    closing_delimiter: str,
+) -> List[Tuple[int, int]]:
+    """
+    Given an input string and a pair of opening and closing delimiter strings,
+    find the list of start and end indices for the top-level strings enclosed
+    by the opening and closing delimiters.
+
+    For example:
+        if input_string = "abc {{{{x}}_hello}} 234 {{{{world}}}}",
+        and opening_delimiter = "{{", closing_delimiter = "}}",
+        the function will return: [(4, 17), (24, 35)]
+
+    Opening and closing delimiters must be balanced across the entire
+    input_string, otherwise an exception will be raised.
+    """
+    openings = [(x.span()[0], 1) for x in re.finditer(opening_delimiter, input_string)]
+    closings = [(x.span()[0], -1) for x in re.finditer(closing_delimiter, input_string)]
+
+    mismatched_delimiters_exception = Exception(
+        f"Mismatched variable delimiters ('{opening_delimiter}', '{closing_delimiter}')"
+        f" in '{input_string}'"
+    )
+
+    if len(openings) != len(closings):
+        raise mismatched_delimiters_exception
+
+    slate = 0
+    start = None
+    starts_and_ends = []
+
+    for boundary in sorted(openings + closings):
+        slate += boundary[1]
+        if slate < 0:
+            raise mismatched_delimiters_exception
+        if slate == 1 and start is None:
+            start = boundary[0]
+        elif slate == 0:
+            starts_and_ends.append((start, boundary[0]))
+            start = None
+
+    if slate > 0:
+        raise mismatched_delimiters_exception
+
+    return starts_and_ends
