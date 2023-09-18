@@ -2,6 +2,7 @@
 General utility functions.
 """
 import re
+from datetime import datetime
 from os.path import join, normpath, relpath
 from typing import List, Optional, Tuple
 from urllib.parse import urlparse
@@ -14,7 +15,8 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.config_types import NAMESPACE_SEPARATOR
-from yd_commands.variables import UTCNOW
+
+UTCNOW = datetime.utcnow()
 
 
 def unpack_namespace_in_prefix(namespace: str, prefix: str) -> (str, str):
