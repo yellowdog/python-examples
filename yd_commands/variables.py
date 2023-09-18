@@ -30,6 +30,10 @@ VARIABLE_SUBSTITUTIONS = {
     "random": hex(randint(0, RAND_SIZE + 1))[2:].lower().zfill(len(hex(RAND_SIZE)) - 2),
 }
 
+VAR_OPENING_DELIMITER = "{{"
+VAR_CLOSING_DELIMITER = "}}"
+
+
 # Lazy substitutions: 'submit' only
 if "submit" in sys.argv[0]:
     L_WR_NAME = "wr_name"
@@ -116,18 +120,25 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
     # Perform initial substitutions from the substitutions dictionary; this
     # will not substitute variables that have default values
     for sub, value in VARIABLE_SUBSTITUTIONS.items():
-        input_string = input_string.replace(f"{{{{{sub}}}}}", str(value))
+        input_string = input_string.replace(
+            f"{VAR_OPENING_DELIMITER}{sub}{VAR_CLOSING_DELIMITER}", str(value)
+        )
 
     # Create list of variable substitutions with their default values
-    default_re = re.compile("{{.*" + DEFAULT_VAR_SEPARATOR + ".*}}")
+    default_re = re.compile(
+        f"{VAR_OPENING_DELIMITER}.*"
+        + DEFAULT_VAR_SEPARATOR
+        + f".*{VAR_CLOSING_DELIMITER}"
+    )
     substitutions_with_defaults = default_re.findall(input_string)
     default_subs = []  # List of [variable_name, default_value]
     for sub in substitutions_with_defaults:
-        # Remove the first instance of '{{' and the last instance of '}}'
+        # Remove the first instance of VAR_OPENING_DELIMITER and the
+        # last instance of VAR_CLOSING_DELIMITER.
         # Requires the string first to be reversed for the latter
         variable_default = (
-            sub.replace("{{", "", 1)[::-1]  # Reverse string
-            .replace("}}", "", 1)[::-1]  # Re-reverese
+            sub.replace(f"{VAR_OPENING_DELIMITER}", "", 1)[::-1]  # Reverse string
+            .replace(f"{VAR_CLOSING_DELIMITER}", "", 1)[::-1]  # Re-reverese
             .split(DEFAULT_VAR_SEPARATOR)
         )
         if (
@@ -139,20 +150,24 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
         default_subs.append(variable_default)
 
     # Remove default variable values if present (i.e., remove ':=<default>')
-    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + ".*}}")
-    input_string = default_value_re.sub("}}", input_string)
+    default_value_re = re.compile(DEFAULT_VAR_SEPARATOR + f".*{VAR_CLOSING_DELIMITER}")
+    input_string = default_value_re.sub(f"{VAR_CLOSING_DELIMITER}", input_string)
 
     # Repeat substitutions from the substitutions dictionary, now that defaults
     # have been removed
     for sub, value in VARIABLE_SUBSTITUTIONS.items():
-        input_string = input_string.replace(f"{{{{{sub}}}}}", str(value))
+        input_string = input_string.replace(
+            f"{VAR_OPENING_DELIMITER}{sub}{VAR_CLOSING_DELIMITER}", str(value)
+        )
 
     # Perform default substitutions for variables that remain unpopulated;
     # allows for multiple variables with the same name, but with different
     # default values
     for var_name, default_value in default_subs:
         input_string = input_string.replace(
-            f"{{{{{var_name}}}}}", str(default_value), 1
+            f"{VAR_OPENING_DELIMITER}{var_name}{VAR_CLOSING_DELIMITER}",
+            str(default_value),
+            1,
         )
 
     return input_string
@@ -210,7 +225,7 @@ def substitute_variable_str(
 
     input = input.replace(prefix, "")
 
-    if input.startswith(f"{{{{{NUMBER_SUB}"):
+    if input.startswith(f"{VAR_OPENING_DELIMITER}{NUMBER_SUB}"):
         input_variable = input.replace(NUMBER_SUB, "")
         replaced = simple_variable_substitution(input_variable)
         try:
@@ -225,7 +240,7 @@ def substitute_variable_str(
                 )
         return replaced_number
 
-    if input.startswith(f"{{{{{BOOL_SUB}"):
+    if input.startswith(f"{VAR_OPENING_DELIMITER}{BOOL_SUB}"):
         input_variable = input.replace(BOOL_SUB, "")
         replaced = simple_variable_substitution(input_variable)
         if replaced.lower() == "true":
@@ -236,7 +251,7 @@ def substitute_variable_str(
             f"Non-boolean used in variable boolean substitution: '{input}':'{replaced}'"
         )
 
-    if input.startswith(f"{{{{{ARRAY_SUB}"):
+    if input.startswith(f"{VAR_OPENING_DELIMITER}{ARRAY_SUB}"):
         input_list = input.replace(ARRAY_SUB, "")
         replaced_list = simple_variable_substitution(input_list)
         try:
@@ -245,7 +260,7 @@ def substitute_variable_str(
             raise Exception(f"Property cannot be parsed as an array: '{replaced_list}'")
         return replaced_list
 
-    if input.startswith(f"{{{{{TABLE_SUB}"):
+    if input.startswith(f"{VAR_OPENING_DELIMITER}{TABLE_SUB}"):
         input_array = input.replace(TABLE_SUB, "")
         replaced_array = simple_variable_substitution(input_array)
         try:
@@ -357,7 +372,9 @@ def variable_process_file_contents(file_contents: str, prefix: str) -> str:
     """
     Process substitutions in the raw contents of a complete file.
     """
-    variable_regex = re.compile(prefix + "{{.*}}")
+    variable_regex = re.compile(
+        prefix + f"{VAR_OPENING_DELIMITER}.*{VAR_CLOSING_DELIMITER}"
+    )
     v_expressions = set(variable_regex.findall(file_contents))
     for v_expression in v_expressions:
         replacement_expression = substitute_variable_str(v_expression, prefix=prefix)
