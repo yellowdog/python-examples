@@ -174,19 +174,15 @@ def simple_variable_substitution(input_string: Optional[str]) -> Optional[str]:
 
 
 def process_variable_substitutions(
-    dict_data: Dict,
-    prefix: str = "",
+    dict_data: Dict, prefix: str = "", postfix: str = ""
 ):
     """
     Process a dictionary representing JSON or TOML data.
     Edits the dictionary in-situ.
 
-    Optional 'prefix' allows variable substitutions intended for this
-    preprocessor to be disambiguated from those to be passed through
+    Optional 'prefix' and 'postfix' allow variable substitutions intended
+    for this preprocessor to be disambiguated from those to be passed through
     (specifically for Node Actions in WP JSON documents).
-
-    Allows the use of variable substitutions prefixed with 'num:' or
-    'bool:' to be substituted for their correct types.
     """
 
     def _walk_data(data: Union[Dict, List]):
@@ -197,13 +193,17 @@ def process_variable_substitutions(
         if isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, str):
-                    data[key] = substitute_variable_str(value, prefix=prefix)
+                    data[key] = substitute_variable_str(
+                        value, prefix=prefix, postfix=postfix
+                    )
                 elif isinstance(value, dict) or isinstance(value, list):
                     _walk_data(value)
         elif isinstance(data, list):
             for index, item in enumerate(data):
                 if isinstance(item, str):
-                    data[index] = substitute_variable_str(item, prefix=prefix)
+                    data[index] = substitute_variable_str(
+                        item, prefix=prefix, postfix=postfix
+                    )
                 elif isinstance(item, dict) or isinstance(item, list):
                     _walk_data(item)
 
@@ -211,7 +211,7 @@ def process_variable_substitutions(
 
 
 def substitute_variable_str(
-    input: Optional[str], prefix: str = ""
+    input: Optional[str], prefix: str = "", postfix: str = ""
 ) -> Optional[Union[str, int, bool, float]]:
     """
     Transform type-tagged and normal variable
@@ -220,10 +220,11 @@ def substitute_variable_str(
     if input is None:
         return None
 
-    if prefix not in input:
+    if prefix not in input or postfix not in input:
         return input
 
     input = input.replace(prefix, "")
+    input = input.replace(postfix, "")
 
     if input.startswith(f"{VAR_OPENING_DELIMITER}{NUMBER_SUB}"):
         input_variable = input.replace(NUMBER_SUB, "")
@@ -274,18 +275,24 @@ def substitute_variable_str(
     return simple_variable_substitution(input)
 
 
-def load_json_file_with_variable_substitutions(filename: str, prefix: str = "") -> Dict:
+def load_json_file_with_variable_substitutions(
+    filename: str, prefix: str = "", postfix: str = ""
+) -> Dict:
     """
     Takes a JSON filename and returns a dictionary with its variable
     substitutions processed.
     """
     with open(filename, "r") as f:
         file_contents = f.read()
-    file_contents = variable_process_file_contents(file_contents, prefix=prefix)
+    file_contents = variable_process_file_contents(
+        file_contents, prefix=prefix, postfix=postfix
+    )
     return json_loads(file_contents)
 
 
-def load_jsonnet_file_with_variable_substitutions(filename: str, prefix="") -> Dict:
+def load_jsonnet_file_with_variable_substitutions(
+    filename: str, prefix="", postfix: str = ""
+) -> Dict:
     """
     Takes a Jsonnet filename and returns a dictionary with its variable
     substitutions processed.
@@ -294,12 +301,12 @@ def load_jsonnet_file_with_variable_substitutions(filename: str, prefix="") -> D
     from _jsonnet import evaluate_file
 
     with VariableSubstitutedJsonnetFile(
-        filename=filename, prefix=prefix
+        filename=filename, prefix=prefix, postfix=postfix
     ) as preprocessed_filename:
         dict_data = json_loads(evaluate_file(preprocessed_filename))
 
     # Secondary processing after Jsonnet expansion
-    process_variable_substitutions(dict_data, prefix)
+    process_variable_substitutions(dict_data, prefix, postfix)
 
     if ARGS_PARSER.jsonnet_dry_run:
         print_log("Dry-run: Printing Jsonnet to JSON conversion")
@@ -310,7 +317,9 @@ def load_jsonnet_file_with_variable_substitutions(filename: str, prefix="") -> D
     return dict_data
 
 
-def load_toml_file_with_variable_substitutions(filename: str, prefix: str = "") -> Dict:
+def load_toml_file_with_variable_substitutions(
+    filename: str, prefix: str = "", postfix: str = ""
+) -> Dict:
     """
     Takes a TOML filename and returns a dictionary with its variable
     substitutions processed.
@@ -332,7 +341,7 @@ def load_toml_file_with_variable_substitutions(filename: str, prefix: str = "") 
         pass
 
     for _ in range(NESTED_DEPTH):
-        process_variable_substitutions(config, prefix=prefix)
+        process_variable_substitutions(config, prefix=prefix, postfix=postfix)
 
     return config
 
@@ -345,9 +354,10 @@ class VariableSubstitutedJsonnetFile:
     evaluator, then deleted.
     """
 
-    def __init__(self, filename: str, prefix: str = ""):
+    def __init__(self, filename: str, prefix: str = "", postfix: str = ""):
         self.filename = filename
         self.prefix = prefix
+        self.postfix = postfix
 
     def __enter__(self) -> str:
         """
@@ -357,7 +367,7 @@ class VariableSubstitutedJsonnetFile:
         with open(self.filename, "r") as file:
             file_contents = file.read()
         processed_file_contents: str = variable_process_file_contents(
-            file_contents, self.prefix
+            file_contents, self.prefix, self.postfix
         )
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
             temp_file.write(processed_file_contents)
@@ -368,16 +378,20 @@ class VariableSubstitutedJsonnetFile:
         os.remove(self.temp_filename)
 
 
-def variable_process_file_contents(file_contents: str, prefix: str) -> str:
+def variable_process_file_contents(
+    file_contents: str, prefix: str, postfix: str = ""
+) -> str:
     """
     Process substitutions in the raw contents of a complete file.
     """
     variable_regex = re.compile(
-        prefix + f"{VAR_OPENING_DELIMITER}.*{VAR_CLOSING_DELIMITER}"
+        prefix + f"{VAR_OPENING_DELIMITER}.*{VAR_CLOSING_DELIMITER}" + postfix
     )
     v_expressions = set(variable_regex.findall(file_contents))
     for v_expression in v_expressions:
-        replacement_expression = substitute_variable_str(v_expression, prefix=prefix)
+        replacement_expression = substitute_variable_str(
+            v_expression, prefix=prefix, postfix=postfix
+        )
         if isinstance(replacement_expression, str):
             file_contents = file_contents.replace(v_expression, replacement_expression)
         else:
