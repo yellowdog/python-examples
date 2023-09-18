@@ -5,8 +5,13 @@ Utility functions for provisioning
 from os import chdir
 from typing import Optional
 
-from yd_commands.config_types import ConfigWorkerPool
+from yd_commands.config_types import (
+    WP_VARIABLES_POSTFIX,
+    WP_VARIABLES_PREFIX,
+    ConfigWorkerPool,
+)
 from yd_commands.property_names import USERDATA, USERDATAFILE, USERDATAFILES
+from yd_commands.variables import process_variable_substitutions_in_file_contents
 
 
 def get_user_data_property(
@@ -33,15 +38,26 @@ def get_user_data_property(
                 f"Unable to switch to content directory '{content_path}': {e}"
             )
 
+    user_data = None
+
     if config.user_data:
-        return config.user_data
-    if config.user_data_file:
+        user_data = config.user_data
+
+    elif config.user_data_file:
         with open(config.user_data_file, "r") as f:
-            return f.read()
-    if config.user_data_files:
-        user_data_contents = ""
+            user_data = f.read()
+
+    elif config.user_data_files:
+        user_data = ""
         for user_data_file in config.user_data_files:
             with open(user_data_file, "r") as f:
-                user_data_contents += f.read()
-                user_data_contents += "\n"
-        return user_data_contents
+                user_data += f.read()
+                user_data += "\n"
+
+    if user_data is not None:
+        try:
+            return process_variable_substitutions_in_file_contents(
+                user_data, prefix=WP_VARIABLES_PREFIX, postfix=WP_VARIABLES_POSTFIX
+            )
+        except Exception as e:
+            raise Exception(f"Error processing variable substitutions: {e}")

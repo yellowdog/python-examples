@@ -18,6 +18,7 @@
    * [User-Defined Variables](#user-defined-variables)
    * [Nested Variables](#nested-variables)
    * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
+   * [Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data](#variable-substitutions-in-worker-pool-and-compute-requirement-specifications-and-in-user-data)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
@@ -107,7 +108,7 @@
    * [yd-remove](#yd-remove)
    * [yd-follow](#yd-follow)
 
-<!-- Added by: pwt, at: Mon Sep 18 11:30:47 BST 2023 -->
+<!-- Added by: pwt, at: Mon Sep 18 16:03:18 BST 2023 -->
 
 <!--te-->
 
@@ -437,6 +438,12 @@ In TOML files only, nested variable substitutions can be used inside default val
 ```toml
 name = "{{name_var:={{tag}}-{{datetime}}}}"
 ```
+
+## Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
+
+In JSON specifications for Worker Pools and Compute Requirements, variable substitutions can be used, but they must be prefixed and postfixed by a double underscore `__`, e.g., `__{{username}}__`. This is to disambiguate them from variable substitutions intended for Mustache processing at the platform end.
+
+Variable substitutions can also be used within **User Data** to be supplied to instances, for which the same prefix/postfix requirement applies, **including** for User Data supplied directly using the `userData` property in the `workerPool` section of the TOML file.
 
 # Work Requirement Properties
 
