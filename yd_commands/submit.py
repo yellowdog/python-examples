@@ -820,7 +820,7 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     Follow and report the progress of a Work Requirement.
     Replacement for the SDK version above.
     """
-    print_log("Following Work Requirement Event Stream")
+    print_log("Following Work Requirement event stream")
     follow_events(work_requirement.id, YDIDType.WORK_REQ)
 
 
@@ -1203,7 +1203,7 @@ def submit_json_raw(wr_file: str):
                         else input["namespace"]
                     )
                     verify_at_start_files.add(
-                        f"{namespace} :: {input['objectNamePattern']}"
+                        f"{namespace}::{input['objectNamePattern']}"
                     )
 
     # Warn about VERIFY_AT_START files & halt to allow upload or
