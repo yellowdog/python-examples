@@ -503,54 +503,55 @@ The following table outlines all the properties available for defining Work Requ
 
 All properties are optional except for **`taskType`** (or **`taskTypes`**).
 
-| Property Name              | Description                                                                                                                                                              | TOML | WR  | TGrp | Task |
-|:---------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
-| `alwaysUpload`             | Whether to attempt to upload task outputs on failure. Default: `true`.                                                                                                   | Yes  | Yes | Yes  | Yes  |
-| `arguments`                | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                  | Yes  | Yes | Yes  | Yes  |
-| `captureTaskOutput`        | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                     | Yes  | Yes | Yes  | Yes  |
-| `completedTaskTtl`         | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                     | Yes  | Yes | Yes  |      |
-| `csvFile`                  | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                 | Yes  |     |      |      |
-| `csvFiles`                 | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                        | Yes  |     |      |      |
-| `dependentOn`              | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.             |      |     | Yes  |      |
-| `dockerEnvironment`        | The environment to be passed to a Docker container. Only used by the `docker` Task Type. E.g., JSON: `{"VAR_1": "abc"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.         | Yes  | Yes | Yes  | Yes  |
-| `dockerPassword`           | The password for DockerHub, only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                  | Yes  | Yes | Yes  | Yes  |
-| `dockerUsername`           | The username for DockerHub, only used by the `docker` Task Type. E,g., `"my_username"`.                                                                                  | Yes  | Yes | Yes  | Yes  |
-| `environment`              | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                  | Yes  | Yes | Yes  | Yes  |
-| `exclusiveWorkers`         | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                       | Yes  | Yes | Yes  |      |
-| `executable`               | The 'executable' to run when a Bash or Docker Task is executed. Bash script for Bash, container image for Docker. Optional: omit to suppress automatic processing.       | Yes  | Yes | Yes  | Yes  |
-| `finishIfAllTasksFinished` | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                         | Yes  | Yes | Yes  |      |
-| `finishIfAnyTaskFailed`    | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                       | Yes  | Yes | Yes  |      |
-| `flattenInputPaths`        | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                               | Yes  | Yes | Yes  | Yes  |
-| `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                        | Yes  | Yes |      |      |
-| `fulfilOnSubmit`           | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                        | Yes  | Yes |      |      |
-| `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]` or `["*.sh"]`.         | Yes  | Yes | Yes  | Yes  |
-| `inputsOptional`           | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                     | Yes  | Yes | Yes  | Yes  |
-| `instanceTypes`            | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                         | Yes  | Yes | Yes  |      |
-| `maximumTaskRetries`       | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                        | Yes  | Yes | Yes  |      |
-| `maxWorkers`               | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                             | Yes  | Yes | Yes  |      |
-| `minWorkers`               | The minimum number of Workers that the associated Task Group requires. This many workers must be claimed before the associated Task Group will start working. E.g., `1`. | Yes  | Yes | Yes  |      |
-| `name`                     | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                 | Yes  | Yes | Yes  | Yes  |
-| `outputs`                  | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                           | Yes  | Yes | Yes  | Yes  |
-| `outputsRequired`          | The files that *must* be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. The Task will fail if any outputs are unavailable.           | Yes  | Yes | Yes  | Yes  |
-| `priority`                 | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. E.g., `0.0`.                                                | Yes  | Yes | Yes  |      |
-| `providers`                | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                           | Yes  | Yes | Yes  |      |
-| `ram`                      | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                    | Yes  | Yes | Yes  |      |
-| `regions`                  | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                  | Yes  | Yes | Yes  |      |
-| `taskBatchSize`            | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                            | Yes  |     |      |      |
-| `taskCount`                | The number of times to execute the Task. Can be set in the TOML file or in any JSON Task Group definition. Note: no inheritance from TOML to JSON.                       | Yes  |     | Yes  |      |
-| `taskData`                 | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when The Task executes.      | Yes  | Yes | Yes  | Yes  |
-| `taskDataFile`             | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                         | Yes  | Yes | Yes  | Yes  |
-| `taskName`                 | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                   | Yes  |     |      |      |
-| `taskGroupName`            | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                          | Yes  |     |      |      |
-| `taskType`                 | The Task Type of a Task. E.g., `"docker"`.                                                                                                                               | Yes  |     |      | Yes  |
-| `taskTypes`                | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                        |      | Yes | Yes  |      |
-| `tasksPerWorker`           | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                      | Yes  | Yes | Yes  |      |
-| `uploadFiles`              | The list of files to be uploaded to the YellowDog Object Store. E.g., (JSON): `[{"localPath": file_1.txt", "uploadPath": "file_1.txt"}]`.                                | Yes  | Yes | Yes  | Yes  |
-| `vcpus`                    | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                               | Yes  | Yes | Yes  |      |
-| `verifyAtStart`            | A list of files required by a Task. Must be present when the Task is ready to start or the Task will fail. E.g.: `["task_group_1/task_1/results.txt"]`.                  | Yes  | Yes | Yes  | Yes  |
-| `verifyWait`               | A list of files required by a Task. The Task will wait until the files are available before starting. E.g.: `["task_group_1/task_1/results.txt"]`.                       | Yes  | Yes | Yes  | Yes  |
-| `workerTags`               | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                             | Yes  | Yes | Yes  |      |
-| `workRequirementData`      | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                 | Yes  |     |      |      |
+| Property Name              | Description                                                                                                                                                                                                                                | TOML | WR  | TGrp | Task |
+|:---------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
+| `alwaysUpload`             | Whether to attempt to upload task outputs on failure. Default: `true`.                                                                                                                                                                     | Yes  | Yes | Yes  | Yes  |
+| `arguments`                | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `captureTaskOutput`        | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                                                                                       | Yes  | Yes | Yes  | Yes  |
+| `completedTaskTtl`         | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                                                                                       | Yes  | Yes | Yes  |      |
+| `csvFile`                  | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                                                                                   | Yes  |     |      |      |
+| `csvFiles`                 | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                                                                                          | Yes  |     |      |      |
+| `dependentOn`              | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.                                                                               |      |     | Yes  |      |
+| `dockerEnvironment`        | The environment to be passed to a Docker container. Only used by the `docker` Task Type. E.g., JSON: `{"VAR_1": "abc"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                           | Yes  | Yes | Yes  | Yes  |
+| `dockerPassword`           | The password for DockerHub, only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `dockerUsername`           | The username for DockerHub, only used by the `docker` Task Type. E,g., `"my_username"`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `environment`              | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `exclusiveWorkers`         | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                                                                                         | Yes  | Yes | Yes  |      |
+| `executable`               | The 'executable' to run when a Bash or Docker Task is executed. Bash script for Bash, container image for Docker. Optional: omit to suppress automatic processing.                                                                         | Yes  | Yes | Yes  | Yes  |
+| `finishIfAllTasksFinished` | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                           | Yes  | Yes | Yes  |      |
+| `finishIfAnyTaskFailed`    | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                                         | Yes  | Yes | Yes  |      |
+| `flattenInputPaths`        | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                                                                                                 | Yes  | Yes | Yes  | Yes  |
+| `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                                                                                          | Yes  | Yes |      |      |
+| `fulfilOnSubmit`           | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                                                                                          | Yes  | Yes |      |      |
+| `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]` or `["*.sh"]`.                                                                           | Yes  | Yes | Yes  | Yes  |
+| `inputsOptional`           | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                                                                                       | Yes  | Yes | Yes  | Yes  |
+| `instanceTypes`            | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                                                                                           | Yes  | Yes | Yes  |      |
+| `maximumTaskRetries`       | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                                                                                          | Yes  | Yes | Yes  |      |
+| `maxWorkers`               | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                                                                                               | Yes  | Yes | Yes  |      |
+| `minWorkers`               | The minimum number of Workers that the associated Task Group requires. This many workers must be claimed before the associated Task Group will start working. E.g., `1`.                                                                   | Yes  | Yes | Yes  |      |
+| `name`                     | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                                                                                   | Yes  | Yes | Yes  | Yes  |
+| `outputs`                  | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                                                                                             | Yes  | Yes | Yes  | Yes  |
+| `outputsOther`             | Files to be uploaded to the YellowDog Object Store from outside the Tasks's Working Directory by a Worker node on completion of a Task. E.g., `outputsOther = [{"directoryName" = "tmp", "filePattern" = "out.txt", "required" = false}]`. | Yes  | Yes | Yes  | Yes  |
+| `outputsRequired`          | The files that *must* be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. The Task will fail if any outputs are unavailable.                                                                             | Yes  | Yes | Yes  | Yes  |
+| `priority`                 | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. E.g., `0.0`.                                                                                                                  | Yes  | Yes | Yes  |      |
+| `providers`                | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                                                                                             | Yes  | Yes | Yes  |      |
+| `ram`                      | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                                                                                      | Yes  | Yes | Yes  |      |
+| `regions`                  | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                                                                                    | Yes  | Yes | Yes  |      |
+| `taskBatchSize`            | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                                                                                              | Yes  |     |      |      |
+| `taskCount`                | The number of times to execute the Task. Can be set in the TOML file or in any JSON Task Group definition. Note: no inheritance from TOML to JSON.                                                                                         | Yes  |     | Yes  |      |
+| `taskData`                 | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when The Task executes.                                                                        | Yes  | Yes | Yes  | Yes  |
+| `taskDataFile`             | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                                                                                           | Yes  | Yes | Yes  | Yes  |
+| `taskName`                 | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                                                     | Yes  |     |      |      |
+| `taskGroupName`            | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                                            | Yes  |     |      |      |
+| `taskType`                 | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                                                 | Yes  |     |      | Yes  |
+| `taskTypes`                | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                                                                                          |      | Yes | Yes  |      |
+| `tasksPerWorker`           | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                                                                                        | Yes  | Yes | Yes  |      |
+| `uploadFiles`              | The list of files to be uploaded to the YellowDog Object Store. E.g., (JSON): `[{"localPath": file_1.txt", "uploadPath": "file_1.txt"}]`.                                                                                                  | Yes  | Yes | Yes  | Yes  |
+| `vcpus`                    | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                                                                                                 | Yes  | Yes | Yes  |      |
+| `verifyAtStart`            | A list of files required by a Task. Must be present when the Task is ready to start or the Task will fail. E.g.: `["task_group_1/task_1/results.txt"]`.                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `verifyWait`               | A list of files required by a Task. The Task will wait until the files are available before starting. E.g.: `["task_group_1/task_1/results.txt"]`.                                                                                         | Yes  | Yes | Yes  | Yes  |
+| `workerTags`               | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                                               | Yes  | Yes | Yes  |      |
+| `workRequirementData`      | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                                                                                   | Yes  |     |      |      |
 
 ## Automatic Properties
 
@@ -685,6 +686,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     minWorkers = 1
     name = "my-work-requirement"
     outputs = ["results.txt"]
+    outputsOther = [{"directoryName" = "my_output_dir", "filePattern" = "out.txt", "required" = true}]
     outputsRequired = ["results_required.txt"]
     priority = 0.0
     providers = ["AWS"]
@@ -735,6 +737,7 @@ Showing all possible properties at the Work Requirement level:
   "minWorkers": 1,
   "name": "my-work-requirement",
   "outputs": ["results.txt"],
+  "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
   "outputsRequired": ["results_required.txt"],
   "priority": 0.0,
   "providers": ["AWS"],
@@ -789,6 +792,7 @@ Showing all possible properties at the Task Group level:
       "minWorkers": 1,
       "name": "first-task-group",
       "outputs": ["results.txt"],
+      "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
       "outputsRequired": ["results_required.txt"],
       "priority": 0.0,
       "providers": ["AWS"],
@@ -842,6 +846,7 @@ Showing all possible properties at the Task level:
           "inputsOptional": ["optional.txt"],
           "name": "my-task",
           "outputs": ["results.txt"],
+          "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
           "outputsRequired": ["results_required.txt"],
           "taskData": "my_task_data_string",
           "taskDataFile": "my_data_file.txt",
@@ -1171,7 +1176,7 @@ The Work Requirement name would then be available to the Task in the environment
 
 ### Files Uploaded from a Node to the Object Store after Task Execution
 
-After Task completion, the Agent will upload specified output files to the Object Store. The files to be uploaded are those listed in the `outputs` and `outputsRequired` properties for the Task.
+After Task completion, the Agent will upload specified output files to the Object Store. The files to be uploaded are those listed in the `outputs`, `outputsRequired`, and `outputsOther` properties for the Task.
 
 In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded to the Object Store is determined by the `captureTaskOutput` property for the Task, and this is set to 'true' by default.
 
@@ -1190,6 +1195,20 @@ development::testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
 The **`outputsRequired`** property can be used instead of (or in addition to) the `outputs` property, if the output file(s) **must** be available for upload to the Object Store at the conclusion of the Task or the Task will be marked as `Failed`, e.g.:
 
 `"outputsRequired": ["results/process_output.txt"]`
+
+The **`outputsOther`** property is used to collect outputs from directories that are not contained under the Task's working directory. In this case, the YellowDog Agent must be explicitly configured to allow upload from these directories by establishing this in the `application.yaml` file. For example:
+
+```yaml
+yda.outputSources:
+  - name: "my_output_dir"
+    path: "/tmp/outputs"
+```
+
+Then, in the list of entries in the `outputsOther` property, the `directoryName` property is set to be the **`name`** specified in the `application.yaml`. For example:
+
+```json
+"outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}]
+```
 
 ### Files Downloaded from the Object Store to Local Storage
 

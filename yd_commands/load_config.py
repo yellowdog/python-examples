@@ -249,6 +249,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             max_workers=wr_section.get(MAX_WORKERS, None),
             min_workers=wr_section.get(MIN_WORKERS, None),
             outputs_optional=wr_section.get(OUTPUTS_OPTIONAL, []),
+            outputs_other=wr_section.get(OUTPUTS_OTHER, []),
             outputs_required=wr_section.get(OUTPUTS_REQUIRED, []),
             priority=wr_section.get(PRIORITY, 0.0),
             providers=wr_section.get(PROVIDERS, None),

@@ -53,6 +53,7 @@ class ConfigWorkRequirement:
     max_workers: Optional[int] = None
     min_workers: Optional[int] = None
     outputs_optional: List[str] = field(default_factory=list)
+    outputs_other: List[Dict] = field(default_factory=list)
     outputs_required: List[str] = field(default_factory=list)
     priority: float = 0.0
     providers: Optional[List[str]] = None

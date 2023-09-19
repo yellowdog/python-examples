@@ -363,6 +363,7 @@ def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Di
         (config_wr.inputs_optional, INPUTS_OPTIONAL),
         (config_wr.inputs_required, INPUTS_REQUIRED),
         (config_wr.outputs_optional, OUTPUTS_OPTIONAL),
+        (config_wr.outputs_other, OUTPUTS_OTHER),
         (config_wr.outputs_required, OUTPUTS_REQUIRED),
         (config_wr.task_data, TASK_DATA),
         (config_wr.task_data_file, TASK_DATA_FILE),

@@ -682,6 +682,30 @@ def add_tasks_to_task_group(
                 )
             ]
 
+            # Add the contents of the 'outputsOther' property
+            for output_other in check_list(
+                task.get(
+                    OUTPUTS_OTHER,
+                    task_group_data.get(
+                        OUTPUTS_OTHER,
+                        wr_data.get(OUTPUTS_OTHER, CONFIG_WR.outputs_other),
+                    ),
+                )
+            ):
+                check_dict(output_other)
+                try:
+                    outputs.append(
+                        TaskOutput.from_directory(
+                            directory_name=output_other[DIRECTORY_NAME],
+                            file_pattern=output_other[FILE_PATTERN],
+                            required=output_other[REQUIRED],
+                        )
+                    )
+                except KeyError as e:
+                    raise Exception(
+                        f"Missing field in property '{OUTPUTS_OTHER}' ({e})"
+                    )
+
             # Add TaskOutput to 'outputs'?
             if check_bool(
                 task.get(

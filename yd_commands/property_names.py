@@ -13,12 +13,14 @@ COMPUTE_REQUIREMENT_SECTION = "computeRequirement"  # No value
 CSV_FILE = "csvFile"  # String
 CSV_FILES = "csvFiles"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String
+DIRECTORY_NAME = "directoryName"  # String
 DOCKER_ENV = "dockerEnvironment"  # Dictionary
 DOCKER_PASSWORD = "dockerPassword"  # String
 DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
 EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
 EXECUTABLE = "executable"  # String
+FILE_PATTERN = "filePattern"  # String
 FINISH_IF_ALL_TASKS_FINISHED = "finishIfAllTasksFinished"  # Boolean
 FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
 FLATTEN_PATHS = "flattenInputPaths"  # Boolean
@@ -47,11 +49,13 @@ NAMESPACE = "namespace"  # String
 NAME_TAG = "tag"  # String
 NODE_BOOT_TIMEOUT = "nodeBootTimeout"  # Float
 OUTPUTS_OPTIONAL = "outputs"  # List of Strings
+OUTPUTS_OTHER = "outputsOther"  # List of Dicts
 OUTPUTS_REQUIRED = "outputsRequired"  # List of Strings
 PRIORITY = "priority"  # Float
 PROVIDERS = "providers"  # List of Strings
 RAM = "ram"  # List of two Floats
 REGIONS = "regions"  # List of Strings
+REQUIRED = "required"  # Boolean
 SECRET = "secret"  # String
 TARGET_INSTANCE_COUNT = "targetInstanceCount"  # Integer
 TASKS = "tasks"  # List of Tasks
@@ -100,12 +104,14 @@ ALL_KEYS = [
     CSV_FILE,
     CSV_FILES,
     DEPENDENT_ON,
+    DIRECTORY_NAME,
     DOCKER_ENV,
     DOCKER_PASSWORD,
     DOCKER_USERNAME,
     ENV,
     EXCLUSIVE_WORKERS,
     EXECUTABLE,
+    FILE_PATTERN,
     FINISH_IF_ALL_TASKS_FINISHED,
     FINISH_IF_ANY_TASK_FAILED,
     FLATTEN_PATHS,
@@ -133,11 +139,13 @@ ALL_KEYS = [
     NAME_TAG,
     NODE_BOOT_TIMEOUT,
     OUTPUTS_OPTIONAL,
+    OUTPUTS_OTHER,
     OUTPUTS_REQUIRED,
     PRIORITY,
     PROVIDERS,
     RAM,
     REGIONS,
+    REQUIRED,
     SECRET,
     TARGET_INSTANCE_COUNT,
     TASKS,
