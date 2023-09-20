@@ -2,9 +2,10 @@
 General utility functions.
 """
 import re
+from dataclasses import dataclass
 from datetime import datetime
 from os.path import join, normpath, relpath
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from urllib.parse import urlparse
 
 from yellowdog_client.model import (
@@ -99,11 +100,17 @@ def add_batch_number_postfix(name: str, batch_number: int, num_batches: int) -> 
 #
 # Functions for handling delimited variables within strings.
 #
+@dataclass(order=True)
+class Substring:
+    start: int
+    end: int
+
+
 def get_delimited_string_boundaries(
     input_string: str,
     opening_delimiter: str,
     closing_delimiter: str,
-) -> List[Tuple[int, int]]:
+) -> List[Substring]:
     """
     Given an input string and a pair of opening and closing delimiter strings,
     find the list of start and end indices for the top-level strings enclosed
@@ -112,7 +119,7 @@ def get_delimited_string_boundaries(
     For example:
         if input_string = "abc {{{{x}}_hello}} 234 {{{{world}}}}",
         and opening_delimiter = "{{", closing_delimiter = "}}",
-        the function will return: [(4, 19), (24, 37)]
+        the function will return Substring objects: [(4, 19), (24, 37)]
 
     Opening and closing delimiters must be balanced across the entire
     input_string, otherwise an exception will be raised.
@@ -130,7 +137,7 @@ def get_delimited_string_boundaries(
 
     slate = 0
     start = None
-    starts_and_ends = []
+    substrings: List[Substring] = []
 
     for boundary in sorted(openings + closings):
         slate += boundary[1]
@@ -139,13 +146,15 @@ def get_delimited_string_boundaries(
         if slate == 1 and start is None:
             start = boundary[0]
         elif slate == 0:
-            starts_and_ends.append((start, boundary[0] + len(closing_delimiter)))
+            substrings.append(
+                Substring(start=start, end=boundary[0] + len(closing_delimiter))
+            )
             start = None
 
     if slate > 0:
         raise mismatched_delimiters_exception
 
-    return starts_and_ends
+    return substrings
 
 
 def split_delimited_string(
@@ -162,7 +171,7 @@ def split_delimited_string(
     """
 
     # Get delimited boundaries
-    delimited_boundaries = get_delimited_string_boundaries(
+    delimited_boundaries: List[Substring] = get_delimited_string_boundaries(
         s, opening_delimiter, closing_delimiter
     )
 
@@ -170,24 +179,28 @@ def split_delimited_string(
         return [s]
 
     # Get non-delimited boundaries (i.e., the gaps)
-    non_delimited_boundaries = []
-    if delimited_boundaries[0][0] > 0:  # Non-variable text at start?
-        non_delimited_boundaries.insert(0, (0, delimited_boundaries[0][0]))
+    non_delimited_boundaries: List[Substring] = []
+    if delimited_boundaries[0].start > 0:  # Non-variable text at start?
+        non_delimited_boundaries.insert(
+            0, Substring(start=0, end=delimited_boundaries[0].start)
+        )
     for index in range(len(delimited_boundaries) - 1):
         non_delimited_boundaries.insert(
             index + 1,
             (
-                delimited_boundaries[index][1],
-                delimited_boundaries[index + 1][0],
+                Substring(
+                    start=delimited_boundaries[index].end,
+                    end=delimited_boundaries[index + 1].start,
+                )
             ),
         )
     # Non-variable text at end?
-    final_boundary: int = delimited_boundaries[len(delimited_boundaries) - 1][1]
+    final_boundary: int = delimited_boundaries[len(delimited_boundaries) - 1].end
     if len(s) > final_boundary:
-        non_delimited_boundaries.append((final_boundary, len(s)))
+        non_delimited_boundaries.append(Substring(start=final_boundary, end=len(s)))
 
     return [
-        s[boundary[0] : boundary[1]]
+        s[boundary.start : boundary.end]
         for boundary in sorted(non_delimited_boundaries + delimited_boundaries)
     ]
 

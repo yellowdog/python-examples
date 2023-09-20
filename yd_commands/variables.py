@@ -167,13 +167,13 @@ def process_typed_variable_substitutions(
     # NOTE: This is a partial implementation that retains parity with the
     #       previous implementation. Refactoring will continue.
     return_value = None
-    for start_delimiter, end_delimiter in get_delimited_string_boundaries(
+    for substring in get_delimited_string_boundaries(
         input_string=input_string,
         opening_delimiter=opening_delimiter,
         closing_delimiter=closing_delimiter,
     ):
         return_value = process_typed_variable_substitution(
-            input_string[start_delimiter:end_delimiter],
+            input_string[substring.start : substring.end],
             opening_delimiter,
             closing_delimiter,
         )
