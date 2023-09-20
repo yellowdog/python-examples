@@ -176,18 +176,13 @@ def main():
         )
 
     else:
-        task_count = (
-            CONFIG_WR.task_count
-            if ARGS_PARSER.task_count is None
-            else ARGS_PARSER.task_count
-        )
         submit_work_requirement(
             directory_to_upload_from=(
                 CONFIG_FILE_DIR
                 if ARGS_PARSER.content_path is None
                 else ARGS_PARSER.content_path
             ),
-            task_count=task_count,
+            task_count=CONFIG_WR.task_count,
         )
 
     if ARGS_PARSER.dry_run:
@@ -471,10 +466,11 @@ def add_tasks_to_task_group(
         wr_data[TASK_GROUPS][tg_number][TASKS] = [{}]
         num_tasks = 1
 
-    # If 'taskCount' is set at the Task Group level, and there is only one Task,
-    # create 'taskCount' copies of the Task.
-    # Note: NOT inherited from the TOML or WR levels.
-    task_group_task_count = wr_data[TASK_GROUPS][tg_number].get(TASK_COUNT, None)
+    # If the 'taskCount' property is set, and there is only one Task
+    # in the Task Group, create 'taskCount' duplicates of the Task.
+    task_group_task_count = wr_data[TASK_GROUPS][tg_number].get(
+        TASK_COUNT, wr_data.get(TASK_COUNT, CONFIG_WR.task_count)
+    )
     if task_group_task_count is not None:
         if num_tasks == 1:
             # Expand the number of Tasks to match the specified Task count

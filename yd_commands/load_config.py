@@ -223,6 +223,12 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             else ARGS_PARSER.task_batch_size
         )
 
+        task_count = (
+            ARGS_PARSER.task_count
+            if ARGS_PARSER.task_count is not None
+            else wr_section.get(TASK_COUNT, 1)
+        )
+
         return ConfigWorkRequirement(
             always_upload=wr_section.get(ALWAYS_UPLOAD, True),
             args=wr_section.get(ARGS, []),
@@ -256,7 +262,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             ram=wr_section.get(RAM, None),
             regions=wr_section.get(REGIONS, None),
             task_batch_size=task_batch_size,
-            task_count=wr_section.get(TASK_COUNT, 1),
+            task_count=task_count,
             task_data=wr_section.get(TASK_DATA, None),
             task_data_file=wr_section.get(TASK_DATA_FILE, None),
             task_group_name=wr_section.get(TASK_GROUP_NAME, None),
