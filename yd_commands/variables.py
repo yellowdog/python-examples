@@ -17,7 +17,11 @@ from yd_commands.args import ARGS_PARSER
 from yd_commands.check_imports import check_jsonnet_import
 from yd_commands.printing import print_error, print_json, print_log
 from yd_commands.property_names import *
-from yd_commands.utils import UTCNOW, get_delimited_string_boundaries
+from yd_commands.utils import (
+    UTCNOW,
+    get_delimited_string_boundaries,
+    remove_outer_delimiters,
+)
 
 # Set up default variable substitutions
 RAND_SIZE = 0xFFF
@@ -169,7 +173,7 @@ def process_typed_variable_substitutions(
         closing_delimiter=closing_delimiter,
     ):
         return_value = process_typed_variable_substitution(
-            input_string[start_delimiter : end_delimiter + len(closing_delimiter)],
+            input_string[start_delimiter:end_delimiter],
             opening_delimiter,
             closing_delimiter,
         )
@@ -277,15 +281,9 @@ def process_untyped_variable_substitutions(
     )
     default_value_substitutions = []  # List of (variable_name, default_value)
     for substitution in substitutions_with_defaults:
-        # Remove delimiters:
-        # remove the first instance of 'opening_delimiter' and the
-        # last instance of 'closing_delimiter' (requires the string & delimiter
-        # first to be reversed, then re-reversed)
-        variable_default = (
-            substitution.replace(f"{opening_delimiter}", "", 1)[::-1]  # Reverse string
-            .replace(f"{closing_delimiter[::-1]}", "", 1)[::-1]  # Re-reverse
-            .split(DEFAULT_VAR_SEPARATOR)
-        )
+        variable_default = remove_outer_delimiters(
+            substitution, opening_delimiter, closing_delimiter
+        ).split(DEFAULT_VAR_SEPARATOR)
         if (
             variable_default[0] == ""
             or variable_default[1] == ""

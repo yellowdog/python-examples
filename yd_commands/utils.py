@@ -96,6 +96,9 @@ def add_batch_number_postfix(name: str, batch_number: int, num_batches: int) -> 
     return name
 
 
+#
+# Functions for handling delimited variables within strings.
+#
 def get_delimited_string_boundaries(
     input_string: str,
     opening_delimiter: str,
@@ -109,7 +112,7 @@ def get_delimited_string_boundaries(
     For example:
         if input_string = "abc {{{{x}}_hello}} 234 {{{{world}}}}",
         and opening_delimiter = "{{", closing_delimiter = "}}",
-        the function will return: [(4, 17), (24, 35)]
+        the function will return: [(4, 19), (24, 37)]
 
     Opening and closing delimiters must be balanced across the entire
     input_string, otherwise an exception will be raised.
@@ -136,10 +139,68 @@ def get_delimited_string_boundaries(
         if slate == 1 and start is None:
             start = boundary[0]
         elif slate == 0:
-            starts_and_ends.append((start, boundary[0]))
+            starts_and_ends.append((start, boundary[0] + len(closing_delimiter)))
             start = None
 
     if slate > 0:
         raise mismatched_delimiters_exception
 
     return starts_and_ends
+
+
+def split_delimited_string(
+    s: str, opening_delimiter: str, closing_delimiter: str
+) -> List[str]:
+    """
+    This function takes a string containing delimited sections and breaks it
+    into a list of strings, including the non-delimited sections.
+    Delimiters are retained.
+
+    For example:
+      when called with ("one{{two}}three{{{{four}}}}five", "{{", "}}")
+      the result is: ['one', '{{two}}', 'three', '{{{{four}}}}', 'five']
+    """
+
+    # Get delimited boundaries
+    delimited_boundaries = get_delimited_string_boundaries(
+        s, opening_delimiter, closing_delimiter
+    )
+
+    if len(delimited_boundaries) == 0:
+        return [s]
+
+    # Get non-delimited boundaries (i.e., the gaps)
+    non_delimited_boundaries = []
+    if delimited_boundaries[0][0] > 0:  # Non-variable text at start?
+        non_delimited_boundaries.insert(0, (0, delimited_boundaries[0][0]))
+    for index in range(len(delimited_boundaries) - 1):
+        non_delimited_boundaries.insert(
+            index + 1,
+            (
+                delimited_boundaries[index][1],
+                delimited_boundaries[index + 1][0],
+            ),
+        )
+    # Non-variable text at end?
+    final_boundary: int = delimited_boundaries[len(delimited_boundaries) - 1][1]
+    if len(s) > final_boundary:
+        non_delimited_boundaries.append((final_boundary, len(s)))
+
+    return [
+        s[boundary[0] : boundary[1]]
+        for boundary in sorted(non_delimited_boundaries + delimited_boundaries)
+    ]
+
+
+def remove_outer_delimiters(
+    input_string: str, opening_delimiter: str, closing_delimiter: str
+) -> str:
+    """
+    Remove the outermost delimiters from a string.
+    There is no checking for a well-formed string.
+    """
+    # The string and the closing delimiter must be reversed ([::-1]) for
+    # removal, then re-reversed
+    return input_string.replace(f"{opening_delimiter}", "", 1)[::-1].replace(
+        f"{closing_delimiter[::-1]}", "", 1
+    )[::-1]
