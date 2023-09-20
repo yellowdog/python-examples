@@ -147,7 +147,7 @@ pyexamples_theme = Theme(
         "pyexamples.completed": "bold green4",
         "pyexamples.cancelled": "bold grey35",
         "pyexamples.active": "bold deep_sky_blue4",
-        "pyexamples.idle": "bold bright_magenta",
+        "pyexamples.idle": "bold dark_goldenrod",
         "pyexamples.starved": "bold dark_orange",
     }
 )
