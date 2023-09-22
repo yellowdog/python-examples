@@ -17,7 +17,7 @@ from yd_commands.config_types import (
 )
 from yd_commands.printing import print_error, print_log
 from yd_commands.upload_utils import unique_upload_pathname, upload_file_core
-from yd_commands.variables import process_typed_variable_substitutions
+from yd_commands.variables import process_variable_substitutions
 from yd_commands.wrapper import ARGS_PARSER
 
 
@@ -233,6 +233,6 @@ def update_config_work_requirement(config_wr: ConfigWorkRequirement):
     Update a ConfigWorkRequirement Object with the current dictionary of
     variable substitutions. Returns the updated object.
     """
-    config_wr_str_processed = process_typed_variable_substitutions(str(config_wr))
+    config_wr_str_processed = process_variable_substitutions(str(config_wr))
     # Note: 'literal_eval' doesn't work here
     return eval(config_wr_str_processed)

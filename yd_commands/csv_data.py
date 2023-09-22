@@ -373,6 +373,7 @@ def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Di
         (config_wr.upload_files, UPLOAD_FILES),
         (config_wr.verify_at_start, VERIFY_AT_START),
         (config_wr.verify_wait, VERIFY_WAIT),
+        # Note: not TASK_COUNT; count determined by CSV data
     ]:
         if config_value is not None and substitions_present(
             csv_data.var_names, str(config_value)

@@ -15,13 +15,10 @@ from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.check_imports import check_jsonnet_import
+from yd_commands.config_types import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.printing import print_error, print_json, print_log
 from yd_commands.property_names import *
-from yd_commands.utils import (
-    UTCNOW,
-    get_delimited_string_boundaries,
-    remove_outer_delimiters,
-)
+from yd_commands.utils import UTCNOW, remove_outer_delimiters, split_delimited_string
 
 # Set up default variable substitutions
 RAND_SIZE = 0xFFF
@@ -100,7 +97,7 @@ def add_substitutions(subs: Dict):
     # Populate variables that can now be substituted
     # Ensure that the value is stored as a string
     for key, value in VARIABLE_SUBSTITUTIONS.items():
-        VARIABLE_SUBSTITUTIONS[key] = process_typed_variable_substitutions(str(value))
+        VARIABLE_SUBSTITUTIONS[key] = process_variable_substitutions(str(value))
 
 
 def add_substitution_overwrite(key: str, value: str):
@@ -130,15 +127,23 @@ def process_variable_substitutions_in_dict_insitu(
         if isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, str):
-                    data[key] = process_typed_variable_substitutions(
-                        value, prefix=prefix, postfix=postfix
-                    )
+                    # Require the use of post/prefix only for userData in TOML
+                    if key == USERDATA:
+                        data[key] = process_variable_substitutions(
+                            value,
+                            prefix=WP_VARIABLES_PREFIX,
+                            postfix=WP_VARIABLES_POSTFIX,
+                        )
+                    else:
+                        data[key] = process_variable_substitutions(
+                            value, prefix=prefix, postfix=postfix
+                        )
                 elif isinstance(value, dict) or isinstance(value, list):
                     _walk_data(value)
         elif isinstance(data, list):
             for index, item in enumerate(data):
                 if isinstance(item, str):
-                    data[index] = process_typed_variable_substitutions(
+                    data[index] = process_variable_substitutions(
                         item, prefix=prefix, postfix=postfix
                     )
                 elif isinstance(item, dict) or isinstance(item, list):
@@ -147,7 +152,7 @@ def process_variable_substitutions_in_dict_insitu(
     _walk_data(dict_data)
 
 
-def process_typed_variable_substitutions(
+def process_variable_substitutions(
     input_string: Optional[str], prefix: str = "", postfix: str = ""
 ) -> Optional[Union[str, int, bool, float, List, Dict]]:
     """
@@ -163,109 +168,71 @@ def process_typed_variable_substitutions(
     if opening_delimiter not in input_string or closing_delimiter not in input_string:
         return input_string  # Nothing to process
 
-    # Iterate through the top-level variable substitutions
-    # NOTE: This is a partial implementation that retains parity with the
-    #       previous implementation. Refactoring will continue.
-    return_value = None
-    for substring in get_delimited_string_boundaries(
-        input_string=input_string,
-        opening_delimiter=opening_delimiter,
-        closing_delimiter=closing_delimiter,
-    ):
-        return_value = process_typed_variable_substitution(
-            input_string[substring.start : substring.end],
-            opening_delimiter,
-            closing_delimiter,
-        )
-        break  # Break out of the loop: handles variable types at the start only
+    # Remember the top-level type tag, if present; a type-tag is only
+    # relevant if at the start of the string to be processed;
+    # 'None' indicates no type, i.e., a string
+    try:
+        type_tag = re.findall(
+            f"^{opening_delimiter}({NUMBER_SUB}|{BOOL_SUB}|{TABLE_SUB}|{ARRAY_SUB})",
+            input_string,
+        )[0].replace(opening_delimiter, "")
+    except IndexError:
+        type_tag = None
 
-    if return_value is not None:
-        return return_value  # Typed substitution found
+    # Now remove all other type-tags
+    for type_sub in [NUMBER_SUB, BOOL_SUB, TABLE_SUB, ARRAY_SUB]:
+        input_string = input_string.replace(type_sub, "")
 
-    return process_untyped_variable_substitutions(
+    # Disassemble and rebuild the input string, with substitutions processed
+    # in each element in turn
+    return_str = ""
+    for element in split_delimited_string(
         input_string, opening_delimiter, closing_delimiter
-    )  # String substitution
-
-
-def process_typed_variable_substitution(
-    input_string: Optional[str], opening_delimiter: str, closing_delimiter: str
-) -> Optional[Union[str, int, bool, float, List, Dict]]:
-    """
-    Process a single typed substitution, returning the appropriate type.
-    Assumes there is a substitution present.
-    """
-    if input_string.startswith(f"{opening_delimiter}{NUMBER_SUB}"):
-        input_variable = input_string.replace(NUMBER_SUB, "", 1)
-        replaced = process_untyped_variable_substitutions(
-            input_variable, opening_delimiter, closing_delimiter
-        )
-        try:
-            replaced_number = int(replaced)
-        except ValueError:
-            try:
-                replaced_number = float(replaced)
-            except ValueError:
-                raise Exception(
-                    "Non-number used in variable number "
-                    f"substitution: '{input}':'{replaced}'"
-                )
-        return replaced_number
-
-    if input_string.startswith(f"{opening_delimiter}{BOOL_SUB}"):
-        input_variable = input_string.replace(BOOL_SUB, "", 1)
-        replaced = process_untyped_variable_substitutions(
-            input_variable, opening_delimiter, closing_delimiter
-        )
-        if replaced.lower() == "true":
-            return True
-        if replaced.lower() == "false":
-            return False
-        raise Exception(
-            f"Non-boolean used in variable boolean substitution: '{input}':'{replaced}'"
-        )
-
-    if input_string.startswith(f"{opening_delimiter}{ARRAY_SUB}"):
-        input_list = input_string.replace(ARRAY_SUB, "", 1)
-        replaced_list = process_untyped_variable_substitutions(
-            input_list, opening_delimiter, closing_delimiter
-        )
-        try:
-            replaced_list = literal_eval(replaced_list)
-        except Exception as e:
-            raise Exception(
-                f"Property cannot be parsed as an array: '{replaced_list}' ({e}"
+    ):
+        if element.startswith(opening_delimiter):
+            return_str += process_untyped_variable_substitutions(
+                element, opening_delimiter, closing_delimiter
             )
-        return replaced_list
+        else:
+            return_str += element
 
-    if input_string.startswith(f"{opening_delimiter}{TABLE_SUB}"):
-        input_array = input_string.replace(TABLE_SUB, "", 1)
-        replaced_array = process_untyped_variable_substitutions(
-            input_array, opening_delimiter, closing_delimiter
-        )
-        try:
-            replaced_array = literal_eval(replaced_array)
-        except Exception as e:
-            raise Exception(
-                f"Property cannot be parsed as a table: '{replaced_array}' ({e})"
-            )
-        return replaced_array
-
-    # return process_untyped_variable_substitutions(
-    #     input_string, opening_delimiter, closing_delimiter
-    # )
-
-    return None
+    if type_tag is None:
+        return return_str
+    else:
+        # Return the requested type
+        return process_typed_variable_substitution(type_tag, return_str)
 
 
 def process_untyped_variable_substitutions(
-    input_string: Optional[str], opening_delimiter: str, closing_delimiter: str
+    input_string: Optional[str],
+    opening_delimiter: str,
+    closing_delimiter: str,
 ) -> Optional[str]:
     """
     Apply untyped variable substitutions to a supplied input string,
-    including applying default values.
+    including applying default values if present and required.
+    Uses recursion to process variables from the innermost level outwards.
     """
     if input_string is None:
         return None
+
+    # Check if there are inner variables
+    undelimited_input_string = remove_outer_delimiters(
+        input_string, opening_delimiter, closing_delimiter
+    )
+    if (
+        opening_delimiter in undelimited_input_string
+        and closing_delimiter in undelimited_input_string
+    ):
+        # Recursive call to resolve innermost variables first
+        processed_string = ""
+        for element in split_delimited_string(
+            undelimited_input_string, opening_delimiter, closing_delimiter
+        ):
+            processed_string += process_untyped_variable_substitutions(
+                element, opening_delimiter, closing_delimiter
+            )
+        input_string = opening_delimiter + processed_string + closing_delimiter
 
     # Perform initial substitutions from the substitutions dictionary; this
     # will not substitute variables that have default values
@@ -321,6 +288,56 @@ def process_untyped_variable_substitutions(
     return input_string
 
 
+def process_typed_variable_substitution(
+    type_string: str, input_string: str
+) -> Optional[Union[str, int, bool, float, List, Dict]]:
+    """
+    Process a single typed substitution, returning the appropriate type.
+    Assumes there is a substitution present.
+    """
+    if type_string == NUMBER_SUB:
+        try:
+            return int(input_string)
+        except ValueError:
+            try:
+                return float(input_string)
+            except ValueError:
+                raise Exception(
+                    f"Non-number used in variable number substitution: '{input_string}'"
+                )
+
+    if type_string == BOOL_SUB:
+        if input_string.lower() == "true":
+            return True
+        if input_string.lower() == "false":
+            return False
+        raise Exception(
+            f"Non-boolean used in variable boolean substitution: '{input_string}'"
+        )
+
+    if type_string == ARRAY_SUB:
+        try:
+            return_value = literal_eval(input_string)
+            if not isinstance(return_value, List):
+                raise Exception("Not an array/list")
+            return return_value
+        except Exception as e:
+            raise Exception(
+                f"Property cannot be parsed as an array: '{input_string}' ({e})"
+            )
+
+    if type_string == TABLE_SUB:
+        try:
+            return_value = literal_eval(input_string)
+            if not isinstance(return_value, Dict):
+                raise Exception("Not a table/dict")
+            return return_value
+        except Exception as e:
+            raise Exception(
+                f"Property cannot be parsed as a table: '{input_string}' ({e})"
+            )
+
+
 def load_json_file_with_variable_substitutions(
     filename: str, prefix: str = "", postfix: str = ""
 ) -> Dict:
@@ -337,7 +354,7 @@ def load_json_file_with_variable_substitutions(
 
 
 def load_jsonnet_file_with_variable_substitutions(
-    filename: str, prefix="", postfix: str = ""
+    filename: str, prefix: str = "", postfix: str = ""
 ) -> Dict:
     """
     Takes a Jsonnet filename and returns a dictionary with its variable
@@ -409,7 +426,7 @@ def process_variable_substitutions_in_file_contents(
     )
 
     for v_expression in v_expressions:
-        replacement_expression = process_typed_variable_substitutions(
+        replacement_expression = process_variable_substitutions(
             v_expression, prefix=prefix, postfix=postfix
         )
         if isinstance(replacement_expression, str):

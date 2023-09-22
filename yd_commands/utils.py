@@ -40,7 +40,7 @@ def pathname_relative_to_config_file(config_file_dir: str, file: str) -> str:
     return normpath(relpath(join(config_file_dir, file)))
 
 
-def generate_id(prefix: str, max_length: int = 60) -> str:
+def generate_id(prefix: str = "", max_length: int = 60) -> str:
     """
     Add a UTC timestamp and check length.
     """

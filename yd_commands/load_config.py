@@ -32,7 +32,7 @@ from yd_commands.variables import (
     NESTED_DEPTH,
     add_substitutions,
     load_toml_file_with_variable_substitutions,
-    process_typed_variable_substitutions,
+    process_variable_substitutions,
     process_variable_substitutions_in_dict_insitu,
 )
 
@@ -111,7 +111,7 @@ def load_config_common() -> ConfigCommon:
                     f"for '{key_name}'"
                 )
 
-        url = process_typed_variable_substitutions(common_section.get(URL, DEFAULT_URL))
+        url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
             print_log(f"Using the YellowDog API at: {url}")
 
@@ -120,13 +120,13 @@ def load_config_common() -> ConfigCommon:
         # substitutions for the items in its dictionary each time it's
         # called
         add_substitutions(subs={URL: url})
-        key = process_typed_variable_substitutions(common_section[KEY])
+        key = process_variable_substitutions(common_section[KEY])
         add_substitutions(subs={KEY: key})
-        secret = process_typed_variable_substitutions(common_section[SECRET])
+        secret = process_variable_substitutions(common_section[SECRET])
         add_substitutions(subs={SECRET: secret})
-        namespace = process_typed_variable_substitutions(common_section[NAMESPACE])
+        namespace = process_variable_substitutions(common_section[NAMESPACE])
         add_substitutions(subs={NAMESPACE: namespace})
-        name_tag = process_typed_variable_substitutions(common_section[NAME_TAG])
+        name_tag = process_variable_substitutions(common_section[NAME_TAG])
         add_substitutions(subs={NAME_TAG: name_tag})
 
         return ConfigCommon(
@@ -182,12 +182,12 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         if worker_tags is not None:
             check_list(worker_tags)
             for index, worker_tag in enumerate(worker_tags):
-                worker_tags[index] = process_typed_variable_substitutions(worker_tag)
+                worker_tags[index] = process_variable_substitutions(worker_tag)
 
         wr_data_file = wr_section.get(WR_DATA, None)
         if wr_data_file is not None:
             check_str(wr_data_file)
-            wr_data_file = process_typed_variable_substitutions(wr_data_file)
+            wr_data_file = process_variable_substitutions(wr_data_file)
             wr_data_file = pathname_relative_to_config_file(
                 CONFIG_FILE_DIR, wr_data_file
             )
@@ -198,7 +198,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             if ARGS_PARSER.executable is None
             else ARGS_PARSER.executable
         )
-        executable = process_typed_variable_substitutions(executable)
+        executable = process_variable_substitutions(executable)
 
         task_type = (
             wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, None))
@@ -207,7 +207,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         )
         if task_type is not None:
             check_str(task_type)
-            task_type = process_typed_variable_substitutions(task_type)
+            task_type = process_variable_substitutions(task_type)
 
         csv_file = wr_section.get(CSV_FILE, None)
         csv_files = wr_section.get(CSV_FILES, None)
@@ -314,13 +314,11 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
         return ConfigWorkerPool()
 
     try:
-        worker_tag = process_typed_variable_substitutions(
-            wp_section.get(WORKER_TAG, None)
-        )
-        worker_pool_data_file = process_typed_variable_substitutions(
+        worker_tag = process_variable_substitutions(wp_section.get(WORKER_TAG, None))
+        worker_pool_data_file = process_variable_substitutions(
             wp_section.get(WORKER_POOL_DATA_FILE, None)
         )
-        compute_requirement_data_file = process_typed_variable_substitutions(
+        compute_requirement_data_file = process_variable_substitutions(
             wp_section.get(COMPUTE_REQUIREMENT_DATA_FILE, None)
         )
         if (
@@ -359,7 +357,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
             max_nodes_set=(False if wp_section.get(MAX_NODES) is None else True),
             min_nodes=wp_section.get(MIN_NODES, 0),
             min_nodes_set=(False if wp_section.get(MIN_NODES) is None else True),
-            name=process_typed_variable_substitutions(
+            name=process_variable_substitutions(
                 wp_section.get(WP_NAME, None),
             ),
             node_boot_timeout=wp_section.get(NODE_BOOT_TIMEOUT, 10.0),

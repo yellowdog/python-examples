@@ -468,8 +468,10 @@ def add_tasks_to_task_group(
 
     # If the 'taskCount' property is set, and there is only one Task
     # in the Task Group, create 'taskCount' duplicates of the Task.
-    task_group_task_count = wr_data[TASK_GROUPS][tg_number].get(
-        TASK_COUNT, wr_data.get(TASK_COUNT, CONFIG_WR.task_count)
+    task_group_task_count = check_int(
+        wr_data[TASK_GROUPS][tg_number].get(
+            TASK_COUNT, wr_data.get(TASK_COUNT, CONFIG_WR.task_count)
+        )
     )
     if task_group_task_count is not None:
         if num_tasks == 1:
