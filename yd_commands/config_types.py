@@ -5,17 +5,7 @@ Configuration classes and constants.
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-YD_KEY = "YD_KEY"
-YD_SECRET = "YD_SECRET"
-YD_NAMESPACE = "YD_NAMESPACE"
-YD_TAG = "YD_TAG"
-YD_URL = "YD_URL"
-TASK_BATCH_SIZE_DEFAULT = 2000
-DEFAULT_URL = "https://portal.yellowdog.co/api"
-NAMESPACE_SEPARATOR = "::"
-CR_BATCH_SIZE_DEFAULT = 10000
-WP_VARIABLES_PREFIX = "__"
-WP_VARIABLES_POSTFIX = "__"
+from yd_commands.settings import CR_BATCH_SIZE_DEFAULT, TASK_BATCH_SIZE_DEFAULT
 
 
 @dataclass

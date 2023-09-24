@@ -5,12 +5,9 @@ Utility functions for provisioning
 from os import chdir
 from typing import Optional
 
-from yd_commands.config_types import (
-    WP_VARIABLES_POSTFIX,
-    WP_VARIABLES_PREFIX,
-    ConfigWorkerPool,
-)
+from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.property_names import USERDATA, USERDATAFILE, USERDATAFILES
+from yd_commands.settings import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.variables import process_variable_substitutions_in_file_contents
 
 

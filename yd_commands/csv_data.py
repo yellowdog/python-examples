@@ -15,15 +15,16 @@ from yd_commands.args import ARGS_PARSER
 from yd_commands.config_types import ConfigWorkRequirement
 from yd_commands.printing import print_json, print_log
 from yd_commands.property_names import *
+from yd_commands.settings import (
+    BOOL_TYPE_TAG,
+    CSV_VAR_CLOSING_DELIMITER,
+    CSV_VAR_OPENING_DELIMITER,
+    NUMBER_TYPE_TAG,
+)
 from yd_commands.variables import (
-    BOOL_SUB,
-    NUMBER_SUB,
     load_jsonnet_file_with_variable_substitutions,
     process_variable_substitutions_in_dict_insitu,
 )
-
-CSV_VAR_OPENING_DELIMITER = "{{"
-CSV_VAR_CLOSING_DELIMITER = "}}"
 
 
 class CSVTaskData:
@@ -245,9 +246,7 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
         f"{CSV_VAR_OPENING_DELIMITER}{var_name}{CSV_VAR_CLOSING_DELIMITER}", value
     )
 
-    num_sub_str = (
-        f"{CSV_VAR_OPENING_DELIMITER}{NUMBER_SUB}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
-    )
+    num_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{NUMBER_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
     if num_sub_str in input:
         try:
             float(value)
@@ -255,9 +254,7 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
             raise Exception(f"Invalid number substitution in CSV: '{value}'")
         input = input.replace(f"'{num_sub_str}'", value)
 
-    bool_sub_str = (
-        f"{CSV_VAR_OPENING_DELIMITER}{BOOL_SUB}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
-    )
+    bool_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{BOOL_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
     if bool_sub_str in input:
         if value.lower() == "true":
             value = "True"
@@ -329,12 +326,12 @@ def substitions_present(var_names: List[str], task_prototype: str) -> bool:
             for var_name in var_names
         )
         or any(
-            f"{CSV_VAR_OPENING_DELIMITER}{NUMBER_SUB}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+            f"{CSV_VAR_OPENING_DELIMITER}{NUMBER_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
             in task_prototype
             for var_name in var_names
         )
         or any(
-            f"{CSV_VAR_OPENING_DELIMITER}{BOOL_SUB}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+            f"{CSV_VAR_OPENING_DELIMITER}{BOOL_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
             in task_prototype
             for var_name in var_names
         )

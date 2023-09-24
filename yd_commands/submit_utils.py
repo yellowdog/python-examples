@@ -10,12 +10,9 @@ from typing import List, Optional
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ObjectPath, TaskInput, TaskInputVerification
 
-from yd_commands.config_types import (
-    NAMESPACE_SEPARATOR,
-    ConfigCommon,
-    ConfigWorkRequirement,
-)
+from yd_commands.config_types import ConfigCommon, ConfigWorkRequirement
 from yd_commands.printing import print_error, print_log
+from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 from yd_commands.upload_utils import unique_upload_pathname, upload_file_core
 from yd_commands.variables import process_variable_substitutions
 from yd_commands.wrapper import ARGS_PARSER
@@ -62,7 +59,7 @@ def get_namespace_and_filepath(
     Find the namespace and path, using the namespace separator.
     """
     try:
-        file_parts = file.split(NAMESPACE_SEPARATOR)
+        file_parts = file.split(NAMESPACE_PREFIX_SEPARATOR)
 
         if len(file_parts) == 1:
             # Use the Work Requirement ID, if supplied, as the directory
@@ -157,7 +154,7 @@ class UploadedFiles:
             else:
                 print_log(
                     f"Dry-run: Would upload '{upload_file}' to"
-                    f" '{namespace}::{uploaded_file_path}'"
+                    f" '{namespace}{NAMESPACE_PREFIX_SEPARATOR}{uploaded_file_path}'"
                 )
 
             self._uploaded_files.append(
@@ -187,7 +184,9 @@ class UploadedFiles:
                 flatten_upload_paths=flatten_upload_paths,
             )
             # Force 'uploaded_file_name' to be at the root of the namespace
-            self.add_upload_file(filename, f"{NAMESPACE_SEPARATOR}{upload_file_name}")
+            self.add_upload_file(
+                filename, f"{NAMESPACE_PREFIX_SEPARATOR}{upload_file_name}"
+            )
 
         return expanded_files
 

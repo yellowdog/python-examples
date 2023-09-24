@@ -15,7 +15,7 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
-from yd_commands.config_types import NAMESPACE_SEPARATOR
+from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 
 UTCNOW = datetime.utcnow()
 
@@ -25,7 +25,7 @@ def unpack_namespace_in_prefix(namespace: str, prefix: str) -> (str, str):
     Allow the prefix to include the namespace, which can override the supplied
     namespace. Return the unpacked (namespace, prefix) tuple.
     """
-    elems = prefix.split(NAMESPACE_SEPARATOR)
+    elems = prefix.split(NAMESPACE_PREFIX_SEPARATOR)
     if len(elems) == 1:
         return namespace, prefix.lstrip("/")
     if len(elems) == 2:

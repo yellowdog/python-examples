@@ -24,10 +24,9 @@ from yd_commands.object_utilities import (
     get_work_requirement_summary_by_name_or_id,
 )
 from yd_commands.printing import print_error, print_log
+from yd_commands.settings import TASK_ABORT_CHECK_INTERVAL
 from yd_commands.utils import link_entity
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
-
-ABORT_RETRY_INTERVAL = 20  # Seconds
 
 
 @main_wrapper
@@ -201,8 +200,10 @@ def abort_and_follow(work_requirement_summaries: List[WorkRequirementSummary]):
             print_log(f"Collecting Tasks to abort (attempt {attempt})")
             if abort_all_tasks(work_requirement_summaries) == 0:
                 break
-            print_log(f"Waiting {ABORT_RETRY_INTERVAL}s for abort confirmation ...")
-            sleep(ABORT_RETRY_INTERVAL)
+            print_log(
+                f"Waiting {TASK_ABORT_CHECK_INTERVAL}s for abort confirmation ..."
+            )
+            sleep(TASK_ABORT_CHECK_INTERVAL)
     else:
         print_log("Aborting all currently running Tasks")
         abort_all_tasks(work_requirement_summaries)

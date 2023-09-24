@@ -52,52 +52,21 @@ from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.id_utils import YDIDType
 from yd_commands.object_utilities import Item
 from yd_commands.property_names import NAME, TASK_GROUPS, TASKS
-
-JSON_INDENT = 2
-MAX_LINES_FORMATTED_JSON = 1024
+from yd_commands.settings import (
+    DEFAULT_LOG_WIDTH,
+    DEFAULT_THEME,
+    ERROR_STYLE,
+    HIGHLIGHTED_STATES,
+    JSON_INDENT,
+    MAX_LINES_COLOURED_JSON,
+    NAMESPACE_PREFIX_SEPARATOR,
+    WARNING_STYLE,
+)
 
 try:
     LOG_WIDTH = get_terminal_size().columns
 except OSError:
-    LOG_WIDTH = 120  # Default log line width
-
-
-HIGHLIGHTED_STATES = [
-    r"(?P<active>EXECUTING)",
-    r"(?P<failed>FAILED)",
-    r"(?P<completed>COMPLETED)",
-    r"(?P<cancelled>CANCELLED)",
-    r"(?P<cancelled>ABORTED)",
-    r"(?P<active>RUNNING)",
-    r"(?P<transitioning>PROVISIONING)",
-    r"(?P<transitioning>TERMINATING)",
-    r"(?P<cancelled>TERMINATED)",
-    r"(?P<cancelled>SHUTDOWN)",
-    r"(?P<cancelled>CANCELLING)",
-    r"(?P<idle>IDLE)",
-    r"(?P<active>PENDING)",
-    r"(?P<idle>EMPTY)",
-    r"(?P<active>READY)",
-    r"(?P<active>ALLOCATED)",
-    r"(?P<starved>STARVED)",
-    r"(?P<transitioning>CONFIGURING)",
-    r"(?P<transitioning>UPLOADING)",
-    r"(?P<transitioning>DOWNLOADING)",
-    r"(?P<idle>WAITING)",
-    r"(?P<failed>FAILING)",
-    r"(?P<transitioning>NEW)",
-    r"(?P<transitioning>STOPPING)",
-    r"(?P<cancelled>STOPPED)",
-    r"(?P<transitioning>UNKNOWN)",
-    r"(?P<transitioning>UNAVAILABLE)",
-    r"(?P<active>DOING_TASK)",
-    r"(?P<idle>SLEEPING)",
-    r"(?P<transitioning>LATE)",
-    r"(?P<idle>FOUND)",
-    r"(?P<failed>LOST)",
-    r"(?P<active>TARGET)",
-    r"(?P<active>EXPECTED)",
-]
+    LOG_WIDTH = DEFAULT_LOG_WIDTH  # Default log line width
 
 
 # Set up Rich formatting for coloured output
@@ -133,27 +102,8 @@ class PrintTableHighlighter(RegexHighlighter):
 # For Rich colour options, see colour list & swatches at:
 # https://rich.readthedocs.io/en/stable/appendix/colors.html
 
-pyexamples_theme = Theme(
-    {
-        "pyexamples.date_time": "bold deep_sky_blue1",
-        "pyexamples.quoted": "bold green4",
-        "pyexamples.url": "bold green4",
-        "pyexamples.ydid": "bold dark_orange",
-        "pyexamples.table_outline": "bold deep_sky_blue4",
-        "pyexamples.table_content": "bold green4",
-        "pyexamples.transitioning": "bold dark_orange",
-        "pyexamples.executing": "bold deep_sky_blue4",
-        "pyexamples.failed": "bold red3",
-        "pyexamples.completed": "bold green4",
-        "pyexamples.cancelled": "bold grey35",
-        "pyexamples.active": "bold deep_sky_blue4",
-        "pyexamples.idle": "bold dark_goldenrod",
-        "pyexamples.starved": "bold dark_orange",
-    }
-)
+pyexamples_theme = Theme(DEFAULT_THEME)
 
-ERROR_STYLE = "bold red3"
-WARNING_STYLE = "red3"
 
 CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
 CONSOLE_TABLE = Console(highlighter=PrintTableHighlighter(), theme=pyexamples_theme)
@@ -659,7 +609,7 @@ def print_json(
         json_string = "\n".join(json_string.splitlines()[1:])
 
     # Coloured formatting of JSON console output is expensive
-    if json_string.count("\n") > MAX_LINES_FORMATTED_JSON:
+    if json_string.count("\n") > MAX_LINES_COLOURED_JSON:
         if with_final_comma:
             print(json_string, end=",\n")
         else:
@@ -813,7 +763,7 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
             [
                 index + 1,
                 file_entry.source_file_path,
-                f"{upload_batch_builder.namespace}::{file_entry.default_object_name}",
+                f"{upload_batch_builder.namespace}{NAMESPACE_PREFIX_SEPARATOR}{file_entry.default_object_name}",
             ]
         )
     print()
@@ -839,7 +789,7 @@ def print_batch_download_files(
     table = []
     # Yes, I know I shouldn't be accessing '_source_object_entries'
     for index, object_entry in enumerate(download_batch_builder._source_object_entries):
-        object_source = f"{object_entry.namespace}::{object_entry.object_name}"
+        object_source = f"{object_entry.namespace}{NAMESPACE_PREFIX_SEPARATOR}{object_entry.object_name}"
         object_target = (
             f"{object_entry.object_name.replace('/', directory_separator)}"
             if flatten_downloads is False

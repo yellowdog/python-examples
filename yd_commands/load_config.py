@@ -11,25 +11,27 @@ from toml import TomlDecodeError
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.config_types import (
-    CR_BATCH_SIZE_DEFAULT,
-    DEFAULT_URL,
-    TASK_BATCH_SIZE_DEFAULT,
-    YD_KEY,
-    YD_NAMESPACE,
-    YD_SECRET,
-    YD_TAG,
-    YD_URL,
     ConfigCommon,
     ConfigWorkerPool,
     ConfigWorkRequirement,
 )
 from yd_commands.printing import print_error, print_log
 from yd_commands.property_names import *
+from yd_commands.settings import (
+    CR_BATCH_SIZE_DEFAULT,
+    DEFAULT_URL,
+    TASK_BATCH_SIZE_DEFAULT,
+    TOML_VAR_NESTED_DEPTH,
+    YD_KEY,
+    YD_NAMESPACE,
+    YD_SECRET,
+    YD_TAG,
+    YD_URL,
+)
 from yd_commands.type_check import check_list, check_str
 from yd_commands.utils import pathname_relative_to_config_file
 from yd_commands.validate_properties import validate_properties
 from yd_commands.variables import (
-    NESTED_DEPTH,
     add_substitutions,
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions,
@@ -168,7 +170,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
 
     # Process any new substitutions after the common config
     # has been processed
-    for _ in range(NESTED_DEPTH):
+    for _ in range(TOML_VAR_NESTED_DEPTH):
         process_variable_substitutions_in_dict_insitu(wr_section)
 
     try:
@@ -297,7 +299,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
 
     # Process any new substitutions after the common config
     # has been processed
-    for _ in range(NESTED_DEPTH):
+    for _ in range(TOML_VAR_NESTED_DEPTH):
         process_variable_substitutions_in_dict_insitu(wp_section)
         process_variable_substitutions_in_dict_insitu(cr_section)
 

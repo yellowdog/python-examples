@@ -15,23 +15,36 @@ from toml import load as toml_load
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.check_imports import check_jsonnet_import
-from yd_commands.config_types import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.printing import print_error, print_json, print_log
 from yd_commands.property_names import *
+from yd_commands.settings import (
+    ARRAY_TYPE_TAG,
+    BOOL_TYPE_TAG,
+    ENV_VAR_PREFIX,
+    NUMBER_TYPE_TAG,
+    RAND_VAR_SIZE,
+    TABLE_TYPE_TAG,
+    TOML_VAR_NESTED_DEPTH,
+    VAR_CLOSING_DELIMITER,
+    VAR_DEFAULT_SEPARATOR,
+    VAR_OPENING_DELIMITER,
+    WP_VARIABLES_POSTFIX,
+    WP_VARIABLES_PREFIX,
+)
 from yd_commands.utils import UTCNOW, remove_outer_delimiters, split_delimited_string
 
 # Set up default variable substitutions
-RAND_SIZE = 0xFFF
 VARIABLE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").lower(),
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S"),
     "datetime": UTCNOW.strftime("%y%m%d-%H%M%S"),
-    "random": hex(randint(0, RAND_SIZE + 1))[2:].lower().zfill(len(hex(RAND_SIZE)) - 2),
+    "random": (
+        hex(randint(0, RAND_VAR_SIZE + 1))[2:]
+        .lower()
+        .zfill(len(hex(RAND_VAR_SIZE)) - 2)
+    ),
 }
-
-VAR_OPENING_DELIMITER = "{{"
-VAR_CLOSING_DELIMITER = "}}"
 
 # Lazy substitutions: 'submit' only
 if "submit" in sys.argv[0]:
@@ -44,20 +57,13 @@ if "submit" in sys.argv[0]:
     L_TASK_GROUP_COUNT = "task_group_count"
 
 # Type annotations for variable type substitutions
-NUMBER_SUB = "num:"
-BOOL_SUB = "bool:"
-ARRAY_SUB = "array:"
-TABLE_SUB = "table:"
 
 # Allow the use of default variables
-DEFAULT_VAR_SEPARATOR = ":="
 
 # Nested variables depth supported in TOML files
-NESTED_DEPTH = 3
 
 # Add user-defined variable substitutions
 # Can supersede the existing substitutions above
-ENV_VAR_PREFIX = "YD_VAR_"
 
 # Substitutions from environment variables
 for key, value in os.environ.items():
@@ -173,14 +179,14 @@ def process_variable_substitutions(
     # 'None' indicates no type, i.e., a string
     try:
         type_tag = re.findall(
-            f"^{opening_delimiter}({NUMBER_SUB}|{BOOL_SUB}|{TABLE_SUB}|{ARRAY_SUB})",
+            f"^{opening_delimiter}({NUMBER_TYPE_TAG}|{BOOL_TYPE_TAG}|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG})",
             input_string,
         )[0].replace(opening_delimiter, "")
     except IndexError:
         type_tag = None
 
-    # Now remove all other type-tags
-    for type_sub in [NUMBER_SUB, BOOL_SUB, TABLE_SUB, ARRAY_SUB]:
+    # Now remove all type-tags
+    for type_sub in [NUMBER_TYPE_TAG, BOOL_TYPE_TAG, TABLE_TYPE_TAG, ARRAY_TYPE_TAG]:
         input_string = input_string.replace(type_sub, "")
 
     # Disassemble and rebuild the input string, with substitutions processed
@@ -243,14 +249,14 @@ def process_untyped_variable_substitutions(
 
     # Create list of variable substitutions with their default values
     substitutions_with_defaults = re.findall(
-        f"{opening_delimiter}.*" + DEFAULT_VAR_SEPARATOR + f".*{closing_delimiter}",
+        f"{opening_delimiter}.*" + VAR_DEFAULT_SEPARATOR + f".*{closing_delimiter}",
         input_string,
     )
     default_value_substitutions = []  # List of (variable_name, default_value)
     for substitution in substitutions_with_defaults:
         variable_default = remove_outer_delimiters(
             substitution, opening_delimiter, closing_delimiter
-        ).split(DEFAULT_VAR_SEPARATOR)
+        ).split(VAR_DEFAULT_SEPARATOR)
         if (
             variable_default[0] == ""
             or variable_default[1] == ""
@@ -263,7 +269,7 @@ def process_untyped_variable_substitutions(
 
     # Remove default variable values if present (i.e., remove ':=<default>')
     input_string = re.sub(
-        DEFAULT_VAR_SEPARATOR + f".*{closing_delimiter}",
+        VAR_DEFAULT_SEPARATOR + f".*{closing_delimiter}",
         f"{closing_delimiter}",
         input_string,
     )
@@ -295,7 +301,7 @@ def process_typed_variable_substitution(
     Process a single typed substitution, returning the appropriate type.
     Assumes there is a substitution present.
     """
-    if type_string == NUMBER_SUB:
+    if type_string == NUMBER_TYPE_TAG:
         try:
             return int(input_string)
         except ValueError:
@@ -306,7 +312,7 @@ def process_typed_variable_substitution(
                     f"Non-number used in variable number substitution: '{input_string}'"
                 )
 
-    if type_string == BOOL_SUB:
+    if type_string == BOOL_TYPE_TAG:
         if input_string.lower() == "true":
             return True
         if input_string.lower() == "false":
@@ -315,7 +321,7 @@ def process_typed_variable_substitution(
             f"Non-boolean used in variable boolean substitution: '{input_string}'"
         )
 
-    if type_string == ARRAY_SUB:
+    if type_string == ARRAY_TYPE_TAG:
         try:
             return_value = literal_eval(input_string)
             if not isinstance(return_value, List):
@@ -326,7 +332,7 @@ def process_typed_variable_substitution(
                 f"Property cannot be parsed as an array: '{input_string}' ({e})"
             )
 
-    if type_string == TABLE_SUB:
+    if type_string == TABLE_TYPE_TAG:
         try:
             return_value = literal_eval(input_string)
             if not isinstance(return_value, Dict):
@@ -404,7 +410,7 @@ def load_toml_file_with_variable_substitutions(
         pass
 
     # Repeat processing to resolve variables
-    for _ in range(NESTED_DEPTH):
+    for _ in range(TOML_VAR_NESTED_DEPTH):
         process_variable_substitutions_in_dict_insitu(
             config, prefix=prefix, postfix=postfix
         )

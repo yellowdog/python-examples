@@ -51,6 +51,7 @@ from yd_commands.printing import (
     print_numbered_strings,
 )
 from yd_commands.property_names import *
+from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 from yd_commands.submit_utils import (
     UploadedFiles,
     format_yd_name,
@@ -893,7 +894,7 @@ def deduplicate_inputs(task_inputs: List[TaskInput]) -> List[TaskInput]:
             )
             print_log(
                 f"Removing '{task_input.verification}' duplicate:"
-                f" '{namespace}::{task_input.objectNamePattern}'"
+                f" '{namespace}{NAMESPACE_PREFIX_SEPARATOR}{task_input.objectNamePattern}'"
             )
 
     return deduplicated_task_inputs
@@ -1225,7 +1226,7 @@ def submit_json_raw(wr_file: str):
                         else input["namespace"]
                     )
                     verify_at_start_files.add(
-                        f"{namespace}::{input['objectNamePattern']}"
+                        f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{input['objectNamePattern']}"
                     )
 
     # Warn about VERIFY_AT_START files & halt to allow upload or
