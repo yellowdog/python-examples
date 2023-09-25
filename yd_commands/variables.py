@@ -24,6 +24,7 @@ from yd_commands.settings import (
     NUMBER_TYPE_TAG,
     RAND_VAR_SIZE,
     TABLE_TYPE_TAG,
+    TAG_DEFAULT_DIFF,
     TOML_VAR_NESTED_DEPTH,
     VAR_CLOSING_DELIMITER,
     VAR_DEFAULT_SEPARATOR,
@@ -55,15 +56,6 @@ if "submit" in sys.argv[0]:
     L_TASK_GROUP_NUMBER = "task_group_number"
     L_TASK_COUNT = "task_count"
     L_TASK_GROUP_COUNT = "task_group_count"
-
-# Type annotations for variable type substitutions
-
-# Allow the use of default variables
-
-# Nested variables depth supported in TOML files
-
-# Add user-defined variable substitutions
-# Can supersede the existing substitutions above
 
 # Substitutions from environment variables
 for key, value in os.environ.items():
@@ -177,9 +169,12 @@ def process_variable_substitutions(
     # Remember the top-level type tag, if present; a type-tag is only
     # relevant if at the start of the string to be processed;
     # 'None' indicates no type, i.e., a string
+    # Ensure we're not picking up same/similarly named variables when
+    # used in defaults, e.g.: '{{num:='
     try:
         type_tag = re.findall(
-            f"^{opening_delimiter}({NUMBER_TYPE_TAG}|{BOOL_TYPE_TAG}|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG})",
+            f"^{opening_delimiter}({NUMBER_TYPE_TAG}|{BOOL_TYPE_TAG}"
+            f"|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG})(?!{TAG_DEFAULT_DIFF})",
             input_string,
         )[0].replace(opening_delimiter, "")
     except IndexError:
@@ -187,7 +182,11 @@ def process_variable_substitutions(
 
     # Now remove all type-tags
     for type_sub in [NUMBER_TYPE_TAG, BOOL_TYPE_TAG, TABLE_TYPE_TAG, ARRAY_TYPE_TAG]:
-        input_string = input_string.replace(type_sub, "")
+        input_string = re.sub(
+            f"{VAR_OPENING_DELIMITER}{type_sub}(?!{TAG_DEFAULT_DIFF})",
+            VAR_OPENING_DELIMITER,
+            input_string,
+        )
 
     # Disassemble and rebuild the input string, with substitutions processed
     # in each element in turn

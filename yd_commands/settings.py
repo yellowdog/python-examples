@@ -24,11 +24,13 @@ CSV_VAR_OPENING_DELIMITER = "{{"
 CSV_VAR_CLOSING_DELIMITER = "}}"
 VAR_OPENING_DELIMITER = "{{"
 VAR_CLOSING_DELIMITER = "}}"
-NUMBER_TYPE_TAG = "num:"
-BOOL_TYPE_TAG = "bool:"
-ARRAY_TYPE_TAG = "array:"
-TABLE_TYPE_TAG = "table:"
 VAR_DEFAULT_SEPARATOR = ":="
+TYPE_TAG_TERMINATOR = ":"
+TAG_DEFAULT_DIFF = "="
+NUMBER_TYPE_TAG = "num" + TYPE_TAG_TERMINATOR
+BOOL_TYPE_TAG = "bool" + TYPE_TAG_TERMINATOR
+ARRAY_TYPE_TAG = "array" + TYPE_TAG_TERMINATOR
+TABLE_TYPE_TAG = "table" + TYPE_TAG_TERMINATOR
 TOML_VAR_NESTED_DEPTH = 3
 
 DEFAULT_LOG_WIDTH = 120
@@ -72,6 +74,8 @@ HIGHLIGHTED_STATES = [
     r"(?P<active>TARGET)",
     r"(?P<active>EXPECTED)",
 ]
+# For Rich colour options, see colour list & swatches at:
+# https://rich.readthedocs.io/en/stable/appendix/colors.html
 DEFAULT_THEME = {
     "pyexamples.date_time": "bold deep_sky_blue1",
     "pyexamples.quoted": "bold green4",

@@ -99,9 +99,6 @@ class PrintTableHighlighter(RegexHighlighter):
     ] + HIGHLIGHTED_STATES
 
 
-# For Rich colour options, see colour list & swatches at:
-# https://rich.readthedocs.io/en/stable/appendix/colors.html
-
 pyexamples_theme = Theme(DEFAULT_THEME)
 
 
