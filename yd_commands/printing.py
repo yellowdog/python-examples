@@ -11,7 +11,7 @@ from os import name as os_name
 from os.path import relpath
 from textwrap import fill
 from textwrap import indent as text_indent
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Dict, List, Optional, Union
 
 from rich.console import Console, Theme
 from rich.highlighter import JSONHighlighter, RegexHighlighter
@@ -149,14 +149,7 @@ def print_log(
     CONSOLE.print(print_string(log_message, no_fill=no_fill))
 
 
-ErrorObject = TypeVar(
-    "ErrorObject",
-    Exception,
-    str,
-)
-
-
-def print_error(error_obj: ErrorObject):
+def print_error(error_obj: Union[Exception, str]):
     """
     Print an error message to stderr.
     """
