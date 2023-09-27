@@ -878,21 +878,28 @@ STATUS_COUNTS_COMPUTE_REQ = [
 ]
 
 
-def status_counts_msg(status_counts: List[StatusCount], counts_data: Dict) -> str:
+def status_counts_msg(
+    status_counts: List[StatusCount],
+    counts_data: Dict,
+    suppress_msg_if_zero_total: bool = False,
+) -> Optional[str]:
     """
     Generate the count of items in specific statuses.
     """
     first_count = True
     msg = ""
+    total_count = 0
     for status_count in status_counts:
         try:
             count = counts_data[status_count.name]
             if count > 0 or status_count.include_if_zero:
                 msg += f"{'' if first_count else ', '}{count} {status_count.name}"
                 first_count = False
+                total_count += count
         except (KeyError, TypeError):
             continue  # Do nothing if a status is not present in the event data
-    return msg
+    if total_count > 0 or suppress_msg_if_zero_total is False:
+        return msg
 
 
 def print_event(event: str, id_type: YDIDType):
@@ -947,9 +954,13 @@ def print_event(event: str, id_type: YDIDType):
             f" {event_data['expectedInstanceCount']} EXPECTED"
         )
         for source in event_data["provisionStrategy"]["sources"]:
-            msg += f"{indent}Source: '{source['name']}': " + status_counts_msg(
-                STATUS_COUNTS_INSTANCES, source["instanceSummary"]["statusCounts"]
+            counts_msg = status_counts_msg(
+                STATUS_COUNTS_INSTANCES,
+                source["instanceSummary"]["statusCounts"],
+                suppress_msg_if_zero_total=True,
             )
+            if counts_msg is not None:
+                msg += f"{indent}Source: '{source['name']}': " + counts_msg
 
     else:
         return
