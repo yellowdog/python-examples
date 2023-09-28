@@ -874,25 +874,27 @@ STATUS_COUNTS_COMPUTE_REQ = [
 def status_counts_msg(
     status_counts: List[StatusCount],
     counts_data: Dict,
-    suppress_msg_if_zero_total: bool = False,
-) -> Optional[str]:
+    empty_msg_if_zero_total: bool = False,
+) -> str:
     """
     Generate the count of items in specific statuses.
     """
-    first_count = True
     msg = ""
+    first = True
     total_count = 0
     for status_count in status_counts:
         try:
             count = counts_data[status_count.name]
             if count > 0 or status_count.include_if_zero:
-                msg += f"{'' if first_count else ', '}{count} {status_count.name}"
-                first_count = False
+                msg += f"{'' if first else ', '}{count} {status_count.name}"
+                first = False
                 total_count += count
         except (KeyError, TypeError):
             continue  # Do nothing if a status is not present in the event data
-    if total_count > 0 or suppress_msg_if_zero_total is False:
+    if total_count > 0 or empty_msg_if_zero_total is False:
         return msg
+    else:
+        return ""
 
 
 def print_event(event: str, id_type: YDIDType):
@@ -906,6 +908,7 @@ def print_event(event: str, id_type: YDIDType):
         return
 
     event_data: Dict = json_loads(event.replace(data_prefix, ""))
+
     if ARGS_PARSER.raw_events:
         print_json(event_data)
         return
@@ -932,12 +935,17 @@ def print_event(event: str, id_type: YDIDType):
         node_actions_msg = status_counts_msg(
             STATUS_COUNTS_NODEACTIONS,
             event_data["nodeSummary"]["actionQueueStatuses"],
+            empty_msg_if_zero_total=True,
         )
         if len(node_actions_msg) > 0:
             msg += f"{indent}Node Action(s): " + node_actions_msg
-        msg += f"{indent}Worker(s):      " + status_counts_msg(
-            STATUS_COUNTS_WORKERS, event_data["workerSummary"]["statusCounts"]
+        workers_msg = status_counts_msg(
+            STATUS_COUNTS_WORKERS,
+            event_data["workerSummary"]["statusCounts"],
+            empty_msg_if_zero_total=True,
         )
+        if len(workers_msg) > 0:
+            msg += f"{indent}Worker(s):      " + workers_msg
 
     elif id_type == YDIDType.COMPUTE_REQ:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
@@ -947,13 +955,13 @@ def print_event(event: str, id_type: YDIDType):
             f" {event_data['expectedInstanceCount']} EXPECTED"
         )
         for source in event_data["provisionStrategy"]["sources"]:
-            counts_msg = status_counts_msg(
+            source_msg = status_counts_msg(
                 STATUS_COUNTS_INSTANCES,
                 source["instanceSummary"]["statusCounts"],
-                suppress_msg_if_zero_total=True,
+                empty_msg_if_zero_total=True,
             )
-            if counts_msg is not None:
-                msg += f"{indent}Source: '{source['name']}': " + counts_msg
+            if len(source_msg) > 0:
+                msg += f"{indent}Source: '{source['name']}': " + source_msg
 
     else:
         return
