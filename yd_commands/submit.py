@@ -745,7 +745,7 @@ def add_tasks_to_task_group(
                     wr_data=wr_data,
                     task_group_data=task_group_data,
                     task_data=task,
-                    name=task_name,
+                    task_name=task_name,
                     tg_name=task_group.name,
                     task_type=task_type,
                     executable=executable,
@@ -994,7 +994,7 @@ def create_task(
     wr_data: Dict,
     task_group_data: Dict,
     task_data: Dict,
-    name: str,
+    task_name: str,
     tg_name: str,
     task_type: str,
     executable: str,
@@ -1009,6 +1009,8 @@ def create_task(
     Create a Task object, handling special processing for specific Task Types.
     """
 
+    env_copy = deepcopy(env)  # Copy the environment property to prevent overwriting
+
     def _make_task(flatten_input_paths: FlattenPath) -> Task:
         """
         Helper function to create the Task object.
@@ -1018,11 +1020,11 @@ def create_task(
             flatten_input_paths = None
 
         return Task(
-            name=name,
+            name=task_name,
             taskType=task_type,
             arguments=args,
             inputs=inputs,
-            environment=env,
+            environment=env_copy,
             outputs=outputs,
             flattenInputPaths=flatten_input_paths,
             taskData=task_data_property,
@@ -1050,9 +1052,9 @@ def create_task(
     yd_wr_name_str = "YD_WORK_REQUIREMENT_NAME"
 
     # Add names to the environment as a convenience
-    env[yd_task_name_str] = name
-    env[yd_tg_name_str] = tg_name
-    env[yd_wr_name_str] = ID
+    env_copy[yd_task_name_str] = task_name
+    env_copy[yd_tg_name_str] = tg_name
+    env_copy[yd_wr_name_str] = ID
 
     # Special processing for Bash, Python & PowerShell tasks if the 'executable'
     # property is set. The script is uploaded if this hasn't already been done,
@@ -1111,7 +1113,7 @@ def create_task(
             )
         )
         # Names are set in the container env. for convenience
-        docker_env_list = ["--env", f"{yd_task_name_str}={name}"]
+        docker_env_list = ["--env", f"{yd_task_name_str}={task_name}"]
         docker_env_list += ["--env", f"{yd_tg_name_str}={tg_name}"]
         docker_env_list += ["--env", f"{yd_wr_name_str}={ID}"]
         if docker_env is not None:
@@ -1136,7 +1138,7 @@ def create_task(
                 wr_data.get(DOCKER_PASSWORD, CONFIG_WR.docker_password),
             ),
         )
-        env.update(
+        env_copy.update(
             {
                 "DOCKER_USERNAME": docker_username,
                 "DOCKER_PASSWORD": docker_password,
