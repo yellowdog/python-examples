@@ -93,26 +93,37 @@ def create_compute_source(resource: Dict):
 
     # Check for an existing ID
     source_id = find_compute_source_id_by_name(CLIENT, name)
-    if source_id is None:
-        compute_source = CLIENT.compute_client.add_compute_source_template(
-            compute_source_template
-        )
-        print_log(
-            f"Created Compute Source '{compute_source.source.name}'"
-            f" ({compute_source.id})"
-        )
-    else:
-        if not confirmed(f"Update existing Source Template '{name}'?"):
-            return
-        compute_source_template.id = source_id
-        compute_source = CLIENT.compute_client.update_compute_source_template(
-            compute_source_template
-        )
-        print_log(
-            f"Updated existing Compute Source '{compute_source.source.name}'"
-            f" ({compute_source.id})"
-        )
-    if ARGS_PARSER.quiet:
+    try:  # Temporary try/except wrapper to handle YEL-12005
+        if source_id is None:
+            compute_source = CLIENT.compute_client.add_compute_source_template(
+                compute_source_template
+            )
+            print_log(
+                f"Created Compute Source '{compute_source.source.name}'"
+                f" ({compute_source.id})"
+            )
+        else:
+            if not confirmed(f"Update existing Source Template '{name}'?"):
+                return
+            compute_source_template.id = source_id
+            compute_source = CLIENT.compute_client.update_compute_source_template(
+                compute_source_template
+            )
+            print_log(
+                f"Updated existing Compute Source '{compute_source.source.name}'"
+                f" ({compute_source.id})"
+            )
+    except Exception as e:
+        if "Cannot deserialize" in str(e):
+            print_warning(
+                f"Deserialisation error when creating Compute Source with User"
+                f" Attributes; the Compute Source is created but no YDID will be"
+                f" available (awaiting SDK fix)"
+            )
+        else:
+            raise e
+
+    if ARGS_PARSER.quiet and compute_source.id is not None:
         print(compute_source.id)
 
 
