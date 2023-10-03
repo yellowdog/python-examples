@@ -477,6 +477,10 @@ def add_tasks_to_task_group(
     if task_group_task_count is not None:
         if num_tasks == 1:
             # Expand the number of Tasks to match the specified Task count
+            print_log(
+                f"Expanding number of Tasks in Task Group '{task_group.name}' to"
+                f" 'taskCount={task_group_task_count}' Tasks"
+            )
             for _ in range(1, task_group_task_count):
                 wr_data[TASK_GROUPS][tg_number][TASKS].append(
                     deepcopy(wr_data[TASK_GROUPS][tg_number][TASKS][0])
