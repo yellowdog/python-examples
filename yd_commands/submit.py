@@ -477,14 +477,15 @@ def add_tasks_to_task_group(
     if task_group_task_count is not None:
         if num_tasks == 1:
             # Expand the number of Tasks to match the specified Task count
-            for _ in range(1, int(task_group_task_count)):
+            for _ in range(1, task_group_task_count):
                 wr_data[TASK_GROUPS][tg_number][TASKS].append(
                     deepcopy(wr_data[TASK_GROUPS][tg_number][TASKS][0])
                 )
-        else:
+        elif task_group_task_count > 1:
             print_log(
-                f"Warning: Task Group '{task_group.name}' contains {num_tasks} "
-                "Tasks: ignoring 'taskCount'"
+                f"Note: Task Group '{task_group.name}' already contains"
+                f" {num_tasks} Tasks: ignoring expansion using 'taskCount ="
+                f" {int(task_group_task_count)}'"
             )
 
     num_task_groups = len(wr_data[TASK_GROUPS])
