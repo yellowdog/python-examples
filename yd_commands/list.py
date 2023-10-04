@@ -10,7 +10,6 @@ from typing import Dict, List
 from requests import get
 from tabulate import tabulate
 from yellowdog_client.common import SearchClient
-from yellowdog_client.common.json import NestedDeserializationError
 from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementSearch,
@@ -408,26 +407,11 @@ def list_source_templates():
         return
 
     cs_templates = select(CLIENT, sorted_objects(cs_templates))
-    deserialisation_failures = []  # Temporary bug workaround
     for cs_template in cs_templates:
-        try:
-            cs_template_detail: ComputeSourceTemplate = (
-                CLIENT.compute_client.get_compute_source_template(cs_template.id)
-            )
-            print_yd_object(cs_template_detail)
-        except NestedDeserializationError:
-            deserialisation_failures.append(
-                f"    Source '{cs_template.name}' ({cs_template.id})"
-            )
-
-    if len(deserialisation_failures) > 0:
-        print_error(
-            "Failed to deserialise the following Source Templates due to the presence"
-            " of User Attributes. This is a temporary issue awaiting an SDK bugfix"
-            " (YEL-12005)."
+        cs_template_detail: ComputeSourceTemplate = (
+            CLIENT.compute_client.get_compute_source_template(cs_template.id)
         )
-        for failure in deserialisation_failures:
-            print_error(failure)
+        print_yd_object(cs_template_detail)
 
 
 def list_keyrings():

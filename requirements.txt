@@ -1,4 +1,4 @@
-yellowdog-sdk >= 7.3.3
+yellowdog-sdk >= 7.3.5
 toml
 tabulate >= 0.9.0
 PyPAC >= 0.16.4
