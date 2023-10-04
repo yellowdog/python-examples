@@ -191,9 +191,15 @@ class CLIParser:
             parser.add_argument(
                 "--pause-between-batches",
                 "-P",
-                action="store_true",
+                nargs="?",
+                type=int,
+                const=0,
                 required=False,
-                help="pause for user input between batches (mostly for debugging)",
+                metavar="<interval_between_batches_in_seconds>",
+                help=(
+                    "pause for user input between Task batch submissions; if no"
+                    " pause interval is provided, user input is required to advance"
+                ),
             )
             parser.add_argument(
                 "--csv-file",
@@ -953,7 +959,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def pause_between_batches(self) -> Optional[bool]:
+    def pause_between_batches(self) -> Optional[int]:
         return self.args.pause_between_batches
 
     @property
