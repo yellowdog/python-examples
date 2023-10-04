@@ -17,7 +17,7 @@ from yellowdog_client.model import (
 
 from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.follow_utils import follow_events, follow_ids
-from yd_commands.id_utils import YDIDType
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.load_config import load_config_worker_pool
 from yd_commands.printing import (
     print_compute_template_test_result,
@@ -68,6 +68,10 @@ def main():
 
     if CONFIG_WP.template_id is None:
         raise Exception("No 'templateId' supplied")
+    if get_ydid_type(CONFIG_WP.template_id) != YDIDType.CR_TEMPLATE:
+        raise Exception(
+            f"Not a valid Compute Requirement Template ID: '{CONFIG_WP.template_id}'"
+        )
 
     if not ARGS_PARSER.report:
         print_log(
@@ -250,6 +254,10 @@ def create_compute_requirement_from_json(
         raise Exception(
             f"Missing key error in JSON Compute Requirement definition: {e}"
         )
+
+    template_id = cr_data["templateId"]
+    if get_ydid_type(template_id) != YDIDType.CR_TEMPLATE:
+        raise Exception(f"Not a valid Compute Requirement Template ID: '{template_id}'")
 
     if ARGS_PARSER.dry_run:
         print_log("Dry-run: Printing JSON Compute Requirement specification")
