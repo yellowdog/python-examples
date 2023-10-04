@@ -1077,7 +1077,7 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     """
     Descriptive string for the module's purpose.
     """
-    prefix = "YellowDog comand line utility for "
+    prefix = "YellowDog command line utility for "
     suffix = None
 
     if "submit" in module_name:

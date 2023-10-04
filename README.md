@@ -205,7 +205,7 @@ usage: yd-cancel [-h] [--docs] [--config <config_file.toml>] [--key <app-key>]
                  [--variable <var1=v1>] [--quiet] [--debug] [--pac] [--abort] [--follow]
                  [--interactive] [--yes]
 
-YellowDog example utility for cancelling Work Requirements
+YellowDog command line utility for cancelling Work Requirements
 
 optional arguments:
   -h, --help            show this help message and exit
