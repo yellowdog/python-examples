@@ -476,7 +476,7 @@ def add_tasks_to_task_group(
         )
     )
     if task_group_task_count is not None:
-        if num_tasks == 1:
+        if num_tasks == 1 and task_group_task_count > 1:
             # Expand the number of Tasks to match the specified Task count
             print_log(
                 f"Expanding number of Tasks in Task Group '{task_group.name}' to"
