@@ -9,7 +9,6 @@ from datetime import timedelta
 from math import ceil
 from os import chdir
 from os.path import basename, dirname
-from time import sleep
 from typing import Dict, List, Optional
 
 import jsons
@@ -57,6 +56,7 @@ from yd_commands.submit_utils import (
     UploadedFiles,
     format_yd_name,
     generate_task_input_list,
+    pause_between_batches,
     update_config_work_requirement,
 )
 from yd_commands.type_check import (
@@ -516,20 +516,13 @@ def add_tasks_to_task_group(
 
     # Iterate through batches
     for batch_number in range(num_task_batches):
-        if ARGS_PARSER.pause_between_batches is not None and batch_number > 0:
-            if ARGS_PARSER.pause_between_batches == 0:  # Manual delay
-                print_log(
-                    f"Pausing before submitting batch number {batch_number + 1}. "
-                    "Press enter to continue:",
-                    override_quiet=True,
-                )
-                input()
-            else:  # Automatic delay
-                print_log(
-                    f"Pausing for {ARGS_PARSER.pause_between_batches} seconds before"
-                    f" submitting batch number {batch_number + 1}"
-                )
-                sleep(ARGS_PARSER.pause_between_batches)
+        if ARGS_PARSER.pause_between_batches is not None:
+            pause_between_batches(
+                task_batch_size=TASK_BATCH_SIZE,
+                batch_number=batch_number,
+                num_tasks=num_tasks,
+                first_batch=batch_number == 0,
+            )
 
         # Iterate through tasks in the batch
         for task_number in range(

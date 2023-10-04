@@ -5,6 +5,7 @@ Utility functions for use with the submit command.
 import re
 from dataclasses import dataclass
 from glob import glob
+from time import sleep
 from typing import List, Optional
 
 from yellowdog_client import PlatformClient
@@ -235,3 +236,47 @@ def update_config_work_requirement(config_wr: ConfigWorkRequirement):
     config_wr_str_processed = process_variable_substitutions(str(config_wr))
     # Note: 'literal_eval' doesn't work here
     return eval(config_wr_str_processed)
+
+
+def pause_between_batches(
+    task_batch_size: int, batch_number: int, num_tasks: int, first_batch: bool = False
+):
+    """
+    Process a pause between Task batches.
+    """
+    if ARGS_PARSER.pause_between_batches is None:
+        return
+
+    task_num_start = (task_batch_size * batch_number) + 1
+    task_num_end = min(task_batch_size * (batch_number + 1), num_tasks)
+    task_range_str = (
+        f"Tasks {task_num_start}-{task_num_end}"
+        if task_num_start != task_num_end
+        else f"Task {task_num_start}"
+    )
+    if ARGS_PARSER.pause_between_batches <= 0:  # Manual delay
+        print_log(
+            (
+                f"Submitting batch number {batch_number + 1} ({task_range_str})"
+                if first_batch
+                else (
+                    "Pausing before submitting batch number"
+                    f" {batch_number + 1} ({task_range_str}). Press enter to continue:"
+                )
+            ),
+            override_quiet=True,
+        )
+        if not first_batch:
+            input()
+    elif ARGS_PARSER.pause_between_batches > 0:  # Automatic delay
+        print_log(
+            f"Submitting batch number {batch_number + 1} ({task_range_str})"
+            if first_batch
+            else (
+                f"Pausing for {ARGS_PARSER.pause_between_batches} seconds before"
+                f" submitting batch number {batch_number + 1}"
+                f" ({task_range_str})"
+            )
+        )
+        if not first_batch:
+            sleep(ARGS_PARSER.pause_between_batches)
