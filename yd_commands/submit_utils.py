@@ -246,15 +246,14 @@ def update_config_work_requirement_object(
     return ConfigWorkRequirement(**config_wr_dict)
 
 
-def pause_between_batches(
-    task_batch_size: int, batch_number: int, num_tasks: int, first_batch: bool = False
-):
+def pause_between_batches(task_batch_size: int, batch_number: int, num_tasks: int):
     """
     Process a pause between Task batches.
     """
     if ARGS_PARSER.pause_between_batches is None:
         return
 
+    first_batch: bool = batch_number == 0
     task_num_start = (task_batch_size * batch_number) + 1
     task_num_end = min(task_batch_size * (batch_number + 1), num_tasks)
     task_range_str = (
@@ -262,6 +261,7 @@ def pause_between_batches(
         if task_num_start != task_num_end
         else f"Task {task_num_start}"
     )
+
     if ARGS_PARSER.pause_between_batches <= 0:  # Manual delay
         print_log(
             (
@@ -276,6 +276,7 @@ def pause_between_batches(
         )
         if not first_batch:
             input()
+
     elif ARGS_PARSER.pause_between_batches > 0:  # Automatic delay
         print_log(
             f"Submitting batch number {batch_number + 1} ({task_range_str})"

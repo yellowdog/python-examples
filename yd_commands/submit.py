@@ -523,7 +523,6 @@ def add_tasks_to_task_group(
                 task_batch_size=TASK_BATCH_SIZE,
                 batch_number=batch_number,
                 num_tasks=num_tasks,
-                first_batch=batch_number == 0,
             )
 
         # Iterate through tasks in the batch
