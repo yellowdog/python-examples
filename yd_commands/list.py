@@ -46,7 +46,6 @@ from yd_commands.object_utilities import (
 from yd_commands.printing import (
     CONSOLE_TABLE,
     indent,
-    print_error,
     print_log,
     print_numbered_object_list,
     print_yd_object,

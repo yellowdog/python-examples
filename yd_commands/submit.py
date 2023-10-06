@@ -57,7 +57,7 @@ from yd_commands.submit_utils import (
     format_yd_name,
     generate_task_input_list,
     pause_between_batches,
-    update_config_work_requirement,
+    update_config_work_requirement_object,
 )
 from yd_commands.type_check import (
     check_bool,
@@ -221,8 +221,10 @@ def submit_work_requirement(
     )
     # Lazy substitution of the Work Requirement name, now it's defined
     add_substitutions(subs={L_WR_NAME: ID})
+    # Re-process substitutions in the CONFIG_WR object
+    CONFIG_WR = update_config_work_requirement_object(CONFIG_WR)
+    # Re-process substitutions in the wr_data dictionary
     process_variable_substitutions_in_dict_insitu(wr_data)
-    CONFIG_WR = update_config_work_requirement(CONFIG_WR)
 
     # Handle any files that need to be uploaded
     global UPLOADED_FILES

@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from glob import glob
 from time import sleep
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ObjectPath, TaskInput, TaskInputVerification
@@ -15,7 +15,7 @@ from yd_commands.config_types import ConfigCommon, ConfigWorkRequirement
 from yd_commands.printing import print_error, print_log
 from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 from yd_commands.upload_utils import unique_upload_pathname, upload_file_core
-from yd_commands.variables import process_variable_substitutions
+from yd_commands.variables import process_variable_substitutions_in_dict_insitu
 from yd_commands.wrapper import ARGS_PARSER
 
 
@@ -228,14 +228,16 @@ def format_yd_name(yd_name: str) -> str:
     return yd_name[:60]
 
 
-def update_config_work_requirement(config_wr: ConfigWorkRequirement):
+def update_config_work_requirement_object(
+    config_wr: ConfigWorkRequirement,
+) -> ConfigWorkRequirement:
     """
-    Update a ConfigWorkRequirement Object with the current dictionary of
+    Update a ConfigWorkRequirement Object using the current
     variable substitutions. Returns the updated object.
     """
-    config_wr_str_processed = process_variable_substitutions(str(config_wr))
-    # Note: 'literal_eval' doesn't work here
-    return eval(config_wr_str_processed)
+    config_wr_dict = config_wr.__dict__
+    process_variable_substitutions_in_dict_insitu(config_wr_dict)
+    return ConfigWorkRequirement(**config_wr_dict)
 
 
 def pause_between_batches(
