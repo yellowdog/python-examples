@@ -338,6 +338,15 @@ def create_task_group(
         )
     )
 
+    # Add lazy substitutions for use in any Task Group property
+    add_substitution_overwrite(L_TASK_COUNT, str(num_tasks))
+    add_substitution_overwrite(L_TASK_GROUP_NAME, task_group_name)
+    add_substitution_overwrite(
+        L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
+    )
+    add_substitution_overwrite(L_TASK_GROUP_COUNT, str(num_task_groups))
+    process_variable_substitutions_in_dict_insitu(task_group_data)
+
     # Assemble the RunSpecification values for the Task Group;
     # 'task_types' can automatically be added to by the task_types
     # specified in the Tasks.
