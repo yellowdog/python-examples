@@ -306,6 +306,8 @@ def create_task_group(
     Create a TaskGroup object.
     """
 
+    global CONFIG_WR
+
     # Remap 'task_type' to 'task_types' in the Task Group if 'task_types'
     # is empty, as a convenience
     if task_group_data.get(TASK_TYPE, None) is not None:
@@ -353,6 +355,7 @@ def create_task_group(
     )
     add_substitution_overwrite(L_TASK_GROUP_COUNT, str(num_task_groups))
     process_variable_substitutions_in_dict_insitu(task_group_data)
+    CONFIG_WR = update_config_work_requirement_object(CONFIG_WR)
 
     # Assemble the RunSpecification values for the Task Group;
     # 'task_types' can automatically be added to by the task_types
@@ -480,6 +483,8 @@ def add_tasks_to_task_group(
     Add all the constituent Tasks to the Task Group.
     """
 
+    global CONFIG_WR
+
     # Ensure there's at least one Task
     num_tasks = len(wr_data[TASK_GROUPS][tg_number][TASKS])
     if num_tasks == 0:
@@ -564,6 +569,7 @@ def add_tasks_to_task_group(
                 L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
             )
             process_variable_substitutions_in_dict_insitu(task)
+            CONFIG_WR = update_config_work_requirement_object(CONFIG_WR)
 
             executable = check_str(
                 task.get(
