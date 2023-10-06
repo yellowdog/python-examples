@@ -211,7 +211,9 @@ def process_variable_substitutions(
         return (
             opening_delimiter
             + type_tag
-            + remove_outer_delimiters(return_str, opening_delimiter, closing_delimiter)
+            + remove_outer_delimiters(
+                return_str, opening_delimiter, closing_delimiter
+            )
             + closing_delimiter
         )
 
