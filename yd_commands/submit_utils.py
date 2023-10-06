@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from glob import glob
 from time import sleep
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import ObjectPath, TaskInput, TaskInputVerification

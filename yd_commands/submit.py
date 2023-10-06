@@ -540,6 +540,7 @@ def add_tasks_to_task_group(
                     num_tasks,
                     tg_number,
                     num_task_groups,
+                    task_group.name,
                 )
             )
 
@@ -867,8 +868,8 @@ def on_update(work_req: WorkRequirement):
         completed += task_group.taskSummary.statusCounts[TaskStatus.COMPLETED]
         total += task_group.taskSummary.taskCount
     print_log(
-        f"WORK REQUIREMENT is {work_req.status} with {completed}/{total} "
-        "COMPLETED TASKS"
+        f"Work Requirement is {work_req.status} with {completed}/{total} "
+        "completed Tasks"
     )
 
 
@@ -939,6 +940,7 @@ def get_task_name(
     num_tasks: int,
     task_group_number: int,
     num_task_groups: int,
+    task_group_name: str,
 ) -> str:
     """
     Create the name of a Task.
@@ -961,6 +963,10 @@ def get_task_name(
         name = name.replace(
             f"{{{{{L_TASK_GROUP_COUNT}}}}}",
             str(num_task_groups),
+        )
+        name = name.replace(
+            f"{{{{{L_TASK_GROUP_NAME}}}}}",
+            task_group_name,
         )
 
     else:
