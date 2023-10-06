@@ -201,11 +201,22 @@ def process_variable_substitutions(
         else:
             return_str += element
 
-    if type_tag is None:
+    if type_tag is None:  # No further processing
         return return_str
-    else:
-        # Return the requested type
-        return process_typed_variable_substitution(type_tag, return_str)
+
+    # Unresolved (possibly lazy) variable; reinsert the initial type tag
+    if return_str.startswith(opening_delimiter) and return_str.endswith(
+        closing_delimiter
+    ):
+        return (
+            opening_delimiter
+            + type_tag
+            + remove_outer_delimiters(return_str, opening_delimiter, closing_delimiter)
+            + closing_delimiter
+        )
+
+    # Process the typed return
+    return process_typed_variable_substitution(type_tag, return_str)
 
 
 def process_untyped_variable_substitutions(
