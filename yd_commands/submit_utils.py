@@ -220,12 +220,18 @@ def format_yd_name(yd_name: str) -> str:
     Format a string to be consistent with YellowDog naming requirements.
     """
     # Make obvious substitutions
-    yd_name = yd_name.replace("/", "-").replace(" ", "_").lower()
-    # Enforce acceptable regex and name length
-    yd_name = re.sub("[^a-z0-9_-]", "", yd_name)
-    if not yd_name[0].isalpha():
-        yd_name = f"yd_{yd_name}"
-    return yd_name[:60]
+    new_yd_name = yd_name.replace("/", "-").replace(" ", "_").lower()
+    # Enforce acceptable regex, starting character and name length
+    new_yd_name = re.sub("[^a-z0-9_-]", "", new_yd_name)
+    if not new_yd_name[0].isalpha():
+        new_yd_name = f"yd_{new_yd_name}"
+    new_yd_name = new_yd_name[:60]
+    if new_yd_name != yd_name:
+        print_log(
+            f"Changing name '{yd_name}' to '{new_yd_name}' to comply with YellowDog"
+            " naming requirements"
+        )
+    return new_yd_name
 
 
 def update_config_work_requirement_object(
