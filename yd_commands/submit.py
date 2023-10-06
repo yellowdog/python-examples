@@ -323,6 +323,13 @@ def create_task_group(
     # Name the Task Group
     num_task_groups = len(wr_data[TASK_GROUPS])
     num_tasks = len(task_group_data[TASKS])
+    if num_tasks == 1:  # Account for Task expansion
+        num_tasks = check_int(
+            task_group_data.get(
+                TASK_COUNT, wr_data.get(TASK_COUNT, CONFIG_WR.task_count)
+            )
+        )
+
     # The following handles possible CSV substitution at the config.toml level
     try:
         if task_group_data.get(NAME, None) is None:
