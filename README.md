@@ -864,7 +864,9 @@ Variable substitutions can be used within any property value in TOML configurati
 
 ### Task and Task Group Name Substitution
 
-The following numbering and naming substitutions are available for use in Task and Task Group naming, only when the Work Requirement is specified as  JSON document, i.e., they can be used in the `name` properties for Tasks and Task Groups in JSON specifications.
+The following numbering and naming substitutions are available for use in Task and Task Group naming, only within the `name` properties for Work Requirements, Task Groups and Tasks.
+
+In a TOML `workRequirement` section, the naming properties are `name`, `taskGoupName` and `taskName` respectively.
 
 The following table defines the context(s) in which each variable can be used:
 
@@ -876,8 +878,6 @@ The following table defines the context(s) in which each variable can be used:
 | `{{task_count}}`        | The number of Tasks in the current Task Group     | Yes  | Yes        |
 | `{{task_group_number}}` | The current Task Group number                     | Yes  | Yes        |
 | `{{task_group_count}}`  | The number of Task Groups in the Work Requirement | Yes  | Yes        |
-
-In addition, **Tasks** defined in JSON documents can use any of the substitutions above in any of their properties, not just `name`.
 
 Numbers are zero-padded for neat formatting and sorting, e.g., Task number `37` of `1000` Tasks would be substituted as `0037`.
 
@@ -892,8 +892,7 @@ As an example, the following JSON Work Requirement:
       "taskCount": 2,
       "tasks": [
         {
-          "name": "my_task_{{task_number}}-of-{{task_count}}",
-          "environment": {"TASK_NUMBER": "{{task_number}}"}
+          "name": "my_task_{{task_number}}-of-{{task_count}}"
         }
       ]
     },
