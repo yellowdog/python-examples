@@ -51,7 +51,11 @@ from yd_commands.printing import (
     print_numbered_strings,
 )
 from yd_commands.property_names import *
-from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
+from yd_commands.settings import (
+    NAMESPACE_PREFIX_SEPARATOR,
+    VAR_CLOSING_DELIMITER,
+    VAR_OPENING_DELIMITER,
+)
 from yd_commands.submit_utils import (
     UploadedFiles,
     format_yd_name,
@@ -964,23 +968,23 @@ def get_task_name(
 
     if name:
         name = name.replace(
-            f"{{{{{L_TASK_NUMBER}}}}}",
+            f"{VAR_OPENING_DELIMITER + L_TASK_NUMBER + VAR_CLOSING_DELIMITER}",
             formatted_number_str(task_number, num_tasks),
         )
         name = name.replace(
-            f"{{{{{L_TASK_COUNT}}}}}",
+            f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
             str(num_tasks),
         )
         name = name.replace(
-            f"{{{{{L_TASK_GROUP_NUMBER}}}}}",
+            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
             formatted_number_str(task_group_number, num_task_groups),
         )
         name = name.replace(
-            f"{{{{{L_TASK_GROUP_COUNT}}}}}",
+            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
             str(num_task_groups),
         )
         name = name.replace(
-            f"{{{{{L_TASK_GROUP_NAME}}}}}",
+            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NAME + VAR_CLOSING_DELIMITER}",
             task_group_name,
         )
 
@@ -1003,15 +1007,15 @@ def get_task_group_name(
 
     if name:
         name = name.replace(
-            f"{{{{{L_TASK_GROUP_NUMBER}}}}}",
+            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
             formatted_number_str(task_group_number, num_task_groups),
         )
         name = name.replace(
-            f"{{{{{L_TASK_GROUP_COUNT}}}}}",
+            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
             str(num_task_groups),
         )
         name = name.replace(
-            f"{{{{{L_TASK_COUNT}}}}}",
+            f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
             str(task_count),
         )
 
