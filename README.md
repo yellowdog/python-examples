@@ -252,8 +252,8 @@ The following substitutions are automatically created and can be used in any sec
 |:----------------|:-------------------------------------------------------------------------|:------------------------|
 | `{{username}}`  | The current user's login username, lower case, spaces replaced           | jane_smith              |
 | `{{date}}`      | The current date (UTC): YYYYMMDD                                         | 20221027                |
-| `{{time}}`      | The current time (UTC): HHMMSS                                           | 163026                  |
-| `{{datetime}}`  | Concatenation of the date and time above, with a '-' separator           | 20221027-163026         |
+| `{{time}}`      | The current time (UTC): HHMMSSss                                         | 16302699                |
+| `{{datetime}}`  | Concatenation of the date and time, with a '-' separator                 | 20221027-163026         |
 | `{{random}}`    | A random, three digit hexadecimal number (lower case)                    | a1c                     |
 | `{{namespace}}` | The `namespace` property. Note that `namespace` must, of course, be set. | my_namespace            |
 | `{{tag}}`       | The `tag` property. Note that `tag` must be set.                         | my_tag                  |

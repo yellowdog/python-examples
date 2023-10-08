@@ -38,7 +38,7 @@ from yd_commands.utils import UTCNOW, remove_outer_delimiters, split_delimited_s
 VARIABLE_SUBSTITUTIONS = {
     "username": getuser().replace(" ", "_").lower(),
     "date": UTCNOW.strftime("%y%m%d"),
-    "time": UTCNOW.strftime("%H%M%S"),
+    "time": UTCNOW.strftime("%H%M%S%f")[:-4],
     "datetime": UTCNOW.strftime("%y%m%d-%H%M%S"),
     "random": (
         hex(randint(0, RAND_VAR_SIZE + 1))[2:]
