@@ -9,16 +9,16 @@
 
 # Overview
 
-This repository contains a set of example Python scripts for interacting with the YellowDog Platform. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
+This repository contains a set of command line utilities for driving the YellowDog Platform, written in Python. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
 
 
-*(Note: these scripts are intended to be a helpful starting point for experimenting with the YellowDog Platform. They are not assured to be of production quality nor do they represent a standard or recommended method for using YellowDog.)*
+*(Note: these utilities are intended to be a helpful starting point for experimenting with the YellowDog Platform. They are not assured to be of production quality nor do they represent a standard or recommended method for using YellowDog.)*
 
 This documentation should be read in conjunction with the main **[YellowDog Documentation](https://docs.yellowdog.co)**, which provides a comprehensive description of the concepts and operation of the YellowDog Platform.
 
-Template solutions for experimenting with these scripts can be found in the **[python-examples-templates](https://github.com/yellowdog/python-examples-templates)** repository.
+Template solutions for experimenting with these utilities can be found in the **[python-examples-templates](https://github.com/yellowdog/python-examples-templates)** repository.
 
-The command scripts provide the following capabilities:
+The commands provide the following capabilities:
 
 - **Provisioning** Worker Pools with the **`yd-provision`** command
 - **Submitting** Work Requirements with the **`yd-submit`** command
@@ -63,7 +63,7 @@ To set up **Configured Worker Pools**, you'll need:
 
 # Script Installation with Pip
 
-Python version 3.7 or later is required. It's recommended that installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
+Python version 3.7 or later is required. It's recommended that the installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
 
 Installation and subsequent update are via `pip` and PyPI using: 
 
@@ -77,7 +77,8 @@ If you're interested in including **Jsonnet** support, please see the [Jsonnet S
 
 The commands can also be installed using **[pipx](https://pypa.github.io/pipx/)**.
 
-This method requires Python 3.7+ and pipx to be installed. To install:
+This method requires Python 3.7+ and pipx to be installed. Pipx avoids the need manually to create a virtual environment for Python Examples. To install:
+
 ```shell
 pipx install yellowdog-python-examples
 ```
@@ -91,7 +92,7 @@ pipx upgrade yellowdog-python-examples
 
 Both of the installation methods above will install a number of **`yd-`** commands on your PATH.
 
-Commands are run from the command line. Invoking the command with the `--help` or `-h` option will display the command line options applicable to a given command, e.g.:
+Commands are run from the command line. Invoking any command with the `--help` or `-h` option will display the command line options applicable to that command, e.g.:
 
 ```text
  % yd-cancel --help
@@ -131,32 +132,32 @@ optional arguments:
 
 # Configuration
 
-By default, the operation of all commands is configured using a TOML configuration file.
+By default, the operation of all commands is configured using a **TOML** configuration file.
 
 The configuration file has three possible sections:
 
 1. A `common` section that contains required security properties for interacting with the YellowDog platform, sets the Namespace in which YellowDog assets and objects are created, and a Tag that is used for tagging and naming assets and objects.
 2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
-3. A `workerPool` section that defines the properties of Provisoned Worker Pools to be created using the YellowDog platform. 
+3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. 
 
 There is a documented template TOML file provided in [config.toml.template](config.toml.template), containing the main properties that can be configured.
 
-The configuration filename can be supplied in three different ways:
+The name of the configuration file can be supplied in three different ways:
 
 1. On the command line, using the `--config` or `-c` options, e.g.:<br>`yd-submit -c jobs/config_1.toml`
 2. Using the `YD_CONF` environment variable, e.g.: <br>`export YD_CONF="jobs/config_1.toml"`
 3. If neither of the above is supplied, the commands look for a `config.toml` file in the current directory
 
-The options above are shown in order of precedence, i.e., a filename supplied on the command line supersedes one set in `YD_CONF`, which supersedes the default.
+The options above are shown in order of precedence: a filename supplied on the command line supersedes one set in `YD_CONF`, which supersedes the default.
 
 # Naming Rules
 
-All entity names used within the YellowDog Platform must comply with the following restrictions:
+All entity names used within the YellowDog Platform must comply with the following rules:
 
 - Names can only contain the following: lowercase letters, digits, hyphens and underscores (note that spaces are not permitted)
 - Names must start with a letter
 - Names must end with a letter or digit
-- Name length must be <= 60 characters
+- Name length must 60 characters or fewer
 
 These restrictions apply to entities including Namespaces, Tags, Work Requirements, Task Groups, Tasks, Worker Pools, and Compute Requirements, and also apply to entities that are currently used indirectly by these scripts, including Usernames, Credentials, Keyrings, Compute Sources and Compute Templates.
 
@@ -188,9 +189,9 @@ Indentation is optional in TOML files and is for readability only.
 
 ## HTTPS Proxy Support
 
-The commands will use the value of the environment variable `HTTPS_PROXY` if routing through a proxy is required.
+The commands will respect the value of the environment variable `HTTPS_PROXY` if routing through a proxy is required.
 
-In addition, the commands can use proxy autoconfiguration (PAC) if the `--pac` command line option is specified, or if the `usePAC` property is set to `true` in the `[common]` section of the `config.toml` file.
+In addition, commands can use proxy autoconfiguration (PAC) if the `--pac` command line option is specified, or if the `usePAC` property is set to `true` in the `[common]` section of the `config.toml` file.
 
 ## Specifying Common Properties using the Command Line or Environment Variables
 
@@ -221,13 +222,13 @@ If all the required common properties are set using the command line or environm
 
 ## Variable Substitutions in Common Properties
 
-Note the use of `{{username}}` in the value of the `tag` property: this is a **variable substitution** that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
+Note the use of `{{username}}` in the value of the `tag` property example above: this is a **variable substitution** that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
 
-Variable substitutions are discussed below.
+Variable substitutions are discussed in more detail below.
 
 # Variable Substitutions
 
-Variable substitutions provide a powerful way of introducing variable values into TOML configuration files, Work Requirement JSON definitions, and Worker Pool JSON definitions. They can be included in the value of any property in each of these objects, including in values within lists (e.g., for the `arguments` property) and arrays (e.g., the `environment` property).
+Variable substitutions provide a powerful way of introducing variable values into TOML configuration files, and JSON/Jsonnet definitions of Work Requirements and Worker Pools. They can be included in the value of any property in each of these objects, including in values within lists (e.g., for the `arguments` property) and arrays (e.g., the `environment` property).
 
 Variable substitutions are expressed using `{{variable}}` notation, where the expression is replaced by the value of `variable`.
 
@@ -264,7 +265,7 @@ For the `date`, `time`, `datetime` and `random` directives, the same values will
 
 ## User-Defined Variables
 
-Arbitrary variables can be supplied using command line options, by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
+User-defined variables can be supplied using an option on the command line, or by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
 
 1. The **command line** option is `--variable` (or `-v`). For example, `yd-submit -v project_code=pr-213-a -v run_id=1234` will establish two new variables that can be used as `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
@@ -276,13 +277,13 @@ Arbitrary variables can be supplied using command line options, by setting envir
 
 ```toml
 [common.variables]
-project_code = "pr-213a"
-run_id = "1234"
+    project_code = "pr-213a"
+    run_id = "1234"
 ```
 
 Directives set on the command line take precedence over directives set in environment variables, and both of them take precedence over directives set in a TOML file.
 
-This method can be used to override the default directives, e.g., setting `-v username="other-user"` will override the default `{{username}}` directive.
+This method can also be used to override the default directives, e.g., setting `-v username="other-user"` will override the default `{{username}}` directive.
 
 ## Nested Variables
 
@@ -302,11 +303,11 @@ For example, if one wanted to select a different `templateId` for a Worker Pool 
 
 Then, if one used `yd-provision -v region=phoenix`, the `templateId` property would first resolve to `"{{template_pheonix}}"`, and then to `"ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"`.
 
-Nesting can be up to three levels deep including the top level.
+Nesting can be up to three levels deep including the top level. Note that variable resolution is not sequential: variable `{{a}}` can depend on a variable `{{b}}` that is set later in the configuration.
 
 ## Providing Default Values for User-Defined Variables
 
-Each variable can be supplied with a default value to be used if a value is not provided for that variable name. The syntax for providing a default is:
+Each variable can be supplied with a default value to be used if a value is not explicitly provided for that variable name. The syntax for providing a default is:
 
 ```
 {{variable_name:=default_value}} or
@@ -326,9 +327,7 @@ arguments = "{{array:args:=[1,2,3]}}"
 environment = "{{table:env:={'A':100,'B':200}}}"
 ```
 
-Default values can be used anywhere that variable substitutions are allowed.
-
-In TOML files only, nested variable substitutions can be used inside default values, e.g.:
+Default values can be used anywhere that variable substitutions are allowed.  In TOML files only, nested variable substitutions can be used inside default values, e.g.:
 
 ```toml
 name = "{{name_var:={{tag}}-{{datetime}}}}"
@@ -336,7 +335,7 @@ name = "{{name_var:={{tag}}-{{datetime}}}}"
 
 ## Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
 
-In JSON specifications for Worker Pools and Compute Requirements, variable substitutions can be used, but they must be prefixed and postfixed by a double underscore `__`, e.g., `__{{username}}__`. This is to disambiguate them from variable substitutions intended for Mustache processing at the platform end.
+In JSON specifications for Worker Pools and Compute Requirements, variable substitutions can be used, but **they must be prefixed and postfixed by a double underscore** `__`, e.g., `__{{username}}__`. This is to disambiguate client-side variable substitutions from server-side Mustache variable processing.
 
 Variable substitutions can also be used within **User Data** to be supplied to instances, for which the same prefix/postfix requirement applies, **including** for User Data supplied directly using the `userData` property in the `workerPool` section of the TOML file.
 
@@ -344,7 +343,7 @@ Variable substitutions can also be used within **User Data** to be supplied to i
 
 The `workRequirement` section of the configuration file is optional. It's used only by the `yd-submit` command, and controls the Work Requirement that is submitted to the Platform.
 
-The details of a Work Requirement to be submitted can be captured entirely within the TOML configuration file for simple examples. More complex examples capture the Work Requirement in a combination of the TOML file plus a JSON document, or in a JSON document only.
+The details of a Work Requirement to be submitted can be captured entirely within the TOML configuration file for simple (single Task Group) examples. More complex examples capture the Work Requirement in a combination of the TOML file plus a JSON document, or in a JSON document only.
 
 ## Work Requirement JSON File Structure
 
@@ -386,11 +385,11 @@ To specify the file containing the JSON document, either populate the `workRequi
 
 ## Property Inheritance
 
-To simplify the definition of Work Requirements, there is a property inheritance mechanism. Properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
+The definition of Work Requirements can be simplified substantially by the property inheritance features in `yd-submit`. In general, properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
 
-This means that a property set in the `workRequirement` section of the TOML file can be inherited successively by the Work Requirement, Task Groups and Tasks in the JSON document (assuming the property is valid at each level).  Hence, Tasks inherit from Task Groups, which inherit from the Work Requirement in the JSON document, which inherits from the `workRequirement` properties in the TOML file.
+This means that a property set in the `workRequirement` section of the TOML file can be inherited successively by the Work Requirement, Task Groups, and Tasks in the JSON document (assuming the property is available at each level).  Hence, Tasks inherit from Task Groups, which inherit from the Work Requirement in the JSON document, which inherits from the `workRequirement` properties in the TOML file.
 
-Overridden properties are also inherited. E.g., if a property is set at the Task Group level, it will be inherited by the Tasks in that Task Group unless explicitly overridden.
+Overridden properties are also inherited at lower levels in the hierarchy. E.g., if a property is set at the Task Group level, it will be inherited by the Tasks in that Task Group unless explicitly overridden.
 
 ## Work Requirement Property Dictionary
 
@@ -450,11 +449,11 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 
 ## Automatic Properties
 
-In addition to the inheritance mechanism, some properties are set automatically by the `yd-submit` command, as a usage convenience if they're not explicitly provided.
+In addition to the property inheritance mechanism, some properties are set automatically by the `yd-submit` command, as a usage convenience if they're not explicitly specified.
 
 ### Work Requirement, Task Group and Task Naming
 
-- The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: e,g.: `mytag_221024-155524`.
+- The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: e,g.: `mytag_221024-15552480`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
 
@@ -467,14 +466,14 @@ For Tasks of type `docker` and where the `executable` property has been set, the
 ### Task Types
 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
-- If `taskType` is set at the Task level, then `taskTypes` is automatically populated for the Task Groups level using the accumulated Task Types from the Tasks included in each Task Group, unless overridden.
-- If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
+- - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
+- If `taskType` is set at the Task level, then `taskTypes` is automatically populated for the Task Groups level using the accumulated Task Types from the Tasks included in each Task Group, unless already specified.
 
 For the **`bash`**, **`powershell`**, **`cmd`**/**`bat`** and **`docker`** task types, some automatic processing will be performed if the **`executable`** property is set.
 
 #### Bash, Python, PowerShell and cmd/bat Tasks
 
-As a convenience, for the **`bash`**, **`python`**, **`powershell`**, and **`cmd`** (or **`bat`**) Task Types, the script nominated in the **`executable`** property is automatically added to the `inputs` list (if not already present). This means the script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
+As a convenience, for the **`bash`**, **`python`**, **`powershell`**, and **`cmd`** (or **`bat`**) Task Types, the script nominated in the **`executable`** property is automatically added to the `inputs` file list if not already present in that list. This means the nominated 'executable' script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
 
 Using a Bash Task as an example (in TOML form):
 
@@ -537,7 +536,7 @@ If the `executable` property is not supplied, the automatic processing described
 
 ### Task Counts
 
-The `taskCount` property can be used to expand the number of Tasks within a Task Group, by creating duplicates of a single Task. In JSON specifications, there must be zero or one Task(s) listed within each Task Group or `taskCount` is ignored.
+The `taskCount` property can be used to expand the number of Tasks within a Task Group, by creating duplicates of a single Task; this can be handy for testing and demos. In JSON specifications, there must be zero or one Task(s) listed within each Task Group or `taskCount` is ignored.
 
 This property can also be set on the command line using the `--task-count`/`-C` option of `yd-submit` followed by the required number of Tasks.
 
@@ -757,14 +756,13 @@ Showing all possible properties at the Task level:
 
 Variable substitutions can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
 
-
 ### Work Requirement Name Substitution
 
-The name of the Work Requirement itself can be used via the variable substitution `{{wr_name}}`. This can be used anywhere in the `workRequirement` section of the TOML configuration file, or in a JSON Work Requirement definition.
+The name of the Work Requirement itself can be used via the variable substitution `{{wr_name}}`. This can be used anywhere in the `workRequirement` section of the TOML configuration file, or in JSON Work Requirement definitions
 
 ### Task and Task Group Name Substitutions
 
-The following naming and numbering substitutions are available for use in TOML and JSON Work Requirement specifications, along with the context(s) in which each variable can be used:
+The following naming and numbering substitutions are available for use in TOML and JSON Work Requirement specifications, along with the context(s) in which each variable can be used. The variables can be used within the value of any property.
 
 | Directive               | Description                                       | Task | Task Group |
 |:------------------------|:--------------------------------------------------|:-----|:-----------|
@@ -774,9 +772,6 @@ The following naming and numbering substitutions are available for use in TOML a
 | `{{task_count}}`        | The number of Tasks in the current Task Group     | Yes  | Yes        |
 | `{{task_group_number}}` | The current Task Group number                     | Yes  | Yes        |
 | `{{task_group_count}}`  | The number of Task Groups in the Work Requirement | Yes  | Yes        |
-
-
-The variables can be used within the value of any property.
 
 As an example, the following JSON Work Requirement:
 
@@ -811,11 +806,11 @@ As an example, the following JSON Work Requirement:
 
 ## Dry-Running Work Requirement Submissions
 
-To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-submit`. This will print the fully processed JSON for the Work Requirement. Nothing will be submitted to the Platform.
+To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` (`-D`) command line option when running `yd-submit`. This will print the fully processed JSON for the Work Requirement. Nothing will be submitted to the Platform.
 
-The dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
+A dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are defined directly within their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are then added to Task Groups separately in subsequent API calls.
+Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are inserted directly into their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are then added to Task Groups separately in subsequent API calls.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
@@ -869,7 +864,7 @@ This will submit the Work Requirement, then add all the specified Tasks.
 
 Note that variable substitutions **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
 
-Note that there is no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START`) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload these files, and `yd-submit` will pause to allow this to happen.
+There is also no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START` in the `inputs` property) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload these files, and `yd-submit` will pause for user confirmation to allow this upload to happen.
 
 ## File Storage Locations and File Usage
 
