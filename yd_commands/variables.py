@@ -66,7 +66,8 @@ for key, value in os.environ.items():
             f"Adding environment-defined variable substitution: '{key}' = '{value}'"
         )
 
-# Substitutions from the command line (take precedence over environment variables)
+# Substitutions from the command line, which take precedence over
+# environment variables
 if ARGS_PARSER.variables is not None:
     for variable in ARGS_PARSER.variables:
         key_value: List = variable.split("=")
@@ -113,8 +114,8 @@ def process_variable_substitutions_in_dict_insitu(
     Updates the dictionary in-situ.
 
     Optional 'prefix' and 'postfix' allow variable substitutions intended
-    for this preprocessor to be disambiguated from those to be passed through
-    (specifically for Node Actions in WP JSON documents).
+    for client-side processing to be disambiguated from those to be passed
+    through for server-side processing.
     """
 
     def _walk_data(data: Union[Dict, List]):
@@ -154,8 +155,8 @@ def process_variable_substitutions(
     input_string: Optional[str], prefix: str = "", postfix: str = ""
 ) -> Optional[Union[str, int, bool, float, List, Dict]]:
     """
-    Transform type-tagged and normal variable substitutions into their
-    required types.
+    Process type-tagged and non-type-tagged variables, returning the required
+    type if there's a type-tagged variable at the start of the input string.
     """
     if input_string is None:
         return None
@@ -166,57 +167,62 @@ def process_variable_substitutions(
     if opening_delimiter not in input_string or closing_delimiter not in input_string:
         return input_string  # Nothing to process
 
-    # Remember the top-level type tag, if present; a type-tag is only
-    # relevant if at the start of the string to be processed;
-    # 'None' indicates no type, i.e., a string
-    # Ensure we're not picking up same/similarly named variables when
-    # used in defaults, e.g.: '{{num:='
-    try:
-        type_tag = re.findall(
-            f"^{opening_delimiter}({NUMBER_TYPE_TAG}|{BOOL_TYPE_TAG}"
-            f"|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG})(?!{TAG_DEFAULT_DIFF})",
-            input_string,
-        )[0].replace(opening_delimiter, "")
-    except IndexError:
-        type_tag = None
-
-    # Now remove all type-tags
-    for type_sub in [NUMBER_TYPE_TAG, BOOL_TYPE_TAG, TABLE_TYPE_TAG, ARRAY_TYPE_TAG]:
-        input_string = re.sub(
-            f"{VAR_OPENING_DELIMITER}{type_sub}(?!{TAG_DEFAULT_DIFF})",
-            VAR_OPENING_DELIMITER,
-            input_string,
-        )
-
-    # Disassemble and rebuild the input string, with substitutions processed
-    # in each element in turn
     return_str = ""
-    for element in split_delimited_string(
+
+    # Loop through the delimited elements in the input string
+    elements = split_delimited_string(
         input_string, opening_delimiter, closing_delimiter
-    ):
-        if element.startswith(opening_delimiter):
-            return_str += process_untyped_variable_substitutions(
-                element, opening_delimiter, closing_delimiter
-            )
-        else:
+    )
+    for index, element in enumerate(elements):
+        if not (
+            element.startswith(opening_delimiter)
+            and element.endswith(closing_delimiter)
+        ):  # No variable to process; just reinsert the element
             return_str += element
+            continue
 
-    if type_tag is None:  # No further processing
-        return return_str
+        try:  # Find the type tag in the element, if present
+            type_tag = (
+                re.match(
+                    f"^{opening_delimiter}({NUMBER_TYPE_TAG}|{BOOL_TYPE_TAG}"
+                    f"|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG})(?!{TAG_DEFAULT_DIFF})",
+                    element,
+                )
+                .group(0)
+                .replace(opening_delimiter, "")
+            )
+        except AttributeError:  # No type-tag matches
+            type_tag = ""
 
-    # Unresolved (possibly lazy) variable; reinsert the initial type tag
-    if return_str.startswith(opening_delimiter) and return_str.endswith(
-        closing_delimiter
-    ):
-        return (
-            opening_delimiter
-            + type_tag
-            + remove_outer_delimiters(return_str, opening_delimiter, closing_delimiter)
-            + closing_delimiter
+        element_minus_type_tag = (
+            element.replace(opening_delimiter + type_tag, opening_delimiter)
+            if type_tag != ""
+            else element
         )
 
-    # Process the typed return
-    return process_typed_variable_substitution(type_tag, return_str)
+        element_processed = process_untyped_variable_substitutions(
+            element_minus_type_tag, opening_delimiter, closing_delimiter
+        )
+
+        if element_processed == element_minus_type_tag:  # No variable processing
+            return_str += element
+            continue
+
+        if type_tag == "":  # Variable(s) processed, but no type tag
+            return_str += element_processed
+            continue
+
+        if index == 0 and len(elements) == 1:
+            # The first and only element has a type tag:
+            # immediately return the type matching the tag
+            return process_typed_variable_substitution(type_tag, element_processed)
+
+        # Just append the type as a string
+        return_str += str(
+            process_typed_variable_substitution(type_tag, element_processed)
+        )
+
+    return return_str
 
 
 def process_untyped_variable_substitutions(
