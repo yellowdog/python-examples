@@ -776,7 +776,7 @@ The following naming and numbering substitutions are available for use in TOML a
 | `{{task_group_count}}`  | The number of Task Groups in the Work Requirement | Yes  | Yes        |
 
 
-In a TOML `workRequirement` section, the variables can be used only within the `name`, `taskGoupName` and `taskName` properties. In JSON Work Requirement definitions, the variables can be used within any property.
+The variables can be used within the value of any property.
 
 As an example, the following JSON Work Requirement:
 

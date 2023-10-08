@@ -357,6 +357,8 @@ def create_task_group(
     )
     add_substitution_overwrite(L_TASK_GROUP_COUNT, str(num_task_groups))
     process_variable_substitutions_in_dict_insitu(task_group_data)
+    # Create a copy of global CONFIG_WR and apply lazy substitutions
+    config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
 
     # Assemble the RunSpecification values for the Task Group;
     # 'task_types' can automatically be added to by the task_types
@@ -366,13 +368,13 @@ def create_task_group(
             check_list(task_group_data.get(TASK_TYPES, wr_data.get(TASK_TYPES, [])))
         ).union(task_types_from_tasks)
     )
-    if CONFIG_WR.task_type is not None and CONFIG_WR.task_type not in task_types:
-        task_types.append(CONFIG_WR.task_type)
+    if config_wr.task_type is not None and config_wr.task_type not in task_types:
+        task_types.append(config_wr.task_type)
     if len(task_types) == 0:
         raise Exception(f"No Task Type(s) specified in Task Group '{task_group_name}'")
 
     vcpus_data: Optional[List[float]] = check_list(
-        task_group_data.get(VCPUS, wr_data.get(VCPUS, CONFIG_WR.vcpus))
+        task_group_data.get(VCPUS, wr_data.get(VCPUS, config_wr.vcpus))
     )
     vcpus = (
         None
@@ -381,7 +383,7 @@ def create_task_group(
     )
 
     ram_data: Optional[List[float]] = check_list(
-        task_group_data.get(RAM, wr_data.get(RAM, CONFIG_WR.ram))
+        task_group_data.get(RAM, wr_data.get(RAM, config_wr.ram))
     )
     ram = (
         None
@@ -390,7 +392,7 @@ def create_task_group(
     )
 
     providers_data: Optional[List[str]] = check_list(
-        task_group_data.get(PROVIDERS, wr_data.get(PROVIDERS, CONFIG_WR.providers))
+        task_group_data.get(PROVIDERS, wr_data.get(PROVIDERS, config_wr.providers))
     )
     providers: Optional[List[CloudProvider]] = (
         None
@@ -402,41 +404,41 @@ def create_task_group(
         taskTypes=task_types,
         maximumTaskRetries=check_int(
             task_group_data.get(
-                MAX_RETRIES, wr_data.get(MAX_RETRIES, CONFIG_WR.max_retries)
+                MAX_RETRIES, wr_data.get(MAX_RETRIES, config_wr.max_retries)
             )
         ),
         workerTags=check_list(
             task_group_data.get(
-                WORKER_TAGS, wr_data.get(WORKER_TAGS, CONFIG_WR.worker_tags)
+                WORKER_TAGS, wr_data.get(WORKER_TAGS, config_wr.worker_tags)
             )
         ),
         exclusiveWorkers=check_bool(
             task_group_data.get(
                 EXCLUSIVE_WORKERS,
-                wr_data.get(EXCLUSIVE_WORKERS, CONFIG_WR.exclusive_workers),
+                wr_data.get(EXCLUSIVE_WORKERS, config_wr.exclusive_workers),
             )
         ),
         instanceTypes=check_list(
             task_group_data.get(
-                INSTANCE_TYPES, wr_data.get(INSTANCE_TYPES, CONFIG_WR.instance_types)
+                INSTANCE_TYPES, wr_data.get(INSTANCE_TYPES, config_wr.instance_types)
             )
         ),
         vcpus=vcpus,
         ram=ram,
-        minWorkers=check_int(task_group_data.get(MIN_WORKERS, CONFIG_WR.min_workers)),
-        maxWorkers=check_int(task_group_data.get(MAX_WORKERS, CONFIG_WR.max_workers)),
+        minWorkers=check_int(task_group_data.get(MIN_WORKERS, config_wr.min_workers)),
+        maxWorkers=check_int(task_group_data.get(MAX_WORKERS, config_wr.max_workers)),
         tasksPerWorker=check_int(
-            task_group_data.get(TASKS_PER_WORKER, CONFIG_WR.tasks_per_worker)
+            task_group_data.get(TASKS_PER_WORKER, config_wr.tasks_per_worker)
         ),
         providers=providers,
         regions=check_list(
-            task_group_data.get(REGIONS, wr_data.get(REGIONS, CONFIG_WR.regions))
+            task_group_data.get(REGIONS, wr_data.get(REGIONS, config_wr.regions))
         ),
     )
     ctttl_data = check_float_or_int(
         task_group_data.get(
             COMPLETED_TASK_TTL,
-            wr_data.get(COMPLETED_TASK_TTL, CONFIG_WR.completed_task_ttl),
+            wr_data.get(COMPLETED_TASK_TTL, config_wr.completed_task_ttl),
         )
     )
     completed_task_ttl = None if ctttl_data is None else timedelta(minutes=ctttl_data)
@@ -450,7 +452,7 @@ def create_task_group(
             task_group_data.get(
                 FINISH_IF_ALL_TASKS_FINISHED,
                 wr_data.get(
-                    FINISH_IF_ALL_TASKS_FINISHED, CONFIG_WR.finish_if_all_tasks_finished
+                    FINISH_IF_ALL_TASKS_FINISHED, config_wr.finish_if_all_tasks_finished
                 ),
             )
         ),
@@ -458,12 +460,12 @@ def create_task_group(
             task_group_data.get(
                 FINISH_IF_ANY_TASK_FAILED,
                 wr_data.get(
-                    FINISH_IF_ANY_TASK_FAILED, CONFIG_WR.finish_if_any_task_failed
+                    FINISH_IF_ANY_TASK_FAILED, config_wr.finish_if_any_task_failed
                 ),
             )
         ),
         priority=check_float_or_int(
-            task_group_data.get(PRIORITY, wr_data.get(PRIORITY, CONFIG_WR.priority))
+            task_group_data.get(PRIORITY, wr_data.get(PRIORITY, config_wr.priority))
         ),
         completedTaskTtl=completed_task_ttl,
     )
@@ -568,23 +570,24 @@ def add_tasks_to_task_group(
                 L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
             )
             process_variable_substitutions_in_dict_insitu(task)
+            config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
 
             executable = check_str(
                 task.get(
                     EXECUTABLE,
                     task_group_data.get(
-                        EXECUTABLE, wr_data.get(EXECUTABLE, CONFIG_WR.executable)
+                        EXECUTABLE, wr_data.get(EXECUTABLE, config_wr.executable)
                     ),
                 )
             )
             arguments_list = check_list(
                 task.get(
                     ARGS,
-                    wr_data.get(ARGS, task_group_data.get(ARGS, CONFIG_WR.args)),
+                    wr_data.get(ARGS, task_group_data.get(ARGS, config_wr.args)),
                 )
             )
             env = check_dict(
-                task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, CONFIG_WR.env)))
+                task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, config_wr.env)))
             )
 
             # Set up lists of files to input, verify
@@ -593,7 +596,7 @@ def add_tasks_to_task_group(
                     INPUTS_REQUIRED,
                     task_group_data.get(
                         INPUTS_REQUIRED,
-                        wr_data.get(INPUTS_REQUIRED, CONFIG_WR.inputs_required),
+                        wr_data.get(INPUTS_REQUIRED, config_wr.inputs_required),
                     ),
                 )
             )
@@ -602,7 +605,7 @@ def add_tasks_to_task_group(
                     VERIFY_AT_START,
                     task_group_data.get(
                         VERIFY_AT_START,
-                        wr_data.get(VERIFY_AT_START, CONFIG_WR.verify_at_start),
+                        wr_data.get(VERIFY_AT_START, config_wr.verify_at_start),
                     ),
                 )
             )
@@ -610,7 +613,7 @@ def add_tasks_to_task_group(
                 task.get(
                     VERIFY_WAIT,
                     task_group_data.get(
-                        VERIFY_WAIT, wr_data.get(VERIFY_WAIT, CONFIG_WR.verify_wait)
+                        VERIFY_WAIT, wr_data.get(VERIFY_WAIT, config_wr.verify_wait)
                     ),
                 )
             )
@@ -619,7 +622,7 @@ def add_tasks_to_task_group(
                     INPUTS_OPTIONAL,
                     task_group_data.get(
                         INPUTS_OPTIONAL,
-                        wr_data.get(INPUTS_OPTIONAL, CONFIG_WR.inputs_optional),
+                        wr_data.get(INPUTS_OPTIONAL, config_wr.inputs_optional),
                     ),
                 )
             )
@@ -647,7 +650,7 @@ def add_tasks_to_task_group(
                     UPLOAD_FILES,
                     task_group_data.get(
                         UPLOAD_FILES,
-                        wr_data.get(UPLOAD_FILES, CONFIG_WR.upload_files),
+                        wr_data.get(UPLOAD_FILES, config_wr.upload_files),
                     ),
                 )
             )
@@ -691,7 +694,7 @@ def add_tasks_to_task_group(
                         OUTPUTS_OPTIONAL,
                         task_group_data.get(
                             OUTPUTS_OPTIONAL,
-                            wr_data.get(OUTPUTS_OPTIONAL, CONFIG_WR.outputs_optional),
+                            wr_data.get(OUTPUTS_OPTIONAL, config_wr.outputs_optional),
                         ),
                     )
                 )
@@ -705,7 +708,7 @@ def add_tasks_to_task_group(
                         OUTPUTS_REQUIRED,
                         task_group_data.get(
                             OUTPUTS_REQUIRED,
-                            wr_data.get(OUTPUTS_REQUIRED, CONFIG_WR.outputs_required),
+                            wr_data.get(OUTPUTS_REQUIRED, config_wr.outputs_required),
                         ),
                     )
                 )
@@ -717,7 +720,7 @@ def add_tasks_to_task_group(
                     OUTPUTS_OTHER,
                     task_group_data.get(
                         OUTPUTS_OTHER,
-                        wr_data.get(OUTPUTS_OTHER, CONFIG_WR.outputs_other),
+                        wr_data.get(OUTPUTS_OTHER, config_wr.outputs_other),
                     ),
                 )
             ):
@@ -741,7 +744,7 @@ def add_tasks_to_task_group(
                     CAPTURE_TASKOUTPUT,
                     task_group_data.get(
                         CAPTURE_TASKOUTPUT,
-                        wr_data.get(CAPTURE_TASKOUTPUT, CONFIG_WR.capture_taskoutput),
+                        wr_data.get(CAPTURE_TASKOUTPUT, config_wr.capture_taskoutput),
                     ),
                 )
             ):
@@ -751,7 +754,7 @@ def add_tasks_to_task_group(
                 ALWAYS_UPLOAD,
                 task_group_data.get(
                     ALWAYS_UPLOAD,
-                    wr_data.get(ALWAYS_UPLOAD, CONFIG_WR.always_upload),
+                    wr_data.get(ALWAYS_UPLOAD, config_wr.always_upload),
                 ),
             )
 
@@ -768,10 +771,11 @@ def add_tasks_to_task_group(
                 if len(task_group.runSpecification.taskTypes) == 1:
                     task_type = task_group.runSpecification.taskTypes[0]
                 else:
-                    task_type = CONFIG_WR.task_type
+                    task_type = config_wr.task_type
 
             tasks_list.append(
                 create_task(
+                    config_wr=config_wr,
                     wr_data=wr_data,
                     task_group_data=task_group_data,
                     task_data=task,
@@ -781,7 +785,7 @@ def add_tasks_to_task_group(
                     executable=executable,
                     args=arguments_list,
                     task_data_property=get_task_data_property(
-                        wr_data, task_group_data, task, task_name
+                        config_wr, wr_data, task_group_data, task, task_name
                     ),
                     env=env,
                     inputs=inputs,
@@ -823,7 +827,11 @@ def add_tasks_to_task_group(
 
 
 def get_task_data_property(
-    wr_data: Dict, task_group_data: Dict, task: Dict, task_name: str
+    config_wr: ConfigWorkRequirement,
+    wr_data: Dict,
+    task_group_data: Dict,
+    task: Dict,
+    task_name: str,
 ) -> Optional[str]:
     """
     Get the 'taskData' property, either using the contents of the file
@@ -836,7 +844,7 @@ def get_task_data_property(
     for data, task_data_default, task_data_file_default in [
         (task, None, None),
         (task_group_data, None, None),
-        (wr_data, CONFIG_WR.task_data, CONFIG_WR.task_data_file),
+        (wr_data, config_wr.task_data, config_wr.task_data_file),
     ]:
         task_data_property = data.get(TASK_DATA, task_data_default)
         task_data_file_property = data.get(TASK_DATA_FILE, task_data_file_default)
@@ -1026,6 +1034,7 @@ def get_task_group_name(
 
 
 def create_task(
+    config_wr: ConfigWorkRequirement,
     wr_data: Dict,
     task_group_data: Dict,
     task_data: Dict,
@@ -1075,7 +1084,7 @@ def create_task(
             FLATTEN_PATHS,
             task_group_data.get(
                 FLATTEN_PATHS,
-                wr_data.get(FLATTEN_PATHS, CONFIG_WR.flatten_input_paths),
+                wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
             ),
         )
     ):
@@ -1143,7 +1152,7 @@ def create_task(
                 DOCKER_ENV,
                 task_group_data.get(
                     DOCKER_ENV,
-                    wr_data.get(DOCKER_ENV, CONFIG_WR.docker_env),
+                    wr_data.get(DOCKER_ENV, config_wr.docker_env),
                 ),
             )
         )
@@ -1163,14 +1172,14 @@ def create_task(
             DOCKER_USERNAME,
             task_group_data.get(
                 DOCKER_USERNAME,
-                wr_data.get(DOCKER_USERNAME, CONFIG_WR.docker_username),
+                wr_data.get(DOCKER_USERNAME, config_wr.docker_username),
             ),
         )
         docker_password = task_data.get(
             DOCKER_PASSWORD,
             task_group_data.get(
                 DOCKER_PASSWORD,
-                wr_data.get(DOCKER_PASSWORD, CONFIG_WR.docker_password),
+                wr_data.get(DOCKER_PASSWORD, config_wr.docker_password),
             ),
         )
         env_copy.update(
