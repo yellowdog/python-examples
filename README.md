@@ -1128,11 +1128,11 @@ The `inputsOptional` property works in a similar fashion to the `verify*` proper
 
 When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. Files specified using the `inputsOptional` property are optionally downloaded from the Object Store. (Note that a file should only appear in one of these four lists, otherwise `yd-submit` will return an error.)
 
-When a Task is started by the Agent, its working directory has a pattern something like:
+When a Task is started by the Agent, its working directory has a pattern like:
 
 `/var/opt/yellowdog/agent/data/workers/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1`
 
-(`ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemeral directory that is removed after the Task finishes and any outputs have been uploaded.)
+Where `ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemeral directory that is removed after the Task finishes (or fails) and any nominated outputs have been uploaded.
 
 Files that are downloaded by the Agent prior to Task execution are located as follows:
 
@@ -1156,13 +1156,7 @@ where <working_directory> is:
   /var/opt/yellowdog/agent/data/workers/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
 ```
 
-Note that the Work Requirement name (e.g., `testrun_221108-120404-7d2`) is available via the variable substitution `wr_name`, so this could be supplied to the Task to help it locate its downloaded files. For example, in the `workRequirement` section of the `config.toml` file, I could specify:
-
-```toml
-environment = {WR_DIRECTORY = "{{wr_name}}"}
-```
-
-The Work Requirement name would then be available to the Task in the environment variable `$WR_DIRECTORY`.
+Note that the Work Requirement name is automatically made available to the Task via the environment variable `YD_WORK_REQUIREMENT_NAME`, by `yd-submit`. It's also available for client-side variable substitution in Work Requirements using the variable `{{wr_name}}`.
 
 ### Files Uploaded from a Node to the Object Store after Task Execution
 
