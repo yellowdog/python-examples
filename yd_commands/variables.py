@@ -275,7 +275,6 @@ def process_untyped_variable_substitutions(
         ).split(VAR_DEFAULT_SEPARATOR)
         if (
             variable_default[0] == ""
-            or variable_default[1] == ""
             or len(variable_default) != 2
         ):
             raise Exception(

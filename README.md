@@ -413,15 +413,17 @@ Nesting can be up to three levels deep including the top level. Note that variab
 
 ## Providing Default Values for User-Defined Variables
 
-Each variable can be supplied with a default value to be used if a value is not explicitly provided for that variable name. The syntax for providing a default is:
+Each variable can be supplied with a default value, to be used if a value is not explicitly provided for that variable name. The syntax for providing a default is:
 
 ```
-{{variable_name:=default_value}} or
-{{num:numeric_variable_name:=default_numeric_value}} or
-{{bool:boolean_variable_name:=default_boolean_value}} or
-{{array:array_name:=default_array}} or
-{{table:table_name:=default_table}}
+"{{variable_name:=default_value}}" or
+"{{num:numeric_variable_name:=default_numeric_value}}" or
+"{{bool:boolean_variable_name:=default_boolean_value}}" or
+"{{array:array_name:=default_array}}" or
+"{{table:table_name:=default_table}}"
 ```
+
+An empty-string default variable value can be set as follows: `"{{my_variable:=}}"`.
 
 Examples of use in a TOML file:
 
