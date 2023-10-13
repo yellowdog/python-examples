@@ -413,15 +413,17 @@ Nesting can be up to three levels deep including the top level. Note that variab
 
 ## Providing Default Values for User-Defined Variables
 
-Each variable can be supplied with a default value to be used if a value is not explicitly provided for that variable name. The syntax for providing a default is:
+Each variable can be supplied with a default value, to be used if a value is not explicitly provided for that variable name. The syntax for providing a default is:
 
 ```
-{{variable_name:=default_value}} or
-{{num:numeric_variable_name:=default_numeric_value}} or
-{{bool:boolean_variable_name:=default_boolean_value}} or
-{{array:array_name:=default_array}} or
-{{table:table_name:=default_table}}
+"{{variable_name:=default_value}}" or
+"{{num:numeric_variable_name:=default_numeric_value}}" or
+"{{bool:boolean_variable_name:=default_boolean_value}}" or
+"{{array:array_name:=default_array}}" or
+"{{table:table_name:=default_table}}"
 ```
+
+An empty-string default variable value can be set as follows: `"{{my_variable:=}}"`.
 
 Examples of use in a TOML file:
 
@@ -1128,11 +1130,11 @@ The `inputsOptional` property works in a similar fashion to the `verify*` proper
 
 When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. Files specified using the `inputsOptional` property are optionally downloaded from the Object Store. (Note that a file should only appear in one of these four lists, otherwise `yd-submit` will return an error.)
 
-When a Task is started by the Agent, its working directory has a pattern something like:
+When a Task is started by the Agent, its working directory has a pattern like:
 
-`/var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1`
+`/var/opt/yellowdog/agent/data/workers/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1`
 
-(`ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemeral directory that is removed after the Task finishes and any outputs have been uploaded.)
+Where `ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemeral directory that is removed after the Task finishes (or fails) and any nominated outputs have been uploaded.
 
 Files that are downloaded by the Agent prior to Task execution are located as follows:
 
@@ -1153,16 +1155,10 @@ else, if flattenInputPaths is true, the file will be found at:
  -> <working_directory>/file_1.txt 
  
 where <working_directory> is:
-  /var/opt/yellowdog/yd-agent-4/data/workers/1/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
+  /var/opt/yellowdog/agent/data/workers/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
 ```
 
-Note that the Work Requirement name (e.g., `testrun_221108-120404-7d2`) is available via the variable substitution `wr_name`, so this could be supplied to the Task to help it locate its downloaded files. For example, in the `workRequirement` section of the `config.toml` file, I could specify:
-
-```toml
-environment = {WR_DIRECTORY = "{{wr_name}}"}
-```
-
-The Work Requirement name would then be available to the Task in the environment variable `$WR_DIRECTORY`.
+Note that the Work Requirement name is automatically made available to the Task via the environment variable `YD_WORK_REQUIREMENT_NAME`, by `yd-submit`. It's also available for client-side variable substitution in Work Requirements using the variable `{{wr_name}}`.
 
 ### Files Uploaded from a Node to the Object Store after Task Execution
 
@@ -1238,7 +1234,7 @@ This section discusses the context within which a Task operates when it's execut
 When a Task is allocated to a Worker on a node by the YellowDog Scheduler, the following steps are followed:
 
 1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list.
-2. These files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also placed by default.
+2. These files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also written by default.
 2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess.
 3. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
 4. The Agent then gathers any files in the `outputs` and `outputsRequired` lists and uploads them to the Object Store. If a file in the `outputsRequired` list is not found, the Task will be reported as failed. The Agent will also optionally upload the console output (including both `stdout` and `stderr`) of the Task, contained in the `taskoutput.txt` file.
@@ -1280,13 +1276,13 @@ chown -R yd-agent:yd-agent $YDA_HOME/.ssh
 
 ### Task Execution Directory
 
-Ephemeral Task directories are by default created under `/var/opt/yellowdog/agent/data/workers`. This directory contains one or more numbered subdirectories where each numbered directory corresponds to a Worker on the node.
+Ephemeral Task working directories are by default created under `/var/opt/yellowdog/agent/data/workers`, named using their YellowDog Task IDs with colons substituted by underscores.
 
 (On Windows hosts, the Task directories are found under `%AppData%\yellowdog\agent\data\workers`.)
 
-When a Task is allocated to a node, an ephemeral directory is created under the applicable Worker directory, with a name corresponding the YellowDog ID for the Task. For example, this is an ephemeral directory being used by Worker number `1`:
+When a Task is allocated to a node, an ephemeral directory is created, e.g.:
 
-`/var/opt/yellowdog/agent/data/workers/1/ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1`
+`/var/opt/yellowdog/agent/data/workers/ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1`
 
 This is the directory into which downloaded objects are placed, and in which output files are created by default. The console output `taskoutput.txt` file will also be created in this directory.
 

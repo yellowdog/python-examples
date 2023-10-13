@@ -104,6 +104,12 @@ if ARGS_PARSER.dry_run:
 
 UPLOADED_FILES: Optional[UploadedFiles] = None
 
+# Names for environment variables that are automatically added
+# to the environment for each Task
+YD_WORK_REQUIREMENT_NAME = "YD_WORK_REQUIREMENT_NAME"
+YD_TASK_GROUP_NAME = "YD_TASK_GROUP_NAME"
+YD_TASK_NAME = "YD_TASK_NAME"
+
 
 @main_wrapper
 def main():
@@ -1074,9 +1080,6 @@ def create_task(
             taskData=task_data_property,
         )
 
-    check_list(args)
-    check_dict(env)
-
     # Flatten paths for downloaded files?
     flatten_input_paths: Optional[FlattenPath] = None
     if check_bool(
@@ -1090,15 +1093,10 @@ def create_task(
     ):
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
-    # Environment variable names
-    yd_task_name_str = "YD_TASK_NAME"
-    yd_tg_name_str = "YD_TASK_GROUP_NAME"
-    yd_wr_name_str = "YD_WORK_REQUIREMENT_NAME"
-
-    # Add names to the environment as a convenience
-    env_copy[yd_task_name_str] = task_name
-    env_copy[yd_tg_name_str] = tg_name
-    env_copy[yd_wr_name_str] = ID
+    # Add entity names to the Task's environment as a convenience
+    env_copy[YD_TASK_NAME] = task_name
+    env_copy[YD_TASK_GROUP_NAME] = tg_name
+    env_copy[YD_WORK_REQUIREMENT_NAME] = ID
 
     # Special processing for Bash, Python & PowerShell tasks if the 'executable'
     # property is set. The script is uploaded if this hasn't already been done,
@@ -1156,10 +1154,11 @@ def create_task(
                 ),
             )
         )
-        # Names are set in the container env. for convenience
-        docker_env_list = ["--env", f"{yd_task_name_str}={task_name}"]
-        docker_env_list += ["--env", f"{yd_tg_name_str}={tg_name}"]
-        docker_env_list += ["--env", f"{yd_wr_name_str}={ID}"]
+        # Add entity names to the container env. for convenience
+        docker_env_list = ["--env", f"{YD_TASK_NAME}={task_name}"]
+        docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
+        docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
+
         if docker_env is not None:
             for key, value in docker_env.items():
                 docker_env_list += ["--env", f"{key}={value}"]
