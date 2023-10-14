@@ -273,10 +273,7 @@ def process_untyped_variable_substitutions(
         variable_default = remove_outer_delimiters(
             substitution, opening_delimiter, closing_delimiter
         ).split(VAR_DEFAULT_SEPARATOR)
-        if (
-            variable_default[0] == ""
-            or len(variable_default) != 2
-        ):
+        if variable_default[0] == "" or len(variable_default) != 2:
             raise Exception(
                 f"Malformed '<variable>:=<default>' substitution: '{substitution}'"
             )
@@ -424,7 +421,7 @@ def load_toml_file_with_variable_substitutions(
     except KeyError:
         pass
 
-    # Repeat processing to resolve variables
+    # Repeat processing to resolve nested variables
     for _ in range(TOML_VAR_NESTED_DEPTH):
         process_variable_substitutions_in_dict_insitu(
             config, prefix=prefix, postfix=postfix
