@@ -164,7 +164,7 @@ def process_variable_substitutions(
     opening_delimiter = prefix + VAR_OPENING_DELIMITER
     closing_delimiter = VAR_CLOSING_DELIMITER + postfix
 
-    if opening_delimiter not in input_string or closing_delimiter not in input_string:
+    if not (opening_delimiter in input_string and closing_delimiter in input_string):
         return input_string  # Nothing to process
 
     return_str = ""
