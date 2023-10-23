@@ -127,8 +127,8 @@ Cloud Wizard will interrogate your AWS account to find out which regions are ava
 
 Cloud Wizard performs the following actions in your AWS account:
 
-1. It creates a new IAM user called `yellowdog-cloudwizard-iam-user`.
-2. It creates a new IAM policy called `yellowdog-cloudwizard-policy`, containing the capabilities required for YellowDog to use your AWS account on behalf of `yellowdog-cloudwizard-iam-user`.
+1. It creates a new IAM user called `yellowdog-cloudwizard-user`.
+2. It creates a new IAM policy called `yellowdog-cloudwizard-policy`, containing the capabilities required for YellowDog to use your AWS account on behalf of `yellowdog-cloudwizard-user`.
 3. It attaches the IAM policy to the IAM user.
 4. It creates a new access key for the IAM user; note that the secret access key is not displayed by default and will not be recorded other than in the Credential to be created within YellowDog. To display the secret access key, run the Cloud Wizard command with the `--show-secrets` option.
 5. It adds the `AWSServiceRoleForEC2Spot` service linked role to the AWS account. This allows spot instances to be provisioned by YellowDog.
@@ -166,10 +166,10 @@ The following actions are taken in the **YellowDog account**:
 
 The following actions are taken in the **AWS account**:
 
-1. The access key for `yellowdog-cloudwizard-iam-user` is deleted.
+1. The access key for `yellowdog-cloudwizard-user` is deleted.
 2. The IAM policy `yellowdog-cloudwizard-policy` is detached from the user.
 3. The IAM policy `yellowdog-cloudwizard-policy` is deleted.
-3. The user `yellowdog-cloudwizard-iam-user` is deleted.
+3. The user `yellowdog-cloudwizard-user` is deleted.
 4. The `AWSServiceRoleForEC2Spot` service linked role is removed.
 
 ## Idempotency

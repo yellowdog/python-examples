@@ -24,7 +24,7 @@ from yd_commands.object_utilities import (
 from yd_commands.printing import print_log, print_warning
 from yd_commands.remove import remove_resource_by_id
 
-IAM_USER_NAME = "yellowdog-cloudwizard-iam-user"
+IAM_USER_NAME = "yellowdog-cloudwizard-user"
 IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
 EC2_SPOT_SERVICE_LINKED_ROLE_NAME = "AWSServiceRoleForEC2Spot"
 MAX_ITEMS = 1000  # Maximum number of items to return from an AWS API call
