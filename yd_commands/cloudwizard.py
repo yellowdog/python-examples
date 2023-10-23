@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Testing AWS IAM user creation via the Python SDK
+Cloud Wizard: cloud provider and YellowDog account setup.
 """
 
 from yd_commands.aws_cloudwizard import AWSConfig
