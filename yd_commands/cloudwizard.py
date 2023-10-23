@@ -26,7 +26,7 @@ def main():
                 show_secrets=ARGS_PARSER.show_secrets,
             )
         elif ARGS_PARSER.operation == "teardown":
-            aws_config.remove_resource_configurations(CLIENT)
+            aws_config.remove_yellowdog_resources(CLIENT)
             aws_config.remove_aws_account_assets()
 
     elif ARGS_PARSER.cloud_provider.lower() in [

@@ -325,7 +325,7 @@ class AWSConfig:
         )
 
     @staticmethod
-    def remove_resource_configurations(client: PlatformClient):
+    def remove_yellowdog_resources(client: PlatformClient):
         """
         Remove a set of resources identified by their prefix/name.
         """
