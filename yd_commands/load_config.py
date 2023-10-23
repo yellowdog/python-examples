@@ -115,9 +115,9 @@ def load_config_common() -> ConfigCommon:
 
         # Provide default values for namespace and tag
         if common_section.get(NAMESPACE, None) is None:
-            common_section[NAMESPACE] = "ns-{{username}}"
+            common_section[NAMESPACE] = "{{username}}_namespace"
         if common_section.get(NAME_TAG, None) is None:
-            common_section[NAME_TAG] = "tag-{{namespace}}"
+            common_section[NAME_TAG] = "{{username}}_tag"
 
         url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
