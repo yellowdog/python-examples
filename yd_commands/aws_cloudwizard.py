@@ -33,7 +33,7 @@ YD_KEYRING_NAME = "cloudwizard-aws"
 YD_CREDENTIAL_NAME = "cloudwizard-aws"
 YD_RESOURCE_PREFIX = "cloudwizard-aws"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
-YD_INSTANCE_TAG = {"ydtag": "yellowdog-cloudwizard-source"}
+YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 
 
 AWS_DEFAULT_REGION = "eu-west-2"
