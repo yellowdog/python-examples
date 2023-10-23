@@ -35,6 +35,7 @@ def select(
     override_quiet: bool = False,
     single_result: bool = False,
     showing_all: bool = False,
+    force_interactive=False,
 ) -> List[Item]:
     """
     Print a numbered list of objects.
@@ -52,7 +53,7 @@ def select(
             client, objects, override_quiet=override_quiet, showing_all=showing_all
         )
 
-    if not ARGS_PARSER.interactive:
+    if not ARGS_PARSER.interactive and force_interactive is False:
         return objects
 
     def in_range(num: int) -> bool:
@@ -134,13 +135,15 @@ def confirmed(msg: str) -> bool:
     """
     # Confirmed on the command line?
     if ARGS_PARSER is not None and ARGS_PARSER.yes:
-        print_log("Action proceeding without user confirmation")
+        print_log(f"Action proceeding without user confirmation ({msg})")
         return True
 
     # Confirmed using the environment variable?
     yd_yes = getenv(YD_YES, "")
     if yd_yes != "":
-        print_log(f"'{YD_YES}={yd_yes}': Action proceeding without user confirmation")
+        print_log(
+            f"'{YD_YES}={yd_yes}': Action proceeding without user confirmation ({msg})"
+        )
         return True
 
     # Seek user confirmation

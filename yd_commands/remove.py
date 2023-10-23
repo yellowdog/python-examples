@@ -4,7 +4,8 @@
 A script to remove YellowDog resources.
 """
 
-from typing import Dict, List
+from copy import deepcopy
+from typing import Dict, List, Optional
 
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
@@ -19,18 +20,30 @@ from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
     find_compute_template_id_by_name,
 )
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 
 
 @main_wrapper
 def main():
+    remove_resources()
+
+
+def remove_resources(resources: Optional[List[Dict]] = None):
+    """
+    Remove a list of resources either supplied as an argument
+    or loaded from files, or by ID.
+    """
     if ARGS_PARSER.ids:
         for resource_id in ARGS_PARSER.resource_specifications:
             remove_resource_by_id(resource_id)
         return
 
-    resources = load_resource_specifications()
+    if resources is None:
+        resources = load_resource_specifications()
+    else:
+        resources = deepcopy(resources)  # Avoid overwriting the input argument
+
     for resource in resources:
         try:
             resource_type = resource.pop("resource")
@@ -71,9 +84,9 @@ def remove_compute_source(resource: Dict):
 
     source_id = find_compute_source_id_by_name(CLIENT, name)
     if source_id is None:
-        print_error(f"Cannot find Source Template '{name}'")
+        print_warning(f"Cannot find Compute Source Template '{name}'")
     else:
-        if not confirmed(f"Remove Source Template '{name}'?"):
+        if not confirmed(f"Remove Compute Source Template '{name}'?"):
             return
         CLIENT.compute_client.delete_compute_source_template_by_id(source_id)
         print_log(f"Removed Compute Source '{name}' ({source_id})")
@@ -90,7 +103,7 @@ def remove_compute_template(resource: Dict):
 
     template_id = find_compute_template_id_by_name(CLIENT, name)
     if template_id is None:
-        print_error(f"Cannot find Compute Requirement Template '{name}'")
+        print_warning(f"Cannot find Compute Requirement Template '{name}'")
     else:
         if not confirmed(f"Remove Compute Requirement Template '{name}'?"):
             return
@@ -115,7 +128,7 @@ def remove_keyring(resource: Dict):
         print_log(f"Deleted Keyring '{name}'")
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_error(f"Keyring '{name}' not found")
+            print_warning(f"Keyring '{name}' not found")
         else:
             raise e
 
@@ -144,7 +157,10 @@ def remove_credential(resource: Dict):
         )
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_error(f"Keyring '{keyring_name}' not found")
+            print_warning(
+                f"Keyring '{keyring_name}' not found (possibly already deleted,"
+                " including its credentials)"
+            )
         else:
             print_error(e)
 
@@ -168,7 +184,7 @@ def remove_image_family(resource: Dict):
             return
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_error(f"Machine Image Family '{namespace}/{family_name}' not found")
+            print_warning(f"Machine Image Family '{namespace}/{family_name}' not found")
             return
         else:
             raise e
@@ -190,7 +206,7 @@ def remove_namespace_configuration(resource: Dict):
         CLIENT.object_store_client.get_namespace_storage_configurations()
     )
     if namespace not in [x.namespace for x in namespaces]:
-        print_error(f"Namespace Storage Configuration '{namespace}' not found")
+        print_warning(f"Namespace Storage Configuration '{namespace}' not found")
         return
 
     if not confirmed(f"Remove Namespace Storage Configuration '{namespace}'?"):

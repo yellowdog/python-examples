@@ -5,13 +5,14 @@ TESTS = tests/*.py conftest.py
 MANIFEST = LICENSE README.md requirements.txt
 BUILD_DIST = build dist yellowdog_python_examples.egg-info
 PYCACHE = __pycache__
-TOC_BACKUP = README.md.*
+TOC_BACKUP = README.md.* README_CLOUDWIZARD.md.*
+PYINSTALLER = yd_commands/*.spec yd_commands/build yd_commands/dist
 
 build: $(SRC) $(MANIFEST)
 	python -m build
 
 clean:
-	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP)
+	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP) $(PYINSTALLER)
 
 install: build
 	pip install -U -e .
@@ -41,8 +42,13 @@ pypi_test_upload: clean build
 pypi_check: build
 	twine check dist/*
 
-toc:
+toc: toc toc_cloudwizard
+
+toc: README.md
 	./gh-md-toc --insert README.md
+
+toc_cloudwizard: README_CLOUDWIZARD.md
+	./gh-md-toc --insert README_CLOUDWIZARD.md
 
 update:
 	pip install -U pip -r requirements.txt -r requirements-dev.txt

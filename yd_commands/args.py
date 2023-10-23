@@ -274,6 +274,7 @@ class CLIParser:
                 "shutdown",
                 "terminate",
                 "resize",
+                "cloudwizard",
             ]
         ):
             parser.add_argument(
@@ -695,7 +696,7 @@ class CLIParser:
                 "-f",
                 action="store_true",
                 required=False,
-                help="follow progress after rezising",
+                help="follow progress after resizing",
             )
 
         if any(
@@ -730,6 +731,36 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="print the raw JSON event stream when following events",
+            )
+
+        if "cloudwizard" in sys.argv[0]:
+            parser.add_argument(
+                "operation",
+                metavar="'setup' or 'teardown'",
+                type=str,
+                choices=["setup", "teardown"],
+                help="the cloud wizard operation to perform: 'setup' or 'teardown'",
+            )
+            parser.add_argument(
+                "--cloud-provider",
+                "-C",
+                required=False,
+                default="AWS",
+                metavar="<name of cloud provider>",
+                type=str,
+                help=(
+                    "the name of the cloud provider to set up (defaults to 'AWS', the"
+                    " only currently supported option)"
+                ),
+            )
+            parser.add_argument(
+                "--show-secrets",
+                action="store_true",
+                required=False,
+                help=(
+                    "print secrets during processing (YellowDog Keyring password, AWS"
+                    " secret key)"
+                ),
             )
 
         self.args = parser.parse_args()
@@ -1072,6 +1103,21 @@ class CLIParser:
     def reverse(self) -> Optional[bool]:
         return self.args.reverse
 
+    @property
+    @allow_missing_attribute
+    def operation(self) -> Optional[str]:
+        return self.args.operation
+
+    @property
+    @allow_missing_attribute
+    def cloud_provider(self) -> Optional[str]:
+        return self.args.cloud_provider
+
+    @property
+    @allow_missing_attribute
+    def show_secrets(self) -> Optional[bool]:
+        return self.args.show_secrets
+
 
 def lookup_module_description(module_name: str) -> Optional[str]:
     """
@@ -1110,6 +1156,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "resizing Worker Pools and Compute Requirements"
     elif "follow" in module_name:
         suffix = "following event streams"
+    elif "cloudwizard" in module_name:
+        suffix = "setting up cloud accounts and YellowDog resources"
 
     return None if suffix is None else prefix + suffix
 

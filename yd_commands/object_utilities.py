@@ -29,6 +29,8 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
+from yd_commands.aws_types import AWSAvailabilityZone
+
 
 @lru_cache()
 def get_task_groups_from_wr_summary(
@@ -112,6 +114,7 @@ Item = TypeVar(
     TaskGroup,
     WorkerPoolSummary,
     WorkRequirementSummary,
+    AWSAvailabilityZone,
 )
 
 
@@ -195,6 +198,13 @@ def get_all_compute_sources(
     return client.compute_client.find_all_compute_source_templates()
 
 
+def clear_compute_source_template_cache():
+    """
+    Clear the cache of Compute Source Templates.
+    """
+    get_all_compute_sources.cache_clear()
+
+
 def find_compute_template_id_by_name(
     client: PlatformClient, name: str
 ) -> Optional[str]:
@@ -214,6 +224,13 @@ def get_all_compute_templates(
     Cache the list of Compute Templates
     """
     return client.compute_client.find_all_compute_requirement_templates()
+
+
+def clear_compute_requirement_template_cache():
+    """
+    Clear the cache of Compute Requirement Templates
+    """
+    get_all_compute_templates.cache_clear()
 
 
 def get_compreq_id_by_worker_pool_id(

@@ -113,6 +113,12 @@ def load_config_common() -> ConfigCommon:
                     f"for '{key_name}'"
                 )
 
+        # Provide default values for namespace and tag
+        if common_section.get(NAMESPACE, None) is None:
+            common_section[NAMESPACE] = "ns-{{username}}"
+        if common_section.get(NAME_TAG, None) is None:
+            common_section[NAME_TAG] = "tag-{{namespace}}"
+
         url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
             print_log(f"Using the YellowDog API at: {url}")
