@@ -119,18 +119,18 @@ Cloud Wizard expects to use the default VPC, default subnet(s), and default secu
 
 The default **subnets** are provided with a route to a gateway which allows instances to make outbound connections to the Internet. However, no NAT gateway is provided (this is a separately chargeable AWS service), so instances must have public IP addresses to connect to the Internet and specifically to connect back to the YellowDog Platform.
 
-The default **security group** allows unrestricted traffic between instances on the subnet, and allows unrestricted outbound traffic to any address including the public Internet. It allows **no** inbound access from outside the subnet. Hence, if inbound access is required (e.g., SSH access to an instance), this must be added manually to each the default security group in each region which it is required.
+The default **security group** allows unrestricted traffic between instances on the subnet, and allows unrestricted outbound traffic to any address including the public Internet. It allows **no** inbound access from outside the subnet. Hence, if inbound access is required (e.g., SSH access to an instance), this must be added manually to each default security group in each region for which it is required.
 
-Cloud Wizard will interrogate your AWS account to find out which regions are available, and to determine the default security group for the region, and the default subnet for each availability zone within the region. Network details are only collected for the regions in which YellowDog supplies default public YellowDog VM images (i.e., AWS AMIs), which are as follows: `eu-west-1`, `eu-west-2`, `us-east-1`, `us-east-2`, `us-west-1`, `us-west-2`.
+Cloud Wizard will interrogate your AWS account to find out which regions are available, and to determine the default security group for the region, and the default subnet for each availability zone within the region. Network details are **only** collected for the regions in which YellowDog supplies default public YellowDog VM images (i.e., AWS AMIs), which are as follows: `eu-west-1`, `eu-west-2`, `us-east-1`, `us-east-2`, `us-west-1`, `us-west-2`.
 
 ### AWS Account Setup
 
 Cloud Wizard performs the following actions in your AWS account:
 
 1. It creates a new IAM user called `yellowdog-cloudwizard-iam-user`.
-2. It creates a new IAM policy called `yellowdog-cloudwizard-policy`, containing the required capabilities for YellowDog to use your AWS account on behalf of `yellowdog-cloudwizard-iam-user`.
+2. It creates a new IAM policy called `yellowdog-cloudwizard-policy`, containing the capabilities required for YellowDog to use your AWS account on behalf of `yellowdog-cloudwizard-iam-user`.
 3. It attaches the IAM policy to the IAM user.
-4. It creates a new access key for the IAM user; note that the secret access key is not displayed by default and will not be recorded other than in the Credential created within YellowDog. To display the secret access key, run the Cloud Wizard command with the `--show-secrets` option.
+4. It creates a new access key for the IAM user; note that the secret access key is not displayed by default and will not be recorded other than in the Credential to be created within YellowDog. To display the secret access key, run the Cloud Wizard command with the `--show-secrets` option.
 5. It adds the `AWSServiceRoleForEC2Spot` service linked role to the AWS account. This allows spot instances to be provisioned by YellowDog.
 
 The steps above are essentially an automated version of YellowDog's [AWS account configuration guidelines](https://docs.yellowdog.co/#/knowledge-base/configuring-an-aws-account-for-use-with-yellowdog).
