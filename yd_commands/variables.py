@@ -1,6 +1,7 @@
 """
 Utilities for applying variable substitutions.
 """
+
 import os
 import re
 import sys

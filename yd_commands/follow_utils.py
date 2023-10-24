@@ -1,6 +1,7 @@
 """
 Utility function to follow event streams.
 """
+
 from threading import Thread
 from typing import List, Optional
 

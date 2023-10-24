@@ -3,7 +3,6 @@ Check that configuration values are the types we expect.
 If not, raise an Exception.
 """
 
-
 def _type(type_) -> str:
     if "int" in f"{type_}":
         return "Integer"
