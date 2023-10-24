@@ -5,6 +5,7 @@ Common utility functions, mostly related to loading configuration data.
 import os
 from os import getenv
 from os.path import abspath, dirname
+from sys import exit
 from typing import Dict, Optional
 
 from toml import TomlDecodeError
