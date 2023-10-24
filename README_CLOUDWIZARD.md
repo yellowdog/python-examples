@@ -94,7 +94,9 @@ All destructive operations will require user confirmation; to avoid this, use th
 
 # YellowDog Prerequisites
 
-You'll need a YellowDog Platform account, and to have created an **Application** via the [YellowDog Portal](https://portal.yellowdog.co/#/account/applications). The Application's Key ID and Key Secret need to be available to the Cloud Wizard command either (1) via the environment variables `YD_KEY` and `YD_SECRET`, or (2) they can be set on the command line using the `--key` and `--secret` options, or (3) they can be set in a `config.toml` configuration file as follows:
+You'll need a YellowDog Platform account, and to have created an **Application** via the [YellowDog Portal](https://portal.yellowdog.co/#/account/applications). The Application must belong to a group that has the following permissions at a minimum: `KEYRING_WRITE`, `COMPUTE_SOURCE_TEMPLATE_WRITE` and `COMPUTE_REQUIREMENT_TEMPLATE_WRITE`. If you make the Application a member of the `administrators` group, it will acquire these rights automatically.
+
+The Application's **Key ID** and **Key Secret** need to be available to the Cloud Wizard command either (1) via the environment variables `YD_KEY` and `YD_SECRET`, or (2) they can be set on the command line using the `--key`/`-k` and `--secret`/`-s` options, or (3) they can be set in a `config.toml` configuration file as follows:
 
 ```toml
 common.key = "<Insert Key ID>"
@@ -133,9 +135,9 @@ Cloud Wizard performs the following actions in your AWS account:
 4. It creates a new access key for the IAM user; note that the secret access key is not displayed by default and will not be recorded other than in the Credential to be created within YellowDog. To display the secret access key, run the Cloud Wizard command with the `--show-secrets` option.
 5. It adds the `AWSServiceRoleForEC2Spot` service linked role to the AWS account. This allows spot instances to be provisioned by YellowDog.
 
-The steps above are essentially an automated version of YellowDog's [AWS account configuration guidelines](https://docs.yellowdog.co/#/knowledge-base/configuring-an-aws-account-for-use-with-yellowdog).
+The steps above are essentially an automated version of YellowDog's [AWS account configuration guidelines](https://docs.yellowdog.co/#/knowledge-base/configuring-an-aws-account-for-use-with-yellowdog). Note that the addition of the Service linked role for AWS Fleet is omitted.
 
-Note that some AWS IAM settings take a little while to percolate through the AWS account. For example, the `AWSServiceRoleForEC2Spot` service linked role may not take effect immediately, meaning that spot instances cannot be provisioned. 
+Some AWS IAM settings take a little while to percolate through the AWS account. In particular, the `AWSServiceRoleForEC2Spot` service linked role may not take effect immediately, meaning that spot instances cannot be provisioned.
 
 ### YellowDog Platform Setup
 
