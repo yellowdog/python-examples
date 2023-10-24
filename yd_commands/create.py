@@ -113,7 +113,7 @@ def create_compute_source(resource: Dict):
             compute_source_template
         )
         print_log(
-            f"Created Compute Source Template'{compute_source.source.name}'"
+            f"Created Compute Source Template '{compute_source.source.name}'"
             f" ({compute_source.id})"
         )
     else:
@@ -124,7 +124,7 @@ def create_compute_source(resource: Dict):
             compute_source_template
         )
         print_log(
-            f"Updated existing Compute Source Template'{compute_source.source.name}'"
+            f"Updated existing Compute Source Template '{compute_source.source.name}'"
             f" ({compute_source.id})"
         )
 
