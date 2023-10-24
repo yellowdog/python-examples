@@ -36,7 +36,6 @@ YD_RESOURCE_PREFIX = "cloudwizard-aws"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 
-
 AWS_DEFAULT_REGION = "eu-west-2"
 
 AWS_ALL_REGIONS = [
@@ -716,11 +715,11 @@ class AWSConfig:
         """
         Create a minimal populated YellowDog Source Template resource definition.
         """
-        spot_str = "spot" if spot is True else "ondemand"
+        spot_str = "Spot" if spot is True else "On-Demand"
         return {
             "resource": "ComputeSourceTemplate",
             "description": (
-                f"AWS {az.region} {spot_str} Source Template automatically created by"
+                f"AWS {az.az} {spot_str} Source Template automatically created by"
                 " YellowDog Cloud Wizard"
             ),
             "source": {
