@@ -1,6 +1,7 @@
 """
 Configuration and utilities related to AWS account setup.
 """
+
 import json
 from os.path import exists
 from time import sleep
@@ -224,11 +225,9 @@ class AWSConfig:
         Create the YellowDog resources and save the resource definition file.
         """
 
-        # Create Keyring
-        keyring_resource = self._generate_yd_keyring()
-        create_resources([keyring_resource], show_secrets)
+        print_log("Creating resources in the YellowDog account")
 
-        # Create Compute Source Templates
+        # Select Compute Source Templates
         print_log(
             "Please select the AWS availability zones for which to create YellowDog"
             " Source Templates"
@@ -262,6 +261,23 @@ class AWSConfig:
             print_warning("No Compute Source Templates defined")
             return
 
+        # Create Keyring
+        keyring_resource = self._generate_yd_keyring()
+        create_resources([keyring_resource], show_secrets)
+
+        # Create Credential; assume use of the first (probably only) access key
+        try:
+            if self._wait_until_access_key_is_valid(self.access_keys[0]):
+                credential_resource = self._generate_yd_aws_credential(
+                    YD_KEYRING_NAME, YD_CREDENTIAL_NAME, self.access_keys[0]
+                )
+                create_resources([credential_resource])
+            else:
+                print_warning("AWS Credential not added to YellowDog Keyring")
+        except IndexError:
+            print_warning("No access keys loaded; can't create Credential")
+
+        # Create Compute Source Templates
         print_log("Creating YellowDog Compute Source Templates")
         create_resources(source_template_resources)
 
@@ -302,18 +318,6 @@ class AWSConfig:
 
         print_log("Creating YellowDog Compute Requirement Templates")
         create_resources(compute_requirement_template_resources)
-
-        # Create Credential; assume use of the first (probably only) access key
-        try:
-            if self._wait_until_access_key_is_valid(self.access_keys[0]):
-                credential_resource = self._generate_yd_aws_credential(
-                    YD_KEYRING_NAME, YD_CREDENTIAL_NAME, self.access_keys[0]
-                )
-                create_resources([credential_resource])
-            else:
-                print_warning("AWS Credential not added to YellowDog Keyring")
-        except IndexError:
-            print_warning("No access keys loaded; can't create Credential")
 
         # Sequence the Compute Requirement Templates before the Compute Source
         # Templates for subsequent removals.
