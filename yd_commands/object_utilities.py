@@ -181,7 +181,8 @@ def get_work_requirement_summary_by_name_or_id(
 
 def find_compute_source_id_by_name(client: PlatformClient, name: str) -> Optional[str]:
     """
-    Find a compute source id by its name.
+    Find a compute source id by name.
+    (Compute source names should be unique.)
     """
     for source in get_all_compute_sources(client):
         if source.name == name:
@@ -205,15 +206,16 @@ def clear_compute_source_template_cache():
     get_all_compute_sources.cache_clear()
 
 
-def find_compute_template_id_by_name(
-    client: PlatformClient, name: str
-) -> Optional[str]:
+def find_compute_template_ids_by_name(client: PlatformClient, name: str) -> List[str]:
     """
-    Find a Compute Template ID by name.
+    Find Compute Template IDs that match the provided name.
+    (Compute Templates names don't appear to need to be unique.)
     """
+    compute_template_ids = []
     for template in get_all_compute_templates(client):
         if template.name == name:
-            return template.id
+            compute_template_ids.append(template.id)
+    return compute_template_ids
 
 
 @lru_cache()

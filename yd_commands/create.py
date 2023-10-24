@@ -28,7 +28,7 @@ from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
-    find_compute_template_id_by_name,
+    find_compute_template_ids_by_name,
 )
 from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -146,8 +146,8 @@ def create_cr_template(resource: Dict):
     compute_template = get_model_object(type, resource)
 
     # Check for an existing ID
-    template_id = find_compute_template_id_by_name(CLIENT, name)
-    if template_id is None:
+    template_ids = find_compute_template_ids_by_name(CLIENT, name)
+    if len(template_ids) == 0:
         template = CLIENT.compute_client.add_compute_requirement_template(
             compute_template
         )
@@ -155,18 +155,27 @@ def create_cr_template(resource: Dict):
             f"Created Compute Requirement Template '{template.name}' ({template.id})"
         )
     else:
-        compute_template.id = template_id
-        if not confirmed(f"Update existing Compute Requirement Template '{name}'?"):
-            return
-        template = CLIENT.compute_client.update_compute_requirement_template(
-            compute_template
-        )
-        print_log(
-            f"Updated existing Compute Requirement Template '{template.name}'"
-            f" ({template.id})"
-        )
-    if ARGS_PARSER.quiet:
-        print(template.id)
+        if len(template_ids) > 1:
+            print_warning(
+                f"{len(template_ids)} Compute Requirement Templates with the name"
+                f" '{name}'"
+            )
+        for template_id in template_ids:
+            compute_template.id = template_id
+            if not confirmed(
+                f"Update existing Compute Requirement Template '{name}'"
+                f" ({template_id})?"
+            ):
+                return
+            template = CLIENT.compute_client.update_compute_requirement_template(
+                compute_template
+            )
+            print_log(
+                f"Updated existing Compute Requirement Template '{template.name}'"
+                f" ({template.id})"
+            )
+            if ARGS_PARSER.quiet:
+                print(template.id)
 
 
 def create_keyring(resource: Dict, show_secrets: bool = False):

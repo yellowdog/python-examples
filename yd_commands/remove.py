@@ -18,7 +18,7 @@ from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
-    find_compute_template_id_by_name,
+    find_compute_template_ids_by_name,
 )
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
@@ -101,14 +101,22 @@ def remove_compute_template(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    template_id = find_compute_template_id_by_name(CLIENT, name)
-    if template_id is None:
+    template_ids = find_compute_template_ids_by_name(CLIENT, name)
+    if len(template_ids) == 0:
         print_warning(f"Cannot find Compute Requirement Template '{name}'")
     else:
-        if not confirmed(f"Remove Compute Requirement Template '{name}'?"):
-            return
-        CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
-        print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
+        if len(template_ids) > 1:
+            print_warning(
+                f"{len(template_ids)} Compute Requirement Templates with the name"
+                f" '{name}'"
+            )
+        for template_id in template_ids:
+            if not confirmed(
+                f"Remove Compute Requirement Template '{name}' ({template_id})?"
+            ):
+                return
+            CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
+            print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
 
 
 def remove_keyring(resource: Dict):
