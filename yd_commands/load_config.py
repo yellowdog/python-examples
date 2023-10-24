@@ -84,7 +84,7 @@ def load_config_common() -> ConfigCommon:
     Load the configuration values for the 'common' section.
     """
     try:
-        common_section = CONFIG_TOML[COMMON_SECTION]
+        common_section = CONFIG_TOML.get(COMMON_SECTION, {})
 
         # Check for IMPORT directive (common section in a separate file)
         common_section_import_file = common_section.get(IMPORT, None)
