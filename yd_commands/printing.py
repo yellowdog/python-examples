@@ -121,7 +121,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
     if PREFIX_LEN == 0:
         PREFIX_LEN = len(prefix)
 
-    if no_fill:
+    if no_fill or msg == "" or msg.isspace():
         return prefix + msg
 
     return fill(
@@ -136,7 +136,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
 
 
 def print_log(
-    log_message: str,
+    log_message: str = "",
     override_quiet: bool = False,
     no_fill: bool = False,
 ):
