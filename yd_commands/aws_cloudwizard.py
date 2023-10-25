@@ -633,6 +633,38 @@ class AWSConfig:
             )
 
     @staticmethod
+    def _delete_all_s3_objects(s3_client):
+        """
+        Delete all objects in the S3 bucket.
+        """
+        if not confirmed(f"Delete all objects in S3 bucket '{S3_BUCKET_NAME}'?"):
+            return
+
+        try:
+            paginator = s3_client.get_paginator("list_objects")
+            for page in paginator.paginate(
+                Bucket=S3_BUCKET_NAME, PaginationConfig={"MaxItems": MAX_ITEMS}
+            ):
+                objects_to_delete = [
+                    {"Key": obj["Key"]} for obj in page.get("Contents", [])
+                ]
+                if len(objects_to_delete) > 0:
+                    s3_client.delete_objects(
+                        Bucket=S3_BUCKET_NAME, Delete={"Objects": objects_to_delete}
+                    )
+                    print_log(
+                        f"Deleted {len(objects_to_delete)} object(s) in S3 bucket"
+                        f" '{S3_BUCKET_NAME}'"
+                    )
+                else:
+                    print_log(f"No objects to delete in S3 bucket '{S3_BUCKET_NAME}'")
+
+        except ClientError as e:
+            print_error(
+                f"Unable to list/delete objects in S3 bucket '{S3_BUCKET_NAME}': {e}"
+            )
+
+    @staticmethod
     def _delete_s3_bucket():
         """
         Delete the S3 bucket.
@@ -640,28 +672,7 @@ class AWSConfig:
         s3_client = boto3.client("s3", region_name=AWS_DEFAULT_REGION)
 
         # The bucket must first be empty
-        if not confirmed(f"Delete all objects in S3 bucket '{S3_BUCKET_NAME}'?"):
-            return
-        try:
-            response = s3_client.list_objects_v2(Bucket=S3_BUCKET_NAME)
-            files_in_bucket = response["Contents"]
-            files_to_delete = []
-            for f in files_in_bucket:
-                files_to_delete.append({"Key": f["Key"]})
-            s3_client.delete_objects(
-                Bucket=S3_BUCKET_NAME, Delete={"Objects": files_to_delete}
-            )
-            if len(files_in_bucket) > 0:
-                print_log(
-                    f"Deleted {len(files_in_bucket)} object(s) in S3 bucket"
-                    f" '{S3_BUCKET_NAME}'"
-                )
-            else:
-                print_log(f"No objects to delete in S3 bucket '{S3_BUCKET_NAME}'")
-        except ClientError as e:
-            print_error(
-                f"Unable to list/delete objects in S3 bucket '{S3_BUCKET_NAME}': {e}"
-            )
+        AWSConfig._delete_all_s3_objects(s3_client)
 
         if not confirmed(f"Delete S3 bucket '{S3_BUCKET_NAME}'?"):
             return
