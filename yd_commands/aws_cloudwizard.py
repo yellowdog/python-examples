@@ -22,11 +22,12 @@ from yd_commands.object_utilities import (
     get_all_compute_sources,
     get_all_compute_templates,
 )
-from yd_commands.printing import print_log, print_warning
+from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.remove import remove_resource_by_id
 
 IAM_USER_NAME = "yellowdog-cloudwizard-user"
 IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
+S3_BUCKET_NAME = "yellowdog-cloudwizard-aws"
 EC2_SPOT_SERVICE_LINKED_ROLE_NAME = "AWSServiceRoleForEC2Spot"
 MAX_ITEMS = 1000  # Maximum number of items to return from an AWS API call
 
@@ -107,6 +108,8 @@ YELLOWDOG_POLICY = {
                 "EC2:StopInstances",
                 "EC2:TerminateInstances",
                 "S3:AbortMultipartUpload",
+                "S3:CreateBucket",
+                "S3:DeleteBucket",
                 "S3:DeleteObject",
                 "S3:GetObject",
                 "S3:ListBucketMultipartUploads",
@@ -149,6 +152,7 @@ class AWSConfig:
         self._attach_iam_policy(iam_client)
         self._create_access_key(iam_client, show_secrets)
         self._add_service_linked_role_for_ec2_spot(iam_client)
+        self._create_s3_bucket()
 
     def remove_aws_account_assets(self):
         """
@@ -157,6 +161,7 @@ class AWSConfig:
         iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
         print_log("Removing all YellowDog-created assets in the AWS account")
         self._load_aws_account_assets(iam_client)
+        self._delete_s3_bucket()
         self._delete_access_keys(iam_client)
         self._detach_iam_policy(iam_client)
         self._delete_iam_policy(iam_client)
@@ -604,6 +609,68 @@ class AWSConfig:
                     f" '{EC2_SPOT_SERVICE_LINKED_ROLE_NAME}' from AWS account: {e}"
                 )
 
+    def _create_s3_bucket(self):
+        """
+        Create an S3 bucket for use in namespace to object store mapping.
+        """
+        self._wait_until_access_key_is_valid(access_key=self.access_keys[0])
+        s3_client = boto3.client(  # Act as the IAM user
+            "s3",
+            region_name=AWS_DEFAULT_REGION,
+            aws_access_key_id=self.access_keys[0].access_key_id,
+            aws_secret_access_key=self.access_keys[0].secret_access_key,
+        )
+        try:
+            s3_client.create_bucket(
+                Bucket=S3_BUCKET_NAME,
+                CreateBucketConfiguration={"LocationConstraint": AWS_DEFAULT_REGION},
+            )
+            print_log(f"Created S3 bucket '{S3_BUCKET_NAME}'")
+        except ClientError as e:
+            print_error(
+                f"Unable to create S3 bucket '{S3_BUCKET_NAME}' in region"
+                f" '{AWS_DEFAULT_REGION}': {e}"
+            )
+
+    @staticmethod
+    def _delete_s3_bucket():
+        """
+        Delete the S3 bucket.
+        """
+        s3_client = boto3.client("s3", region_name=AWS_DEFAULT_REGION)
+
+        # The bucket must first be empty
+        if not confirmed(f"Delete all objects in S3 bucket '{S3_BUCKET_NAME}'?"):
+            return
+        try:
+            response = s3_client.list_objects_v2(Bucket=S3_BUCKET_NAME)
+            files_in_bucket = response["Contents"]
+            files_to_delete = []
+            for f in files_in_bucket:
+                files_to_delete.append({"Key": f["Key"]})
+            s3_client.delete_objects(
+                Bucket=S3_BUCKET_NAME, Delete={"Objects": files_to_delete}
+            )
+            if len(files_in_bucket) > 0:
+                print_log(
+                    f"Deleted {len(files_in_bucket)} object(s) in S3 bucket"
+                    f" '{S3_BUCKET_NAME}'"
+                )
+            else:
+                print_log(f"No objects to delete in S3 bucket '{S3_BUCKET_NAME}'")
+        except ClientError as e:
+            print_error(
+                f"Unable to list/delete objects in S3 bucket '{S3_BUCKET_NAME}': {e}"
+            )
+
+        if not confirmed(f"Delete S3 bucket '{S3_BUCKET_NAME}'?"):
+            return
+        try:
+            s3_client.delete_bucket(Bucket=S3_BUCKET_NAME)
+            print_log(f"Deleted S3 bucket '{S3_BUCKET_NAME}'")
+        except ClientError as e:
+            print_error(f"Unable to delete S3 bucket '{S3_BUCKET_NAME}': {e}")
+
     def _load_aws_account_assets(self, iam_client):
         """
         Load the required AWS IDs that are non-constants.
@@ -858,7 +925,7 @@ class AWSConfig:
 
     @staticmethod
     def _wait_until_access_key_is_valid(
-        access_key: AWSAccessKey, retry_interval_seconds: int = 5, max_retries: int = 5
+        access_key: AWSAccessKey, retry_interval_seconds: int = 5, max_retries: int = 10
     ) -> bool:
         """
         Wait until an access key is valid for use with EC2.
