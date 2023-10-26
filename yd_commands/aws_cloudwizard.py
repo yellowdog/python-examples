@@ -390,16 +390,6 @@ class AWSConfig:
         """
         Delete the YellowDog IAM user.
         """
-        try:
-            response = iam_client.list_users(MaxItems=MAX_ITEMS)
-            for user in response["Users"]:
-                if user["UserName"] == IAM_USER_NAME:
-                    break
-            else:
-                print_log(f"No user '{IAM_USER_NAME}' to delete")
-                return
-        except ClientError:
-            pass
 
         if not confirmed(f"Delete IAM user '{IAM_USER_NAME}' (if it exists)?"):
             return
@@ -409,9 +399,9 @@ class AWSConfig:
             print_log(f"Deleted IAM user '{IAM_USER_NAME}'")
         except ClientError as e:
             if "NoSuchEntity" in str(e):
-                print_log(f"No user '{IAM_USER_NAME}' to delete")
+                print_warning(f"No user '{IAM_USER_NAME}' to delete")
             else:
-                raise Exception(f"Failed to delete IAM user '{IAM_USER_NAME}': {e}")
+                print_error(f"Failed to delete IAM user '{IAM_USER_NAME}': {e}")
 
     def _create_iam_policy(self, iam_client):
         """
@@ -445,7 +435,7 @@ class AWSConfig:
         Delete the YellowDog IAM policy.
         """
         if self.iam_policy_arn is None:
-            print_log(f"No IAM policy '{IAM_POLICY_NAME}' to delete")
+            print_warning(f"No IAM policy '{IAM_POLICY_NAME}' to delete")
             return
 
         if not confirmed(f"Delete IAM policy '{IAM_POLICY_NAME}'?"):
@@ -461,14 +451,14 @@ class AWSConfig:
                     " exist"
                 )
             else:
-                raise Exception(f"Failed to delete IAM policy '{IAM_POLICY_NAME}': {e}")
+                print_error(f"Failed to delete IAM policy '{IAM_POLICY_NAME}': {e}")
 
     def _attach_iam_policy(self, iam_client):
         """
         Attach the IAM policy to the user.
         """
         if self.iam_policy_arn is None:
-            print_log(f"No recorded IAM policy '{IAM_POLICY_NAME}' to attach")
+            print_warning(f"No recorded IAM policy '{IAM_POLICY_NAME}' to attach")
             return
 
         try:
@@ -480,7 +470,7 @@ class AWSConfig:
                 f"Attached IAM policy '{IAM_POLICY_NAME}' to user '{IAM_USER_NAME}'"
             )
         except ClientError as e:
-            raise Exception(
+            print_error(
                 f"Failed to attach IAM policy '{IAM_POLICY_NAME}' to user"
                 f" '{IAM_USER_NAME}': {e}"
             )
@@ -490,7 +480,7 @@ class AWSConfig:
         Detach the IAM policy from the user.
         """
         if self.iam_policy_arn is None:
-            print_log(f"No IAM policy '{IAM_POLICY_NAME}' to detach")
+            print_warning(f"No IAM policy '{IAM_POLICY_NAME}' to detach")
             return
 
         if not confirmed(
@@ -509,7 +499,7 @@ class AWSConfig:
             if "NoSuchEntity" in str(e):
                 print_warning(f"IAM policy '{IAM_POLICY_NAME}' not attached to user")
             else:
-                raise Exception(f"Failed to detach IAM policy '{IAM_POLICY_NAME}': {e}")
+                print_error(f"Failed to detach IAM policy '{IAM_POLICY_NAME}': {e}")
 
     def _create_access_key(self, iam_client, show_secrets: bool = False):
         """
@@ -539,7 +529,7 @@ class AWSConfig:
                     f"        AWS_SECRET_ACCESS_KEY={access_key.secret_access_key}"
                 )
         except ClientError as e:
-            raise Exception(
+            print_error(
                 f"Error creating access key for user '{IAM_USER_NAME}': {e}"
             )
 
@@ -548,7 +538,7 @@ class AWSConfig:
         Delete the access key(s).
         """
         if len(self.access_keys) == 0:
-            print_log(f"No access keys to delete for user '{IAM_USER_NAME}'")
+            print_warning(f"No access keys to delete for user '{IAM_USER_NAME}'")
             return
 
         for access_key in self.access_keys:
@@ -568,7 +558,7 @@ class AWSConfig:
                         f"Access key '{access_key.access_key_id}' does not exist"
                     )
                 else:
-                    raise Exception(
+                    print_error(
                         f"Unable to delete access key '{access_key.access_key_id}': {e}"
                     )
 
@@ -595,7 +585,7 @@ class AWSConfig:
                     " already been taken in this account; service role not added"
                 )
             else:
-                raise Exception(
+                print_error(
                     "Unable to add service linked role"
                     f" '{EC2_SPOT_SERVICE_LINKED_ROLE_NAME}' to AWS account: {e}"
                 )
@@ -621,12 +611,12 @@ class AWSConfig:
             )
         except ClientError as e:
             if "NoSuchEntity" in str(e):
-                print_log(
+                print_warning(
                     f"No service linked role '{EC2_SPOT_SERVICE_LINKED_ROLE_NAME}' to"
                     " delete"
                 )
             else:
-                raise Exception(
+                print_error(
                     "Unable to delete service linked role"
                     f" '{EC2_SPOT_SERVICE_LINKED_ROLE_NAME}' from AWS account: {e}"
                 )
@@ -662,7 +652,7 @@ class AWSConfig:
             )
             print_log(f"Attached policy to S3 bucket '{S3_BUCKET_NAME}'")
         except ClientError as e:
-            print_warning(f"Unable to attach policy to '{S3_BUCKET_NAME}': {e}")
+            print_error(f"Unable to attach policy to '{S3_BUCKET_NAME}': {e}")
 
     @staticmethod
     def _delete_all_s3_objects(s3_client):
@@ -693,7 +683,7 @@ class AWSConfig:
 
         except ClientError as e:
             if "NoSuchBucket" in str(e):
-                print_log(
+                print_warning(
                     f"No S3 bucket '{S3_BUCKET_NAME}' from which to delete objects"
                 )
             else:
@@ -719,7 +709,7 @@ class AWSConfig:
             print_log(f"Deleted S3 bucket '{S3_BUCKET_NAME}'")
         except ClientError as e:
             if "NoSuchBucket" in str(e):
-                print_log(f"No S3 bucket '{S3_BUCKET_NAME}' to delete")
+                print_warning(f"No S3 bucket '{S3_BUCKET_NAME}' to delete")
             else:
                 print_error(f"Unable to delete S3 bucket '{S3_BUCKET_NAME}': {e}")
 
@@ -740,7 +730,7 @@ class AWSConfig:
                     self.iam_policy_arn = policy["Arn"]
                     break
         except ClientError as e:
-            raise Exception(f"Unable to list IAM policies: {e}")
+            print_error(f"Unable to list IAM policies: {e}")
 
         # Get the Access Key ID(s)
         try:
@@ -756,7 +746,7 @@ class AWSConfig:
                 # )
                 pass  # Placeholder for now
             else:
-                raise Exception(f"Unable to list access keys: {e}")
+                print_error(f"Unable to list access keys: {e}")
 
     @staticmethod
     def _remove_yd_templates_by_prefix(client):
@@ -785,7 +775,7 @@ class AWSConfig:
                 try:
                     remove_resource_by_id(compute_source_template_summary.id)
                 except Exception as e:
-                    print_warning(f"Unable to remove Compute Source Template: {e}")
+                    print_error(f"Unable to remove Compute Source Template: {e}")
 
     @staticmethod
     def _remove_keyring(client: PlatformClient):
@@ -798,7 +788,9 @@ class AWSConfig:
                 print_log(f"Removed Keyring '{YD_KEYRING_NAME}'")
             except Exception as e:
                 if "NotFoundException" in str(e):
-                    print_log(f"No Keyring '{YD_KEYRING_NAME}' to remove")
+                    print_warning(f"No Keyring '{YD_KEYRING_NAME}' to remove")
+                else:
+                    print_error(f"Unable to remove Keyring '{YD_KEYRING_NAME}': {e}")
 
     @staticmethod
     def _save_resource_list(resource_list: List[Dict]) -> bool:
@@ -822,7 +814,7 @@ class AWSConfig:
                 )
                 return True
         except Exception as e:
-            raise Exception(
+            print_error(
                 "Unable to save YellowDog resources definition file"
                 f" '{YD_RESOURCES_FILE}'"
             )
@@ -1051,5 +1043,5 @@ class AWSConfig:
                     )
                     sleep(retry_interval_seconds)
 
-        print_warning(f"Unable to validate AWS access key '{access_key.access_key_id}'")
+        print_error(f"Unable to validate AWS access key '{access_key.access_key_id}'")
         return False
