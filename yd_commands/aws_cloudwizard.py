@@ -11,7 +11,12 @@ import boto3
 from botocore.exceptions import ClientError
 from yellowdog_client import PlatformClient
 
-from yd_commands.aws_types import AWSAccessKey, AWSAvailabilityZone, AWSSecurityGroup
+from yd_commands.aws_types import (
+    AWSAccessKey,
+    AWSAvailabilityZone,
+    AWSSecurityGroup,
+    AWSUser,
+)
 from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.create import create_resources
 from yd_commands.interactive import confirmed, select
@@ -140,14 +145,14 @@ class AWSConfig:
         self.availability_zones: List[AWSAvailabilityZone] = []
         self.iam_policy_arn: Optional[str] = None
         self.access_keys: List[AWSAccessKey] = []
+        self.aws_user: Optional[AWSUser] = None
 
     def create_aws_account_assets(self, show_secrets: bool = False):
         """
         Create the required assets in the AWS account, for use with YellowDog.
         """
-        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
         print_log("Inserting YellowDog-created assets into the AWS account")
-        self._load_aws_account_assets(iam_client)
+        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
         self._create_iam_user(iam_client)
         self._create_iam_policy(iam_client)
         self._attach_iam_policy(iam_client)
@@ -159,9 +164,8 @@ class AWSConfig:
         """
         Remove the Cloud Wizard assets in the AWS account.
         """
-        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
         print_log("Removing all YellowDog-created assets in the AWS account")
-        self._load_aws_account_assets(iam_client)
+        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
         self._delete_s3_bucket()
         self._delete_access_keys(iam_client)
         self._detach_iam_policy(iam_client)
@@ -325,13 +329,13 @@ class AWSConfig:
         create_resources(compute_requirement_template_resources)
 
         print_log(
-            f"Creating YellowDog Namespace Configuration 'S3:{S3_BUCKET_NAME}' ->"
+            f"Creating YellowDog Namespace Configuration 'S3:{self._get_s3_bucket_name()}' ->"
             f" '{YD_NAMESPACE}'"
         )
         create_resources(
             [
                 self._generate_yd_namespace_configuration(
-                    namespace=YD_NAMESPACE, s3_bucket_name=S3_BUCKET_NAME
+                    namespace=YD_NAMESPACE, s3_bucket_name=self._get_s3_bucket_name()
                 )
             ]
         )
@@ -345,8 +349,7 @@ class AWSConfig:
             compute_requirement_template_resources + source_template_resources,
         )
 
-    @staticmethod
-    def remove_yellowdog_resources(client: PlatformClient):
+    def remove_yellowdog_resources(self, client: PlatformClient):
         """
         Remove a set of resources identified by their prefix/name.
         """
@@ -363,27 +366,38 @@ class AWSConfig:
         remove_resources(
             [
                 AWSConfig._generate_yd_namespace_configuration(
-                    YD_NAMESPACE, S3_BUCKET_NAME
+                    YD_NAMESPACE, self._get_s3_bucket_name()
                 )
             ]
         )
 
-    @staticmethod
-    def _create_iam_user(iam_client):
+    def _create_iam_user(self, iam_client):
         """
         Create the YellowDog IAM user, if it doesn't already exist.
         """
         try:
             response = iam_client.create_user(UserName=IAM_USER_NAME)
             arn = response["User"]["Arn"]
+            user_id = response["User"]["UserId"]
             print_log(f"Created IAM user '{IAM_USER_NAME}' ({arn})")
+
         except ClientError as e:
             if "EntityAlreadyExists" in str(e):
                 print_warning(
                     f"User '{IAM_USER_NAME}' was not created because it already exists"
                 )
+                try:
+                    response = iam_client.get_user(UserName=IAM_USER_NAME)
+                    arn = response["User"]["Arn"]
+                    user_id = response["User"]["UserId"]
+                except ClientError as e:
+                    print_error(f"Unable to get user details for {IAM_USER_NAME}: {e}")
+                    return
             else:
-                raise Exception(f"Error creating user '{IAM_USER_NAME}': {e}")
+                print_error(f"Error creating user '{IAM_USER_NAME}': {e}")
+                return
+
+        self.aws_user = AWSUser(arn=arn, user_id=user_id)
 
     @staticmethod
     def _delete_iam_user(iam_client):
@@ -628,19 +642,21 @@ class AWSConfig:
             region_name=AWS_DEFAULT_REGION,
         )
 
+        s3_bucket_name = self._get_s3_bucket_name()
+
         # Create bucket
         try:
             s3_client.create_bucket(
-                Bucket=S3_BUCKET_NAME,
+                Bucket=s3_bucket_name,
                 CreateBucketConfiguration={"LocationConstraint": AWS_DEFAULT_REGION},
             )
-            print_log(f"Created S3 bucket '{S3_BUCKET_NAME}'")
+            print_log(f"Created S3 bucket '{s3_bucket_name}'")
         except ClientError as e:
             if "BucketAlreadyOwnedByYou" in str(e):
                 print_warning("Bucket already exists and is owned by this account")
             else:
                 print_error(
-                    f"Unable to create S3 bucket '{S3_BUCKET_NAME}' in region"
+                    f"Unable to create S3 bucket '{s3_bucket_name}' in region"
                     f" '{AWS_DEFAULT_REGION}': {e}"
                 )
 
@@ -650,10 +666,10 @@ class AWSConfig:
         for index in range(max_retries):
             try:
                 s3_client.put_bucket_policy(
-                    Bucket=S3_BUCKET_NAME,
+                    Bucket=s3_bucket_name,
                     Policy=self._generate_s3_bucket_policy(),
                 )
-                print_log(f"Attached policy to S3 bucket '{S3_BUCKET_NAME}'")
+                print_log(f"Attached policy to S3 bucket '{s3_bucket_name}'")
                 return
             except ClientError as e:
                 if "MalformedPolicy" in str(e):
@@ -664,73 +680,74 @@ class AWSConfig:
                     )
                     sleep(retry_interval)
                 else:
-                    print_error(f"Unable to attach policy to '{S3_BUCKET_NAME}': {e}")
+                    print_error(f"Unable to attach policy to '{s3_bucket_name}': {e}")
                     return
 
     @staticmethod
-    def _delete_all_s3_objects(s3_client):
+    def _delete_all_s3_objects(s3_client, s3_bucket_name: str):
         """
         Delete all objects in the S3 bucket.
         """
-        if not confirmed(f"Delete all objects in S3 bucket '{S3_BUCKET_NAME}'?"):
+        if not confirmed(f"Delete all objects in S3 bucket '{s3_bucket_name}'?"):
             return
 
         try:
             paginator = s3_client.get_paginator("list_objects")
             for page in paginator.paginate(
-                Bucket=S3_BUCKET_NAME, PaginationConfig={"MaxItems": MAX_ITEMS}
+                Bucket=s3_bucket_name, PaginationConfig={"MaxItems": MAX_ITEMS}
             ):
                 objects_to_delete = [
                     {"Key": obj["Key"]} for obj in page.get("Contents", [])
                 ]
                 if len(objects_to_delete) > 0:
                     s3_client.delete_objects(
-                        Bucket=S3_BUCKET_NAME, Delete={"Objects": objects_to_delete}
+                        Bucket=s3_bucket_name, Delete={"Objects": objects_to_delete}
                     )
                     print_log(
                         f"Deleted {len(objects_to_delete)} object(s) in S3 bucket"
-                        f" '{S3_BUCKET_NAME}'"
+                        f" '{s3_bucket_name}'"
                     )
                 else:
-                    print_log(f"No objects to delete in S3 bucket '{S3_BUCKET_NAME}'")
+                    print_log(f"No objects to delete in S3 bucket '{s3_bucket_name}'")
 
         except ClientError as e:
             if "NoSuchBucket" in str(e):
                 print_warning(
-                    f"No S3 bucket '{S3_BUCKET_NAME}' from which to delete objects"
+                    f"No S3 bucket '{s3_bucket_name}' from which to delete objects"
                 )
             else:
                 print_error(
                     "Unable to list/delete objects in S3 bucket"
-                    f" '{S3_BUCKET_NAME}': {e}"
+                    f" '{s3_bucket_name}': {e}"
                 )
 
-    @staticmethod
-    def _delete_s3_bucket():
+    def _delete_s3_bucket(self):
         """
         Delete the S3 bucket.
         """
         s3_client = boto3.client("s3", region_name=AWS_DEFAULT_REGION)
+        s3_bucket_name = self._get_s3_bucket_name()
 
         # The bucket must first be empty
-        AWSConfig._delete_all_s3_objects(s3_client)
+        AWSConfig._delete_all_s3_objects(s3_client, s3_bucket_name)
 
-        if not confirmed(f"Delete S3 bucket '{S3_BUCKET_NAME}'?"):
+        if not confirmed(f"Delete S3 bucket '{s3_bucket_name}'?"):
             return
         try:
-            s3_client.delete_bucket(Bucket=S3_BUCKET_NAME)
-            print_log(f"Deleted S3 bucket '{S3_BUCKET_NAME}'")
+            s3_client.delete_bucket(Bucket=s3_bucket_name)
+            print_log(f"Deleted S3 bucket '{s3_bucket_name}'")
         except ClientError as e:
             if "NoSuchBucket" in str(e):
-                print_warning(f"No S3 bucket '{S3_BUCKET_NAME}' to delete")
+                print_warning(f"No S3 bucket '{s3_bucket_name}' to delete")
             else:
-                print_error(f"Unable to delete S3 bucket '{S3_BUCKET_NAME}': {e}")
+                print_error(f"Unable to delete S3 bucket '{s3_bucket_name}': {e}")
 
-    def _load_aws_account_assets(self, iam_client):
+    def load_aws_account_assets(self):
         """
         Load the required AWS IDs that are non-constants.
         """
         print_log("Querying AWS account for existing assets")
+        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
 
         # Get the IAM Policy ARN
         try:
@@ -754,12 +771,21 @@ class AWSConfig:
                     self.access_keys.append(AWSAccessKey(access_key["AccessKeyId"]))
         except ClientError as e:
             if "NoSuchEntity" in str(e):
-                # print_warning(
-                #     f"Cannot list access keys: user '{IAM_USER_NAME}' does not exist"
-                # )
-                pass  # Placeholder for now
+                pass
             else:
                 print_error(f"Unable to list access keys: {e}")
+
+        # Get the IAM user details
+        try:
+            response = iam_client.get_user(UserName=IAM_USER_NAME)
+            self.aws_user = AWSUser(
+                arn=response["User"]["Arn"], user_id=response["User"]["UserId"]
+            )
+        except ClientError as e:
+            if "NoSuchEntity" in str(e):
+                pass
+            else:
+                print_error(f"Unable to get details of user '{IAM_USER_NAME}': {e}")
 
     @staticmethod
     def _remove_yd_templates_by_prefix(client):
@@ -1004,11 +1030,12 @@ class AWSConfig:
             "credential": f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
         }
 
-    @staticmethod
-    def _generate_s3_bucket_policy() -> str:
+    def _generate_s3_bucket_policy(self) -> str:
         """
         Generate the required policy statement to be attached to the S3 bucket.
         """
+        assert self.aws_user is not None
+        s3_bucket_name = self._get_s3_bucket_name()
         return json.dumps(
             {
                 "Version": "2012-10-17",
@@ -1016,22 +1043,29 @@ class AWSConfig:
                     {
                         "Effect": "Allow",
                         "Principal": {
-                            "AWS": "arn:aws:iam::838803566575:user/yellowdog-cloudwizard-user"
+                            "AWS": self.aws_user.arn
                         },
                         "Action": "s3:*",
-                        "Resource": "arn:aws:s3:::yellowdog-cloudwizard-aws/*",
+                        "Resource": f"arn:aws:s3:::{s3_bucket_name}/*",
                     },
                     {
                         "Effect": "Allow",
                         "Principal": {
-                            "AWS": "arn:aws:iam::838803566575:user/yellowdog-cloudwizard-user"
+                            "AWS": self.aws_user.arn
                         },
                         "Action": "s3:ListBucket",
-                        "Resource": "arn:aws:s3:::yellowdog-cloudwizard-aws",
+                        "Resource": f"arn:aws:s3:::{s3_bucket_name}",
                     },
                 ],
             }
         )
+
+    def _get_s3_bucket_name(self) -> str:
+        """
+        Get the unique name of the S3 bucket.
+        """
+        assert self.aws_user is not None
+        return f"{S3_BUCKET_NAME}-{self.aws_user.user_id.lower()}"
 
     @staticmethod
     def _wait_until_access_key_is_valid_for_ec2(

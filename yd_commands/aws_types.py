@@ -24,3 +24,9 @@ class AWSAvailabilityZone:
 class AWSAccessKey:
     access_key_id: str
     secret_access_key: Optional[str] = None
+
+
+@dataclass
+class AWSUser:
+    arn: str
+    user_id: str
