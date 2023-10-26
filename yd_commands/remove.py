@@ -80,21 +80,23 @@ def remove_compute_source_template(resource: Dict):
         source = resource.pop("source")  # Extract the Source properties
         name = source["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     source_id = find_compute_source_id_by_name(CLIENT, name)
     if source_id is None:
         print_warning(f"Cannot find Compute Source Template '{name}'")
-    else:
-        if not confirmed(f"Remove Compute Source Template '{name}'?"):
-            return
-        try:
-            CLIENT.compute_client.delete_compute_source_template_by_id(source_id)
-            print_log(f"Removed Compute Source Template '{name}' ({source_id})")
-        except Exception as e:
-            print_error(
-                f"Unable to remove Compute Source Template '{name}' ({source_id}): {e}"
-            )
+        return
+
+    if not confirmed(f"Remove Compute Source Template '{name}'?"):
+        return
+    try:
+        CLIENT.compute_client.delete_compute_source_template_by_id(source_id)
+        print_log(f"Removed Compute Source Template '{name}' ({source_id})")
+    except Exception as e:
+        print_error(
+            f"Unable to remove Compute Source Template '{name}' ({source_id}): {e}"
+        )
 
 
 def remove_compute_requirement_template(resource: Dict):
@@ -104,34 +106,31 @@ def remove_compute_requirement_template(resource: Dict):
     try:
         name = resource["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     template_ids = find_compute_template_ids_by_name(CLIENT, name)
     if len(template_ids) == 0:
         print_warning(f"Cannot find Compute Requirement Template '{name}'")
-    else:
-        if len(template_ids) > 1:
-            print_warning(
-                f"{len(template_ids)} Compute Requirement Templates with the name"
-                f" '{name}'"
+        return
+
+    if len(template_ids) > 1:
+        print_warning(
+            f"{len(template_ids)} Compute Requirement Templates with the name '{name}'"
+        )
+    for template_id in template_ids:
+        if not confirmed(
+            f"Remove Compute Requirement Template '{name}' ({template_id})?"
+        ):
+            return
+        try:
+            CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
+            print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
+        except Exception as e:
+            print_error(
+                f"Unable to remove Compute Requirement Template '{name}'"
+                f" ({template_id}): {e}"
             )
-        for template_id in template_ids:
-            if not confirmed(
-                f"Remove Compute Requirement Template '{name}' ({template_id})?"
-            ):
-                return
-            try:
-                CLIENT.compute_client.delete_compute_requirement_template_by_id(
-                    template_id
-                )
-                print_log(
-                    f"Removed Compute Requirement Template '{name}' ({template_id})"
-                )
-            except Exception as e:
-                print_error(
-                    f"Unable to remove Compute Requirement Template '{name}'"
-                    f" ({template_id}): {e}"
-                )
 
 
 def remove_keyring(resource: Dict):
@@ -141,7 +140,8 @@ def remove_keyring(resource: Dict):
     try:
         name = resource["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     if not confirmed(f"Delete Keyring '{name}'?"):
         return
@@ -165,7 +165,8 @@ def remove_credential(resource: Dict):
         credential_data = resource["credential"]
         credential_name = credential_data["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     if not confirmed(
         f"Remove Credential '{credential_name}' from Keyring '{keyring_name}'?"
@@ -196,7 +197,8 @@ def remove_image_family(resource: Dict):
         family_name = resource["name"]
         namespace = resource["namespace"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     # Check for existence of Image Family
     try:
@@ -226,7 +228,8 @@ def remove_namespace_configuration(resource: Dict):
     try:
         namespace = resource["namespace"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     namespaces: List[NamespaceStorageConfiguration] = (
         CLIENT.object_store_client.get_namespace_storage_configurations()
@@ -254,7 +257,8 @@ def remove_configured_worker_pool(resource: Dict):
     try:
         name = resource["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     worker_pools: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()
@@ -292,7 +296,7 @@ def remove_configured_worker_pool(resource: Dict):
 
 def remove_resource_by_id(resource_id: str):
     """
-    Remove a resource by its ydid.
+    Remove a resource by its YDID.
     """
     try:
         if resource_id.startswith("ydid:cst:"):
