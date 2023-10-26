@@ -300,38 +300,38 @@ def remove_resource_by_id(resource_id: str):
     """
     try:
         if resource_id.startswith("ydid:cst:"):
-            if confirmed(f"Remove Compute Source Template '{resource_id}'?"):
+            if confirmed(f"Remove Compute Source Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_source_template_by_id(resource_id)
                 print_log(
-                    f"Removed Compute Source Template '{resource_id}' (if present)"
+                    f"Removed Compute Source Template {resource_id} (if present)"
                 )
         elif resource_id.startswith("ydid:crt:"):
-            if confirmed(f"Remove Compute Requirement Template '{resource_id}'?"):
+            if confirmed(f"Remove Compute Requirement Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_requirement_template_by_id(
                     resource_id
                 )
                 print_log(
-                    f"Removed Compute Requirement Template '{resource_id}' (if present)"
+                    f"Removed Compute Requirement Template {resource_id} (if present)"
                 )
         elif resource_id.startswith("ydid:imgfam:"):
             if confirmed(f"Remove Image Family '{resource_id}'?"):
                 CLIENT.images_client.delete_image_family(resource_id)
-                print_log(f"Removed Image Family '{resource_id}' (if present)")
+                print_log(f"Removed Image Family {resource_id} (if present)")
         elif resource_id.startswith("ydid:keyring:"):
-            if confirmed(f"Remove Keyring '{resource_id}'?"):
+            if confirmed(f"Remove Keyring {resource_id}?"):
                 keyrings = CLIENT.keyring_client.find_all_keyrings()
                 for keyring in keyrings:
                     if keyring.id == resource_id:
                         CLIENT.keyring_client.delete_keyring_by_name(keyring.name)
-                        print_log(f"Removed Keyring '{resource_id}'")
+                        print_log(f"Removed Keyring {resource_id}")
                         return
-                raise Exception(f"Keyring '{resource_id}' not found")
+                raise Exception(f"Keyring {resource_id} not found")
         elif resource_id.startswith("ydid:wrkrpool:"):
-            if confirmed(f"Shut down Worker Pool '{resource_id}'?"):
+            if confirmed(f"Shut down Worker Pool {resource_id}?"):
                 CLIENT.worker_pool_client.shutdown_worker_pool_by_id(resource_id)
-                print_log(f"Shut down Worker Pool '{resource_id}'")
+                print_log(f"Shut down Worker Pool {resource_id}")
         else:
-            print_error(f"Resource ID type is unknown/unsupported: '{resource_id}'")
+            print_error(f"Resource ID type is unknown/unsupported: {resource_id}")
     except Exception as e:
         print_error(f"Unable to remove resource with ID {resource_id}: {e}")
 
