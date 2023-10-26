@@ -23,7 +23,7 @@ from yd_commands.object_utilities import (
     get_all_compute_templates,
 )
 from yd_commands.printing import print_error, print_log, print_warning
-from yd_commands.remove import remove_resource_by_id
+from yd_commands.remove import remove_resource_by_id, remove_resources
 
 IAM_USER_NAME = "yellowdog-cloudwizard-user"
 IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
@@ -36,6 +36,7 @@ YD_CREDENTIAL_NAME = "cloudwizard-aws"
 YD_RESOURCE_PREFIX = "cloudwizard-aws"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
+YD_NAMESPACE = "cloudwizard-aws"
 
 AWS_DEFAULT_REGION = "eu-west-2"
 
@@ -271,7 +272,7 @@ class AWSConfig:
 
         # Create Credential; assume use of the first (probably only) access key
         try:
-            if self._wait_until_access_key_is_valid(self.access_keys[0]):
+            if self._wait_until_access_key_is_valid_for_ec2(self.access_keys[0]):
                 credential_resource = self._generate_yd_aws_credential(
                     YD_KEYRING_NAME, YD_CREDENTIAL_NAME, self.access_keys[0]
                 )
@@ -323,6 +324,18 @@ class AWSConfig:
         print_log("Creating YellowDog Compute Requirement Templates")
         create_resources(compute_requirement_template_resources)
 
+        print_log(
+            f"Creating YellowDog Namespace Configuration 'S3:{S3_BUCKET_NAME}' ->"
+            f" '{YD_NAMESPACE}'"
+        )
+        create_resources(
+            [
+                self._generate_yd_namespace_configuration(
+                    namespace=YD_NAMESPACE, s3_bucket_name=S3_BUCKET_NAME
+                )
+            ]
+        )
+
         # Sequence the Compute Requirement Templates before the Compute Source
         # Templates for subsequent removals.
         # - Omit the Keyring to prevent overwrites if using 'yd-create' with the
@@ -345,6 +358,15 @@ class AWSConfig:
 
         # Keyring is removed separately.
         AWSConfig._remove_keyring(client)
+
+        # Remove the Namespace Configuration
+        remove_resources(
+            [
+                AWSConfig._generate_yd_namespace_configuration(
+                    YD_NAMESPACE, S3_BUCKET_NAME
+                )
+            ]
+        )
 
     @staticmethod
     def _create_iam_user(iam_client):
@@ -613,13 +635,11 @@ class AWSConfig:
         """
         Create an S3 bucket for use in namespace to object store mapping.
         """
-        self._wait_until_access_key_is_valid(access_key=self.access_keys[0])
-        s3_client = boto3.client(  # Act as the IAM user
+        s3_client = boto3.client(
             "s3",
             region_name=AWS_DEFAULT_REGION,
-            aws_access_key_id=self.access_keys[0].access_key_id,
-            aws_secret_access_key=self.access_keys[0].secret_access_key,
         )
+
         try:
             s3_client.create_bucket(
                 Bucket=S3_BUCKET_NAME,
@@ -627,10 +647,22 @@ class AWSConfig:
             )
             print_log(f"Created S3 bucket '{S3_BUCKET_NAME}'")
         except ClientError as e:
-            print_error(
-                f"Unable to create S3 bucket '{S3_BUCKET_NAME}' in region"
-                f" '{AWS_DEFAULT_REGION}': {e}"
+            if "BucketAlreadyOwnedByYou" in str(e):
+                print_warning("Bucket already exists and is owned by this account")
+            else:
+                print_error(
+                    f"Unable to create S3 bucket '{S3_BUCKET_NAME}' in region"
+                    f" '{AWS_DEFAULT_REGION}': {e}"
+                )
+
+        try:
+            s3_client.put_bucket_policy(
+                Bucket=S3_BUCKET_NAME,
+                Policy=self._generate_s3_bucket_policy(),
             )
+            print_log(f"Attached policy to S3 bucket '{S3_BUCKET_NAME}'")
+        except ClientError as e:
+            print_warning(f"Unable to attach policy to '{S3_BUCKET_NAME}': {e}")
 
     @staticmethod
     def _delete_all_s3_objects(s3_client):
@@ -660,9 +692,15 @@ class AWSConfig:
                     print_log(f"No objects to delete in S3 bucket '{S3_BUCKET_NAME}'")
 
         except ClientError as e:
-            print_error(
-                f"Unable to list/delete objects in S3 bucket '{S3_BUCKET_NAME}': {e}"
-            )
+            if "NoSuchBucket" in str(e):
+                print_log(
+                    f"No S3 bucket '{S3_BUCKET_NAME}' from which to delete objects"
+                )
+            else:
+                print_error(
+                    "Unable to list/delete objects in S3 bucket"
+                    f" '{S3_BUCKET_NAME}': {e}"
+                )
 
     @staticmethod
     def _delete_s3_bucket():
@@ -680,7 +718,10 @@ class AWSConfig:
             s3_client.delete_bucket(Bucket=S3_BUCKET_NAME)
             print_log(f"Deleted S3 bucket '{S3_BUCKET_NAME}'")
         except ClientError as e:
-            print_error(f"Unable to delete S3 bucket '{S3_BUCKET_NAME}': {e}")
+            if "NoSuchBucket" in str(e):
+                print_log(f"No S3 bucket '{S3_BUCKET_NAME}' to delete")
+            else:
+                print_error(f"Unable to delete S3 bucket '{S3_BUCKET_NAME}': {e}")
 
     def _load_aws_account_assets(self, iam_client):
         """
@@ -935,7 +976,52 @@ class AWSConfig:
         }
 
     @staticmethod
-    def _wait_until_access_key_is_valid(
+    def _generate_yd_namespace_configuration(
+        namespace: str, s3_bucket_name: str
+    ) -> Dict:
+        """
+        Generate a Namespace configuration using an S3 bucket.
+        """
+        return {
+            "resource": "NamespaceStorageConfiguration",
+            "type": "co.yellowdog.platform.model.S3NamespaceStorageConfiguration",
+            "namespace": namespace,
+            "bucketName": s3_bucket_name,
+            "region": AWS_DEFAULT_REGION,
+            "credential": f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
+        }
+
+    @staticmethod
+    def _generate_s3_bucket_policy() -> str:
+        """
+        Generate the required policy statement to be attached to the S3 bucket.
+        """
+        return json.dumps(
+            {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "AWS": "arn:aws:iam::838803566575:user/yellowdog-cloudwizard-user"
+                        },
+                        "Action": "s3:*",
+                        "Resource": "arn:aws:s3:::yellowdog-cloudwizard-aws/*",
+                    },
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "AWS": "arn:aws:iam::838803566575:user/yellowdog-cloudwizard-user"
+                        },
+                        "Action": "s3:ListBucket",
+                        "Resource": "arn:aws:s3:::yellowdog-cloudwizard-aws",
+                    },
+                ],
+            }
+        )
+
+    @staticmethod
+    def _wait_until_access_key_is_valid_for_ec2(
         access_key: AWSAccessKey, retry_interval_seconds: int = 5, max_retries: int = 10
     ) -> bool:
         """
@@ -960,10 +1046,10 @@ class AWSConfig:
                 elif "AuthFailure" in str(e):
                     print_log(
                         f"Waiting {retry_interval_seconds}s for AWS access key to"
-                        f" become valid (attempt {index + 1} of {max_retries}) ..."
+                        f" become valid for EC2 (attempt {index + 1} of"
+                        f" {max_retries}) ..."
                     )
                     sleep(retry_interval_seconds)
-                    continue
 
         print_warning(f"Unable to validate AWS access key '{access_key.access_key_id}'")
         return False
