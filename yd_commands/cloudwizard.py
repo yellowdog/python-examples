@@ -18,6 +18,7 @@ def main():
     if ARGS_PARSER.cloud_provider.lower() in ["aws", "amazon"]:
         print_log(f"YellowDog automated cloud provider setup/teardown for 'AWS'")
         aws_config = AWSConfig()
+
         if ARGS_PARSER.operation == "setup":
             aws_config.create_aws_account_assets(ARGS_PARSER.show_secrets)
             aws_config.gather_network_information()
@@ -25,6 +26,7 @@ def main():
                 client=CLIENT,
                 show_secrets=ARGS_PARSER.show_secrets,
             )
+
         elif ARGS_PARSER.operation == "teardown":
             aws_config.remove_yellowdog_resources(CLIENT)
             aws_config.remove_aws_account_assets()

@@ -529,9 +529,7 @@ class AWSConfig:
                     f"        AWS_SECRET_ACCESS_KEY={access_key.secret_access_key}"
                 )
         except ClientError as e:
-            print_error(
-                f"Error creating access key for user '{IAM_USER_NAME}': {e}"
-            )
+            print_error(f"Error creating access key for user '{IAM_USER_NAME}': {e}")
 
     def _delete_access_keys(self, iam_client):
         """
@@ -630,6 +628,7 @@ class AWSConfig:
             region_name=AWS_DEFAULT_REGION,
         )
 
+        # Create bucket
         try:
             s3_client.create_bucket(
                 Bucket=S3_BUCKET_NAME,
@@ -645,14 +644,28 @@ class AWSConfig:
                     f" '{AWS_DEFAULT_REGION}': {e}"
                 )
 
-        try:
-            s3_client.put_bucket_policy(
-                Bucket=S3_BUCKET_NAME,
-                Policy=self._generate_s3_bucket_policy(),
-            )
-            print_log(f"Attached policy to S3 bucket '{S3_BUCKET_NAME}'")
-        except ClientError as e:
-            print_error(f"Unable to attach policy to '{S3_BUCKET_NAME}': {e}")
+        # Attach policy
+        retry_interval = 5
+        max_retries = 10
+        for index in range(max_retries):
+            try:
+                s3_client.put_bucket_policy(
+                    Bucket=S3_BUCKET_NAME,
+                    Policy=self._generate_s3_bucket_policy(),
+                )
+                print_log(f"Attached policy to S3 bucket '{S3_BUCKET_NAME}'")
+                return
+            except ClientError as e:
+                if "MalformedPolicy" in str(e):
+                    print_log(
+                        f"Waiting {retry_interval}s for S3 bucket to be ready for"
+                        f" policy attachment (Attempt {index + 1} of"
+                        f" {max_retries}) ..."
+                    )
+                    sleep(retry_interval)
+                else:
+                    print_error(f"Unable to attach policy to '{S3_BUCKET_NAME}': {e}")
+                    return
 
     @staticmethod
     def _delete_all_s3_objects(s3_client):
@@ -758,24 +771,32 @@ class AWSConfig:
             f" '{YD_RESOURCE_PREFIX}'"
         )
         clear_compute_requirement_template_cache()
+        counter = 0
         for compute_requirement_template_summary in get_all_compute_templates(client):
             if compute_requirement_template_summary.name.startswith(YD_RESOURCE_PREFIX):
+                counter += 1
                 try:
                     remove_resource_by_id(compute_requirement_template_summary.id)
                 except Exception as e:
-                    print_warning(f"Unable to remove Compute Requirement Template: {e}")
+                    print_error(f"Unable to remove Compute Requirement Template: {e}")
+        if counter == 0:
+            print_warning("No Compute Requirement Templates to remove")
 
         print_log(
             "Removing all Compute Source Templates with names starting with"
             f" '{YD_RESOURCE_PREFIX}'"
         )
         clear_compute_source_template_cache()
+        counter = 0
         for compute_source_template_summary in get_all_compute_sources(client):
             if compute_source_template_summary.name.startswith(YD_RESOURCE_PREFIX):
+                counter += 1
                 try:
                     remove_resource_by_id(compute_source_template_summary.id)
                 except Exception as e:
                     print_error(f"Unable to remove Compute Source Template: {e}")
+        if counter == 0:
+            print_warning("No Compute Source Templates to remove")
 
     @staticmethod
     def _remove_keyring(client: PlatformClient):
