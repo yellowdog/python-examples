@@ -52,3 +52,7 @@ class TestDemoDryRuns:
     def test_nextflow(self):
         result = shell(f"cd {DEMO_DIR}/nextflow && {CMD_SEQ}")
         assert result.exit_code == 0
+
+    def test_blender(self):
+        result = shell(f"cd {DEMO_DIR}/blender && {CMD_SEQ}")
+        assert result.exit_code == 0
