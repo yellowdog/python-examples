@@ -18,7 +18,7 @@ from yd_commands.aws_types import (
     AWSUser,
 )
 from yd_commands.compact_json import CompactJSONEncoder
-from yd_commands.create import create_resources
+from yd_commands.create import create_keyring_via_api, create_resources
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     clear_compute_requirement_template_cache,
@@ -32,7 +32,7 @@ from yd_commands.remove import remove_resource_by_id, remove_resources
 
 IAM_USER_NAME = "yellowdog-cloudwizard-user"
 IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
-S3_BUCKET_NAME = "yellowdog-cloudwizard-aws"
+S3_BUCKET_NAME_PREFIX = "yellowdog-cloudwizard"
 EC2_SPOT_SERVICE_LINKED_ROLE_NAME = "AWSServiceRoleForEC2Spot"
 MAX_ITEMS = 1000  # Maximum number of items to return from an AWS API call
 
@@ -146,6 +146,7 @@ class AWSConfig:
         self.iam_policy_arn: Optional[str] = None
         self.access_keys: List[AWSAccessKey] = []
         self.aws_user: Optional[AWSUser] = None
+        self.keyring_password: Optional[str] = None
 
     def setup(self, client: PlatformClient, show_secrets: bool = False):
         """
@@ -335,9 +336,18 @@ class AWSConfig:
             print_warning("No Compute Source Templates defined")
             return
 
-        # Create Keyring
+        # Create Keyring and remember the Keyring password
         keyring_resource = self._generate_yd_keyring()
-        create_resources([keyring_resource], show_secrets)
+        try:
+            keyring, self.keyring_password = create_keyring_via_api(
+                YD_KEYRING_NAME, keyring_resource["description"]
+            )
+            print_log(f"Created Keyring '{YD_KEYRING_NAME}' ({keyring.id})")
+        except Exception as e:
+            if "A keyring already exists" in str(e):
+                print_warning(f"Keyring '{YD_KEYRING_NAME}' already exists")
+            else:
+                print_error(f"Unable to create Keyring '{YD_KEYRING_NAME}': {e}")
 
         # Create Credential; assume use of the first (probably only) access key
         try:
@@ -413,6 +423,16 @@ class AWSConfig:
         self._save_resource_list(
             compute_requirement_template_resources + source_template_resources,
         )
+
+        # Always show Keyring details
+        if self.keyring_password is not None:
+            print_log(
+                "In the 'Keyring' section of the YellowDog Portal, please claim your"
+                " Keyring using the name and password below. The password will not be"
+                " shown again."
+            )
+            print_log(f"--> Keyring name =     '{YD_KEYRING_NAME}'")
+            print_log(f"--> Keyring password = '{self.keyring_password}'")
 
     def _remove_yellowdog_resources(self, client: PlatformClient):
         """
@@ -605,7 +625,7 @@ class AWSConfig:
             )
             if show_secrets:
                 print_log(
-                    f"        AWS_SECRET_ACCESS_KEY={access_key.secret_access_key}"
+                    f"        AWS_SECRET_ACCESS_KEY='{access_key.secret_access_key}'"
                 )
         except ClientError as e:
             print_error(f"Error creating access key for user '{IAM_USER_NAME}': {e}")
@@ -792,6 +812,10 @@ class AWSConfig:
         """
         s3_client = boto3.client("s3", region_name=AWS_DEFAULT_REGION)
         s3_bucket_name = self._get_s3_bucket_name()
+
+        if s3_bucket_name == "":
+            print_warning("No S3 bucket to remove")
+            return
 
         # The bucket must first be empty
         AWSConfig._delete_all_s3_objects(s3_client, s3_bucket_name)
@@ -1081,8 +1105,11 @@ class AWSConfig:
         """
         Get the unique name of the S3 bucket.
         """
-        assert self.aws_user is not None
-        return f"{S3_BUCKET_NAME}-{self.aws_user.user_id.lower()}"
+        return (
+            f"{S3_BUCKET_NAME_PREFIX}-{self.aws_user.user_id.lower()}"
+            if self.aws_user is not None
+            else ""
+        )
 
     @staticmethod
     def _wait_until_access_key_is_valid_for_ec2(

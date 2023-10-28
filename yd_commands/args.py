@@ -757,10 +757,7 @@ class CLIParser:
                 "--show-secrets",
                 action="store_true",
                 required=False,
-                help=(
-                    "print secrets during processing (YellowDog Keyring password, AWS"
-                    " secret key)"
-                ),
+                help="print AWS secret key during setup",
             )
 
         self.args = parser.parse_args()
