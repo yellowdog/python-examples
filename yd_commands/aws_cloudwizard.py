@@ -147,7 +147,27 @@ class AWSConfig:
         self.access_keys: List[AWSAccessKey] = []
         self.aws_user: Optional[AWSUser] = None
 
-    def create_aws_account_assets(self, show_secrets: bool = False):
+    def setup(self, client: PlatformClient, show_secrets: bool = False):
+        """
+        Set up all AWS and YellowDog assets
+        """
+        self._load_aws_account_assets()
+        self._create_aws_account_assets(show_secrets)
+        self._gather_aws_network_information()
+        self._create_yellowdog_resources(
+            client=client,
+            show_secrets=show_secrets,
+        )
+
+    def teardown(self, client: PlatformClient):
+        """
+        Remove all AWS and YellowDog assets
+        """
+        self._load_aws_account_assets()
+        self._remove_yellowdog_resources(client)
+        self._remove_aws_account_assets()
+
+    def _create_aws_account_assets(self, show_secrets: bool = False):
         """
         Create the required assets in the AWS account, for use with YellowDog.
         """
@@ -160,7 +180,52 @@ class AWSConfig:
         self._add_service_linked_role_for_ec2_spot(iam_client)
         self._create_s3_bucket()
 
-    def remove_aws_account_assets(self):
+    def _load_aws_account_assets(self):
+        """
+        Load the required AWS IDs that are non-constants.
+        """
+        print_log("Querying AWS account for existing assets")
+        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
+
+        # Get the IAM Policy ARN
+        try:
+            response = iam_client.list_policies(
+                Scope="Local",
+                MaxItems=MAX_ITEMS,
+            )
+            for policy in response["Policies"]:
+                if policy["PolicyName"] == IAM_POLICY_NAME:
+                    self.iam_policy_arn = policy["Arn"]
+                    break
+        except ClientError as e:
+            print_error(f"Unable to list IAM policies: {e}")
+
+        # Get the Access Key ID(s)
+        try:
+            response = iam_client.list_access_keys(UserName=IAM_USER_NAME)
+            access_keys = response.get("AccessKeyMetadata", [])
+            for access_key in access_keys:
+                if access_key["UserName"] == IAM_USER_NAME:
+                    self.access_keys.append(AWSAccessKey(access_key["AccessKeyId"]))
+        except ClientError as e:
+            if "NoSuchEntity" in str(e):
+                pass
+            else:
+                print_error(f"Unable to list access keys: {e}")
+
+        # Get the IAM user details
+        try:
+            response = iam_client.get_user(UserName=IAM_USER_NAME)
+            self.aws_user = AWSUser(
+                arn=response["User"]["Arn"], user_id=response["User"]["UserId"]
+            )
+        except ClientError as e:
+            if "NoSuchEntity" in str(e):
+                pass
+            else:
+                print_error(f"Unable to get details of user '{IAM_USER_NAME}': {e}")
+
+    def _remove_aws_account_assets(self):
         """
         Remove the Cloud Wizard assets in the AWS account.
         """
@@ -173,7 +238,7 @@ class AWSConfig:
         self._delete_iam_user(iam_client)
         self._delete_service_linked_role_for_ec2_spot(iam_client)
 
-    def gather_network_information(self):
+    def _gather_aws_network_information(self):
         """
         Collect network information about the enabled regions and AZs.
         """
@@ -227,7 +292,7 @@ class AWSConfig:
                 )
                 self.availability_zones.append(aws_az)
 
-    def create_yellowdog_resources(
+    def _create_yellowdog_resources(
         self, client: PlatformClient, show_secrets: bool = False
     ):
         """
@@ -329,8 +394,8 @@ class AWSConfig:
         create_resources(compute_requirement_template_resources)
 
         print_log(
-            f"Creating YellowDog Namespace Configuration 'S3:{self._get_s3_bucket_name()}' ->"
-            f" '{YD_NAMESPACE}'"
+            "Creating YellowDog Namespace Configuration"
+            f" 'S3:{self._get_s3_bucket_name()}' -> '{YD_NAMESPACE}'"
         )
         create_resources(
             [
@@ -349,7 +414,7 @@ class AWSConfig:
             compute_requirement_template_resources + source_template_resources,
         )
 
-    def remove_yellowdog_resources(self, client: PlatformClient):
+    def _remove_yellowdog_resources(self, client: PlatformClient):
         """
         Remove a set of resources identified by their prefix/name.
         """
@@ -742,51 +807,6 @@ class AWSConfig:
             else:
                 print_error(f"Unable to delete S3 bucket '{s3_bucket_name}': {e}")
 
-    def load_aws_account_assets(self):
-        """
-        Load the required AWS IDs that are non-constants.
-        """
-        print_log("Querying AWS account for existing assets")
-        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
-
-        # Get the IAM Policy ARN
-        try:
-            response = iam_client.list_policies(
-                Scope="Local",
-                MaxItems=MAX_ITEMS,
-            )
-            for policy in response["Policies"]:
-                if policy["PolicyName"] == IAM_POLICY_NAME:
-                    self.iam_policy_arn = policy["Arn"]
-                    break
-        except ClientError as e:
-            print_error(f"Unable to list IAM policies: {e}")
-
-        # Get the Access Key ID(s)
-        try:
-            response = iam_client.list_access_keys(UserName=IAM_USER_NAME)
-            access_keys = response.get("AccessKeyMetadata", [])
-            for access_key in access_keys:
-                if access_key["UserName"] == IAM_USER_NAME:
-                    self.access_keys.append(AWSAccessKey(access_key["AccessKeyId"]))
-        except ClientError as e:
-            if "NoSuchEntity" in str(e):
-                pass
-            else:
-                print_error(f"Unable to list access keys: {e}")
-
-        # Get the IAM user details
-        try:
-            response = iam_client.get_user(UserName=IAM_USER_NAME)
-            self.aws_user = AWSUser(
-                arn=response["User"]["Arn"], user_id=response["User"]["UserId"]
-            )
-        except ClientError as e:
-            if "NoSuchEntity" in str(e):
-                pass
-            else:
-                print_error(f"Unable to get details of user '{IAM_USER_NAME}': {e}")
-
     @staticmethod
     def _remove_yd_templates_by_prefix(client):
         """
@@ -927,7 +947,8 @@ class AWSConfig:
         return {
             "resource": "ComputeRequirementTemplate",
             "name": (
-                f"{YD_RESOURCE_PREFIX}-{strategy.lower()}-{spot_or_ondemand}-{instance_type.lower().replace('.', '')}"
+                f"{YD_RESOURCE_PREFIX}-{strategy.lower()}-{spot_or_ondemand}-"
+                f"{instance_type.lower().replace('.', '')}"
             ),
             "description": (
                 "Compute Requirement Template automatically created by YellowDog Cloud"
@@ -1042,17 +1063,13 @@ class AWSConfig:
                 "Statement": [
                     {
                         "Effect": "Allow",
-                        "Principal": {
-                            "AWS": self.aws_user.arn
-                        },
+                        "Principal": {"AWS": self.aws_user.arn},
                         "Action": "s3:*",
                         "Resource": f"arn:aws:s3:::{s3_bucket_name}/*",
                     },
                     {
                         "Effect": "Allow",
-                        "Principal": {
-                            "AWS": self.aws_user.arn
-                        },
+                        "Principal": {"AWS": self.aws_user.arn},
                         "Action": "s3:ListBucket",
                         "Resource": f"arn:aws:s3:::{s3_bucket_name}",
                     },

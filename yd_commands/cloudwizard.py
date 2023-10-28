@@ -20,18 +20,10 @@ def main():
         aws_config = AWSConfig()
 
         if ARGS_PARSER.operation == "setup":
-            aws_config.load_aws_account_assets()
-            aws_config.create_aws_account_assets(ARGS_PARSER.show_secrets)
-            aws_config.gather_network_information()
-            aws_config.create_yellowdog_resources(
-                client=CLIENT,
-                show_secrets=ARGS_PARSER.show_secrets,
-            )
+            aws_config.setup(client=CLIENT, show_secrets=ARGS_PARSER.show_secrets)
 
         elif ARGS_PARSER.operation == "teardown":
-            aws_config.load_aws_account_assets()
-            aws_config.remove_yellowdog_resources(CLIENT)
-            aws_config.remove_aws_account_assets()
+            aws_config.teardown(client=CLIENT)
 
     elif ARGS_PARSER.cloud_provider.lower() in [
         "gcp",

@@ -302,9 +302,7 @@ def remove_resource_by_id(resource_id: str):
         if resource_id.startswith("ydid:cst:"):
             if confirmed(f"Remove Compute Source Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_source_template_by_id(resource_id)
-                print_log(
-                    f"Removed Compute Source Template {resource_id} (if present)"
-                )
+                print_log(f"Removed Compute Source Template {resource_id} (if present)")
         elif resource_id.startswith("ydid:crt:"):
             if confirmed(f"Remove Compute Requirement Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_requirement_template_by_id(
