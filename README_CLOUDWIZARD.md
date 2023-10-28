@@ -3,7 +3,7 @@
 <!--ts-->
 * [YellowDog Cloud Wizard](#yellowdog-cloud-wizard)
 * [Overview](#overview)
-* [Quick Start (AWS)](#quick-start-aws)
+* [Quickstart Guide (AWS)](#quickstart-guide-aws)
    * [Creation](#creation)
    * [Removal](#removal)
 * [YellowDog Prerequisites](#yellowdog-prerequisites)
@@ -17,7 +17,7 @@
    * [Idempotency](#idempotency)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Mon Oct 23 14:04:50 BST 2023 -->
+<!-- Added by: pwt, at: Sat Oct 28 17:06:49 BST 2023 -->
 
 <!--te-->
 
@@ -27,7 +27,7 @@ YellowDog Cloud Wizard is an **experimental** utility that automates the process
 
 Cloud Wizard currently supports AWS, but support for other cloud providers is under development.
 
-# Quick Start (AWS)
+# Quickstart Guide (AWS)
 
 1. Ensure you have AWS credentials for the root user in your AWS account, or for another user with IAM administration rights. Set the AWS credentials via [environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) or via [credential files](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
@@ -80,7 +80,9 @@ The resources that were created can be inspected in JSON format in the file `clo
 
 The Compute Requirement Templates are then available for use in YellowDog provisioning requests via the YellowDog API; note that an `Images ID` must be supplied.
 
-The AWS Key Secret and the YellowDog Keyring password are not displayed during command operation, and are not retained locally, for security reasons. If you wish to display them, use the `--show-secrets` command line option when invoking `yd-cloudwizard`.
+The AWS Key Secret is not displayed during command operation, and is not retained locally, for security reasons. If you wish to display it, use the `--show-secrets` command line option when invoking `yd-cloudwizard`.
+
+At the conclusion of a successful setup, the command will display the YellowDog Keyring name and password. This password will not be displayed again, and is required to claim access to the Keyring on behalf of your YellowDog Portal user account, allowing you to control AWS resources via the Portal.
 
 ## Removal
 
@@ -134,6 +136,7 @@ Cloud Wizard performs the following actions in your AWS account:
 3. It attaches the IAM policy to the IAM user.
 4. It creates a new access key for the IAM user; note that the secret access key is not displayed by default and will not be recorded other than in the Credential to be created within YellowDog. To display the secret access key, run the Cloud Wizard command with the `--show-secrets` option.
 5. It adds the `AWSServiceRoleForEC2Spot` service linked role to the AWS account. This allows spot instances to be provisioned by YellowDog.
+6. It creates an S3 storage bucket named `yellowdog-cloudwizard-<aws_user_id>`. The AWS user ID is required to ensure that the bucket name is unique within the AWS region. A policy is attached to the bucket allowing the `yellowdog-cloudwizard-user` to access the S3 bucket.
 
 The steps above are essentially an automated version of YellowDog's [AWS account configuration guidelines](https://docs.yellowdog.co/#/knowledge-base/configuring-an-aws-account-for-use-with-yellowdog). Note that the addition of the Service linked role for AWS Fleet is omitted.
 
@@ -143,7 +146,7 @@ Some AWS IAM settings take a little while to percolate through the AWS account. 
 
 Cloud Wizard performs the following actions in your YellowDog Platform account:
 
-1. It creates a YellowDog Keyring called `cloudwizard-aws`. Note that the Keyring password is not displayed by default and will not be recorded, and the Keyring will be visible and usable only by the Application whose key and secret are being used. To display the password, run the Cloud Wizard command with the `--show-secrets` option. (The password is necessary if your YellowDog account user (or other YellowDog account users) want to claim the Keyring to be able to view or use it.)
+1. It creates a YellowDog Keyring called `cloudwizard-aws`. The Keyring name and password are displayed at the end of the Cloud Wizard setup process, and the password will not be displayed again. The Keyring name and password are required for your YellowDog Portal user account to be able to claim the Keyring, and use the credential(s) it contains via the Portal.
 
 
 2. It creates a Credential called `cloudwizard-aws` contained within the `cloudwizard-aws` Keyring, containing the access key created during the AWS account setup described above.
@@ -155,7 +158,9 @@ Cloud Wizard performs the following actions in your YellowDog Platform account:
 4. It creates a small range of example Compute Requirement Templates that use the sources above. There are two **static waterfall** provisioning strategy examples, one containing all the on-demand sources, the other containing all the spot sources. Two equivalent templates are created for the **static split** provisioning strategy. All of these templates specify the `t3a.micro` AWS instance type. In addition, an example **dynamic** template is created that will be constrained to AWS instances with 4GB of memory or greater, ordered by lowest cost first. In all cases, no `Images Id` is specified, so this must be supplied at the time of instance provisioning. Each template is given a name such as: `cloudwizard-aws-split-ondemand-t3amicro` or `cloudwizard-aws-dynamic-waterfall-lowestcost`.
 
 
-5. The Compute Source Template and Compute Requirement Template definitions are saved in a JSON resource specification file called `cloudwizard-aws-yellowdog-resources.json`. This file can be edited (for example, to change the AWS instance types), and used with the Python Examples `yd-create` command for managing YellowDog resources.
+5. The Compute Source Template and Compute Requirement Template definitions are saved in a JSON resource specification file called `cloudwizard-aws-yellowdog-resources.json`. This file can be edited (for example, to change the instance types), and used with the `yd-create` command for to update the resources.
+
+6. It creates a Namespace configuration, which maps the YellowDog namespace `cloudwizard-aws` into the S3 storage bucket `yellowdog-cloudwizard-<aws_user_id>`.
 
 ## Cloud Wizard Teardown
 
@@ -165,14 +170,16 @@ The following actions are taken in the **YellowDog account**:
 
 1. All Compute Source Templates and Compute Requirement Templates with names starting with `cloudwizard-aws` are removed.
 2. The `cloudwizard-aws` Keyring is removed.
+3. The `cloudwizard-aws` Namespace configuration is removed.
 
 The following actions are taken in the **AWS account**:
 
 1. The access key for `yellowdog-cloudwizard-user` is deleted.
 2. The IAM policy `yellowdog-cloudwizard-policy` is detached from the user.
 3. The IAM policy `yellowdog-cloudwizard-policy` is deleted.
-3. The user `yellowdog-cloudwizard-user` is deleted.
-4. The `AWSServiceRoleForEC2Spot` service linked role is removed.
+4. The user `yellowdog-cloudwizard-user` is deleted.
+5. The `AWSServiceRoleForEC2Spot` service linked role is removed.
+6. The S3 bucket `yellowdog-cloudwizard-<aws_user_id>` is emptied of objects, and removed.
 
 ## Idempotency
 
