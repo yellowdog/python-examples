@@ -754,6 +754,14 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
+                "--region-name",
+                "-R",
+                required=False,
+                metavar="<cloud-provider-region-name>",
+                type=str,
+                help="the name of the primary cloud provider region to use",
+            )
+            parser.add_argument(
                 "--show-secrets",
                 action="store_true",
                 required=False,
@@ -1109,6 +1117,11 @@ class CLIParser:
     @allow_missing_attribute
     def cloud_provider(self) -> Optional[str]:
         return self.args.cloud_provider
+
+    @property
+    @allow_missing_attribute
+    def region_name(self) -> Optional[str]:
+        return self.args.region_name
 
     @property
     @allow_missing_attribute

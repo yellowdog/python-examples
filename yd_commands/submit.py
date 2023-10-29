@@ -1099,7 +1099,7 @@ def create_task(
     ):
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
-    # Add Task deatils to the environment as a convenience
+    # Add Task details to the environment as a convenience
     env_copy[YD_TASK_NAME] = task_name
     env_copy[YD_TASK_NUMBER] = str(task_number)
     env_copy[YD_TASK_GROUP_NAME] = tg_name

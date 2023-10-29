@@ -43,8 +43,6 @@ YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 YD_NAMESPACE = "cloudwizard-aws"
 
-AWS_DEFAULT_REGION = "eu-west-2"
-
 AWS_ALL_REGIONS = [
     "af-south-1",
     "ap-east-1",
@@ -133,14 +131,32 @@ class AWSConfig:
     Class for managing the AWS configuration.
     """
 
-    def __init__(self, client: PlatformClient, show_secrets: bool = False):
+    def __init__(
+        self,
+        client: PlatformClient,
+        region_name: Optional[str],
+        show_secrets: bool = False,
+    ):
+        """
+        Set up AWS config details.
+        """
         try:  # Check for valid credentials
-            boto3.client("iam", region_name=AWS_DEFAULT_REGION).list_users(MaxItems=1)
+            boto3.client("iam").list_users(MaxItems=1)
         except ClientError as e:
             raise Exception(
                 f"Invalid or missing AWS credentials. Did you remember to set/export"
                 f" the AWS account credentials?"
             )
+
+        # Establish the region to use
+        s3_client = boto3.client("s3")
+        if region_name is None:  # Use the SDK default region
+            self.region_name = s3_client.meta.region_name
+        elif region_name.lower() in AWS_ALL_REGIONS:
+            self.region_name = region_name.lower()
+        else:
+            raise Exception(f"Invalid AWS region name '{region_name}'")
+        print_log(f"Using AWS region '{self.region_name}' as default")
 
         self.client = client
         self.show_secrets = show_secrets
@@ -159,7 +175,7 @@ class AWSConfig:
         self._gather_aws_network_information()
         self._create_yellowdog_resources()
 
-    def teardown(self, client: PlatformClient):
+    def teardown(self):
         """
         Remove all AWS and YellowDog assets
         """
@@ -172,7 +188,7 @@ class AWSConfig:
         Create the required assets in the AWS account, for use with YellowDog.
         """
         print_log("Inserting YellowDog-created assets into the AWS account")
-        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
+        iam_client = boto3.client("iam", region_name=self.region_name)
         self._create_iam_user(iam_client)
         self._create_iam_policy(iam_client)
         self._attach_iam_policy(iam_client)
@@ -185,7 +201,7 @@ class AWSConfig:
         Load the required AWS IDs that are non-constants.
         """
         print_log("Querying AWS account for existing assets")
-        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
+        iam_client = boto3.client("iam", region_name=self.region_name)
 
         # Get the IAM Policy ARN
         try:
@@ -230,7 +246,7 @@ class AWSConfig:
         Remove the Cloud Wizard assets in the AWS account.
         """
         print_log("Removing all YellowDog-created assets in the AWS account")
-        iam_client = boto3.client("iam", region_name=AWS_DEFAULT_REGION)
+        iam_client = boto3.client("iam", region_name=self.region_name)
         self._delete_s3_bucket()
         self._delete_access_keys(iam_client)
         self._detach_iam_policy(iam_client)
@@ -351,7 +367,9 @@ class AWSConfig:
 
         # Create Credential; assume use of the first (probably only) access key
         try:
-            if self._wait_until_access_key_is_valid_for_ec2(self.access_keys[0]):
+            if self._wait_until_access_key_is_valid_for_ec2(
+                access_key=self.access_keys[0]
+            ):
                 credential_resource = self._generate_yd_aws_credential(
                     YD_KEYRING_NAME, YD_CREDENTIAL_NAME, self.access_keys[0]
                 )
@@ -450,7 +468,7 @@ class AWSConfig:
         # Remove the Namespace Configuration
         remove_resources(
             [
-                AWSConfig._generate_yd_namespace_configuration(
+                self._generate_yd_namespace_configuration(
                     YD_NAMESPACE, self._get_s3_bucket_name()
                 )
             ]
@@ -724,17 +742,20 @@ class AWSConfig:
         """
         s3_client = boto3.client(
             "s3",
-            region_name=AWS_DEFAULT_REGION,
+            region_name=self.region_name,
         )
 
         s3_bucket_name = self._get_s3_bucket_name()
 
         # Create bucket
         try:
-            s3_client.create_bucket(
-                Bucket=s3_bucket_name,
-                CreateBucketConfiguration={"LocationConstraint": AWS_DEFAULT_REGION},
-            )
+            if self.region_name != "us-east-1":
+                s3_client.create_bucket(
+                    Bucket=s3_bucket_name,
+                    CreateBucketConfiguration={"LocationConstraint": self.region_name},
+                )
+            else:  # Strange quirk of AWS; can't use the default region 'us-east-1' as the location constraint!
+                s3_client.create_bucket(Bucket=s3_bucket_name)
             print_log(f"Created S3 bucket '{s3_bucket_name}'")
         except ClientError as e:
             if "BucketAlreadyOwnedByYou" in str(e):
@@ -742,7 +763,7 @@ class AWSConfig:
             else:
                 print_error(
                     f"Unable to create S3 bucket '{s3_bucket_name}' in region"
-                    f" '{AWS_DEFAULT_REGION}': {e}"
+                    f" '{self.region_name}': {e}"
                 )
 
         # Attach policy
@@ -810,7 +831,7 @@ class AWSConfig:
         """
         Delete the S3 bucket.
         """
-        s3_client = boto3.client("s3", region_name=AWS_DEFAULT_REGION)
+        s3_client = boto3.client("s3", region_name=self.region_name)
         s3_bucket_name = self._get_s3_bucket_name()
 
         if s3_bucket_name == "":
@@ -1059,9 +1080,8 @@ class AWSConfig:
             },
         }
 
-    @staticmethod
     def _generate_yd_namespace_configuration(
-        namespace: str, s3_bucket_name: str
+        self, namespace: str, s3_bucket_name: str
     ) -> Dict:
         """
         Generate a Namespace configuration using an S3 bucket.
@@ -1071,7 +1091,7 @@ class AWSConfig:
             "type": "co.yellowdog.platform.model.S3NamespaceStorageConfiguration",
             "namespace": namespace,
             "bucketName": s3_bucket_name,
-            "region": AWS_DEFAULT_REGION,
+            "region": self.region_name,
             "credential": f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
         }
 
@@ -1111,16 +1131,18 @@ class AWSConfig:
             else ""
         )
 
-    @staticmethod
     def _wait_until_access_key_is_valid_for_ec2(
-        access_key: AWSAccessKey, retry_interval_seconds: int = 5, max_retries: int = 10
+        self,
+        access_key: AWSAccessKey,
+        retry_interval_seconds: int = 5,
+        max_retries: int = 10,
     ) -> bool:
         """
         Wait until an access key is valid for use with EC2.
         """
         client = boto3.client(
             "ec2",
-            region_name=AWS_DEFAULT_REGION,
+            region_name=self.region_name,
             aws_access_key_id=access_key.access_key_id,
             aws_secret_access_key=access_key.secret_access_key,
         )

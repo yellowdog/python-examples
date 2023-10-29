@@ -49,8 +49,10 @@ set YD_SECRET <Insert your Application Key Secret here>
 Run the Cloud Wizard setup command:
 
 ```commandline
-yd-cloudwizard --cloud-provider=aws setup
+yd-cloudwizard --cloud-provider=aws --region-name=eu-west-2 setup
 ```
+
+Adjust the `--region-name` as required to specify in which region your S3 storage bucket is created. If omitted, the default from your configuration will be used, otherwise the AWS default of `us-east-1` will be used.
 
 Once the command has configured the necessary aspects of your AWS account, it will present a list of AWS Availability Zones. Select the Availability Zone(s) you'd like to use. For example:
 
@@ -89,7 +91,7 @@ At the conclusion of a successful setup, the command will display the YellowDog 
 The AWS account settings and YellowDog resources that were created can be entirely removed using the `teardown` operation:
 
 ```commandline
-yd-cloudwizard --cloud-provider=aws teardown
+yd-cloudwizard --cloud-provider=aws --region-name=eu-west-2 teardown
 ```
 
 All destructive operations will require user confirmation; to avoid this, use the `--yes`/`-y` command line option.
@@ -113,7 +115,7 @@ You'll need an AWS account along with AWS access keys for the root user or for a
 
 ## Cloud Wizard Setup
 
-The Cloud Wizard command is run using: `yd-cloudwizard --cloud-provider=aws setup`.
+The Cloud Wizard command is run using: `yd-cloudwizard --cloud-provider=aws --region-name=eu-west-2 setup`.
 
 Run the command with the `--help`/`-h` option to see the available options.
 
@@ -136,7 +138,8 @@ Cloud Wizard performs the following actions in your AWS account:
 3. It attaches the IAM policy to the IAM user.
 4. It creates a new access key for the IAM user; note that the secret access key is not displayed by default and will not be recorded other than in the Credential to be created within YellowDog. To display the secret access key, run the Cloud Wizard command with the `--show-secrets` option.
 5. It adds the `AWSServiceRoleForEC2Spot` service linked role to the AWS account. This allows spot instances to be provisioned by YellowDog.
-6. It creates an S3 storage bucket named `yellowdog-cloudwizard-<aws_user_id>`. The AWS user ID is required to ensure that the bucket name is unique within the AWS region. A policy is attached to the bucket allowing the `yellowdog-cloudwizard-user` to access the S3 bucket.
+6. It creates an S3 storage bucket named `yellowdog-cloudwizard-<aws_user_id>`. The AWS user ID is required to ensure that the bucket name is unique within the AWS region. Adjust the `--region-name` as required to specify in which region your S3 storage bucket is created. If omitted, the default from your configuration will be used, otherwise the AWS default of `us-east-1` will be used.
+7. A policy is attached to the bucket allowing the `yellowdog-cloudwizard-user` to access the S3 bucket.
 
 The steps above are essentially an automated version of YellowDog's [AWS account configuration guidelines](https://docs.yellowdog.co/#/knowledge-base/configuring-an-aws-account-for-use-with-yellowdog). Note that the addition of the Service linked role for AWS Fleet is omitted.
 
@@ -164,7 +167,7 @@ Cloud Wizard performs the following actions in your YellowDog Platform account:
 
 ## Cloud Wizard Teardown
 
-All settings and resources created by Cloud Wizard can be removed using `yd-cloudwizard --cloud-provider=aws teardown`. All destructive steps will require user confirmation unless the `--yes`/`-y` option is used.
+All settings and resources created by Cloud Wizard can be removed using `yd-cloudwizard --cloud-provider=aws --region-name=eu-west-2 teardown`. All destructive steps will require user confirmation unless the `--yes`/`-y` option is used.
 
 The following actions are taken in the **YellowDog account**:
 

@@ -17,7 +17,11 @@ def main():
 
     if ARGS_PARSER.cloud_provider.lower() in ["aws", "amazon"]:
         print_log(f"YellowDog automated cloud provider setup/teardown for 'AWS'")
-        aws_config = AWSConfig(client=CLIENT, show_secrets=ARGS_PARSER.show_secrets)
+        aws_config = AWSConfig(
+            client=CLIENT,
+            region_name=ARGS_PARSER.region_name,
+            show_secrets=ARGS_PARSER.show_secrets,
+        )
 
         if ARGS_PARSER.operation == "setup":
             aws_config.setup()
