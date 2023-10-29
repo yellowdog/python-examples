@@ -148,10 +148,9 @@ class AWSConfig:
                 f" the AWS account credentials?"
             )
 
-        # Establish the region to use
-        s3_client = boto3.client("s3")
-        if region_name is None:  # Use the SDK default region
-            self.region_name = s3_client.meta.region_name
+        # Establish the region to use (for the S3 bucket, primarily)
+        if region_name is None:  # Use the default region from the SDK
+            self.region_name = boto3.client("s3").meta.region_name
         elif region_name.lower() in AWS_ALL_REGIONS:
             self.region_name = region_name.lower()
         else:
@@ -414,6 +413,12 @@ class AWSConfig:
                 strategy="Waterfall",
                 instance_type="t3a.micro",
             ),
+            self._generate_static_compute_requirement_template_spot_ondemand_waterfall(
+                client=self.client,
+                source_names_spot=source_names_spot,
+                source_names_on_demand=source_names_ondemand,
+                instance_type="t3a.micro",
+            ),
             self._generate_dynamic_compute_requirement_template(strategy="Waterfall"),
             self._generate_dynamic_compute_requirement_template(strategy="Split"),
         ]
@@ -449,7 +454,7 @@ class AWSConfig:
                 " Keyring using the name and password below. The password will not be"
                 " shown again."
             )
-            print_log(f"--> Keyring name =     '{YD_KEYRING_NAME}'")
+            print_log(f"--> Keyring name     = '{YD_KEYRING_NAME}'")
             print_log(f"--> Keyring password = '{self.keyring_password}'")
 
     def _remove_yellowdog_resources(self):
@@ -1000,6 +1005,46 @@ class AWSConfig:
                 " Wizard"
             ),
             "strategyType": f"co.yellowdog.platform.model.{strategy}ProvisionStrategy",
+            "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
+            "sources": [
+                {"instanceType": instance_type, "sourceTemplateId": id}
+                for id in source_ids
+            ],
+        }
+
+    @staticmethod
+    def _generate_static_compute_requirement_template_spot_ondemand_waterfall(
+        client: PlatformClient,
+        source_names_spot: List[str],
+        source_names_on_demand: List[str],
+        instance_type: str,
+    ) -> Dict:
+        """
+        Generate a static Waterfall compute requirement resource definition from
+        lists of spot and on-demand source names.
+        Instance type must be a valid AWS instance type.
+        """
+        source_ids = []
+        for source_name in source_names_spot + source_names_on_demand:
+            source_id = find_compute_source_id_by_name(client, source_name)
+            if source_id is None:
+                raise Exception(
+                    "Unable to find a Compute Source Template ID for source"
+                    f" '{source_name}'"
+                )
+            source_ids.append(source_id)
+
+        return {
+            "resource": "ComputeRequirementTemplate",
+            "name": (
+                f"{YD_RESOURCE_PREFIX}-waterfall-spot-to-ondemand-"
+                f"{instance_type.lower().replace('.', '')}"
+            ),
+            "description": (
+                "Compute Requirement Template automatically created by YellowDog Cloud"
+                " Wizard"
+            ),
+            "strategyType": f"co.yellowdog.platform.model.WaterfallProvisionStrategy",
             "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
             "sources": [
                 {"instanceType": instance_type, "sourceTemplateId": id}
