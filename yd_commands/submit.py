@@ -1100,11 +1100,12 @@ def create_task(
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
     # Add Task details to the environment as a convenience
-    env_copy[YD_TASK_NAME] = task_name
-    env_copy[YD_TASK_NUMBER] = str(task_number)
-    env_copy[YD_TASK_GROUP_NAME] = tg_name
-    env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
-    env_copy[YD_WORK_REQUIREMENT_NAME] = ID
+    if task_type != "docker":
+        env_copy[YD_TASK_NAME] = task_name
+        env_copy[YD_TASK_NUMBER] = str(task_number)
+        env_copy[YD_TASK_GROUP_NAME] = tg_name
+        env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
+        env_copy[YD_WORK_REQUIREMENT_NAME] = ID
 
     # Special processing for Bash, Python & PowerShell tasks if the 'executable'
     # property is set. The script is uploaded if this hasn't already been done,
@@ -1164,7 +1165,9 @@ def create_task(
         )
         # Add entity names to the container env. for convenience
         docker_env_list = ["--env", f"{YD_TASK_NAME}={task_name}"]
+        docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]
         docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
+        docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
         docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
 
         if docker_env is not None:
