@@ -133,7 +133,7 @@ class AWSConfig:
     Class for managing the AWS configuration.
     """
 
-    def __init__(self):
+    def __init__(self, client: PlatformClient, show_secrets: bool = False):
         try:  # Check for valid credentials
             boto3.client("iam", region_name=AWS_DEFAULT_REGION).list_users(MaxItems=1)
         except ClientError as e:
@@ -142,33 +142,32 @@ class AWSConfig:
                 f" the AWS account credentials?"
             )
 
+        self.client = client
+        self.show_secrets = show_secrets
         self.availability_zones: List[AWSAvailabilityZone] = []
         self.iam_policy_arn: Optional[str] = None
         self.access_keys: List[AWSAccessKey] = []
         self.aws_user: Optional[AWSUser] = None
         self.keyring_password: Optional[str] = None
 
-    def setup(self, client: PlatformClient, show_secrets: bool = False):
+    def setup(self):
         """
         Set up all AWS and YellowDog assets
         """
         self._load_aws_account_assets()
-        self._create_aws_account_assets(show_secrets)
+        self._create_aws_account_assets()
         self._gather_aws_network_information()
-        self._create_yellowdog_resources(
-            client=client,
-            show_secrets=show_secrets,
-        )
+        self._create_yellowdog_resources()
 
     def teardown(self, client: PlatformClient):
         """
         Remove all AWS and YellowDog assets
         """
         self._load_aws_account_assets()
-        self._remove_yellowdog_resources(client)
+        self._remove_yellowdog_resources()
         self._remove_aws_account_assets()
 
-    def _create_aws_account_assets(self, show_secrets: bool = False):
+    def _create_aws_account_assets(self):
         """
         Create the required assets in the AWS account, for use with YellowDog.
         """
@@ -177,7 +176,7 @@ class AWSConfig:
         self._create_iam_user(iam_client)
         self._create_iam_policy(iam_client)
         self._attach_iam_policy(iam_client)
-        self._create_access_key(iam_client, show_secrets)
+        self._create_access_key(iam_client)
         self._add_service_linked_role_for_ec2_spot(iam_client)
         self._create_s3_bucket()
 
@@ -293,9 +292,7 @@ class AWSConfig:
                 )
                 self.availability_zones.append(aws_az)
 
-    def _create_yellowdog_resources(
-        self, client: PlatformClient, show_secrets: bool = False
-    ):
+    def _create_yellowdog_resources(self):
         """
         Create the YellowDog resources and save the resource definition file.
         """
@@ -308,7 +305,10 @@ class AWSConfig:
             " Source Templates"
         )
         selected_azs = select(
-            client, self.availability_zones, force_interactive=True, override_quiet=True
+            self.client,
+            self.availability_zones,
+            force_interactive=True,
+            override_quiet=True,
         )
         source_names_spot: List[str] = []
         source_names_ondemand: List[str] = []
@@ -369,28 +369,28 @@ class AWSConfig:
         clear_compute_source_template_cache()
         compute_requirement_template_resources: List[Dict] = [
             self._generate_static_compute_requirement_template(
-                client=client,
+                client=self.client,
                 source_names=source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Split",
                 instance_type="t3a.micro",
             ),
             self._generate_static_compute_requirement_template(
-                client=client,
+                client=self.client,
                 source_names=source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Split",
                 instance_type="t3a.micro",
             ),
             self._generate_static_compute_requirement_template(
-                client=client,
+                client=self.client,
                 source_names=source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Waterfall",
                 instance_type="t3a.micro",
             ),
             self._generate_static_compute_requirement_template(
-                client=client,
+                client=self.client,
                 source_names=source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Waterfall",
@@ -434,7 +434,7 @@ class AWSConfig:
             print_log(f"--> Keyring name =     '{YD_KEYRING_NAME}'")
             print_log(f"--> Keyring password = '{self.keyring_password}'")
 
-    def _remove_yellowdog_resources(self, client: PlatformClient):
+    def _remove_yellowdog_resources(self):
         """
         Remove a set of resources identified by their prefix/name.
         """
@@ -442,10 +442,10 @@ class AWSConfig:
             "Remove all Compute Requirement Templates and Compute Source Templates"
             f" with names starting with '{YD_RESOURCE_PREFIX}'?"
         ):
-            AWSConfig._remove_yd_templates_by_prefix(client)
+            AWSConfig._remove_yd_templates_by_prefix(self.client)
 
         # Keyring is removed separately.
-        AWSConfig._remove_keyring(client)
+        AWSConfig._remove_keyring(self.client)
 
         # Remove the Namespace Configuration
         remove_resources(
@@ -600,7 +600,7 @@ class AWSConfig:
             else:
                 print_error(f"Failed to detach IAM policy '{IAM_POLICY_NAME}': {e}")
 
-    def _create_access_key(self, iam_client, show_secrets: bool = False):
+    def _create_access_key(self, iam_client):
         """
         Create an access key for use in a YellowDog Credential:
         """
@@ -623,7 +623,7 @@ class AWSConfig:
                 f"Created AWS_ACCESS_KEY_ID='{access_key.access_key_id}' for user"
                 f" '{IAM_USER_NAME}'"
             )
-            if show_secrets:
+            if self.show_secrets:
                 print_log(
                     f"        AWS_SECRET_ACCESS_KEY='{access_key.secret_access_key}'"
                 )

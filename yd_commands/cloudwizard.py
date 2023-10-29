@@ -17,13 +17,13 @@ def main():
 
     if ARGS_PARSER.cloud_provider.lower() in ["aws", "amazon"]:
         print_log(f"YellowDog automated cloud provider setup/teardown for 'AWS'")
-        aws_config = AWSConfig()
+        aws_config = AWSConfig(client=CLIENT, show_secrets=ARGS_PARSER.show_secrets)
 
         if ARGS_PARSER.operation == "setup":
-            aws_config.setup(client=CLIENT, show_secrets=ARGS_PARSER.show_secrets)
+            aws_config.setup()
 
         elif ARGS_PARSER.operation == "teardown":
-            aws_config.teardown(client=CLIENT)
+            aws_config.teardown()
 
     elif ARGS_PARSER.cloud_provider.lower() in [
         "gcp",
