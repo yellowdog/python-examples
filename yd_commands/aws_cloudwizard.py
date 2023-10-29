@@ -35,6 +35,14 @@ IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
 S3_BUCKET_NAME_PREFIX = "yellowdog-cloudwizard"
 EC2_SPOT_SERVICE_LINKED_ROLE_NAME = "AWSServiceRoleForEC2Spot"
 MAX_ITEMS = 1000  # Maximum number of items to return from an AWS API call
+SSH_IPV4_INGRESS_RULE = [
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 22,
+        "ToPort": 22,
+        "IpRanges": [{"CidrIp": f"0.0.0.0/0"}],
+    }
+]
 
 YD_KEYRING_NAME = "cloudwizard-aws"
 YD_CREDENTIAL_NAME = "cloudwizard-aws"
@@ -182,6 +190,42 @@ class AWSConfig:
         self._remove_yellowdog_resources()
         self._remove_aws_account_assets()
 
+    @staticmethod
+    def amend_ssh_ingress(operation: str):
+        """
+        Add or remove SSH ingress for all relevant security groups.
+        Operation is 'add' or 'remove'.
+        """
+        for region in AWS_YD_IMAGE_REGIONS:
+            ec2_client = boto3.client("ec2", region_name=region)
+            # Collect the default security group for the region
+            try:
+                response = ec2_client.describe_security_groups(Filters=[])
+            except ClientError as e:
+                if "AuthFailure" in str(e):
+                    pass
+                else:
+                    print_error(
+                        f"Cannot retrieve security groups for region '{region}': {e}"
+                    )
+                continue
+
+            for sec_grp in response["SecurityGroups"]:
+                description = sec_grp["GroupName"]
+                if "default" in description.lower():
+                    aws_sec_grp = AWSSecurityGroup(
+                        description=description, id=sec_grp["GroupId"]
+                    )
+                    if operation == "add":
+                        AWSConfig._add_security_group_ingress_rule(
+                            ec2_client, aws_sec_grp, SSH_IPV4_INGRESS_RULE, "SSH"
+                        )
+                    elif operation == "remove":
+                        AWSConfig._remove_security_group_ingress_rule(
+                            ec2_client, aws_sec_grp, SSH_IPV4_INGRESS_RULE, "SSH"
+                        )
+                    break
+
     def _create_aws_account_assets(self):
         """
         Create the required assets in the AWS account, for use with YellowDog.
@@ -285,6 +329,9 @@ class AWSConfig:
                     aws_sec_grp = AWSSecurityGroup(
                         description=description, id=sec_grp["GroupId"]
                     )
+                    # self._add_security_group_ingress_rule(
+                    #     ec2_client, aws_sec_grp, SSH_IPV4_PERMISSIONS, "SSH"
+                    # )
                     break
                 else:
                     print_warning(f"No default security group found for {region}")
@@ -858,6 +905,61 @@ class AWSConfig:
                 print_error(f"Unable to delete S3 bucket '{s3_bucket_name}': {e}")
 
     @staticmethod
+    def _add_security_group_ingress_rule(
+        ec2_client, security_group: AWSSecurityGroup, ingress_rule: List, rule_name: str
+    ):
+        """
+        Add an ingress rule to a security group.
+        """
+        try:
+            ec2_client.authorize_security_group_ingress(
+                GroupId=security_group.id,
+                IpPermissions=ingress_rule,
+            )
+            print_log(
+                f"Added {rule_name} inbound rule to security group"
+                f" '{security_group.description}' ('{security_group.id}') in region"
+                f" '{ec2_client.meta.region_name}'"
+            )
+        except ClientError as e:
+            if "Duplicate" in str(e):
+                print_warning(
+                    f"Inbound {rule_name} rule already exists for"
+                    f" '{security_group.description}' ('{security_group.id}') in region"
+                    f" '{ec2_client.meta.region_name}'"
+                )
+            else:
+                print_error(
+                    f"Unable to add inbound {rule_name} rule to security group"
+                    f" '{security_group.description}' ('{security_group.id}') in region"
+                    f" '{ec2_client.meta.region_name}': {e}"
+                )
+
+    @staticmethod
+    def _remove_security_group_ingress_rule(
+        ec2_client, security_group: AWSSecurityGroup, ingress_rule: List, rule_name: str
+    ):
+        """
+        Remove an ingress rule from a security group.
+        """
+        try:
+            ec2_client.revoke_security_group_ingress(
+                GroupId=security_group.id,
+                IpPermissions=ingress_rule,
+            )
+            print_log(
+                f"Removed inbound {rule_name} rule from security group"
+                f" '{security_group.description}' ('{security_group.id}') in region"
+                f" '{ec2_client.meta.region_name}' (if present)"
+            )
+        except ClientError as e:
+            print_error(
+                f"Unable to remove inbound {rule_name} rule from security group"
+                f" '{security_group.description}' ('{security_group.id}') in region"
+                f" '{ec2_client.meta.region_name}': {e}"
+            )
+
+    @staticmethod
     def _remove_yd_templates_by_prefix(client):
         """
         Remove YellowDog resources using their name prefix.
@@ -1023,7 +1125,7 @@ class AWSConfig:
         Generate a static Waterfall compute requirement resource definition from
         lists of spot and on-demand source names.
         Instance type must be a valid AWS instance type.
-        """
+        q"""
         source_ids = []
         for source_name in source_names_spot + source_names_on_demand:
             source_id = find_compute_source_id_by_name(client, source_name)

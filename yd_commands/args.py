@@ -736,10 +736,13 @@ class CLIParser:
         if "cloudwizard" in sys.argv[0]:
             parser.add_argument(
                 "operation",
-                metavar="'setup' or 'teardown'",
+                metavar="'setup', 'teardown', 'add-ssh' or 'remove-ssh'",
                 type=str,
-                choices=["setup", "teardown"],
-                help="the cloud wizard operation to perform: 'setup' or 'teardown'",
+                choices=["setup", "teardown", "add-ssh", "remove-ssh"],
+                help=(
+                    "the cloud wizard operation to perform: 'setup', 'teardown',"
+                    " 'add-ssh' or 'remove-ssh'"
+                ),
             )
             parser.add_argument(
                 "--cloud-provider",

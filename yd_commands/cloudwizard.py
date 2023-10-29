@@ -29,6 +29,12 @@ def main():
         elif ARGS_PARSER.operation == "teardown":
             aws_config.teardown()
 
+        elif ARGS_PARSER.operation == "add-ssh":
+            aws_config.amend_ssh_ingress("add")
+
+        elif ARGS_PARSER.operation == "remove-ssh":
+            aws_config.amend_ssh_ingress("remove")
+
     elif ARGS_PARSER.cloud_provider.lower() in [
         "gcp",
         "google",
