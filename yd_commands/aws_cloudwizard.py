@@ -42,7 +42,7 @@ YD_RESOURCE_PREFIX = "cloudwizard-aws"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 YD_NAMESPACE = "cloudwizard-aws"
-YD_DEFAULT_INSTANCE_TYPE = "t3.micro"
+YD_DEFAULT_INSTANCE_TYPE = "t3a.micro"
 
 AWS_ALL_REGIONS = [
     "af-south-1",
@@ -137,6 +137,7 @@ class AWSConfig:
         client: PlatformClient,
         region_name: Optional[str],
         show_secrets: bool = False,
+        instance_type: Optional[str] = None,
     ):
         """
         Set up AWS config details.
@@ -159,6 +160,9 @@ class AWSConfig:
 
         self.client = client
         self.show_secrets = show_secrets
+        self.instance_type = (
+            YD_DEFAULT_INSTANCE_TYPE if instance_type is None else instance_type
+        )
         self.availability_zones: List[AWSAvailabilityZone] = []
         self.iam_policy_arn: Optional[str] = None
         self.access_keys: List[AWSAccessKey] = []
@@ -440,34 +444,34 @@ class AWSConfig:
                 source_names=source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Split",
-                instance_type=YD_DEFAULT_INSTANCE_TYPE,
+                instance_type=self.instance_type,
             ),
             self._generate_static_compute_requirement_template(
                 client=self.client,
                 source_names=source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Split",
-                instance_type=YD_DEFAULT_INSTANCE_TYPE,
+                instance_type=self.instance_type,
             ),
             self._generate_static_compute_requirement_template(
                 client=self.client,
                 source_names=source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Waterfall",
-                instance_type=YD_DEFAULT_INSTANCE_TYPE,
+                instance_type=self.instance_type,
             ),
             self._generate_static_compute_requirement_template(
                 client=self.client,
                 source_names=source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Waterfall",
-                instance_type=YD_DEFAULT_INSTANCE_TYPE,
+                instance_type=self.instance_type,
             ),
             self._generate_static_compute_requirement_template_spot_ondemand_waterfall(
                 client=self.client,
                 source_names_spot=source_names_spot,
                 source_names_on_demand=source_names_ondemand,
-                instance_type=YD_DEFAULT_INSTANCE_TYPE,
+                instance_type=self.instance_type,
             ),
             self._generate_dynamic_compute_requirement_template(strategy="Waterfall"),
             self._generate_dynamic_compute_requirement_template(strategy="Split"),
@@ -1105,10 +1109,7 @@ class AWSConfig:
 
         return {
             "resource": "ComputeRequirementTemplate",
-            "name": (
-                f"{YD_RESOURCE_PREFIX}-{strategy.lower()}-{spot_or_ondemand}-"
-                f"{instance_type.lower().replace('.', '')}"
-            ),
+            "name": f"{YD_RESOURCE_PREFIX}-{strategy.lower()}-{spot_or_ondemand}",
             "description": (
                 "Compute Requirement Template automatically created by YellowDog Cloud"
                 " Wizard"
@@ -1145,10 +1146,7 @@ class AWSConfig:
 
         return {
             "resource": "ComputeRequirementTemplate",
-            "name": (
-                f"{YD_RESOURCE_PREFIX}-waterfall-spot-to-ondemand-"
-                f"{instance_type.lower().replace('.', '')}"
-            ),
+            "name": f"{YD_RESOURCE_PREFIX}-waterfall-spot-to-ondemand",
             "description": (
                 "Compute Requirement Template automatically created by YellowDog Cloud"
                 " Wizard"

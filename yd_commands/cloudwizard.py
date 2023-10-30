@@ -21,6 +21,7 @@ def main():
             client=CLIENT,
             region_name=ARGS_PARSER.region_name,
             show_secrets=ARGS_PARSER.show_secrets,
+            instance_type=ARGS_PARSER.instance_type,
         )
 
         if ARGS_PARSER.operation == "setup":

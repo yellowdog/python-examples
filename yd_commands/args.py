@@ -765,6 +765,17 @@ class CLIParser:
                 help="the name of the primary cloud provider region to use",
             )
             parser.add_argument(
+                "--instance-type",
+                "-I",
+                required=False,
+                metavar="<instance-type>",
+                type=str,
+                help=(
+                    "the instance type to use in the automatically generated YellowDog"
+                    " Compute Requirement Templates"
+                ),
+            )
+            parser.add_argument(
                 "--show-secrets",
                 action="store_true",
                 required=False,
@@ -1125,6 +1136,11 @@ class CLIParser:
     @allow_missing_attribute
     def region_name(self) -> Optional[str]:
         return self.args.region_name
+
+    @property
+    @allow_missing_attribute
+    def instance_type(self) -> Optional[str]:
+        return self.args.instance_type
 
     @property
     @allow_missing_attribute
