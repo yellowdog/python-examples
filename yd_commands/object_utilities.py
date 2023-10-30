@@ -29,6 +29,8 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
+from yd_commands.aws_types import AWSAvailabilityZone
+
 
 @lru_cache()
 def get_task_groups_from_wr_summary(
@@ -112,6 +114,7 @@ Item = TypeVar(
     TaskGroup,
     WorkerPoolSummary,
     WorkRequirementSummary,
+    AWSAvailabilityZone,
 )
 
 
@@ -178,7 +181,8 @@ def get_work_requirement_summary_by_name_or_id(
 
 def find_compute_source_id_by_name(client: PlatformClient, name: str) -> Optional[str]:
     """
-    Find a compute source id by its name.
+    Find a compute source id by name.
+    (Compute source names should be unique.)
     """
     for source in get_all_compute_sources(client):
         if source.name == name:
@@ -195,15 +199,23 @@ def get_all_compute_sources(
     return client.compute_client.find_all_compute_source_templates()
 
 
-def find_compute_template_id_by_name(
-    client: PlatformClient, name: str
-) -> Optional[str]:
+def clear_compute_source_template_cache():
     """
-    Find a Compute Template ID by name.
+    Clear the cache of Compute Source Templates.
     """
+    get_all_compute_sources.cache_clear()
+
+
+def find_compute_template_ids_by_name(client: PlatformClient, name: str) -> List[str]:
+    """
+    Find Compute Template IDs that match the provided name.
+    (Compute Templates names don't appear to need to be unique.)
+    """
+    compute_template_ids = []
     for template in get_all_compute_templates(client):
         if template.name == name:
-            return template.id
+            compute_template_ids.append(template.id)
+    return compute_template_ids
 
 
 @lru_cache()
@@ -214,6 +226,13 @@ def get_all_compute_templates(
     Cache the list of Compute Templates
     """
     return client.compute_client.find_all_compute_requirement_templates()
+
+
+def clear_compute_requirement_template_cache():
+    """
+    Clear the cache of Compute Requirement Templates
+    """
+    get_all_compute_templates.cache_clear()
 
 
 def get_compreq_id_by_worker_pool_id(

@@ -108,7 +108,9 @@ UPLOADED_FILES: Optional[UploadedFiles] = None
 # to the environment for each Task
 YD_WORK_REQUIREMENT_NAME = "YD_WORK_REQUIREMENT_NAME"
 YD_TASK_GROUP_NAME = "YD_TASK_GROUP_NAME"
+YD_TASK_GROUP_NUMBER = "YD_TASK_GROUP_NUMBER"
 YD_TASK_NAME = "YD_TASK_NAME"
+YD_TASK_NUMBER = "YD_TASK_NUMBER"
 
 
 @main_wrapper
@@ -786,7 +788,9 @@ def add_tasks_to_task_group(
                     task_group_data=task_group_data,
                     task_data=task,
                     task_name=task_name,
+                    task_number=task_number + 1,
                     tg_name=task_group.name,
+                    tg_number=tg_number + 1,
                     task_type=task_type,
                     executable=executable,
                     args=arguments_list,
@@ -1045,7 +1049,9 @@ def create_task(
     task_group_data: Dict,
     task_data: Dict,
     task_name: str,
+    task_number: int,
     tg_name: str,
+    tg_number: int,
     task_type: str,
     executable: str,
     args: List[str],
@@ -1093,10 +1099,13 @@ def create_task(
     ):
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
-    # Add entity names to the Task's environment as a convenience
-    env_copy[YD_TASK_NAME] = task_name
-    env_copy[YD_TASK_GROUP_NAME] = tg_name
-    env_copy[YD_WORK_REQUIREMENT_NAME] = ID
+    # Add Task details to the environment as a convenience
+    if task_type != "docker":
+        env_copy[YD_TASK_NAME] = task_name
+        env_copy[YD_TASK_NUMBER] = str(task_number)
+        env_copy[YD_TASK_GROUP_NAME] = tg_name
+        env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
+        env_copy[YD_WORK_REQUIREMENT_NAME] = ID
 
     # Special processing for Bash, Python & PowerShell tasks if the 'executable'
     # property is set. The script is uploaded if this hasn't already been done,
@@ -1156,7 +1165,9 @@ def create_task(
         )
         # Add entity names to the container env. for convenience
         docker_env_list = ["--env", f"{YD_TASK_NAME}={task_name}"]
+        docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]
         docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
+        docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
         docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
 
         if docker_env is not None:

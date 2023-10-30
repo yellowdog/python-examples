@@ -48,6 +48,7 @@ from yellowdog_client.object_store.download import DownloadBatchBuilder
 from yellowdog_client.object_store.upload import UploadBatchBuilder
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.aws_types import AWSAvailabilityZone
 from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.id_utils import YDIDType
 from yd_commands.object_utilities import Item
@@ -120,7 +121,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
     if PREFIX_LEN == 0:
         PREFIX_LEN = len(prefix)
 
-    if no_fill:
+    if no_fill or msg == "" or msg.isspace():
         return prefix + msg
 
     return fill(
@@ -135,7 +136,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
 
 
 def print_log(
-    log_message: str,
+    log_message: str = "",
     override_quiet: bool = False,
     no_fill: bool = False,
 ):
@@ -156,11 +157,20 @@ def print_error(error_obj: Union[Exception, str]):
     CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style=ERROR_STYLE)
 
 
-def print_warning(warning: str):
+def print_warning(
+    warning: str,
+    override_quiet: bool = False,
+    no_fill: bool = False,
+):
     """
     Print a warning.
     """
-    CONSOLE.print(print_string(f"Warning: {warning}"), style=WARNING_STYLE)
+    if ARGS_PARSER.quiet and override_quiet is False:
+        return
+
+    CONSOLE.print(
+        print_string(f"Warning: {warning}", no_fill=no_fill), style=WARNING_STYLE
+    )
 
 
 TYPE_MAP = {
@@ -176,6 +186,7 @@ TYPE_MAP = {
     ComputeSourceTemplateSummary: "Compute Source Template",
     KeyringSummary: "Keyring",
     MachineImageFamilySummary: "Machine Image Family",
+    AWSAvailabilityZone: "AWS Availability Zones",
 }
 
 
@@ -474,6 +485,28 @@ def instances_table(
     return headers, table
 
 
+def aws_availability_zone_table(
+    aws_azs: List[AWSAvailabilityZone],
+) -> (List[str], List[str]):
+    headers = [
+        "#",
+        "Availability Zone",
+        "Default Subnet ID",
+        "Default Security Group ID",
+    ]
+    table = []
+    for index, az in enumerate(aws_azs):
+        table.append(
+            [
+                index + 1,
+                az.az,
+                az.default_subnet_id,
+                az.default_sec_grp.id,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Item],
@@ -517,6 +550,8 @@ def print_numbered_object_list(
         headers, table = object_path_table(objects)
     elif isinstance(objects[0], Instance):
         headers, table = instances_table(objects)
+    elif isinstance(objects[0], AWSAvailabilityZone):
+        headers, table = aws_availability_zone_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
@@ -568,6 +603,9 @@ def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
 
     if isinstance(objects[0], Instance):
         return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)
+
+    if isinstance(objects[0], AWSAvailabilityZone):
+        return sorted(objects)
 
     try:
         return sorted(objects, key=lambda x: x.name, reverse=reverse)

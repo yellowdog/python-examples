@@ -4,7 +4,8 @@
 A script to remove YellowDog resources.
 """
 
-from typing import Dict, List
+from copy import deepcopy
+from typing import Dict, List, Optional
 
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
@@ -17,20 +18,32 @@ from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
     find_compute_source_id_by_name,
-    find_compute_template_id_by_name,
+    find_compute_template_ids_by_name,
 )
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 
 
 @main_wrapper
 def main():
+    remove_resources()
+
+
+def remove_resources(resources: Optional[List[Dict]] = None):
+    """
+    Remove a list of resources either supplied as an argument
+    or loaded from files, or by ID.
+    """
     if ARGS_PARSER.ids:
         for resource_id in ARGS_PARSER.resource_specifications:
             remove_resource_by_id(resource_id)
         return
 
-    resources = load_resource_specifications()
+    if resources is None:
+        resources = load_resource_specifications()
+    else:
+        resources = deepcopy(resources)  # Avoid overwriting the input argument
+
     for resource in resources:
         try:
             resource_type = resource.pop("resource")
@@ -41,9 +54,9 @@ def main():
             )
             continue
         if resource_type == "ComputeSourceTemplate":
-            remove_compute_source(resource)
+            remove_compute_source_template(resource)
         elif resource_type == "ComputeRequirementTemplate":
-            remove_compute_template(resource)
+            remove_compute_requirement_template(resource)
         elif resource_type == "Keyring":
             remove_keyring(resource)
         elif resource_type == "Credential":
@@ -58,44 +71,66 @@ def main():
             print_error(f"Unknown resource type '{resource_type}'")
 
 
-def remove_compute_source(resource: Dict):
+def remove_compute_source_template(resource: Dict):
     """
-    Remove a Compute Source using a resource specification.
+    Remove a Compute Source Template using a resource specification.
     Should handle any Source Type.
     """
     try:
         source = resource.pop("source")  # Extract the Source properties
         name = source["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     source_id = find_compute_source_id_by_name(CLIENT, name)
     if source_id is None:
-        print_error(f"Cannot find Source Template '{name}'")
-    else:
-        if not confirmed(f"Remove Source Template '{name}'?"):
-            return
+        print_warning(f"Cannot find Compute Source Template '{name}'")
+        return
+
+    if not confirmed(f"Remove Compute Source Template '{name}'?"):
+        return
+    try:
         CLIENT.compute_client.delete_compute_source_template_by_id(source_id)
-        print_log(f"Removed Compute Source '{name}' ({source_id})")
+        print_log(f"Removed Compute Source Template '{name}' ({source_id})")
+    except Exception as e:
+        print_error(
+            f"Unable to remove Compute Source Template '{name}' ({source_id}): {e}"
+        )
 
 
-def remove_compute_template(resource: Dict):
+def remove_compute_requirement_template(resource: Dict):
     """
     Remove a Compute Requirement Template.
     """
     try:
         name = resource["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
-    template_id = find_compute_template_id_by_name(CLIENT, name)
-    if template_id is None:
-        print_error(f"Cannot find Compute Requirement Template '{name}'")
-    else:
-        if not confirmed(f"Remove Compute Requirement Template '{name}'?"):
+    template_ids = find_compute_template_ids_by_name(CLIENT, name)
+    if len(template_ids) == 0:
+        print_warning(f"Cannot find Compute Requirement Template '{name}'")
+        return
+
+    if len(template_ids) > 1:
+        print_warning(
+            f"{len(template_ids)} Compute Requirement Templates with the name '{name}'"
+        )
+    for template_id in template_ids:
+        if not confirmed(
+            f"Remove Compute Requirement Template '{name}' ({template_id})?"
+        ):
             return
-        CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
-        print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
+        try:
+            CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
+            print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
+        except Exception as e:
+            print_error(
+                f"Unable to remove Compute Requirement Template '{name}'"
+                f" ({template_id}): {e}"
+            )
 
 
 def remove_keyring(resource: Dict):
@@ -105,7 +140,8 @@ def remove_keyring(resource: Dict):
     try:
         name = resource["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     if not confirmed(f"Delete Keyring '{name}'?"):
         return
@@ -115,9 +151,9 @@ def remove_keyring(resource: Dict):
         print_log(f"Deleted Keyring '{name}'")
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_error(f"Keyring '{name}' not found")
+            print_warning(f"Keyring '{name}' not found")
         else:
-            raise e
+            print_error(f"Unable to delete Keyring '{name}': {e}")
 
 
 def remove_credential(resource: Dict):
@@ -129,7 +165,8 @@ def remove_credential(resource: Dict):
         credential_data = resource["credential"]
         credential_name = credential_data["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     if not confirmed(
         f"Remove Credential '{credential_name}' from Keyring '{keyring_name}'?"
@@ -144,9 +181,12 @@ def remove_credential(resource: Dict):
         )
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_error(f"Keyring '{keyring_name}' not found")
+            print_warning(
+                f"Keyring '{keyring_name}' not found (possibly already deleted,"
+                " including its credentials)"
+            )
         else:
-            print_error(e)
+            print_error(f"Unable to remove Keyring '{keyring_name}': {e}")
 
 
 def remove_image_family(resource: Dict):
@@ -157,7 +197,8 @@ def remove_image_family(resource: Dict):
         family_name = resource["name"]
         namespace = resource["namespace"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     # Check for existence of Image Family
     try:
@@ -168,13 +209,16 @@ def remove_image_family(resource: Dict):
             return
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_error(f"Machine Image Family '{namespace}/{family_name}' not found")
+            print_warning(f"Machine Image Family '{namespace}/{family_name}' not found")
             return
         else:
             raise e
 
-    CLIENT.images_client.delete_image_family(image_family)
-    print_log(f"Deleted Image Family '{namespace}/{family_name}'")
+    try:
+        CLIENT.images_client.delete_image_family(image_family)
+        print_log(f"Deleted Image Family '{namespace}/{family_name}'")
+    except Exception as e:
+        print_error(f"Unable to delete Image Family '{namespace}/{family_name}': {e}")
 
 
 def remove_namespace_configuration(resource: Dict):
@@ -184,13 +228,14 @@ def remove_namespace_configuration(resource: Dict):
     try:
         namespace = resource["namespace"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     namespaces: List[NamespaceStorageConfiguration] = (
         CLIENT.object_store_client.get_namespace_storage_configurations()
     )
     if namespace not in [x.namespace for x in namespaces]:
-        print_error(f"Namespace Storage Configuration '{namespace}' not found")
+        print_warning(f"Namespace Storage Configuration '{namespace}' not found")
         return
 
     if not confirmed(f"Remove Namespace Storage Configuration '{namespace}'?"):
@@ -200,7 +245,9 @@ def remove_namespace_configuration(resource: Dict):
         CLIENT.object_store_client.delete_namespace_storage_configuration(namespace)
         print_log(f"Removed Namespace Storage Configuration '{namespace}'")
     except Exception as e:
-        print(e)
+        print_error(
+            f"Unable to remove Namespace Storage Configuration '{namespace}': {e}"
+        )
 
 
 def remove_configured_worker_pool(resource: Dict):
@@ -210,7 +257,8 @@ def remove_configured_worker_pool(resource: Dict):
     try:
         name = resource["name"]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        print_error(f"Expected property to be defined ({e})")
+        return
 
     worker_pools: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()
@@ -248,44 +296,42 @@ def remove_configured_worker_pool(resource: Dict):
 
 def remove_resource_by_id(resource_id: str):
     """
-    Remove a resource by its ydid.
+    Remove a resource by its YDID.
     """
     try:
         if resource_id.startswith("ydid:cst:"):
-            if confirmed(f"Remove Compute Source Template '{resource_id}'?"):
+            if confirmed(f"Remove Compute Source Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_source_template_by_id(resource_id)
-                print_log(
-                    f"Removed Compute Source Template '{resource_id}' (if present)"
-                )
+                print_log(f"Removed Compute Source Template {resource_id} (if present)")
         elif resource_id.startswith("ydid:crt:"):
-            if confirmed(f"Remove Compute Requirement Template '{resource_id}'?"):
+            if confirmed(f"Remove Compute Requirement Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_requirement_template_by_id(
                     resource_id
                 )
                 print_log(
-                    f"Removed Compute Requirement Template '{resource_id}' (if present)"
+                    f"Removed Compute Requirement Template {resource_id} (if present)"
                 )
         elif resource_id.startswith("ydid:imgfam:"):
             if confirmed(f"Remove Image Family '{resource_id}'?"):
                 CLIENT.images_client.delete_image_family(resource_id)
-                print_log(f"Removed Image Family '{resource_id}' (if present)")
+                print_log(f"Removed Image Family {resource_id} (if present)")
         elif resource_id.startswith("ydid:keyring:"):
-            if confirmed(f"Remove Keyring '{resource_id}'?"):
+            if confirmed(f"Remove Keyring {resource_id}?"):
                 keyrings = CLIENT.keyring_client.find_all_keyrings()
                 for keyring in keyrings:
                     if keyring.id == resource_id:
                         CLIENT.keyring_client.delete_keyring_by_name(keyring.name)
-                        print_log(f"Removed Keyring '{resource_id}'")
+                        print_log(f"Removed Keyring {resource_id}")
                         return
-                raise Exception(f"Keyring '{resource_id}' not found")
+                raise Exception(f"Keyring {resource_id} not found")
         elif resource_id.startswith("ydid:wrkrpool:"):
-            if confirmed(f"Shut down Worker Pool '{resource_id}'?"):
+            if confirmed(f"Shut down Worker Pool {resource_id}?"):
                 CLIENT.worker_pool_client.shutdown_worker_pool_by_id(resource_id)
-                print_log(f"Shut down Worker Pool '{resource_id}'")
+                print_log(f"Shut down Worker Pool {resource_id}")
         else:
-            print_error(f"Resource ID format is unknown/unsupported: '{resource_id}'")
+            print_error(f"Resource ID type is unknown/unsupported: {resource_id}")
     except Exception as e:
-        print_error(f"Unable to remove resource with ID '{resource_id}' ({e})")
+        print_error(f"Unable to remove resource with ID {resource_id}: {e}")
 
 
 # Entry point

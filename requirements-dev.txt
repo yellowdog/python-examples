@@ -7,4 +7,6 @@ build
 pytest
 pytest-xdist
 cli-test-helpers
-python-dispatch >= 0.2.2 # Eliminates packaging warnings, but conflicts with SDK requirement
+python-dispatch >= 0.2.2 # Eliminates pytest packaging warnings, but conflicts with SDK requirement
+pyinstaller
+pipdeptree

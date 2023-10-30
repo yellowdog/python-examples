@@ -4,6 +4,7 @@ for all commands.
 """
 
 import os
+from sys import exit
 from typing import List
 
 from pypac import pac_context_for_url

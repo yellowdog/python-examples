@@ -5,6 +5,7 @@ Common utility functions, mostly related to loading configuration data.
 import os
 from os import getenv
 from os.path import abspath, dirname
+from sys import exit
 from typing import Dict, Optional
 
 from toml import TomlDecodeError
@@ -83,7 +84,7 @@ def load_config_common() -> ConfigCommon:
     Load the configuration values for the 'common' section.
     """
     try:
-        common_section = CONFIG_TOML[COMMON_SECTION]
+        common_section = CONFIG_TOML.get(COMMON_SECTION, {})
 
         # Check for IMPORT directive (common section in a separate file)
         common_section_import_file = common_section.get(IMPORT, None)
@@ -112,6 +113,12 @@ def load_config_common() -> ConfigCommon:
                     f"Using value of '{env_var_name}' environment variable "
                     f"for '{key_name}'"
                 )
+
+        # Provide default values for namespace and tag
+        if common_section.get(NAMESPACE, None) is None:
+            common_section[NAMESPACE] = "{{username}}_namespace"
+        if common_section.get(NAME_TAG, None) is None:
+            common_section[NAME_TAG] = "{{username}}_tag"
 
         url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
@@ -346,9 +353,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
                 COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
             ),
             compute_requirement_data_file=compute_requirement_data_file,
-            idle_node_shutdown_enabled=wp_section.get(IDLE_NODE_SHUTDOWN_ENABLED, True),
             idle_node_shutdown_timeout=wp_section.get(IDLE_NODE_SHUTDOWN_TIMEOUT, 5.0),
-            idle_pool_shutdown_enabled=wp_section.get(IDLE_POOL_SHUTDOWN_ENABLED, True),
             idle_pool_shutdown_timeout=wp_section.get(IDLE_POOL_SHUTDOWN_TIMEOUT, 30.0),
             images_id=wp_section.get(IMAGES_ID, None),
             instance_tags=wp_section.get(INSTANCE_TAGS, None),

@@ -44,6 +44,7 @@
     yd-reformat-json = "yd_commands.reformat_json:main"
     yd-remove = "yd_commands.remove:main"
     yd-resize = "yd_commands.resize:main"
+    yd-cloudwizard = "yd_commands.cloudwizard:main"
     yd-shutdown = "yd_commands.shutdown:main"
     yd-submit = "yd_commands.submit:main"
     yd-terminate = "yd_commands.terminate:main"

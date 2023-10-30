@@ -26,9 +26,7 @@ FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
 FLATTEN_PATHS = "flattenInputPaths"  # Boolean
 FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
 FULFIL_ON_SUBMIT = "fulfilOnSubmit"  # Boolean
-IDLE_NODE_SHUTDOWN_ENABLED = "idleNodeShutdownEnabled"  # Bool
 IDLE_NODE_SHUTDOWN_TIMEOUT = "idleNodeShutdownTimeout"  # Float
-IDLE_POOL_SHUTDOWN_ENABLED = "idlePoolShutdownEnabled"  # Bool
 IDLE_POOL_SHUTDOWN_TIMEOUT = "idlePoolShutdownTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
 IMPORT = "import"  # String
@@ -117,9 +115,7 @@ ALL_KEYS = [
     FLATTEN_PATHS,
     FLATTEN_UPLOAD_PATHS,
     FULFIL_ON_SUBMIT,
-    IDLE_NODE_SHUTDOWN_ENABLED,
     IDLE_NODE_SHUTDOWN_TIMEOUT,
-    IDLE_POOL_SHUTDOWN_ENABLED,
     IDLE_POOL_SHUTDOWN_TIMEOUT,
     IMAGES_ID,
     IMPORT,

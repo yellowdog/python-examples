@@ -1,6 +1,7 @@
 """
 Utilities for applying variable substitutions.
 """
+
 import os
 import re
 import sys
@@ -164,7 +165,7 @@ def process_variable_substitutions(
     opening_delimiter = prefix + VAR_OPENING_DELIMITER
     closing_delimiter = VAR_CLOSING_DELIMITER + postfix
 
-    if opening_delimiter not in input_string or closing_delimiter not in input_string:
+    if not (opening_delimiter in input_string and closing_delimiter in input_string):
         return input_string  # Nothing to process
 
     return_str = ""
@@ -273,10 +274,7 @@ def process_untyped_variable_substitutions(
         variable_default = remove_outer_delimiters(
             substitution, opening_delimiter, closing_delimiter
         ).split(VAR_DEFAULT_SEPARATOR)
-        if (
-            variable_default[0] == ""
-            or len(variable_default) != 2
-        ):
+        if variable_default[0] == "" or len(variable_default) != 2:
             raise Exception(
                 f"Malformed '<variable>:=<default>' substitution: '{substitution}'"
             )
@@ -424,7 +422,7 @@ def load_toml_file_with_variable_substitutions(
     except KeyError:
         pass
 
-    # Repeat processing to resolve variables
+    # Repeat processing to resolve nested variables
     for _ in range(TOML_VAR_NESTED_DEPTH):
         process_variable_substitutions_in_dict_insitu(
             config, prefix=prefix, postfix=postfix

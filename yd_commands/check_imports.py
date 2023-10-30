@@ -2,7 +2,6 @@
 Handle optional imports.
 """
 
-
 def check_jsonnet_import():
     # Jsonnet is not installed by default, due to a binary build requirement
     # on some platforms. The 'jsonnet-binary' package can be used to overcome
