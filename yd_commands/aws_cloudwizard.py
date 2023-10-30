@@ -42,6 +42,7 @@ YD_RESOURCE_PREFIX = "cloudwizard-aws"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 YD_NAMESPACE = "cloudwizard-aws"
+YD_DEFAULT_INSTANCE_TYPE = "t3.micro"
 
 AWS_ALL_REGIONS = [
     "af-south-1",
@@ -439,34 +440,34 @@ class AWSConfig:
                 source_names=source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Split",
-                instance_type="t3a.micro",
+                instance_type=YD_DEFAULT_INSTANCE_TYPE,
             ),
             self._generate_static_compute_requirement_template(
                 client=self.client,
                 source_names=source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Split",
-                instance_type="t3a.micro",
+                instance_type=YD_DEFAULT_INSTANCE_TYPE,
             ),
             self._generate_static_compute_requirement_template(
                 client=self.client,
                 source_names=source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Waterfall",
-                instance_type="t3a.micro",
+                instance_type=YD_DEFAULT_INSTANCE_TYPE,
             ),
             self._generate_static_compute_requirement_template(
                 client=self.client,
                 source_names=source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Waterfall",
-                instance_type="t3a.micro",
+                instance_type=YD_DEFAULT_INSTANCE_TYPE,
             ),
             self._generate_static_compute_requirement_template_spot_ondemand_waterfall(
                 client=self.client,
                 source_names_spot=source_names_spot,
                 source_names_on_demand=source_names_ondemand,
-                instance_type="t3a.micro",
+                instance_type=YD_DEFAULT_INSTANCE_TYPE,
             ),
             self._generate_dynamic_compute_requirement_template(strategy="Waterfall"),
             self._generate_dynamic_compute_requirement_template(strategy="Split"),
@@ -1174,6 +1175,10 @@ class AWSConfig:
         return {
             "resource": "ComputeRequirementTemplate",
             "name": f"{YD_RESOURCE_PREFIX}-dynamic-{strategy.lower()}-lowestcost",
+            "description": (
+                "Compute Requirement Template automatically created by YellowDog Cloud"
+                " Wizard"
+            ),
             "constraints": [
                 {
                     "attribute": "yd.ram",
@@ -1208,7 +1213,7 @@ class AWSConfig:
         """
         return {
             "resource": "Keyring",
-            "description": "Keyring created automatically by YellowDog Cloud Wizard",
+            "description": "Keyring automatically created by YellowDog Cloud Wizard",
             "name": YD_KEYRING_NAME,
         }
 
