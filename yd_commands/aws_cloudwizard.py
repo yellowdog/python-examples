@@ -35,14 +35,6 @@ IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
 S3_BUCKET_NAME_PREFIX = "yellowdog-cloudwizard"
 EC2_SPOT_SERVICE_LINKED_ROLE_NAME = "AWSServiceRoleForEC2Spot"
 MAX_ITEMS = 1000  # Maximum number of items to return from an AWS API call
-SSH_IPV4_INGRESS_RULE = [
-    {
-        "IpProtocol": "tcp",
-        "FromPort": 22,
-        "ToPort": 22,
-        "IpRanges": [{"CidrIp": f"0.0.0.0/0"}],
-    }
-]
 
 YD_KEYRING_NAME = "cloudwizard-aws"
 YD_CREDENTIAL_NAME = "cloudwizard-aws"
@@ -163,7 +155,6 @@ class AWSConfig:
             self.region_name = region_name.lower()
         else:
             raise Exception(f"Invalid AWS region name '{region_name}'")
-        print_log(f"Using AWS region '{self.region_name}' as default")
 
         self.client = client
         self.show_secrets = show_secrets
@@ -191,12 +182,23 @@ class AWSConfig:
         self._remove_aws_account_assets()
 
     @staticmethod
-    def amend_ssh_ingress(operation: str):
+    def amend_ssh_ingress(operation: str, selected_region: str = None):
         """
         Add or remove SSH ingress for all relevant security groups.
+        A list of regions can be supplied as an argument.
         Operation is 'add' or 'remove'.
         """
-        for region in AWS_YD_IMAGE_REGIONS:
+        ssh_ipv4_ingress_rule = [
+            {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "IpRanges": [{"CidrIp": f"0.0.0.0/0"}],
+            }
+        ]
+        for region in (
+            AWS_YD_IMAGE_REGIONS if selected_region is None else [selected_region]
+        ):
             ec2_client = boto3.client("ec2", region_name=region)
             # Collect the default security group for the region
             try:
@@ -218,11 +220,11 @@ class AWSConfig:
                     )
                     if operation == "add":
                         AWSConfig._add_security_group_ingress_rule(
-                            ec2_client, aws_sec_grp, SSH_IPV4_INGRESS_RULE, "SSH"
+                            ec2_client, aws_sec_grp, ssh_ipv4_ingress_rule, "SSH"
                         )
                     elif operation == "remove":
                         AWSConfig._remove_security_group_ingress_rule(
-                            ec2_client, aws_sec_grp, SSH_IPV4_INGRESS_RULE, "SSH"
+                            ec2_client, aws_sec_grp, ssh_ipv4_ingress_rule, "SSH"
                         )
                     break
 
@@ -801,14 +803,18 @@ class AWSConfig:
 
         # Create bucket
         try:
+            # Strange quirk of AWS; can't use the default region 'us-east-1'
+            # as the location constraint ...
             if self.region_name != "us-east-1":
                 s3_client.create_bucket(
                     Bucket=s3_bucket_name,
                     CreateBucketConfiguration={"LocationConstraint": self.region_name},
                 )
-            else:  # Strange quirk of AWS; can't use the default region 'us-east-1' as the location constraint!
+            else:
                 s3_client.create_bucket(Bucket=s3_bucket_name)
-            print_log(f"Created S3 bucket '{s3_bucket_name}'")
+            print_log(
+                f"Created S3 bucket '{s3_bucket_name}' in region '{self.region_name}'"
+            )
         except ClientError as e:
             if "BucketAlreadyOwnedByYou" in str(e):
                 print_warning("Bucket already exists and is owned by this account")

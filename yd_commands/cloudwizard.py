@@ -30,10 +30,10 @@ def main():
             aws_config.teardown()
 
         elif ARGS_PARSER.operation == "add-ssh":
-            aws_config.amend_ssh_ingress("add")
+            aws_config.amend_ssh_ingress("add", ARGS_PARSER.region_name)
 
         elif ARGS_PARSER.operation == "remove-ssh":
-            aws_config.amend_ssh_ingress("remove")
+            aws_config.amend_ssh_ingress("remove", ARGS_PARSER.region_name)
 
     elif ARGS_PARSER.cloud_provider.lower() in [
         "gcp",
