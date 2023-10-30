@@ -187,11 +187,11 @@ class AWSConfig:
         self._remove_aws_account_assets()
 
     @staticmethod
-    def amend_ssh_ingress(operation: str, selected_region: str = None):
+    def set_ssh_ingress_rule(operation: str, selected_region: str = None):
         """
         Add or remove SSH ingress for all relevant security groups.
         A list of regions can be supplied as an argument.
-        Operation is 'add' or 'remove'.
+        The 'operation' argument must be 'add' or 'remove'.
         """
         ssh_ipv4_ingress_rule = [
             {
@@ -218,11 +218,9 @@ class AWSConfig:
                 continue
 
             for sec_grp in response["SecurityGroups"]:
-                description = sec_grp["GroupName"]
-                if "default" in description.lower():
-                    aws_sec_grp = AWSSecurityGroup(
-                        description=description, id=sec_grp["GroupId"]
-                    )
+                name = sec_grp["GroupName"]
+                if "default" in name.lower():
+                    aws_sec_grp = AWSSecurityGroup(name=name, id=sec_grp["GroupId"])
                     if operation == "add":
                         AWSConfig._add_security_group_ingress_rule(
                             ec2_client, aws_sec_grp, ssh_ipv4_ingress_rule, "SSH"
@@ -327,18 +325,13 @@ class AWSConfig:
                     )
                     continue
                 else:
-                    raise e
+                    raise Exception(f"Unable to list security groups: {e}")
 
-            aws_sec_grp = AWSSecurityGroup(description="", id="")
+            aws_sec_grp = AWSSecurityGroup(name="", id="")
             for sec_grp in response["SecurityGroups"]:
-                description = sec_grp["GroupName"]
-                if "default" in description.lower():
-                    aws_sec_grp = AWSSecurityGroup(
-                        description=description, id=sec_grp["GroupId"]
-                    )
-                    # self._add_security_group_ingress_rule(
-                    #     ec2_client, aws_sec_grp, SSH_IPV4_PERMISSIONS, "SSH"
-                    # )
+                name = sec_grp["GroupName"]
+                if "default" in name.lower():
+                    aws_sec_grp = AWSSecurityGroup(name=name, id=sec_grp["GroupId"])
                     break
                 else:
                     print_warning(f"No default security group found for {region}")
@@ -430,7 +423,7 @@ class AWSConfig:
             else:
                 print_warning("AWS Credential not added to YellowDog Keyring")
         except IndexError:
-            print_warning("No access keys loaded; can't create Credential")
+            print_error("No access keys loaded; can't create Credential")
 
         # Create Compute Source Templates
         print_log("Creating YellowDog Compute Source Templates")
@@ -604,7 +597,7 @@ class AWSConfig:
                     " exists"
                 )
             else:
-                raise Exception(f"Failed to create IAM policy: {e}")
+                print_error(f"Failed to create IAM policy: {e}")
 
     def _delete_iam_policy(self, iam_client):
         """
@@ -929,20 +922,20 @@ class AWSConfig:
             )
             print_log(
                 f"Added {rule_name} inbound rule to security group"
-                f" '{security_group.description}' ('{security_group.id}') in region"
+                f" '{security_group.name}' ('{security_group.id}') in region"
                 f" '{ec2_client.meta.region_name}'"
             )
         except ClientError as e:
             if "Duplicate" in str(e):
                 print_warning(
                     f"Inbound {rule_name} rule already exists for"
-                    f" '{security_group.description}' ('{security_group.id}') in region"
+                    f" '{security_group.name}' ('{security_group.id}') in region"
                     f" '{ec2_client.meta.region_name}'"
                 )
             else:
                 print_error(
                     f"Unable to add inbound {rule_name} rule to security group"
-                    f" '{security_group.description}' ('{security_group.id}') in region"
+                    f" '{security_group.name}' ('{security_group.id}') in region"
                     f" '{ec2_client.meta.region_name}': {e}"
                 )
 
@@ -960,13 +953,13 @@ class AWSConfig:
             )
             print_log(
                 f"Removed inbound {rule_name} rule from security group"
-                f" '{security_group.description}' ('{security_group.id}') in region"
+                f" '{security_group.name}' ('{security_group.id}') in region"
                 f" '{ec2_client.meta.region_name}' (if present)"
             )
         except ClientError as e:
             print_error(
                 f"Unable to remove inbound {rule_name} rule from security group"
-                f" '{security_group.description}' ('{security_group.id}') in region"
+                f" '{security_group.name}' ('{security_group.id}') in region"
                 f" '{ec2_client.meta.region_name}': {e}"
             )
 

@@ -8,7 +8,7 @@ from typing import Optional
 
 @dataclass(order=True)
 class AWSSecurityGroup:
-    description: str
+    name: str
     id: str
 
 
