@@ -142,7 +142,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                             timedelta(minutes=CONFIG_WP.idle_node_shutdown_timeout)
                         ),
                     }
-                    if CONFIG_WP.idle_node_shutdown_enabled
+                    if CONFIG_WP.idle_node_shutdown_timeout != 0
                     else {"enabled": False}
                 ),
             ),
@@ -155,7 +155,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                             timedelta(minutes=CONFIG_WP.idle_pool_shutdown_timeout)
                         ),
                     }
-                    if CONFIG_WP.idle_pool_shutdown_enabled
+                    if CONFIG_WP.idle_pool_shutdown_timeout != 0
                     else {"enabled": False}
                 ),
             ),
@@ -239,7 +239,7 @@ def create_worker_pool():
             enabled=True,
             timeout=timedelta(minutes=CONFIG_WP.idle_node_shutdown_timeout),
         )
-        if CONFIG_WP.idle_node_shutdown_enabled
+        if CONFIG_WP.idle_node_shutdown_timeout != 0
         else AutoShutdown(enabled=False)
     )
 
@@ -248,7 +248,7 @@ def create_worker_pool():
             enabled=True,
             timeout=timedelta(minutes=CONFIG_WP.idle_pool_shutdown_timeout),
         )
-        if CONFIG_WP.idle_pool_shutdown_enabled
+        if CONFIG_WP.idle_pool_shutdown_timeout != 0
         else AutoShutdown(enabled=False)
     )
 
@@ -341,7 +341,7 @@ def create_worker_pool():
 
     idle_node_shutdown_string = (
         f"time limit is {CONFIG_WP.idle_node_shutdown_timeout} minute(s)"
-        if CONFIG_WP.idle_node_shutdown_enabled
+        if CONFIG_WP.idle_node_shutdown_timeout != 0
         else "is **disabled**"
     )
 
@@ -353,13 +353,13 @@ def create_worker_pool():
     )
 
     idle_pool_shutdown = (
-        "enabled" if CONFIG_WP.idle_pool_shutdown_enabled else "disabled"
+        "enabled" if CONFIG_WP.idle_pool_shutdown_timeout != 0 else "disabled"
     )
     idle_pool_shutdown_msg = f"Worker Pool auto-shutdown is {idle_pool_shutdown}"
     idle_pool_shutdown_msg = (
         idle_pool_shutdown_msg
         + f" with a delay of {CONFIG_WP.idle_pool_shutdown_timeout} minute(s)"
-        if CONFIG_WP.idle_pool_shutdown_enabled
+        if CONFIG_WP.idle_pool_shutdown_timeout != 0
         else idle_pool_shutdown_msg
     )
     print_log(idle_pool_shutdown_msg)
