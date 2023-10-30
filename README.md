@@ -1234,7 +1234,7 @@ This section discusses the context within which a Task operates when it's execut
 When a Task is allocated to a Worker on a node by the YellowDog Scheduler, the following steps are followed:
 
 1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list. In addition, the `yd-submit` command sets the following environment variables automatically: `YD_WORK_REQUIREMENT_NAME`, `YD_TASK_GROUP_NAME`, `YD_TASK_GROUP_NUMBER`, `YD_TASK_NAME`, and `YD_TASK_NUMBER`.
-2. The doenloaded files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also written by default.
+2. The downloaded files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also written by default.
 2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess.
 3. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
 4. The Agent then gathers any files in the `outputs` and `outputsRequired` lists and uploads them to the Object Store. If a file in the `outputsRequired` list is not found, the Task will be reported as failed. The Agent will also optionally upload the console output (including both `stdout` and `stderr`) of the Task, contained in the `taskoutput.txt` file.
