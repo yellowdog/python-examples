@@ -27,6 +27,7 @@ from yellowdog_client.model.exceptions import InvalidRequestException
 from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
+    clear_compute_source_template_cache,
     find_compute_source_id_by_name,
     find_compute_template_ids_by_name,
 )
@@ -59,7 +60,8 @@ def create_resources(
     for resource in resources:
         try:
             resource_type = resource.pop("resource")
-            if ARGS_PARSER.dry_run:
+            if ARGS_PARSER.dry_run and resource_type != "ComputeRequirementTemplate":
+                # There is potential additional processing for CRTs
                 print_json(resource)
                 continue
         except KeyError:
@@ -144,6 +146,29 @@ def create_cr_template(resource: Dict):
         raise Exception(f"Expected property to be defined ({e})")
 
     compute_template = get_model_object(type, resource)
+
+    # Allow source templates to be referenced by name instead of ID:
+    # substitute ID for name
+    counter = 0
+    clear_compute_source_template_cache()
+    for source in resource["sources"]:
+        template_name_or_id = source["sourceTemplateId"]
+        if "ydid:cst:" not in template_name_or_id:
+            template_id = find_compute_source_id_by_name(
+                client=CLIENT, name=template_name_or_id
+            )
+            if template_id is None:
+                print_error(
+                    f"Compute Source Template name '{template_name_or_id}' not found"
+                )
+                return
+            counter += 1
+            source["sourceTemplateId"] = template_id
+    print_log(f"Replaced {counter} Compute Source Template name(s) with ID(s)")
+
+    if ARGS_PARSER.dry_run:
+        print_json(resource)
+        return
 
     # Check for an existing ID
     template_ids = find_compute_template_ids_by_name(CLIENT, name)

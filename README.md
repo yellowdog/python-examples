@@ -1849,6 +1849,8 @@ An example Compute Requirement resource specification is found below, for a **st
 }
 ```
 
+Note that Compute Source Template **names** can be used instead of their IDs: the **yd-create** command will look up the IDs and make the substitutions. In either case, the Compute Source Templates must already exist.
+
 A **dynamic** template example is:
 
 ```json
