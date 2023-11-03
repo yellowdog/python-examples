@@ -40,3 +40,5 @@ def test_entrypoints():
     assert result.exit_code == 0
     result = shell("yd-version")
     assert result.exit_code == 0
+    result = shell("yd-cloudwizard --help")
+    assert result.exit_code == 0
