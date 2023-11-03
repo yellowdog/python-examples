@@ -5,12 +5,11 @@
 * [Overview](#overview)
 * [YellowDog Prerequisites](#yellowdog-prerequisites)
 * [Cloud Wizard for GCP](#cloud-wizard-for-gcp)
+   * [GCP Prerequisites](#gcp-prerequisites)
    * [Quickstart Guide (GCP)](#quickstart-guide-gcp)
-      * [GCP Prerequisites](#gcp-prerequisites)
       * [Creation](#creation)
       * [Removal](#removal)
    * [Details of Operation: GCP](#details-of-operation-gcp)
-      * [GCP Prerequisites](#gcp-prerequisites-1)
       * [Cloud Wizard Setup](#cloud-wizard-setup)
          * [Network Details](#network-details)
          * [GCP Account Setup](#gcp-account-setup)
@@ -18,12 +17,11 @@
       * [Cloud Wizard Teardown](#cloud-wizard-teardown)
       * [Idempotency](#idempotency)
 * [Cloud Wizard for AWS](#cloud-wizard-for-aws)
+   * [AWS Account Prequisites](#aws-account-prequisites)
    * [Quickstart Guide (AWS)](#quickstart-guide-aws)
-      * [AWS Account Prequisites](#aws-account-prequisites)
       * [Creation](#creation-1)
       * [Removal](#removal-1)
    * [Details of Operation: AWS](#details-of-operation-aws)
-      * [AWS Prerequisites](#aws-prerequisites)
       * [Cloud Wizard Setup](#cloud-wizard-setup-1)
          * [Network Details](#network-details-1)
          * [AWS Account Setup](#aws-account-setup)
@@ -32,7 +30,7 @@
       * [Idempotency](#idempotency-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Nov  3 11:56:27 GMT 2023 -->
+<!-- Added by: pwt, at: Fri Nov  3 15:44:01 GMT 2023 -->
 
 <!--te-->
 
@@ -40,7 +38,7 @@
 
 YellowDog Cloud Wizard is an **experimental** utility that automates the process of configuring a cloud provider account for use with YellowDog, and for creating YellowDog resources that work with the account. The goal is to make it quick and easy to get from opening a new cloud provider account to using it productively with YellowDog. 
 
-Cloud Wizard currently supports AWS, but support for other cloud providers is under development.
+Cloud Wizard currently supports AWS and GCP, but support for other cloud providers is under development.
 
 # YellowDog Prerequisites
 
@@ -68,9 +66,7 @@ set YD_SECRET <Insert your Application Key Secret here>
 
 # Cloud Wizard for GCP
 
-## Quickstart Guide (GCP)
-
-### GCP Prerequisites
+## GCP Prerequisites
 
 Ensure you have credentials (keys) for a **GCP Service Account** in a GCP project with the **Compute Engine API** enabled. The credentials should be in the form of a locally downloaded JSON file, of the form:
 
@@ -89,6 +85,8 @@ Ensure you have credentials (keys) for a **GCP Service Account** in a GCP projec
   "universe_domain": "googleapis.com"
 }
 ```
+
+## Quickstart Guide (GCP)
 
 ### Creation
 
@@ -136,10 +134,6 @@ yd-cloudwizard --cloud-provider=gcp --credentials-file=credentials.json teardown
 All destructive operations will require user confirmation; to avoid this, use the `--yes`/`-y` command line option.
 
 ## Details of Operation: GCP
-
-### GCP Prerequisites
-
-Please see the [GCP Prerequisites](#gcp-prerequisites) section above.
 
 ### Cloud Wizard Setup
 
@@ -199,11 +193,11 @@ The Compute Source and Compute Requirement templates will be updated, and may di
 
 # Cloud Wizard for AWS
 
+## AWS Account Prequisites
+
+You'll need an AWS account along with AWS access keys for the root user or for another user with the rights to manage IAM users and policies. The access keys will need to be accessible to the Cloud Wizard command either via [environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) or via [credential files](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+
 ## Quickstart Guide (AWS)
-
-### AWS Account Prequisites
-
-Ensure you have AWS credentials for the root user in your AWS account, or for another user with IAM administration rights. Set the AWS credentials via [environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) or via [credential files](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
 ### Creation
 
@@ -258,10 +252,6 @@ yd-cloudwizard --cloud-provider=aws --region-name=eu-west-2 teardown
 All destructive operations will require user confirmation; to avoid this, use the `--yes`/`-y` command line option.
 
 ## Details of Operation: AWS
-
-### AWS Prerequisites
-
-You'll need an AWS account along with AWS access keys for the root user or for another user with the rights to manage IAM users and policies. The access keys will need to be accessible to the Cloud Wizard command either via [environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) or via [credential files](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
 ### Cloud Wizard Setup
 
