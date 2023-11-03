@@ -34,6 +34,8 @@ from yd_commands.object_utilities import (
 from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
+CLEAR_CST_CACHE: bool = False  # Track whether the CST cache needs to be cleared
+
 
 @main_wrapper
 def main():
@@ -130,6 +132,9 @@ def create_compute_source(resource: Dict):
             f" ({compute_source.id})"
         )
 
+    global CLEAR_CST_CACHE
+    CLEAR_CST_CACHE = True
+
     if ARGS_PARSER.quiet and compute_source.id is not None:
         print(compute_source.id)
 
@@ -149,9 +154,14 @@ def create_cr_template(resource: Dict):
 
     # Allow source templates to be referenced by name instead of ID:
     # substitute ID for name
+    global CLEAR_CST_CACHE
+    if CLEAR_CST_CACHE:  # Update the CST cache if required
+        clear_compute_source_template_cache()
+        CLEAR_CST_CACHE = False
+
     counter = 0
-    clear_compute_source_template_cache()
-    for source in resource["sources"]:
+    # Dynamic templates don't have 'sources'; return '[]'
+    for source in resource.get("sources", []):
         template_name_or_id = source["sourceTemplateId"]
         if "ydid:cst:" not in template_name_or_id:
             template_id = find_compute_source_id_by_name(
@@ -162,8 +172,8 @@ def create_cr_template(resource: Dict):
                     f"Compute Source Template name '{template_name_or_id}' not found"
                 )
                 return
-            counter += 1
             source["sourceTemplateId"] = template_id
+            counter += 1
     print_log(f"Replaced {counter} Compute Source Template name(s) with ID(s)")
 
     if ARGS_PARSER.dry_run:
@@ -504,8 +514,8 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
     """
     while True:
         try:
-            object = get_model_class(classname)(**resource, **kwargs)
-            return object
+            model_object = get_model_class(classname)(**resource, **kwargs)
+            return model_object
         except Exception as e:
             # Unexpected/missing keyword argument Exception of form:
             # __init__() got an unexpected keyword argument 'keyword', or
