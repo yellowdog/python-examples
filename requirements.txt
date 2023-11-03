@@ -5,3 +5,5 @@ PyPAC >= 0.16.4
 rich >= 13.5.2
 requests
 boto3
+google-cloud-compute
+google-cloud-storage

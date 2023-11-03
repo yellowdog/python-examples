@@ -3,7 +3,7 @@ User interaction processing
 """
 
 from os import getenv
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Union
 
 from yellowdog_client import PlatformClient
 
@@ -30,7 +30,8 @@ YD_YES = "YD_YES"
 
 def select(
     client: PlatformClient,
-    objects: List[Item],
+    objects: List[Union[Item, str]],
+    object_type_name: Optional[str] = None,
     parent: Optional[Item] = None,
     override_quiet: bool = False,
     single_result: bool = False,
@@ -50,7 +51,11 @@ def select(
 
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(
-            client, objects, override_quiet=override_quiet, showing_all=showing_all
+            client,
+            objects,
+            override_quiet=override_quiet,
+            showing_all=showing_all,
+            object_type_name=object_type_name,
         )
 
     if not ARGS_PARSER.interactive and force_interactive is False:

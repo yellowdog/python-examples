@@ -3,7 +3,6 @@ Configuration and utilities related to AWS account setup.
 """
 
 import json
-from os.path import exists
 from time import sleep
 from typing import Dict, List, Optional
 
@@ -17,18 +16,11 @@ from yd_commands.aws_types import (
     AWSSecurityGroup,
     AWSUser,
 )
-from yd_commands.compact_json import CompactJSONEncoder
-from yd_commands.create import create_keyring_via_api, create_resources
+from yd_commands.common_cloudwizard import CommonCloudConfig
+from yd_commands.create import create_resources
 from yd_commands.interactive import confirmed, select
-from yd_commands.object_utilities import (
-    clear_compute_requirement_template_cache,
-    clear_compute_source_template_cache,
-    find_compute_source_id_by_name,
-    get_all_compute_sources,
-    get_all_compute_templates,
-)
 from yd_commands.printing import print_error, print_log, print_warning
-from yd_commands.remove import remove_resource_by_id, remove_resources
+from yd_commands.remove import remove_resources
 
 IAM_USER_NAME = "yellowdog-cloudwizard-user"
 IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
@@ -127,7 +119,7 @@ YELLOWDOG_POLICY = {
 }
 
 
-class AWSConfig:
+class AWSConfig(CommonCloudConfig):
     """
     Class for managing the AWS configuration.
     """
@@ -142,6 +134,7 @@ class AWSConfig:
         """
         Set up AWS config details.
         """
+        super().__init__(client=client, cloud_provider="AWS")
         try:  # Check for valid credentials
             boto3.client("iam").list_users(MaxItems=1)
         except ClientError as e:
@@ -158,23 +151,21 @@ class AWSConfig:
         else:
             raise Exception(f"Invalid AWS region name '{region_name}'")
 
-        self.client = client
-        self.show_secrets = show_secrets
-        self.instance_type = (
+        self._show_secrets = show_secrets
+        self._instance_type = (
             YD_DEFAULT_INSTANCE_TYPE if instance_type is None else instance_type
         )
-        self.availability_zones: List[AWSAvailabilityZone] = []
-        self.iam_policy_arn: Optional[str] = None
-        self.access_keys: List[AWSAccessKey] = []
-        self.aws_user: Optional[AWSUser] = None
-        self.keyring_password: Optional[str] = None
+        self._availability_zones: List[AWSAvailabilityZone] = []
+        self._iam_policy_arn: Optional[str] = None
+        self._access_keys: List[AWSAccessKey] = []
+        self._aws_user: Optional[AWSUser] = None
 
     def setup(self):
         """
         Set up all AWS and YellowDog assets
         """
-        self._load_aws_account_assets()
-        self._create_aws_account_assets()
+        self._load_aws_resources()
+        self._create_aws_resources()
         self._gather_aws_network_information()
         self._create_yellowdog_resources()
 
@@ -182,12 +173,11 @@ class AWSConfig:
         """
         Remove all AWS and YellowDog assets
         """
-        self._load_aws_account_assets()
+        self._load_aws_resources()
         self._remove_yellowdog_resources()
-        self._remove_aws_account_assets()
+        self._remove_aws_resources()
 
-    @staticmethod
-    def set_ssh_ingress_rule(operation: str, selected_region: str = None):
+    def set_ssh_ingress_rule(self, operation: str, selected_region: str = None):
         """
         Add or remove SSH ingress for all relevant security groups.
         A list of regions can be supplied as an argument.
@@ -221,17 +211,17 @@ class AWSConfig:
                 name = sec_grp["GroupName"]
                 if "default" in name.lower():
                     aws_sec_grp = AWSSecurityGroup(name=name, id=sec_grp["GroupId"])
-                    if operation == "add":
+                    if operation == "add-ssh":
                         AWSConfig._add_security_group_ingress_rule(
                             ec2_client, aws_sec_grp, ssh_ipv4_ingress_rule, "SSH"
                         )
-                    elif operation == "remove":
+                    elif operation == "remove-ssh":
                         AWSConfig._remove_security_group_ingress_rule(
                             ec2_client, aws_sec_grp, ssh_ipv4_ingress_rule, "SSH"
                         )
                     break
 
-    def _create_aws_account_assets(self):
+    def _create_aws_resources(self):
         """
         Create the required assets in the AWS account, for use with YellowDog.
         """
@@ -244,7 +234,7 @@ class AWSConfig:
         self._add_service_linked_role_for_ec2_spot(iam_client)
         self._create_s3_bucket()
 
-    def _load_aws_account_assets(self):
+    def _load_aws_resources(self):
         """
         Load the required AWS IDs that are non-constants.
         """
@@ -259,7 +249,7 @@ class AWSConfig:
             )
             for policy in response["Policies"]:
                 if policy["PolicyName"] == IAM_POLICY_NAME:
-                    self.iam_policy_arn = policy["Arn"]
+                    self._iam_policy_arn = policy["Arn"]
                     break
         except ClientError as e:
             print_error(f"Unable to list IAM policies: {e}")
@@ -270,7 +260,7 @@ class AWSConfig:
             access_keys = response.get("AccessKeyMetadata", [])
             for access_key in access_keys:
                 if access_key["UserName"] == IAM_USER_NAME:
-                    self.access_keys.append(AWSAccessKey(access_key["AccessKeyId"]))
+                    self._access_keys.append(AWSAccessKey(access_key["AccessKeyId"]))
         except ClientError as e:
             if "NoSuchEntity" in str(e):
                 pass
@@ -280,7 +270,7 @@ class AWSConfig:
         # Get the IAM user details
         try:
             response = iam_client.get_user(UserName=IAM_USER_NAME)
-            self.aws_user = AWSUser(
+            self._aws_user = AWSUser(
                 arn=response["User"]["Arn"], user_id=response["User"]["UserId"]
             )
         except ClientError as e:
@@ -289,7 +279,7 @@ class AWSConfig:
             else:
                 print_error(f"Unable to get details of user '{IAM_USER_NAME}': {e}")
 
-    def _remove_aws_account_assets(self):
+    def _remove_aws_resources(self):
         """
         Remove the Cloud Wizard assets in the AWS account.
         """
@@ -301,6 +291,117 @@ class AWSConfig:
         self._delete_iam_policy(iam_client)
         self._delete_iam_user(iam_client)
         self._delete_service_linked_role_for_ec2_spot(iam_client)
+
+    def _create_yellowdog_resources(self):
+        """
+        Create the YellowDog resources and save the resource definition file.
+        """
+
+        print_log("Creating resources in the YellowDog account")
+
+        # Select Compute Source Templates
+        print_log(
+            "Please select the AWS availability zones for which to create YellowDog"
+            " Compute Source Templates"
+        )
+        selected_azs = select(
+            self._client,
+            self._availability_zones,
+            force_interactive=True,
+            override_quiet=True,
+        )
+
+        for az in selected_azs:
+            if az.default_sec_grp.id == "":
+                print_warning(
+                    f"Cannot create Compute Source Template for {az.az}: no security"
+                    " group ID"
+                )
+                continue
+            name = f"{YD_RESOURCE_PREFIX}-{az.az}-ondemand"
+            self._source_template_resources.append(
+                self._generate_aws_compute_source_template(az, name=name, spot=False)
+            )
+            self._source_names_ondemand.append(name)
+            name = f"{YD_RESOURCE_PREFIX}-{az.az}-spot"
+            self._source_template_resources.append(
+                self._generate_aws_compute_source_template(az, name=name, spot=True)
+            )
+            self._source_names_spot.append(name)
+
+        if len(self._source_template_resources) == 0:
+            print_warning("No Compute Source Templates defined")
+            return
+
+        # Create Compute Source Templates
+        print_log("Creating YellowDog Compute Source Templates")
+        create_resources(self._source_template_resources)
+
+        # Create Compute Requirement Templates
+        self._create_compute_requirement_templates(resource_prefix=YD_RESOURCE_PREFIX)
+
+        # Create Keyring and remember the Keyring password
+        self._create_keyring(keyring_name=YD_KEYRING_NAME)
+
+        # Create Credential; assume use of the first (probably only) access key
+        try:
+            if self._wait_until_access_key_is_valid_for_ec2(
+                access_key=self._access_keys[0]
+            ):
+                credential_resource = self._generate_yd_aws_credential(
+                    YD_KEYRING_NAME, YD_CREDENTIAL_NAME, self._access_keys[0]
+                )
+                create_resources([credential_resource])
+            else:
+                print_warning("AWS Credential not added to YellowDog Keyring")
+        except IndexError:
+            print_error("No access keys loaded; can't create Credential")
+
+        # Create namespace configuration (Keyring/Credential creation must come first)
+        print_log(
+            "Creating YellowDog Namespace Configuration"
+            f" 'S3:{self._get_s3_bucket_name()}' -> '{YD_NAMESPACE}'"
+        )
+        create_resources(
+            [
+                self._generate_yd_namespace_configuration(
+                    namespace=YD_NAMESPACE, s3_bucket_name=self._get_s3_bucket_name()
+                )
+            ]
+        )
+
+        # Sequence the Compute Requirement Templates before the Compute Source
+        # Templates for subsequent removals.
+        # - Omit the Keyring to prevent overwrites if using 'yd-create' with the
+        #   resource file.
+        # - Omit the Credential for security reasons.
+        self._save_resource_list(
+            self._requirement_template_resources + self._source_template_resources,
+            YD_RESOURCES_FILE,
+        )
+
+        # Always show Keyring details
+        self._print_keyring_details()
+
+    def _remove_yellowdog_resources(self):
+        """
+        Remove a set of resources identified by their prefix/name.
+        """
+        self._remove_yd_templates_by_prefix(
+            client=self._client, name_prefix=YD_RESOURCE_PREFIX
+        )
+
+        # Keyring is removed separately.
+        self._remove_keyring(keyring_name=YD_KEYRING_NAME)
+
+        # Remove the Namespace Configuration
+        remove_resources(
+            [
+                self._generate_yd_namespace_configuration(
+                    YD_NAMESPACE, self._get_s3_bucket_name()
+                )
+            ]
+        )
 
     def _gather_aws_network_information(self):
         """
@@ -352,179 +453,7 @@ class AWSConfig:
                     default_subnet_id=subnet["SubnetId"],
                     default_sec_grp=aws_sec_grp,
                 )
-                self.availability_zones.append(aws_az)
-
-    def _create_yellowdog_resources(self):
-        """
-        Create the YellowDog resources and save the resource definition file.
-        """
-
-        print_log("Creating resources in the YellowDog account")
-
-        # Select Compute Source Templates
-        print_log(
-            "Please select the AWS availability zones for which to create YellowDog"
-            " Source Templates"
-        )
-        selected_azs = select(
-            self.client,
-            self.availability_zones,
-            force_interactive=True,
-            override_quiet=True,
-        )
-        source_names_spot: List[str] = []
-        source_names_ondemand: List[str] = []
-        source_template_resources = []
-
-        for az in selected_azs:
-            if az.default_sec_grp.id == "":
-                print_warning(
-                    f"Cannot create Compute Source Template for {az.az}: no security"
-                    " group ID"
-                )
-                continue
-            name = f"{YD_RESOURCE_PREFIX}-{az.az}-ondemand"
-            source_template_resources.append(
-                self._generate_aws_source_template(az, name=name, spot=False)
-            )
-            source_names_ondemand.append(name)
-            name = f"{YD_RESOURCE_PREFIX}-{az.az}-spot"
-            source_template_resources.append(
-                self._generate_aws_source_template(az, name=name, spot=True)
-            )
-            source_names_spot.append(name)
-
-        if len(source_template_resources) == 0:
-            print_warning("No Compute Source Templates defined")
-            return
-
-        # Create Keyring and remember the Keyring password
-        keyring_resource = self._generate_yd_keyring()
-        try:
-            keyring, self.keyring_password = create_keyring_via_api(
-                YD_KEYRING_NAME, keyring_resource["description"]
-            )
-            print_log(f"Created Keyring '{YD_KEYRING_NAME}' ({keyring.id})")
-        except Exception as e:
-            if "A keyring already exists" in str(e):
-                print_warning(f"Keyring '{YD_KEYRING_NAME}' already exists")
-            else:
-                print_error(f"Unable to create Keyring '{YD_KEYRING_NAME}': {e}")
-
-        # Create Credential; assume use of the first (probably only) access key
-        try:
-            if self._wait_until_access_key_is_valid_for_ec2(
-                access_key=self.access_keys[0]
-            ):
-                credential_resource = self._generate_yd_aws_credential(
-                    YD_KEYRING_NAME, YD_CREDENTIAL_NAME, self.access_keys[0]
-                )
-                create_resources([credential_resource])
-            else:
-                print_warning("AWS Credential not added to YellowDog Keyring")
-        except IndexError:
-            print_error("No access keys loaded; can't create Credential")
-
-        # Create Compute Source Templates
-        print_log("Creating YellowDog Compute Source Templates")
-        create_resources(source_template_resources)
-
-        # Create Compute Requirement Templates
-        clear_compute_source_template_cache()
-        compute_requirement_template_resources: List[Dict] = [
-            self._generate_static_compute_requirement_template(
-                client=self.client,
-                source_names=source_names_ondemand,
-                spot_or_ondemand="ondemand",
-                strategy="Split",
-                instance_type=self.instance_type,
-            ),
-            self._generate_static_compute_requirement_template(
-                client=self.client,
-                source_names=source_names_spot,
-                spot_or_ondemand="spot",
-                strategy="Split",
-                instance_type=self.instance_type,
-            ),
-            self._generate_static_compute_requirement_template(
-                client=self.client,
-                source_names=source_names_ondemand,
-                spot_or_ondemand="ondemand",
-                strategy="Waterfall",
-                instance_type=self.instance_type,
-            ),
-            self._generate_static_compute_requirement_template(
-                client=self.client,
-                source_names=source_names_spot,
-                spot_or_ondemand="spot",
-                strategy="Waterfall",
-                instance_type=self.instance_type,
-            ),
-            self._generate_static_compute_requirement_template_spot_ondemand_waterfall(
-                client=self.client,
-                source_names_spot=source_names_spot,
-                source_names_on_demand=source_names_ondemand,
-                instance_type=self.instance_type,
-            ),
-            self._generate_dynamic_compute_requirement_template(strategy="Waterfall"),
-            self._generate_dynamic_compute_requirement_template(strategy="Split"),
-        ]
-
-        print_log("Creating YellowDog Compute Requirement Templates")
-        create_resources(compute_requirement_template_resources)
-
-        print_log(
-            "Creating YellowDog Namespace Configuration"
-            f" 'S3:{self._get_s3_bucket_name()}' -> '{YD_NAMESPACE}'"
-        )
-        create_resources(
-            [
-                self._generate_yd_namespace_configuration(
-                    namespace=YD_NAMESPACE, s3_bucket_name=self._get_s3_bucket_name()
-                )
-            ]
-        )
-
-        # Sequence the Compute Requirement Templates before the Compute Source
-        # Templates for subsequent removals.
-        # - Omit the Keyring to prevent overwrites if using 'yd-create' with the
-        #   resource file.
-        # - Omit the Credential for security reasons.
-        self._save_resource_list(
-            compute_requirement_template_resources + source_template_resources,
-        )
-
-        # Always show Keyring details
-        if self.keyring_password is not None:
-            print_log(
-                "In the 'Keyring' section of the YellowDog Portal, please claim your"
-                " Keyring using the name and password below. The password will not be"
-                " shown again."
-            )
-            print_log(f"--> Keyring name     = '{YD_KEYRING_NAME}'")
-            print_log(f"--> Keyring password = '{self.keyring_password}'")
-
-    def _remove_yellowdog_resources(self):
-        """
-        Remove a set of resources identified by their prefix/name.
-        """
-        if confirmed(
-            "Remove all Compute Requirement Templates and Compute Source Templates"
-            f" with names starting with '{YD_RESOURCE_PREFIX}'?"
-        ):
-            AWSConfig._remove_yd_templates_by_prefix(self.client)
-
-        # Keyring is removed separately.
-        AWSConfig._remove_keyring(self.client)
-
-        # Remove the Namespace Configuration
-        remove_resources(
-            [
-                self._generate_yd_namespace_configuration(
-                    YD_NAMESPACE, self._get_s3_bucket_name()
-                )
-            ]
-        )
+                self._availability_zones.append(aws_az)
 
     def _create_iam_user(self, iam_client):
         """
@@ -552,7 +481,7 @@ class AWSConfig:
                 print_error(f"Error creating user '{IAM_USER_NAME}': {e}")
                 return
 
-        self.aws_user = AWSUser(arn=arn, user_id=user_id)
+        self._aws_user = AWSUser(arn=arn, user_id=user_id)
 
     @staticmethod
     def _delete_iam_user(iam_client):
@@ -580,8 +509,10 @@ class AWSConfig:
             response = iam_client.create_policy(
                 PolicyName=IAM_POLICY_NAME, PolicyDocument=json.dumps(YELLOWDOG_POLICY)
             )
-            self.iam_policy_arn = response["Policy"]["Arn"]
-            print_log(f"Created IAM Policy '{IAM_POLICY_NAME}' ({self.iam_policy_arn})")
+            self._iam_policy_arn = response["Policy"]["Arn"]
+            print_log(
+                f"Created IAM Policy '{IAM_POLICY_NAME}' ({self._iam_policy_arn})"
+            )
         except ClientError as e:
             if "EntityAlreadyExists" in str(e):
                 # If already exists, we need to store its ARN
@@ -590,7 +521,7 @@ class AWSConfig:
                 )
                 for policy in response["Policies"]:
                     if policy["PolicyName"] == IAM_POLICY_NAME:
-                        self.iam_policy_arn = policy["Arn"]
+                        self._iam_policy_arn = policy["Arn"]
                         break
                 print_warning(
                     f"IAM policy '{IAM_POLICY_NAME}' was not created because it already"
@@ -603,7 +534,7 @@ class AWSConfig:
         """
         Delete the YellowDog IAM policy.
         """
-        if self.iam_policy_arn is None:
+        if self._iam_policy_arn is None:
             print_warning(f"No IAM policy '{IAM_POLICY_NAME}' to delete")
             return
 
@@ -611,7 +542,7 @@ class AWSConfig:
             return
 
         try:
-            iam_client.delete_policy(PolicyArn=self.iam_policy_arn)
+            iam_client.delete_policy(PolicyArn=self._iam_policy_arn)
             print_log(f"Deleted IAM policy '{IAM_POLICY_NAME}'")
         except ClientError as e:
             if "NoSuchEntity" in str(e):
@@ -626,14 +557,14 @@ class AWSConfig:
         """
         Attach the IAM policy to the user.
         """
-        if self.iam_policy_arn is None:
+        if self._iam_policy_arn is None:
             print_warning(f"No recorded IAM policy '{IAM_POLICY_NAME}' to attach")
             return
 
         try:
             # This call appears to be idempotent
             iam_client.attach_user_policy(
-                UserName=IAM_USER_NAME, PolicyArn=self.iam_policy_arn
+                UserName=IAM_USER_NAME, PolicyArn=self._iam_policy_arn
             )
             print_log(
                 f"Attached IAM policy '{IAM_POLICY_NAME}' to user '{IAM_USER_NAME}'"
@@ -648,7 +579,7 @@ class AWSConfig:
         """
         Detach the IAM policy from the user.
         """
-        if self.iam_policy_arn is None:
+        if self._iam_policy_arn is None:
             print_warning(f"No IAM policy '{IAM_POLICY_NAME}' to detach")
             return
 
@@ -659,7 +590,7 @@ class AWSConfig:
 
         try:
             iam_client.detach_user_policy(
-                UserName=IAM_USER_NAME, PolicyArn=self.iam_policy_arn
+                UserName=IAM_USER_NAME, PolicyArn=self._iam_policy_arn
             )
             print_log(
                 f"Detached IAM policy '{IAM_POLICY_NAME}' from user '{IAM_USER_NAME}'"
@@ -674,7 +605,7 @@ class AWSConfig:
         """
         Create an access key for use in a YellowDog Credential:
         """
-        if len(self.access_keys) > 0:
+        if len(self._access_keys) > 0:
             print_warning(f"Access key(s) already exist for user '{IAM_USER_NAME}'")
             if confirmed("Delete existing access key(s) and generate a new key?"):
                 self._delete_access_keys(iam_client)
@@ -688,12 +619,12 @@ class AWSConfig:
                 response["AccessKey"]["AccessKeyId"],
                 response["AccessKey"]["SecretAccessKey"],
             )
-            self.access_keys.append(access_key)
+            self._access_keys.append(access_key)
             print_log(
                 f"Created AWS_ACCESS_KEY_ID='{access_key.access_key_id}' for user"
                 f" '{IAM_USER_NAME}'"
             )
-            if self.show_secrets:
+            if self._show_secrets:
                 print_log(
                     f"        AWS_SECRET_ACCESS_KEY='{access_key.secret_access_key}'"
                 )
@@ -704,11 +635,11 @@ class AWSConfig:
         """
         Delete the access key(s).
         """
-        if len(self.access_keys) == 0:
+        if len(self._access_keys) == 0:
             print_warning(f"No access keys to delete for user '{IAM_USER_NAME}'")
             return
 
-        for access_key in self.access_keys:
+        for access_key in self._access_keys:
             if not confirmed(
                 f"Delete access key '{access_key.access_key_id}' from user"
                 f" '{IAM_USER_NAME}'?"
@@ -729,7 +660,7 @@ class AWSConfig:
                         f"Unable to delete access key '{access_key.access_key_id}': {e}"
                     )
 
-        self.access_keys.clear()
+        self._access_keys.clear()
 
     @staticmethod
     def _add_service_linked_role_for_ec2_spot(iam_client):
@@ -964,97 +895,18 @@ class AWSConfig:
             )
 
     @staticmethod
-    def _remove_yd_templates_by_prefix(client):
-        """
-        Remove YellowDog resources using their name prefix.
-        """
-        print_log(
-            "Removing all Compute Requirement Templates with names starting with"
-            f" '{YD_RESOURCE_PREFIX}'"
-        )
-        clear_compute_requirement_template_cache()
-        counter = 0
-        for compute_requirement_template_summary in get_all_compute_templates(client):
-            if compute_requirement_template_summary.name.startswith(YD_RESOURCE_PREFIX):
-                counter += 1
-                try:
-                    remove_resource_by_id(compute_requirement_template_summary.id)
-                except Exception as e:
-                    print_error(f"Unable to remove Compute Requirement Template: {e}")
-        if counter == 0:
-            print_warning("No Compute Requirement Templates to remove")
-
-        print_log(
-            "Removing all Compute Source Templates with names starting with"
-            f" '{YD_RESOURCE_PREFIX}'"
-        )
-        clear_compute_source_template_cache()
-        counter = 0
-        for compute_source_template_summary in get_all_compute_sources(client):
-            if compute_source_template_summary.name.startswith(YD_RESOURCE_PREFIX):
-                counter += 1
-                try:
-                    remove_resource_by_id(compute_source_template_summary.id)
-                except Exception as e:
-                    print_error(f"Unable to remove Compute Source Template: {e}")
-        if counter == 0:
-            print_warning("No Compute Source Templates to remove")
-
-    @staticmethod
-    def _remove_keyring(client: PlatformClient):
-        """
-        Remove the Keyring by its name.
-        """
-        if confirmed(f"Remove Keyring '{YD_KEYRING_NAME}'?"):
-            try:
-                client.keyring_client.delete_keyring_by_name(YD_KEYRING_NAME)
-                print_log(f"Removed Keyring '{YD_KEYRING_NAME}'")
-            except Exception as e:
-                if "NotFoundException" in str(e):
-                    print_warning(f"No Keyring '{YD_KEYRING_NAME}' to remove")
-                else:
-                    print_error(f"Unable to remove Keyring '{YD_KEYRING_NAME}': {e}")
-
-    @staticmethod
-    def _save_resource_list(resource_list: List[Dict]) -> bool:
-        """
-        Save the list of generated resources. Returns True for success.
-        """
-        if exists(YD_RESOURCES_FILE):
-            if not confirmed(
-                f"YellowDog resources definition file '{YD_RESOURCES_FILE}' already"
-                " exists; OK to overwrite?"
-            ):
-                print_log("Not overwriting YellowDog resources definition file")
-                return False
-
-        try:
-            with open(YD_RESOURCES_FILE, "w") as f:
-                json.dump(resource_list, f, indent=2, cls=CompactJSONEncoder)
-                f.write("\n")
-                print_log(
-                    f"Saved YellowDog resource definitions to '{YD_RESOURCES_FILE}'"
-                )
-                return True
-        except Exception as e:
-            print_error(
-                "Unable to save YellowDog resources definition file"
-                f" '{YD_RESOURCES_FILE}'"
-            )
-
-    @staticmethod
-    def _generate_aws_source_template(
+    def _generate_aws_compute_source_template(
         az: AWSAvailabilityZone, name: str, spot: bool
     ) -> Dict:
         """
-        Create a minimal populated YellowDog Source Template resource definition.
+        Create a minimal populated YellowDog Compute Source Template resource definition.
         """
         spot_str = "Spot" if spot is True else "On-Demand"
         return {
             "resource": "ComputeSourceTemplate",
             "description": (
-                f"AWS {az.az} {spot_str} Source Template automatically created by"
-                " YellowDog Cloud Wizard"
+                f"AWS {az.az} {spot_str} Compute Source Template automatically created"
+                " by YellowDog Cloud Wizard"
             ),
             "source": {
                 "assignPublicIp": True,
@@ -1072,140 +924,6 @@ class AWSConfig:
                 "subnetId": f"{az.default_subnet_id}",
                 "type": "co.yellowdog.platform.model.AwsInstancesComputeSource",
             },
-        }
-
-    @staticmethod
-    def _generate_static_compute_requirement_template(
-        client: PlatformClient,
-        source_names: List[str],
-        spot_or_ondemand: str,
-        strategy: str,
-        instance_type: str,
-    ) -> Dict:
-        """
-        Generate a static compute requirement resource definition
-        from a list of source names. Strategy can be one of:
-        - SingleSource
-        - Split
-        - Waterfall
-        Instance type must be a valid AWS instance type.
-        """
-        source_ids = []
-        for source_name in source_names:
-            source_id = find_compute_source_id_by_name(client, source_name)
-            if source_id is None:
-                raise Exception(
-                    "Unable to find a Compute Source Template ID for source"
-                    f" '{source_name}'"
-                )
-            source_ids.append(source_id)
-
-        return {
-            "resource": "ComputeRequirementTemplate",
-            "name": f"{YD_RESOURCE_PREFIX}-{strategy.lower()}-{spot_or_ondemand}",
-            "description": (
-                "Compute Requirement Template automatically created by YellowDog Cloud"
-                " Wizard"
-            ),
-            "strategyType": f"co.yellowdog.platform.model.{strategy}ProvisionStrategy",
-            "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
-            "sources": [
-                {"instanceType": instance_type, "sourceTemplateId": id}
-                for id in source_ids
-            ],
-        }
-
-    @staticmethod
-    def _generate_static_compute_requirement_template_spot_ondemand_waterfall(
-        client: PlatformClient,
-        source_names_spot: List[str],
-        source_names_on_demand: List[str],
-        instance_type: str,
-    ) -> Dict:
-        """
-        Generate a static Waterfall compute requirement resource definition from
-        lists of spot and on-demand source names.
-        Instance type must be a valid AWS instance type.
-        q"""
-        source_ids = []
-        for source_name in source_names_spot + source_names_on_demand:
-            source_id = find_compute_source_id_by_name(client, source_name)
-            if source_id is None:
-                raise Exception(
-                    "Unable to find a Compute Source Template ID for source"
-                    f" '{source_name}'"
-                )
-            source_ids.append(source_id)
-
-        return {
-            "resource": "ComputeRequirementTemplate",
-            "name": f"{YD_RESOURCE_PREFIX}-waterfall-spot-to-ondemand",
-            "description": (
-                "Compute Requirement Template automatically created by YellowDog Cloud"
-                " Wizard"
-            ),
-            "strategyType": f"co.yellowdog.platform.model.WaterfallProvisionStrategy",
-            "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
-            "sources": [
-                {"instanceType": instance_type, "sourceTemplateId": id}
-                for id in source_ids
-            ],
-        }
-
-    @staticmethod
-    def _generate_dynamic_compute_requirement_template(
-        strategy: str,
-    ) -> Dict:
-        """
-        Generate a dynamic compute requirement resource definition.
-        Strategy can be one of:
-        - SingleSource
-        - Split
-        - Waterfall
-        """
-        return {
-            "resource": "ComputeRequirementTemplate",
-            "name": f"{YD_RESOURCE_PREFIX}-dynamic-{strategy.lower()}-lowestcost",
-            "description": (
-                "Compute Requirement Template automatically created by YellowDog Cloud"
-                " Wizard"
-            ),
-            "constraints": [
-                {
-                    "attribute": "yd.ram",
-                    "max": 4096,
-                    "min": 4,
-                    "type": "co.yellowdog.platform.model.NumericAttributeConstraint",
-                },
-                {
-                    "anyOf": ["AWS"],
-                    "attribute": "source.provider",
-                    "type": "co.yellowdog.platform.model.StringAttributeConstraint",
-                },
-            ],
-            "preferences": [
-                {
-                    "attribute": "yd.cost",
-                    "rankOrder": "PREFER_LOWER",
-                    "type": "co.yellowdog.platform.model.NumericAttributePreference",
-                    "weight": 1,
-                }
-            ],
-            "maximumSourceCount": 5,
-            "minimumSourceCount": 1,
-            "strategyType": f"co.yellowdog.platform.model.{strategy}ProvisionStrategy",
-            "type": "co.yellowdog.platform.model.ComputeRequirementDynamicTemplate",
-        }
-
-    @staticmethod
-    def _generate_yd_keyring() -> Dict:
-        """
-        Generate a YellowDog keyring resource definition.
-        """
-        return {
-            "resource": "Keyring",
-            "description": "Keyring automatically created by YellowDog Cloud Wizard",
-            "name": YD_KEYRING_NAME,
         }
 
     @staticmethod
@@ -1248,7 +966,7 @@ class AWSConfig:
         """
         Generate the required policy statement to be attached to the S3 bucket.
         """
-        assert self.aws_user is not None
+        assert self._aws_user is not None
         s3_bucket_name = self._get_s3_bucket_name()
         return json.dumps(
             {
@@ -1256,13 +974,13 @@ class AWSConfig:
                 "Statement": [
                     {
                         "Effect": "Allow",
-                        "Principal": {"AWS": self.aws_user.arn},
+                        "Principal": {"AWS": self._aws_user.arn},
                         "Action": "s3:*",
                         "Resource": f"arn:aws:s3:::{s3_bucket_name}/*",
                     },
                     {
                         "Effect": "Allow",
-                        "Principal": {"AWS": self.aws_user.arn},
+                        "Principal": {"AWS": self._aws_user.arn},
                         "Action": "s3:ListBucket",
                         "Resource": f"arn:aws:s3:::{s3_bucket_name}",
                     },
@@ -1275,8 +993,8 @@ class AWSConfig:
         Get the unique name of the S3 bucket.
         """
         return (
-            f"{S3_BUCKET_NAME_PREFIX}-{self.aws_user.user_id.lower()}"
-            if self.aws_user is not None
+            f"{S3_BUCKET_NAME_PREFIX}-{self._aws_user.user_id.lower()}"
+            if self._aws_user is not None
             else ""
         )
 

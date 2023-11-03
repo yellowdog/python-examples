@@ -22,6 +22,8 @@ CLIENT = PlatformClient.create(
     ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
+from requests.exceptions import HTTPError
+
 
 def dry_run() -> bool:
     """
@@ -47,6 +49,13 @@ def print_account():
                 print_log(
                     f"YellowDog Account short identifier is: '{keyrings[0].id[13:19]}'"
                 )
+        except HTTPError as e:
+            if "Unauthorized" in str(e):
+                print_error(
+                    "Unable to authorise YellowDog Application; please check"
+                    " your Application Key/Secret and its permissions"
+                )
+                exit(1)
         except:
             pass
 
@@ -80,7 +89,15 @@ def main_wrapper(func):
                 print_account()
                 func()
             except Exception as e:
-                print_error(e)
+                if "MissingPermissionException" in str(e):
+                    print_error(
+                        "Your Application does not have the required permissions to"
+                        " perform the requested operation. Please check that the"
+                        " Application belongs to the required group(s), e.g.,"
+                        f" 'admininistrators': {e}"
+                    )
+                else:
+                    print_error(e)
                 exit_code = 1
             except KeyboardInterrupt:
                 print("\r", end="")  # Overwrite the display of ^C

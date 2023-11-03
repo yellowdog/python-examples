@@ -509,7 +509,8 @@ def aws_availability_zone_table(
 
 def print_numbered_object_list(
     client: PlatformClient,
-    objects: List[Item],
+    objects: List[Union[Item, str]],
+    object_type_name: Optional[str] = None,
     override_quiet: bool = False,
     showing_all: bool = False,
 ) -> None:
@@ -522,13 +523,17 @@ def print_numbered_object_list(
 
     print_log(
         "Displaying"
-        f" {'all' if showing_all else 'matching'} {get_type_name(objects[0])}(s):",
+        f" {'all' if showing_all else 'matching'}"
+        f" {(object_type_name if object_type_name is not None else get_type_name(objects[0]))}(s):",
         override_quiet=override_quiet,
     )
     print()
 
     headers = None
-    if isinstance(objects[0], ComputeRequirement):
+    if isinstance(objects[0], str):
+        headers = ["#", "Name"]
+        table = [[index + 1, name] for index, name in enumerate(objects)]
+    elif isinstance(objects[0], ComputeRequirement):
         headers, table = compute_requirement_table(objects)
     elif isinstance(objects[0], WorkRequirementSummary):
         headers, table = work_requirement_table(objects)
@@ -589,7 +594,9 @@ def print_numbered_strings(objects: List[str], override_quiet: bool = False):
     print()
 
 
-def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
+def sorted_objects(
+    objects: List[Union[Item, str]], reverse: bool = False
+) -> List[Item]:
     """
     Sort objects by their 'name' property, or 'namespace' in the case of
     Namespace Storage Configurations, or 'instanceType' in the case of
@@ -600,6 +607,9 @@ def sorted_objects(objects: List[Item], reverse: bool = False) -> List[Item]:
 
     if ARGS_PARSER.reverse is not None:
         reverse = ARGS_PARSER.reverse
+
+    if isinstance(objects[0], str):
+        return sorted(objects, reverse=reverse)
 
     if isinstance(objects[0], Instance):
         return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)

@@ -746,15 +746,17 @@ class CLIParser:
             )
             parser.add_argument(
                 "--cloud-provider",
-                "-C",
-                required=False,
-                default="AWS",
+                required=True,
                 metavar="<name of cloud provider>",
                 type=str,
-                help=(
-                    "the name of the cloud provider to set up (defaults to 'AWS', the"
-                    " only currently supported option)"
-                ),
+                help="the name of the cloud provider (AWS, GCP currently supported)",
+            )
+            parser.add_argument(
+                "--credentials-file",
+                required=False,
+                metavar="<file-containing-cloud-provider-credentials>",
+                type=str,
+                help="the name of the file containing the cloud provider credentials",
             )
             parser.add_argument(
                 "--region-name",
@@ -1131,6 +1133,11 @@ class CLIParser:
     @allow_missing_attribute
     def cloud_provider(self) -> Optional[str]:
         return self.args.cloud_provider
+
+    @property
+    @allow_missing_attribute
+    def credentials_file(self) -> Optional[str]:
+        return self.args.credentials_file
 
     @property
     @allow_missing_attribute
