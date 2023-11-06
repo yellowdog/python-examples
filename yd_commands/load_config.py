@@ -103,16 +103,10 @@ def load_config_common() -> ConfigCommon:
         ]:
             if args_parser_value is not None:
                 common_section[key_name] = args_parser_value
-                print_log(
-                    f"Using '{key_name}' provided on command line"
-                    f" ('{args_parser_value}')"
-                )
+                print_log(f"Using '{key_name}' provided on command line")
             elif os.environ.get(env_var_name, None) is not None:
                 common_section[key_name] = os.environ[env_var_name]
-                print_log(
-                    f"Using value of '{env_var_name}' environment variable "
-                    f"for '{key_name}'"
-                )
+                print_log(f"Using '{key_name}' provided via the environment")
 
         # Provide default values for namespace and tag
         if common_section.get(NAMESPACE, None) is None:

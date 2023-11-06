@@ -63,9 +63,7 @@ for key, value in os.environ.items():
     if key.startswith(ENV_VAR_PREFIX):
         key = key[len(ENV_VAR_PREFIX) :]
         VARIABLE_SUBSTITUTIONS[key] = value
-        print_log(
-            f"Adding environment-defined variable substitution: '{key}' = '{value}'"
-        )
+        print_log(f"Adding environment-defined variable substitution for '{key}'")
 
 # Substitutions from the command line, which take precedence over
 # environment variables
@@ -75,8 +73,8 @@ if ARGS_PARSER.variables is not None:
         if len(key_value) == 2:
             VARIABLE_SUBSTITUTIONS[key_value[0]] = key_value[1]
             print_log(
-                "Adding command-line-defined variable substitution: "
-                f"'{key_value[0]}' = '{key_value[1]}'"
+                "Adding command-line-defined variable substitution for "
+                f"'{key_value[0]}'"
             )
         else:
             print_error(
