@@ -17,6 +17,7 @@ from yellowdog_client.model import (
     ConfiguredWorkerPool,
     Instance,
     KeyringSummary,
+    MachineImageFamilySearch,
     MachineImageFamilySummary,
     NamespaceStorageConfiguration,
     ObjectPath,
@@ -246,3 +247,22 @@ def get_compreq_id_by_worker_pool_id(
     )
     if isinstance(worker_pool, ProvisionedWorkerPool):
         return worker_pool.computeRequirementId
+
+
+def find_image_family_ids_by_name(
+    client: PlatformClient, image_family_name
+) -> List[str]:
+    """
+    Find image family IDs by their name.
+    """
+    if_search = MachineImageFamilySearch(
+        familyName=image_family_name, includePublic=True
+    )
+    search_client: SearchClient = client.images_client.get_image_families(if_search)
+    image_families: List[MachineImageFamilySummary] = search_client.list_all()
+
+    return [
+        image_family.id
+        for image_family in image_families
+        if image_family.name == image_family_name
+    ]

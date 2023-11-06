@@ -25,7 +25,11 @@ from yd_commands.printing import (
     print_log,
     print_yd_object,
 )
-from yd_commands.provision_utils import get_template_id, get_user_data_property
+from yd_commands.provision_utils import (
+    get_image_family_id,
+    get_template_id,
+    get_user_data_property,
+)
 from yd_commands.settings import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.utils import add_batch_number_postfix, generate_id, link_entity
 from yd_commands.variables import (
@@ -79,6 +83,12 @@ def main():
     if get_ydid_type(CONFIG_WP.template_id) != YDIDType.CR_TEMPLATE:
         raise Exception(
             f"Not a valid Compute Requirement Template ID: '{CONFIG_WP.template_id}'"
+        )
+
+    # Allow use of IF name instead of ID
+    if CONFIG_WP.images_id is not None:
+        CONFIG_WP.images_id = get_image_family_id(
+            client=CLIENT, image_family_id_or_name=CONFIG_WP.images_id
         )
 
     if not ARGS_PARSER.report:
@@ -271,6 +281,12 @@ def create_compute_requirement_from_json(
     if get_ydid_type(cr_data["templateId"]) != YDIDType.CR_TEMPLATE:
         raise Exception(
             f"Not a valid Compute Requirement Template ID: '{cr_data['templateId']}'"
+        )
+
+    # Allow use of IF name instead of ID
+    if cr_data.get("imagesId") is not None:
+        cr_data["imagesId"] = get_image_family_id(
+            client=CLIENT, image_family_id_or_name=cr_data["imagesId"]
         )
 
     if ARGS_PARSER.dry_run:

@@ -40,7 +40,11 @@ from yd_commands.property_names import (
     USERDATA,
     WORKER_TAG,
 )
-from yd_commands.provision_utils import get_template_id, get_user_data_property
+from yd_commands.provision_utils import (
+    get_image_family_id,
+    get_template_id,
+    get_user_data_property,
+)
 from yd_commands.settings import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.utils import add_batch_number_postfix, generate_id, link_entity
 from yd_commands.variables import (
@@ -124,10 +128,16 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             )
             reqt_template_usage[TARGET_INSTANCE_COUNT] = CONFIG_WP.target_instance_count
 
-        # Allow Compute Requirement Template ID name to be used instead of ID
+        # Allow Compute Requirement Template name to be used instead of ID
         reqt_template_usage[TEMPLATE_ID] = get_template_id(
             CLIENT, reqt_template_usage[TEMPLATE_ID]
         )
+
+        # Allow Image Family name to be used instead of ID
+        if reqt_template_usage.get(IMAGES_ID) is not None:
+            reqt_template_usage[IMAGES_ID] = get_image_family_id(
+                CLIENT, reqt_template_usage[IMAGES_ID]
+            )
 
         # provisionedProperties insertions
         provisioned_properties = wp_data["provisionedProperties"]
@@ -239,6 +249,12 @@ def create_worker_pool_from_toml():
     if get_ydid_type(CONFIG_WP.template_id) != YDIDType.CR_TEMPLATE:
         raise Exception(
             f"Not a valid Compute Requirement Template ID: '{CONFIG_WP.template_id}'"
+        )
+
+    # Allow the Image Family name to be used instead of ID
+    if CONFIG_WP.images_id is not None:
+        CONFIG_WP.images_id = get_image_family_id(
+            client=CLIENT, image_family_id_or_name=CONFIG_WP.images_id
         )
 
     node_boot_timeout = (
