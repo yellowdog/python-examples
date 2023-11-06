@@ -72,7 +72,7 @@ class ConfigWorkerPool:
     compute_requirement_data_file: Optional[str] = None
     idle_node_shutdown_timeout: float = 5.0
     idle_pool_shutdown_timeout: float = 30.0
-    images_id: Optional[str] = (None,)
+    images_id: Optional[str] = None
     instance_tags: Optional[Dict] = None
     maintainInstanceCount: bool = False  # Only for yd-instantiate
     max_nodes: int = 0
