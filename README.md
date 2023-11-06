@@ -1442,7 +1442,8 @@ The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output
 
 The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. A subset of the properties is also used by the `yd-instantiate` command, for creating standalone Compute Requirements that are not associated with Worker Pools. Note that `computeRequirement` may be used as a synonym for `workerPool`, and the two may be used simultaneously in the same TOML file provided that their contained properties are not duplicated.
 
-The only mandatory property is `templateId`. All other properties have defaults (or are not required).
+The only mandatory property is `templateId`. All other properties have defaults (or are not required). 
+The `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name.
 
 The following properties are available:
 
@@ -1457,7 +1458,7 @@ The following properties are available:
 | `name`                    | The name of the Worker Pool.                                                                                         | Automatically Generated |
 | `nodeBootTimeout`         | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.      | `10.0`                  |
 | `targetInstanceCount`     | The initial number of nodes to create for the Worker Pool.                                                           | `1`                     |
-| `templateId`              | The YellowDog Compute Template ID to use for provisioning. (**Required**, no default provided.)                      |                         |
+| `templateId`              | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**, no default provided.)  |                         |
 | `userData`                | User Data to be supplied to instances on boot.                                                                       |                         |
 | `userDataFile`            | As above, but read the User Data from the filename supplied in this property.                                        |                         |
 | `userDataFiles`           | As above, but create the User Data by concatenating the contents of the list of filenames supplied in this property. |                         |
@@ -1636,6 +1637,8 @@ When a JSON Worker Pool specification is used, the following properties from the
 - `userData`
 - `userDataFile`
 - `userDataFiles`
+
+Note that the `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name.
 
 **Properties Inherited within the `provisionedProperties` Property**
 
@@ -2338,6 +2341,8 @@ An example JSON specification is shown below:
   "maintainInstanceCount": true
 }
 ```
+
+Note that the `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name.
 
 If a Worker Pool is defined in JSON, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
 

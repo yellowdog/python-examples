@@ -40,7 +40,7 @@ from yd_commands.property_names import (
     USERDATA,
     WORKER_TAG,
 )
-from yd_commands.provision_utils import get_user_data_property
+from yd_commands.provision_utils import get_template_id, get_user_data_property
 from yd_commands.settings import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.utils import add_batch_number_postfix, generate_id, link_entity
 from yd_commands.variables import (
@@ -75,7 +75,7 @@ def main():
     elif CONFIG_WP.template_id is None:
         print_error("No template_id supplied")
     else:
-        create_worker_pool()
+        create_worker_pool_from_toml()
 
 
 def create_worker_pool_from_json(wp_json_file: str) -> None:
@@ -123,6 +123,11 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                 f" '{CONFIG_WP.target_instance_count}'"
             )
             reqt_template_usage[TARGET_INSTANCE_COUNT] = CONFIG_WP.target_instance_count
+
+        # Allow Compute Requirement Template ID name to be used instead of ID
+        reqt_template_usage[TEMPLATE_ID] = get_template_id(
+            CLIENT, reqt_template_usage[TEMPLATE_ID]
+        )
 
         # provisionedProperties insertions
         provisioned_properties = wp_data["provisionedProperties"]
@@ -208,10 +213,13 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         raise Exception(f"{response.text}")
 
 
-def create_worker_pool():
+def create_worker_pool_from_toml():
     """
     Create the Worker Pool
     """
+
+    global CONFIG_WP
+
     # Check for well-configured node quantities
     if not (
         CONFIG_WP.min_nodes <= CONFIG_WP.target_instance_count <= CONFIG_WP.max_nodes
@@ -222,6 +230,11 @@ def create_worker_pool():
             " and maxNodes >= 1"
         )
         raise Exception("Malformed configuration")
+
+    # Allow the Compute Requirement Template name to be used instead of ID
+    CONFIG_WP.template_id = get_template_id(
+        client=CLIENT, template_id_or_name=CONFIG_WP.template_id
+    )
 
     if get_ydid_type(CONFIG_WP.template_id) != YDIDType.CR_TEMPLATE:
         raise Exception(

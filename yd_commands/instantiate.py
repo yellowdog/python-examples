@@ -25,7 +25,7 @@ from yd_commands.printing import (
     print_log,
     print_yd_object,
 )
-from yd_commands.provision_utils import get_user_data_property
+from yd_commands.provision_utils import get_template_id, get_user_data_property
 from yd_commands.settings import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.utils import add_batch_number_postfix, generate_id, link_entity
 from yd_commands.variables import (
@@ -47,6 +47,8 @@ GENERATED_ID = generate_id("cr" + "_" + CONFIG_COMMON.name_tag)
 
 @main_wrapper
 def main():
+    global CONFIG_WP
+
     # -C > -P > workerPoolData / computeRequirementData
     cr_json_file = (
         ARGS_PARSER.worker_pool_file
@@ -68,6 +70,12 @@ def main():
 
     if CONFIG_WP.template_id is None:
         raise Exception("No 'templateId' supplied")
+
+    # Allow use of CRT name instead of ID
+    CONFIG_WP.template_id = get_template_id(
+        client=CLIENT, template_id_or_name=CONFIG_WP.template_id
+    )
+
     if get_ydid_type(CONFIG_WP.template_id) != YDIDType.CR_TEMPLATE:
         raise Exception(
             f"Not a valid Compute Requirement Template ID: '{CONFIG_WP.template_id}'"
@@ -255,9 +263,15 @@ def create_compute_requirement_from_json(
             f"Missing key error in JSON Compute Requirement definition: {e}"
         )
 
-    template_id = cr_data["templateId"]
-    if get_ydid_type(template_id) != YDIDType.CR_TEMPLATE:
-        raise Exception(f"Not a valid Compute Requirement Template ID: '{template_id}'")
+    # Allow use of CRT name instead of ID
+    cr_data["templateId"] = get_template_id(
+        client=CLIENT, template_id_or_name=cr_data["templateId"]
+    )
+
+    if get_ydid_type(cr_data["templateId"]) != YDIDType.CR_TEMPLATE:
+        raise Exception(
+            f"Not a valid Compute Requirement Template ID: '{cr_data['templateId']}'"
+        )
 
     if ARGS_PARSER.dry_run:
         print_log("Dry-run: Printing JSON Compute Requirement specification")

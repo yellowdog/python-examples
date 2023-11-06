@@ -1,11 +1,16 @@
 """
-Utility functions for provisioning
+Utility functions for provisioning and instantiating.
 """
 
 from os import chdir
 from typing import Optional
 
+from yellowdog_client import PlatformClient
+
 from yd_commands.config_types import ConfigWorkerPool
+from yd_commands.id_utils import YDIDType, get_ydid_type
+from yd_commands.object_utilities import find_compute_template_ids_by_name
+from yd_commands.printing import print_log
 from yd_commands.property_names import USERDATA, USERDATAFILE, USERDATAFILES
 from yd_commands.settings import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.variables import process_variable_substitutions_in_file_contents
@@ -58,3 +63,30 @@ def get_user_data_property(
             )
         except Exception as e:
             raise Exception(f"Error processing variable substitutions: {e}")
+
+
+def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
+    """
+    Check if 'template_id' looks like a valid CRT ID; if not,
+    assume it's a CRT name and perform a lookup.
+    """
+    if get_ydid_type(template_id_or_name) == YDIDType.CR_TEMPLATE:
+        return template_id_or_name
+
+    template_ids = find_compute_template_ids_by_name(
+        client=client, name=template_id_or_name
+    )
+    if len(template_ids) == 0:
+        return template_id_or_name  # Return the original input
+
+    if len(template_ids) == 1:
+        print_log(
+            f"Substituting Compute Requirement Template name '{template_id_or_name}'"
+            f" with ID {template_ids[0]}"
+        )
+    else:
+        print_log(
+            "Multiple matches for Compute Requirement Template name"
+            f" '{template_id_or_name}'; using the first ID {template_ids[0]}"
+        )
+    return template_ids[0]
