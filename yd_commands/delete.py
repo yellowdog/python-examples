@@ -66,7 +66,7 @@ def delete_object_paths(namespace: str, prefix: str, flat: bool):
             namespace=namespace, object_paths=object_paths_to_delete
         )
         for object_path in object_paths_to_delete:
-            print_log(f"Deleted Object Path: {object_path.displayName}")
+            print_log(f"Deleted Object Path: '{object_path.displayName}'")
         print_log(f"Deleted {len(object_paths_to_delete)} Object Path(s)")
     else:
         print_log("Nothing to delete")
