@@ -1043,6 +1043,9 @@ def get_task_group_name(
     return name
 
 
+PRINT_NO_EXECUTABLE_MESSAGE = True
+
+
 def create_task(
     config_wr: ConfigWorkRequirement,
     wr_data: Dict,
@@ -1112,7 +1115,12 @@ def create_task(
     # and added to the list of required files.
     if task_type in ["bash", "powershell", "python", "cmd", "bat"]:
         if executable is None:
-            print_log(f"Note: no 'executable' specified for '{task_type}' Task Type")
+            global PRINT_NO_EXECUTABLE_MESSAGE
+            if PRINT_NO_EXECUTABLE_MESSAGE:
+                print_log(
+                    f"Note: no 'executable' specified for '{task_type}' Task Type"
+                )
+                PRINT_NO_EXECUTABLE_MESSAGE = False
             return _make_task(flatten_input_paths)
 
         UPLOADED_FILES.add_input_file(
