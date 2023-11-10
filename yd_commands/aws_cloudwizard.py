@@ -34,7 +34,7 @@ YD_RESOURCE_PREFIX = "cloudwizard-aws"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 YD_NAMESPACE = "cloudwizard-aws"
-YD_DEFAULT_INSTANCE_TYPE = "t3a.micro"
+YD_DEFAULT_INSTANCE_TYPE = "{{instance_type:=t3a.micro}}"
 
 AWS_ALL_REGIONS = [
     "af-south-1",

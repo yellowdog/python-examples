@@ -21,7 +21,7 @@ YD_RESOURCE_PREFIX = "cloudwizard-gcp"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 YD_NAMESPACE = "cloudwizard-gcp"
-YD_DEFAULT_INSTANCE_TYPE = "f1-micro"
+YD_DEFAULT_INSTANCE_TYPE = "{{instance_type:=f1-micro}}"
 
 GCP_BUCKET_PREFIX = "yellowdog-cloudwizard"
 GCP_BUCKET_LOCATION = "europe-west1"

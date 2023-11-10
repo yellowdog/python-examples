@@ -15,7 +15,7 @@ from yd_commands.config_types import ConfigCommon, ConfigWorkRequirement
 from yd_commands.printing import print_error, print_log
 from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 from yd_commands.upload_utils import unique_upload_pathname, upload_file_core
-from yd_commands.variables import process_variable_substitutions_in_dict_insitu
+from yd_commands.variables import process_variable_substitutions_insitu
 from yd_commands.wrapper import ARGS_PARSER
 
 
@@ -242,7 +242,7 @@ def update_config_work_requirement_object(
     variable substitutions. Returns the updated object.
     """
     config_wr_dict = config_wr.__dict__
-    process_variable_substitutions_in_dict_insitu(config_wr_dict)
+    process_variable_substitutions_insitu(config_wr_dict)
     return ConfigWorkRequirement(**config_wr_dict)
 
 

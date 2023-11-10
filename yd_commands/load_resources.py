@@ -10,7 +10,7 @@ from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
     load_toml_file_with_variable_substitutions,
-    process_variable_substitutions_in_dict_insitu,
+    process_variable_substitutions_insitu,
 )
 
 
@@ -41,7 +41,7 @@ def load_resource_specifications() -> List[Dict]:
 
         # Secondary variable processing pass
         for resource in resources_loaded:
-            process_variable_substitutions_in_dict_insitu(resource)
+            process_variable_substitutions_insitu(resource)
 
         print_log(
             f"Including {len(resources_loaded)} resource(s) from '{resource_spec}'"

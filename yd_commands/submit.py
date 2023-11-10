@@ -87,7 +87,7 @@ from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
     load_toml_file_with_variable_substitutions,
-    process_variable_substitutions_in_dict_insitu,
+    process_variable_substitutions_insitu,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -236,7 +236,7 @@ def submit_work_requirement(
     # Re-process substitutions in the CONFIG_WR object
     CONFIG_WR = update_config_work_requirement_object(CONFIG_WR)
     # Re-process substitutions in the wr_data dictionary
-    process_variable_substitutions_in_dict_insitu(wr_data)
+    process_variable_substitutions_insitu(wr_data)
 
     # Handle any files that need to be uploaded
     global UPLOADED_FILES
@@ -364,7 +364,7 @@ def create_task_group(
         L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
     )
     add_substitution_overwrite(L_TASK_GROUP_COUNT, str(num_task_groups))
-    process_variable_substitutions_in_dict_insitu(task_group_data)
+    process_variable_substitutions_insitu(task_group_data)
     # Create a copy of global CONFIG_WR and apply lazy substitutions
     config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
 
@@ -577,7 +577,7 @@ def add_tasks_to_task_group(
             add_substitution_overwrite(
                 L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
             )
-            process_variable_substitutions_in_dict_insitu(task)
+            process_variable_substitutions_insitu(task)
             config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
 
             executable = check_str(
@@ -1234,7 +1234,7 @@ def submit_json_raw(wr_file: str):
     wr_data["name"] = format_yd_name(wr_data["name"])
     wr_name = wr_data["name"]
     add_substitutions(subs={L_WR_NAME: wr_name})
-    process_variable_substitutions_in_dict_insitu(wr_data)
+    process_variable_substitutions_insitu(wr_data)
 
     if ARGS_PARSER.dry_run:
         # This will show the results of any variable substitutions

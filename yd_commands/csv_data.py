@@ -23,7 +23,7 @@ from yd_commands.settings import (
 )
 from yd_commands.variables import (
     load_jsonnet_file_with_variable_substitutions,
-    process_variable_substitutions_in_dict_insitu,
+    process_variable_substitutions_insitu,
 )
 
 
@@ -220,7 +220,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
         exit(0)
 
     # Process remaining substitutions
-    process_variable_substitutions_in_dict_insitu(wr_data)
+    process_variable_substitutions_insitu(wr_data)
     return wr_data
 
 

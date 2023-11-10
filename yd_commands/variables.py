@@ -105,11 +105,11 @@ def add_substitution_overwrite(key: str, value: str):
     VARIABLE_SUBSTITUTIONS[key] = str(value)
 
 
-def process_variable_substitutions_in_dict_insitu(
-    dict_data: Dict, prefix: str = "", postfix: str = ""
-):
+def process_variable_substitutions_insitu(
+    data: Union[Dict, List], prefix: str = "", postfix: str = ""
+) -> Union[Dict, List]:
     """
-    Process a dictionary representing JSON or TOML data.
+    Process a dictionary or list representing JSON or TOML data.
     Updates the dictionary in-situ.
 
     Optional 'prefix' and 'postfix' allow variable substitutions intended
@@ -147,7 +147,8 @@ def process_variable_substitutions_in_dict_insitu(
                 elif isinstance(item, dict) or isinstance(item, list):
                     _walk_data(item)
 
-    _walk_data(dict_data)
+    _walk_data(data)
+    return data
 
 
 def process_variable_substitutions(
@@ -386,7 +387,7 @@ def load_jsonnet_file_with_variable_substitutions(
         dict_data = json_loads(evaluate_file(preprocessed_filename))
 
     # Secondary processing after Jsonnet expansion
-    process_variable_substitutions_in_dict_insitu(dict_data, prefix, postfix)
+    process_variable_substitutions_insitu(dict_data, prefix, postfix)
 
     if ARGS_PARSER.jsonnet_dry_run:
         print_log("Dry-run: Printing Jsonnet to JSON conversion")
@@ -422,9 +423,7 @@ def load_toml_file_with_variable_substitutions(
 
     # Repeat processing to resolve nested variables
     for _ in range(TOML_VAR_NESTED_DEPTH):
-        process_variable_substitutions_in_dict_insitu(
-            config, prefix=prefix, postfix=postfix
-        )
+        process_variable_substitutions_insitu(config, prefix=prefix, postfix=postfix)
 
     return config
 

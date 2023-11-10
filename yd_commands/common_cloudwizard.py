@@ -4,6 +4,7 @@ Base class and utilities for Cloud Wizard.
 
 import json
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from os.path import exists
 from typing import Dict, List, Optional
 
@@ -15,12 +16,12 @@ from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import (
     clear_compute_requirement_template_cache,
     clear_compute_source_template_cache,
-    find_compute_source_id_by_name,
     get_all_compute_sources,
     get_all_compute_templates,
 )
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.remove import remove_resource_by_id
+from yd_commands.variables import process_variable_substitutions_insitu
 
 
 class CommonCloudConfig(ABC):
@@ -112,8 +113,8 @@ class CommonCloudConfig(ABC):
             "resource": "ComputeRequirementTemplate",
             "name": f"{name_prefix}-{strategy.lower()}-{spot_or_ondemand}",
             "description": (
-                "Compute Requirement Template automatically created by YellowDog Cloud"
-                " Wizard"
+                "Compute Requirement Template automatically created by YellowDog"
+                " Cloud Wizard"
             ),
             "strategyType": f"co.yellowdog.platform.model.{strategy}ProvisionStrategy",
             "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
@@ -139,8 +140,8 @@ class CommonCloudConfig(ABC):
             "resource": "ComputeRequirementTemplate",
             "name": f"{name_prefix}-waterfall-spot-to-ondemand",
             "description": (
-                "Compute Requirement Template automatically created by YellowDog Cloud"
-                " Wizard"
+                "Compute Requirement Template automatically created by YellowDog"
+                " Cloud Wizard"
             ),
             "strategyType": f"co.yellowdog.platform.model.WaterfallProvisionStrategy",
             "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
@@ -298,7 +299,11 @@ class CommonCloudConfig(ABC):
         ]
 
         print_log("Creating YellowDog Compute Requirement Templates")
-        create_resources(self._requirement_template_resources)
+        create_resources(
+            process_variable_substitutions_insitu(
+                deepcopy(self._requirement_template_resources)
+            )
+        )
 
     def _create_keyring(self, keyring_name: str):
         """
