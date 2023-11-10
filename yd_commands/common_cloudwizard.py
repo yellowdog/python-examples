@@ -94,7 +94,6 @@ class CommonCloudConfig(ABC):
 
     @staticmethod
     def _generate_static_compute_requirement_template(
-        client: PlatformClient,
         source_names: List[str],
         spot_or_ondemand: str,
         strategy: str,
@@ -109,16 +108,6 @@ class CommonCloudConfig(ABC):
         - Waterfall
         Instance type must be a valid AWS instance type.
         """
-        source_ids = []
-        for source_name in source_names:
-            source_id = find_compute_source_id_by_name(client, source_name)
-            if source_id is None:
-                raise Exception(
-                    "Unable to find a Compute Source Template ID for source"
-                    f" '{source_name}'"
-                )
-            source_ids.append(source_id)
-
         return {
             "resource": "ComputeRequirementTemplate",
             "name": f"{name_prefix}-{strategy.lower()}-{spot_or_ondemand}",
@@ -129,14 +118,13 @@ class CommonCloudConfig(ABC):
             "strategyType": f"co.yellowdog.platform.model.{strategy}ProvisionStrategy",
             "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
             "sources": [
-                {"instanceType": instance_type, "sourceTemplateId": id}
-                for id in source_ids
+                {"instanceType": instance_type, "sourceTemplateId": name}
+                for name in source_names
             ],
         }
 
     @staticmethod
     def _generate_static_compute_requirement_template_spot_ondemand_waterfall(
-        client: PlatformClient,
         source_names_spot: List[str],
         source_names_on_demand: List[str],
         instance_type: str,
@@ -146,17 +134,7 @@ class CommonCloudConfig(ABC):
         Generate a static Waterfall compute requirement resource definition from
         lists of spot and on-demand source names.
         Instance type must be a valid AWS instance type.
-        q"""
-        source_ids = []
-        for source_name in source_names_spot + source_names_on_demand:
-            source_id = find_compute_source_id_by_name(client, source_name)
-            if source_id is None:
-                raise Exception(
-                    "Unable to find a Compute Source Template ID for source"
-                    f" '{source_name}'"
-                )
-            source_ids.append(source_id)
-
+        """
         return {
             "resource": "ComputeRequirementTemplate",
             "name": f"{name_prefix}-waterfall-spot-to-ondemand",
@@ -167,8 +145,8 @@ class CommonCloudConfig(ABC):
             "strategyType": f"co.yellowdog.platform.model.WaterfallProvisionStrategy",
             "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
             "sources": [
-                {"instanceType": instance_type, "sourceTemplateId": id}
-                for id in source_ids
+                {"instanceType": instance_type, "sourceTemplateId": name}
+                for name in source_names_spot + source_names_on_demand
             ],
         }
 
@@ -278,7 +256,6 @@ class CommonCloudConfig(ABC):
         clear_compute_source_template_cache()
         self._requirement_template_resources: List[Dict] = [
             self._generate_static_compute_requirement_template(
-                client=self._client,
                 source_names=self._source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Split",
@@ -286,7 +263,6 @@ class CommonCloudConfig(ABC):
                 name_prefix=resource_prefix,
             ),
             self._generate_static_compute_requirement_template(
-                client=self._client,
                 source_names=self._source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Split",
@@ -294,7 +270,6 @@ class CommonCloudConfig(ABC):
                 name_prefix=resource_prefix,
             ),
             self._generate_static_compute_requirement_template(
-                client=self._client,
                 source_names=self._source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Waterfall",
@@ -302,7 +277,6 @@ class CommonCloudConfig(ABC):
                 name_prefix=resource_prefix,
             ),
             self._generate_static_compute_requirement_template(
-                client=self._client,
                 source_names=self._source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Waterfall",
@@ -310,7 +284,6 @@ class CommonCloudConfig(ABC):
                 name_prefix=resource_prefix,
             ),
             self._generate_static_compute_requirement_template_spot_ondemand_waterfall(
-                client=self._client,
                 source_names_spot=self._source_names_spot,
                 source_names_on_demand=self._source_names_ondemand,
                 instance_type=self._instance_type,
