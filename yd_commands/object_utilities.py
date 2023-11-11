@@ -224,14 +224,14 @@ def get_all_compute_templates(
     client: PlatformClient,
 ) -> List[ComputeRequirementTemplateSummary]:
     """
-    Cache the list of Compute Templates
+    Cache the list of Compute Templates.
     """
     return client.compute_client.find_all_compute_requirement_templates()
 
 
 def clear_compute_requirement_template_cache():
     """
-    Clear the cache of Compute Requirement Templates
+    Clear the cache of Compute Requirement Templates.
     """
     get_all_compute_templates.cache_clear()
 
@@ -249,6 +249,7 @@ def get_compreq_id_by_worker_pool_id(
         return worker_pool.computeRequirementId
 
 
+@lru_cache()
 def find_image_family_ids_by_name(
     client: PlatformClient, image_family_name
 ) -> List[str]:
@@ -266,3 +267,10 @@ def find_image_family_ids_by_name(
         for image_family in image_families
         if image_family.name == image_family_name
     ]
+
+
+def clear_image_family_search_cache():
+    """
+    Clear the cache of Image Family name searches.
+    """
+    find_image_family_ids_by_name.cache_clear()
