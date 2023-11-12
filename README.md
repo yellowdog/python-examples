@@ -1831,6 +1831,8 @@ An example Compute Source resource specification is found below:
 }
 ```
 
+In the Compute Source Template `imageId` property, an Image Family **name** may be used instead of an ID. For example: `"imageId": "yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID. 
+
 ## Compute Requirement Templates
 
 The Compute Requirement Template example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeRequirementTemplate.
@@ -1853,6 +1855,8 @@ An example Compute Requirement resource specification is found below, for a **st
 ```
 
 Note that Compute Source Template **names** can be used instead of their IDs: the **yd-create** command will look up the IDs and make the substitutions. In either case, the Compute Source Templates must already exist.
+
+Also, In the `imagesId` property, an Image Family **name** may be used instead of an ID. For example: `"imagesId": "yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID.
 
 A **dynamic** template example is:
 

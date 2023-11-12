@@ -28,13 +28,16 @@ from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
     clear_compute_source_template_cache,
+    clear_image_family_search_cache,
     find_compute_source_id_by_name,
     find_compute_template_ids_by_name,
+    find_image_family_ids_by_name,
 )
 from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 CLEAR_CST_CACHE: bool = False  # Track whether the CST cache needs to be cleared
+CLEAR_IMAGE_FAMILY_CACHE: bool = False  # Track whether the IF cache needs to be cleared
 
 
 @main_wrapper
@@ -62,8 +65,12 @@ def create_resources(
     for resource in resources:
         try:
             resource_type = resource.pop("resource")
-            if ARGS_PARSER.dry_run and resource_type != "ComputeRequirementTemplate":
-                # There is potential additional processing for CRTs
+            # There is potential additional processing for CRTs and CSTs
+            # Print JSON from within their functions
+            if ARGS_PARSER.dry_run and resource_type not in [
+                "ComputeRequirementTemplate",
+                "ComputeSourceTemplate",
+            ]:
                 print_json(resource)
                 continue
         except KeyError:
@@ -101,6 +108,28 @@ def create_compute_source(resource: Dict):
         name = source["name"]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
+
+    # Allow image families to be referenced by name rather than ID
+    global CLEAR_IMAGE_FAMILY_CACHE
+    if CLEAR_IMAGE_FAMILY_CACHE:  # Update the IF cache if required
+        clear_image_family_search_cache()
+        CLEAR_IMAGE_FAMILY_CACHE = False
+    image_id = source.get("imageId")
+    if image_id is not None:
+        if "ydid:imgfam:" not in image_id:
+            image_family_ids = find_image_family_ids_by_name(
+                client=CLIENT, image_family_name=image_id
+            )
+            if len(image_family_ids) > 0:
+                source["imageId"] = image_family_ids[0]
+                print_log(
+                    f"Replaced imageId name '{image_id}' with ID {image_family_ids[0]}"
+                )
+
+    if ARGS_PARSER.dry_run:
+        resource["source"] = source
+        print_json(resource)
+        return
 
     # Create the Compute Source
     compute_source = get_model_object(source_type, source)
@@ -158,7 +187,6 @@ def create_cr_template(resource: Dict):
     if CLEAR_CST_CACHE:  # Update the CST cache if required
         clear_compute_source_template_cache()
         CLEAR_CST_CACHE = False
-
     counter = 0
     # Dynamic templates don't have 'sources'; return '[]'
     for source in resource.get("sources", []):
@@ -175,6 +203,24 @@ def create_cr_template(resource: Dict):
             source["sourceTemplateId"] = template_id
             counter += 1
     print_log(f"Replaced {counter} Compute Source Template name(s) with ID(s)")
+
+    # Allow image families to be referenced by name rather than ID
+    global CLEAR_IMAGE_FAMILY_CACHE
+    if CLEAR_IMAGE_FAMILY_CACHE:  # Update the IF cache if required
+        clear_compute_source_template_cache()
+        CLEAR_IMAGE_FAMILY_CACHE = False
+    images_id = resource.get("imagesId")
+    if images_id is not None:
+        if "ydid:imgfam:" not in images_id:
+            image_family_ids = find_image_family_ids_by_name(
+                client=CLIENT, image_family_name=images_id
+            )
+            if len(image_family_ids) > 0:
+                resource["imagesId"] = image_family_ids[0]
+                print_log(
+                    f"Replaced imagesId name '{images_id}' with ID"
+                    f" {image_family_ids[0]}"
+                )
 
     if ARGS_PARSER.dry_run:
         print_json(resource)
@@ -352,6 +398,9 @@ def create_image_family(resource):
         image_group = get_model_object("MachineImageGroup", image_group)
         image_group.osType = ImageOsType[str(image_group.osType)]  # Replace with Enum
         _create_image_group(namespace, image_family, image_group)
+
+    global CLEAR_IMAGE_FAMILY_CACHE
+    CLEAR_IMAGE_FAMILY_CACHE = True
 
 
 def _create_image_group(
