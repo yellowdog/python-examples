@@ -10,7 +10,7 @@ from yellowdog_client import PlatformClient
 from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.object_utilities import (
-    find_compute_template_ids_by_name,
+    find_compute_requirement_template_ids_by_name,
     find_image_family_ids_by_name,
 )
 from yd_commands.printing import print_log
@@ -76,7 +76,7 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     if get_ydid_type(template_id_or_name) == YDIDType.CR_TEMPLATE:
         return template_id_or_name
 
-    template_ids = find_compute_template_ids_by_name(
+    template_ids = find_compute_requirement_template_ids_by_name(
         client=client, name=template_id_or_name
     )
     if len(template_ids) == 0:

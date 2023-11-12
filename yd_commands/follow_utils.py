@@ -8,7 +8,7 @@ from typing import List, Optional
 import requests
 
 from yd_commands.id_utils import YDIDType, get_ydid_type
-from yd_commands.object_utilities import get_compreq_id_by_worker_pool_id
+from yd_commands.object_utilities import get_compute_requirement_id_by_worker_pool_id
 from yd_commands.printing import print_error, print_event, print_log, print_warning
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON
 
@@ -31,7 +31,7 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
         cr_ydids = set()
         for ydid in ydids_set:
             if get_ydid_type(ydid) == YDIDType.WORKER_POOL:
-                cr_ydid = get_compreq_id_by_worker_pool_id(CLIENT, ydid)
+                cr_ydid = get_compute_requirement_id_by_worker_pool_id(CLIENT, ydid)
                 if cr_ydid is not None:
                     print_log(
                         f"Adding event stream for Compute Requirement '{cr_ydid}'"

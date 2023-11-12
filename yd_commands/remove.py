@@ -17,8 +17,8 @@ from yellowdog_client.model import (
 from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
-    find_compute_source_id_by_name,
-    find_compute_template_ids_by_name,
+    find_compute_requirement_template_ids_by_name,
+    find_compute_source_template_id_by_name,
 )
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
@@ -83,7 +83,7 @@ def remove_compute_source_template(resource: Dict):
         print_error(f"Expected property to be defined ({e})")
         return
 
-    source_id = find_compute_source_id_by_name(CLIENT, name)
+    source_id = find_compute_source_template_id_by_name(CLIENT, name)
     if source_id is None:
         print_warning(f"Cannot find Compute Source Template '{name}'")
         return
@@ -109,7 +109,7 @@ def remove_compute_requirement_template(resource: Dict):
         print_error(f"Expected property to be defined ({e})")
         return
 
-    template_ids = find_compute_template_ids_by_name(CLIENT, name)
+    template_ids = find_compute_requirement_template_ids_by_name(CLIENT, name)
     if len(template_ids) == 0:
         print_warning(f"Cannot find Compute Requirement Template '{name}'")
         return

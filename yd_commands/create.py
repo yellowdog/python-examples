@@ -29,8 +29,8 @@ from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
     clear_compute_source_template_cache,
     clear_image_family_search_cache,
-    find_compute_source_id_by_name,
-    find_compute_template_ids_by_name,
+    find_compute_requirement_template_ids_by_name,
+    find_compute_source_template_id_by_name,
     find_image_family_ids_by_name,
 )
 from yd_commands.printing import print_error, print_json, print_log, print_warning
@@ -80,9 +80,9 @@ def create_resources(
             )
             continue
         if resource_type == "ComputeSourceTemplate":
-            create_compute_source(resource)
+            create_compute_source_template(resource)
         elif resource_type == "ComputeRequirementTemplate":
-            create_cr_template(resource)
+            create_compute_requirement_template(resource)
         elif resource_type == "Keyring":
             create_keyring(resource, show_secrets)
         elif resource_type == "Credential":
@@ -97,9 +97,9 @@ def create_resources(
             print_error(f"Unknown resource type '{resource_type}'")
 
 
-def create_compute_source(resource: Dict):
+def create_compute_source_template(resource: Dict):
     """
-    Create or update a Compute Source using a resource specification.
+    Create or update a Compute Source Template using a resource specification.
     Handles all Source types.
     """
     try:
@@ -140,7 +140,7 @@ def create_compute_source(resource: Dict):
     )
 
     # Check for an existing ID
-    source_id = find_compute_source_id_by_name(CLIENT, name)
+    source_id = find_compute_source_template_id_by_name(CLIENT, name)
     if source_id is None:
         compute_source = CLIENT.compute_client.add_compute_source_template(
             compute_source_template
@@ -168,7 +168,7 @@ def create_compute_source(resource: Dict):
         print(compute_source.id)
 
 
-def create_cr_template(resource: Dict):
+def create_compute_requirement_template(resource: Dict):
     """
     Create or update a Compute Requirement Template. Handles all
     Compute Requirement types.
@@ -192,7 +192,7 @@ def create_cr_template(resource: Dict):
     for source in resource.get("sources", []):
         template_name_or_id = source["sourceTemplateId"]
         if "ydid:cst:" not in template_name_or_id:
-            template_id = find_compute_source_id_by_name(
+            template_id = find_compute_source_template_id_by_name(
                 client=CLIENT, name=template_name_or_id
             )
             if template_id is None:
@@ -227,7 +227,7 @@ def create_cr_template(resource: Dict):
         return
 
     # Check for an existing ID
-    template_ids = find_compute_template_ids_by_name(CLIENT, name)
+    template_ids = find_compute_requirement_template_ids_by_name(CLIENT, name)
     if len(template_ids) == 0:
         template = CLIENT.compute_client.add_compute_requirement_template(
             compute_template

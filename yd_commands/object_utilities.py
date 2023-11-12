@@ -180,18 +180,20 @@ def get_work_requirement_summary_by_name_or_id(
             return work_requirement_summary
 
 
-def find_compute_source_id_by_name(client: PlatformClient, name: str) -> Optional[str]:
+def find_compute_source_template_id_by_name(
+    client: PlatformClient, name: str
+) -> Optional[str]:
     """
-    Find a compute source id by name.
-    (Compute source names should be unique.)
+    Find a Compute Source Template id by name.
+    Compute Source Template names are unique.
     """
-    for source in get_all_compute_sources(client):
+    for source in get_all_compute_source_templates(client):
         if source.name == name:
             return source.id
 
 
 @lru_cache()
-def get_all_compute_sources(
+def get_all_compute_source_templates(
     client: PlatformClient,
 ) -> List[ComputeSourceTemplateSummary]:
     """
@@ -204,27 +206,30 @@ def clear_compute_source_template_cache():
     """
     Clear the cache of Compute Source Templates.
     """
-    get_all_compute_sources.cache_clear()
+    get_all_compute_source_templates.cache_clear()
 
 
-def find_compute_template_ids_by_name(client: PlatformClient, name: str) -> List[str]:
+def find_compute_requirement_template_ids_by_name(
+    client: PlatformClient, name: str
+) -> List[str]:
     """
     Find Compute Template IDs that match the provided name.
-    (Compute Templates names don't appear to need to be unique.)
+    (Compute Requirement Template names don't currently need
+    to be unique.)
     """
     compute_template_ids = []
-    for template in get_all_compute_templates(client):
+    for template in get_all_compute_requirement_templates(client):
         if template.name == name:
             compute_template_ids.append(template.id)
     return compute_template_ids
 
 
 @lru_cache()
-def get_all_compute_templates(
+def get_all_compute_requirement_templates(
     client: PlatformClient,
 ) -> List[ComputeRequirementTemplateSummary]:
     """
-    Cache the list of Compute Templates.
+    Cache the list of Compute Requirement Templates.
     """
     return client.compute_client.find_all_compute_requirement_templates()
 
@@ -233,14 +238,14 @@ def clear_compute_requirement_template_cache():
     """
     Clear the cache of Compute Requirement Templates.
     """
-    get_all_compute_templates.cache_clear()
+    get_all_compute_requirement_templates.cache_clear()
 
 
-def get_compreq_id_by_worker_pool_id(
+def get_compute_requirement_id_by_worker_pool_id(
     client: PlatformClient, worker_pool_id: str
 ) -> Optional[str]:
     """
-    Get a compute requirement ID from a Provisioned Worker Pool ID.
+    Get a Compute Requirement ID from a Provisioned Worker Pool ID.
     """
     worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_id(
         worker_pool_id
