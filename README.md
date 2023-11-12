@@ -1451,7 +1451,7 @@ The following properties are available:
 |:--------------------------|:---------------------------------------------------------------------------------------------------------------------|:------------------------|
 | `idleNodeShutdownTimeout` | The timeout in minutes after which an idle node will be shut down. Set to `0` to disable.                            | `5.0`                   |
 | `idlePoolShutdownTimeout` | The timeout in minutes after which an idle Worker Pool will be shut down. Set to `0` to disable.                     | `30.0`                  |
-| `imagesId`                | The images ID to use when booting instances.                                                                         |                         |
+| `imagesId`                | The image ID, Image Family ID, or Image Family name to use when booting instances.                                   |                         |
 | `instanceTags`            | The dictionary of instance tags to apply to the instances.                                                           |                         |
 | `minNodes`                | The minimum number of nodes to which the Worker Pool can be scaled down.                                             | `0`                     |
 | `maxNodes`                | The maximum number of nodes to which the Worker Pool can be scaled up.                                               | `1`                     |
@@ -1638,7 +1638,7 @@ When a JSON Worker Pool specification is used, the following properties from the
 - `userDataFile`
 - `userDataFiles`
 
-Note that the `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name.
+Note that the `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name. Similarly, the `imagesId` property can use either a YDID or the Image Family Name (e.g, `"yd-agent-docker"`).
 
 **Properties Inherited within the `provisionedProperties` Property**
 
