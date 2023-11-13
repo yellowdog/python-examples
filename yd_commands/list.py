@@ -514,12 +514,10 @@ def list_namespaces():
     # Assemble and print the table
     headings = [field.capitalize() for field in all_fields]
     headings.insert(0, "#")
-    rows = sorted(
-        [
-            [index + 1] + [namespace.get(field, "") for field in all_fields]
-            for index, namespace in enumerate(namespace_list)
-        ]
-    )
+    rows = sorted([
+        [index + 1] + [namespace.get(field, "") for field in all_fields]
+        for index, namespace in enumerate(namespace_list)
+    ])
     print()
     CONSOLE_TABLE.print(
         indent(tabulate(rows, headings, tablefmt="simple_outline")),

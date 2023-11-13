@@ -362,13 +362,11 @@ class AWSConfig(CommonCloudConfig):
             "Creating YellowDog Namespace Configuration"
             f" 'S3:{self._get_s3_bucket_name()}' -> '{YD_NAMESPACE}'"
         )
-        create_resources(
-            [
-                self._generate_yd_namespace_configuration(
-                    namespace=YD_NAMESPACE, s3_bucket_name=self._get_s3_bucket_name()
-                )
-            ]
-        )
+        create_resources([
+            self._generate_yd_namespace_configuration(
+                namespace=YD_NAMESPACE, s3_bucket_name=self._get_s3_bucket_name()
+            )
+        ])
 
         # Sequence the Compute Requirement Templates before the Compute Source
         # Templates for subsequent removals.
@@ -395,13 +393,11 @@ class AWSConfig(CommonCloudConfig):
         self._remove_keyring(keyring_name=YD_KEYRING_NAME)
 
         # Remove the Namespace Configuration
-        remove_resources(
-            [
-                self._generate_yd_namespace_configuration(
-                    YD_NAMESPACE, self._get_s3_bucket_name()
-                )
-            ]
-        )
+        remove_resources([
+            self._generate_yd_namespace_configuration(
+                YD_NAMESPACE, self._get_s3_bucket_name()
+            )
+        ])
 
     def _gather_aws_network_information(self):
         """
@@ -968,25 +964,23 @@ class AWSConfig(CommonCloudConfig):
         """
         assert self._aws_user is not None
         s3_bucket_name = self._get_s3_bucket_name()
-        return json.dumps(
-            {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"AWS": self._aws_user.arn},
-                        "Action": "s3:*",
-                        "Resource": f"arn:aws:s3:::{s3_bucket_name}/*",
-                    },
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"AWS": self._aws_user.arn},
-                        "Action": "s3:ListBucket",
-                        "Resource": f"arn:aws:s3:::{s3_bucket_name}",
-                    },
-                ],
-            }
-        )
+        return json.dumps({
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {"AWS": self._aws_user.arn},
+                    "Action": "s3:*",
+                    "Resource": f"arn:aws:s3:::{s3_bucket_name}/*",
+                },
+                {
+                    "Effect": "Allow",
+                    "Principal": {"AWS": self._aws_user.arn},
+                    "Action": "s3:ListBucket",
+                    "Resource": f"arn:aws:s3:::{s3_bucket_name}",
+                },
+            ],
+        })
 
     def _get_s3_bucket_name(self) -> str:
         """

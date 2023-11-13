@@ -128,9 +128,9 @@ class GCPConfig(CommonCloudConfig):
         self._create_keyring(keyring_name=YD_KEYRING_NAME)
 
         # Create Credential and add to Keyring
-        create_resources(
-            [self._generate_yd_gcp_credential(YD_KEYRING_NAME, YD_CREDENTIAL_NAME)]
-        )
+        create_resources([
+            self._generate_yd_gcp_credential(YD_KEYRING_NAME, YD_CREDENTIAL_NAME)
+        ])
 
         # Save the Compute Requirement and Source Templates
         self._save_resource_list(
@@ -157,15 +157,13 @@ class GCPConfig(CommonCloudConfig):
             client=self._client, name_prefix=YD_RESOURCE_PREFIX
         )
         self._remove_keyring(YD_KEYRING_NAME)
-        remove_resources(
-            [
-                self._generate_namespace_configuration(
-                    YD_NAMESPACE,
-                    self._generate_bucket_name(),
-                    credential_name=f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
-                )
-            ]
-        )
+        remove_resources([
+            self._generate_namespace_configuration(
+                YD_NAMESPACE,
+                self._generate_bucket_name(),
+                credential_name=f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
+            )
+        ])
 
     def _gather_regions(self):
         """

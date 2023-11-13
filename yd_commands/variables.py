@@ -412,12 +412,10 @@ def load_toml_file_with_variable_substitutions(
     # file as a whole
     try:
         # Convert all values to strings before adding
-        add_substitutions(
-            {
-                var_name: str(var_value)
-                for var_name, var_value in config[COMMON_SECTION][VARIABLES].items()
-            }
-        )
+        add_substitutions({
+            var_name: str(var_value)
+            for var_name, var_value in config[COMMON_SECTION][VARIABLES].items()
+        })
     except KeyError:
         pass
 
