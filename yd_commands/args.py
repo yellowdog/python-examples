@@ -129,6 +129,12 @@ class CLIParser:
             required=False,
             help="enable PAC (proxy auto-configuration) support",
         )
+        parser.add_argument(
+            "--no-format",
+            action="store_true",
+            required=False,
+            help="disable colouring and text wrapping in command output",
+        )
 
         # Module-specific argument sets
 
@@ -928,6 +934,11 @@ class CLIParser:
     @allow_missing_attribute
     def use_pac(self) -> Optional[bool]:
         return self.args.pac
+
+    @property
+    @allow_missing_attribute
+    def no_format(self) -> Optional[bool]:
+        return self.args.no_format
 
     @property
     @allow_missing_attribute

@@ -121,7 +121,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
     if PREFIX_LEN == 0:
         PREFIX_LEN = len(prefix)
 
-    if no_fill or msg == "" or msg.isspace():
+    if no_fill or msg == "" or msg.isspace() or ARGS_PARSER.no_format:
         return prefix + msg
 
     return fill(
@@ -147,6 +147,10 @@ def print_log(
     if ARGS_PARSER.quiet and override_quiet is False:
         return
 
+    if ARGS_PARSER.no_format:
+        print(print_string(log_message, no_fill=no_fill), flush=True)
+        return
+
     CONSOLE.print(print_string(log_message, no_fill=no_fill))
 
 
@@ -154,6 +158,10 @@ def print_error(error_obj: Union[Exception, str]):
     """
     Print an error message to stderr.
     """
+    if ARGS_PARSER.no_format:
+        print(print_string(f"Error: {error_obj}"), flush=True)
+        return
+
     CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style=ERROR_STYLE)
 
 
@@ -166,6 +174,10 @@ def print_warning(
     Print a warning.
     """
     if ARGS_PARSER.quiet and override_quiet is False:
+        return
+
+    if ARGS_PARSER.no_format:
+        print(print_string(f"Warning: {warning}", no_fill=no_fill), flush=True)
         return
 
     CONSOLE.print(
@@ -188,6 +200,16 @@ TYPE_MAP = {
     MachineImageFamilySummary: "Machine Image Family",
     AWSAvailabilityZone: "AWS Availability Zones",
 }
+
+
+def print_table_core(table: str):
+    """
+    Core function for printing a table.
+    """
+    if ARGS_PARSER.no_format:
+        print(table, flush=True)
+    else:
+        CONSOLE_TABLE.print(table)
 
 
 def get_type_name(obj: Item) -> str:
@@ -541,17 +563,15 @@ def print_numbered_object_list(
             except:  # Handle the Namespace Storage Configuration case
                 table.append([index + 1, ":", obj.namespace])
     if headers is None:
-        CONSOLE_TABLE.print(
-            indent(tabulate(table, tablefmt="plain"), indent_width=4),
-        )
+        print_table_core(indent(tabulate(table, tablefmt="plain"), indent_width=4))
     else:
-        CONSOLE_TABLE.print(
+        print_table_core(
             indent(
                 tabulate(table, headers=headers, tablefmt="simple_outline"),
                 indent_width=4,
-            ),
+            )
         )
-    print()
+    print(flush=True)
 
 
 def print_numbered_strings(objects: List[str], override_quiet: bool = False):
@@ -564,10 +584,9 @@ def print_numbered_strings(objects: List[str], override_quiet: bool = False):
     table = []
     for index, obj in enumerate(objects):
         table.append([index + 1, ":", obj])
-    CONSOLE_TABLE.print(
-        indent(tabulate(table, tablefmt="plain"), indent_width=4),
-    )
-    print()
+
+    print_table_core(indent(tabulate(table, tablefmt="plain"), indent_width=4))
+    print(flush=True)
 
 
 def sorted_objects(
@@ -623,11 +642,11 @@ def print_json(
         json_string = "\n".join(json_string.splitlines()[1:])
 
     # Coloured formatting of JSON console output is expensive
-    if json_string.count("\n") > MAX_LINES_COLOURED_JSON:
+    if json_string.count("\n") > MAX_LINES_COLOURED_JSON or ARGS_PARSER.no_format:
         if with_final_comma:
-            print(json_string, end=",\n")
+            print(json_string, end=",\n", flush=True)
         else:
-            print(json_string)
+            print(json_string, flush=True)
     else:
         if with_final_comma:
             CONSOLE_JSON.print(json_string, end=",\n", soft_wrap=True)
@@ -741,11 +760,11 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
             source.instanceType,
             source.name,
         ])
-    print()
-    CONSOLE_TABLE.print(
-        indent(tabulate(source_table, headers="firstrow", tablefmt="simple_outline")),
+    print(flush=True)
+    print_table_core(
+        indent(tabulate(source_table, headers="firstrow", tablefmt="simple_outline"))
     )
-    print()
+    print(flush=True)
 
 
 def print_object_detail(object_detail: ObjectDetail):
@@ -776,13 +795,14 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
             file_entry.source_file_path,
             f"{upload_batch_builder.namespace}{NAMESPACE_PREFIX_SEPARATOR}{file_entry.default_object_name}",
         ])
-    print()
-    print(
+    print(flush=True)
+    print_table_core(
         indent(
-            tabulate(table, headers=headers, tablefmt="simple_outline"), indent_width=4
+            tabulate(table, headers=headers, tablefmt="simple_outline"),
+            indent_width=4,
         )
     )
-    print()
+    print(flush=True)
 
 
 def print_batch_download_files(
@@ -814,13 +834,23 @@ def print_batch_download_files(
                 f"{object_target}"
             ),
         ])
-    print()
-    CONSOLE_TABLE.print(
-        indent(
-            tabulate(table, headers=headers, tablefmt="simple_outline"), indent_width=4
-        ),
-    )
-    print()
+    print(flush=True)
+    if ARGS_PARSER.no_format:
+        print(
+            indent(
+                tabulate(table, headers=headers, tablefmt="simple_outline"),
+                indent_width=4,
+            ),
+            flush=True,
+        )
+    else:
+        CONSOLE_TABLE.print(
+            indent(
+                tabulate(table, headers=headers, tablefmt="simple_outline"),
+                indent_width=4,
+            ),
+        )
+    print(flush=True)
 
 
 @dataclass
