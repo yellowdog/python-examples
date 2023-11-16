@@ -17,6 +17,10 @@ class TestDemoDryRuns:
         result = shell(f"cd {DEMO_DIR}/primes && {CMD_SEQ}")
         assert result.exit_code == 0
 
+    def test_primes_gui(self):
+        result = shell(f"cd {DEMO_DIR}/primes/gui && ./primes-gui.py")
+        assert result.exit_code == 0
+
     def test_image_montage(self):
         result = shell(f"cd {DEMO_DIR}/image-montage && {CMD_SEQ}")
         assert result.exit_code == 0
