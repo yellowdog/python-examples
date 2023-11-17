@@ -9,16 +9,20 @@ CMD_SEQ = "yd-provision -D && yd-submit -D"
 
 
 class TestDemoDryRuns:
+    def test_primes_gui(self):
+        result = shell(f"cd {DEMO_DIR}/primes/gui && ./primes-gui.py")
+        assert result.exit_code == 0
+
+    def test_blender_gui(self):
+        result = shell(f"cd {DEMO_DIR}/blender/gui && ./blender-gui.py")
+        assert result.exit_code == 0
+
     def test_bash(self):
         result = shell(f"cd {DEMO_DIR}/bash && {CMD_SEQ}")
         assert result.exit_code == 0
 
     def test_primes(self):
         result = shell(f"cd {DEMO_DIR}/primes && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_primes_gui(self):
-        result = shell(f"cd {DEMO_DIR}/primes/gui && ./primes-gui.py")
         assert result.exit_code == 0
 
     def test_image_montage(self):
