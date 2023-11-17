@@ -9,6 +9,7 @@ from yellowdog_client import PlatformClient
 
 from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.id_utils import YDIDType, get_ydid_type
+from yd_commands.load_config import CONFIG_FILE_DIR
 from yd_commands.object_utilities import (
     find_compute_requirement_template_ids_by_name,
     find_image_family_ids_by_name,
@@ -35,13 +36,17 @@ def get_user_data_property(
             "should be set"
         )
 
-    if content_path is not None and content_path != "":
-        try:
-            chdir(content_path)
-        except Exception as e:
-            raise Exception(
-                f"Unable to switch to content directory '{content_path}': {e}"
-            )
+    # Switch to the directory containing the config file; will use the current
+    # directory if the config file is absent
+    source_directory = (
+        CONFIG_FILE_DIR if content_path is None or content_path == "" else content_path
+    )
+    try:
+        chdir(source_directory)
+    except Exception as e:
+        raise Exception(
+            f"Unable to switch to content directory '{source_directory}': {e}"
+        )
 
     user_data = None
 
