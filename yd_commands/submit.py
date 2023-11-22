@@ -863,9 +863,24 @@ def get_task_data_property(
                 f"Task '{task_name}': Properties '{TASK_DATA}' and "
                 f"'{TASK_DATA_FILE}' are both set"
             )
+
         if task_data_property:
             return task_data_property
+
         if task_data_file_property:
+            # Switch to the directory containing the config file; will use the current
+            # directory if the config file is absent
+            source_directory = (
+                CONFIG_FILE_DIR
+                if ARGS_PARSER.content_path is None or ARGS_PARSER.content_path == ""
+                else ARGS_PARSER.content_path
+            )
+            try:
+                chdir(source_directory)
+            except Exception as e:
+                raise Exception(
+                    f"Unable to switch to content directory '{source_directory}': {e}"
+                )
             with open(task_data_file_property, "r") as f:
                 return f.read()
 
