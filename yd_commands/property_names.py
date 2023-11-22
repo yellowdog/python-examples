@@ -65,6 +65,8 @@ TASK_DATA_FILE = "taskDataFile"  # String
 TASK_GROUPS = "taskGroups"  # List of Task Groups
 TASK_GROUP_NAME = "taskGroupName"  # String
 TASK_NAME = "taskName"  # String
+TASK_TIMEOUT = "taskTimeout"  # Float
+TASK_LEVEL_TIMEOUT = "timeout"  # Float
 TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
@@ -153,6 +155,8 @@ ALL_KEYS = [
     TASK_GROUPS,
     TASK_GROUP_NAME,
     TASK_NAME,
+    TASK_TIMEOUT,
+    TASK_LEVEL_TIMEOUT,
     TASK_TYPE,
     TASK_TYPES,
     TEMPLATE_ID,

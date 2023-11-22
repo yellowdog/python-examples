@@ -545,6 +545,8 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `taskDataFile`             | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                                                                                           | Yes  | Yes | Yes  | Yes  |
 | `taskName`                 | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                                                     | Yes  |     |      |      |
 | `taskGroupName`            | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                                            | Yes  |     |      |      |
+| `taskTimeout`              | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. Default is no timeout.                                                                                                     | Yes  | Yes | Yes  |      |
+| `timeout`                  | As above, but set at the Task level.                                                                                                                                                                                                       |      |     |      | Yes  |
 | `taskType`                 | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                                                 | Yes  |     |      | Yes  |
 | `taskTypes`                | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                                                                                          |      | Yes | Yes  |      |
 | `tasksPerWorker`           | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                                                                                        | Yes  | Yes | Yes  |      |
@@ -696,6 +698,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskDataFile = "my_data_file.txt"
     taskName = "my_task_number_{{task_number}}"
     taskGroupName = "my_task_group_number_{{task_group_number}}"
+    taskTimeout = 120.0
     taskType = "docker"
     tasksPerWorker = 1
     uploadFiles = [{localPath = "file_1.txt", uploadPath = "file_1.txt"}]
@@ -744,6 +747,7 @@ Showing all possible properties at the Work Requirement level:
   "taskCount": 100,
   "taskData": "my_task_data_string",
   "taskDataFile": "my_data_file.txt",
+  "taskTimeout": 120.0,
   "taskTypes": ["docker"],
   "tasksPerWorker": 1,
   "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
@@ -800,6 +804,7 @@ Showing all possible properties at the Task Group level:
       "taskCount": 5,
       "taskData": "my_task_data_string",
       "taskDataFile": "my_data_file.txt",
+      "taskTimeout": 120.0,
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,
       "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
@@ -849,6 +854,7 @@ Showing all possible properties at the Task level:
           "outputsRequired": ["results_required.txt"],
           "taskData": "my_task_data_string",
           "taskDataFile": "my_data_file.txt",
+          "timeout": 120.0,
           "taskType": "docker",
           "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
           "verifyAtStart": ["ready_results.txt"],

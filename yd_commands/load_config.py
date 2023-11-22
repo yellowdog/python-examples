@@ -270,6 +270,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             task_data_file=wr_section.get(TASK_DATA_FILE, None),
             task_group_name=wr_section.get(TASK_GROUP_NAME, None),
             task_name=wr_section.get(TASK_NAME, None),
+            task_timeout=wr_section.get(TASK_TIMEOUT, None),
             task_type=task_type,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
             upload_files=wr_section.get(UPLOAD_FILES, []),

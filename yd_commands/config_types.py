@@ -55,6 +55,7 @@ class ConfigWorkRequirement:
     task_data_file: Optional[str] = None
     task_group_name: Optional[str] = None
     task_name: Optional[str] = None
+    task_timeout: Optional[float] = None
     task_type: Optional[str] = None
     tasks_per_worker: Optional[int] = None
     upload_files: List[Dict] = field(default_factory=list)

@@ -407,6 +407,14 @@ def create_task_group(
         if providers_data is None
         else [CloudProvider(provider) for provider in providers_data]
     )
+    task_timeout_minutes: Optional[float] = check_float_or_int(
+        task_group_data.get(TASK_TIMEOUT, config_wr.task_timeout)
+    )
+    task_timeout: Optional[timedelta] = (
+        None
+        if task_timeout_minutes is None
+        else timedelta(minutes=task_timeout_minutes)
+    )
 
     run_specification = RunSpecification(
         taskTypes=task_types,
@@ -442,6 +450,7 @@ def create_task_group(
         regions=check_list(
             task_group_data.get(REGIONS, wr_data.get(REGIONS, config_wr.regions))
         ),
+        taskTimeout=task_timeout,
     )
     ctttl_data = check_float_or_int(
         task_group_data.get(
@@ -596,6 +605,15 @@ def add_tasks_to_task_group(
             )
             env = check_dict(
                 task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, config_wr.env)))
+            )
+
+            # Task timeout is automatically inherited from the Task Group level
+            # unless overridden by the Task
+            task_timeout_minutes = check_float_or_int(task.get(TASK_LEVEL_TIMEOUT, None))
+            task_timeout = (
+                None
+                if task_timeout_minutes is None
+                else timedelta(minutes=task_timeout_minutes)
             )
 
             # Set up lists of files to input, verify
@@ -800,6 +818,7 @@ def add_tasks_to_task_group(
                     env=env,
                     inputs=inputs,
                     outputs=outputs,
+                    task_timeout=task_timeout,
                     flatten_upload_paths=flatten_upload_paths,
                 )
             )
@@ -1074,6 +1093,7 @@ def create_task(
     env: Dict[str, str],
     inputs: Optional[List[TaskInput]],
     outputs: Optional[List[TaskOutput]],
+    task_timeout: Optional[timedelta],
     flatten_upload_paths: bool = False,
 ) -> Task:
     """
@@ -1099,6 +1119,7 @@ def create_task(
             outputs=outputs,
             flattenInputPaths=flatten_input_paths,
             taskData=task_data_property,
+            timeout=task_timeout,
         )
 
     # Flatten paths for downloaded files?
