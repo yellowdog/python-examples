@@ -9,6 +9,10 @@ CMD_SEQ = "yd-provision -D && yd-submit -D"
 
 
 class TestDemoDryRuns:
+    def test_generic_gui(self):
+        result = shell(f"cd {DEMO_DIR}/yellow-gui && ./yellow-gui.py")
+        assert result.exit_code == 0
+
     def test_primes_gui(self):
         result = shell(f"cd {DEMO_DIR}/primes/gui && ./primes-gui.py")
         assert result.exit_code == 0
