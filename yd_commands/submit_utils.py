@@ -2,9 +2,12 @@
 Utility functions for use with the submit command.
 """
 
+import os
 import re
 from dataclasses import dataclass
 from glob import glob
+from os import chdir, getcwd
+from os.path import join
 from time import sleep
 from typing import List, Optional
 
@@ -98,17 +101,28 @@ class UploadedFiles:
     'uploadFiles' lists.
     """
 
-    def __init__(self, client: PlatformClient, wr_name: str, config: ConfigCommon):
+    def __init__(
+        self,
+        client: PlatformClient,
+        wr_name: str,
+        config: ConfigCommon,
+        files_directory: str = "",
+    ):
         self._client = client
         self._wr_name = wr_name
         self._config = config
         self._uploaded_files: List[UploadedFile] = []
+        self.files_directory = files_directory
+        self.working_directory = os.getcwd()
 
     def add_upload_file(self, upload_file: str, upload_path: str):
         """
         Upload a file if it hasn't already been uploaded to the same location.
         Handle wildcards.
         """
+
+        if self.files_directory != "":
+            os.chdir(self.files_directory)
 
         # Handle wildcard expansion
         expanded_files = glob(pathname=upload_file, recursive=True)
@@ -166,14 +180,19 @@ class UploadedFiles:
                 )
             )
 
+        chdir(self.working_directory)
+
     def add_input_file(self, filename: str, flatten_upload_paths: bool) -> List[str]:
         """
         Add a filename from the inputs list, processing wildcards if present.
         Return the expanded list of filenames.
         """
 
-        # Expand wildcards
+        # Expand wildcards ... in the correct directory
+        if self.files_directory != "":
+            chdir(self.files_directory)
         expanded_files = glob(pathname=filename, recursive=True)
+        chdir(self.working_directory)
 
         for filename in expanded_files:
             # Apply Work Requirement name prefix, etc.
@@ -188,7 +207,6 @@ class UploadedFiles:
             self.add_upload_file(
                 filename, f"{NAMESPACE_PREFIX_SEPARATOR}{upload_file_name}"
             )
-
         return expanded_files
 
     def delete(self):

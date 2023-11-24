@@ -252,16 +252,9 @@ def submit_work_requirement(
 
     # Handle any files that need to be uploaded
     global UPLOADED_FILES
-    UPLOADED_FILES = UploadedFiles(client=CLIENT, wr_name=ID, config=CONFIG_COMMON)
-
-    # Ensure we're in the correct directory for uploads
-    if files_directory != "":
-        try:
-            chdir(files_directory)
-        except Exception as e:
-            raise Exception(
-                f"Unable to switch to content directory '{files_directory}': {e}"
-            )
+    UPLOADED_FILES = UploadedFiles(
+        client=CLIENT, wr_name=ID, config=CONFIG_COMMON, files_directory=files_directory
+    )
 
     # Flatten upload paths?
     flatten_upload_paths = check_bool(
