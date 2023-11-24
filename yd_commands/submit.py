@@ -8,7 +8,7 @@ from copy import deepcopy
 from datetime import timedelta
 from math import ceil
 from os import chdir
-from os.path import basename, dirname
+from os.path import basename, dirname, join
 from typing import Dict, List, Optional
 
 import jsons
@@ -144,7 +144,7 @@ def main():
     if wr_data_file is None and csv_files is not None:
         wr_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0], files_directory)
         submit_work_requirement(
-            directory_to_upload_from=CONFIG_FILE_DIR,
+            files_directory=CONFIG_FILE_DIR,
             wr_data=wr_data,
         )
 
@@ -198,13 +198,13 @@ def main():
 
         validate_properties(wr_data, "Work Requirement JSON")
         submit_work_requirement(
-            directory_to_upload_from=files_directory,
+            files_directory=files_directory,
             wr_data=wr_data,
         )
 
     else:
         submit_work_requirement(
-            directory_to_upload_from=files_directory,
+            files_directory=files_directory,
             task_count=CONFIG_WR.task_count,
         )
 
@@ -213,7 +213,7 @@ def main():
 
 
 def submit_work_requirement(
-    directory_to_upload_from: str,
+    files_directory: str,
     wr_data: Optional[Dict] = None,
     task_count: Optional[int] = None,
 ):
@@ -252,13 +252,12 @@ def submit_work_requirement(
     UPLOADED_FILES = UploadedFiles(client=CLIENT, wr_name=ID, config=CONFIG_COMMON)
 
     # Ensure we're in the correct directory for uploads
-    if directory_to_upload_from != "":
+    if files_directory != "":
         try:
-            chdir(directory_to_upload_from)
+            chdir(files_directory)
         except Exception as e:
             raise Exception(
-                "Unable to switch to content directory"
-                f" '{directory_to_upload_from}': {e}"
+                f"Unable to switch to content directory '{files_directory}': {e}"
             )
 
     # Flatten upload paths?
@@ -308,6 +307,7 @@ def submit_work_requirement(
                 task_count,
                 work_requirement,
                 flatten_upload_paths=flatten_upload_paths,
+                files_directory=files_directory,
             )
 
         except Exception as e:
@@ -507,6 +507,7 @@ def add_tasks_to_task_group(
     task_count: Optional[int],
     work_requirement: WorkRequirement,
     flatten_upload_paths: bool = False,
+    files_directory: str = "",
 ) -> None:
     """
     Add all the constituent Tasks to the Task Group.
@@ -824,7 +825,12 @@ def add_tasks_to_task_group(
                     executable=executable,
                     args=arguments_list,
                     task_data_property=get_task_data_property(
-                        config_wr, wr_data, task_group_data, task, task_name
+                        config_wr,
+                        wr_data,
+                        task_group_data,
+                        task,
+                        task_name,
+                        files_directory,
                     ),
                     env=env,
                     inputs=inputs,
@@ -872,6 +878,7 @@ def get_task_data_property(
     task_group_data: Dict,
     task: Dict,
     task_name: str,
+    files_directory: str = "",
 ) -> Optional[str]:
     """
     Get the 'taskData' property, either using the contents of the file
@@ -898,20 +905,7 @@ def get_task_data_property(
             return task_data_property
 
         if task_data_file_property:
-            # Switch to the directory containing the config file; will use the current
-            # directory if the config file is absent
-            source_directory = (
-                CONFIG_FILE_DIR
-                if ARGS_PARSER.content_path is None or ARGS_PARSER.content_path == ""
-                else ARGS_PARSER.content_path
-            )
-            try:
-                chdir(source_directory)
-            except Exception as e:
-                raise Exception(
-                    f"Unable to switch to content directory '{source_directory}': {e}"
-                )
-            with open(task_data_file_property, "r") as f:
+            with open(join(files_directory, task_data_file_property), "r") as f:
                 return f.read()
 
 
