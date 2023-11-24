@@ -356,6 +356,17 @@ def process_typed_variable_substitution(
             )
 
 
+def resolve_filename(files_directory: str, filename: str) -> str:
+    """
+    Check whether 'files_directory' is redundant.
+    This is a suboptimal approach, but works for now.
+    """
+    if os.path.dirname(os.path.abspath(filename)) == os.path.abspath(files_directory):
+        return filename
+    else:
+        return os.path.join(files_directory, filename)
+
+
 def load_json_file_with_variable_substitutions(
     filename: str, prefix: str = "", postfix: str = "", files_directory: str = ""
 ) -> Dict:
@@ -363,7 +374,7 @@ def load_json_file_with_variable_substitutions(
     Takes a JSON filename and returns a dictionary with its variable
     substitutions processed.
     """
-    with open(os.path.join(files_directory, filename), "r") as f:
+    with open(resolve_filename(files_directory, filename), "r") as f:
         file_contents = f.read()
     file_contents = process_variable_substitutions_in_file_contents(
         file_contents, prefix=prefix, postfix=postfix
@@ -382,7 +393,9 @@ def load_jsonnet_file_with_variable_substitutions(
     from _jsonnet import evaluate_file
 
     with VariableSubstitutedJsonnetFile(
-        filename=os.path.join(files_directory, filename), prefix=prefix, postfix=postfix
+        filename=resolve_filename(files_directory, filename),
+        prefix=prefix,
+        postfix=postfix,
     ) as preprocessed_filename:
         dict_data = json_loads(evaluate_file(preprocessed_filename))
 
@@ -405,7 +418,7 @@ def load_toml_file_with_variable_substitutions(
     Takes a TOML filename and returns a dictionary with its variable
     substitutions processed.
     """
-    with open(os.path.join(files_directory, filename), "r") as f:
+    with open(resolve_filename(files_directory, filename), "r") as f:
         config = toml_load(f)
 
     # Add any variable substitutions in the TOML file before processing the

@@ -173,7 +173,10 @@ def main():
                 )
             else:
                 wr_data = load_jsonnet_file_with_variable_substitutions(
-                    wr_data_file, files_directory
+                    filename=wr_data_file,
+                    prefix="",
+                    postfix="",
+                    files_directory=files_directory,
                 )
 
         # TOML file (undocumented)
@@ -186,7 +189,7 @@ def main():
                 )
             else:
                 wr_data = load_toml_file_with_variable_substitutions(
-                    wr_data_file, files_directory
+                    filename=wr_data_file, files_directory=files_directory
                 )
 
         # None of the above
