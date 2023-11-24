@@ -25,6 +25,7 @@ from yd_commands.settings import (
 from yd_commands.variables import (
     load_jsonnet_file_with_variable_substitutions,
     process_variable_substitutions_insitu,
+    resolve_filename,
 )
 
 
@@ -133,7 +134,7 @@ def load_json_file_with_csv_task_expansion(
     files. Return the expanded and variables-processed Work Requirement data.
     """
 
-    with open(join(files_directory, json_file), "r") as f:
+    with open(resolve_filename(files_directory, json_file), "r") as f:
         wr_data = json_load(f)
 
     return perform_csv_task_expansion(wr_data, csv_files, files_directory)
@@ -148,7 +149,7 @@ def load_jsonnet_file_with_csv_task_expansion(
     """
 
     wr_data = load_jsonnet_file_with_variable_substitutions(
-        join(files_directory, jsonnet_file)
+        resolve_filename(files_directory, jsonnet_file)
     )
     return perform_csv_task_expansion(wr_data, csv_files, files_directory)
 
@@ -162,7 +163,7 @@ def load_toml_file_with_csv_task_expansion(
     data.
     """
 
-    with open(join(files_directory, toml_file), "r") as f:
+    with open(resolve_filename(files_directory, toml_file), "r") as f:
         wr_data = toml_load(f)
 
     return perform_csv_task_expansion(wr_data, csv_files, f)
@@ -200,7 +201,9 @@ def perform_csv_task_expansion(
                 "when using CSV file for data"
             )
 
-        csv_data = CSV_DATA_CACHE.get_csv_task_data(join(files_directory, csv_file))
+        csv_data = CSV_DATA_CACHE.get_csv_task_data(
+            resolve_filename(files_directory, csv_file)
+        )
         task_prototype = task_group[TASKS][0]
 
         if not substitions_present(csv_data.var_names, str(task_prototype)):
