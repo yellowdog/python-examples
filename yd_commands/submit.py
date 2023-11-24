@@ -133,8 +133,16 @@ def main():
             "Option '--process-csv-only' is only valid if CSV file(s) specified"
         )
 
+    # Where do we find the data files?
+    # content-path > wr_data_file location > config file location
+    files_directory = (
+        (CONFIG_FILE_DIR if wr_data_file is None else dirname(wr_data_file))
+        if ARGS_PARSER.content_path is None
+        else ARGS_PARSER.content_path
+    )
+
     if wr_data_file is None and csv_files is not None:
-        wr_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0])
+        wr_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0], files_directory)
         submit_work_requirement(
             directory_to_upload_from=CONFIG_FILE_DIR,
             wr_data=wr_data,
@@ -149,9 +157,12 @@ def main():
                 wr_data = load_json_file_with_csv_task_expansion(
                     json_file=wr_data_file,
                     csv_files=csv_files,
+                    files_directory=files_directory,
                 )
             else:
-                wr_data = load_json_file_with_variable_substitutions(wr_data_file)
+                wr_data = load_json_file_with_variable_substitutions(
+                    wr_data_file, files_directory
+                )
 
         # Jsonnet file
         elif wr_data_file.lower().endswith("jsonnet"):
@@ -161,7 +172,9 @@ def main():
                     csv_files=csv_files,
                 )
             else:
-                wr_data = load_jsonnet_file_with_variable_substitutions(wr_data_file)
+                wr_data = load_jsonnet_file_with_variable_substitutions(
+                    wr_data_file, files_directory
+                )
 
         # TOML file (undocumented)
         elif wr_data_file.lower().endswith("toml"):
@@ -169,9 +182,12 @@ def main():
                 wr_data = load_toml_file_with_csv_task_expansion(
                     toml_file=wr_data_file,
                     csv_files=csv_files,
+                    files_directory=files_directory,
                 )
             else:
-                wr_data = load_toml_file_with_variable_substitutions(wr_data_file)
+                wr_data = load_toml_file_with_variable_substitutions(
+                    wr_data_file, files_directory
+                )
 
         # None of the above
         else:
@@ -179,23 +195,16 @@ def main():
                 f"Work Requirement data file '{wr_data_file}' "
                 "must end with '.json', '.jsonnet', or '.toml'"
             )
+
         validate_properties(wr_data, "Work Requirement JSON")
         submit_work_requirement(
-            directory_to_upload_from=(
-                dirname(wr_data_file)
-                if ARGS_PARSER.content_path is None
-                else ARGS_PARSER.content_path
-            ),
+            directory_to_upload_from=files_directory,
             wr_data=wr_data,
         )
 
     else:
         submit_work_requirement(
-            directory_to_upload_from=(
-                CONFIG_FILE_DIR
-                if ARGS_PARSER.content_path is None
-                else ARGS_PARSER.content_path
-            ),
+            directory_to_upload_from=files_directory,
             task_count=CONFIG_WR.task_count,
         )
 

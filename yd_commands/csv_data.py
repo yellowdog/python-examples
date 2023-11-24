@@ -7,6 +7,7 @@ import re
 from ast import literal_eval
 from collections import OrderedDict
 from json import load as json_load
+from os.path import join
 from typing import Dict, List, Optional
 
 from toml import load as toml_load
@@ -125,33 +126,35 @@ CSV_DATA_CACHE = CSVDataCache(max_entries=2)
 
 
 def load_json_file_with_csv_task_expansion(
-    json_file: str, csv_files: List[str]
+    json_file: str, csv_files: List[str], files_directory: str = ""
 ) -> Dict:
     """
     Load a JSON file, expanding its Task lists using data from CSV
     files. Return the expanded and variables-processed Work Requirement data.
     """
 
-    with open(json_file, "r") as f:
+    with open(join(files_directory, json_file), "r") as f:
         wr_data = json_load(f)
 
-    return perform_csv_task_expansion(wr_data, csv_files)
+    return perform_csv_task_expansion(wr_data, csv_files, files_directory)
 
 
 def load_jsonnet_file_with_csv_task_expansion(
-    jsonnet_file: str, csv_files: List[str]
+    jsonnet_file: str, csv_files: List[str], files_directory: str = ""
 ) -> Dict:
     """
     Load a Jsonnet file, expanding its Task lists using data from CSV
     files. Return the expanded and variables-processed Work Requirement data.
     """
 
-    wr_data = load_jsonnet_file_with_variable_substitutions(jsonnet_file)
-    return perform_csv_task_expansion(wr_data, csv_files)
+    wr_data = load_jsonnet_file_with_variable_substitutions(
+        join(files_directory, jsonnet_file)
+    )
+    return perform_csv_task_expansion(wr_data, csv_files, files_directory)
 
 
 def load_toml_file_with_csv_task_expansion(
-    toml_file: str, csv_files: List[str]
+    toml_file: str, csv_files: List[str], files_directory: str = ""
 ) -> Dict:
     """
     Load a TOML file Work Requirement, expanding its Task lists using data
@@ -159,13 +162,15 @@ def load_toml_file_with_csv_task_expansion(
     data.
     """
 
-    with open(toml_file, "r") as f:
+    with open(join(files_directory, toml_file), "r") as f:
         wr_data = toml_load(f)
 
-    return perform_csv_task_expansion(wr_data, csv_files)
+    return perform_csv_task_expansion(wr_data, csv_files, f)
 
 
-def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
+def perform_csv_task_expansion(
+    wr_data: Dict, csv_files: List[str], files_directory: str = ""
+) -> Dict:
     """
     Expand a Work Requirement using CSV data.
     """
@@ -186,7 +191,8 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
 
         task_group = wr_data[TASK_GROUPS][index]
         print_log(
-            f"Loading CSV Task data for Task Group {index + 1} from: '{csv_file}'"
+            f"Loading CSV Task data for Task Group {index + 1} from:"
+            f" '{join(files_directory, csv_file)}'"
         )
         if len(wr_data[TASK_GROUPS][index][TASKS]) != 1:
             raise Exception(
@@ -194,7 +200,7 @@ def perform_csv_task_expansion(wr_data: Dict, csv_files: List[str]) -> Dict:
                 "when using CSV file for data"
             )
 
-        csv_data = CSV_DATA_CACHE.get_csv_task_data(csv_file)
+        csv_data = CSV_DATA_CACHE.get_csv_task_data(join(files_directory, csv_file))
         task_prototype = task_group[TASKS][0]
 
         if not substitions_present(csv_data.var_names, str(task_prototype)):
@@ -338,14 +344,18 @@ def substitions_present(var_names: List[str], task_prototype: str) -> bool:
     )
 
 
-def csv_expand_toml_tasks(config_wr: ConfigWorkRequirement, csv_file: str) -> Dict:
+def csv_expand_toml_tasks(
+    config_wr: ConfigWorkRequirement, csv_file: str, files_directory=""
+) -> Dict:
     """
     When there's a CSV file specified, but no JSON file, create the expanded
     list of Tasks using the CSV data.
     """
     wr_data = {TASK_GROUPS: [{TASKS: [{}]}]}
     task_proto = wr_data[TASK_GROUPS][0][TASKS][0]
-    csv_data = CSV_DATA_CACHE.get_csv_task_data(csv_file.split(":")[0])
+    csv_data = CSV_DATA_CACHE.get_csv_task_data(
+        join(files_directory, csv_file.split(":")[0])
+    )
     # Populate properties that can be set at Task level only
     for config_value, config_name in [
         (config_wr.always_upload, ALWAYS_UPLOAD),
