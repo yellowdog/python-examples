@@ -42,7 +42,8 @@ def get_user_data_property(
         CONFIG_FILE_DIR if content_path is None or content_path == "" else content_path
     )
     try:
-        chdir(source_directory)
+        if source_directory != "":
+            chdir(source_directory)
     except Exception as e:
         raise Exception(
             f"Unable to switch to content directory '{source_directory}': {e}"

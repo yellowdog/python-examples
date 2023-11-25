@@ -7,8 +7,7 @@ A script to submit a Work Requirement.
 from copy import deepcopy
 from datetime import timedelta
 from math import ceil
-from os import chdir
-from os.path import basename, dirname, join
+from os.path import basename, dirname, relpath
 from typing import Dict, List, Optional
 
 import jsons
@@ -88,6 +87,7 @@ from yd_commands.variables import (
     load_jsonnet_file_with_variable_substitutions,
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions_insitu,
+    resolve_filename,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -149,6 +149,7 @@ def main():
         )
 
     elif wr_data_file is not None:
+        wr_data_file = relpath(wr_data_file)
         print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
 
         # JSON file
@@ -901,7 +902,9 @@ def get_task_data_property(
             return task_data_property
 
         if task_data_file_property:
-            with open(join(files_directory, task_data_file_property), "r") as f:
+            with open(
+                resolve_filename(files_directory, task_data_file_property), "r"
+            ) as f:
                 return f.read()
 
 

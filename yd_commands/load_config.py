@@ -4,7 +4,7 @@ Common utility functions, mostly related to loading configuration data.
 
 import os
 from os import getenv
-from os.path import abspath, dirname
+from os.path import dirname, relpath
 from sys import exit
 from typing import Dict, Optional
 
@@ -40,13 +40,14 @@ from yd_commands.variables import (
 )
 
 # CLI > YD_CONF > 'config.toml'
-config_file = (
+config_file = relpath(
     getenv("YD_CONF", "config.toml")
     if ARGS_PARSER.config_file is None
     else ARGS_PARSER.config_file
 )
 
 try:
+    CONFIG_FILE_DIR = dirname(config_file)
     print_log(f"Loading configuration data from: '{config_file}'")
     CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(config_file)
     try:
@@ -54,7 +55,6 @@ try:
     except Exception as e:
         print_error(e)
         exit(1)
-    CONFIG_FILE_DIR = dirname(abspath(config_file))
 
 except FileNotFoundError as e:
     if ARGS_PARSER.config_file is not None:

@@ -7,6 +7,7 @@ import re
 from ast import literal_eval
 from collections import OrderedDict
 from json import load as json_load
+from os.path import relpath
 from typing import Dict, List, Optional
 
 from toml import load as toml_load
@@ -189,7 +190,7 @@ def perform_csv_task_expansion(
         if index is None:
             index = counter
 
-        resolved_csv_file = resolve_filename(files_directory, csv_file)
+        resolved_csv_file = relpath(resolve_filename(files_directory, csv_file))
 
         task_group = wr_data[TASK_GROUPS][index]
         print_log(
