@@ -7,7 +7,6 @@ import re
 from ast import literal_eval
 from collections import OrderedDict
 from json import load as json_load
-from os.path import join
 from typing import Dict, List, Optional
 
 from toml import load as toml_load
@@ -190,10 +189,12 @@ def perform_csv_task_expansion(
         if index is None:
             index = counter
 
+        resolved_csv_file = resolve_filename(files_directory, csv_file)
+
         task_group = wr_data[TASK_GROUPS][index]
         print_log(
             f"Loading CSV Task data for Task Group {index + 1} from:"
-            f" '{join(files_directory, csv_file)}'"
+            f" '{resolved_csv_file}'"
         )
         if len(wr_data[TASK_GROUPS][index][TASKS]) != 1:
             raise Exception(
@@ -201,9 +202,7 @@ def perform_csv_task_expansion(
                 "when using CSV file for data"
             )
 
-        csv_data = CSV_DATA_CACHE.get_csv_task_data(
-            resolve_filename(files_directory, csv_file)
-        )
+        csv_data = CSV_DATA_CACHE.get_csv_task_data(resolved_csv_file)
         task_prototype = task_group[TASKS][0]
 
         if not substitions_present(csv_data.var_names, str(task_prototype)):
@@ -357,7 +356,7 @@ def csv_expand_toml_tasks(
     wr_data = {TASK_GROUPS: [{TASKS: [{}]}]}
     task_proto = wr_data[TASK_GROUPS][0][TASKS][0]
     csv_data = CSV_DATA_CACHE.get_csv_task_data(
-        join(files_directory, csv_file.split(":")[0])
+        resolve_filename(files_directory, csv_file.split(":")[0])
     )
     # Populate properties that can be set at Task level only
     for config_value, config_name in [
