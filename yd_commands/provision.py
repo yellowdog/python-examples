@@ -7,6 +7,7 @@ A script to Provision a Worker Pool.
 from dataclasses import dataclass
 from datetime import timedelta
 from math import ceil, floor
+from os.path import dirname
 from typing import Dict, List
 
 import requests
@@ -21,7 +22,7 @@ from yellowdog_client.model import (
 from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.follow_utils import follow_ids
 from yd_commands.id_utils import YDIDType, get_ydid_type
-from yd_commands.load_config import load_config_worker_pool
+from yd_commands.load_config import CONFIG_FILE_DIR, load_config_worker_pool
 from yd_commands.printing import (
     print_error,
     print_log,
@@ -50,6 +51,7 @@ from yd_commands.utils import add_batch_number_postfix, generate_id, link_entity
 from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
+    resolve_filename,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -73,7 +75,17 @@ def main():
         if ARGS_PARSER.worker_pool_file is None
         else ARGS_PARSER.worker_pool_file
     )
+
+    # Where do we find the data files?
+    # content-path > wp_json_file location > config file location
+    files_directory = (
+        (CONFIG_FILE_DIR if wp_json_file is None else dirname(wp_json_file))
+        if ARGS_PARSER.content_path is None
+        else ARGS_PARSER.content_path
+    )
+
     if wp_json_file is not None:
+        wp_json_file = resolve_filename(files_directory, wp_json_file)
         print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
         create_worker_pool_from_json(wp_json_file)
     elif CONFIG_WP.template_id is None:
@@ -128,7 +140,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             )
             reqt_template_usage[TARGET_INSTANCE_COUNT] = CONFIG_WP.target_instance_count
 
-        # Allow Compute Requirement Template name to be used instead of ID
+        # Allow a Compute Requirement Template name to be used instead of ID
         reqt_template_usage[TEMPLATE_ID] = get_template_id(
             CLIENT, reqt_template_usage[TEMPLATE_ID]
         )
