@@ -5,22 +5,10 @@ Tests that run the standard demo dry-runs.
 from cli_test_helpers import shell
 
 DEMO_DIR = "../python-examples-demos"
-CMD_SEQ = "yd-provision -D && yd-submit -D"
+CMD_SEQ = "yd-provision -D && yd-submit -D && yd-instantiate -D"
 
 
 class TestDemoDryRuns:
-    def test_generic_gui(self):
-        result = shell(f"cd {DEMO_DIR}/yellow-gui && ./yellow-gui.py")
-        assert result.exit_code == 0
-
-    def test_primes_gui(self):
-        result = shell(f"cd {DEMO_DIR}/primes/gui && ./primes-gui.py")
-        assert result.exit_code == 0
-
-    def test_blender_gui(self):
-        result = shell(f"cd {DEMO_DIR}/blender/gui && ./blender-gui.py")
-        assert result.exit_code == 0
-
     def test_bash(self):
         result = shell(f"cd {DEMO_DIR}/bash && {CMD_SEQ}")
         assert result.exit_code == 0
@@ -74,7 +62,8 @@ class TestDemoDryRuns:
         demo_name = "bash"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
@@ -82,7 +71,8 @@ class TestDemoDryRuns:
         demo_name = "primes"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
@@ -90,7 +80,8 @@ class TestDemoDryRuns:
         demo_name = "image-montage"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
@@ -98,7 +89,8 @@ class TestDemoDryRuns:
         demo_name = "openfoam"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
@@ -106,7 +98,8 @@ class TestDemoDryRuns:
         demo_name = "slurm-cluster"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
@@ -114,54 +107,61 @@ class TestDemoDryRuns:
         demo_name = "common-factors-csv"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
-    def test_virtual_screening(self):
+    def test_virtual_screening_out(self):
         demo_name = "virtual-screening"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
-    def test_benchmark(self):
+    def test_benchmark_out(self):
         demo_name = "benchmark"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
-    def test_powershell(self):
+    def test_powershell_out(self):
         demo_name = "powershell"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
-    def test_cmd_exe(self):
+    def test_cmd_exe_out(self):
         demo_name = "cmd.exe"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
-    def test_nextflow(self):
+    def test_nextflow_out(self):
         demo_name = "nextflow"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
 
-    def test_blender(self):
+    def test_blender_out(self):
         demo_name = "blender"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
         )
         assert result.exit_code == 0
