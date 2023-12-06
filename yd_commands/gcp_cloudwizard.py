@@ -90,7 +90,7 @@ class GCPConfig(CommonCloudConfig):
         self._selected_regions = select(
             client=self._client,
             objects=self._regions_with_default_subnets,
-            object_type_name="Region",
+            object_type_name="region",
             force_interactive=True,
             override_quiet=True,
         )
