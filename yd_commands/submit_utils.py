@@ -129,7 +129,7 @@ class UploadedFiles:
         if len(expanded_files) > 1:
             if not upload_path.endswith("*"):
                 raise Exception(
-                    "'uploadPath' must end in '*' when using'uploadFiles' wildcards"
+                    "'uploadPath' must end in '*' when using 'uploadFiles' wildcards"
                 )
 
         for upload_file in expanded_files:
