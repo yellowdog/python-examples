@@ -78,44 +78,42 @@ AWS_YD_IMAGE_REGIONS = [
 
 YELLOWDOG_POLICY = {
     "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "EC2:CancelSpotInstanceRequests",
-                "EC2:CreateFleet",
-                "EC2:CreateLaunchTemplate",
-                "EC2:CreatePlacementGroup",
-                "EC2:CreateTags",
-                "EC2:DeleteFleets",
-                "EC2:DeleteLaunchTemplate",
-                "EC2:DeletePlacementGroup",
-                "EC2:DescribeFleets",
-                "EC2:DescribeInstanceTypes",
-                "EC2:DescribeInstances",
-                "EC2:DescribeLaunchTemplates",
-                "EC2:DescribePlacementGroups",
-                "EC2:DescribeSpotInstanceRequests",
-                "EC2:ModifyFleet",
-                "EC2:RebootInstances",
-                "EC2:RequestSpotInstances",
-                "EC2:RunInstances",
-                "EC2:StartInstances",
-                "EC2:StopInstances",
-                "EC2:TerminateInstances",
-                "S3:AbortMultipartUpload",
-                "S3:CreateBucket",
-                "S3:DeleteBucket",
-                "S3:DeleteObject",
-                "S3:GetObject",
-                "S3:ListBucketMultipartUploads",
-                "S3:ListMultipartUploadParts",
-                "S3:PutObject",
-            ],
-            "Resource": "*",
-        }
-    ],
+    "Statement": [{
+        "Sid": "VisualEditor0",
+        "Effect": "Allow",
+        "Action": [
+            "EC2:CancelSpotInstanceRequests",
+            "EC2:CreateFleet",
+            "EC2:CreateLaunchTemplate",
+            "EC2:CreatePlacementGroup",
+            "EC2:CreateTags",
+            "EC2:DeleteFleets",
+            "EC2:DeleteLaunchTemplate",
+            "EC2:DeletePlacementGroup",
+            "EC2:DescribeFleets",
+            "EC2:DescribeInstanceTypes",
+            "EC2:DescribeInstances",
+            "EC2:DescribeLaunchTemplates",
+            "EC2:DescribePlacementGroups",
+            "EC2:DescribeSpotInstanceRequests",
+            "EC2:ModifyFleet",
+            "EC2:RebootInstances",
+            "EC2:RequestSpotInstances",
+            "EC2:RunInstances",
+            "EC2:StartInstances",
+            "EC2:StopInstances",
+            "EC2:TerminateInstances",
+            "S3:AbortMultipartUpload",
+            "S3:CreateBucket",
+            "S3:DeleteBucket",
+            "S3:DeleteObject",
+            "S3:GetObject",
+            "S3:ListBucketMultipartUploads",
+            "S3:ListMultipartUploadParts",
+            "S3:PutObject",
+        ],
+        "Resource": "*",
+    }],
 }
 
 
@@ -183,14 +181,12 @@ class AWSConfig(CommonCloudConfig):
         A list of regions can be supplied as an argument.
         The 'operation' argument must be 'add' or 'remove'.
         """
-        ssh_ipv4_ingress_rule = [
-            {
-                "IpProtocol": "tcp",
-                "FromPort": 22,
-                "ToPort": 22,
-                "IpRanges": [{"CidrIp": f"0.0.0.0/0"}],
-            }
-        ]
+        ssh_ipv4_ingress_rule = [{
+            "IpProtocol": "tcp",
+            "FromPort": 22,
+            "ToPort": 22,
+            "IpRanges": [{"CidrIp": f"0.0.0.0/0"}],
+        }]
         for region in (
             AWS_YD_IMAGE_REGIONS if selected_region is None else [selected_region]
         ):

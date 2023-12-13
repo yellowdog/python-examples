@@ -185,14 +185,12 @@ class CommonCloudConfig(ABC):
                     "type": "co.yellowdog.platform.model.StringAttributeConstraint",
                 },
             ],
-            "preferences": [
-                {
-                    "attribute": "yd.cost",
-                    "rankOrder": "PREFER_LOWER",
-                    "type": "co.yellowdog.platform.model.NumericAttributePreference",
-                    "weight": 1,
-                }
-            ],
+            "preferences": [{
+                "attribute": "yd.cost",
+                "rankOrder": "PREFER_LOWER",
+                "type": "co.yellowdog.platform.model.NumericAttributePreference",
+                "weight": 1,
+            }],
             "maximumSourceCount": 5,
             "minimumSourceCount": 1,
             "strategyType": f"co.yellowdog.platform.model.{strategy}ProvisionStrategy",
