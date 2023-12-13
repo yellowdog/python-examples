@@ -61,7 +61,7 @@ def unique_upload_pathname(
 
     if os_name == "nt":
         # Convert Windows path naming to Unix style for upload
-        filename = filename.replace("/", "_").replace(":", "_").replace("\\", "/")
+        filename = filename.replace(":", "_").replace("\\", "/")
 
     forward_slash = "%2F" if urlencode_forward_slash else "/"
     prefix = "" if id == "" else id + forward_slash
