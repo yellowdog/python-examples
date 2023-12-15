@@ -345,9 +345,17 @@ def create_image_family(resource):
     try:
         family_name = resource["name"]
         namespace = resource["namespace"]
-        os_type = ImageOsType[resource.pop("osType")]  # Change to Enum
+        os_type_str = resource.pop("osType")
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
+
+    try:
+        os_type = ImageOsType[os_type_str]  # Change to Enum
+    except KeyError:
+        raise Exception(
+            f"Property 'osType' has invalid value '{os_type_str}'; valid values are"
+            f" {[e.value for e in ImageOsType]}"
+        )
 
     # Start by updating the outer Image Family
     image_family = get_model_object("MachineImageFamily", resource, osType=os_type)
