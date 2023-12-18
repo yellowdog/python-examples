@@ -111,6 +111,8 @@ YD_TASK_GROUP_NAME = "YD_TASK_GROUP_NAME"
 YD_TASK_GROUP_NUMBER = "YD_TASK_GROUP_NUMBER"
 YD_TASK_NAME = "YD_TASK_NAME"
 YD_TASK_NUMBER = "YD_TASK_NUMBER"
+YD_NAMESPACE = "YD_NAMESPACE"
+YD_TAG = "YD_TAG"
 
 
 @main_wrapper
@@ -1149,6 +1151,8 @@ def create_task(
         env_copy[YD_TASK_GROUP_NAME] = tg_name
         env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
         env_copy[YD_WORK_REQUIREMENT_NAME] = ID
+        env_copy[YD_NAMESPACE] = CONFIG_COMMON.namespace
+        env_copy[YD_TAG] = CONFIG_COMMON.name_tag
 
     # Special processing for Bash, Python & PowerShell tasks if the 'executable'
     # property is set. The script is uploaded if this hasn't already been done,
@@ -1215,6 +1219,8 @@ def create_task(
         docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
         docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
         docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
+        docker_env_list += ["--env", f"{YD_NAMESPACE}={CONFIG_COMMON.namespace}"]
+        docker_env_list += ["--env", f"{YD_TAG}={CONFIG_COMMON.name_tag}"]
 
         if docker_env is not None:
             for key, value in docker_env.items():

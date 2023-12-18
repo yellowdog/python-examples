@@ -569,17 +569,19 @@ In addition to the property inheritance mechanism, some properties are set autom
 
 #### Obtaining Names from Environment Variables at Task Run Time
 
-When a Task executes, its Task name and number, Task Group name and number, and Work Requirement name are automatically available in the following environment variables: 
+When a Task executes, its Task name and number, Task Group name and number, Work Requirement name, Namespace, and Tag are automatically available to the Task in the following environment variables: 
 
 - `YD_TASK_NAME`
 - `YD_TASK_NUMBER`
 - `YD_TASK_GROUP_NAME`
 - `YD_TASK_GROUP_NUMBER`
 - `YD_WORK_REQUIREMENT_NAME`
+- `YD_NAMESPACE`
+- `YD_TAG`
 
-This applies whether the names were set automatically or explicitly.
+This applies whether the names were set automatically by `yd-submit` or explicitly by the user.
 
-For Tasks of type `docker` and where the `executable` property has been set, the variables above are also available **within** the container.
+For Tasks of type `docker` and where the `executable` property has been set, the variables above are also available **within** the container environment.
 
 ### Task Types
 
