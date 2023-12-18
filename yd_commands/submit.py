@@ -162,7 +162,10 @@ def main():
                 )
             else:
                 wr_data = load_json_file_with_variable_substitutions(
-                    wr_data_file, files_directory
+                    filename=wr_data_file,
+                    prefix="",
+                    postfix="",
+                    files_directory=files_directory,
                 )
 
         # Jsonnet file
