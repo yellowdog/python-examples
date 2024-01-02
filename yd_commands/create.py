@@ -59,7 +59,7 @@ def create_resources(
 
     if ARGS_PARSER.dry_run:
         print_log(
-            "Dry run: displaying processed JSON resource specifications. Note:"
+            "Dry-run: displaying processed JSON resource specifications. Note:"
             " 'resource' property is removed."
         )
     for resource in resources:

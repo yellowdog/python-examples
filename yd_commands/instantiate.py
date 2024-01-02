@@ -292,7 +292,7 @@ def create_compute_requirement_from_json(
     if ARGS_PARSER.dry_run:
         print_log("Dry-run: Printing JSON Compute Requirement specification")
         print_yd_object(cr_data)
-        print_log("Dry run: Complete")
+        print_log("Dry-run: Complete")
         return
 
     response = requests.post(

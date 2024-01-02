@@ -405,7 +405,7 @@ def load_jsonnet_file_with_variable_substitutions(
     if ARGS_PARSER.jsonnet_dry_run:
         print_log("Dry-run: Printing Jsonnet to JSON conversion")
         print_json(dict_data)
-        print_log("Dry run: Complete")
+        print_log("Dry-run: Complete")
         exit(0)
 
     return dict_data

@@ -213,7 +213,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     if ARGS_PARSER.dry_run:
         print_log("Dry-run: Printing JSON Worker Pool specification")
         print_yd_object(wp_data)
-        print_log("Dry run: Complete")
+        print_log("Dry-run: Complete")
         return
 
     response = requests.post(
@@ -406,7 +406,7 @@ def create_worker_pool_from_toml():
     print_log(idle_pool_shutdown_msg)
 
     if ARGS_PARSER.dry_run:
-        print_log("Dry run: Complete")
+        print_log("Dry-run: Complete")
         return
 
     if ARGS_PARSER.follow:
