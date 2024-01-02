@@ -330,6 +330,7 @@ def create_credential(resource: Dict):
         CLIENT.keyring_client.put_credential_by_name(keyring_name, credential)
         print_log(f"Added Credential '{name}' to Keyring '{keyring_name}'")
     except HTTPError as e:
+        print_error(f"Failed to add Credential '{name}' to Keyring '{keyring_name}'")
         if e.response.status_code == 400:
             print_error(f"{e.response.text}")
         elif e.response.status_code == 404:
