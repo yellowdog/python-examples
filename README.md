@@ -567,7 +567,7 @@ In addition to the property inheritance mechanism, some properties are set autom
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
 
-#### Obtaining Names from Environment Variables at Task Run Time
+#### Obtaining Names/Context from Environment Variables at Task Run Time
 
 When a Task executes, its Task name and number, Task Group name and number, Work Requirement name, Namespace, and Tag are automatically available to the Task in the following environment variables: 
 
@@ -582,6 +582,18 @@ When a Task executes, its Task name and number, Task Group name and number, Work
 This applies whether the names were set automatically by `yd-submit` or explicitly by the user.
 
 For Tasks of type `docker` and where the `executable` property has been set, the variables above are also available **within** the container environment.
+
+In addition to the environment variables above, the YellowDog Agent will set the following variables for use by the Task, based on the instance details and Task identification:
+
+- `YD_PROVIDER`
+- `YD_REGION`
+- `YD_INSTANCE_TYPE`
+- `YD_INSTANCE_ID`
+- `YD_WORKER_TAG`
+- `YD_TASK_GROUP_ID`
+- `YD_TASK_ID`
+- `YD_AGENT_DATA`
+- `YD_AGENT_HOME`
 
 ### Task Types
 
