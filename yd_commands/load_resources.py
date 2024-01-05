@@ -58,8 +58,8 @@ def _resequence_resources(
     resources: List[Dict], creation_or_update: bool = True
 ) -> List[Dict]:
     """
-    Resequence resources so that possible dependencies are evaluated in a
-    suitable order. If 'creation_or_update' is True this is a creation/update
+    Resequence resources so that possible dependencies are evaluated in the
+    correct order. If 'creation_or_update' is True this is a creation/update
     action, otherwise it's a removal action -- the sequencing differs for each.
     """
     if len(resources) == 1:
@@ -70,6 +70,12 @@ def _resequence_resources(
         key=lambda resource: (
             1 if resource.get("resource", "") == "ComputeSourceTemplate" else 0
         ),
+        reverse=creation_or_update,
+    )
+
+    # Move Keyrings to the beginning or end of the list
+    resources.sort(
+        key=lambda resource: (1 if resource.get("resource", "") == "Keyring" else 0),
         reverse=creation_or_update,
     )
 

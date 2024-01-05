@@ -1718,12 +1718,12 @@ The **yd-create** and **yd-remove** commands operate on a list of one or more re
 
 Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are generally processed in the order found in each list, and in the order of the resource specification files found on the command line.
 
-However, in the case of Compute Source Templates and Compute Requirement Templates, these are potentially resequenced such that:
+However, in the case of Compute Source Templates and Compute Requirement Templates, and Keyrings and Credentials, these are potentially resequenced such that:
 
-- In `yd-create` operations, all Compute Source Templates will be created/updated before any Compute Requirement Templates
-- In `yd-remove` operations, all Compute Requirement Templates will be removed before any Compute Source Templates
+- In `yd-create` operations, all Compute Source Templates will be created/updated before any Compute Requirement Templates, and all Keyrings will be created/updated before any Credentials
+- In `yd-remove` operations, all Compute Requirement Templates will be removed before any Compute Source Templates, and all Credentials will be removed before any Keyrings
 
-This is for ease of use, because Compute Requirement Templates can depend on Compute Source Templates.
+This is for ease of use, because Compute Requirement Template creation depends on the existence Compute Source Templates, Compute Source Template removal can only proceed if they're not referenced by any Compute Requirment Templates, and because Keyrings must exist before Credentials can be added.
 
 Resource specification files can use **variable substitutions** just as in the case of Work Requirements.
 
