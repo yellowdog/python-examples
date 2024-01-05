@@ -53,7 +53,7 @@ def create_resources(
     loaded from one or more files.
     """
     if resources is None:
-        resources = load_resource_specifications()
+        resources = load_resource_specifications(creation_or_update=True)
     else:
         resources = deepcopy(resources)  # Avoid overwriting the input argument
 

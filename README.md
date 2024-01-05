@@ -1704,7 +1704,14 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 
 The **yd-create** and **yd-remove** commands operate on a list of one or more resource specification files in JSON (or Jsonnet) format.
 
-Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are processed in the order found in each list, and in the order of the resource specification files found on the command line.
+Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are generally processed in the order found in each list, and in the order of the resource specification files found on the command line.
+
+However, in the case of Compute Source Templates and Compute Requirement Templates, these are potentially resequenced such that:
+
+- In `yd-create` operations, all Compute Source Templates will be created/updated before any Compute Requirement Templates
+- In `yd-remove` operations, all Compute Requirement Templates will be removed before any Compute Source Templates
+
+This is for ease of use, because Compute Requirement Templates can depend on Compute Source Templates.
 
 Resource specification files can use **variable substitutions** just as in the case of Work Requirements.
 

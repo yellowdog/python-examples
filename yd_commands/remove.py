@@ -40,7 +40,7 @@ def remove_resources(resources: Optional[List[Dict]] = None):
         return
 
     if resources is None:
-        resources = load_resource_specifications()
+        resources = load_resource_specifications(creation_or_update=False)
     else:
         resources = deepcopy(resources)  # Avoid overwriting the input argument
 

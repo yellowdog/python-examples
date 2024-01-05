@@ -14,7 +14,7 @@ from yd_commands.variables import (
 )
 
 
-def load_resource_specifications() -> List[Dict]:
+def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
     """
     Load and return a list of resource specifications assembled from the
     resources described in a set of resource description files.
@@ -50,5 +50,27 @@ def load_resource_specifications() -> List[Dict]:
 
     if len(ARGS_PARSER.resource_specifications) > 1:
         print_log(f"Including {len(resources)} resources in total")
+
+    return _resequence_resources(resources, creation_or_update=creation_or_update)
+
+
+def _resequence_resources(
+    resources: List[Dict], creation_or_update: bool = True
+) -> List[Dict]:
+    """
+    Resequence resources so that possible dependencies are evaluated in a
+    suitable order. If 'creation_or_update' is True this is a creation/update
+    action, otherwise it's a removal action -- the sequencing differs for each.
+    """
+    if len(resources) == 1:
+        return resources
+
+    # Move Compute Source Templates to the beginning or end of the list
+    resources.sort(
+        key=lambda resource: (
+            1 if resource["resource"] == "ComputeSourceTemplate" else 0
+        ),
+        reverse=creation_or_update,
+    )
 
     return resources
