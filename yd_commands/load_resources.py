@@ -68,7 +68,7 @@ def _resequence_resources(
     # Move Compute Source Templates to the beginning or end of the list
     resources.sort(
         key=lambda resource: (
-            1 if resource["resource"] == "ComputeSourceTemplate" else 0
+            1 if resource.get("resource", "") == "ComputeSourceTemplate" else 0
         ),
         reverse=creation_or_update,
     )
