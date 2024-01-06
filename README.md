@@ -1723,7 +1723,7 @@ However, in the case of Compute Source Templates and Compute Requirement Templat
 - In `yd-create` operations, all Compute Source Templates will be created/updated before any Compute Requirement Templates, and all Keyrings will be created/updated before any Credentials
 - In `yd-remove` operations, all Compute Requirement Templates will be removed before any Compute Source Templates, and all Credentials will be removed before any Keyrings
 
-This is for ease of use, because Compute Requirement Template creation depends on the existence Compute Source Templates, Compute Source Template removal can only proceed if they're not referenced by any Compute Requirment Templates, and because Keyrings must exist before Credentials can be added.
+This is for ease of use, because (1) Compute Requirement Template creation can depend on the existence of Compute Source Templates, (2) Compute Source Template removal can only proceed if they're not referenced by any Compute Requirment Templates, and (3) because Keyrings must exist before Credentials can be added.
 
 Resource specification files can use **variable substitutions** just as in the case of Work Requirements.
 
