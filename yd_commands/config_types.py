@@ -58,6 +58,7 @@ class ConfigWorkRequirement:
     task_timeout: Optional[float] = None
     task_type: Optional[str] = None
     tasks_per_worker: Optional[int] = None
+    task_level_timeout: Optional[float] = None
     upload_files: List[Dict] = field(default_factory=list)
     vcpus: Optional[List[float]] = None
     verify_at_start: List[str] = field(default_factory=list)

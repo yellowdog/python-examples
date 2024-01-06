@@ -622,7 +622,7 @@ def add_tasks_to_task_group(
             # Task timeout is automatically inherited from the Task Group level
             # unless overridden by the Task
             task_timeout_minutes = check_float_or_int(
-                task.get(TASK_LEVEL_TIMEOUT, None)
+                task.get(TASK_LEVEL_TIMEOUT, CONFIG_WR.task_level_timeout)
             )
             task_timeout = (
                 None

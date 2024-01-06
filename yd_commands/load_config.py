@@ -273,6 +273,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             task_timeout=wr_section.get(TASK_TIMEOUT, None),
             task_type=task_type,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
+            task_level_timeout=wr_section.get(TASK_LEVEL_TIMEOUT, None),
             upload_files=wr_section.get(UPLOAD_FILES, []),
             vcpus=wr_section.get(VCPUS, None),
             verify_at_start=wr_section.get(VERIFY_AT_START, []),

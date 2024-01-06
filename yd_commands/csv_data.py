@@ -381,6 +381,7 @@ def csv_expand_toml_tasks(
         (config_wr.task_name, TASK_NAME),
         (config_wr.task_timeout, TASK_TIMEOUT),
         (config_wr.task_type, TASK_TYPE),
+        (config_wr.task_level_timeout, TASK_LEVEL_TIMEOUT),
         (config_wr.upload_files, UPLOAD_FILES),
         (config_wr.verify_at_start, VERIFY_AT_START),
         (config_wr.verify_wait, VERIFY_WAIT),
