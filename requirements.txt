@@ -7,3 +7,8 @@ requests
 boto3
 google-cloud-compute
 google-cloud-storage
+azure-identity
+azure-mgmt-resource
+azure-mgmt-network
+azure-mgmt-storage
+azure-mgmt-subscription

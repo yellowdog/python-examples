@@ -28,9 +28,21 @@
          * [YellowDog Platform Setup](#yellowdog-platform-setup-1)
       * [Cloud Wizard Teardown](#cloud-wizard-teardown-1)
       * [Idempotency](#idempotency-1)
+* [Cloud Wizard for Azure](#cloud-wizard-for-azure)
+   * [Azure Account Prequisites](#azure-account-prequisites)
+      * [Azure Service Principal Setup Steps](#azure-service-principal-setup-steps)
+   * [Quickstart Guide (Azure)](#quickstart-guide-azure)
+      * [Creation](#creation-2)
+      * [Removal](#removal-2)
+   * [Details of Operation: Azure](#details-of-operation-azure)
+      * [Cloud Wizard Setup](#cloud-wizard-setup-2)
+         * [Azure Account Setup](#azure-account-setup)
+         * [YellowDog Platform Setup](#yellowdog-platform-setup-2)
+      * [Cloud Wizard Teardown](#cloud-wizard-teardown-2)
+      * [Idempotency](#idempotency-2)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Nov  3 15:44:01 GMT 2023 -->
+<!-- Added by: pwt, at: Tue Jan 16 12:52:51 GMT 2024 -->
 
 <!--te-->
 
@@ -38,7 +50,7 @@
 
 YellowDog Cloud Wizard is an **experimental** utility that automates the process of configuring a cloud provider account for use with YellowDog, and for creating YellowDog resources that work with the account. The goal is to make it quick and easy to get from opening a new cloud provider account to using it productively with YellowDog. 
 
-Cloud Wizard currently supports AWS and GCP, but support for other cloud providers is under development.
+Cloud Wizard currently supports Amazon AWS, Google GCP and Microsoft Azure, but support for other cloud providers is under development.
 
 # YellowDog Prerequisites
 
@@ -329,3 +341,159 @@ The following actions are taken in the **AWS account**:
 In general, it's safe to invoke Cloud Wizard multiple times for both setup and teardown operations. Depending on the setting/resource it will be ignored if present, or the user will be asked to confirm deletion/replacement.
 
 If there are multiple invocations of `setup`, then the AWS access key and YellowDog Credential will be updated (at the user's option). Also, the Compute Source and Compute Requirement templates will be updated, and may differ in their contents if different availability zones are selected during each invocation. The resource specification JSON file will be overwritten.
+
+# Cloud Wizard for Azure
+
+## Azure Account Prequisites
+
+You'll need an Azure account, a Service Principal created within the account, a client secret created for the service principal, and the Contributor role applied to the Service Principal.
+
+### Azure Service Principal Setup Steps
+
+Please see the article [Create a Microsoft Entra application and service principal that can access resources](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal) for an overview of the process, then perform the steps outlined below.
+
+1. Sign in to the [Azure Portal](https://portal.azure.com/).
+2. Go to the [Microsoft Entra ID home page](https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/Overview) (or search for 'Entra ID' using the top search bar).
+3. Click **Add** and select **App Registration**.
+4. Select the name for the App Registration; we suggest using **yellowdog-app**. For **Supported account types** use the default of **Accounts in this organizational directory only**. Click **Register**.
+5. Make a note of the **Application (client) ID** and the **Directory (tenant) ID**.
+6. Under **Client Credentials**, click on **Add a certificate or secret**.
+7. Under the default **Client Secrets (0)** tab, click on **+ New client secret**.
+8. Enter a **Description** (we suggest **YellowDog**), and choose an **Expiry** period or date using the drop-down menu. Click on **Add**.
+9. Make a note of the **Value** of the secret; this will only be shown once.
+10. Navigate to your Subscription (usually called **Azure subscription 1** by default), by typing **Subscriptions** in the Azure Portal search bar. Make a note of the **Subscription ID**.
+11. In the left hand menu, click on **Access control (IAM)**, and click on **Role assignments** in the horizontal tabs.
+12. Click on **+ Add** and select **Add role assignment**.
+13. Click on **Privileged adminstrator roles** and select the **Contributor** role. Click on **Next**.
+14. Click on **Select members** and type **yellowdog-app** into the **Search by name or email address** search box.
+15. Select **yellowdog-app** and click on **Select**.
+16. Click on **Next** then **Review and assign**.
+
+Your Azure account is now prepared for use with YellowDog.
+
+Cloud Wizard requires the following environment variables to be set in order to be able to access your Azure account:
+
+```
+AZURE_SUBSCRIPTION_ID=<Use the 'Subscription ID' recorded above>
+AZURE_TENANT_ID=<Use the 'Directory (tenant) ID' recorded above>
+AZURE_CLIENT_ID=<Use the 'Application (client) ID' recorded above>
+AZURE_CLIENT_SECRET=<Use the client secret 'value' recorded above>
+```
+
+Please treat the `AZURE_CLIENT_SECRET` **very securely** -- it allows full access to your Azure account.
+
+## Quickstart Guide (Azure)
+
+### Creation
+
+Run the Cloud Wizard setup command:
+
+```commandline
+yd-cloudwizard --cloud-provider=azure setup
+```
+
+The command will present a list of Azure regions, allowing you to choose which regions you'd like to use with YellowDog: 
+
+```commandline
+2024-01-16 11:34:24 : Please select the Azure regions in which to create resource groups and network resources.
+2024-01-16 11:34:24 : *** Note that only the following region(s) contain YellowDog base VM images: ['northeurope'] ***
+2024-01-16 11:34:24 : Displaying matching region(s):
+
+    ┌─────┬────────────────────┐
+    │   # │ Name               │
+    ├─────┼────────────────────┤
+    │   1 │ australiacentral   │
+    ...
+    │  27 │ northcentralus     │
+    │  28 │ northeurope        │
+    ...
+    │  48 │ westus             │
+    │  49 │ westus2            │
+    │  50 │ westus3            │
+    └─────┴────────────────────┘
+
+2024-01-16 11:34:24 : Please select items (e.g.: 1,2,4-7 / *):
+```
+
+Enter the numbers of the regions you'd like to enable and hit return. Note that only the **northeurope** region is supplied with YellowDog base VM images.
+
+Cloud Wizard will then proceed to create resources in each selected Azure region. It will create two YellowDog Compute Source templates for each selected Availability Zone, one for on-demand VMs, one for spot VMs. The command will also create a small selection of Compute Requirement Templates that make use of the Source Templates. All templates created have the prefix `cloudwizard-azure`.
+
+The resources that were created can be inspected in JSON format in the file `cloudwizard-azure-yellowdog-resources.json`.
+
+The Compute Requirement Templates are then available for use in YellowDog provisioning requests via the YellowDog API; note that an `Images ID` must be supplied.
+
+At the conclusion of a successful setup, the command will display the YellowDog Keyring name and password. This password will not be displayed again, and is required to claim access to the Keyring on behalf of your YellowDog Portal user account, allowing you to control Azure resources via the Portal.
+
+### Removal
+
+The Azure account settings and resources and the YellowDog resources that were created by Cloud Wizard can be entirely removed using the `teardown` operation:
+
+```commandline
+yd-cloudwizard --cloud-provider=azure teardown
+```
+
+All destructive operations will require user confirmation; to avoid this, use the `--yes`/`-y` command line option.
+
+## Details of Operation: Azure
+
+### Cloud Wizard Setup
+
+The Cloud Wizard command is run using: `yd-cloudwizard --cloud-provider=azure setup`.
+
+Run the command with the `--help`/`-h` option to see the available options.
+
+#### Azure Account Setup
+
+In each selected Azure region, Cloud Wizard performs the following operations:
+
+1. It creates a resource group named **yellowdog-cloudwizard-rg-<region_name>**.
+2. Within this resource group it creates a Virtual Network named **yellowdog-cloudwizard-vnet-<region_name>**.
+3. It creates a Network Security Group named **yellowdog-cloudwizard-secgrp-<region_name>** within the resource group.
+4. It creates a rule within the Network Security Group that allows outbound HTTPS access. This is required to allow the YellowDog Agent to connect to the YellowDog Platform.
+5. It creates a Subnet within the resource group Virtual Network, associating it with the Network Security Group above.
+
+The **subnets** are provided with a route to a gateway which allows instances to make outbound connections to the Internet. However, no NAT gateway is provided (this is a separately chargeable Azureservice), so instances must have public IP addresses to connect to the Internet and specifically to connect back to the YellowDog Platform.
+
+In addition, Cloud Wizard will:
+
+1. Create a storage account named **yellowdogcw<your_yellowdog_account_id>** in the **northeurope** region, and captures the storage account key.
+2. Create a storage BLOB called **yellowdog-cloudwizard-namespace-storage-config** within the storage account.
+
+#### YellowDog Platform Setup
+
+Cloud Wizard performs the following actions in your YellowDog Platform account:
+
+1. It creates a YellowDog Keyring called `cloudwizard-azure`. The Keyring name and password are displayed at the end of the Cloud Wizard setup process, and the password will not be displayed again. The Keyring name and password are required for your YellowDog Portal user account to be able to claim the Keyring, and use the credential(s) it contains via the Portal.
+
+
+2. It creates Credentials called `cloudwizard-azure` and `cloudwizard-azure-storage` contained within the `cloudwizard-azure` Keyring.
+
+
+3. It creates a range of Compute Source Templates, two for each selected Azure region, one for **on-demand** instances and the other for **spot** instances. Each source is given a name with the following pattern: `cloudwizard-azure-northeurope-ondemand`. Instances will use the `cloudwizard-azure/cloudwizard-azure` Credential. Instances will be created with public IP addresses, to permit outbound Internet access. The instance type and Images ID are left as `any`, to be set at higher levels.
+
+
+4. It creates a small range of example Compute Requirement Templates that use the sources above. There are two **static waterfall** provisioning strategy examples, one containing all the on-demand sources, the other containing all the spot sources. Two equivalent templates are created for the **static split** provisioning strategy. All of these templates specify the `Standard_A1_v2` Azure instance type. In addition, an example **dynamic** template is created that will be constrained to Azure instances with 4GB of memory or greater, ordered by lowest cost first. In all cases, no `Images Id` is specified, so this must be supplied at the time of instance provisioning. Each template is given a name such as: `cloudwizard-azure-split-ondemand` or `cloudwizard-azure-dynamic-waterfall-lowestcost`. Note that the default instance type can be overridden using the `--instance-type` command line option when running Cloud Wizard.
+
+
+5. The Compute Source Template and Compute Requirement Template definitions are saved in a JSON resource specification file called `cloudwizard-azure-yellowdog-resources.json`. This file can be edited (for example, to change the instance types), and used with the `yd-create` command for to update the resources.
+
+6. It creates a Namespace configuration, which maps the YellowDog namespace `cloudwizard-azure` into the Azure storage BLOB  `yellowdog-cloudwizard-namespace-storage-config`, using the Credential `cloudwizard-azure/cloudwizard-azure-storage`.
+
+### Cloud Wizard Teardown
+
+All settings and resources created by Cloud Wizard can be removed using `yd-cloudwizard --cloud-provider=azure teardown`. All destructive steps will require user confirmation unless the `--yes`/`-y` option is used.
+
+The following actions are taken in the **YellowDog account**:
+
+1. All Compute Source Templates and Compute Requirement Templates with names starting with `cloudwizard-azure` are removed.
+2. The `cloudwizard-azure` Keyring is removed.
+3. The `cloudwizard-azure` Namespace configuration is removed.
+
+In the **Azure account**, all resource groups with names starting with **yellowdog-cloudwizard-rg-** are removed. This will remove all resources contained within these resource groups. Note that this action is asynchronous, so it might take a few minutes after the Cloud Wizard script has ended for Azure to conclude its deletions.
+
+### Idempotency
+
+In general, it's safe to invoke Cloud Wizard multiple times for both setup and teardown operations. Depending on the setting/resource it will be ignored if present, or the user will be asked to confirm deletion/replacement.
+
+If there are multiple invocations of `setup` the Compute Source and Compute Requirement templates will be updated, and may differ in their contents if different regions are selected during each invocation, and the resource specification JSON file will be overwritten. No resource groups will be deleted as part of a `setup` operation.

@@ -755,7 +755,10 @@ class CLIParser:
                 required=True,
                 metavar="<name of cloud provider>",
                 type=str,
-                help="the name of the cloud provider (AWS, GCP currently supported)",
+                help=(
+                    "the name of the cloud provider (AWS, GCP, Azure are currently"
+                    " supported)"
+                ),
             )
             parser.add_argument(
                 "--credentials-file",

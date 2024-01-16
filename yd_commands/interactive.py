@@ -32,11 +32,11 @@ def select(
     client: PlatformClient,
     objects: List[Union[Item, str]],
     object_type_name: Optional[str] = None,
-    parent: Optional[Item] = None,
     override_quiet: bool = False,
     single_result: bool = False,
     showing_all: bool = False,
-    force_interactive=False,
+    force_interactive: bool = False,
+    result_required: bool = False,
 ) -> List[Item]:
     """
     Print a numbered list of objects.
@@ -69,12 +69,11 @@ def select(
             return False
 
     while True:
+        cancel_string = "" if result_required else " or press <Return> to cancel"
         input_string = (
-            "Please select an item number or press <Return> to cancel:"
+            f"Please select an item number{cancel_string}:"
             if single_result
-            else (
-                "Please select items (e.g.: 1,2,4-7 / *) or press <Return> to cancel:"
-            )
+            else (f"Please select items (e.g.: 1,2,4-7 / *){cancel_string}:")
         )
         selector_string = CONSOLE.input(print_string(input_string) + " ")
         if selector_string == "":  # A quirk of Rich?
@@ -108,9 +107,12 @@ def select(
                 error_flag = True
         if error_flag:
             continue
-        elif len(selector_set) == 0:
-            break
-        elif single_result and len(selector_set) != 1:
+        if len(selector_set) == 0:
+            if result_required:
+                continue
+            else:
+                break
+        if single_result and len(selector_set) != 1:
             print_error("please enter a single item number")
             continue
         else:

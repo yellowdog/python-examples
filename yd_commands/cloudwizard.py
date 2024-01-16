@@ -5,6 +5,7 @@ Cloud Wizard: cloud provider and YellowDog account setup.
 """
 
 from yd_commands.aws_cloudwizard import AWSConfig
+from yd_commands.azure_cloudwizard import AzureConfig
 from yd_commands.gcp_cloudwizard import GCPConfig
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
@@ -36,11 +37,13 @@ def main():
             client=CLIENT,
             instance_type=ARGS_PARSER.instance_type,
         )
+    elif ARGS_PARSER.cloud_provider.lower() in ["azure", "microsoft"]:
+        print_log(f"YellowDog automated cloud provider setup/teardown for 'Azure'")
+        cloud_provider_config = AzureConfig(
+            client=CLIENT,
+            instance_type=ARGS_PARSER.instance_type,
+        )
     elif ARGS_PARSER.cloud_provider.lower() in [
-        "gcp",
-        "google",
-        "azure",
-        "microsoft",
         "oci",
         "oracle",
         "alibaba",

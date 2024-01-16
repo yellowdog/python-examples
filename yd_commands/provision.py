@@ -260,7 +260,8 @@ def create_worker_pool_from_toml():
 
     if get_ydid_type(CONFIG_WP.template_id) != YDIDType.CR_TEMPLATE:
         raise Exception(
-            f"Not a valid Compute Requirement Template ID: '{CONFIG_WP.template_id}'"
+            "Not a valid Compute Requirement Template ID or name:"
+            f" '{CONFIG_WP.template_id}'"
         )
 
     # Allow the Image Family name to be used instead of ID
