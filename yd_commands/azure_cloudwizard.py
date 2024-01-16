@@ -607,7 +607,7 @@ class AzureConfig(CommonCloudConfig):
         self, keyring_name: str, credential_name: str
     ) -> Dict:
         """
-        Generate an Azure Credential resource definition.
+        Generate an Azure Storage Credential resource definition.
         """
         return {
             "resource": "Credential",
