@@ -51,6 +51,19 @@ AZURE_YD_IMAGE_REGIONS = [
     "northeurope",
 ]
 
+# Known not to work -- cannot create required resource types
+AZURE_YD_EXCLUDED_REGIONS = [
+    # "australiacentral2",
+    # "brazilsoutheast",
+    # "brazilus",
+    # "francesouth",
+    # "germanynorth",
+    # "jioindiacentral",
+    # "jioindiawest",
+    # "norwaywest",
+    # "southafricawest",
+]
+
 
 class AzureConfig(CommonCloudConfig):
     """
@@ -88,6 +101,7 @@ class AzureConfig(CommonCloudConfig):
             YD_DEFAULT_INSTANCE_TYPE if instance_type is None else instance_type
         )
         self._selected_regions: List[str] = []
+        self._created_regions: List[str] = []
         self._resource_groups: List[str] = []
         self._subscription_id = environ[AZURE_SUBSCRIPTION_ID]
         self._resource_client = ResourceManagementClient(
@@ -133,7 +147,11 @@ class AzureConfig(CommonCloudConfig):
         print_log("Creating YellowDog resources in the Azure account")
         print_log(
             "Please select the Azure regions in which to create resource groups and"
-            " network resources."
+            " network resources"
+        )
+        print_log(
+            "Excluding the following region(s) known not to work:"
+            f" {AZURE_YD_EXCLUDED_REGIONS}"
         )
         print_log(
             "*** Note that only the following region(s) contain"
@@ -182,6 +200,7 @@ class AzureConfig(CommonCloudConfig):
                 if self._resource_client.resource_groups.check_existence(rg_name):
                     print_warning(f"Azure resource group '{rg_name}' already exists")
                     self._resource_groups.append(rg_name)
+                    self._created_regions.append(region)
                     if region == self._storage_region and storage_region_added:
                         print_log(resource_group_added_msg)
                         continue
@@ -201,6 +220,7 @@ class AzureConfig(CommonCloudConfig):
                 rg_result = self._resource_client.resource_groups.create_or_update(
                     rg_name, {"location": region}
                 )
+                self._created_regions.append(region)
                 self._resource_groups.append(rg_name)
                 print_log(
                     f"Created (or updated) Azure resource group '{rg_result.name}' in"
@@ -213,10 +233,16 @@ class AzureConfig(CommonCloudConfig):
                     resource_group_name=rg_name, region=region
                 )
             except Exception as e:
-                print_error(
-                    f"Failed to create Azure resource group '{rg_name}' in region"
-                    f" '{region}': {e}"
-                )
+                if "LocationNotAvailable" in str(e) or "DisallowedLocation" in str(e):
+                    print_warning(
+                        f"Region '{region}' is not available for Resource Group"
+                        " creation; excluding this region"
+                    )
+                else:
+                    print_error(
+                        f"Failed to create Azure resource group '{rg_name}' in region"
+                        f" '{region}': {e}"
+                    )
                 continue
 
     def _remove_resource_groups(self):
@@ -364,7 +390,7 @@ class AzureConfig(CommonCloudConfig):
         """
         print_log("Creating Azure resources in the YellowDog account")
 
-        for region in self._selected_regions:
+        for region in self._created_regions:
             name = f"{YD_RESOURCE_PREFIX}-{region}-ondemand"
             self._source_template_resources.append(
                 self._generate_azure_compute_source_template(
@@ -708,9 +734,12 @@ class AzureConfig(CommonCloudConfig):
         Generate the list of regions supported by this subscription.
         """
         try:
-            locations = self._subscription_client.subscriptions.list_locations(
-                self._subscription_id
-            )
-            return [location.name for location in locations]
+            return [
+                location.name
+                for location in self._subscription_client.subscriptions.list_locations(
+                    self._subscription_id
+                )
+                if location.name not in AZURE_YD_EXCLUDED_REGIONS
+            ]
         except Exception as e:
             raise Exception(f"Unable to obtain list of Azure regions: {e}")
