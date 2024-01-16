@@ -201,10 +201,12 @@ class AzureConfig(CommonCloudConfig):
                     if region == self._storage_region and storage_region_added:
                         print_log(resource_group_added_msg)
                         continue
-                    self._created_regions.append(region)
-                    self._create_network_resources(
+                    if self._create_network_resources(
                         resource_group_name=rg_name, region=region
-                    )
+                    ):
+                        self._created_regions.append(region)
+                    else:
+                        self._remove_resource_group_by_name(rg_name)
                     continue
             except Exception as e:
                 print_warning(
@@ -225,10 +227,12 @@ class AzureConfig(CommonCloudConfig):
                 if region == self._storage_region and storage_region_added:
                     print_log(resource_group_added_msg)
                     continue
-                self._created_regions.append(region)
-                self._create_network_resources(
+                if self._create_network_resources(
                     resource_group_name=rg_name, region=region
-                )
+                ):
+                    self._created_regions.append(region)
+                else:
+                    self._remove_resource_group_by_name(rg_name)
             except Exception as e:
                 if "LocationNotAvailable" in str(e):
                     print_warning(
@@ -239,6 +243,11 @@ class AzureConfig(CommonCloudConfig):
                     print_warning(
                         f"Region '{region}' is disallowed for Resource Group"
                         " creation; excluding this region"
+                    )
+                elif "ResourceGroupBeingDeleted" in str(e):
+                    print_warning(
+                        f"Existing Resource Group '{rg_name}' is in the process of"
+                        " being deleted; please try again later"
                     )
                 else:
                     print_error(
@@ -272,10 +281,17 @@ class AzureConfig(CommonCloudConfig):
                         )
                         count += 1
                     except Exception as e:
-                        print_error(
-                            "Unable to delete Azure resource group"
-                            f" '{resource_group.name}': {e}"
-                        )
+                        if "ResourceGroupNotFound" in str(e):
+                            print_warning(
+                                f"Resource Group '{resource_group.name}' not found; it"
+                                " may have already been in the process of being"
+                                " deleted"
+                            )
+                        else:
+                            print_error(
+                                "Unable to delete Azure resource group"
+                                f" '{resource_group.name}': {e}"
+                            )
                         continue
 
         if count == 0:
@@ -283,10 +299,41 @@ class AzureConfig(CommonCloudConfig):
         else:
             print_log(f"{count} Azure resource group(s) deleted")
 
+    def _remove_resource_group_by_name(self, rg_name: str):
+        """
+        Remove a resource group by its name.
+        """
+        try:
+            self._resource_client.resource_groups.begin_delete(rg_name)
+            print_log(f"Requested deletion of Azure resource group '{rg_name}'")
+        except:
+            print_warning(f"Unable to delete Azure resource group '{rg_name}'")
+
     def _create_network_resources(self, resource_group_name: str, region: str):
         """
         Create a virtual network and subnet in a resource group in a region.
         """
+
+        def _location_not_available_for_resource_type(
+            e: Exception, resource_name: str
+        ) -> bool:
+            if "LocationNotAvailableForResourceType" in str(e):
+                print_warning(
+                    f"Location '{region}' is not available for creation of resource"
+                    f" '{resource_name}'; excluding this region"
+                )
+                return True
+            return False
+
+        def _resource_group_being_deleted(e: Exception, resource_name: str) -> bool:
+            if "ResourceGroupBeingDeleted" in str(e):
+                print_warning(
+                    f"Resource Group '{resource_group_name}' is in the process of being"
+                    f" deleted; resource '{resource_name}' cannot be created"
+                )
+                return True
+            return False
+
         vnet_name = self._generate_vnet_name(region)
         address_prefixes = [ADDRESS_PREFIX]
         try:
@@ -303,8 +350,13 @@ class AzureConfig(CommonCloudConfig):
                 f" prefixes {address_prefixes}"
             )
         except Exception as e:
-            print_error(f"Failed to create Azure virtual network '{vnet_name}': {e}")
-            return
+            if _location_not_available_for_resource_type(e, vnet_name):
+                return False
+            if not _resource_group_being_deleted(e, vnet_name):
+                print_error(
+                    f"Failed to create Azure virtual network '{vnet_name}': {e}"
+                )
+            return False
 
         # Create network security group
         security_group_name = self._generate_security_group_name(region)
@@ -321,19 +373,23 @@ class AzureConfig(CommonCloudConfig):
                 f" '{security_group_name}'"
             )
         except Exception as e:
-            print_error(
-                "Unable to create Azure network security group"
-                f" '{security_group_name}': {e}"
-            )
-            return
+            if _location_not_available_for_resource_type(e, security_group_name):
+                return False
+            if not _resource_group_being_deleted(e, security_group_name):
+                print_error(
+                    "Unable to create Azure network security group"
+                    f" '{security_group_name}': {e}"
+                )
+            return False
 
         # Add an outbound HTTPS rule to allow the Agent to reach the platform
         address_prefix = ADDRESS_PREFIX
+        security_rule_name = "https-outbound-rule"
         try:
             self._network_client.security_rules.begin_create_or_update(
                 resource_group_name=resource_group_name,
                 network_security_group_name=security_group_name,
-                security_rule_name="https-outbound",
+                security_rule_name=security_rule_name,
                 security_rule_parameters={
                     "properties": {
                         "access": "Allow",
@@ -352,10 +408,14 @@ class AzureConfig(CommonCloudConfig):
                 f" '{security_group_name}'"
             )
         except Exception as e:
-            print_error(
-                "Unable to add outbound HTTPS rule to Azure security group"
-                f" '{security_group_name}': {e}"
-            )
+            if _location_not_available_for_resource_type(e, security_rule_name):
+                return False
+            if not _resource_group_being_deleted(e, security_rule_name):
+                print_error(
+                    "Unable to add outbound HTTPS rule to Azure security group"
+                    f" '{security_group_name}': {e}"
+                )
+            return False
 
         # Create subnet and associate the security group
         subnet_name = self._generate_subnet_name(region)
@@ -383,8 +443,13 @@ class AzureConfig(CommonCloudConfig):
                 f" '{address_prefix}'"
             )
         except Exception as e:
-            print_error(f"Failed to create Azure subnet '{subnet_name}': {e}")
-            return
+            if _location_not_available_for_resource_type(e, subnet_name):
+                return False
+            if not _resource_group_being_deleted(e, subnet_name):
+                print_error(f"Failed to create Azure subnet '{subnet_name}': {e}")
+            return False
+
+        return True
 
     def _create_yellowdog_resources(self):
         """
