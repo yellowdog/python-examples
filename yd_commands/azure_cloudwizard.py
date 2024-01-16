@@ -51,19 +51,6 @@ AZURE_YD_IMAGE_REGIONS = [
     "northeurope",
 ]
 
-# Known not to work -- cannot create required resource types
-AZURE_YD_EXCLUDED_REGIONS = [
-    # "australiacentral2",
-    # "brazilsoutheast",
-    # "brazilus",
-    # "francesouth",
-    # "germanynorth",
-    # "jioindiacentral",
-    # "jioindiawest",
-    # "norwaywest",
-    # "southafricawest",
-]
-
 
 class AzureConfig(CommonCloudConfig):
     """
@@ -147,10 +134,6 @@ class AzureConfig(CommonCloudConfig):
         print_log(
             "Please select the Azure regions in which to create resource groups and"
             " network resources"
-        )
-        print_log(
-            "Excluding the following region(s) known not to work:"
-            f" {AZURE_YD_EXCLUDED_REGIONS}"
         )
         print_log(
             "*** Note that only the following region(s) contain"
@@ -806,7 +789,6 @@ class AzureConfig(CommonCloudConfig):
                 for location in self._subscription_client.subscriptions.list_locations(
                     self._subscription_id
                 )
-                if location.name not in AZURE_YD_EXCLUDED_REGIONS
             ]
         except Exception as e:
             raise Exception(f"Unable to obtain list of Azure regions: {e}")
