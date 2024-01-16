@@ -346,7 +346,7 @@ If there are multiple invocations of `setup`, then the AWS access key and Yellow
 
 ## Azure Account Prequisites
 
-You'll need an Azure account, a Service Principal created within the account, a client secret created for the service principal, and the Contributor role applied to the Service Principal.
+You'll need an Azure account, a Service Principal created within the account, a client secret created for the Service Principal, and the Contributor role applied to the Service Principal.
 
 ### Azure Service Principal Setup Steps
 
@@ -371,7 +371,7 @@ Please see the article [Create a Microsoft Entra application and service princip
 
 Your Azure account is now prepared for use with YellowDog.
 
-Cloud Wizard requires the following environment variables to be set in order to be able to access your Azure account:
+Cloud Wizard requires the following environment variables to be set in order to access your Azure account:
 
 ```
 AZURE_SUBSCRIPTION_ID=<Use the 'Subscription ID' recorded above>
