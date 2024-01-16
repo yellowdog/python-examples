@@ -166,11 +166,6 @@ class AzureConfig(CommonCloudConfig):
         if self._storage_region not in regions:
             regions.append(self._storage_region)
             storage_region_added = True
-            rg_name = self._generate_resource_group_name(self._storage_region)
-            resource_group_added_msg = (
-                f"Note: Resource group '{rg_name}' is added in order to contain the"
-                " Azure storage account"
-            )
         else:
             storage_region_added = False
 
@@ -180,10 +175,9 @@ class AzureConfig(CommonCloudConfig):
             # Does the resource group already exist?
             try:
                 if self._resource_client.resource_groups.check_existence(rg_name):
-                    print_warning(f"Azure resource group '{rg_name}' already exists")
                     if region == self._storage_region and storage_region_added:
-                        print_log(resource_group_added_msg)
                         continue
+                    print_warning(f"Azure resource group '{rg_name}' already exists")
                     if self._create_network_resources(
                         resource_group_name=rg_name, region=region
                     ):
@@ -208,7 +202,10 @@ class AzureConfig(CommonCloudConfig):
                     f" region '{rg_result.location}'"
                 )
                 if region == self._storage_region and storage_region_added:
-                    print_log(resource_group_added_msg)
+                    print_log(
+                        f"Note: Resource group '{rg_name}' is automatically created to"
+                        " contain the Azure storage account"
+                    )
                     continue
                 if self._create_network_resources(
                     resource_group_name=rg_name, region=region
@@ -216,6 +213,7 @@ class AzureConfig(CommonCloudConfig):
                     self._created_regions.append(region)
                 else:
                     self._remove_resource_group_by_name(rg_name)
+
             except Exception as e:
                 if "LocationNotAvailable" in str(e):
                     print_warning(
@@ -312,7 +310,8 @@ class AzureConfig(CommonCloudConfig):
             if "ResourceGroupBeingDeleted" in str(e):
                 print_warning(
                     f"Resource Group '{resource_group_name}' is in the process of being"
-                    f" deleted; resource '{resource_name}' cannot be created"
+                    f" deleted and resource '{resource_name}' cannot be created;"
+                    " excluding this region"
                 )
                 return True
             return False
