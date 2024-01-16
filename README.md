@@ -25,7 +25,7 @@
    * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
-         * [Obtaining Names from Environment Variables at Task Run Time](#obtaining-names-from-environment-variables-at-task-run-time)
+         * [Obtaining Names/Context from Environment Variables at Task Run Time](#obtaining-namescontext-from-environment-variables-at-task-run-time)
       * [Task Types](#task-types)
          * [Bash, Python, PowerShell and cmd/bat Tasks](#bash-python-powershell-and-cmdbat-tasks)
          * [Docker Tasks](#docker-tasks)
@@ -109,7 +109,7 @@
    * [yd-follow](#yd-follow)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Nov  3 11:56:28 GMT 2023 -->
+<!-- Added by: pwt, at: Tue Jan 16 12:52:52 GMT 2024 -->
 
 <!--te-->
 
@@ -1723,7 +1723,7 @@ However, in the case of Compute Source Templates and Compute Requirement Templat
 - In `yd-create` operations, all Compute Source Templates will be created/updated before any Compute Requirement Templates, and all Keyrings will be created/updated before any Credentials
 - In `yd-remove` operations, all Compute Requirement Templates will be removed before any Compute Source Templates, and all Credentials will be removed before any Keyrings
 
-This is for ease of use, because Compute Requirement Template creation depends on the existence Compute Source Templates, Compute Source Template removal can only proceed if they're not referenced by any Compute Requirment Templates, and because Keyrings must exist before Credentials can be added.
+This is for ease of use, because (1) Compute Requirement Template creation can depend on the existence of Compute Source Templates, (2) Compute Source Template removal can only proceed if they're not referenced by any Compute Requirment Templates, and (3) because Keyrings must exist before Credentials can be added.
 
 Resource specification files can use **variable substitutions** just as in the case of Work Requirements.
 

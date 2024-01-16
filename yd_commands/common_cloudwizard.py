@@ -315,7 +315,7 @@ class CommonCloudConfig(ABC):
             keyring, self._keyring_password = create_keyring_via_api(
                 keyring_name, keyring_resource["description"]
             )
-            print_log(f"Created Keyring '{keyring_name}' ({keyring.id})")
+            print_log(f"Created YellowDog Keyring '{keyring_name}' ({keyring.id})")
             self._keyring_name = keyring_name
         except Exception as e:
             if "A keyring already exists" in str(e):

@@ -179,7 +179,7 @@ class AWSConfig(CommonCloudConfig):
         """
         Add or remove SSH ingress for all relevant security groups.
         A list of regions can be supplied as an argument.
-        The 'operation' argument must be 'add' or 'remove'.
+        The 'operation' argument must be 'add-ssh' or 'remove-ssh'.
         """
         ssh_ipv4_ingress_rule = [{
             "IpProtocol": "tcp",
