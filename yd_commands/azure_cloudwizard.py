@@ -102,7 +102,6 @@ class AzureConfig(CommonCloudConfig):
         )
         self._selected_regions: List[str] = []
         self._created_regions: List[str] = []
-        self._resource_groups: List[str] = []
         self._subscription_id = environ[AZURE_SUBSCRIPTION_ID]
         self._resource_client = ResourceManagementClient(
             self._credential, self._subscription_id
@@ -199,11 +198,10 @@ class AzureConfig(CommonCloudConfig):
             try:
                 if self._resource_client.resource_groups.check_existence(rg_name):
                     print_warning(f"Azure resource group '{rg_name}' already exists")
-                    self._resource_groups.append(rg_name)
-                    self._created_regions.append(region)
                     if region == self._storage_region and storage_region_added:
                         print_log(resource_group_added_msg)
                         continue
+                    self._created_regions.append(region)
                     self._create_network_resources(
                         resource_group_name=rg_name, region=region
                     )
@@ -220,8 +218,6 @@ class AzureConfig(CommonCloudConfig):
                 rg_result = self._resource_client.resource_groups.create_or_update(
                     rg_name, {"location": region}
                 )
-                self._created_regions.append(region)
-                self._resource_groups.append(rg_name)
                 print_log(
                     f"Created (or updated) Azure resource group '{rg_result.name}' in"
                     f" region '{rg_result.location}'"
@@ -229,13 +225,19 @@ class AzureConfig(CommonCloudConfig):
                 if region == self._storage_region and storage_region_added:
                     print_log(resource_group_added_msg)
                     continue
+                self._created_regions.append(region)
                 self._create_network_resources(
                     resource_group_name=rg_name, region=region
                 )
             except Exception as e:
-                if "LocationNotAvailable" in str(e) or "DisallowedLocation" in str(e):
+                if "LocationNotAvailable" in str(e):
                     print_warning(
                         f"Region '{region}' is not available for Resource Group"
+                        " creation; excluding this region"
+                    )
+                elif "DisallowedLocation" in str(e):
+                    print_warning(
+                        f"Region '{region}' is disallowed for Resource Group"
                         " creation; excluding this region"
                     )
                 else:
