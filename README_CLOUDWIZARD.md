@@ -183,7 +183,7 @@ Cloud Wizard performs the following actions in your YellowDog Platform account:
 
 5. The Compute Source Template and Compute Requirement Template definitions are saved in a JSON resource specification file called `cloudwizard-gcp-yellowdog-resources.json`. This file can be edited (for example, to change the instance types), and used with the `yd-create` command to update the resources.
 
-6. It creates a Namespace configuration, which maps the YellowDog namespace `cloudwizard-gcp` into the S3 storage bucket `yellowdog-cloudwizard-<your_project_name>`.
+6. It creates a Namespace configuration, which maps the YellowDog namespace `cloudwizard-gcp` into the storage bucket `yellowdog-cloudwizard-<your_project_name>`.
 
 ###  Cloud Wizard Teardown
 
@@ -197,7 +197,7 @@ The following actions are taken in the **YellowDog account**:
 
 The following actions are taken in the **GCP account**:
 
-1. The S3 bucket `yellowdog-cloudwizard-<your_project_name>` is emptied of objects, and removed.
+1. The storage bucket `yellowdog-cloudwizard-<your_project_name>` is emptied of objects, and removed.
 
 ### Idempotency
 
@@ -389,7 +389,7 @@ Cloud Wizard requires the following environment variables to be set in order to 
 AZURE_SUBSCRIPTION_ID=<Use the 'Subscription ID' recorded above>
 AZURE_TENANT_ID=<Use the 'Directory (tenant) ID' recorded above>
 AZURE_CLIENT_ID=<Use the 'Application (client) ID' recorded above>
-AZURE_CLIENT_SECRET=<Use the client secret 'value' recorded above>
+AZURE_CLIENT_SECRET=<Use the client secret 'Value' recorded above>
 ```
 
 Please treat the `AZURE_CLIENT_SECRET` **very securely** -- it allows full access to your Azure account.
@@ -429,13 +429,13 @@ The command will present a list of Azure regions, allowing you to choose which r
 
 Enter the numbers of the regions you'd like to enable and hit return. Note that only the **northeurope** region is supplied with YellowDog base VM images.
 
-Cloud Wizard will then proceed to create resources in each selected Azure region. It will create two YellowDog Compute Source templates for each selected Availability Zone, one for on-demand VMs, one for spot VMs. The command will also create a small selection of Compute Requirement Templates that make use of the Source Templates. All templates created have the prefix `cloudwizard-azure`.
+Cloud Wizard will then proceed to create various resources for each selected Azure region, in the Azure account. Then, it will create a YellowDog Keyring and Credentials, and two YellowDog Compute Source templates for each selected Availability Zone, one for on-demand VMs, one for spot VMs. The command will also create a small selection of Compute Requirement Templates that make use of the Source Templates. All templates created have the prefix `cloudwizard-azure`.
 
 The resources that were created can be inspected in JSON format in the file `cloudwizard-azure-yellowdog-resources.json`.
 
 The Compute Requirement Templates are then available for use in YellowDog provisioning requests via the YellowDog API; note that an `Images ID` must be supplied.
 
-At the conclusion of a successful setup, the command will display the YellowDog Keyring name and password. This password will not be displayed again, and is required to claim access to the Keyring on behalf of your YellowDog Portal user account, allowing you to control Azure resources via the Portal.
+At the conclusion of a successful setup, the command will display the YellowDog **Keyring name and password**. This password will not be displayed again, and is required to claim access to the Keyring on behalf of your YellowDog Portal user account, allowing you to control Azure resources via the Portal.
 
 ### Removal
 
@@ -462,14 +462,14 @@ In each selected Azure region, Cloud Wizard performs the following operations:
 1. It creates a resource group named **yellowdog-cloudwizard-rg-<region_name>**.
 2. Within this resource group it creates a Virtual Network named **yellowdog-cloudwizard-vnet-<region_name>**.
 3. It creates a Network Security Group named **yellowdog-cloudwizard-secgrp-<region_name>** within the resource group.
-4. It creates a rule within the Network Security Group that allows outbound HTTPS access. This is required to allow the YellowDog Agent to connect to the YellowDog Platform.
-5. It creates a Subnet within the resource group Virtual Network, associating it with the Network Security Group above.
+4. It creates a rule within the Network Security Group that allows **outbound HTTPS access**. This is required to allow the YellowDog Agent to connect to the YellowDog Platform.
+5. It creates a Subnet named **yellowdog-cloudwizard-subnet-<region_name>** within the resource group Virtual Network, associating it with the Network Security Group above.
 
-The **subnets** are provided with a route to a gateway which allows instances to make outbound connections to the Internet. However, no NAT gateway is provided (this is a separately chargeable Azureservice), so instances must have public IP addresses to connect to the Internet and specifically to connect back to the YellowDog Platform.
+The **subnets** are provided with a route to a gateway which allows instances to make outbound connections to the Internet. However, no NAT gateway is provided (this is a separately chargeable Azure service), so instances must have public IP addresses to connect to the Internet and specifically to connect back to the YellowDog Platform.
 
 In addition, Cloud Wizard will:
 
-1. Create a storage account named **yellowdogcw<your_yellowdog_account_id>** in the **northeurope** region, and captures the storage account key.
+1. Create a storage account named **yellowdogcw<your_yellowdog_account_id>** in the **northeurope** region, and capture the storage account key.
 2. Create a storage BLOB called **yellowdog-cloudwizard-namespace-storage-config** within the storage account.
 
 #### YellowDog Platform Setup
@@ -488,7 +488,7 @@ Cloud Wizard performs the following actions in your YellowDog Platform account:
 4. It creates a small range of example Compute Requirement Templates that use the sources above. There are two **static waterfall** provisioning strategy examples, one containing all the on-demand sources, the other containing all the spot sources. Two equivalent templates are created for the **static split** provisioning strategy. All of these templates specify the `Standard_A1_v2` Azure instance type. In addition, an example **dynamic** template is created that will be constrained to Azure instances with 4GB of memory or greater, ordered by lowest cost first. In all cases, no `Images Id` is specified, so this must be supplied at the time of instance provisioning. Each template is given a name such as: `cloudwizard-azure-split-ondemand` or `cloudwizard-azure-dynamic-waterfall-lowestcost`. Note that the default instance type can be overridden using the `--instance-type` command line option when running Cloud Wizard.
 
 
-5. The Compute Source Template and Compute Requirement Template definitions are saved in a JSON resource specification file called `cloudwizard-azure-yellowdog-resources.json`. This file can be edited (for example, to change the instance types), and used with the `yd-create` command for to update the resources.
+5. The Compute Source Template and Compute Requirement Template definitions are saved in a JSON resource specification file called `cloudwizard-azure-yellowdog-resources.json`. This file can be edited (for example, to change the instance types), and used with the `yd-create` command to update the resources.
 
 6. It creates a Namespace configuration, which maps the YellowDog namespace `cloudwizard-azure` into the Azure storage BLOB  `yellowdog-cloudwizard-namespace-storage-config`, using the Credential `cloudwizard-azure/cloudwizard-azure-storage`.
 

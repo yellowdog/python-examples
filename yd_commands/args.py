@@ -756,16 +756,19 @@ class CLIParser:
                 metavar="<name of cloud provider>",
                 type=str,
                 help=(
-                    "the name of the cloud provider (AWS, GCP, Azure are currently"
+                    "the name of the cloud provider (AWS, GCP, and Azure are currently"
                     " supported)"
                 ),
             )
             parser.add_argument(
                 "--credentials-file",
                 required=False,
-                metavar="<file-containing-cloud-provider-credentials>",
+                metavar="<file-containing-google-credentials>",
                 type=str,
-                help="the name of the file containing the cloud provider credentials",
+                help=(
+                    "the name of the file containing the cloud GCP credentials when"
+                    " using Cloud Wizard with GCP"
+                ),
             )
             parser.add_argument(
                 "--region-name",
@@ -773,7 +776,7 @@ class CLIParser:
                 required=False,
                 metavar="<cloud-provider-region-name>",
                 type=str,
-                help="the name of the primary cloud provider region to use",
+                help="specify the cloud provider region name for certain operations",
             )
             parser.add_argument(
                 "--instance-type",

@@ -33,7 +33,7 @@ from yd_commands.type_check import check_list, check_str
 from yd_commands.utils import pathname_relative_to_config_file
 from yd_commands.validate_properties import validate_properties
 from yd_commands.variables import (
-    add_substitutions,
+    add_substitutions_without_overwriting,
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions,
     process_variable_substitutions_insitu,
@@ -122,15 +122,15 @@ def load_config_common() -> ConfigCommon:
         # Note that add_substitutions() will perform all possible
         # substitutions for the items in its dictionary each time it's
         # called
-        add_substitutions(subs={URL: url})
+        add_substitutions_without_overwriting(subs={URL: url})
         key = process_variable_substitutions(common_section[KEY])
-        add_substitutions(subs={KEY: key})
+        add_substitutions_without_overwriting(subs={KEY: key})
         secret = process_variable_substitutions(common_section[SECRET])
-        add_substitutions(subs={SECRET: secret})
+        add_substitutions_without_overwriting(subs={SECRET: secret})
         namespace = process_variable_substitutions(common_section[NAMESPACE])
-        add_substitutions(subs={NAMESPACE: namespace})
+        add_substitutions_without_overwriting(subs={NAMESPACE: namespace})
         name_tag = process_variable_substitutions(common_section[NAME_TAG])
-        add_substitutions(subs={NAME_TAG: name_tag})
+        add_substitutions_without_overwriting(subs={NAME_TAG: name_tag})
 
         return ConfigCommon(
             # Required

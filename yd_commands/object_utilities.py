@@ -30,7 +30,7 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from yd_commands.aws_types import AWSAvailabilityZone
+from yd_commands.cloudwizard_aws_types import AWSAvailabilityZone
 
 
 @lru_cache()

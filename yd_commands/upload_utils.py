@@ -87,7 +87,7 @@ def upload_file_core(
     client: PlatformClient, url: str, local_file: str, namespace: str, remote_file: str
 ):
     """
-    Core object upload action, without upload pathname processing
+    Core object upload action, without upload pathname processing.
     """
     pathname = Path(local_file)
     if not pathname.is_file():

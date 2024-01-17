@@ -4,9 +4,9 @@
 Cloud Wizard: cloud provider and YellowDog account setup.
 """
 
-from yd_commands.aws_cloudwizard import AWSConfig
-from yd_commands.azure_cloudwizard import AzureConfig
-from yd_commands.gcp_cloudwizard import GCPConfig
+from yd_commands.cloudwizard_aws import AWSConfig
+from yd_commands.cloudwizard_azure import AzureConfig
+from yd_commands.cloudwizard_gcp import GCPConfig
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 
@@ -14,7 +14,7 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 @main_wrapper
 def main():
     """
-    Main dispatcher for cloud provider setup and teardown.
+    Main dispatcher for Cloud Wizard setup and teardown
     """
 
     if ARGS_PARSER.cloud_provider.lower() in ["aws", "amazon"]:
@@ -25,6 +25,7 @@ def main():
             show_secrets=ARGS_PARSER.show_secrets,
             instance_type=ARGS_PARSER.instance_type,
         )
+
     elif ARGS_PARSER.cloud_provider.lower() in ["gcp", "gce", "google"]:
         print_log(f"YellowDog automated cloud provider setup/teardown for 'GCP'")
         if ARGS_PARSER.credentials_file is None:
@@ -37,21 +38,25 @@ def main():
             client=CLIENT,
             instance_type=ARGS_PARSER.instance_type,
         )
+
     elif ARGS_PARSER.cloud_provider.lower() in ["azure", "microsoft"]:
         print_log(f"YellowDog automated cloud provider setup/teardown for 'Azure'")
         cloud_provider_config = AzureConfig(
             client=CLIENT,
             instance_type=ARGS_PARSER.instance_type,
         )
+
     elif ARGS_PARSER.cloud_provider.lower() in [
         "oci",
         "oracle",
         "alibaba",
     ]:
         print_warning(
-            f"Cloud provider '{ARGS_PARSER.cloud_provider}' not yet supported by setup"
+            f"Cloud provider '{ARGS_PARSER.cloud_provider}' is not yet supported by"
+            " Cloud Wizard"
         )
         return
+
     else:
         print_error(f"Unknown cloud provider '{ARGS_PARSER.cloud_provider}'")
         return

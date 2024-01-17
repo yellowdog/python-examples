@@ -81,8 +81,8 @@ from yd_commands.variables import (
     L_TASK_NAME,
     L_TASK_NUMBER,
     L_WR_NAME,
-    add_substitution_overwrite,
-    add_substitutions,
+    add_or_update_substitution,
+    add_substitutions_without_overwriting,
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
     load_toml_file_with_variable_substitutions,
@@ -250,7 +250,7 @@ def submit_work_requirement(
         wr_data.get(NAME, ID if CONFIG_WR.wr_name is None else CONFIG_WR.wr_name)
     )
     # Lazy substitution of the Work Requirement name, now it's defined
-    add_substitutions(subs={L_WR_NAME: ID})
+    add_substitutions_without_overwriting(subs={L_WR_NAME: ID})
     # Re-process substitutions in the CONFIG_WR object
     CONFIG_WR = update_config_work_requirement_object(CONFIG_WR)
     # Re-process substitutions in the wr_data dictionary
@@ -369,12 +369,12 @@ def create_task_group(
     )
 
     # Add lazy substitutions for use in any Task Group property
-    add_substitution_overwrite(L_TASK_COUNT, str(num_tasks))
-    add_substitution_overwrite(L_TASK_GROUP_NAME, task_group_name)
-    add_substitution_overwrite(
+    add_or_update_substitution(L_TASK_COUNT, str(num_tasks))
+    add_or_update_substitution(L_TASK_GROUP_NAME, task_group_name)
+    add_or_update_substitution(
         L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
     )
-    add_substitution_overwrite(L_TASK_GROUP_COUNT, str(num_task_groups))
+    add_or_update_substitution(L_TASK_GROUP_COUNT, str(num_task_groups))
     process_variable_substitutions_insitu(task_group_data)
     # Create a copy of global CONFIG_WR and apply lazy substitutions
     config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
@@ -560,12 +560,12 @@ def add_tasks_to_task_group(
         )
 
     # Add lazy substitutions for use in any Task property
-    add_substitution_overwrite(L_TASK_COUNT, str(num_tasks))
-    add_substitution_overwrite(L_TASK_GROUP_NAME, task_group.name)
-    add_substitution_overwrite(
+    add_or_update_substitution(L_TASK_COUNT, str(num_tasks))
+    add_or_update_substitution(L_TASK_GROUP_NAME, task_group.name)
+    add_or_update_substitution(
         L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
     )
-    add_substitution_overwrite(L_TASK_GROUP_COUNT, str(num_task_groups))
+    add_or_update_substitution(L_TASK_GROUP_COUNT, str(num_task_groups))
 
     # Iterate through batches
     for batch_number in range(num_task_batches):
@@ -594,8 +594,8 @@ def add_tasks_to_task_group(
                 )
             )
 
-            add_substitution_overwrite(L_TASK_NAME, str(task_name))
-            add_substitution_overwrite(
+            add_or_update_substitution(L_TASK_NAME, str(task_name))
+            add_or_update_substitution(
                 L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
             )
             process_variable_substitutions_insitu(task)
@@ -1282,7 +1282,7 @@ def submit_json_raw(wr_file: str):
     # Lazy substitution of Work Requirement name
     wr_data["name"] = format_yd_name(wr_data["name"])
     wr_name = wr_data["name"]
-    add_substitutions(subs={L_WR_NAME: wr_name})
+    add_substitutions_without_overwriting(subs={L_WR_NAME: wr_name})
     process_variable_substitutions_insitu(wr_data)
 
     if ARGS_PARSER.dry_run:

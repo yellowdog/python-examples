@@ -15,7 +15,7 @@ from azure.mgmt.subscription import SubscriptionClient
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import KeyringSummary
 
-from yd_commands.common_cloudwizard import CommonCloudConfig
+from yd_commands.cloudwizard_common import CommonCloudConfig
 from yd_commands.create import create_resources
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_error, print_log, print_warning
@@ -82,14 +82,19 @@ class AzureConfig(CommonCloudConfig):
             raise Exception(
                 "Required Azure credential environment variable(s) not set ... exiting"
             )
-        self._client_id = environ[AZURE_CLIENT_ID]
         self._credential = EnvironmentCredential()
+
         self._instance_type = (
             YD_DEFAULT_INSTANCE_TYPE if instance_type is None else instance_type
         )
+
+        self._all_regions: List[str] = []
         self._selected_regions: List[str] = []
         self._created_regions: List[str] = []
+
         self._subscription_id = environ[AZURE_SUBSCRIPTION_ID]
+
+        self._subscription_client = SubscriptionClient(self._credential)
         self._resource_client = ResourceManagementClient(
             self._credential, self._subscription_id
         )
@@ -102,9 +107,6 @@ class AzureConfig(CommonCloudConfig):
         self._storage_region: str = STORAGE_REGION
         self._storage_account_name: Optional[str] = None
         self._storage_account_key: Optional[StorageAccountKey] = None
-
-        self._subscription_client = SubscriptionClient(self._credential)
-        self._all_regions: List[str] = []
 
     def setup(self):
         """
@@ -147,7 +149,7 @@ class AzureConfig(CommonCloudConfig):
             override_quiet=True,
             result_required=True,
         )
-        self._create_resource_groups()
+        self._create_resource_groups_and_network_resources()
         self._create_storage_account_and_blob()
 
     def _remove_azure_resources(self):
@@ -157,7 +159,7 @@ class AzureConfig(CommonCloudConfig):
         print_log("Removing all YellowDog-created resources in the Azure account")
         self._remove_resource_groups()
 
-    def _create_resource_groups(self):
+    def _create_resource_groups_and_network_resources(self):
         """
         Create YellowDog Resource Groups in each selected region.
         """
@@ -666,7 +668,8 @@ class AzureConfig(CommonCloudConfig):
             "credential": {
                 "name": credential_name,
                 "description": (
-                    "Azure credential automatically created by YellowDog Cloud Wizard"
+                    "Azure client credential automatically created by YellowDog Cloud"
+                    " Wizard"
                 ),
                 "clientId": environ[AZURE_CLIENT_ID],
                 "tenantId": environ[AZURE_TENANT_ID],
@@ -720,7 +723,6 @@ class AzureConfig(CommonCloudConfig):
             print_error("The 'region-name' option must be specified")
             return
 
-        # Add an outbound HTTPS rule to allow the Agent to reach the platform
         address_prefix = ADDRESS_PREFIX
         resource_group_name = self._generate_resource_group_name(selected_region)
         security_group_name = self._generate_security_group_name(selected_region)
@@ -757,6 +759,7 @@ class AzureConfig(CommonCloudConfig):
                     "Unable to add inbound SSH rule to Azure security group"
                     f" '{security_group_name}': {e}"
                 )
+
         elif operation == "remove-ssh":
             print_log(
                 "Removing inbound SSH rule from Azure security group"

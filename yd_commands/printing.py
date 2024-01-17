@@ -48,7 +48,7 @@ from yellowdog_client.object_store.download import DownloadBatchBuilder
 from yellowdog_client.object_store.upload import UploadBatchBuilder
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.aws_types import AWSAvailabilityZone
+from yd_commands.cloudwizard_aws_types import AWSAvailabilityZone
 from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.id_utils import YDIDType
 from yd_commands.object_utilities import Item

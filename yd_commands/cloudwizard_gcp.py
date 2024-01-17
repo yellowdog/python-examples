@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 from google.oauth2.service_account import Credentials
 from yellowdog_client import PlatformClient
 
-from yd_commands.common_cloudwizard import CommonCloudConfig
+from yd_commands.cloudwizard_common import CommonCloudConfig
 from yd_commands.create import create_resources
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_error, print_log, print_warning

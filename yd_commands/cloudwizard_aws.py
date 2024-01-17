@@ -10,13 +10,13 @@ import boto3
 from botocore.exceptions import ClientError
 from yellowdog_client import PlatformClient
 
-from yd_commands.aws_types import (
+from yd_commands.cloudwizard_aws_types import (
     AWSAccessKey,
     AWSAvailabilityZone,
     AWSSecurityGroup,
     AWSUser,
 )
-from yd_commands.common_cloudwizard import CommonCloudConfig
+from yd_commands.cloudwizard_common import CommonCloudConfig
 from yd_commands.create import create_resources
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_error, print_log, print_warning

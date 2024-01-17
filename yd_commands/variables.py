@@ -83,7 +83,7 @@ if ARGS_PARSER.variables is not None:
             exit(1)  # Note: exception trap not yet in place
 
 
-def add_substitutions(subs: Dict):
+def add_substitutions_without_overwriting(subs: Dict):
     """
     Add a dictionary of substitutions. Do not overwrite existing values, but
     resolve remaining variables if possible.
@@ -98,7 +98,7 @@ def add_substitutions(subs: Dict):
         VARIABLE_SUBSTITUTIONS[key] = process_variable_substitutions(str(value))
 
 
-def add_substitution_overwrite(key: str, value: str):
+def add_or_update_substitution(key: str, value: str):
     """
     Add a substitution to the dictionary, overwriting existing values.
     """
@@ -425,7 +425,7 @@ def load_toml_file_with_variable_substitutions(
     # file as a whole
     try:
         # Convert all values to strings before adding
-        add_substitutions({
+        add_substitutions_without_overwriting({
             var_name: str(var_value)
             for var_name, var_value in config[COMMON_SECTION][VARIABLES].items()
         })

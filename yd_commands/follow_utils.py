@@ -51,8 +51,8 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
             YDIDType.COMPUTE_REQ,
         ]:
             print_error(
-                f"Invalid YellowDog ID '{ydid}' (Must be Work Requirement, Worker Pool"
-                " or Compute Requirement)"
+                f"Invalid YellowDog ID '{ydid}' (Must be valid YDID for Work"
+                " Requirement, Worker Pool or Compute Requirement)"
             )
             continue
 
