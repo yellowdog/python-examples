@@ -28,6 +28,7 @@
          * [YellowDog Platform Setup](#yellowdog-platform-setup-1)
       * [Cloud Wizard Teardown](#cloud-wizard-teardown-1)
       * [Idempotency](#idempotency-1)
+      * [Adding and Removing support for Inbound SSH](#adding-and-removing-support-for-inbound-ssh)
 * [Cloud Wizard for Azure](#cloud-wizard-for-azure)
    * [Azure Account Prequisites](#azure-account-prequisites)
       * [Azure Service Principal Setup Steps](#azure-service-principal-setup-steps)
@@ -40,9 +41,10 @@
          * [YellowDog Platform Setup](#yellowdog-platform-setup-2)
       * [Cloud Wizard Teardown](#cloud-wizard-teardown-2)
       * [Idempotency](#idempotency-2)
+      * [Adding and Removing support for Inbound SSH](#adding-and-removing-support-for-inbound-ssh-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Tue Jan 16 12:52:51 GMT 2024 -->
+<!-- Added by: pwt, at: Wed Jan 17 08:56:09 GMT 2024 -->
 
 <!--te-->
 
@@ -277,7 +279,7 @@ Cloud Wizard expects to use the default VPC, default subnet(s), and default secu
 
 The default **subnets** are provided with a route to a gateway which allows instances to make outbound connections to the Internet. However, no NAT gateway is provided (this is a separately chargeable AWS service), so instances must have public IP addresses to connect to the Internet and specifically to connect back to the YellowDog Platform.
 
-The default **security group** allows unrestricted traffic between instances on the subnet, and allows unrestricted outbound traffic to any address including the public Internet. It allows **no** inbound access from outside the subnet. Hence, if inbound access is required (e.g., SSH access to an instance), this must be added manually to each default security group in each region for which it is required.
+The default **security group** allows unrestricted traffic between instances on the subnet, and allows unrestricted outbound traffic to any address including the public Internet. It allows **no** inbound access from outside the subnet. Hence, if inbound access is required (e.g., SSH access to an instance), this must be added for each default security group in each region for which it is required. Cloud Wizard provides a command for adding and removing SSH access; please see below.
 
 Cloud Wizard will interrogate your AWS account to find out which regions are available, and to determine the default security group for the region, and the default subnet for each availability zone within the region. Network details are **only** collected for the regions in which YellowDog supplies default public YellowDog VM images (i.e., AWS AMIs), which are as follows: `eu-west-1`, `eu-west-2`, `us-east-1`, `us-east-2`, `us-west-1`, `us-west-2`.
 
@@ -341,6 +343,16 @@ The following actions are taken in the **AWS account**:
 In general, it's safe to invoke Cloud Wizard multiple times for both setup and teardown operations. Depending on the setting/resource it will be ignored if present, or the user will be asked to confirm deletion/replacement.
 
 If there are multiple invocations of `setup`, then the AWS access key and YellowDog Credential will be updated (at the user's option). Also, the Compute Source and Compute Requirement templates will be updated, and may differ in their contents if different availability zones are selected during each invocation. The resource specification JSON file will be overwritten.
+
+### Adding and Removing support for Inbound SSH
+
+To add an inbound SSH rule to the default security group for a region, Cloud Wizard provides a convenient `add-ssh` option:
+
+`yd-cloudwizard --cloud-provider=aws --region-name=eu-west-2 add-ssh`
+
+The rule can be removed using:
+
+`yd-cloudwizard --cloud-provider=aws --region-name=eu-west-2 remove-ssh`
 
 # Cloud Wizard for Azure
 
@@ -497,3 +509,13 @@ In the **Azure account**, all resource groups with names starting with **yellowd
 In general, it's safe to invoke Cloud Wizard multiple times for both setup and teardown operations. Depending on the setting/resource it will be ignored if present, or the user will be asked to confirm deletion/replacement.
 
 If there are multiple invocations of `setup` the Compute Source and Compute Requirement templates will be updated, and may differ in their contents if different regions are selected during each invocation, and the resource specification JSON file will be overwritten. No resource groups will be deleted as part of a `setup` operation.
+
+### Adding and Removing support for Inbound SSH
+
+To add an inbound SSH rule to the Cloud Wizard security group for a region, Cloud Wizard provides a convenient `add-ssh` option:
+
+`yd-cloudwizard --cloud-provider=azure --region-name=northeurope add-ssh`
+
+The rule can be removed using:
+
+`yd-cloudwizard --cloud-provider=azure --region-name=northeurope remove-ssh`
