@@ -109,14 +109,13 @@
    * [yd-follow](#yd-follow)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Tue Jan 16 12:52:52 GMT 2024 -->
+<!-- Added by: pwt, at: Tue Jan 23 17:00:42 GMT 2024 -->
 
 <!--te-->
 
 # Overview
 
 This repository contains a set of command line utilities for driving the YellowDog Platform, written in Python. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.co/#/sdk)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
-
 
 *(Note: these utilities are intended to be a helpful starting point for experimenting with the YellowDog Platform. They are not assured to be of production quality nor do they represent a standard or recommended method for using YellowDog.)*
 
@@ -141,7 +140,9 @@ The commands provide the following capabilities:
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, and Configured Worker Pools
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements
 
-The operation of the commands is controlled using TOML configuration files. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
+The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
+
+Commands are also provided for the semi-automatic setup of cloud provider accounts for use with YellowDog, and the creation of YellowDog assets to work with these cloud provider accounts. Please see **[Cloud Wizard](README_CLOUDWIZARD.md)** for more details.
 
 # YellowDog Prerequisites
 
@@ -334,9 +335,9 @@ Variable substitutions are discussed in more detail below.
 
 # Variable Substitutions
 
-Variable substitutions provide a powerful way of introducing variable values into TOML configuration files, and JSON/Jsonnet definitions of Work Requirements and Worker Pools. They can be included in the value of any property in each of these objects, including in values within lists (e.g., for the `arguments` property) and arrays (e.g., the `environment` property).
+Variable substitutions provide a powerful mechanism for introducing variable values into TOML configuration files, and JSON/Jsonnet definitions of Work Requirements and Worker Pools. They can be included in the value of any property in any of these objects, including in values within lists (e.g., for the `arguments` property) and arrays (e.g., the `environment` property).
 
-Variable substitutions are expressed using `{{variable}}` notation, where the expression is replaced by the value of `variable`.
+Variable substitutions are expressed using the `{{variable}}` notation, where the expression is replaced by the value of `variable`.
 
 Substitutions can also be performed for non-string (number, boolean, array, and table) values using the `num:`, `bool:`, `array:`, and `table:` prefixes within the variable substitution:
 
@@ -361,13 +362,13 @@ The following substitutions are automatically created and can be used in any sec
 | `{{time}}`      | The current time (UTC): HHMMSSss                                         | 16302699                |
 | `{{datetime}}`  | Concatenation of the date and time, with a '-' separator                 | 20221027-163026         |
 | `{{random}}`    | A random, three digit hexadecimal number (lower case)                    | a1c                     |
-| `{{namespace}}` | The `namespace` property. Note that `namespace` must, of course, be set. | my_namespace            |
-| `{{tag}}`       | The `tag` property. Note that `tag` must be set.                         | my_tag                  |
+| `{{namespace}}` | The `namespace` property.                                                | my_namespace            |
+| `{{tag}}`       | The `tag` property.                                                      | my_tag                  |
 | `{{key}}`       | The application `key` property.                                          |                         |
 | `{{secret}}`    | The application `secret` property.                                       |                         |
 | `{{url}}`       | The Platform `url` property.                                             |                         |
 
-For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the same value will be used for each substitution.
+For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the identical value will be used for each substitution.
 
 ## User-Defined Variables
 
@@ -387,13 +388,13 @@ User-defined variables can be supplied using an option on the command line, or b
     run_id = "1234"
 ```
 
-Directives set on the command line take precedence over directives set in environment variables, and both of them take precedence over directives set in a TOML file.
+Directives set on the command line take precedence over directives set in environment variables, and both take precedence over directives set in a TOML file.
 
 This method can also be used to override the default directives, e.g., setting `-v username="other-user"` will override the default `{{username}}` directive.
 
 ## Nested Variables
 
-In the case of **TOML properties only**, variable substitutions can be nested.
+In the case of **TOML file properties only**, variable substitutions can be nested.
 
 For example, if one wanted to select a different `templateId` for a Worker Pool depending on the value of a `region` variable, one could use the following:
 
@@ -409,7 +410,7 @@ For example, if one wanted to select a different `templateId` for a Worker Pool 
 
 Then, if one used `yd-provision -v region=phoenix`, the `templateId` property would first resolve to `"{{template_pheonix}}"`, and then to `"ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"`.
 
-Nesting can be up to three levels deep including the top level. Note that variable resolution is not sequential: variable `{{a}}` can depend on a variable `{{b}}` that is set later in the configuration.
+Nesting can be up to three levels deep including the top level. Note that variable resolution is not only processed sequentially, so ordering in the TOML file does not matter: variable `{{a}}` can depend on a variable `{{b}}` that is set later in the configuration.
 
 ## Providing Default Values for User-Defined Variables
 
@@ -443,7 +444,7 @@ name = "{{name_var:={{tag}}-{{datetime}}}}"
 
 ## Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
 
-In JSON specifications for Worker Pools and Compute Requirements, variable substitutions can be used, but **they must be prefixed and postfixed by a double underscore** `__`, e.g., `__{{username}}__`. This is to disambiguate client-side variable substitutions from server-side Mustache variable processing.
+In JSON specifications for Worker Pools and Compute Requirements, variable substitutions can be used, but **they must be prefixed and postfixed by double underscores** `__`, e.g., `__{{username}}__`. This is to disambiguate client-side variable substitutions from server-side Mustache variable processing.
 
 Variable substitutions can also be used within **User Data** to be supplied to instances, for which the same prefix/postfix requirement applies, **including** for User Data supplied directly using the `userData` property in the `workerPool` section of the TOML file.
 
@@ -493,7 +494,7 @@ To specify the file containing the JSON document, either populate the `workRequi
 
 ## Property Inheritance
 
-The definition of Work Requirements can be simplified substantially by the property inheritance features in `yd-submit`. In general, properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
+Work Requirement specification can be simplified substantially by the property inheritance features in `yd-submit`. In general, properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
 
 This means that a property set in the `workRequirement` section of the TOML file can be inherited successively by the Work Requirement, Task Groups, and Tasks in the JSON document (assuming the property is available at each level).  Hence, Tasks inherit from Task Groups, which inherit from the Work Requirement in the JSON document, which inherits from the `workRequirement` properties in the TOML file.
 
@@ -509,7 +510,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 |:---------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
 | `alwaysUpload`             | Whether to attempt to upload task outputs on failure. Default: `true`.                                                                                                                                                                     | Yes  | Yes | Yes  | Yes  |
 | `arguments`                | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
-| `captureTaskOutput`        | Whether the console output of a Task's process should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                                                                                       | Yes  | Yes | Yes  | Yes  |
+| `captureTaskOutput`        | Whether the console output of a Task's process (in file 'taskoutput.txt') should be uploaded to the YellowDog Object Store on Task completion. Default: `true`.                                                                            | Yes  | Yes | Yes  | Yes  |
 | `completedTaskTtl`         | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                                                                                       | Yes  | Yes | Yes  |      |
 | `csvFile`                  | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                                                                                   | Yes  |     |      |      |
 | `csvFiles`                 | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                                                                                          | Yes  |     |      |      |
@@ -520,11 +521,11 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `dockerUsername`           | The username for DockerHub, only used by the `docker` Task Type. E,g., `"my_username"`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
 | `environment`              | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                                    | Yes  | Yes | Yes  | Yes  |
 | `exclusiveWorkers`         | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                                                                                         | Yes  | Yes | Yes  |      |
-| `executable`               | The 'executable' to run when a Bash or Docker Task is executed. Bash script for Bash, container image for Docker. Optional: omit to suppress automatic processing.                                                                         | Yes  | Yes | Yes  | Yes  |
+| `executable`               | The 'executable' to run when a Bash or Docker Task is executed. This is the name of the Bash script for Bash, the container image for Docker. Optional: omit to suppress automatic processing.                                             | Yes  | Yes | Yes  | Yes  |
 | `finishIfAllTasksFinished` | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                           | Yes  | Yes | Yes  |      |
 | `finishIfAnyTaskFailed`    | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                                         | Yes  | Yes | Yes  |      |
 | `flattenInputPaths`        | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                                                                                                 | Yes  | Yes | Yes  | Yes  |
-| `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                                                                                          | Yes  | Yes |      |      |
+| `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>::<work-req-name>/`. Default: `false`.                                                                                                         | Yes  | Yes |      |      |
 | `fulfilOnSubmit`           | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                                                                                          | Yes  | Yes |      |      |
 | `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]` or `["*.sh"]`.                                                                           | Yes  | Yes | Yes  | Yes  |
 | `inputsOptional`           | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                                                                                       | Yes  | Yes | Yes  | Yes  |
@@ -599,7 +600,7 @@ In addition to the environment variables above, the YellowDog Agent will set the
 ### Task Types
 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
-- - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
+- If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
 - If `taskType` is set at the Task level, then `taskTypes` is automatically populated for the Task Groups level using the accumulated Task Types from the Tasks included in each Task Group, unless already specified.
 
 For the **`bash`**, **`powershell`**, **`cmd`**/**`bat`** and **`docker`** task types, some automatic processing will be performed if the **`executable`** property is set.
@@ -643,7 +644,7 @@ Note the `\\` requirement for directory separators when defining Tasks on Window
 
 #### Docker Tasks
 
-For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property. The `dockerUsername` and `dockerPassword` properties, if supplied, are added to the `environment` property.
+For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property. The `dockerUsername` and `dockerPassword` properties, if supplied, are added to the `environment` property. The `dockerOptions` property can be used to supply options to the `docker run` command.
 
 For example:
 ```toml
@@ -680,10 +681,9 @@ taskType = "docker"
 arguments = ["--runtime nvidia", "--gpus all", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
 ```
 
-
 #### Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing
 
-If the `executable` property is not supplied, the automatic processing described above for `bash`, `python`, `powershell`, `cmd` (or `bat`) and `docker` task types is not applied.
+If the `executable` property is not supplied, none of the automatic processing described above for `bash`, `python`, `powershell`, `cmd` (or `bat`) and `docker` task types is applied.
 
 ### Task Counts
 
@@ -963,9 +963,9 @@ As an example, the following JSON Work Requirement:
 
 To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` (`-D`) command line option when running `yd-submit`. This will print the fully processed JSON for the Work Requirement. Nothing will be submitted to the Platform.
 
-A dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
+A dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, add the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are inserted directly into their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are then added to Task Groups separately in subsequent API calls.
+Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are presented directly within their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are then added to their Task Groups separately, in subsequent API calls.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
@@ -1137,15 +1137,15 @@ uploadFiles = [
 ]
 ```
 
-The `--dry-run` (`-D`) option can be used with `yd-submit` to print out the files that would be uploaded, and their upload locations. 
+The `--dry-run` (`-D`) option can be used with `yd-submit` to print out the files that would be uploaded, along with their upload locations. 
 
 ### File Dependencies Using `verifyAtStart` and `verifyWait`
 
-It's possible to make Tasks dependent on the presence of files in the Object Store by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are uploaded manually (e.g., by using `yd-upload`), uploaded using the `uploadFiles` property, or are created as a result of the execution of other Tasks.
+It's possible to make Tasks dependent on the presence of files in the Object Store by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are uploaded manually (e.g., by using `yd-upload`), uploaded using the `uploadFiles` property, or are created as outputs from the execution of other Tasks.
 
 Note that a given file can only appear in *one* of the `inputs`, `verifyAtStart` or `verifyWait` lists.
 
-Tasks with `verifyAtStart` dependencies will fail immediately if the required files are not present when the Task is submitted. Tasks with `verifyWait` dependencies will not become `READY` to be scheduled to Workers until the dependencies are satisfied.
+Tasks with `verifyAtStart` dependencies will fail immediately if the required files are not present when the Task is submitted. Tasks with `verifyWait` dependencies will not become `READY` to be scheduled to Workers until their dependencies are satisfied.
 
 When specifying files in the `verifyAtStart` and `verifyWait` lists, as with the `uploadPath` property discussed above, the file locations can be (1) relative to the Work Requirement name in the current namespace (the default), (2) relative to the root of the current namespace, or (3) relative to the root of a different namespace in the user's Account.
 
@@ -1181,7 +1181,7 @@ When a Task is started by the Agent, its working directory has a pattern like:
 
 `/var/opt/yellowdog/agent/data/workers/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1`
 
-Where `ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemeral directory that is removed after the Task finishes (or fails) and any nominated outputs have been uploaded.
+Where `ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemeral directory that is removed after the Task finishes (or fails) and any nominated Task outputs have been uploaded to the Object Store.
 
 Files that are downloaded by the Agent prior to Task execution are located as follows:
 
@@ -1209,7 +1209,7 @@ Note that the Work Requirement name is automatically made available to the Task 
 
 ### Files Uploaded from a Node to the Object Store after Task Execution
 
-After Task completion, the Agent will upload specified output files to the Object Store. The files to be uploaded are those listed in the `outputs`, `outputsRequired`, and `outputsOther` properties for the Task.
+After Task completion, the Agent will upload the specified output files to the Object Store. The files to be uploaded are those listed in the `outputs`, `outputsRequired`, and `outputsOther` properties for the Task.
 
 In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded to the Object Store is determined by the `captureTaskOutput` property for the Task, and this is set to 'true' by default.
 
@@ -1280,22 +1280,22 @@ This section discusses the context within which a Task operates when it's execut
 
 When a Task is allocated to a Worker on a node by the YellowDog Scheduler, the following steps are followed:
 
-1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list. In addition, the `yd-submit` command sets the following environment variables automatically: `YD_WORK_REQUIREMENT_NAME`, `YD_TASK_GROUP_NAME`, `YD_TASK_GROUP_NUMBER`, `YD_TASK_NAME`, and `YD_TASK_NUMBER`.
+1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list. A number of `YD_` environment variables are also automatically set by a combination of `yd_submit` and the Agent itself -- see above for details.
 2. The downloaded files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also written by default.
-2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess.
+2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess to run the Task.
 3. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
 4. The Agent then gathers any files in the `outputs` and `outputsRequired` lists and uploads them to the Object Store. If a file in the `outputsRequired` list is not found, the Task will be reported as failed. The Agent will also optionally upload the console output (including both `stdout` and `stderr`) of the Task, contained in the `taskoutput.txt` file.
 5. The ephemeral Task directory is then deleted.
 
-Note that if a Task is aborted during execution, the Task's subprocess is sent a `SIGTERM`, allowing the Task an opportunity to terminate any child processes or other resources (e.g., containers) that may have been started as part of Task execution.
+Note that if a Task is aborted during execution, the Task's subprocess is sent a `SIGTERM`, allowing the Task an opportunity to terminate any child processes or other resources (e.g., containers) that may have been started as part of Task execution. In addition, there is the option to set an `abort` clause as part of the Task Type specification in the Agent's `application.yaml` file, in which case the script specified in the `abort` clause takes over responsibility for any abort handling.
 
 Once the steps above have been completed, the Worker is ready to accept its next Task from the YellowDog scheduler.
 
-Note that if the Agent on a node has multiple Workers, then Tasks are executed in parallel on the node and can start and stop independently.
+Note that if the Agent on a node advertises multiple Workers, then Tasks are executed in parallel on the node and can start and stop independently.
 
 ### The User and Group used for Tasks
 
-By default, the Agent runs as user and group `yd-agent`, and hence Tasks also execute under this user.
+By default, in the standard YellowDog Agent VM images and in images/instances created using the [YellowDog Agent Installer Script](https://github.com/yellowdog/python-examples-templates/tree/main/agent-installer/linux), the Agent runs as user and group `yd-agent`, and hence Tasks also execute under this user.
 
 `yd-agent` does not have `sudo` privileges as standard, but this can be added if required at instance boot time via the `userData` property of a provisioning request. E.g. (for Ubuntu):
 
@@ -1331,7 +1331,7 @@ When a Task is allocated to a node, an ephemeral directory is created, e.g.:
 
 `/var/opt/yellowdog/agent/data/workers/ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1`
 
-This is the directory into which downloaded objects are placed, and in which output files are created by default. The console output `taskoutput.txt` file will also be created in this directory.
+This is the directory into which downloaded objects are placed, and in which output files are created by default. The console output file, `taskoutput.txt`, containing stderr and stdout output will also be created in this directory.
 
 See the [Files Downloaded to a Node](#files-downloaded-to-a-node-for-use-in-task-execution) section above for more details on how files in this directory are handled.
 
@@ -1344,8 +1344,8 @@ CSV data files can be used to drive the generation of lists of Tasks, as follows
 - A **prototype** Task specification is created within a JSON Work Requirement specification or in the `workRequirement` section of the TOML configuration file
 - The prototype task includes one or more variable substitutions
 - A CSV file is created, with the **headers** (first row) matching the names of the variable substitutions in the Task prototype
-- Each subsequent row of the CSV file represents a new Task built using the prototype, with the variables substituted by the values in the row
-- A Task will be created for each data row
+- Each subsequent row of the CSV file represents a new Task to be built using the prototype, with the variables substituted by the values in the row
+- A Task will be created for each row of data
 
 ### Work Requirement CSV Data Example
 
@@ -1410,9 +1410,7 @@ When the CSV file data is processed, the only substitutions made are those which
 
 All variable substitutions unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
 
-If the value to be inserted is a number (an integer or floating point value) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification. The substituted value will assume the nominated type rather than being a string.
-
-The same is true for `array:` and `table:` for their respective data structures.
+If the value to be inserted is a number (an integer or floating point value) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification. The substituted value will assume the nominated type rather than being a string. The same is true for `array:` and `table:` for their respective data structures.
 
 ### Property Inheritance
 
@@ -1496,23 +1494,23 @@ The following properties are available:
 
 | Property                  | Description                                                                                                          | Default                 |
 |:--------------------------|:---------------------------------------------------------------------------------------------------------------------|:------------------------|
-| `idleNodeShutdownTimeout` | The timeout in minutes after which an idle node will be shut down. Set to `0` to disable.                            | `5.0`                   |
-| `idlePoolShutdownTimeout` | The timeout in minutes after which an idle Worker Pool will be shut down. Set to `0` to disable.                     | `30.0`                  |
+| `idleNodeShutdownTimeout` | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.           | `5.0`                   |
+| `idlePoolShutdownTimeout` | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.    | `30.0`                  |
 | `imagesId`                | The image ID, Image Family ID, or Image Family name to use when booting instances.                                   |                         |
-| `instanceTags`            | The dictionary of instance tags to apply to the instances.                                                           |                         |
+| `instanceTags`            | The dictionary of instance tags to apply to the instances. Tag names must be lower case.                             |                         |
 | `minNodes`                | The minimum number of nodes to which the Worker Pool can be scaled down.                                             | `0`                     |
 | `maxNodes`                | The maximum number of nodes to which the Worker Pool can be scaled up.                                               | `1`                     |
 | `name`                    | The name of the Worker Pool.                                                                                         | Automatically Generated |
 | `nodeBootTimeout`         | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.      | `10.0`                  |
-| `targetInstanceCount`     | The initial number of nodes to create for the Worker Pool.                                                           | `1`                     |
-| `templateId`              | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**, no default provided.)  |                         |
+| `targetInstanceCount`     | The initial number of nodes to create in the Worker Pool.                                                            | `1`                     |
+| `templateId`              | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**)                        | No default provided     |
 | `userData`                | User Data to be supplied to instances on boot.                                                                       |                         |
 | `userDataFile`            | As above, but read the User Data from the filename supplied in this property.                                        |                         |
 | `userDataFiles`           | As above, but create the User Data by concatenating the contents of the list of filenames supplied in this property. |                         |
 | `workersPerVCPU`          | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.)           |                         |
 | `workersPerNode`          | The number of Workers to establish on each node in the Worker Pool.                                                  | `1`                     |
 | `workerPoolData`          | The name of a file containing a JSON document defining a Worker Pool.                                                |                         |
-| `workerTag`               | The Worker Tag to publish for the all of the Workers on the node.                                                    |                         |
+| `workerTag`               | The Worker Tag to publish for the each of the Workers on the node(s).                                                |                         |
 
 ## Automatic Properties
 
@@ -1700,7 +1698,9 @@ Note that the `templateId` property can use either the YellowDog ID ('YDID') for
 
 Variable substitutions can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
-An important distinction when using variable substitutions within Worker Pool (or Compute Requirement) JSON (or Jsonnet) documents is that each variable directive **must be prefixed and postfixed by a `__` (double underscore)** to disambiguate it from variable substitutions that are to be passed directly to the API. For example, use: `__{{username}}__` to apply a substitution for the `username` default substitution.
+An important distinction when using variable substitutions within Worker Pool (or Compute Requirement) JSON (or Jsonnet) documents is that each variable directive **must be prefixed and postfixed by a `__` (double underscore)** to disambiguate it from variable substitutions that are to be passed directly to the API. For example, use: `__{{username}}__` to apply a substitution for the `username` default variable substitution.
+
+In general, double underscores are **not** required in variable substitutions within the `workerPool` and/or `computeRequirement` sections of a TOML file. The exception to this is if the `userData` property is supplied, in which case double underscores **are** required. They are also required within any files referenced by the `userDataFile` or `userDataFiles` properties.
 
 ## Dry-Running Worker Pool Provisioning
 
@@ -1708,7 +1708,7 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 The generated JSON is produced after all processing (incorporating `config.toml` properties, variable substitutions, etc.) has been concluded, so the dry-run is useful for inspecting the results of all the processing that's been performed.
 
-To suppress all output except for the JSON itself, use the `--quiet` (`-q`) command line option.
+To suppress all output except for the JSON itself, add the `--quiet` (`-q`) command line option.
 
 The JSON dry-run output could itself be used by `yd-provision`, if captured in a file, e.g.:
 
@@ -1718,8 +1718,6 @@ yd-provision -p my_worker_pool.json
 ```
 
 # Creating, Updating and Removing Resources
-
-This is an **experimental feature**.
 
 The commands **yd-create** and **yd-remove** allow the creation, update and removal of the following YellowDog resources:
 
@@ -1735,16 +1733,14 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 
 The **yd-create** and **yd-remove** commands operate on a list of one or more resource specification files in JSON (or Jsonnet) format.
 
-Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are generally processed in the order found in each list, and in the order of the resource specification files found on the command line.
-
-However, in the case of Compute Source Templates and Compute Requirement Templates, and Keyrings and Credentials, these are potentially resequenced such that:
+Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are generally processed in the order found in each list, and in the order of the resource specification files found on the command line. However, in the case of Compute Source Templates and Compute Requirement Templates, and Keyrings and Credentials, these are potentially resequenced such that:
 
 - In `yd-create` operations, all Compute Source Templates will be created/updated before any Compute Requirement Templates, and all Keyrings will be created/updated before any Credentials
 - In `yd-remove` operations, all Compute Requirement Templates will be removed before any Compute Source Templates, and all Credentials will be removed before any Keyrings
 
 This is for ease of use, because (1) Compute Requirement Template creation can depend on the existence of Compute Source Templates, (2) Compute Source Template removal can only proceed if they're not referenced by any Compute Requirment Templates, and (3) because Keyrings must exist before Credentials can be added.
 
-Resource specification files can use **variable substitutions** just as in the case of Work Requirements.
+Resource specification files can use all forms of **variable substitution** just as in the case of Work Requirements, etc.
 
 ### Resource Creation
 
@@ -1777,7 +1773,9 @@ yd-remove --ids ydid:crt:D9C548:2a09093d-c74c-4bde-95d1-c576c6f03b13 ydid:imgfam
 
 ### Resource Matching
 
-**Caution**: When updating or removing resources, resource matching is done using the **name** of the resource alone -- i.e., the system-generated `ydid` IDs are not used. This means that a resource could have been removed/replaced in Platform by some other means, and the resource specifications would still match it.
+Resources match on resource names rather than on YellowDog IDs. This is done to allow the `yd-create` and `yd-remove` commands to be stateless. 
+
+However, this means that **caution is required** when updating or removing resources, resource matching is done using **only** the **name** of the resource -- i.e., the system-generated `ydid` IDs are not used. This means that a resource with a given name could have been removed and replaced in Platform by some other means, and the resource specifications would still match it.
 
 ## Resource Specification Definitions
 
@@ -1796,7 +1794,7 @@ yd-list --compute-templates --details
 yd-list --image-families --details
 ```
 
-The `--dry-run`/`-D` and `--jsonnet-dry-run`/`-J` options can be used with `yd-create` to display the processed JSON data structures without any resources being created.
+The `--dry-run`/`-D` and `--jsonnet-dry-run`/`-J` options can be used with `yd-create` to display the processed JSON data structures without any resources being created or updated.
 
 Below, we'll discuss each item type with example specifications.
 
@@ -1819,14 +1817,14 @@ or to specify two Keyrings at once:
 ]
 ```
 
-When a new Keyring is created, a **system-generated password** is returned as a once-only response. For security reasons this password is not displayed, but this behaviour can be changed using the `--show-keyring-passwords` command line option, e.g.:
+When a new Keyring is created it's usable only by the YellowDog application which created it. A **system-generated password** is also returned as a one time response, which would allow the Keyring also to be claimed by YellowDog Portal users. For security reasons the password is not displayed, but this behaviour can be overridden using the `--show-keyring-passwords` command line option, e.g.:
 
 ```shell
 % yd-create --quiet --show-keyring-passwords keyring.json
 Keyring 'my-keyring-1': Password = 4OQAdcZagUX7ZiHaYvqC4yuKb4KCyN9lk4Z7mCcTYXA
 ```
 
-Note that Keyrings cannot be updated; they must instead be removed and recreated, and in doing so, any contained credentials will be lost.
+Note that Keyrings **cannot be updated**; they must instead be removed and recreated, and in doing so, any contained credentials will be lost.
 
 ## Credentials
 
@@ -2006,7 +2004,7 @@ An example specification, illustrating a containment hierarchy of Image Family -
 }
 ```
 
-Note that if the name of an Image Group or an Image is changed in the resource specification, the existing resource with the previous name will be removed from the Platform because it's no longer present in the resource specification. To prevent this, retain the previous resource in your specification, and add resources as required. 
+Note that if the name of an Image Group or an Image is changed in the resource specification, the existing resource with the previous name will be removed from the Platform because it's no longer present in the resource specification. To prevent this, retain the previous resource in your specification, and add resources as required.
 
 ## Namespace Storage Configurations
 
@@ -2057,7 +2055,7 @@ Example:
 
 # Jsonnet Support
 
-In all circumstances where JSON files are used by the Python Examples scripts,  **[Jsonnet](https://jsonnet.org)** files can be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
+In all circumstances where JSON files are used by the Python Examples commands,  **[Jsonnet](https://jsonnet.org)** files can be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
 
 A simple usage example might be:
 
@@ -2065,11 +2063,11 @@ A simple usage example might be:
 yd-submit --work-requirement my_work_req.jsonnet
 ```
 
-The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages: this file will have been deleted before the script stops.)
+The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages: this file will have been deleted before the command exits.)
 
 ## Jsonnet Installation
 
-Jsonnet is **not** installed by default when `yellowdog-python-examples` is installed, because the package has binary components which are not available on PyPI for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
+Jsonnet is **not** installed by default when `yellowdog-python-examples` is installed, because the package has binary components that are not available on PyPI for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
 
 To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
 
@@ -2095,15 +2093,15 @@ Please get in touch with YellowDog if you get stuck.
 
 ## Variable Substitutions in Jsonnet Files
 
-The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** and **Compute Requirement** specifications, variable substitutions must be prefixed and postfixed by `__`, e.g. `"__{{username}}}__"`.
+The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** and **Compute Requirement** specifications, variable substitutions must be prefixed and postfixed by double underscores (`__`), e.g. `"__{{username}}}__"`.
 
-Variable substitution is performed before Jsonnet expansion into JSON, and again after the expansion.
+Variable substitution is performed before Jsonnet expansion into JSON, **and** again after the expansion.
 
 ## Checking Jsonnet Processing
 
 There are three possibilities for verifying that a Jsonnet specification is doing what is intended:
 
-1. To inspect the basic conversion of Jsonnet into JSON, without any additional processing by the Python Examples scripts, the `yd-jsonnet2json` command can be used. This takes a single command line argument which is the name of the jsonnet file to be processed:
+1. To inspect the basic conversion of Jsonnet into JSON, without any additional processing by the Python Examples commands, the `yd-jsonnet2json` command can be used. This takes a single command line argument which is the name of the jsonnet file to be processed:
 
 ```shell
 yd-jsonnet2json my_file.jsonnet
