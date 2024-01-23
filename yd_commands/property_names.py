@@ -15,6 +15,7 @@ CSV_FILES = "csvFiles"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String
 DIRECTORY_NAME = "directoryName"  # String
 DOCKER_ENV = "dockerEnvironment"  # Dictionary
+DOCKER_OPTIONS = "dockerOptions"  # List
 DOCKER_PASSWORD = "dockerPassword"  # String
 DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
@@ -106,6 +107,7 @@ ALL_KEYS = [
     DEPENDENT_ON,
     DIRECTORY_NAME,
     DOCKER_ENV,
+    DOCKER_OPTIONS,
     DOCKER_PASSWORD,
     DOCKER_USERNAME,
     ENV,

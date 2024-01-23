@@ -239,6 +239,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             csv_files=csv_files,
             docker_env=wr_section.get(DOCKER_ENV, None),
+            docker_options=wr_section.get(DOCKER_OPTIONS, None),
             docker_password=wr_section.get(DOCKER_PASSWORD, None),
             docker_username=wr_section.get(DOCKER_USERNAME, None),
             env=wr_section.get(ENV, {}),

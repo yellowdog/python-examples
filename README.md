@@ -515,6 +515,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `csvFiles`                 | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                                                                                          | Yes  |     |      |      |
 | `dependentOn`              | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.                                                                               |      |     | Yes  |      |
 | `dockerEnvironment`        | The environment to be passed to a Docker container. Only used by the `docker` Task Type. E.g., JSON: `{"VAR_1": "abc"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                           | Yes  | Yes | Yes  | Yes  |
+| `dockerOptions`            | Additional options to be passed to the docker run command. Only used by the `docker` Task Type. E.g.,`["--runtime nvidia, "--gpus all"]`.                                                                                                  | Yes  | Yes | Yes  | Yes  |
 | `dockerPassword`           | The password for DockerHub, only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
 | `dockerUsername`           | The username for DockerHub, only used by the `docker` Task Type. E,g., `"my_username"`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
 | `environment`              | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                                    | Yes  | Yes | Yes  | Yes  |
@@ -661,6 +662,24 @@ taskType = "docker"
 arguments = ["--env", "E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
 environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password"}
 ```
+
+In addition, the **`dockerOptions`** property can be used to supply a list of options to the `docker run` command.
+
+For example:
+```toml
+taskType = "docker"
+executable = "my_dockerhub_repo/my_container_image"
+dockerOptions = ["--runtime nvidia", "--gpus all"]
+arguments = ["1", "2", "3"]
+```
+
+is equivalent to the following being sent for processing by the `docker` Task Type:
+
+```toml
+taskType = "docker"
+arguments = ["--runtime nvidia", "--gpus all", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
+```
+
 
 #### Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing
 

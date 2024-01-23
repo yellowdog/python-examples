@@ -1226,7 +1226,19 @@ def create_task(
             for key, value in docker_env.items():
                 docker_env_list += ["--env", f"{key}={value}"]
 
-        args = docker_env_list + [executable] + args
+        # Check for any Docker options
+        docker_options = check_list(
+            task_data.get(
+                DOCKER_OPTIONS,
+                task_group_data.get(
+                    DOCKER_OPTIONS,
+                    wr_data.get(DOCKER_OPTIONS, config_wr.docker_options),
+                ),
+            )
+        )
+        docker_options = [] if docker_options is None else docker_options
+
+        args = docker_env_list + docker_options + [executable] + args
 
         # Set up the environment used by the script to run Docker
         # Add the username and password, if present

@@ -26,6 +26,7 @@ class ConfigWorkRequirement:
     completed_task_ttl: Optional[float] = None  # In minutes
     csv_files: Optional[List[str]] = None
     docker_env: Optional[Dict] = None
+    docker_options: Optional[List] = None
     docker_password: Optional[str] = None
     docker_username: Optional[str] = None
     env: Dict = field(default_factory=dict)
