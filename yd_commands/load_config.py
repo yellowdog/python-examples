@@ -251,7 +251,6 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, False),
             flatten_input_paths=wr_section.get(FLATTEN_PATHS, None),
             flatten_upload_paths=wr_section.get(FLATTEN_UPLOAD_PATHS, None),
-            fulfil_on_submit=wr_section.get(FULFIL_ON_SUBMIT, False),
             inputs_optional=wr_section.get(INPUTS_OPTIONAL, []),
             inputs_required=wr_section.get(INPUTS_REQUIRED, []),
             instance_types=wr_section.get(INSTANCE_TYPES, None),
