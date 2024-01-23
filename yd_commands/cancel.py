@@ -154,10 +154,7 @@ def cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
             continue
 
         if work_requirement_summary.status not in [
-            WorkRequirementStatus.NEW,
-            WorkRequirementStatus.PENDING,
             WorkRequirementStatus.RUNNING,
-            WorkRequirementStatus.STARVED,
             WorkRequirementStatus.HELD,
         ]:
             raise Exception(
