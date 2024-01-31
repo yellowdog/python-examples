@@ -383,7 +383,7 @@ Please see the article [Create a Microsoft Entra application and service princip
 
 #### Adding Custom Role
 
-> **&#9432;** You can also add a custom role to provide more fine-tuned permissions to your **yellowdog-app Service Principal**
+> **&#9432;** You can also add a custom role to provide more fine-tuned permissions to your **yellowdog-app Service Principal**.
 Here is a complete list of the permissions your custom role will need:
 ```
 Microsoft.Resources/subscriptions/read
