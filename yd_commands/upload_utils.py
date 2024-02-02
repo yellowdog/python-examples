@@ -95,8 +95,8 @@ def upload_file_core(
 
     client.object_store_client.start_transfers()
     session = client.object_store_client.create_upload_session(
-        namespace,
-        local_file,
+        file_namespace=namespace,
+        source_file_path=local_file,
         destination_file_name=remote_file,
     )
     session.start()
