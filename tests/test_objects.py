@@ -11,7 +11,7 @@ class TestObjects:
         # The Expect script
         script_exp = """
         set timeout 10
-        spawn yd-list -oad -n=pytest -t=""
+        spawn yd-list -oad -n=pytest -t=
         expect "press <Return> to cancel: "
         send "1\r"
         expect eof
