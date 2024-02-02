@@ -274,16 +274,12 @@ def submit_work_requirement(
 
     # Create the Work Requirement
     priority = check_float_or_int(wr_data.get(PRIORITY, CONFIG_WR.priority))
-    fulfilOnSubmit = check_bool(
-        wr_data.get(FULFIL_ON_SUBMIT, CONFIG_WR.fulfil_on_submit)
-    )
     work_requirement = WorkRequirement(
         namespace=CONFIG_COMMON.namespace,
         name=ID,
         taskGroups=task_groups,
         tag=CONFIG_COMMON.name_tag,
         priority=priority,
-        fulfilOnSubmit=fulfilOnSubmit,
     )
     if not ARGS_PARSER.dry_run:
         work_requirement = CLIENT.work_client.add_work_requirement(work_requirement)

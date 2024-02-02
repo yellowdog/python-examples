@@ -117,6 +117,7 @@
 
 This repository contains a set of command line utilities for driving the YellowDog Platform, written in Python. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.co/#/sdk)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
 
+
 *(Note: these utilities are intended to be a helpful starting point for experimenting with the YellowDog Platform. They are not assured to be of production quality nor do they represent a standard or recommended method for using YellowDog.)*
 
 This documentation should be read in conjunction with the main **[YellowDog Documentation](https://docs.yellowdog.co)**, which provides a comprehensive description of the concepts and operation of the YellowDog Platform.
@@ -525,8 +526,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `finishIfAllTasksFinished` | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                           | Yes  | Yes | Yes  |      |
 | `finishIfAnyTaskFailed`    | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                                         | Yes  | Yes | Yes  |      |
 | `flattenInputPaths`        | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                                                                                                 | Yes  | Yes | Yes  | Yes  |
-| `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>::<work-req-name>/`. Default: `false`.                                                                                                         | Yes  | Yes |      |      |
-| `fulfilOnSubmit`           | Indicates if the Work Requirement should be fulfilled when it is submitted, rather than being allowed to wait in PENDING status. Default:`false`.                                                                                          | Yes  | Yes |      |      |
+| `flattenUploadPaths`       | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                                                                                          | Yes  | Yes |      |      |
 | `inputs`                   | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]` or `["*.sh"]`.                                                                           | Yes  | Yes | Yes  | Yes  |
 | `inputsOptional`           | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                                                                                       | Yes  | Yes | Yes  | Yes  |
 | `instanceTypes`            | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                                                                                           | Yes  | Yes | Yes  |      |
@@ -770,7 +770,6 @@ Showing all possible properties at the Work Requirement level:
   "finishIfAnyTaskFailed": false,
   "flattenInputPaths": false,
   "flattenUploadPaths": false,
-  "fulfilOnSubmit": false,
   "inputs": ["app/main.py", "app/requirements.txt"],
   "inputsOptional": ["optional.txt"],
   "instanceTypes": ["t3a.micro", "t3.micro"],
@@ -2179,7 +2178,6 @@ When this is inspected using the `dry-run` option (`yd-submit -Dq -r my_work_req
 
 ```json
 {
-  "fulfilOnSubmit": false,
   "name": "workreq_230114-140645",
   "namespace": "pyexamples",
   "priority": 0,

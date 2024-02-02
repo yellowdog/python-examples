@@ -36,7 +36,6 @@ class ConfigWorkRequirement:
     finish_if_any_task_failed: bool = False
     flatten_input_paths: Optional[bool] = None
     flatten_upload_paths: Optional[bool] = None
-    fulfil_on_submit: bool = False
     inputs_optional: List[str] = field(default_factory=list)
     inputs_required: List[str] = field(default_factory=list)
     instance_types: Optional[List[str]] = None
