@@ -14,6 +14,8 @@ def test_entrypoints():
     assert result.exit_code == 0
     result = shell("yd-download --help")
     assert result.exit_code == 0
+    result = shell("yd-format-json")
+    assert result.exit_code == 0
     result = shell("yd-follow --help")
     assert result.exit_code == 0
     result = shell("yd-instantiate --help")
@@ -23,8 +25,6 @@ def test_entrypoints():
     result = shell("yd-list --help")
     assert result.exit_code == 0
     result = shell("yd-provision --help")
-    assert result.exit_code == 0
-    result = shell("yd-reformat-json")
     assert result.exit_code == 0
     result = shell("yd-remove --help")
     assert result.exit_code == 0
