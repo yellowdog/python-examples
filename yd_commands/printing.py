@@ -965,8 +965,13 @@ def print_event(event: str, id_type: YDIDType):
     if id_type == YDIDType.WORK_REQ:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         for task_group in event_data["taskGroups"]:
+            status = task_group["status"]
+            if task_group["waitingOnDependency"] is True:
+                status += "/WAITING"
+            elif task_group["starved"] is True:
+                status += "/STARVED"
             msg += (
-                f"{indent}[{task_group['status']}] Task Group '{task_group['name']}':"
+                f"{indent}[{status}] Task Group '{task_group['name']}':"
                 f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}"
             )
             msg += status_counts_msg(
