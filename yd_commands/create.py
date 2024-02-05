@@ -179,8 +179,6 @@ def create_compute_requirement_template(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    compute_template = get_model_object(type, resource)
-
     # Allow source templates to be referenced by name instead of ID:
     # substitute ID for name
     global CLEAR_CST_CACHE
@@ -225,6 +223,8 @@ def create_compute_requirement_template(resource: Dict):
     if ARGS_PARSER.dry_run:
         print_json(resource)
         return
+
+    compute_template = get_model_object(type, resource)
 
     # Check for an existing ID
     template_ids = find_compute_requirement_template_ids_by_name(CLIENT, name)
