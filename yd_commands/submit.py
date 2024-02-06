@@ -930,8 +930,9 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     Follow and report the progress of a Work Requirement.
     Replacement for the SDK version above.
     """
-    print_log("Following Work Requirement event stream")
-    follow_events(work_requirement.id, YDIDType.WORK_REQ)
+    if not ARGS_PARSER.dry_run:
+        print_log("Following Work Requirement event stream")
+        follow_events(work_requirement.id, YDIDType.WORK_REQ)
 
 
 def on_update(work_req: WorkRequirement):
