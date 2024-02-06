@@ -235,6 +235,8 @@ def create_compute_requirement_template(resource: Dict):
         print_log(
             f"Created Compute Requirement Template '{template.name}' ({template.id})"
         )
+        if ARGS_PARSER.quiet:
+            print(template.id)
     else:
         if len(template_ids) > 1:
             print_warning(
