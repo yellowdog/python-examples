@@ -117,6 +117,10 @@ YD_TAG = "YD_TAG"
 
 @main_wrapper
 def main():
+
+    if not 1 <= TASK_BATCH_SIZE <= 10000:
+        raise Exception("Task batch size must be between 1 and 10,000")
+
     if ARGS_PARSER.json_raw:
         submit_json_raw(ARGS_PARSER.json_raw)
         return

@@ -191,7 +191,7 @@ class CLIParser:
                 "-b",
                 type=int,
                 required=False,
-                help="the batch size for Task submission",
+                help="the batch size for Task submission; must be between 1 and 10,000",
                 metavar="<batch_size>",
             )
             parser.add_argument(
