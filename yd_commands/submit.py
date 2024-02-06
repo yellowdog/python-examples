@@ -1146,7 +1146,7 @@ def create_task(
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
     # Add Task details to the environment as a convenience
-    if task_type != "docker":
+    if task_type != "docker" and not ARGS_PARSER.suppress_env_vars:
         env_copy[YD_TASK_NAME] = task_name
         env_copy[YD_TASK_NUMBER] = str(task_number)
         env_copy[YD_TASK_GROUP_NAME] = tg_name
@@ -1214,14 +1214,16 @@ def create_task(
                 ),
             )
         )
-        # Add entity names to the container env. for convenience
-        docker_env_list = ["--env", f"{YD_TASK_NAME}={task_name}"]
-        docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]
-        docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
-        docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
-        docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
-        docker_env_list += ["--env", f"{YD_NAMESPACE}={CONFIG_COMMON.namespace}"]
-        docker_env_list += ["--env", f"{YD_TAG}={CONFIG_COMMON.name_tag}"]
+        docker_env_list = []
+        if not ARGS_PARSER.suppress_env_vars:
+            # Add entity names to the container env. for convenience
+            docker_env_list += ["--env", f"{YD_TASK_NAME}={task_name}"]
+            docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]
+            docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
+            docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
+            docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
+            docker_env_list += ["--env", f"{YD_NAMESPACE}={CONFIG_COMMON.namespace}"]
+            docker_env_list += ["--env", f"{YD_TAG}={CONFIG_COMMON.name_tag}"]
 
         if docker_env is not None:
             for key, value in docker_env.items():
