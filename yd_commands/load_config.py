@@ -235,7 +235,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         return ConfigWorkRequirement(
             always_upload=wr_section.get(ALWAYS_UPLOAD, True),
             args=wr_section.get(ARGS, []),
-            capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, True),
+            capture_taskoutput=wr_section.get(CAPTURE_TASKOUTPUT, False),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             csv_files=csv_files,
             docker_env=wr_section.get(DOCKER_ENV, None),

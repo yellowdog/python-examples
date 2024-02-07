@@ -22,7 +22,7 @@ class ConfigCommon:
 class ConfigWorkRequirement:
     always_upload: bool = True
     args: List[str] = field(default_factory=list)
-    capture_taskoutput: bool = True
+    capture_taskoutput: bool = False
     completed_task_ttl: Optional[float] = None  # In minutes
     csv_files: Optional[List[str]] = None
     docker_env: Optional[Dict] = None
