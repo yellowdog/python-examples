@@ -208,12 +208,13 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
-                "--suppress-env-variables",
+                "--add-yd-env-vars",
+                "-A",
                 action="store_true",
                 required=False,
                 help=(
-                    "Suppress the automatic addition of 'YD_*' environment variables to"
-                    " the 'env' property of each Task"
+                    "Automatically add informative 'YD_*' environment variables to"
+                    " the 'env' property of every Task"
                 ),
             )
             parser.add_argument(
@@ -1182,8 +1183,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def suppress_env_vars(self) -> Optional[bool]:
-        return self.args.suppress_env_variables
+    def add_yd_env_vars(self) -> Optional[bool]:
+        return self.args.add_yd_env_vars
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

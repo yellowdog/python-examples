@@ -571,7 +571,7 @@ In addition to the property inheritance mechanism, some properties are set autom
 
 #### Obtaining Names/Context from Environment Variables at Task Run Time
 
-When a Task executes, its Task name and number, Task Group name and number, Work Requirement name, Namespace, and Tag are automatically available to the Task in the following environment variables: 
+When a Task executes, its Task name and number, Task Group name and number, Work Requirement name, Namespace, and Tag can be made automatically available to the Task in the following environment variables, if the `--add-yd-env-vars` or `-A` option is chosen when using `yd-submit`:
 
 - `YD_TASK_NAME`
 - `YD_TASK_NUMBER`
@@ -583,7 +583,7 @@ When a Task executes, its Task name and number, Task Group name and number, Work
 
 This applies whether the names were set automatically by `yd-submit` or explicitly by the user.
 
-For Tasks of type `docker` and where the `executable` property has been set, the variables above are also available **within** the container environment.
+For Tasks of type `docker` and where the `executable` property has been set, the variables above are also available **within** the container environment, if the option is chosen.
 
 In addition to the environment variables above, the YellowDog Agent will set the following variables for use by the Task, based on the instance details and Task identification:
 
