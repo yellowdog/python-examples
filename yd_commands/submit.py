@@ -1158,7 +1158,7 @@ def create_task(
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
     # Add Task details to the environment as a convenience
-    if task_type != "docker" and add_yd_env_vars:
+    if add_yd_env_vars and task_type != "docker":
         env_copy[YD_TASK_NAME] = task_name
         env_copy[YD_TASK_NUMBER] = str(task_number)
         env_copy[YD_TASK_GROUP_NAME] = tg_name

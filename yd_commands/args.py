@@ -208,15 +208,6 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
-                "--suppress-env-variables",
-                action="store_true",
-                required=False,
-                help=(
-                    "Suppress the automatic addition of 'YD_*' environment variables to"
-                    " the 'env' property of each Task"
-                ),
-            )
-            parser.add_argument(
                 "--csv-file",
                 "-V",
                 type=str,
@@ -1179,11 +1170,6 @@ class CLIParser:
     @allow_missing_attribute
     def show_secrets(self) -> Optional[bool]:
         return self.args.show_secrets
-
-    @property
-    @allow_missing_attribute
-    def suppress_env_vars(self) -> Optional[bool]:
-        return self.args.suppress_env_variables
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
