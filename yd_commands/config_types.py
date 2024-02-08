@@ -20,6 +20,7 @@ class ConfigCommon:
 
 @dataclass
 class ConfigWorkRequirement:
+    add_yd_env_vars: bool = False
     always_upload: bool = True
     args: List[str] = field(default_factory=list)
     capture_taskoutput: bool = False

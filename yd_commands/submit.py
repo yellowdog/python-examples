@@ -619,6 +619,16 @@ def add_tasks_to_task_group(
                 task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, config_wr.env)))
             )
 
+            add_yd_env_vars = check_bool(
+                task.get(
+                    ADD_YD_ENV_VARS,
+                    task_group_data.get(
+                        ADD_YD_ENV_VARS,
+                        wr_data.get(ADD_YD_ENV_VARS, config_wr.add_yd_env_vars),
+                    ),
+                )
+            )
+
             # Task timeout is automatically inherited from the Task Group level
             # unless overridden by the Task
             task_timeout_minutes = check_float_or_int(
@@ -839,6 +849,7 @@ def add_tasks_to_task_group(
                     outputs=outputs,
                     task_timeout=task_timeout,
                     flatten_upload_paths=flatten_upload_paths,
+                    add_yd_env_vars=add_yd_env_vars,
                 )
             )
 
@@ -1105,6 +1116,7 @@ def create_task(
     outputs: Optional[List[TaskOutput]],
     task_timeout: Optional[timedelta],
     flatten_upload_paths: bool = False,
+    add_yd_env_vars: bool = False,
 ) -> Task:
     """
     Create a Task object, handling special processing for specific Task Types.
@@ -1146,7 +1158,7 @@ def create_task(
         flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
     # Add Task details to the environment as a convenience
-    if task_type != "docker" and ARGS_PARSER.add_yd_env_vars:
+    if task_type != "docker" and (add_yd_env_vars or ARGS_PARSER.add_yd_env_vars):
         env_copy[YD_TASK_NAME] = task_name
         env_copy[YD_TASK_NUMBER] = str(task_number)
         env_copy[YD_TASK_GROUP_NAME] = tg_name
@@ -1215,7 +1227,7 @@ def create_task(
             )
         )
         docker_env_list = []
-        if ARGS_PARSER.add_yd_env_vars:
+        if add_yd_env_vars or ARGS_PARSER.add_yd_env_vars:
             # Add entity names to the container env. for convenience
             docker_env_list += ["--env", f"{YD_TASK_NAME}={task_name}"]
             docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]

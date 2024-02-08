@@ -2,6 +2,7 @@
 Configuration key strings
 """
 
+ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
 ALWAYS_UPLOAD = "alwaysUpload"  # Bool
 ARGS = "arguments"  # List
 CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
@@ -93,6 +94,7 @@ WR_DATA = "workRequirementData"  # String
 WR_NAME = "name"  # String
 
 ALL_KEYS = [
+    ADD_YD_ENV_VARS,
     ALWAYS_UPLOAD,
     ARGS,
     CAPTURE_TASKOUTPUT,
