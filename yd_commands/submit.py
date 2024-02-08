@@ -629,6 +629,18 @@ def add_tasks_to_task_group(
                 )
             )
 
+            flatten_input_paths: Optional[FlattenPath] = None
+            if check_bool(
+                    task.get(
+                        FLATTEN_PATHS,
+                        task_group_data.get(
+                            FLATTEN_PATHS,
+                            wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
+                        ),
+                    )
+            ):
+                flatten_input_paths = FlattenPath.FILE_NAME_ONLY
+
             # Task timeout is automatically inherited from the Task Group level
             # unless overridden by the Task
             task_timeout_minutes = check_float_or_int(
@@ -849,6 +861,7 @@ def add_tasks_to_task_group(
                     outputs=outputs,
                     task_timeout=task_timeout,
                     flatten_upload_paths=flatten_upload_paths,
+                    flatten_input_paths=flatten_input_paths,
                     add_yd_env_vars=add_yd_env_vars,
                 )
             )
@@ -1116,6 +1129,7 @@ def create_task(
     outputs: Optional[List[TaskOutput]],
     task_timeout: Optional[timedelta],
     flatten_upload_paths: bool = False,
+    flatten_input_paths: Optional[FlattenPath] = None,
     add_yd_env_vars: bool = False,
 ) -> Task:
     """
@@ -1144,20 +1158,7 @@ def create_task(
             timeout=task_timeout,
         )
 
-    # Flatten paths for downloaded files?
-    flatten_input_paths: Optional[FlattenPath] = None
-    if check_bool(
-        task_data.get(
-            FLATTEN_PATHS,
-            task_group_data.get(
-                FLATTEN_PATHS,
-                wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
-            ),
-        )
-    ):
-        flatten_input_paths = FlattenPath.FILE_NAME_ONLY
-
-    # Add Task details to the environment as a convenience
+    # Optionally add Task details to the environment as a convenience
     if add_yd_env_vars and task_type != "docker":
         env_copy[YD_TASK_NAME] = task_name
         env_copy[YD_TASK_NUMBER] = str(task_number)
@@ -1226,9 +1227,9 @@ def create_task(
                 ),
             )
         )
+        # Optionally Task details to the container environment as a convenience
         docker_env_list = []
         if add_yd_env_vars:
-            # Add entity names to the container env. for convenience
             docker_env_list += ["--env", f"{YD_TASK_NAME}={task_name}"]
             docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]
             docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
