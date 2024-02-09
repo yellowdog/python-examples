@@ -295,6 +295,9 @@ def submit_work_requirement(
             f"({work_requirement.name})"
         )
         print_log(f"YellowDog ID is '{work_requirement.id}'")
+        if ARGS_PARSER.hold:
+            CLIENT.work_client.hold_work_requirement(work_requirement)
+            print_log("Work Requirement status is set to 'HELD'")
     else:
         global WR_SNAPSHOT
         WR_SNAPSHOT.set_work_requirement(work_requirement)
@@ -1347,6 +1350,10 @@ def submit_json_raw(wr_file: str):
     else:
         print_error(f"Failed to create Work Requirement '{wr_name}'")
         raise Exception(f"{response.text}")
+
+    if ARGS_PARSER.hold:
+        CLIENT.work_client.hold_work_requirement_by_id(wr_id)
+        print_log("Work Requirement status set to 'HELD'")
 
     # Submit Tasks to the Work Requirement
     # Collect 'VERIFY_AT_START' files

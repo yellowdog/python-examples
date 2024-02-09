@@ -226,6 +226,12 @@ class CLIParser:
                     " intermediate JSON Work Requirement specification"
                 ),
             )
+            parser.add_argument(
+                "--hold",
+                action="store_true",
+                required=False,
+                help="set the work requirement status to 'HELD' on submission",
+            )
 
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
             parser.add_argument(
@@ -1170,6 +1176,11 @@ class CLIParser:
     @allow_missing_attribute
     def show_secrets(self) -> Optional[bool]:
         return self.args.show_secrets
+
+    @property
+    @allow_missing_attribute
+    def hold(self) -> Optional[bool]:
+        return self.args.hold
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
