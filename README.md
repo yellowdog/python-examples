@@ -107,9 +107,10 @@
    * [yd-create](#yd-create)
    * [yd-remove](#yd-remove)
    * [yd-follow](#yd-follow)
+   * [yd-start](#yd-start)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Tue Jan 23 17:00:42 GMT 2024 -->
+<!-- Added by: pwt, at: Fri Feb  9 16:25:24 GMT 2024 -->
 
 <!--te-->
 
@@ -140,6 +141,7 @@ The commands provide the following capabilities:
 - **Resizing** Worker Pools and Compute Requirements
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, and Configured Worker Pools
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements
+- **Starting** HELD Work Requirements
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -2489,3 +2491,9 @@ yd-follow ydid:workreq:D9C548:37d3c0cd-2651-4779-be17-89a8601b03b8 \
 ```
 
 The `yd-follow` command will continue to run until manually stopped using `CTRL-C`, unless all the IDs to be followed are in a terminal state.
+
+## yd-start
+
+The `yd-start` command is used to start `HELD` Work Requirements.
+
+It can optionally be supplied with a list of the names and/or YDIDs of the specific Work Requirements to start, otherwise the `namespace` and `tag` will be used to generate a list of candidate requirements.

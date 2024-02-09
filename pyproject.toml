@@ -47,6 +47,7 @@
     yd-resize = "yd_commands.resize:main"
     yd-shutdown = "yd_commands.shutdown:main"
     yd-submit = "yd_commands.submit:main"
+    yd-start = "yd_commands.start:main"
     yd-terminate = "yd_commands.terminate:main"
     yd-upload = "yd_commands.upload:main"
     yd-version = "yd_commands.version:main"
