@@ -631,13 +631,13 @@ def add_tasks_to_task_group(
 
             flatten_input_paths: Optional[FlattenPath] = None
             if check_bool(
-                    task.get(
+                task.get(
+                    FLATTEN_PATHS,
+                    task_group_data.get(
                         FLATTEN_PATHS,
-                        task_group_data.get(
-                            FLATTEN_PATHS,
-                            wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
-                        ),
-                    )
+                        wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
+                    ),
+                )
             ):
                 flatten_input_paths = FlattenPath.FILE_NAME_ONLY
 
@@ -891,7 +891,7 @@ def add_tasks_to_task_group(
     if not ARGS_PARSER.dry_run:
         if num_tasks > 0:
             print_log(
-                f"Added a total of {num_tasks} Task(s) to Task Group"
+                f"Added a total of {num_tasks:,d} Task(s) to Task Group"
                 f" '{task_group.name}'"
             )
         else:
