@@ -932,7 +932,7 @@ def status_counts_msg(
         try:
             count = counts_data[status_count.name]
             if count > 0 or status_count.include_if_zero:
-                msg += f"{'' if first else ', '}{count} {status_count.name}"
+                msg += f"{'' if first else ', '}{count:,d} {status_count.name}"
                 first = False
                 total_count += count
         except (KeyError, TypeError):
@@ -972,7 +972,7 @@ def print_event(event: str, id_type: YDIDType):
                 status += "/STARVED"
             msg += (
                 f"{indent}[{status}] Task Group '{task_group['name']}':"
-                f" {task_group['taskSummary']['taskCount']} Task(s){indent_2}"
+                f" {task_group['taskSummary']['taskCount']:,d} Task(s){indent_2}"
             )
             msg += status_counts_msg(
                 STATUS_COUNTS_TASKS, task_group["taskSummary"]["statusCounts"]
@@ -1002,8 +1002,8 @@ def print_event(event: str, id_type: YDIDType):
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         msg += (
             f"{indent}Instance(s): "
-            f"{event_data['targetInstanceCount']} TARGET,"
-            f" {event_data['expectedInstanceCount']} EXPECTED"
+            f"{event_data['targetInstanceCount']:,d} TARGET,"
+            f" {event_data['expectedInstanceCount']:,d} EXPECTED"
         )
         for source in event_data["provisionStrategy"]["sources"]:
             source_msg = status_counts_msg(
