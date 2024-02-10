@@ -108,9 +108,10 @@
    * [yd-remove](#yd-remove)
    * [yd-follow](#yd-follow)
    * [yd-start](#yd-start)
+   * [yd-hold](#yd-hold)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Feb  9 16:25:24 GMT 2024 -->
+<!-- Added by: pwt, at: Sat Feb 10 10:48:24 GMT 2024 -->
 
 <!--te-->
 
@@ -129,6 +130,7 @@ The commands provide the following capabilities:
 
 - **Provisioning** Worker Pools with the **`yd-provision`** command
 - **Submitting** Work Requirements with the **`yd-submit`** command
+- **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements
 - **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
 - **Instantiating** Compute Requirements with the **`yd-instantiate`** command
 - **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
@@ -141,7 +143,6 @@ The commands provide the following capabilities:
 - **Resizing** Worker Pools and Compute Requirements
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, and Configured Worker Pools
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements
-- **Starting** HELD Work Requirements
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -2497,3 +2498,9 @@ The `yd-follow` command will continue to run until manually stopped using `CTRL-
 The `yd-start` command is used to start `HELD` Work Requirements.
 
 It can optionally be supplied with a list of the names and/or YDIDs of the specific Work Requirements to start, otherwise the `namespace` and `tag` will be used to generate a list of candidate requirements.
+
+## yd-hold
+
+The `yd-hold` command is used to hold (pause) `RUNNING` Work Requirements.
+
+It can optionally be supplied with a list of the names and/or YDIDs of the specific Work Requirements to hold, otherwise the `namespace` and `tag` will be used to generate a list of candidate requirements.

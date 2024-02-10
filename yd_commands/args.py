@@ -268,6 +268,7 @@ class CLIParser:
                 "shutdown",
                 "terminate",
                 "start",
+                "hold",
             ]
         ):
             parser.add_argument(
@@ -289,6 +290,7 @@ class CLIParser:
                 "resize",
                 "cloudwizard",
                 "start",
+                "hold",
             ]
         ):
             parser.add_argument(
@@ -625,6 +627,19 @@ class CLIParser:
                 help=(
                     "the name(s) or YellowDog ID(s) of the Work Requirement(s) to be"
                     " started"
+                ),
+            )
+
+        if "hold" in sys.argv[0]:
+            parser.add_argument(
+                "work_requirements",
+                nargs="*",
+                default="",
+                metavar="<work-requirement-name-or-ID>",
+                type=str,
+                help=(
+                    "the name(s) or YellowDog ID(s) of the Work Requirement(s) to be"
+                    " held"
                 ),
             )
 
@@ -1239,6 +1254,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "setting up cloud accounts and YellowDog resources"
     elif "start" in module_name:
         suffix = "starting HELD Work Requirements"
+    elif "hold" in module_name:
+        suffix = "holding (pausing) Work Requirements"
 
     return None if suffix is None else prefix + suffix
 

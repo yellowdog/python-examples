@@ -39,6 +39,7 @@
     yd-download = "yd_commands.download:main"
     yd-follow = "yd_commands.follow:main"
     yd-format-json = "yd_commands.format_json:main"
+    yd-hold = "yd_commands.hold:main"
     yd-instantiate = "yd_commands.instantiate:main"
     yd-jsonnet2json = "yd_commands.jsonnet2json:main"
     yd-list = "yd_commands.list:main"
