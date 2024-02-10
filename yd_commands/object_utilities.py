@@ -67,15 +67,8 @@ def get_filtered_work_requirements(
 ) -> List[WorkRequirementSummary]:
     """
     Get a list of Work Requirements filtered by namespace, tag
-    and status.
-    A WR will match the filter if it's in the included list OR
-    if it's not in the excluded list.
+    and status. Populate either include_filter OR exclude_filter
     """
-
-    # Avoid mutable keyword argument defaults
-    include_filter = [] if include_filter is None else include_filter
-    exclude_filter = [] if exclude_filter is None else exclude_filter
-
     filtered_work_summaries: List[WorkRequirementSummary] = []
 
     work_requirement_summaries: List[WorkRequirementSummary] = (
@@ -87,13 +80,15 @@ def get_filtered_work_requirements(
         work_summary.namespace = (
             "" if work_summary.namespace is None else work_summary.namespace
         )
-        if (
-            work_summary.status in include_filter
-            or not work_summary.status in exclude_filter
-            and namespace in work_summary.namespace
-            and tag in work_summary.tag
-        ):
-            filtered_work_summaries.append(work_summary)
+        if namespace in work_summary.namespace and tag in work_summary.tag:
+            if include_filter is not None:
+                if work_summary.status in include_filter:
+                    filtered_work_summaries.append(work_summary)
+                    continue
+            if exclude_filter is not None:
+                if work_summary.status not in exclude_filter:
+                    filtered_work_summaries.append(work_summary)
+                    continue
 
     return filtered_work_summaries
 
