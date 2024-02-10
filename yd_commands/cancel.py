@@ -167,14 +167,14 @@ def cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
             print_log(f"Work Requirement '{name_or_id}' is already cancelling")
         else:
             if not confirmed(f"Cancel Work Requirement '{name_or_id}'?"):
-                return
+                continue
             try:
                 CLIENT.work_client.cancel_work_requirement_by_id(
                     work_requirement_summary.id
                 )
                 print_log(f"Cancelled Work Requirement '{name_or_id}'")
             except Exception as e:
-                raise Exception(
+                print_error(
                     f"Failed to cancel Work Requirement '{name_or_id}': {e}"
                 )
 
