@@ -74,7 +74,7 @@ def main():
                 )
                 cancelled_count += 1
                 print_log(
-                    f"Cancelling {link_entity(CONFIG_COMMON.url, work_requirement)} "
+                    f"Cancelled {link_entity(CONFIG_COMMON.url, work_requirement)} "
                     f"({work_summary.name})"
                 )
             elif work_summary.status == WorkRequirementStatus.CANCELLING:
@@ -83,7 +83,7 @@ def main():
                 )
                 cancelling_count += 1
             work_requirement_ids.append(work_summary.id)
-        if cancelled_count > 0:
+        if cancelled_count > 1:
             print_log(f"Cancelled {cancelled_count} Work Requirement(s)")
         elif cancelling_count == 0:
             print_log("No Work Requirements to cancel")
