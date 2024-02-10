@@ -154,7 +154,7 @@ def list_work_requirements():
             CLIENT, work_requirement_summaries, single_result=True
         )
         for work_summary in selected_work_summaries:
-            print_log(f"Work Requirement {work_summary.name}")
+            print_log(f"Work Requirement '{work_summary.name}'")
             list_task_groups(work_summary)
 
 

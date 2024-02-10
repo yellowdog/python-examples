@@ -281,10 +281,15 @@ def task_group_table(
     headers = ["#", "Task Group Name", "Status", "ID"]
     table = []
     for index, task_group in enumerate(task_group_list):
+        status_msg = str(task_group.status)
+        if task_group.starved:
+            status_msg += "/STARVED"
+        if task_group.waitingOnDependency:
+            status_msg += "/WAITING"
         table.append([
             index + 1,
             task_group.name,
-            str(task_group.status),
+            status_msg,
             task_group.id,
         ])
     return headers, table
