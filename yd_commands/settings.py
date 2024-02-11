@@ -1,5 +1,5 @@
 """
-Textual and numeric constants, etc., that effect behaviour.
+String and numeric constants, etc.
 """
 
 DEFAULT_URL = "https://portal.yellowdog.co/api"

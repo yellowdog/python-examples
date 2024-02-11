@@ -92,7 +92,7 @@ def _start_or_hold_work_requirement(action: str):
             work_requirement_ids.append(work_summary.id)
         if processed_count > 1:
             print_log(
-                f"Applied action '{action}' to {processed_count} Work Requirement(s)"
+                f"Applied action '{action}' to {processed_count} Work Requirements"
             )
 
     else:

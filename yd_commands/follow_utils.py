@@ -15,7 +15,7 @@ from yd_commands.wrapper import CLIENT, CONFIG_COMMON
 
 def follow_ids(ydids: List[str], auto_cr: bool = False):
     """
-    Creates an event thread for each ydid passed on the command line.
+    Creates an event thread for each YDID passed on the command line.
     """
     if len(ydids) == 0:
         return
@@ -23,7 +23,7 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
     ydids_set = set(ydids)  # Eliminate duplicates
     num_duplicates = len(ydids) - len(ydids_set)
     if num_duplicates > 0:
-        print_log(f"Ignoring {num_duplicates} duplicate YellowDog ID(s)")
+        print_warning(f"Ignoring {num_duplicates} duplicate YellowDog ID(s)")
 
     if auto_cr:
         # Automatically add Compute Requirements IDs for

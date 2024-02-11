@@ -174,9 +174,7 @@ def cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
                 )
                 print_log(f"Cancelled Work Requirement '{name_or_id}'")
             except Exception as e:
-                print_error(
-                    f"Failed to cancel Work Requirement '{name_or_id}': {e}"
-                )
+                print_error(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
 
     if ARGS_PARSER.abort:
         abort_and_follow(work_requirement_summaries)

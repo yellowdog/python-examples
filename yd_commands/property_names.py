@@ -1,5 +1,5 @@
 """
-Configuration key strings
+Property names.
 """
 
 ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
