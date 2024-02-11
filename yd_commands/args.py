@@ -228,6 +228,7 @@ class CLIParser:
             )
             parser.add_argument(
                 "--hold",
+                "-H",
                 action="store_true",
                 required=False,
                 help="set the work requirement status to 'HELD' on submission",
