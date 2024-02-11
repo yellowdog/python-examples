@@ -262,6 +262,21 @@ class CLIParser:
         if any(
             module in sys.argv[0]
             for module in [
+                "start",
+                "hold",
+            ]
+        ):
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help="follow Work Requirement events after applying action",
+            )
+
+        if any(
+            module in sys.argv[0]
+            for module in [
                 "cancel",
                 "delete",
                 "download",
@@ -766,6 +781,8 @@ class CLIParser:
                 "terminate",
                 "submit",
                 "cancel",
+                "start",
+                "hold",
             ]
         ):
             parser.add_argument(

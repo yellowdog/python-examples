@@ -12,6 +12,7 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
+from yd_commands.follow_utils import follow_ids
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
@@ -26,14 +27,21 @@ HOLD_ACTION = "Hold"
 
 
 def start_work_requirements():
-    _start_or_hold_work_requirement(action=START_ACTION)
+    wr_ids = _start_or_hold_work_requirement(action=START_ACTION)
+    if ARGS_PARSER.follow:
+        follow_ids(wr_ids)
 
 
 def hold_work_requirements():
-    _start_or_hold_work_requirement(action=HOLD_ACTION)
+    wr_ids = _start_or_hold_work_requirement(action=HOLD_ACTION)
+    if ARGS_PARSER.follow:
+        follow_ids(wr_ids)
 
 
-def _start_or_hold_work_requirement(action: str):
+def _start_or_hold_work_requirement(action: str) -> List[str]:
+    """
+    Return the list of YDIDs.
+    """
 
     if action == START_ACTION:
         required_state = WorkRequirementStatus.HELD
@@ -43,13 +51,12 @@ def _start_or_hold_work_requirement(action: str):
         start_or_hold_function = CLIENT.work_client.hold_work_requirement_by_id
 
     if len(ARGS_PARSER.work_requirement_names) > 0:
-        _start_or_hold_work_requirements_by_name_or_id(
+        return _start_or_hold_work_requirements_by_name_or_id(
             action=action,
             required_state=required_state,
             start_or_hold_function=start_or_hold_function,
             names_or_ids=ARGS_PARSER.work_requirement_names,
         )
-        return
 
     print_log(
         f"Applying action '{action}' to Work Requirements with "
@@ -101,15 +108,18 @@ def _start_or_hold_work_requirement(action: str):
             f" (state must be '{required_state}')"
         )
 
+    return work_requirement_ids
+
 
 def _start_or_hold_work_requirements_by_name_or_id(
     action: str,
     required_state: WorkRequirementStatus,
     start_or_hold_function: callable,
     names_or_ids: List[str],
-):
+) -> List[str]:
     """
     Start or hold Work Requirements by their names or IDs.
+    Return the list actioned of YDIDs.
     """
     work_requirement_summaries: List[WorkRequirementSummary] = []
     for name_or_id in names_or_ids:
@@ -142,3 +152,5 @@ def _start_or_hold_work_requirements_by_name_or_id(
                 f"Failed to apply action '{action}' to Work Requirement '{name_or_id}': {e}"
             )
             continue
+
+    return [wr.id for wr in work_requirement_summaries]
