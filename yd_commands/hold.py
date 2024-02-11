@@ -4,7 +4,7 @@
 A script to hold Work Requirements.
 """
 
-from yd_commands.start_or_hold_common import hold_work_requirements
+from yd_commands.start_hold_common import hold_work_requirements
 from yd_commands.wrapper import main_wrapper
 
 
