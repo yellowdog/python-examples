@@ -19,12 +19,17 @@ from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_task_group_name,
 )
-from yd_commands.printing import print_error, print_log, sorted_objects
+from yd_commands.printing import print_error, print_log, print_warning, sorted_objects
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
 def main():
+
+    if len(ARGS_PARSER.task_id_list) > 0:
+        _abort_tasks_by_name_or_id(ARGS_PARSER.task_id_list)
+        return
+
     print_log(
         "Finding active Work Requirements with "
         f"'{CONFIG_COMMON.namespace}' in namespace and "
@@ -98,12 +103,37 @@ def abort_tasks_selectively(
                 aborted_tasks += 1
             except Exception as e:
                 print_error(f"Unable to abort Task '{task.name}': {e}")
-                continue
 
     if aborted_tasks == 0:
         print_log("No Tasks Aborted")
     elif aborted_tasks > 1:
         print_log(f"Aborted {aborted_tasks} Tasks")
+
+
+def _abort_tasks_by_name_or_id(task_id_list: List[str]):
+    """
+    Abort Tasks by their YDIDs.
+    """
+    aborted_count = 0
+    for task_id in task_id_list:
+        if "ydid:task:" not in task_id:
+            print_warning(f"ID '{task_id}' is not a valid Task YDID")
+            continue
+
+        if not confirmed(f"Cancel and abort Task '{task_id}'?"):
+            continue
+
+        try:
+            CLIENT.work_client.cancel_task_by_id(task_id, abort=True)
+            print_log(f"Cancelled and aborted Task '{task_id}'")
+            aborted_count += 1
+        except Exception as e:
+            print_error(f"Unable to cancel and abort Task '{task_id}': {e}")
+
+    if aborted_count > 1:
+        print_log(f"Cancelled and aborted {aborted_count} Tasks")
+    elif aborted_count == 0:
+        print_log("No Tasks cancelled and aborted")
 
 
 # Entry point

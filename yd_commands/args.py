@@ -850,6 +850,16 @@ class CLIParser:
                 help="print AWS secret key during setup",
             )
 
+        if "abort" in sys.argv[0]:
+            parser.add_argument(
+                "task_id_list",
+                nargs="*",
+                default="",
+                metavar="<task-id>",
+                type=str,
+                help="the YellowDog ID(s) of the Task(s) to abort",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -1229,6 +1239,11 @@ class CLIParser:
     @allow_missing_attribute
     def hold(self) -> Optional[bool]:
         return self.args.hold
+
+    @property
+    @allow_missing_attribute
+    def task_id_list(self) -> Optional[List[str]]:
+        return self.args.task_id_list
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
