@@ -63,6 +63,7 @@ HIGHLIGHTED_STATES = [
     r"(?P<idle>IDLE)",
     r"(?P<idle>SLEEPING)",
     r"(?P<idle>WAITING)",
+    r"(?P<idle>HELD)",
     r"(?P<starved>STARVED)",
     r"(?P<transitioning>CONFIGURING)",
     r"(?P<transitioning>DOWNLOADING)",
