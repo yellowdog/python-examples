@@ -2,12 +2,11 @@
 Utility functions for use with the submit command.
 """
 
-import os
 import re
 from dataclasses import dataclass
 from glob import glob
 from os import chdir, getcwd
-from os.path import join
+from os.path import exists
 from time import sleep
 from typing import List, Optional
 
@@ -113,7 +112,7 @@ class UploadedFiles:
         self._config = config
         self._uploaded_files: List[UploadedFile] = []
         self.files_directory = files_directory
-        self.working_directory = os.getcwd()
+        self.working_directory = getcwd()
 
     def add_upload_file(self, upload_file: str, upload_path: str):
         """
@@ -122,7 +121,7 @@ class UploadedFiles:
         """
 
         if self.files_directory != "":
-            os.chdir(self.files_directory)
+            chdir(self.files_directory)
 
         # Handle wildcard expansion
         expanded_files = glob(pathname=upload_file, recursive=True)
@@ -133,6 +132,10 @@ class UploadedFiles:
                 )
 
         for upload_file in expanded_files:
+            if not exists(upload_file):
+                print_error(f"File '{upload_file}' does not exist")
+                continue
+
             namespace, uploaded_file_path = get_namespace_and_filepath(
                 upload_path, self._wr_name
             )
@@ -192,6 +195,8 @@ class UploadedFiles:
         if self.files_directory != "":
             chdir(self.files_directory)
         expanded_files = glob(pathname=filename, recursive=True)
+        if len(expanded_files) == 0:
+            print_error(f"File or files '{filename}' not found")
         chdir(self.working_directory)
 
         for filename in expanded_files:
@@ -207,6 +212,7 @@ class UploadedFiles:
             self.add_upload_file(
                 filename, f"{NAMESPACE_PREFIX_SEPARATOR}{upload_file_name}"
             )
+
         return expanded_files
 
     def delete(self):
