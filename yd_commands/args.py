@@ -87,7 +87,13 @@ class CLIParser:
             "--prefix",
             type=str,
             required=False,
-            help="the tag/prefix to use when naming, tagging, or selecting entities",
+            nargs="?",
+            const="",
+            help=(
+                "the tag to use when naming, tagging, or selecting entities,"
+                " or the prefix (directory) when used with the object store;"
+                " set to '' if the option is provided without a value"
+            ),
             metavar="<tag>",
         )
         parser.add_argument(
@@ -1286,9 +1292,9 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     elif "cloudwizard" in module_name:
         suffix = "setting up cloud accounts and YellowDog resources"
     elif "start" in module_name:
-        suffix = "starting HELD Work Requirements"
+        suffix = "starting held (paused) Work Requirements"
     elif "hold" in module_name:
-        suffix = "holding (pausing) Work Requirements"
+        suffix = "holding (pausing) running Work Requirements"
 
     return None if suffix is None else prefix + suffix
 
