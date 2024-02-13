@@ -9,7 +9,7 @@ from typing import List
 from yellowdog_client.model import WorkRequirementStatus, WorkRequirementSummary
 
 from yd_commands.follow_utils import follow_ids
-from yd_commands.interactive import confirmed, select
+from yd_commands.interactive import select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_work_requirement_summary_by_name_or_id,
@@ -72,10 +72,7 @@ def _start_or_hold_work_requirements(
             CLIENT, selected_work_requirement_summaries
         )
 
-    if len(selected_work_requirement_summaries) > 0 and confirmed(
-        f"Apply action '{action}' to {len(selected_work_requirement_summaries)}"
-        " Work Requirement(s)?"
-    ):
+    if len(selected_work_requirement_summaries) > 0:
         for work_summary in selected_work_requirement_summaries:
             if work_summary.status == required_state:
                 try:
@@ -130,11 +127,6 @@ def _start_or_hold_work_requirements_by_name_or_id(
                 f"Work Requirement '{name_or_id}' is not in the required '{required_state}'"
                 f" state for action '{action}'"
             )
-            continue
-
-        if not confirmed(
-            f"Apply action '{action}' to Work Requirement '{name_or_id}'?"
-        ):
             continue
 
         try:

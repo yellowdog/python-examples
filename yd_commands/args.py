@@ -197,7 +197,7 @@ class CLIParser:
                 "-b",
                 type=int,
                 required=False,
-                help="the batch size for Task submission; must be between 1 and 10,000",
+                help="the batch size for task submission; must be between 1 and 10,000",
                 metavar="<batch_size>",
             )
             parser.add_argument(
@@ -209,7 +209,7 @@ class CLIParser:
                 required=False,
                 metavar="<interval_between_batches_in_seconds>",
                 help=(
-                    "pause for user input between Task batch submissions; if no"
+                    "pause for user input between task batch submissions; if no"
                     " pause interval is provided, user input is required to advance"
                 ),
             )
@@ -256,14 +256,14 @@ class CLIParser:
                 "-a",
                 action="store_true",
                 required=False,
-                help="abort all running Tasks with immediate effect",
+                help="abort all running tasks with immediate effect",
             )
             parser.add_argument(
                 "--follow",
                 "-f",
                 action="store_true",
                 required=False,
-                help="follow progress after cancelling the Work Requirement",
+                help="follow progress after cancelling the work requirement(s)",
             )
 
         if any(
@@ -278,7 +278,7 @@ class CLIParser:
                 "-f",
                 action="store_true",
                 required=False,
-                help="follow Work Requirement events after applying action",
+                help="follow work requirement events after applying action",
             )
 
         if any(
@@ -311,8 +311,6 @@ class CLIParser:
                 "terminate",
                 "resize",
                 "cloudwizard",
-                "start",
-                "hold",
             ]
         ):
             parser.add_argument(
@@ -376,7 +374,7 @@ class CLIParser:
                 "-o",
                 action="store_true",
                 required=False,
-                help="list YellowDog Object Store object paths",
+                help="list object store object paths",
             )
             parser.add_argument(
                 "--all",
@@ -400,35 +398,35 @@ class CLIParser:
                 "-w",
                 action="store_true",
                 required=False,
-                help="list Work Requirements",
+                help="list work requirements",
             )
             parser.add_argument(
                 "--task-groups",
                 "-g",
                 action="store_true",
                 required=False,
-                help="list Task Groups in selected Work Requirements",
+                help="list task groups in selected work requirements",
             )
             parser.add_argument(
                 "--tasks",
                 "-T",
                 action="store_true",
                 required=False,
-                help="list Tasks in selected Work Requirements / Task Groups",
+                help="list tasks in selected work requirements / task groups",
             )
             parser.add_argument(
                 "--worker-pools",
                 "-p",
                 action="store_true",
                 required=False,
-                help="list Worker Pools",
+                help="list worker pools",
             )
             parser.add_argument(
                 "--compute-requirements",
                 "-r",
                 action="store_true",
                 required=False,
-                help="list Compute Requirements",
+                help="list compute requirements",
             )
             parser.add_argument(
                 "--active-only",
@@ -436,8 +434,8 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "list only active Compute Requirements / Worker Pools / Work"
-                    " Requirements"
+                    "list only active compute requirements / worker pools / work"
+                    " requirements"
                 ),
             )
             parser.add_argument(
@@ -445,35 +443,35 @@ class CLIParser:
                 "-C",
                 action="store_true",
                 required=False,
-                help="list Compute Requirement Templates",
+                help="list compute requirement templates",
             )
             parser.add_argument(
                 "--source-templates",
                 "-S",
                 action="store_true",
                 required=False,
-                help="list Compute Source Templates",
+                help="list compute source templates",
             )
             parser.add_argument(
                 "--keyrings",
                 "-K",
                 action="store_true",
                 required=False,
-                help="list Keyrings",
+                help="list keyrings",
             )
             parser.add_argument(
                 "--image-families",
                 "-I",
                 action="store_true",
                 required=False,
-                help="list Machine Image Families",
+                help="list machine image families",
             )
             parser.add_argument(
                 "--namespace-storage-configurations",
                 "-N",
                 action="store_true",
                 required=False,
-                help="list Namespace Storage Configurations",
+                help="list namespace storage configurations",
             )
             parser.add_argument(
                 "--instances",
@@ -488,7 +486,7 @@ class CLIParser:
                 metavar="<filename>",
                 type=str,
                 nargs="+",
-                help="files and/or directories to upload to the Object Store",
+                help="files and/or directories to upload to the object store",
             )
             parser.add_argument(
                 "--flatten-upload-paths",
@@ -544,7 +542,7 @@ class CLIParser:
                 "-r",
                 action="store_true",
                 required=False,
-                help="report on a Dynamic Template test run",
+                help="report on a dynamic template test run",
             )
 
         if "admin" in sys.argv[0]:
@@ -574,7 +572,7 @@ class CLIParser:
                 metavar="<worker-pool-or-compute-requirement-name-or-ID>",
                 type=str,
                 help=(
-                    "the name or YellowDog ID of the Worker Pool or Compute Requirement"
+                    "the name or YellowDog ID of the worker pool or compute requirement"
                     " to resize"
                 ),
             )
@@ -582,14 +580,14 @@ class CLIParser:
                 "worker_pool_size",
                 metavar="<new-node/instance-count>",
                 type=int,
-                help="the desired number of (total) nodes in the Worker Pool",
+                help="the desired number of (total) nodes in the worker pool",
             )
             parser.add_argument(
                 "--compute-requirement",
                 "-C",
                 action="store_true",
                 required=False,
-                help="resize a Compute Requirement instead of a Worker Pool",
+                help="resize a compute requirement instead of a worker pool",
             )
 
         if "shutdown" in sys.argv[0]:
@@ -599,14 +597,14 @@ class CLIParser:
                 default="",
                 metavar="<worker-pool-name-or-ID>",
                 type=str,
-                help="the name(s) or YellowDog ID(s) of the Worker Pool(s)",
+                help="the name(s) or YellowDog ID(s) of the worker pool(s)",
             )
             parser.add_argument(
                 "--follow",
                 "-f",
                 action="store_true",
                 required=False,
-                help="follow Worker Pool shutdown to completion",
+                help="follow worker pool shutdown to completion",
             )
 
         if "terminate" in sys.argv[0]:
@@ -616,7 +614,7 @@ class CLIParser:
                 default="",
                 metavar="<compute-requirement-name-or-ID>",
                 type=str,
-                help="the name(s) or YellowDog ID(s) of the Compute Requirement(s)",
+                help="the name(s) or YellowDog ID(s) of the compute requirement(s)",
             )
             parser.add_argument(
                 "--follow",
@@ -634,7 +632,7 @@ class CLIParser:
                 metavar="<work-requirement-name-or-ID>",
                 type=str,
                 help=(
-                    "the name(s) or YellowDog ID(s) of the Work Requirement(s) to be"
+                    "the name(s) or YellowDog ID(s) of the work requirement(s) to be"
                     " cancelled"
                 ),
             )
@@ -647,7 +645,7 @@ class CLIParser:
                 metavar="<work-requirement-name-or-ID>",
                 type=str,
                 help=(
-                    "the name(s) or YellowDog ID(s) of the Work Requirement(s) to be"
+                    "the name(s) or YellowDog ID(s) of the held (paused) work requirement(s) to be"
                     " started"
                 ),
             )
@@ -660,8 +658,8 @@ class CLIParser:
                 metavar="<work-requirement-name-or-ID>",
                 type=str,
                 help=(
-                    "the name(s) or YellowDog ID(s) of the Work Requirement(s) to be"
-                    " held"
+                    "the name(s) or YellowDog ID(s) of the work requirement(s) to be"
+                    " held (paused)"
                 ),
             )
 
@@ -716,7 +714,7 @@ class CLIParser:
                 "--ids",
                 action="store_true",
                 required=False,
-                help="remove resources using their YellowDog IDs (ydids)",
+                help="remove resources using their YellowDog IDs (YDIDs)",
             )
 
         if "follow" in sys.argv[0]:
@@ -773,8 +771,8 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "automatically follow associated Compute Requirements when"
-                    " following Worker Pools"
+                    "automatically follow the associated compute requirements when"
+                    " following worker pools"
                 ),
             )
         if any(
@@ -846,7 +844,7 @@ class CLIParser:
                 type=str,
                 help=(
                     "the instance type to use in the automatically generated YellowDog"
-                    " Compute Requirement Templates"
+                    " compute requirement templates"
                 ),
             )
             parser.add_argument(
@@ -863,7 +861,7 @@ class CLIParser:
                 default="",
                 metavar="<task-id>",
                 type=str,
-                help="the YellowDog ID(s) of the Task(s) to abort",
+                help="the YellowDog ID(s) of the task(s) to abort",
             )
 
         self.args = parser.parse_args()
