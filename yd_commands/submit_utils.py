@@ -14,7 +14,7 @@ from yellowdog_client import PlatformClient
 from yellowdog_client.model import ObjectPath, TaskInput, TaskInputVerification
 
 from yd_commands.config_types import ConfigCommon, ConfigWorkRequirement
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 from yd_commands.upload_utils import unique_upload_pathname, upload_file_core
 from yd_commands.variables import process_variable_substitutions_insitu
@@ -251,7 +251,7 @@ def format_yd_name(yd_name: str) -> str:
         new_yd_name = f"yd_{new_yd_name}"
     new_yd_name = new_yd_name[:60]
     if new_yd_name != yd_name:
-        print_log(
+        print_warning(
             f"Changing name '{yd_name}' to '{new_yd_name}' to comply with YellowDog"
             " naming requirements"
         )
