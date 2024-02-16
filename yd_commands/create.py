@@ -12,6 +12,8 @@ from requests import post
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
     AddConfiguredWorkerPoolResponse,
+    AwsFleetComputeSource,
+    AwsFleetPurchaseOption,
     CloudProvider,
     ImageOsType,
     Keyring,
@@ -572,9 +574,23 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
     """
     Return a populated YellowDog model object. Handle unexpected keywords.
     """
+
+    def _apply_enum_conversions():
+        if isinstance(model_object, AwsFleetComputeSource):
+            try:
+                model_object.purchaseOption = AwsFleetPurchaseOption[
+                    str(model_object.purchaseOption)
+                ]
+            except KeyError:
+                raise Exception(
+                    "Invalid AWS Fleet Compute Source Purchase Option property: "
+                    f"'{str(model_object.purchaseOption)}'"
+                )
+
     while True:
         try:
             model_object = get_model_class(classname)(**resource, **kwargs)
+            _apply_enum_conversions()
             return model_object
         except Exception as e:
             # Unexpected/missing keyword argument Exception of form:
