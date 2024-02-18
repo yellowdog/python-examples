@@ -183,7 +183,7 @@ def remove_credential(resource: Dict):
         if e.response.status_code == 404:
             print_warning(
                 f"Keyring '{keyring_name}' not found (possibly already deleted,"
-                " including its credentials)"
+                " including its credentials?)"
             )
         else:
             print_error(f"Unable to remove Keyring '{keyring_name}': {e}")
