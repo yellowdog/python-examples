@@ -33,6 +33,7 @@ DEPRECATED_KEYS = [
     DeprecatedKey("nodeIdleTimeLimit", IDLE_NODE_SHUTDOWN_TIMEOUT),
     DeprecatedKey("idleNodeShutdownEnabled", f"{IDLE_NODE_SHUTDOWN_TIMEOUT} = 0"),
     DeprecatedKey("idlePoolShutdownEnabled", f"{IDLE_POOL_SHUTDOWN_TIMEOUT} = 0"),
+    DeprecatedKey("captureTaskOutput", f"{UPLOAD_TASKOUTPUT} = true"),
 ]
 
 EXCLUDED_KEYS = [ENV, DOCKER_ENV, VARIABLES, INSTANCE_TAGS]

@@ -364,7 +364,7 @@ def csv_expand_toml_tasks(
         (config_wr.add_yd_env_vars, ADD_YD_ENV_VARS),
         (config_wr.always_upload, ALWAYS_UPLOAD),
         (config_wr.args, ARGS),
-        (config_wr.capture_taskoutput, CAPTURE_TASKOUTPUT),
+        (config_wr.upload_taskoutput, UPLOAD_TASKOUTPUT),
         (config_wr.docker_env, DOCKER_ENV),
         (config_wr.docker_options, DOCKER_OPTIONS),
         (config_wr.docker_password, DOCKER_PASSWORD),

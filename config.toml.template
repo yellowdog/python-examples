@@ -99,7 +99,7 @@
     # finishes
     # Optional
     # --------------------------------------------------------------------------
-    # captureTaskOutput = true
+    # uploadTaskProcessOutput = true
 
 [workerPool]  #################################################################
 

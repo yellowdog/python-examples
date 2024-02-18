@@ -23,7 +23,6 @@ class ConfigWorkRequirement:
     add_yd_env_vars: bool = False
     always_upload: bool = True
     args: List[str] = field(default_factory=list)
-    capture_taskoutput: bool = False
     completed_task_ttl: Optional[float] = None  # In minutes
     csv_files: Optional[List[str]] = None
     docker_env: Optional[Dict] = None
@@ -55,12 +54,13 @@ class ConfigWorkRequirement:
     task_data: Optional[str] = None
     task_data_file: Optional[str] = None
     task_group_name: Optional[str] = None
+    task_level_timeout: Optional[float] = None
     task_name: Optional[str] = None
     task_timeout: Optional[float] = None
     task_type: Optional[str] = None
     tasks_per_worker: Optional[int] = None
-    task_level_timeout: Optional[float] = None
     upload_files: List[Dict] = field(default_factory=list)
+    upload_taskoutput: bool = False
     vcpus: Optional[List[float]] = None
     verify_at_start: List[str] = field(default_factory=list)
     verify_wait: List[str] = field(default_factory=list)

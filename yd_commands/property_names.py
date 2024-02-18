@@ -5,7 +5,6 @@ Property names.
 ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
 ALWAYS_UPLOAD = "alwaysUpload"  # Bool
 ARGS = "arguments"  # List
-CAPTURE_TASKOUTPUT = "captureTaskOutput"  # Bool
 COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
@@ -65,14 +64,15 @@ TASK_DATA = "taskData"  # String
 TASK_DATA_FILE = "taskDataFile"  # String
 TASK_GROUPS = "taskGroups"  # List of Task Groups
 TASK_GROUP_NAME = "taskGroupName"  # String
+TASK_LEVEL_TIMEOUT = "timeout"  # Float
 TASK_NAME = "taskName"  # String
 TASK_TIMEOUT = "taskTimeout"  # Float
-TASK_LEVEL_TIMEOUT = "timeout"  # Float
 TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
 UPLOAD_FILES = "uploadFiles"  # List of Dicts
 UPLOAD_PATH = "uploadPath"  # String
+UPLOAD_TASKOUTPUT = "uploadTaskProcessOutput"  # Bool
 URL = "url"  # String
 USERDATA = "userData"  # String
 USERDATAFILE = "userDataFile"  # String
@@ -97,7 +97,6 @@ ALL_KEYS = [
     ADD_YD_ENV_VARS,
     ALWAYS_UPLOAD,
     ARGS,
-    CAPTURE_TASKOUTPUT,
     COMMON_SECTION,
     COMPLETED_TASK_TTL,
     COMPUTE_REQUIREMENT_BATCH_SIZE,
@@ -156,14 +155,15 @@ ALL_KEYS = [
     TASK_DATA_FILE,
     TASK_GROUPS,
     TASK_GROUP_NAME,
+    TASK_LEVEL_TIMEOUT,
     TASK_NAME,
     TASK_TIMEOUT,
-    TASK_LEVEL_TIMEOUT,
     TASK_TYPE,
     TASK_TYPES,
     TEMPLATE_ID,
     UPLOAD_FILES,
     UPLOAD_PATH,
+    UPLOAD_TASKOUTPUT,
     URL,
     USERDATA,
     USERDATAFILE,

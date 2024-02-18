@@ -806,10 +806,10 @@ def add_tasks_to_task_group(
             # Add TaskOutput to 'outputs'?
             if check_bool(
                 task.get(
-                    CAPTURE_TASKOUTPUT,
+                    UPLOAD_TASKOUTPUT,
                     task_group_data.get(
-                        CAPTURE_TASKOUTPUT,
-                        wr_data.get(CAPTURE_TASKOUTPUT, config_wr.capture_taskoutput),
+                        UPLOAD_TASKOUTPUT,
+                        wr_data.get(UPLOAD_TASKOUTPUT, config_wr.upload_taskoutput),
                     ),
                 )
             ):

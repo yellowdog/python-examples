@@ -26,7 +26,7 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
         print_warning(f"Ignoring {num_duplicates} duplicate YellowDog ID(s)")
 
     if auto_cr:
-        # Automatically add Compute Requirements IDs for
+        # Automatically add Compute Requirement IDs for
         # Provisioned Worker Pools, to follow both
         cr_ydids = set()
         for ydid in ydids_set:
