@@ -14,6 +14,7 @@ from yd_commands.create import create_resources
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.remove import remove_resources
+from yd_commands.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
 
 YD_KEYRING_NAME = "cloudwizard-gcp"
 YD_CREDENTIAL_NAME = "cloudwizard-gcp"
@@ -203,7 +204,7 @@ class GCPConfig(CommonCloudConfig):
         """
         spot_str = "Spot" if spot is True else "On-Demand"
         return {
-            "resource": "ComputeSourceTemplate",
+            "resource": RN_SOURCE_TEMPLATE,
             "description": (
                 f"GCE {region} {spot_str} Compute Source Template automatically created"
                 " by YellowDog Cloud Wizard"
@@ -323,7 +324,7 @@ class GCPConfig(CommonCloudConfig):
         Generate a Namespace configuration using an S3 bucket.
         """
         return {
-            "resource": "NamespaceStorageConfiguration",
+            "resource": RN_STORAGE_CONFIGURATION,
             "type": "co.yellowdog.platform.model.GcsNamespaceStorageConfiguration",
             "namespace": namespace,
             "bucketName": gcp_bucket_name,

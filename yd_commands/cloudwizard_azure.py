@@ -20,6 +20,7 @@ from yd_commands.create import create_resources
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.remove import remove_resources
+from yd_commands.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
 
 RESOURCE_PREFIX = "yellowdog-cloudwizard"
 RESOURCE_GROUP_PREFIX = f"{RESOURCE_PREFIX}-rg"
@@ -619,7 +620,7 @@ class AzureConfig(CommonCloudConfig):
             source["spotMaxPrice"] = YD_SPOT_MAX_PRICE
 
         return {
-            "resource": "ComputeSourceTemplate",
+            "resource": RN_SOURCE_TEMPLATE,
             "description": (
                 f"Azure {region} {spot_str} Compute Source Template automatically"
                 " created by YellowDog Cloud Wizard"
@@ -634,7 +635,7 @@ class AzureConfig(CommonCloudConfig):
         Generate a Namespace configuration using an Azure storage blob.
         """
         return {
-            "resource": "NamespaceStorageConfiguration",
+            "resource": RN_STORAGE_CONFIGURATION,
             "type": "co.yellowdog.platform.model.AzureNamespaceStorageConfiguration",
             "namespace": namespace,
             "containerName": storage_blob_name,

@@ -94,3 +94,12 @@ DEFAULT_THEME = {
     "pyexamples.idle": "bold dark_goldenrod",
     "pyexamples.starved": "bold dark_orange",
 }
+
+# Resource type names for create/remove
+RN_KEYRING = "Keyring"
+RN_CREDENTIAL = "Credential"
+RN_IMAGE_FAMILY = "MachineImageFamily"
+RN_SOURCE_TEMPLATE = "ComputeSourceTemplate"
+RN_REQUIREMENT_TEMPLATE = "ComputeRequirementTemplate"
+RN_STORAGE_CONFIGURATION = "NamespaceStorageConfiguration"
+RN_CONFIGURED_POOL = "ConfiguredWorkerPool"

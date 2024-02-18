@@ -36,6 +36,15 @@ from yd_commands.object_utilities import (
     find_image_family_ids_by_name,
 )
 from yd_commands.printing import print_error, print_json, print_log, print_warning
+from yd_commands.settings import (
+    RN_CONFIGURED_POOL,
+    RN_CREDENTIAL,
+    RN_IMAGE_FAMILY,
+    RN_KEYRING,
+    RN_REQUIREMENT_TEMPLATE,
+    RN_SOURCE_TEMPLATE,
+    RN_STORAGE_CONFIGURATION,
+)
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 CLEAR_CST_CACHE: bool = False  # Track whether the CST cache needs to be cleared
@@ -70,8 +79,8 @@ def create_resources(
             # There is potential additional processing for CRTs and CSTs
             # Print JSON from within their functions
             if ARGS_PARSER.dry_run and resource_type not in [
-                "ComputeRequirementTemplate",
-                "ComputeSourceTemplate",
+                RN_REQUIREMENT_TEMPLATE,
+                RN_SOURCE_TEMPLATE,
             ]:
                 print_json(resource)
                 continue
@@ -81,19 +90,19 @@ def create_resources(
                 f" specification: {resource}"
             )
             continue
-        if resource_type == "ComputeSourceTemplate":
+        if resource_type == RN_SOURCE_TEMPLATE:
             create_compute_source_template(resource)
-        elif resource_type == "ComputeRequirementTemplate":
+        elif resource_type == RN_REQUIREMENT_TEMPLATE:
             create_compute_requirement_template(resource)
-        elif resource_type == "Keyring":
+        elif resource_type == RN_KEYRING:
             create_keyring(resource, show_secrets)
-        elif resource_type == "Credential":
+        elif resource_type == RN_CREDENTIAL:
             create_credential(resource)
-        elif resource_type == "MachineImageFamily":
+        elif resource_type == RN_IMAGE_FAMILY:
             create_image_family(resource)
-        elif resource_type == "NamespaceStorageConfiguration":
+        elif resource_type == RN_STORAGE_CONFIGURATION:
             create_namespace_configuration(resource)
-        elif resource_type == "ConfiguredWorkerPool":
+        elif resource_type == RN_CONFIGURED_POOL:
             create_configured_worker_pool(resource)
         else:
             print_error(f"Unknown resource type '{resource_type}'")

@@ -21,6 +21,7 @@ from yd_commands.create import create_resources
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.remove import remove_resources
+from yd_commands.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
 
 IAM_USER_NAME = "yellowdog-cloudwizard-user"
 IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
@@ -895,7 +896,7 @@ class AWSConfig(CommonCloudConfig):
         """
         spot_str = "Spot" if spot is True else "On-Demand"
         return {
-            "resource": "ComputeSourceTemplate",
+            "resource": RN_SOURCE_TEMPLATE,
             "description": (
                 f"AWS {az.az} {spot_str} Compute Source Template automatically created"
                 " by YellowDog Cloud Wizard"
@@ -946,7 +947,7 @@ class AWSConfig(CommonCloudConfig):
         Generate a Namespace configuration using an S3 bucket.
         """
         return {
-            "resource": "NamespaceStorageConfiguration",
+            "resource": RN_STORAGE_CONFIGURATION,
             "type": "co.yellowdog.platform.model.S3NamespaceStorageConfiguration",
             "namespace": namespace,
             "bucketName": s3_bucket_name,

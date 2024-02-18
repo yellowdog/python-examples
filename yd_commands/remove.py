@@ -21,6 +21,15 @@ from yd_commands.object_utilities import (
     find_compute_source_template_id_by_name,
 )
 from yd_commands.printing import print_error, print_log, print_warning
+from yd_commands.settings import (
+    RN_CONFIGURED_POOL,
+    RN_CREDENTIAL,
+    RN_IMAGE_FAMILY,
+    RN_KEYRING,
+    RN_REQUIREMENT_TEMPLATE,
+    RN_SOURCE_TEMPLATE,
+    RN_STORAGE_CONFIGURATION,
+)
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 
 
@@ -53,19 +62,19 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                 f" specification: {resource}"
             )
             continue
-        if resource_type == "ComputeSourceTemplate":
+        if resource_type == RN_SOURCE_TEMPLATE:
             remove_compute_source_template(resource)
-        elif resource_type == "ComputeRequirementTemplate":
+        elif resource_type == RN_REQUIREMENT_TEMPLATE:
             remove_compute_requirement_template(resource)
-        elif resource_type == "Keyring":
+        elif resource_type == RN_KEYRING:
             remove_keyring(resource)
-        elif resource_type == "Credential":
+        elif resource_type == RN_CREDENTIAL:
             remove_credential(resource)
-        elif resource_type == "MachineImageFamily":
+        elif resource_type == RN_IMAGE_FAMILY:
             remove_image_family(resource)
-        elif resource_type == "NamespaceStorageConfiguration":
+        elif resource_type == RN_STORAGE_CONFIGURATION:
             remove_namespace_configuration(resource)
-        elif resource_type == "ConfiguredWorkerPool":
+        elif resource_type == RN_CONFIGURED_POOL:
             remove_configured_worker_pool(resource)
         else:
             print_error(f"Unknown resource type '{resource_type}'")
@@ -90,6 +99,7 @@ def remove_compute_source_template(resource: Dict):
 
     if not confirmed(f"Remove Compute Source Template '{name}'?"):
         return
+
     try:
         CLIENT.compute_client.delete_compute_source_template_by_id(source_id)
         print_log(f"Removed Compute Source Template '{name}' ({source_id})")
@@ -118,6 +128,7 @@ def remove_compute_requirement_template(resource: Dict):
         print_warning(
             f"{len(template_ids)} Compute Requirement Templates with the name '{name}'"
         )
+
     for template_id in template_ids:
         if not confirmed(
             f"Remove Compute Requirement Template '{name}' ({template_id})?"
@@ -303,6 +314,7 @@ def remove_resource_by_id(resource_id: str):
             if confirmed(f"Remove Compute Source Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_source_template_by_id(resource_id)
                 print_log(f"Removed Compute Source Template {resource_id} (if present)")
+
         elif resource_id.startswith("ydid:crt:"):
             if confirmed(f"Remove Compute Requirement Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_requirement_template_by_id(
@@ -311,10 +323,12 @@ def remove_resource_by_id(resource_id: str):
                 print_log(
                     f"Removed Compute Requirement Template {resource_id} (if present)"
                 )
+
         elif resource_id.startswith("ydid:imgfam:"):
             if confirmed(f"Remove Image Family '{resource_id}'?"):
                 CLIENT.images_client.delete_image_family(resource_id)
                 print_log(f"Removed Image Family {resource_id} (if present)")
+
         elif resource_id.startswith("ydid:keyring:"):
             if confirmed(f"Remove Keyring {resource_id}?"):
                 keyrings = CLIENT.keyring_client.find_all_keyrings()
@@ -324,12 +338,15 @@ def remove_resource_by_id(resource_id: str):
                         print_log(f"Removed Keyring {resource_id}")
                         return
                 raise Exception(f"Keyring {resource_id} not found")
+
         elif resource_id.startswith("ydid:wrkrpool:"):
             if confirmed(f"Shut down Worker Pool {resource_id}?"):
                 CLIENT.worker_pool_client.shutdown_worker_pool_by_id(resource_id)
                 print_log(f"Shut down Worker Pool {resource_id}")
+
         else:
             print_error(f"Resource ID type is unknown/unsupported: {resource_id}")
+
     except Exception as e:
         print_error(f"Unable to remove resource with ID {resource_id}: {e}")
 

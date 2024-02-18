@@ -21,6 +21,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.remove import remove_resource_by_id
+from yd_commands.settings import RN_KEYRING, RN_REQUIREMENT_TEMPLATE
 from yd_commands.variables import process_variable_substitutions_insitu
 
 
@@ -112,7 +113,7 @@ class CommonCloudConfig(ABC):
         Instance type must be a valid AWS instance type.
         """
         return {
-            "resource": "ComputeRequirementTemplate",
+            "resource": RN_REQUIREMENT_TEMPLATE,
             "name": f"{name_prefix}-{strategy.lower()}-{spot_or_ondemand}",
             "description": (
                 "Compute Requirement Template automatically created by YellowDog"
@@ -139,7 +140,7 @@ class CommonCloudConfig(ABC):
         Instance type must be a valid AWS instance type.
         """
         return {
-            "resource": "ComputeRequirementTemplate",
+            "resource": RN_REQUIREMENT_TEMPLATE,
             "name": f"{name_prefix}-waterfall-spot-to-ondemand",
             "description": (
                 "Compute Requirement Template automatically created by YellowDog"
@@ -166,7 +167,7 @@ class CommonCloudConfig(ABC):
         - Waterfall
         """
         return {
-            "resource": "ComputeRequirementTemplate",
+            "resource": RN_REQUIREMENT_TEMPLATE,
             "name": f"{name_prefix}-dynamic-{strategy.lower()}-lowestcost",
             "description": (
                 "Compute Requirement Template automatically created by YellowDog Cloud"
@@ -203,7 +204,7 @@ class CommonCloudConfig(ABC):
         Generate a YellowDog keyring resource definition.
         """
         return {
-            "resource": "Keyring",
+            "resource": RN_KEYRING,
             "description": "Keyring automatically created by YellowDog Cloud Wizard",
             "name": keyring_name,
         }

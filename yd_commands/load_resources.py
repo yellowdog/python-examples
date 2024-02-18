@@ -6,6 +6,15 @@ from typing import Dict, List
 
 from yd_commands.args import ARGS_PARSER
 from yd_commands.printing import print_log
+from yd_commands.settings import (
+    RN_CONFIGURED_POOL,
+    RN_CREDENTIAL,
+    RN_IMAGE_FAMILY,
+    RN_KEYRING,
+    RN_REQUIREMENT_TEMPLATE,
+    RN_SOURCE_TEMPLATE,
+    RN_STORAGE_CONFIGURATION,
+)
 from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
@@ -66,13 +75,13 @@ def _resequence_resources(
         return resources
 
     resource_creation_order = [
-        "Keyring",
-        "Credential",
-        "MachineImageFamily",
-        "ComputeSourceTemplate",
-        "ComputeRequirementTemplate",
-        "NamespaceStorageConfiguration",
-        "ConfiguredWorkerPool",
+        RN_KEYRING,
+        RN_CREDENTIAL,
+        RN_IMAGE_FAMILY,
+        RN_SOURCE_TEMPLATE,
+        RN_REQUIREMENT_TEMPLATE,
+        RN_STORAGE_CONFIGURATION,
+        RN_CONFIGURED_POOL,
     ]
 
     try:
