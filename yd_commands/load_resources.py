@@ -58,25 +58,34 @@ def _resequence_resources(
     resources: List[Dict], creation_or_update: bool = True
 ) -> List[Dict]:
     """
-    Resequence resources so that possible dependencies are evaluated in the
+    Re-sequence resources so that possible dependencies are evaluated in the
     correct order. If 'creation_or_update' is True this is a creation/update
     action, otherwise it's a removal action -- the sequencing differs for each.
     """
     if len(resources) == 1:
         return resources
 
-    # Move Compute Source Templates to the beginning or end of the list
-    resources.sort(
-        key=lambda resource: (
-            1 if resource.get("resource", "") == "ComputeSourceTemplate" else 0
-        ),
-        reverse=creation_or_update,
-    )
+    resource_creation_order = [
+        "Keyring",
+        "Credential",
+        "MachineImageFamily",
+        "ComputeSourceTemplate",
+        "ComputeRequirementTemplate",
+        "NamespaceStorageConfiguration",
+        "ConfiguredWorkerPool",
+    ]
 
-    # Move Keyrings to the beginning or end of the list
-    resources.sort(
-        key=lambda resource: (1 if resource.get("resource", "") == "Keyring" else 0),
-        reverse=creation_or_update,
-    )
+    try:
+        resources.sort(
+            key=lambda resource: resource_creation_order.index(resource["resource"]),
+            reverse=not creation_or_update,
+        )
+    except KeyError:
+        raise Exception(
+            "Property 'resource' is not specified for one or more resource specifications"
+        )
+    except ValueError as e:
+        resource_type = str(e).split("'")[1]
+        raise Exception(f"Unknown resource type: '{resource_type}'")
 
     return resources

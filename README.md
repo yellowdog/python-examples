@@ -1740,12 +1740,9 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 
 The **yd-create** and **yd-remove** commands operate on a list of one or more resource specification files in JSON (or Jsonnet) format.
 
-Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list. Resource specifications are generally processed in the order found in each list, and in the order of the resource specification files found on the command line. However, in the case of Compute Source Templates and Compute Requirement Templates, and Keyrings and Credentials, these are potentially resequenced such that:
+Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list.
 
-- In `yd-create` operations, all Compute Source Templates will be created/updated before any Compute Requirement Templates, and all Keyrings will be created/updated before any Credentials
-- In `yd-remove` operations, all Compute Requirement Templates will be removed before any Compute Source Templates, and all Credentials will be removed before any Keyrings
-
-This is for ease of use, because (1) Compute Requirement Template creation can depend on the existence of Compute Source Templates, (2) Compute Source Template removal can only proceed if they're not referenced by any Compute Requirment Templates, and (3) because Keyrings must exist before Credentials can be added.
+The complete list of resource specifications is re-sequenced on processing to ensure that possibly dependent resources are dealt with in a suitable order. For example, all Compute Source Templates are always processed before any Compute Requirement Templates on resource creation, and the reverse sequencing is used on resource removal.
 
 Resource specification files can use all forms of **variable substitution** just as in the case of Work Requirements, etc.
 
@@ -1780,9 +1777,9 @@ yd-remove --ids ydid:crt:D9C548:2a09093d-c74c-4bde-95d1-c576c6f03b13 ydid:imgfam
 
 ### Resource Matching
 
-Resources match on resource names rather than on YellowDog IDs. This is done to allow the `yd-create` and `yd-remove` commands to be stateless. 
+Resources match on **resource names** rather than on YellowDog IDs. This is done for flexibility and to allow the `yd-create` and `yd-remove` commands to be essentially stateless (i.e., we don't need to keep a local record of the YellowDog IDs of the resources created). 
 
-However, this means that **caution is required** when updating or removing resources, resource matching is done using **only** the **name** of the resource -- i.e., the system-generated `ydid` IDs are not used. This means that a resource with a given name could have been removed and replaced in Platform by some other means, and the resource specifications would still match it.
+However, this means that **caution is required** when updating or removing resources, since resource matching is done using **only** the **name** of the resource -- i.e., the system-generated `ydid` IDs are not used. This means that a resource with a given name could have been removed and replaced in Platform by some other means, and the resource specification(s) would still match it.
 
 ## Resource Specification Definitions
 
@@ -1790,7 +1787,15 @@ The JSON specification used to define each type of resource can be found by insp
 
 For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API call for adding a new Compute Source template: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeSourceTemplate. This will display an **Example Value**, and an adjacent tab will show the **Schema**.
 
-When using the `yd-create` and `yd-remove` commands, note that an additional property `resource` must be supplied, to identify the type of resource being specified.
+When using the `yd-create` and `yd-remove` commands, note that an additional property `resource` must be supplied, to identify the type of resource being specified. The `"resource"` property can take the following values:
+
+- `"Keyring"`
+- `"Credential"`
+- `"ComputeSourceTemplate"`
+- `"ComputeRequirementTemplate"`
+- `"MachineImageFamily"`
+- `"NamespaceStorageConfiguration"`
+- `"ConfiguredWorkerPool"`
 
 To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
 
