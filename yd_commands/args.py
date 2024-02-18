@@ -78,7 +78,12 @@ class CLIParser:
             "-n",
             type=str,
             required=False,
-            help="the namespace to use when creating and identifying entities",
+            nargs="?",
+            const="",
+            help=(
+                "the namespace to use when creating and identifying entities;"
+                " this is set to '' if the option is provided without a value"
+            ),
             metavar="<namespace>",
         )
         parser.add_argument(
@@ -92,7 +97,7 @@ class CLIParser:
             help=(
                 "the tag to use when naming, tagging, or selecting entities,"
                 " or the prefix (directory) when used with the object store;"
-                " set to '' if the option is provided without a value"
+                " this is set to '' if the option is provided without a value"
             ),
             metavar="<tag>",
         )
