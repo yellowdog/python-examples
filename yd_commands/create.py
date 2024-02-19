@@ -196,8 +196,9 @@ def create_compute_requirement_template(resource: Dict):
     if CLEAR_CST_CACHE:  # Update the CST cache if required
         clear_compute_source_template_cache()
         CLEAR_CST_CACHE = False
-    counter = 0
+
     # Dynamic templates don't have 'sources'; return '[]'
+    counter = 0
     for source in resource.get("sources", []):
         template_name_or_id = source["sourceTemplateId"]
         if "ydid:cst:" not in template_name_or_id:
@@ -211,13 +212,16 @@ def create_compute_requirement_template(resource: Dict):
                 return
             source["sourceTemplateId"] = template_id
             counter += 1
-    print_log(f"Replaced {counter} Compute Source Template name(s) with ID(s)")
+
+    if counter > 0:
+        print_log(f"Replaced {counter} Compute Source Template name(s) with ID(s)")
 
     # Allow image families to be referenced by name rather than ID
     global CLEAR_IMAGE_FAMILY_CACHE
     if CLEAR_IMAGE_FAMILY_CACHE:  # Update the IF cache if required
         clear_compute_source_template_cache()
         CLEAR_IMAGE_FAMILY_CACHE = False
+
     images_id = resource.get("imagesId")
     if images_id is not None:
         if "ydid:imgfam:" not in images_id:
