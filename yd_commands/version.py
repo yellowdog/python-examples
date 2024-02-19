@@ -26,7 +26,7 @@ def check_for_jsonnet() -> str:
 
 def main():
     print(f"  YellowDog Python Examples Version:   {__version__} (Docs: {DOCS_URL})")
-    print(f"  Jsonnet Python Support:              {check_for_jsonnet()}")
+    print(f"  Python Jsonnet Support:              {check_for_jsonnet()}")
     print(f"  YellowDog SDK Version:               {yd_sdk_version}")
     print(f"  Python Version:                      {py_version.split()[0]} ")
     if "--debug" in argv:
