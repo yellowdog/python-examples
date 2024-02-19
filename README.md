@@ -544,6 +544,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `providers`                            | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                                                                                             | Yes  | Yes | Yes  |      |
 | `ram`                                  | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                                                                                      | Yes  | Yes | Yes  |      |
 | `regions`                              | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                                                                                    | Yes  | Yes | Yes  |      |
+| `tag`                                  | A tag that can be associated with individual Task Groups or Tasks. Note that there is no property inheritance for these tags.                                                                                                              |      |     | Yes  | Yes  |
 | `taskBatchSize`                        | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                                                                                              | Yes  |     |      |      |
 | `taskCount`                            | The number of times to execute the Task.                                                                                                                                                                                                   | Yes  | Yes | Yes  |      |
 | `taskData`                             | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when The Task executes.                                                                        | Yes  | Yes | Yes  | Yes  |
@@ -847,6 +848,7 @@ Showing all possible properties at the Task Group level:
       "providers": ["AWS"],
       "ram": [0.5, 2],
       "regions": ["eu-west-2"],
+      "tag": "my_tag",
       "taskCount": 5,
       "taskData": "my_task_data_string",
       "taskDataFile": "my_data_file.txt",
@@ -899,6 +901,7 @@ Showing all possible properties at the Task level:
           "outputs": ["results.txt"],
           "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
           "outputsRequired": ["results_required.txt"],
+          "tag": "my_tag",
           "taskData": "my_task_data_string",
           "taskDataFile": "my_data_file.txt",
           "timeout": 120.0,

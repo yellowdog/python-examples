@@ -499,6 +499,7 @@ def create_task_group(
             task_group_data.get(PRIORITY, wr_data.get(PRIORITY, config_wr.priority))
         ),
         completedTaskTtl=completed_task_ttl,
+        tag=task_group_data.get(TASK_GROUP_TAG, None),
     )
 
     print_log(f"Generated Task Group '{task_group_name}'")
@@ -1159,6 +1160,7 @@ def create_task(
             flattenInputPaths=flatten_input_paths,
             taskData=task_data_property,
             timeout=task_timeout,
+            tag=task_data.get(TASK_TAG, None),
         )
 
     # Optionally add Task details to the environment as a convenience
