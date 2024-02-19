@@ -282,6 +282,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             worker_tags=worker_tags,
             wr_data_file=wr_data_file,
             wr_name=wr_section.get(WR_NAME, None),
+            wr_tag=wr_section.get(WR_TAG, None),
         )
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")

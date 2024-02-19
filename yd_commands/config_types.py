@@ -67,6 +67,7 @@ class ConfigWorkRequirement:
     worker_tags: Optional[List[str]] = None
     wr_data_file: Optional[str] = None
     wr_name: Optional[str] = None
+    wr_tag: Optional[str] = None
 
 
 @dataclass

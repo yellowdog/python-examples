@@ -278,11 +278,17 @@ def submit_work_requirement(
 
     # Create the Work Requirement
     priority = check_float_or_int(wr_data.get(PRIORITY, CONFIG_WR.priority))
+    wr_tag = check_str(
+        wr_data.get(
+            WR_TAG,
+            CONFIG_COMMON.name_tag if CONFIG_WR.wr_tag is None else CONFIG_WR.wr_tag,
+        )
+    )
     work_requirement = WorkRequirement(
         namespace=CONFIG_COMMON.namespace,
         name=ID,
         taskGroups=task_groups,
-        tag=CONFIG_COMMON.name_tag,
+        tag=wr_tag,
         priority=priority,
     )
     if not ARGS_PARSER.dry_run:
@@ -1160,8 +1166,10 @@ def create_task(
             flattenInputPaths=flatten_input_paths,
             taskData=task_data_property,
             timeout=task_timeout,
-            tag=task_data.get(TASK_TAG, None),
+            tag=task_tag,
         )
+
+    task_tag = task_data.get(TASK_TAG, None)
 
     # Optionally add Task details to the environment as a convenience
     if add_yd_env_vars and task_type != "docker":
@@ -1171,7 +1179,8 @@ def create_task(
         env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
         env_copy[YD_WORK_REQUIREMENT_NAME] = ID
         env_copy[YD_NAMESPACE] = CONFIG_COMMON.namespace
-        env_copy[YD_TAG] = CONFIG_COMMON.name_tag
+        if task_tag is not None:
+            env_copy[YD_TAG] = task_tag
 
     # Special processing for Bash, Python & PowerShell tasks if the 'executable'
     # property is set. The script is uploaded if this hasn't already been done,
@@ -1241,7 +1250,8 @@ def create_task(
             docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
             docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
             docker_env_list += ["--env", f"{YD_NAMESPACE}={CONFIG_COMMON.namespace}"]
-            docker_env_list += ["--env", f"{YD_TAG}={CONFIG_COMMON.name_tag}"]
+            if task_tag is not None:
+                docker_env_list += ["--env", f"{YD_TAG}={task_tag}"]
 
         if docker_env is not None:
             for key, value in docker_env.items():

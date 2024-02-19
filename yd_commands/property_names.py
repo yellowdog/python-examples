@@ -94,6 +94,7 @@ WORK_REQUIREMENT_SECTION = "workRequirement"  # No value
 WP_NAME = "name"  # String
 WR_DATA = "workRequirementData"  # String
 WR_NAME = "name"  # String
+WR_TAG = "tag"  # String
 
 ALL_KEYS = [
     ADD_YD_ENV_VARS,
@@ -187,4 +188,5 @@ ALL_KEYS = [
     WP_NAME,
     WR_DATA,
     WR_NAME,
+    WR_TAG,
 ]
