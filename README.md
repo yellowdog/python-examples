@@ -587,9 +587,9 @@ When a Task executes, its Task name and number, Task Group name and number, Work
 
 This applies whether the names were set automatically by `yd-submit` or explicitly by the user.
 
-For Tasks of type `docker` and where the `executable` property has been set, the variables above are also available **within** the container environment.
+For Tasks of type `docker` and where the `executable` property has been set, the variables above are instead available **within** the container environment.
 
-In addition to the environment variables above, the YellowDog Agent will set the following variables for use by the Task, based on the instance details and Task identification:
+In addition to the environment variables above, when a Task is executed by a Worker, the YellowDog Agent will set the following variables for use by the Task, based on the instance details and Task identification:
 
 - `YD_PROVIDER`
 - `YD_REGION`
