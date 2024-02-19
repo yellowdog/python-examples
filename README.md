@@ -1514,6 +1514,7 @@ The following properties are available:
 | `maxNodes`                | The maximum number of nodes to which the Worker Pool can be scaled up.                                               | `1`                     |
 | `name`                    | The name of the Worker Pool.                                                                                         | Automatically Generated |
 | `nodeBootTimeout`         | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.      | `10.0`                  |
+| `requirementTag`          | The tag to apply to the Compute Requirement.                                                                         | `tag` set in `common`   |
 | `targetInstanceCount`     | The initial number of nodes to create in the Worker Pool.                                                            | `1`                     |
 | `templateId`              | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**)                        | No default provided     |
 | `userData`                | User Data to be supplied to instances on boot.                                                                       |                         |
@@ -1542,6 +1543,7 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     minNodes = 1
     name = "my-worker-pool"
     nodeBootTimeout = 5
+    requirementTag = "my_tag"
     targetInstanceCount = 1
     templateId = "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
     # Note: only one of 'userData'/'userDataFile'/'userDataFiles' should be set
@@ -1688,7 +1690,7 @@ When a JSON Worker Pool specification is used, the following properties from the
 - `instanceTags`
 - `requirementName`: derived from the `name` property in the `TOML` configuration. (The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
 - `requirementNamespace`: derived from the `namespace` property in the `TOML` configuration
-- `requirementTag`: : derived from the `tag` property in the `TOML` configuration
+- `requirementTag`: : derived from the `requirementTag` property at the `workerPool` level, or the `tag` in the `common` configuration
 - `targetInstanceCount`
 - `templateId`
 - `userData`
@@ -2392,7 +2394,7 @@ The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and
 
 The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool).
 
-This command uses the data from the `workerPool` configuration section (or, synonymously, the `computeRequirement` section), but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
+This command uses the data from the `workerPool` configuration section (or, synonymously, the `computeRequirement` section), but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, `requirementTag`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
 Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename, or by using the `computeRequirementData` property in the `workerPool`/`computeRequirement` section. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file.
 
@@ -2414,7 +2416,7 @@ An example JSON specification is shown below:
 }
 ```
 
-Note that the `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name.
+Note that the `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name. The same is true for the `imagesId` property.
 
 If a Worker Pool is defined in JSON, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
 

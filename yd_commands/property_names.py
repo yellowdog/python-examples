@@ -10,6 +10,7 @@ COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
 COMPUTE_REQUIREMENT_BATCH_SIZE = "computeRequirementBatchSize"  # Integer
 COMPUTE_REQUIREMENT_DATA_FILE = "computeRequirementData"  # String
 COMPUTE_REQUIREMENT_SECTION = "computeRequirement"  # No value
+CR_TAG = "requirementTag"  # String
 CSV_FILE = "csvFile"  # String
 CSV_FILES = "csvFiles"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String
@@ -105,6 +106,7 @@ ALL_KEYS = [
     COMPUTE_REQUIREMENT_BATCH_SIZE,
     COMPUTE_REQUIREMENT_DATA_FILE,
     COMPUTE_REQUIREMENT_SECTION,
+    CR_TAG,
     CSV_FILE,
     CSV_FILES,
     DEPENDENT_ON,

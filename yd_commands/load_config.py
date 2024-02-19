@@ -351,6 +351,7 @@ def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
                 COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
             ),
             compute_requirement_data_file=compute_requirement_data_file,
+            cr_tag=wp_section.get(CR_TAG, None),
             idle_node_shutdown_timeout=wp_section.get(IDLE_NODE_SHUTDOWN_TIMEOUT, 5.0),
             idle_pool_shutdown_timeout=wp_section.get(IDLE_POOL_SHUTDOWN_TIMEOUT, 30.0),
             images_id=wp_section.get(IMAGES_ID, None),

@@ -67,7 +67,7 @@ def main():
 
     if cr_json_file is not None:
         print_log(f"Loading Compute Requirement data from: '{cr_json_file}'")
-        create_compute_requirement_from_json(
+        _create_compute_requirement_from_json(
             cr_json_file, WP_VARIABLES_PREFIX, WP_VARIABLES_POSTFIX
         )
         return
@@ -128,7 +128,11 @@ def main():
                 requirementNamespace=CONFIG_COMMON.namespace,
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].target_instances,
-                requirementTag=CONFIG_COMMON.name_tag,
+                requirementTag=(
+                    CONFIG_COMMON.name_tag
+                    if CONFIG_WP.cr_tag is None
+                    else CONFIG_WP.cr_tag
+                ),
                 maintainInstanceCount=CONFIG_WP.maintainInstanceCount,
                 instanceTags=CONFIG_WP.instance_tags,
                 imagesId=CONFIG_WP.images_id,
@@ -220,7 +224,7 @@ def _allocate_nodes_to_batches(
     return batches
 
 
-def create_compute_requirement_from_json(
+def _create_compute_requirement_from_json(
     cr_json_file: str, prefix: str = "", postfix: str = ""
 ) -> None:
     """
@@ -256,7 +260,14 @@ def create_compute_requirement_from_json(
                 (CONFIG_WP.name if CONFIG_WP.name is not None else GENERATED_ID),
             ),
             ("requirementNamespace", CONFIG_COMMON.namespace),
-            ("requirementTag", CONFIG_COMMON.name_tag),
+            (
+                "requirementTag",
+                (
+                    CONFIG_COMMON.name_tag
+                    if CONFIG_WP.cr_tag is None
+                    else CONFIG_WP.cr_tag
+                ),
+            ),
             ("templateId", CONFIG_WP.template_id),
             ("userData", get_user_data_property(CONFIG_WP, ARGS_PARSER.content_path)),
             ("imagesId", CONFIG_WP.images_id),
