@@ -396,7 +396,8 @@ def create_task_group(
             check_list(task_group_data.get(TASK_TYPES, wr_data.get(TASK_TYPES, [])))
         ).union(task_types_from_tasks)
     )
-    if config_wr.task_type is not None and config_wr.task_type not in task_types:
+    # Use the task type from the config file if present and task_types is empty
+    if config_wr.task_type is not None and len(task_types) == 0:
         task_types.append(config_wr.task_type)
     if len(task_types) == 0:
         raise Exception(f"No Task Type(s) specified in Task Group '{task_group_name}'")
