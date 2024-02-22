@@ -276,15 +276,15 @@ These restrictions apply to entities including Namespaces, Tags, Work Requiremen
 
 The `[common]` section of the configuration file can contain the following properties:
 
-| Property    | Description                                                                         |
-|:------------|:------------------------------------------------------------------------------------|
-| `key`       | The **key** of the YellowDog Application under which the commands will run          |
-| `secret`    | The **secret** of the YellowDog Application under which the commands will run       |
-| `namespace` | The **namespace** to be used for grouping resources                                 |
-| `tag`       | The **tag** to be used for tagging resources and naming objects                     |
-| `url`       | The **URL** of the YellowDog Platform API endpoint, if the default isn't to be used |
-| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                  |
-| `variables` | A table containing **variable substitutions** (see the Variables section below)     |
+| Property    | Description                                                                                        |
+|:------------|:---------------------------------------------------------------------------------------------------|
+| `key`       | The **key** of the YellowDog Application under which the commands will run                         |
+| `secret`    | The **secret** of the YellowDog Application under which the commands will run                      |
+| `namespace` | The **namespace** to be used for grouping resources                                                |
+| `tag`       | The **tag** to be used for tagging resources and naming objects                                    |
+| `url`       | The **URL** of the YellowDog Platform API endpoint. Defaults to `https://portal.yellowdog.co/api`. |
+| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                                 |
+| `variables` | A table containing **variable substitutions** (see the Variables section below)                    |
 
 An example `common` section is shown below:
 
