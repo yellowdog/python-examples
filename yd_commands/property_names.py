@@ -30,7 +30,7 @@ FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
 IDLE_NODE_SHUTDOWN_TIMEOUT = "idleNodeShutdownTimeout"  # Float
 IDLE_POOL_SHUTDOWN_TIMEOUT = "idlePoolShutdownTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
-IMPORT = "import"  # String
+IMPORT_COMMON = "importCommon"  # String
 INPUTS_OPTIONAL = "inputsOptional"  # List of Strings
 INPUTS_REQUIRED = "inputs"  # List of Strings
 INSTANCE_TAGS = "instanceTags"  # List of Strings
@@ -126,7 +126,7 @@ ALL_KEYS = [
     IDLE_NODE_SHUTDOWN_TIMEOUT,
     IDLE_POOL_SHUTDOWN_TIMEOUT,
     IMAGES_ID,
-    IMPORT,
+    IMPORT_COMMON,
     INPUTS_OPTIONAL,
     INPUTS_REQUIRED,
     INSTANCE_TAGS,

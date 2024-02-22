@@ -87,7 +87,7 @@ def load_config_common() -> ConfigCommon:
         common_section = CONFIG_TOML.get(COMMON_SECTION, {})
 
         # Check for IMPORT directive (common section in a separate file)
-        common_section_import_file = common_section.get(IMPORT, None)
+        common_section_import_file = common_section.get(IMPORT_COMMON, None)
         if common_section_import_file is not None:
             common_section = import_toml(common_section_import_file)
 
