@@ -86,8 +86,8 @@ def main():
                     CLIENT, worker_pool_summary.id
                 )
                 print_log(f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}")
-            except:
-                print_error(f"Unable to shut down '{worker_pool_summary.name}'")
+            except Exception as e:
+                print_error(f"Unable to shut down '{worker_pool_summary.name}': {e}")
 
     if shutdown_count > 0:
         print_log(f"Shut down {shutdown_count} Worker Pool(s)")
@@ -127,7 +127,7 @@ def shutdown_by_names_or_ids(names_or_ids: List[str]):
             CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool_id)
             print_log(f"Shut down Worker Pool '{worker_pool_id}'")
         except Exception as e:
-            print_error(f"Unable to shut down Worker Pool '{worker_pool_id}' ({e})")
+            print_error(f"Unable to shut down Worker Pool '{worker_pool_id}': ({e})")
 
     if ARGS_PARSER.follow:
         follow_ids(worker_pool_ids, auto_cr=ARGS_PARSER.auto_cr)
