@@ -178,7 +178,7 @@ class CLIParser:
                 "-X",
                 type=str,
                 required=False,
-                help="the executable to use",
+                help="the 'executable' to use in the case of certain task types",
                 metavar="<executable>",
             )
             parser.add_argument(
