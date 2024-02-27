@@ -383,7 +383,11 @@ def load_json_file_with_variable_substitutions(
 
 
 def load_jsonnet_file_with_variable_substitutions(
-    filename: str, prefix: str = "", postfix: str = "", files_directory: str = ""
+    filename: str,
+    prefix: str = "",
+    postfix: str = "",
+    files_directory: str = "",
+    exit_on_dry_run=True,
 ) -> Dict:
     """
     Takes a Jsonnet filename and returns a dictionary with its variable
@@ -403,10 +407,11 @@ def load_jsonnet_file_with_variable_substitutions(
     process_variable_substitutions_insitu(dict_data, prefix, postfix)
 
     if ARGS_PARSER.jsonnet_dry_run:
-        print_log("Dry-run: Printing Jsonnet to JSON conversion")
+        print_log(f"Dry-run: Printing Jsonnet to JSON conversion for '{filename}'")
         print_json(dict_data)
         print_log("Dry-run: Complete")
-        exit(0)
+        if exit_on_dry_run:
+            sys.exit(0)
 
     return dict_data
 
