@@ -1188,10 +1188,6 @@ def create_task(
     # and added to the list of required files.
     if task_type in ["bash", "powershell", "python", "cmd", "bat"]:
         if executable is None:
-            if task_number == 1:  # Only report this the first time
-                print_log(
-                    f"Note: no 'executable' specified for '{task_type}' Task Type"
-                )
             return _make_task(flatten_input_paths)
 
         UPLOADED_FILES.add_input_file(
