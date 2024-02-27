@@ -2127,7 +2127,7 @@ yd-jsonnet2json my_file.jsonnet
 ```
 
 
-2. The `jsonnet-dry-run` (`-J`) option of the `yd-submit`, `yd-provision` and `yd-instantiate` commands will generate JSON output representing the Jsonnet to JSON processing only, including applicable variable substitutions, but before full property expansion into the JSON that will be submitted to the Platform.
+2. The `jsonnet-dry-run` (`-J`) option of the `yd-submit`, `yd-provision`, `yd-instantiate`, `yd-create` and `yd-remove` commands will generate JSON output representing the Jsonnet to JSON processing only, including applicable variable substitutions, but before full property expansion into the JSON that will be submitted to the Platform.
 
 
 3. The `dry-run` (`-D`) option will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
