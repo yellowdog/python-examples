@@ -496,7 +496,9 @@ class VariableSubstitutedJsonnetFile:
         processed_file_contents: str = process_variable_substitutions_in_file_contents(
             file_contents, self.prefix, self.postfix
         )
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, dir=os.getcwd()
+        ) as temp_file:
             temp_file.write(processed_file_contents)
         self.temp_filename: str = temp_file.name
         return self.temp_filename
