@@ -242,6 +242,10 @@ def _create_compute_requirement_from_json(
             cr_json_file, prefix=prefix, postfix=postfix
         )
     else:
+        if ARGS_PARSER.jsonnet_dry_run:
+            raise Exception(
+                f"Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
+            )
         cr_data = load_json_file_with_variable_substitutions(
             cr_json_file, prefix=prefix, postfix=postfix
         )

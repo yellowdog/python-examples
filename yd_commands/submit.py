@@ -155,6 +155,12 @@ def main():
         )
 
     elif wr_data_file is not None:
+
+        if ARGS_PARSER.jsonnet_dry_run and not wr_data_file.lower().endswith("jsonnet"):
+            raise Exception(
+                f"Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
+            )
+
         wr_data_file = relpath(wr_data_file)
         print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
 

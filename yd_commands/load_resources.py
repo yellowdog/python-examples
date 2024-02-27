@@ -5,7 +5,7 @@ Load data for resource creation/update/removal requests.
 from typing import Dict, List
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.printing import print_log
+from yd_commands.printing import print_log, print_warning
 from yd_commands.settings import (
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
@@ -28,16 +28,27 @@ def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
     Load and return a list of resource specifications assembled from the
     resources described in a set of resource description files.
     """
+
+    if len(ARGS_PARSER.resource_specifications) > 1 and ARGS_PARSER.jsonnet_dry_run:
+        print_warning(
+            f"Note: only the first supplied file '{ARGS_PARSER.resource_specifications[0]}'"
+            " will be subject to Jsonnet dry-run processing"
+        )
+
     resources = []
     for resource_spec in ARGS_PARSER.resource_specifications:
-        if resource_spec.lower().endswith(".toml"):
+        if resource_spec.lower().endswith(".jsonnet"):
+            resources_loaded = load_jsonnet_file_with_variable_substitutions(
+                resource_spec
+            )  # Will exit if ARGS_PARSER.jsonnet_dry_run is set
+        elif ARGS_PARSER.jsonnet_dry_run:
+            raise Exception(
+                f"Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
+            )
+        elif resource_spec.lower().endswith(".toml"):
             resources_loaded = load_toml_file_with_variable_substitutions(resource_spec)
         elif resource_spec.lower().endswith(".json"):
             resources_loaded = load_json_file_with_variable_substitutions(resource_spec)
-        elif resource_spec.lower().endswith(".jsonnet"):
-            resources_loaded = load_jsonnet_file_with_variable_substitutions(
-                resource_spec
-            )
         else:
             raise Exception(
                 f"['{resource_spec}'] Resource specifications must end in '.toml',"

@@ -103,6 +103,10 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             wp_json_file, prefix=WP_VARIABLES_PREFIX, postfix=WP_VARIABLES_POSTFIX
         )
     else:
+        if ARGS_PARSER.jsonnet_dry_run:
+            raise Exception(
+                f"Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
+            )
         wp_data = load_json_file_with_variable_substitutions(
             wp_json_file, prefix=WP_VARIABLES_PREFIX, postfix=WP_VARIABLES_POSTFIX
         )
