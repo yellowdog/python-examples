@@ -521,8 +521,9 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `dependentOn`                          | The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.                                                                               |      |     | Yes  |      |
 | `dockerEnvironment`                    | The environment to be passed to a Docker container. Only used by the `docker` Task Type. E.g., JSON: `{"VAR_1": "abc"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                           | Yes  | Yes | Yes  | Yes  |
 | `dockerOptions`                        | Additional options to be passed to the docker run command. Only used by the `docker` Task Type. E.g.,`["--runtime nvidia, "--gpus all"]`.                                                                                                  | Yes  | Yes | Yes  | Yes  |
-| `dockerPassword`                       | The password for DockerHub, only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
-| `dockerUsername`                       | The username for DockerHub, only used by the `docker` Task Type. E,g., `"my_username"`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `dockerPassword`                       | The password for the Docker container registry; only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                                                                | Yes  | Yes | Yes  | Yes  |
+| `dockerRegistry`                       | The Docker container registry against which to run `docker login`. This can be omitted if using the DockerHub registry. E.g., `"my.registry.io"`.                                                                                          | Yes  | Yes | Yes  | Yes  |
+| `dockerUsername`                       | The username for the Docker container registry; only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                                                                | Yes  | Yes | Yes  | Yes  |
 | `environment`                          | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                                    | Yes  | Yes | Yes  | Yes  |
 | `exclusiveWorkers`                     | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                                                                                         | Yes  | Yes | Yes  |      |
 | `executable`                           | The 'executable' to run when a Bash or Docker Task is executed. This is the name of the Bash script for Bash, the container image for Docker. Optional: omit to suppress automatic processing.                                             | Yes  | Yes | Yes  | Yes  |
@@ -649,7 +650,9 @@ Note the `\\` requirement for directory separators when defining Tasks on Window
 
 #### Docker Tasks
 
-For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property. The `dockerUsername` and `dockerPassword` properties, if supplied, are added to the `environment` property. The `dockerOptions` property can be used to supply options to the `docker run` command.
+For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property.
+
+The `dockerUsername`, `dockerPassword`, and `dockerRegistry` properties, if supplied, are added to the `environment` property for processing by the script invoked by the Agent, which launches the Docker container. The `dockerRegistry` property is supplied when using a container repository other than DockerHub.
 
 For example:
 ```toml
@@ -658,6 +661,7 @@ executable = "my_dockerhub_repo/my_container_image"
 dockerEnvironment = {E1 = "EeeOne"}
 dockerUsername = "my_user"
 dockerPassword = "my_password"
+dockerRegistry = "my_registry.io"
 arguments = ["1", "2", "3"]
 ```
 
@@ -666,16 +670,15 @@ is equivalent to the following being sent for processing by the `docker` Task Ty
 ```toml
 taskType = "docker"
 arguments = ["--env", "E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
-environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password"}
+environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password", DOCKER_REGISTRY = "my_registry.io"}
 ```
 
-In addition, the **`dockerOptions`** property can be used to supply a list of options to the `docker run` command.
+In addition, the `dockerOptions` property can be used to supply a list of arguments to the `docker run` command. For example:
 
-For example:
 ```toml
 taskType = "docker"
 executable = "my_dockerhub_repo/my_container_image"
-dockerOptions = ["--runtime nvidia", "--gpus all"]
+dockerOptions = ["--runtime=nvidia", "--gpus=all"]
 arguments = ["1", "2", "3"]
 ```
 
@@ -683,7 +686,7 @@ is equivalent to the following being sent for processing by the `docker` Task Ty
 
 ```toml
 taskType = "docker"
-arguments = ["--runtime nvidia", "--gpus all", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
+arguments = ["--runtime=nvidia", "--gpus=all", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
 ```
 
 #### Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing
@@ -712,6 +715,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     csvFiles = ["file1.csv", "file3.csv:3"]
     dockerEnvironment = {MY_DOCKER_VAR = 100}
     dockerPassword = "myPassword"
+    dockerRegistry = "my.registry.io"
     dockerUsername = "myUsername"
     environment = {MY_VAR = 100}
     exclusiveWorkers = false
@@ -769,6 +773,7 @@ Showing all possible properties at the Work Requirement level:
   "completedTaskTtl": 10,
   "dockerEnvironment": {"MY_DOCKER_VAR": 100},
   "dockerPassword": "myPassword",
+  "dockerRegistry": "my.registry.io",
   "dockerUsername": "myUsername",
   "environment": {"MY_VAR": 100},
   "exclusiveWorkers": false,
@@ -829,6 +834,7 @@ Showing all possible properties at the Task Group level:
       "completedTaskTtl": 10,
       "dockerEnvironment": {"MY_DOCKER_VAR": 100},
       "dockerPassword": "myPassword",
+      "dockerRegistry": "my.registry.io",
       "dockerUsername": "myUsername",
       "environment": {"MY_VAR": 100},
       "exclusiveWorkers": false,
@@ -893,6 +899,7 @@ Showing all possible properties at the Task level:
           "arguments": [1, 2],
           "dockerEnvironment": {"MY_DOCKER_VAR": 100},
           "dockerPassword": "myPassword",
+          "dockerRegistry": "my.registry.io",
           "dockerUsername": "myUsername",
           "environment": {"MY_VAR": 100},
           "executable": "my-container",

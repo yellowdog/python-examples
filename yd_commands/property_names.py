@@ -18,6 +18,7 @@ DIRECTORY_NAME = "directoryName"  # String
 DOCKER_ENV = "dockerEnvironment"  # Dictionary
 DOCKER_OPTIONS = "dockerOptions"  # List
 DOCKER_PASSWORD = "dockerPassword"  # String
+DOCKER_REGISTRY = "dockerRegistry"  # String
 DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
 EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
@@ -114,6 +115,7 @@ ALL_KEYS = [
     DOCKER_ENV,
     DOCKER_OPTIONS,
     DOCKER_PASSWORD,
+    DOCKER_REGISTRY,
     DOCKER_USERNAME,
     ENV,
     EXCLUSIVE_WORKERS,

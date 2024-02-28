@@ -1275,7 +1275,7 @@ def create_task(
         args = docker_env_list + docker_options + [executable] + args
 
         # Set up the environment used by the script to run Docker
-        # Add the username and password, if present
+        # Add the username and password, if present, and the registry
         docker_username = task_data.get(
             DOCKER_USERNAME,
             task_group_data.get(
@@ -1296,6 +1296,20 @@ def create_task(
                 "DOCKER_PASSWORD": docker_password,
             }
             if docker_username is not None and docker_password is not None
+            else {}
+        )
+        docker_registry = task_data.get(
+            DOCKER_REGISTRY,
+            task_group_data.get(
+                DOCKER_REGISTRY,
+                wr_data.get(DOCKER_REGISTRY, config_wr.docker_registry),
+            ),
+        )
+        env_copy.update(
+            {
+                "DOCKER_REGISTRY": docker_registry,
+            }
+            if docker_registry is not None
             else {}
         )
         return _make_task(flatten_input_paths)

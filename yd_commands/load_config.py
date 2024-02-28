@@ -242,6 +242,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             docker_env=wr_section.get(DOCKER_ENV, None),
             docker_options=wr_section.get(DOCKER_OPTIONS, None),
             docker_password=wr_section.get(DOCKER_PASSWORD, None),
+            docker_registry=wr_section.get(DOCKER_REGISTRY, None),
             docker_username=wr_section.get(DOCKER_USERNAME, None),
             env=wr_section.get(ENV, {}),
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),

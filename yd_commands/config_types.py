@@ -28,6 +28,7 @@ class ConfigWorkRequirement:
     docker_env: Optional[Dict] = None
     docker_options: Optional[List] = None
     docker_password: Optional[str] = None
+    docker_registry: Optional[str] = None
     docker_username: Optional[str] = None
     env: Dict = field(default_factory=dict)
     exclusive_workers: Optional[bool] = None

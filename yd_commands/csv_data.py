@@ -368,6 +368,7 @@ def csv_expand_toml_tasks(
         (config_wr.docker_env, DOCKER_ENV),
         (config_wr.docker_options, DOCKER_OPTIONS),
         (config_wr.docker_password, DOCKER_PASSWORD),
+        (config_wr.docker_registry, DOCKER_REGISTRY),
         (config_wr.docker_username, DOCKER_USERNAME),
         (config_wr.env, ENV),
         (config_wr.executable, EXECUTABLE),
