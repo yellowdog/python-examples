@@ -137,6 +137,16 @@ class TestDemoDryRuns:
         )
         assert result.exit_code == 0
 
+    def test_benchmark_jsonnet_out(self):
+        demo_name = "benchmark"
+        result = shell(
+            f"cd {DEMO_DIR} &&"
+            f" yd-submit -D -c {demo_name}/config.toml"
+            f" -r {demo_name}/wr_benchmark.jsonnet"
+            f" -v crt_file={demo_name}/crt_example.json"
+        )
+        assert result.exit_code == 0
+
     def test_powershell_out(self):
         demo_name = "powershell"
         result = shell(
