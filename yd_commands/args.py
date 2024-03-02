@@ -155,7 +155,10 @@ class CLIParser:
                 "-r",
                 type=str,
                 required=False,
-                help="submit a work requirement definition file in JSON format",
+                help=(
+                    "work requirement definition file in JSON or Jsonnet format"
+                    " (deprecated: please use positional argument instead)"
+                ),
                 metavar="<work_requirement.json>",
             )
             parser.add_argument(
@@ -251,7 +254,10 @@ class CLIParser:
                 "-p",
                 type=str,
                 required=False,
-                help="worker pool definition file in JSON format",
+                help=(
+                    "worker pool definition file in JSON or Jsonnet format"
+                    " (deprecated: please use positional argument instead)"
+                ),
                 metavar="<worker_pool.json>",
             )
 
@@ -539,7 +545,10 @@ class CLIParser:
                 "-C",
                 type=str,
                 required=False,
-                help="the compute requirement definition",
+                help=(
+                    "compute requirement definition file in JSON or Jsonnet format"
+                    " (deprecated: please use positional argument instead)"
+                ),
                 metavar="<compute_requirement.json>",
             )
             parser.add_argument(
@@ -867,6 +876,48 @@ class CLIParser:
                 metavar="<task-id>",
                 type=str,
                 help="the YellowDog ID(s) of the task(s) to abort",
+            )
+
+        if any(module in sys.argv[0] for module in ["submit"]):
+            # Note: removes the need for the '-r' option
+            parser.add_argument(
+                "work_requirement_file_positional",
+                metavar="<work-requirement-specification-file>",
+                type=str,
+                nargs="?",
+                help=(
+                    "the JSON or Jsonnet specification of the work requirement"
+                    " to submit; alternative to using the '--work-requirement/-r'"
+                    " option"
+                ),
+            )
+
+        if any(module in sys.argv[0] for module in ["provision"]):
+            # Note: removes the need for the '-p' option
+            parser.add_argument(
+                "worker_pool_file_positional",
+                metavar="<worker-pool-specification-file>",
+                type=str,
+                nargs="?",
+                help=(
+                    "the JSON or Jsonnet specification of the worker pool"
+                    " to provision; alternative to using the '--worker-pool/-p'"
+                    " option"
+                ),
+            )
+
+        if any(module in sys.argv[0] for module in ["instantiate"]):
+            # Note: removes the need for the '-C' option
+            parser.add_argument(
+                "compute_requirement_file_positional",
+                metavar="<compute-requirement-specification-file>",
+                type=str,
+                nargs="?",
+                help=(
+                    "the JSON or Jsonnet specification of the compute requirement"
+                    " to provision; alternative to using the"
+                    "'--compute-requirement/-C' option"
+                ),
             )
 
         self.args = parser.parse_args()
@@ -1253,6 +1304,21 @@ class CLIParser:
     @allow_missing_attribute
     def task_id_list(self) -> Optional[List[str]]:
         return self.args.task_id_list
+
+    @property
+    @allow_missing_attribute
+    def work_requirement_file_positional(self) -> Optional[str]:
+        return self.args.work_requirement_file_positional
+
+    @property
+    @allow_missing_attribute
+    def worker_pool_file_positional(self) -> Optional[str]:
+        return self.args.worker_pool_file_positional
+
+    @property
+    @allow_missing_attribute
+    def compute_requirement_file_positional(self) -> Optional[str]:
+        return self.args.compute_requirement_file_positional
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

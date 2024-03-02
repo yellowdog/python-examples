@@ -492,9 +492,9 @@ A very simple example document is shown below with a top-level Work Requirement 
 
 ```
 
-To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file with the JSON filename, or specify it on the command line using the `--work-requirement` or `-r` options (which will override the property in the TOML file), e.g.
+To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file with the JSON filename, or specify it on the command line as a positional argument (which will override the property in the TOML file), e.g.
 
-`yd-submit --config myconfig.toml --work-requirement my_workreq.json`
+`yd-submit --config myconfig.toml my_workreq.json`
 
 ## Property Inheritance
 
@@ -1398,7 +1398,7 @@ G,     H,     I,     E-3
 
 Note that the (optional) leading spaces after each comma are ignored, but trailing spaces are not and will form part of the imported data.
 
-If these files are processed using `yd-submit -r wr.json -V wr_data.csv`, the following expanded list of three Tasks will be created prior to further processing by the `yd-submit` script:
+If these files are processed using `yd-submit wr.json -V wr_data.csv`, the following expanded list of three Tasks will be created prior to further processing by the `yd-submit` script:
 
 ```json
 {
@@ -1467,7 +1467,7 @@ The CSV files are supplied on the command line in the order of the Task Groups t
 The `yd-submit` command would then be invoked with a separate CSV file for each Task Group, e.g.:
 
 ```shell
-yd-submit -r wr.json -V wr_data_task_group_1.csv -V wr_data_task_group_2.csv
+yd-submit wr.json -V wr_data_task_group_1.csv -V wr_data_task_group_2.csv
 ```
 
 If there are **fewer** CSV files than Task Groups a warning will be printed and, if there are 'n' CSV files, CSV data processing will be applied to the first 'n' Task Groups in the Work Requirement by default, in the order in which the CSV files were supplied. If there are **more** CSV files than Task Groups, an error will be raised and processing will stop.
@@ -1475,13 +1475,13 @@ If there are **fewer** CSV files than Task Groups a warning will be printed and,
 It is possible to apply CSV files explicitly to specific Task Groups, by using an optional **index postfix** (e.g., `:2`) at the end of each CSV filename. For example, if there are two CSV files to be applied to the second and fourth Task Groups in a JSON Work Requirement, use the following syntax:
 
 ```shell
-yd-submit -r wr.json -V wr_data_task_group_2.csv:2 -V wr_data_task_group_4.csv:4
+yd-submit wr.json -V wr_data_task_group_2.csv:2 -V wr_data_task_group_4.csv:4
 ```
 
 Alternatively, the **Task Group name** (if supplied in the JSON file) can be used as the postfix. For example, if the Task Groups above are named `tg_two` and `tg_four`, the `yd-submit` command would become:
 
 ```shell
-yd-submit -r wr.json -V wr_data_task_group_2.csv:tg_two -V wr_data_task_group_4.csv:tg_four
+yd-submit wr.json -V wr_data_task_group_2.csv:tg_two -V wr_data_task_group_4.csv:tg_four
 ```
 
 Note that only one CSV file can be applied to any given Task Group. A single CSV file can, however, be reused for multiple Task Groups.
@@ -1492,7 +1492,7 @@ It's possible to use TOML exclusively to derive a list of Tasks from CSV data --
 
 To make use of this:
 
-1. Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or `--work-requirement` on the command line)
+1. Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or no positional argument on the command line)
 2. Insert the required CSV-supplied variable substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
 3. Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`, or provide the CSV file on the command line `-V wr_data.csv`
 
@@ -1566,7 +1566,7 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
 
 ## Worker Pool Specification Using JSON Documents
 
-It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either using the command line with the `--worker-pool` or `-p` parameter with `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file with the JSON filename. Command line specification takes priority over TOML specification.
+It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either by supplying the command line positional argument for `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file with the JSON filename. Command line specification takes priority over TOML specification.
 
 The JSON specification allows the creation of **Advanced Worker Pools**, with different node types and the ability to specify Node Actions.
 
@@ -1735,7 +1735,7 @@ The JSON dry-run output could itself be used by `yd-provision`, if captured in a
 
 ```shell
 yd-provision --dry-run -q > my_worker_pool.json
-yd-provision -p my_worker_pool.json
+yd-provision my_worker_pool.json
 ```
 
 # Creating, Updating and Removing Resources
@@ -2086,7 +2086,7 @@ In all circumstances where JSON files are used by the Python Examples commands, 
 A simple usage example might be:
 
 ```shell
-yd-submit --work-requirement my_work_req.jsonnet
+yd-submit my_work_req.jsonnet
 ```
 
 The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages: this file will have been deleted before the command exits.)
@@ -2167,7 +2167,7 @@ local Task(arguments=[], environment={}) = {
 }
 ```
 
-When this is inspected using the `jsonnet-dry-run` option (`yd-submit -Jq -r my_work_req.jsonnet`), this is the processed output:
+When this is inspected using the `jsonnet-dry-run` option (`yd-submit -Jq my_work_req.jsonnet`), this is the processed output:
 
 ```json
 {
@@ -2201,7 +2201,7 @@ When this is inspected using the `jsonnet-dry-run` option (`yd-submit -Jq -r my_
 }
 ```
 
-When this is inspected using the `dry-run` option (`yd-submit -Dq -r my_work_req.jsonnet`), this is the processed output:
+When this is inspected using the `dry-run` option (`yd-submit -D my_work_req.jsonnet`), this is the processed output:
 
 ```json
 {
@@ -2425,9 +2425,9 @@ An example JSON specification is shown below:
 
 Note that the `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name. The same is true for the `imagesId` property.
 
-If a Worker Pool is defined in JSON, using `workerPoolData` in the configuration file or by using the `--worker-pool` (or `-p`) option, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
+If a Worker Pool is defined in JSON, using `workerPoolData` in the configuration file or by supplying the command line positional argument, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
 
-Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can be used with the `-C` option above (or with `-p` for Worker Pool specifications).
+Use the `--dry-run` option to inspect the details of the Compute Requirement specification that will be submitted, in JSON format. The JSON output of this command can itself be used with the `yd-instantiate` command.
 
 ### Test-Running a Dynamic Template
 

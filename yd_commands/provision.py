@@ -70,10 +70,16 @@ GENERATED_ID = generate_id("wp" + "_" + CONFIG_COMMON.name_tag)
 
 @main_wrapper
 def main():
+
+    # Direct file > file supplied using '-p' > file supplied in config file
     wp_json_file = (
-        CONFIG_WP.worker_pool_data_file
-        if ARGS_PARSER.worker_pool_file is None
-        else ARGS_PARSER.worker_pool_file
+        (
+            CONFIG_WP.worker_pool_data_file
+            if ARGS_PARSER.worker_pool_file is None
+            else ARGS_PARSER.worker_pool_file
+        )
+        if ARGS_PARSER.worker_pool_file_positional is None
+        else ARGS_PARSER.worker_pool_file_positional
     )
 
     # Where do we find the data files?

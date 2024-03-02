@@ -125,11 +125,17 @@ def main():
         submit_json_raw(ARGS_PARSER.json_raw)
         return
 
+    # Direct file > file supplied using '-r' > file supplied in config file
     wr_data_file = (
-        CONFIG_WR.wr_data_file
-        if ARGS_PARSER.work_req_file is None
-        else ARGS_PARSER.work_req_file
+        (
+            CONFIG_WR.wr_data_file
+            if ARGS_PARSER.work_req_file is None
+            else ARGS_PARSER.work_req_file
+        )
+        if ARGS_PARSER.work_requirement_file_positional is None
+        else ARGS_PARSER.work_requirement_file_positional
     )
+
     csv_files = (
         CONFIG_WR.csv_files if ARGS_PARSER.csv_files is None else ARGS_PARSER.csv_files
     )

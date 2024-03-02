@@ -53,12 +53,18 @@ GENERATED_ID = generate_id("cr" + "_" + CONFIG_COMMON.name_tag)
 def main():
     global CONFIG_WP
 
-    # -C > -P > workerPoolData / computeRequirementData
+    # Direct file > file supplied using '-C' > file supplied in config file
     cr_json_file = (
-        ARGS_PARSER.worker_pool_file
-        if ARGS_PARSER.compute_requirement is None
-        else ARGS_PARSER.compute_requirement
+        (
+            ARGS_PARSER.worker_pool_file
+            if ARGS_PARSER.compute_requirement is None
+            else ARGS_PARSER.compute_requirement
+        )
+        if ARGS_PARSER.compute_requirement_file_positional is None
+        else ARGS_PARSER.compute_requirement_file_positional
     )
+
+    # -C > -P > workerPoolData / computeRequirementData
     cr_json_file = (
         CONFIG_WP.worker_pool_data_file if cr_json_file is None else cr_json_file
     )
