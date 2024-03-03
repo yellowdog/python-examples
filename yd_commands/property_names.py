@@ -28,8 +28,8 @@ FINISH_IF_ALL_TASKS_FINISHED = "finishIfAllTasksFinished"  # Boolean
 FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
 FLATTEN_PATHS = "flattenInputPaths"  # Boolean
 FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
-IDLE_NODE_SHUTDOWN_TIMEOUT = "idleNodeShutdownTimeout"  # Float
-IDLE_POOL_SHUTDOWN_TIMEOUT = "idlePoolShutdownTimeout"  # Float
+IDLE_NODE_TIMEOUT = "idleNodeTimeout"  # Float
+IDLE_POOL_TIMEOUT = "idlePoolTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
 IMPORT_COMMON = "importCommon"  # String
 INPUTS_OPTIONAL = "inputsOptional"  # List of Strings
@@ -125,8 +125,8 @@ ALL_KEYS = [
     FINISH_IF_ANY_TASK_FAILED,
     FLATTEN_PATHS,
     FLATTEN_UPLOAD_PATHS,
-    IDLE_NODE_SHUTDOWN_TIMEOUT,
-    IDLE_POOL_SHUTDOWN_TIMEOUT,
+    IDLE_NODE_TIMEOUT,
+    IDLE_POOL_TIMEOUT,
     IMAGES_ID,
     IMPORT_COMMON,
     INPUTS_OPTIONAL,

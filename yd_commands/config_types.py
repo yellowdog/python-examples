@@ -76,8 +76,8 @@ class ConfigWorkerPool:
     compute_requirement_batch_size: int = CR_BATCH_SIZE_DEFAULT
     compute_requirement_data_file: Optional[str] = None
     cr_tag: Optional[str] = None
-    idle_node_shutdown_timeout: float = 5.0
-    idle_pool_shutdown_timeout: float = 30.0
+    idle_node_timeout: float = 5.0
+    idle_pool_timeout: float = 30.0
     images_id: Optional[str] = None
     instance_tags: Optional[Dict] = None
     maintainInstanceCount: bool = False  # Only for yd-instantiate

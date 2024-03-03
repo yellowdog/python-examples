@@ -1513,8 +1513,8 @@ The following properties are available:
 
 | Property                  | Description                                                                                                          | Default                 |
 |:--------------------------|:---------------------------------------------------------------------------------------------------------------------|:------------------------|
-| `idleNodeShutdownTimeout` | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.           | `5.0`                   |
-| `idlePoolShutdownTimeout` | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.    | `30.0`                  |
+| `idleNodeTimeout`         | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.           | `5.0`                   |
+| `idlePoolTimeout`         | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.    | `30.0`                  |
 | `imagesId`                | The image ID, Image Family ID, or Image Family name to use when booting instances.                                   |                         |
 | `instanceTags`            | The dictionary of instance tags to apply to the instances. Tag names must be lower case.                             |                         |
 | `minNodes`                | The minimum number of nodes to which the Worker Pool can be scaled down.                                             | `0`                     |
@@ -1542,8 +1542,8 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
 
 ```toml
 [workerPool]
-    idleNodeShutdownTimeout = 10.0
-    idlePoolShutdownTimeout = 60.0
+    idleNodeTimeout = 10.0
+    idlePoolTimeout = 60.0
     imagesId = "ydid:imgfam:000000:41962592-577c-4fde-ab03-d852465e7f8b"
     instanceTags = {}
     maxNodes = 1
@@ -1708,8 +1708,8 @@ Note that the `templateId` property can use either the YellowDog ID ('YDID') for
 
 **Properties Inherited within the `provisionedProperties` Property**
 
-- `idleNodeShutdownTimeout` (set to `0` to disable)
-- `idlePoolShutdownTimeout` (set to `0` to disable)
+- `idleNodeTimeout` (set to `0` to disable)
+- `idlePoolTimeout` (set to `0` to disable)
 - `maxNodes`
 - `minNodes`
 - `nodeBootTimeout`

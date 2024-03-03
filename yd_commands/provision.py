@@ -183,10 +183,10 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                     {
                         "enabled": True,
                         "timeout": iso_timedelta_format(
-                            timedelta(minutes=CONFIG_WP.idle_node_shutdown_timeout)
+                            timedelta(minutes=CONFIG_WP.idle_node_timeout)
                         ),
                     }
-                    if CONFIG_WP.idle_node_shutdown_timeout != 0
+                    if CONFIG_WP.idle_node_timeout != 0
                     else {"enabled": False}
                 ),
             ),
@@ -196,10 +196,10 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                     {
                         "enabled": True,
                         "timeout": iso_timedelta_format(
-                            timedelta(minutes=CONFIG_WP.idle_pool_shutdown_timeout)
+                            timedelta(minutes=CONFIG_WP.idle_pool_timeout)
                         ),
                     }
-                    if CONFIG_WP.idle_pool_shutdown_timeout != 0
+                    if CONFIG_WP.idle_pool_timeout != 0
                     else {"enabled": False}
                 ),
             ),
@@ -296,18 +296,18 @@ def create_worker_pool_from_toml():
     idle_node_auto_shutdown = (
         AutoShutdown(
             enabled=True,
-            timeout=timedelta(minutes=CONFIG_WP.idle_node_shutdown_timeout),
+            timeout=timedelta(minutes=CONFIG_WP.idle_node_timeout),
         )
-        if CONFIG_WP.idle_node_shutdown_timeout != 0
+        if CONFIG_WP.idle_node_timeout != 0
         else AutoShutdown(enabled=False)
     )
 
     idle_pool_auto_shutdown = (
         AutoShutdown(
             enabled=True,
-            timeout=timedelta(minutes=CONFIG_WP.idle_pool_shutdown_timeout),
+            timeout=timedelta(minutes=CONFIG_WP.idle_pool_timeout),
         )
-        if CONFIG_WP.idle_pool_shutdown_timeout != 0
+        if CONFIG_WP.idle_pool_timeout != 0
         else AutoShutdown(enabled=False)
     )
 
@@ -403,8 +403,8 @@ def create_worker_pool_from_toml():
             raise Exception(f"Unable to provision worker pool: {e}")
 
     idle_node_shutdown_string = (
-        f"time limit is {CONFIG_WP.idle_node_shutdown_timeout} minute(s)"
-        if CONFIG_WP.idle_node_shutdown_timeout != 0
+        f"time limit is {CONFIG_WP.idle_node_timeout} minute(s)"
+        if CONFIG_WP.idle_node_timeout != 0
         else "is **disabled**"
     )
 
@@ -415,14 +415,12 @@ def create_worker_pool_from_toml():
         f"{idle_node_shutdown_string}"
     )
 
-    idle_pool_shutdown = (
-        "enabled" if CONFIG_WP.idle_pool_shutdown_timeout != 0 else "disabled"
-    )
+    idle_pool_shutdown = "enabled" if CONFIG_WP.idle_pool_timeout != 0 else "disabled"
     idle_pool_shutdown_msg = f"Worker Pool auto-shutdown is {idle_pool_shutdown}"
     idle_pool_shutdown_msg = (
         idle_pool_shutdown_msg
-        + f" with a delay of {CONFIG_WP.idle_pool_shutdown_timeout} minute(s)"
-        if CONFIG_WP.idle_pool_shutdown_timeout != 0
+        + f" with a delay of {CONFIG_WP.idle_pool_timeout} minute(s)"
+        if CONFIG_WP.idle_pool_timeout != 0
         else idle_pool_shutdown_msg
     )
     print_log(idle_pool_shutdown_msg)
