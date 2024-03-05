@@ -381,6 +381,34 @@ Please see the article [Create a Microsoft Entra application and service princip
 15. Select **yellowdog-app** and click on **Select**.
 16. Click on **Next** then **Review and assign**.
 
+#### Adding Custom Role
+
+> **&#9432;** You can also add a custom role to provide more fine-tuned permissions to your **yellowdog-app Service Principal**.
+Here is a complete list of the permissions your custom role will need:
+```
+Microsoft.Resources/subscriptions/read
+Microsoft.Resources/subscriptions/resourceGroups/write
+Microsoft.Resources/subscriptions/resourceGroups/read
+Microsoft.Storage/storageAccounts/write
+Microsoft.Storage/storageAccounts/listkeys/action
+Microsoft.Storage/storageAccounts/blobServices/containers/write
+Microsoft.Network/virtualNetworks/write
+Microsoft.Network/virtualNetworks/read
+Microsoft.Network/networkSecurityGroups/write
+Microsoft.Network/networkSecurityGroups/read
+Microsoft.Network/networkSecurityGroups/securityRules/write
+Microsoft.Network/networkSecurityGroups/securityRules/read
+Microsoft.Network/networkSecurityGroups/join/action
+Microsoft.Network/virtualNetworks/subnets/write
+Microsoft.Network/virtualNetworks/subnets/read
+```
+
+1. Click on **+ Add** and select **Add custom role**. 
+2. Click on **Permissions** and add the permissions from the above list. Click on **Review + Create**. 
+3. Click on **+ Add** and click on **Add role assignment** into the **Search by name or email address** search box type **yellowdog-app**.
+4. Select **yellowdog-app** and click on **Select**. 
+5. Click on **Next** then **Review and assign**.
+
 Your Azure account is now prepared for use with YellowDog.
 
 Cloud Wizard requires the following environment variables to be set in order to access your Azure account:
