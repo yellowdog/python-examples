@@ -810,16 +810,18 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
 
 def print_batch_download_files(
     download_batch_builder: DownloadBatchBuilder, flatten_downloads: bool = False
-):
+) -> int:
     """
     Print the list of files that will be batch downloaded.
+    Returns the number of files printed.
     """
     if ARGS_PARSER.quiet:
-        return
+        return 0
 
     headers = ["#", "Source Object", "Target Object"]
     directory_separator = "\\" if os_name == "nt" else "/"
     table = []
+    counter = 0
     # Yes, I know I shouldn't be accessing '_source_object_entries'
     for index, object_entry in enumerate(download_batch_builder._source_object_entries):
         object_source = f"{object_entry.namespace}{NAMESPACE_PREFIX_SEPARATOR}{object_entry.object_name}"
@@ -837,7 +839,10 @@ def print_batch_download_files(
                 f"{object_target}"
             ),
         ])
+        counter += 1
+
     print(flush=True)
+
     if ARGS_PARSER.no_format:
         print(
             indent(
@@ -854,6 +859,7 @@ def print_batch_download_files(
             ),
         )
     print(flush=True)
+    return counter
 
 
 @dataclass

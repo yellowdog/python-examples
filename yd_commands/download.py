@@ -6,12 +6,12 @@ A script to download YellowDog Object Store objects.
 
 from concurrent import futures
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from yellowdog_client.model import ObjectPath, ObjectPathsRequest
-from yellowdog_client.object_store.download.abstracts.abstract_download_batch_builder import (
-    AbstractDownloadBatchBuilder,
+from yellowdog_client.object_store.download.download_batch_builder import (
     AbstractTransferBatch,
+    DownloadBatchBuilder,
     FlattenPath,
 )
 from yellowdog_client.object_store.model import FileTransferStatus
@@ -31,29 +31,36 @@ def main():
                 namespace=CONFIG_COMMON.namespace,
                 prefix=object_path,
             )
-            download_object_paths(namespace, tag, ARGS_PARSER.all)
+            download_object_paths(
+                namespace, tag, ARGS_PARSER.object_path_pattern, ARGS_PARSER.all
+            )
         return
 
     # Use tag/prefix
     namespace, tag = unpack_namespace_in_prefix(
         namespace=CONFIG_COMMON.namespace, prefix=CONFIG_COMMON.name_tag
     )
-    download_object_paths(namespace, tag, ARGS_PARSER.all)
+    download_object_paths(
+        namespace, tag, ARGS_PARSER.object_path_pattern, ARGS_PARSER.all
+    )
     return
 
 
-def download_object_paths(namespace: str, prefix: str, flat: bool):
+def download_object_paths(
+    namespace: str, prefix: str, pattern: Optional[str], flat: bool
+):
     """
-    Download Object Paths matching namespace and prefix.
+    Download Object Paths matching namespace, prefix and pattern.
     """
     print_log(
-        f"Downloading all Objects in namespace '{namespace}' and "
+        f"Downloading Objects in namespace '{namespace}' and "
         f"prefix starting with '{prefix}'"
+        + ("" if pattern is None else f", matching name pattern '{pattern}'")
     )
 
     object_paths_to_download: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=ARGS_PARSER.all)
+            ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=flat)
         )
     )
 
@@ -74,7 +81,7 @@ def download_object_paths(namespace: str, prefix: str, flat: bool):
         "." if ARGS_PARSER.directory == "" else ARGS_PARSER.directory
     )
 
-    download_batch_builder: AbstractDownloadBatchBuilder = (
+    download_batch_builder: DownloadBatchBuilder = (
         CLIENT.object_store_client.build_download_batch()
     )
     download_batch_builder.destination_folder = download_dir
@@ -82,10 +89,15 @@ def download_object_paths(namespace: str, prefix: str, flat: bool):
         download_batch_builder.set_flatten_file_name_mapper(FlattenPath.FILE_NAME_ONLY)
 
     for object_path in object_paths_to_download:
-        print_log(f"Finding object paths matching '{object_path.name}*'")
+        object_name_pattern = (
+            f"{object_path.name}*"
+            if pattern is None
+            else f"{object_path.name}{pattern.lstrip('/')}"
+        )
+        print_log(f"Finding object paths matching '{object_name_pattern}'")
         download_batch_builder.find_source_objects(
             namespace=namespace,
-            object_name_pattern=f"{object_path.name}*",
+            object_name_pattern=object_name_pattern,
         )
 
     download_batch: AbstractTransferBatch = (
@@ -96,7 +108,7 @@ def download_object_paths(namespace: str, prefix: str, flat: bool):
         print_log(f"No Objects found in selected Object Paths")
         return
 
-    print_batch_download_files(
+    object_count = print_batch_download_files(
         download_batch_builder, ARGS_PARSER.flatten_download_paths
     )
 
@@ -108,9 +120,7 @@ def download_object_paths(namespace: str, prefix: str, flat: bool):
     CLIENT.object_store_client.start_transfers()
     futures.wait((future,))
 
-    print_log(
-        f"Downloaded all Objects in {len(object_paths_to_download)} Object Path(s)"
-    )
+    print_log(f"Downloaded {object_count} Object(s)")
 
 
 def _create_download_directory(directory_name: str) -> str:

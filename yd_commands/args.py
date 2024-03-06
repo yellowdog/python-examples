@@ -371,6 +371,17 @@ class CLIParser:
                     " will be overwritten)"
                 ),
             )
+            parser.add_argument(
+                "--pattern",
+                "-p",
+                type=str,
+                required=False,
+                help=(
+                    "the pattern to use to match objects to be downloaded, "
+                    " e.g.: 'work_dir/results_*/results.txt'"
+                ),
+                metavar="<pattern-string>",
+            )
 
         if "list" in sys.argv[0]:
             parser.add_argument(
@@ -1319,6 +1330,11 @@ class CLIParser:
     @allow_missing_attribute
     def compute_requirement_file_positional(self) -> Optional[str]:
         return self.args.compute_requirement_file_positional
+
+    @property
+    @allow_missing_attribute
+    def object_path_pattern(self) -> Optional[str]:
+        return self.args.pattern
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
