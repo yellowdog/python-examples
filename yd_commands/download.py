@@ -68,14 +68,16 @@ def download_object_paths(
         object_paths_to_download = select(CLIENT, object_paths_to_download)
 
     if len(object_paths_to_download) == 0:
-        print_log("No Objects to download")
+        print_log("No Objects Paths to include")
         return
 
     print_log("Note: existing local objects will be overwritten without warning")
-    if not confirmed(f"Download {len(object_paths_to_download)} Object Path(s)?"):
+    if not confirmed(
+        f"Download matching objects in {len(object_paths_to_download)} Object Path(s)?"
+    ):
         return
 
-    print_log(f"{len(object_paths_to_download)} Object Path(s) to Download")
+    print_log(f"{len(object_paths_to_download)} Object Path(s) to include")
 
     download_dir: str = _create_download_directory(
         "." if ARGS_PARSER.directory == "" else ARGS_PARSER.directory
@@ -105,7 +107,7 @@ def download_object_paths(
     )
 
     if download_batch is None:
-        print_log(f"No Objects found in selected Object Paths")
+        print_log(f"No matching Objects found in included Object Paths")
         return
 
     object_count = print_batch_download_files(
