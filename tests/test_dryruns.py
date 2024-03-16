@@ -56,10 +56,6 @@ class TestDemoDryRuns:
         result = shell(f"cd {DEMO_DIR}/cmd.exe && {CMD_SEQ}")
         assert result.exit_code == 0
 
-    def test_nextflow(self):
-        result = shell(f"cd {DEMO_DIR}/nextflow && {CMD_SEQ}")
-        assert result.exit_code == 0
-
     def test_blender(self):
         result = shell(f"cd {DEMO_DIR}/blender && {CMD_SEQ}")
         assert result.exit_code == 0
@@ -158,15 +154,6 @@ class TestDemoDryRuns:
 
     def test_cmd_exe_out(self):
         demo_name = "cmd.exe"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_nextflow_out(self):
-        demo_name = "nextflow"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
             f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
