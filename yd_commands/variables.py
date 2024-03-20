@@ -401,7 +401,11 @@ def load_jsonnet_file_with_variable_substitutions(
         prefix=prefix,
         postfix=postfix,
     ) as preprocessed_filename:
-        dict_data = json_loads(evaluate_file(preprocessed_filename))
+        try:
+            dict_data = json_loads(evaluate_file(preprocessed_filename))
+        except RuntimeError as e:
+            # Include only the first line of the exception message
+            raise Exception(str(e).partition("\n")[0])
 
     # Secondary processing after Jsonnet expansion
     process_variable_substitutions_insitu(dict_data, prefix, postfix)
