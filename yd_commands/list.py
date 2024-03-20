@@ -546,8 +546,12 @@ def list_allowances():
     if len(allowances) == 0:
         print_log("No allowances to display")
         return
-    print_log(f"Displaying full details for {len(allowances)} allowance(s)")
-    for allowance in allowances:
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, allowances)
+        return
+
+    for allowance in select(CLIENT, allowances):
         print_yd_object(allowance)
 
 

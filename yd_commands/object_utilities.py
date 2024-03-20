@@ -8,6 +8,7 @@ from typing import List, Optional, TypeVar
 from yellowdog_client import PlatformClient
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
+    Allowance,
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
@@ -111,6 +112,7 @@ Item = TypeVar(
     WorkerPoolSummary,
     WorkRequirementSummary,
     AWSAvailabilityZone,
+    Allowance,
 )
 
 

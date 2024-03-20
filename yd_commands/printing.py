@@ -19,6 +19,7 @@ from tabulate import tabulate
 from yellowdog_client import PlatformClient
 from yellowdog_client.common.json import Json
 from yellowdog_client.model import (
+    Allowance,
     BestComputeSourceReport,
     BestComputeSourceReportSource,
     ComputeRequirement,
@@ -199,6 +200,7 @@ TYPE_MAP = {
     KeyringSummary: "Keyring",
     MachineImageFamilySummary: "Machine Image Family",
     AWSAvailabilityZone: "AWS Availability Zones",
+    Allowance: "Allowance",
 }
 
 
@@ -223,6 +225,10 @@ def get_type_name(obj: Item) -> str:
     if type(obj).__name__.endswith("Instance"):
         # Special case
         return "Instance"
+
+    if type(obj).__name__.endswith("Allowance"):
+        # Special case
+        return "Allowance"
 
     return TYPE_MAP.get(type(obj), "")
 
@@ -490,6 +496,36 @@ def instances_table(
     return headers, table
 
 
+def allowances_table(
+    allowances: List[Allowance],
+) -> (List[str], List[str]):
+    headers = [
+        "#",
+        "Type",
+        "Description",
+        "Allowed Hours",
+        "Remaining Hours",
+        "Soft/Hard Limit",
+        "Reset Period",
+    ]
+    table = []
+    for index, allowance in enumerate(allowances):
+        table.append([
+            index + 1,
+            allowance.type.split(".")[-1],
+            allowance.description,
+            allowance.allowedHours,
+            allowance.remainingHours,
+            allowance.limitEnforcement,
+            (
+                f"{allowance.resetInterval} {allowance.resetType}"
+                if allowance.resetInterval is not None
+                else ""
+            ),
+        ])
+    return headers, table
+
+
 def aws_availability_zone_table(
     aws_azs: List[AWSAvailabilityZone],
 ) -> (List[str], List[str]):
@@ -558,6 +594,8 @@ def print_numbered_object_list(
         headers, table = object_path_table(objects)
     elif isinstance(objects[0], Instance):
         headers, table = instances_table(objects)
+    elif isinstance(objects[0], Allowance):
+        headers, table = allowances_table(objects)
     elif isinstance(objects[0], AWSAvailabilityZone):
         headers, table = aws_availability_zone_table(objects)
     else:
@@ -616,6 +654,12 @@ def sorted_objects(
 
     if isinstance(objects[0], AWSAvailabilityZone):
         return sorted(objects)
+
+    if isinstance(objects[0], Allowance):
+        try:
+            return sorted(objects, key=lambda x: x.description, reverse=reverse)
+        except TypeError:
+            return objects
 
     try:
         return sorted(objects, key=lambda x: x.name, reverse=reverse)
