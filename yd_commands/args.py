@@ -501,6 +501,13 @@ class CLIParser:
                 required=False,
                 help="list compute instances",
             )
+            parser.add_argument(
+                "--allowances",
+                "-A",
+                action="store_true",
+                required=False,
+                help="list allowances",
+            )
 
         if any(module in sys.argv[0] for module in ["upload"]):
             parser.add_argument(
@@ -1240,6 +1247,11 @@ class CLIParser:
     @allow_missing_attribute
     def instances(self) -> Optional[bool]:
         return self.args.instances
+
+    @property
+    @allow_missing_attribute
+    def allowances(self) -> Optional[bool]:
+        return self.args.allowances
 
     @property
     @allow_missing_attribute

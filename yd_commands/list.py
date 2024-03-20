@@ -11,6 +11,8 @@ from requests import get
 from tabulate import tabulate
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
+    Allowance,
+    AllowanceSearch,
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
@@ -81,6 +83,8 @@ def main():
         list_image_families()
     elif ARGS_PARSER.namespace_storage_configurations:
         list_namespaces()
+    elif ARGS_PARSER.allowances:
+        list_allowances()
 
 
 def check_for_valid_option() -> bool:
@@ -100,6 +104,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.image_families,
         ARGS_PARSER.namespace_storage_configurations,
         ARGS_PARSER.instances,
+        ARGS_PARSER.allowances,
     ].count(True) == 1:
         return True
     else:
@@ -527,6 +532,23 @@ def list_namespaces():
     if ARGS_PARSER.details:  # Print the details for non-default only
         for namespace in select(CLIENT, namespaces_config, showing_all=True):
             print_yd_object(namespace)
+
+
+def list_allowances():
+    """
+    List allowances.
+    """
+    allowances_search = AllowanceSearch()
+    search_client: SearchClient = CLIENT.allowances_client.get_allowances(
+        allowances_search
+    )
+    allowances: List[Allowance] = search_client.list_all()
+    if len(allowances) == 0:
+        print_log("No allowances to display")
+        return
+    print_log(f"Displaying full details for {len(allowances)} allowance(s)")
+    for allowance in allowances:
+        print_yd_object(allowance)
 
 
 # Entry point
