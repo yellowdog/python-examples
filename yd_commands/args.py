@@ -322,6 +322,7 @@ class CLIParser:
                 "terminate",
                 "resize",
                 "cloudwizard",
+                "boost",
             ]
         ):
             parser.add_argument(
@@ -620,6 +621,20 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="resize a compute requirement instead of a worker pool",
+            )
+
+        if "boost" in sys.argv[0]:
+            parser.add_argument(
+                "allowance",
+                metavar="<allowance-ID>",
+                type=str,
+                help=("the YellowDog ID of the allowance to boost"),
+            )
+            parser.add_argument(
+                "boost_hours",
+                metavar="<boost hours>",
+                type=int,
+                help="the number of hours to boost the allowance by",
             )
 
         if "shutdown" in sys.argv[0]:
@@ -1348,6 +1363,16 @@ class CLIParser:
     def object_path_pattern(self) -> Optional[str]:
         return self.args.pattern
 
+    @property
+    @allow_missing_attribute
+    def allowance(self) -> str:
+        return self.args.allowance
+
+    @property
+    @allow_missing_attribute
+    def boost_hours(self) -> int:
+        return self.args.boost_hours
+
 
 def lookup_module_description(module_name: str) -> Optional[str]:
     """
@@ -1392,6 +1417,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "starting held (paused) Work Requirements"
     elif "hold" in module_name:
         suffix = "holding (pausing) running Work Requirements"
+    elif "boost" in module_name:
+        suffix = "boosting Allowances"
 
     return None if suffix is None else prefix + suffix
 

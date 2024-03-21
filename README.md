@@ -141,7 +141,8 @@ The commands provide the following capabilities:
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Listing** YellowDog items using the **`yd-list`** command
 - **Resizing** Worker Pools and Compute Requirements
-- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, and Configured Worker Pools
+- **Boosting** Allowances
+- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
@@ -2523,3 +2524,7 @@ It can optionally be supplied with a list of the names and/or YDIDs of the speci
 The `yd-hold` command is used to hold (pause) `RUNNING` Work Requirements.
 
 It can optionally be supplied with a list of the names and/or YDIDs of the specific Work Requirements to hold, otherwise the `namespace` and `tag` will be used to generate a list of candidate requirements.
+
+## yd-boost
+
+The `yd-boost` command is used to boost an Allowance by the specified number of hours.

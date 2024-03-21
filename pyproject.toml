@@ -32,6 +32,7 @@
 
 [project.scripts]
     yd-abort = "yd_commands.abort:main"
+    yd-boost = "yd_commands.boost:main"
     yd-cancel = "yd_commands.cancel:main"
     yd-cloudwizard = "yd_commands.cloudwizard:main"
     yd-create = "yd_commands.create:main"
