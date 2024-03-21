@@ -44,7 +44,7 @@ class TestDemoDryRuns:
     def test_benchmark_jsonnet(self):
         result = shell(
             f"cd {DEMO_DIR}/benchmark &&"
-            " yd-submit -D -r wr_benchmark.jsonnet -v crt_file=crt_example.json"
+            " yd-submit -D -r wr_benchmark.jsonnet -v crt_file=crt.json"
         )
         assert result.exit_code == 0
 
@@ -139,7 +139,7 @@ class TestDemoDryRuns:
             f"cd {DEMO_DIR} &&"
             f" yd-submit -D -c {demo_name}/config.toml"
             f" -r {demo_name}/wr_benchmark.jsonnet"
-            f" -v crt_file={demo_name}/crt_example.json"
+            f" -v crt_file={demo_name}/crt.json"
         )
         assert result.exit_code == 0
 
