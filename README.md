@@ -1750,6 +1750,7 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 - Image Families, Image Groups and Images
 - Namespace Storage Configurations
 - Configured Worker Pools
+- Allowances
 
 ## Overview of Operation
 
@@ -1811,6 +1812,7 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 - `"MachineImageFamily"`
 - `"NamespaceStorageConfiguration"`
 - `"ConfiguredWorkerPool"`
+- `"Allowance"`
 
 To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
 
@@ -2079,6 +2081,37 @@ Example:
   }
 }
 ```
+
+## Allowances
+
+The Allowances example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Usage%20API#/Allowances/addAllowance.
+
+Example:
+```json
+{
+  "resource": "Allowance",
+  "description": "my-allowance",
+  "allowedHours": 1000,
+  "effectiveFrom": "Now",
+  "effectiveUntil": "After two months",
+  "instanceTypes": [],
+  "limitEnforcement": "SOFT",
+  "monitoredStatuses": ["RUNNING", "PENDING", "STOPPED", "TERMINATING", "STOPPING"],
+  "regions": ["eu-west-2"],
+  "resetType": "NONE",
+  "sourceCreatedFromId": "awsondemand-eu-west-2",
+  "type": "co.yellowdog.platform.model.SourcesAllowance"
+}
+```
+
+The `effectiveFrom` and `effectiveUntil` date-time string fields can use any format supported by the **[dateparser](https://dateparser.readthedocs.io/en/latest/)** library, including some natural language formulations.
+
+Compute Source Template and Compute Requirement Template IDs can use names instead of IDs, and the IDs will be substituted by `yd-create`. However, if a Source allowance is created (type `co.yellowdog.platform.model.SourceAllowance`), then the Compute Source ID must be used in the `sourceId` property.
+
+Allowances **cannot be updated** (edited) once they have been created; they can only be removed and recreated. However, Allowances can be **boosted** (have extra hours added to the Allowance) using the `yd-boost` command.
+
+Allowances can currently only be **removed** by their IDs (`yd-remove --ids <allowance_id> [<allowance_id>]`), not by using the JSON resource specification. This is because allowances don't have a `name` property on which to match the resource.
+
 
 # Jsonnet Support
 

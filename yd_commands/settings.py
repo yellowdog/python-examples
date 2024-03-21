@@ -96,10 +96,11 @@ DEFAULT_THEME = {
 }
 
 # Resource type names for create/remove
-RN_KEYRING = "Keyring"
+RN_ALLOWANCE = "Allowance"
+RN_CONFIGURED_POOL = "ConfiguredWorkerPool"
 RN_CREDENTIAL = "Credential"
 RN_IMAGE_FAMILY = "MachineImageFamily"
-RN_SOURCE_TEMPLATE = "ComputeSourceTemplate"
+RN_KEYRING = "Keyring"
 RN_REQUIREMENT_TEMPLATE = "ComputeRequirementTemplate"
+RN_SOURCE_TEMPLATE = "ComputeSourceTemplate"
 RN_STORAGE_CONFIGURATION = "NamespaceStorageConfiguration"
-RN_CONFIGURED_POOL = "ConfiguredWorkerPool"

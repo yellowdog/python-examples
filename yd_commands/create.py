@@ -5,13 +5,18 @@ A script to create or update YellowDog resources.
 """
 
 from copy import deepcopy
+from datetime import datetime
 from typing import Dict, List, Optional
 
 import yellowdog_client.model as model
+from dateparser import parse as date_parse
 from requests import post
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
+    AccountAllowance,
     AddConfiguredWorkerPoolResponse,
+    AllowanceLimitEnforcement,
+    AllowanceResetType,
     AwsFleetComputeSource,
     AwsFleetPurchaseOption,
     CloudProvider,
@@ -21,6 +26,9 @@ from yellowdog_client.model import (
     MachineImageFamily,
     MachineImageGroup,
     NamespaceStorageConfiguration,
+    RequirementsAllowance,
+    SourceAllowance,
+    SourcesAllowance,
     WorkerPoolStatus,
     WorkerPoolSummary,
 )
@@ -37,6 +45,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.settings import (
+    RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
     RN_IMAGE_FAMILY,
@@ -104,6 +113,8 @@ def create_resources(
             create_namespace_configuration(resource)
         elif resource_type == RN_CONFIGURED_POOL:
             create_configured_worker_pool(resource)
+        elif resource_type == RN_ALLOWANCE:
+            create_allowance(resource)
         else:
             print_error(f"Unknown resource type '{resource_type}'")
 
@@ -583,12 +594,66 @@ def create_configured_worker_pool(resource: Dict):
         print_error(f"Unable to created Configured Worker Pool '{name}'")
 
 
+def create_allowance(resource: Dict):
+    """
+    Create an allowance.
+    """
+    try:
+        type = resource.pop("type").split(".")[-1]  # Extract type
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    if type == "SourcesAllowance":
+        template_name_or_id = resource.get("sourceCreatedFromId", None)
+        if template_name_or_id is not None:
+            if "ydid:cst:" not in template_name_or_id:
+                template_id = find_compute_source_template_id_by_name(
+                    client=CLIENT, name=template_name_or_id
+                )
+                if template_id is None:
+                    print_error(
+                        f"Compute Source Template name '{template_name_or_id}' not found"
+                    )
+                    return
+                print_log(
+                    f"Replaced Source Template name '{template_name_or_id}'"
+                    f" with ID {template_id}"
+                )
+                resource["sourceCreatedFromId"] = template_id
+
+    elif type == "RequirementsAllowance":
+        template_name_or_id = resource.get("requirementCreatedFromId", None)
+        if template_name_or_id is not None:
+            if "ydid:crt:" not in template_name_or_id:
+                template_ids = find_compute_requirement_template_ids_by_name(
+                    client=CLIENT, name=template_name_or_id
+                )
+                if len(template_ids) == 0:
+                    print_error(
+                        f"Compute Requirement Template name '{template_name_or_id}' not found"
+                    )
+                    return
+                template_id = template_ids[0]
+                print_log(
+                    f"Replaced Requirement Template name '{template_name_or_id}'"
+                    f" with ID {template_id}"
+                )
+                resource["requirementCreatedFromId"] = template_id
+
+    allowance = CLIENT.allowances_client.add_allowance(get_model_object(type, resource))
+
+    print_log(f"Created allowance ID {allowance.id}")
+
+    if ARGS_PARSER.quiet and allowance.id is not None:
+        print(allowance.id)
+
+
 def get_model_object(classname: str, resource: Dict, **kwargs):
     """
     Return a populated YellowDog model object. Handle unexpected keywords.
     """
 
-    def _apply_enum_conversions():
+    def _fix_aws_fleet_properties():
         if isinstance(model_object, AwsFleetComputeSource):
             try:
                 model_object.purchaseOption = AwsFleetPurchaseOption[
@@ -600,10 +665,48 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
                     f"'{str(model_object.purchaseOption)}'"
                 )
 
+    def _fix_allowance_properties():
+        if (
+            isinstance(model_object, SourceAllowance)
+            or isinstance(model_object, SourcesAllowance)
+            or isinstance(model_object, RequirementsAllowance)
+            or isinstance(model_object, AccountAllowance)
+        ):
+            try:
+                effective_from = resource.get("effectiveFrom", None)
+                if effective_from is not None:
+                    model_object.effectiveFrom = date_parse(effective_from)
+                    if model_object.effectiveFrom is None:
+                        raise Exception(
+                            f"Unable to parse 'effectiveFrom' date '{effective_from}'"
+                        )
+                    print_log(
+                        f"Property 'effectiveFrom' = '{effective_from}' set to "
+                        f"'{str(model_object.effectiveFrom)}'"
+                    )
+                effective_until = resource.get("effectiveUntil", None)
+                if effective_until is not None:
+                    model_object.effectiveUntil = date_parse(effective_until)
+                    if model_object.effectiveUntil is None:
+                        raise Exception(
+                            f"Unable to parse 'effectiveUntil' date '{effective_until}'"
+                        )
+                    print_log(
+                        f"Property 'effectiveUntil' = '{effective_until}' set to "
+                        f"'{str(model_object.effectiveUntil)}'"
+                    )
+                model_object.limitEnforcement = AllowanceLimitEnforcement(
+                    model_object.limitEnforcement
+                )
+                model_object.resetType = AllowanceResetType(model_object.resetType)
+            except KeyError as e:
+                raise Exception(f"Invalid property: {e}")
+
     while True:
         try:
             model_object = get_model_class(classname)(**resource, **kwargs)
-            _apply_enum_conversions()
+            _fix_aws_fleet_properties()
+            _fix_allowance_properties()
             return model_object
         except Exception as e:
             # Unexpected/missing keyword argument Exception of form:

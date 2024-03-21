@@ -8,6 +8,7 @@ from typing import Dict, List
 from yd_commands.args import ARGS_PARSER
 from yd_commands.printing import print_log, print_warning
 from yd_commands.settings import (
+    RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
     RN_IMAGE_FAMILY,
@@ -91,6 +92,7 @@ def _resequence_resources(
         RN_IMAGE_FAMILY,
         RN_SOURCE_TEMPLATE,
         RN_REQUIREMENT_TEMPLATE,
+        RN_ALLOWANCE,
         RN_STORAGE_CONFIGURATION,
         RN_CONFIGURED_POOL,
     ]

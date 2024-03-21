@@ -22,6 +22,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.settings import (
+    RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
     RN_IMAGE_FAMILY,
@@ -76,6 +77,10 @@ def remove_resources(resources: Optional[List[Dict]] = None):
             remove_namespace_configuration(resource)
         elif resource_type == RN_CONFIGURED_POOL:
             remove_configured_worker_pool(resource)
+        elif resource_type == RN_ALLOWANCE:
+            print_warning(
+                "Allowances must be removed using their IDs (yd-remove --ids)"
+            )
         else:
             print_error(f"Unknown resource type '{resource_type}'")
 
@@ -343,6 +348,11 @@ def remove_resource_by_id(resource_id: str):
             if confirmed(f"Shut down Worker Pool {resource_id}?"):
                 CLIENT.worker_pool_client.shutdown_worker_pool_by_id(resource_id)
                 print_log(f"Shut down Worker Pool {resource_id}")
+
+        elif resource_id.startswith("ydid:allow:"):
+            if confirmed(f"Remove Allowance {resource_id}?"):
+                CLIENT.allowances_client.delete_allowance_by_id(resource_id)
+                print_log(f"Removed Allowance {resource_id} (if present)")
 
         else:
             print_error(f"Resource ID type is unknown/unsupported: {resource_id}")

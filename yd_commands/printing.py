@@ -503,10 +503,11 @@ def allowances_table(
         "#",
         "Type",
         "Description",
-        "Allowed Hours",
-        "Remaining Hours",
-        "Soft/Hard Limit",
-        "Reset Period",
+        "Allowed Hrs",
+        "Remaining Hrs",
+        "Limit",
+        "Reset",
+        "ID",
     ]
     table = []
     for index, allowance in enumerate(allowances):
@@ -522,6 +523,7 @@ def allowances_table(
                 if allowance.resetInterval is not None
                 else ""
             ),
+            allowance.id,
         ])
     return headers, table
 
