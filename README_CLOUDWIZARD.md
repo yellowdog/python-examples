@@ -32,6 +32,7 @@
 * [Cloud Wizard for Azure](#cloud-wizard-for-azure)
    * [Azure Account Prequisites](#azure-account-prequisites)
       * [Azure Service Principal Setup Steps](#azure-service-principal-setup-steps)
+         * [Adding Custom Role](#adding-custom-role)
    * [Quickstart Guide (Azure)](#quickstart-guide-azure)
       * [Creation](#creation-2)
       * [Removal](#removal-2)
@@ -44,7 +45,7 @@
       * [Adding and Removing support for Inbound SSH](#adding-and-removing-support-for-inbound-ssh-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Feb  9 16:25:23 GMT 2024 -->
+<!-- Added by: pwt, at: Fri Mar 22 14:38:20 GMT 2024 -->
 
 <!--te-->
 

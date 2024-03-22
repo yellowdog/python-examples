@@ -85,6 +85,7 @@
    * [Image Families](#image-families)
    * [Namespace Storage Configurations](#namespace-storage-configurations)
    * [Configured Worker Pools](#configured-worker-pools)
+   * [Allowances](#allowances)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -109,9 +110,10 @@
    * [yd-follow](#yd-follow)
    * [yd-start](#yd-start)
    * [yd-hold](#yd-hold)
+   * [yd-boost](#yd-boost)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Sun Feb 18 17:40:36 GMT 2024 -->
+<!-- Added by: pwt, at: Fri Mar 22 14:38:21 GMT 2024 -->
 
 <!--te-->
 
