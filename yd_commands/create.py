@@ -600,7 +600,8 @@ def create_allowance(resource: Dict):
     Create an allowance.
     """
     try:
-        type = resource.pop("type").split(".")[-1]  # Extract type
+        original_type = resource.pop("type")
+        type = original_type.split(".")[-1]  # Extract type
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -681,6 +682,7 @@ def create_allowance(resource: Dict):
                 resource[property_] = _display_datetime(
                     resource[property_], canonical=True
                 )
+        resource["type"] = original_type
         print_json(resource)
         return
 
