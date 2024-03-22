@@ -88,6 +88,7 @@ def create_resources(
             # There is potential additional processing for CRTs and CSTs
             # Print JSON from within their functions
             if ARGS_PARSER.dry_run and resource_type not in [
+                RN_ALLOWANCE,
                 RN_REQUIREMENT_TEMPLATE,
                 RN_SOURCE_TEMPLATE,
             ]:
@@ -640,6 +641,49 @@ def create_allowance(resource: Dict):
                 )
                 resource["requirementCreatedFromId"] = template_id
 
+    # Datetime string conversion
+    def _display_datetime(dt: datetime, canonical: bool = False) -> str:
+        if canonical:
+            return dt.strftime("%Y-%m-%dT%H:%M:%S%Z%z").rstrip()
+        else:
+            return dt.strftime("%Y-%m-%d %H:%M:%S %Z%z").rstrip()
+
+    effective_from_property = "effectiveFrom"
+    effective_from = resource.get(effective_from_property, None)
+    if effective_from is not None:
+        resource[effective_from_property] = date_parse(effective_from)
+        if resource[effective_from_property] is None:
+            raise Exception(
+                f"Unable to parse '{effective_from_property}' date '{effective_from}'"
+            )
+        print_log(
+            f"Property '{effective_from_property}' = '{effective_from}' set to "
+            f"'{_display_datetime(resource[effective_from_property])}'"
+        )
+
+    effective_until_property = "effectiveUntil"
+    effective_until = resource.get(effective_until_property, None)
+    if effective_until is not None:
+        resource[effective_until_property] = date_parse(effective_until)
+        if resource[effective_until_property] is None:
+            raise Exception(
+                f"Unable to parse '{effective_until_property}' date '{effective_until}'"
+            )
+        print_log(
+            f"Property '{effective_until_property}' = '{effective_until}' set to "
+            f"'{_display_datetime(resource[effective_until_property])}'"
+        )
+
+    if ARGS_PARSER.dry_run:
+        # Datetime objects must be converted to strings for JSON presentation
+        for property_ in [effective_from_property, effective_until_property]:
+            if resource.get(property_, None) is not None:
+                resource[property_] = _display_datetime(
+                    resource[property_], canonical=True
+                )
+        print_json(resource)
+        return
+
     allowance = CLIENT.allowances_client.add_allowance(get_model_object(type, resource))
 
     print_log(f"Created allowance ID {allowance.id}")
@@ -673,28 +717,6 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
             or isinstance(model_object, AccountAllowance)
         ):
             try:
-                effective_from = resource.get("effectiveFrom", None)
-                if effective_from is not None:
-                    model_object.effectiveFrom = date_parse(effective_from)
-                    if model_object.effectiveFrom is None:
-                        raise Exception(
-                            f"Unable to parse 'effectiveFrom' date '{effective_from}'"
-                        )
-                    print_log(
-                        f"Property 'effectiveFrom' = '{effective_from}' set to "
-                        f"'{str(model_object.effectiveFrom)}'"
-                    )
-                effective_until = resource.get("effectiveUntil", None)
-                if effective_until is not None:
-                    model_object.effectiveUntil = date_parse(effective_until)
-                    if model_object.effectiveUntil is None:
-                        raise Exception(
-                            f"Unable to parse 'effectiveUntil' date '{effective_until}'"
-                        )
-                    print_log(
-                        f"Property 'effectiveUntil' = '{effective_until}' set to "
-                        f"'{str(model_object.effectiveUntil)}'"
-                    )
                 model_object.limitEnforcement = AllowanceLimitEnforcement(
                     model_object.limitEnforcement
                 )
