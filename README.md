@@ -1803,7 +1803,7 @@ However, this means that **caution is required** when updating or removing resou
 
 The JSON specification used to define each type of resource can be found by inspecting the YellowDog Platform REST API documentation at https://docs.yellowdog.co/api.
 
-For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API call for adding a new Compute Source template: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeSourceTemplate. This will display an **Example Value**, and an adjacent tab will show the **Schema**.
+For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API call for adding a new Compute Source template: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/sources. This will display an **Example Value**, and an adjacent tab will show the **Schema**.
 
 When using the `yd-create` and `yd-remove` commands, note that an additional property `resource` must be supplied, to identify the type of resource being specified. The `"resource"` property can take the following values:
 
@@ -1831,7 +1831,7 @@ Below, we'll discuss each item type with example specifications.
 
 ## Keyrings
 
-The Keyring example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Account%20API#/Keyring/createKeyring.
+The Keyring example and schema can be found at: https://docs.yellowdog.co/api/?spec=Account%20API#tag/keyring/post/keyrings.
 
 An example Keyring specification is shown below:
 
@@ -1859,7 +1859,7 @@ Note that Keyrings **cannot be updated**; they must instead be removed and recre
 
 ## Credentials
 
-The Credential example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Account%20API#/Keyring/putCredential.
+The Credential example and schema can be found at: https://docs.yellowdog.co/api/?spec=Account%20API#tag/keyring/put/keyrings/%7BkeyringName%7D/credentials.
 
 For example, to add a single AWS credential to a Keyring, the following resource specification might be used:
 
@@ -1880,7 +1880,7 @@ To **update** a Credential, make the modifications to the resource specification
 
 ## Compute Source Templates
 
-The Compute Source Template example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeSourceTemplate.
+The Compute Source Template example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/sources.
 
 An example Compute Source resource specification is found below:
 
@@ -1918,7 +1918,7 @@ In the Compute Source Template `imageId` property, an Image Family **name** may 
 
 ## Compute Requirement Templates
 
-The Compute Requirement Template example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Compute%20API#/Compute/addComputeRequirementTemplate.
+The Compute Requirement Template example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/requirements.
 
 An example Compute Requirement resource specification is found below, for a **static** tempate:
 
@@ -1993,7 +1993,7 @@ A **dynamic** template example is:
 
 ## Image Families
 
-The Image Family example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Images%20API#/Images/addImageFamily.
+The Image Family example and schema can be found at: https://docs.yellowdog.co/api/?spec=Images%20API#tag/images/post/images/families.
 
 An example specification, illustrating a containment hierarchy of Image Family -> Image Group -> Image, is shown below:
 
@@ -2039,7 +2039,7 @@ Note that if the name of an Image Group or an Image is changed in the resource s
 
 ## Namespace Storage Configurations
 
-The Namespace Storage Configuration example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Object%20Store%20API#/Object%20Store/putNamespaceStorageConfiguration.
+The Namespace Storage Configuration example and schema can be found at: https://docs.yellowdog.co/api/?spec=Object%20Store%20API#tag/object-store/put/objectstore/configurations.
 
 Example:
 
@@ -2056,7 +2056,7 @@ Example:
 
 ## Configured Worker Pools
 
-The Configured Worker Pool example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Scheduler%20API#/Worker%20Pools/addConfiguredWorkerPool.
+The Configured Worker Pool example and schema can be found at: https://docs.yellowdog.co/api/?spec=Scheduler%20API#tag/worker-pools/post/workerPools/configured.
 
 Example:
 
@@ -2086,7 +2086,7 @@ Example:
 
 ## Allowances
 
-The Allowances example and schema can be found at: https://docs.yellowdog.co/api/?urls.primaryName=Usage%20API#/Allowances/addAllowance.
+The Allowances example and schema can be found at: https://docs.yellowdog.co/api/?spec=Usage%20API#tag/allowances/post/allowances.
 
 Example:
 ```json
