@@ -30,7 +30,6 @@ def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
     Load and return a list of resource specifications assembled from the
     resources described in a set of resource description files.
     """
-
     resources = []
     for resource_spec in ARGS_PARSER.resource_specifications:
         if resource_spec.lower().endswith(".jsonnet"):
@@ -83,6 +82,11 @@ def _resequence_resources(
     correct order. If 'creation_or_update' is True this is a creation/update
     action, otherwise it's a removal action -- the sequencing differs for each.
     """
+
+    if ARGS_PARSER.no_resequence:
+        print_log("Not re-sequencing the resource list")
+        return resources
+
     if len(resources) == 1:
         return resources
 

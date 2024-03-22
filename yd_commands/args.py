@@ -968,6 +968,17 @@ class CLIParser:
                 ),
             )
 
+        if any(module in sys.argv[0] for module in ["create"]):
+            parser.add_argument(
+                "--no-resequence",
+                action="store_true",
+                required=False,
+                help=(
+                    "don't re-sequence resources prior  to creation (e.g., "
+                    "putting source templates before requirement templates)"
+                ),
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -1387,6 +1398,11 @@ class CLIParser:
     @allow_missing_attribute
     def boost_hours(self) -> int:
         return self.args.boost_hours
+
+    @property
+    @allow_missing_attribute
+    def no_resequence(self) -> Optional[bool]:
+        return self.args.no_resequence
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
