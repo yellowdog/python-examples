@@ -73,34 +73,7 @@ class CLIParser:
             help="the YellowDog Application secret",
             metavar="<app-secret>",
         )
-        parser.add_argument(
-            "--namespace",
-            "-n",
-            type=str,
-            required=False,
-            nargs="?",
-            const="",
-            help=(
-                "the namespace to use when creating and identifying entities;"
-                " this is set to '' if the option is provided without a value"
-            ),
-            metavar="<namespace>",
-        )
-        parser.add_argument(
-            "--tag",
-            "-t",
-            "--prefix",
-            type=str,
-            required=False,
-            nargs="?",
-            const="",
-            help=(
-                "the tag to use when naming, tagging, or selecting entities,"
-                " or the prefix (directory) when used with the object store;"
-                " this is set to '' if the option is provided without a value"
-            ),
-            metavar="<tag>",
-        )
+
         parser.add_argument(
             "--url",
             "-u",
@@ -148,6 +121,48 @@ class CLIParser:
         )
 
         # Module-specific argument sets
+
+        if not any(
+            module in sys.argv[0]
+            for module in [
+                "boost",
+                "resize",
+                "create",
+                "remove",
+                "cloudwizard",
+                "follow",
+                "hold",
+                "start",
+            ]
+        ):
+            parser.add_argument(
+                "--namespace",
+                "-n",
+                type=str,
+                required=False,
+                nargs="?",
+                const="",
+                help=(
+                    "the namespace to use when creating and identifying entities;"
+                    " this is set to '' if the option is provided without a value"
+                ),
+                metavar="<namespace>",
+            )
+            parser.add_argument(
+                "--tag",
+                "-t",
+                "--prefix",
+                type=str,
+                required=False,
+                nargs="?",
+                const="",
+                help=(
+                    "the tag to use when naming, tagging, or selecting entities,"
+                    " or the prefix (directory) when used with the object store;"
+                    " this is set to '' if the option is provided without a value"
+                ),
+                metavar="<tag>",
+            )
 
         if any(module in sys.argv[0] for module in ["submit"]):
             parser.add_argument(
