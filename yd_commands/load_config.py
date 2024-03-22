@@ -33,6 +33,7 @@ from yd_commands.type_check import check_list, check_str
 from yd_commands.utils import pathname_relative_to_config_file
 from yd_commands.validate_properties import validate_properties
 from yd_commands.variables import (
+    VARIABLE_SUBSTITUTIONS,
     add_substitutions_without_overwriting,
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions,
@@ -111,8 +112,16 @@ def load_config_common() -> ConfigCommon:
         # Provide default values for namespace and tag
         if common_section.get(NAMESPACE, None) is None:
             common_section[NAMESPACE] = "{{username}}_namespace"
+            print_log(
+                "Using default value for 'namespace' = "
+                f"'{VARIABLE_SUBSTITUTIONS['username']}_namespace'"
+            )
         if common_section.get(NAME_TAG, None) is None:
             common_section[NAME_TAG] = "{{username}}_tag"
+            print_log(
+                "Using default value for 'tag/prefix' = "
+                f"'{VARIABLE_SUBSTITUTIONS['username']}_tag'"
+            )
 
         url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
