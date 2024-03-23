@@ -85,8 +85,8 @@ def create_resources(
     for resource in resources:
         try:
             resource_type = resource.pop("resource")
-            # There is potential additional processing for CRTs and CSTs
-            # Print JSON from within their functions
+            # There is potential additional processing for CRTs, CSTs and
+            # Allowances; print JSON from within their creation functions
             if ARGS_PARSER.dry_run and resource_type not in [
                 RN_ALLOWANCE,
                 RN_REQUIREMENT_TEMPLATE,
@@ -155,10 +155,10 @@ def create_compute_source_template(resource: Dict):
         return
 
     # Create the Compute Source
-    compute_source = get_model_object(source_type, source)
+    compute_source = _get_model_object(source_type, source)
 
     # Create the Compute Source Template
-    compute_source_template = get_model_object(
+    compute_source_template = _get_model_object(
         "ComputeSourceTemplate", resource, source=compute_source
     )
 
@@ -251,7 +251,7 @@ def create_compute_requirement_template(resource: Dict):
         print_json(resource)
         return
 
-    compute_template = get_model_object(type, resource)
+    compute_template = _get_model_object(type, resource)
 
     # Check for an existing ID
     template_ids = find_compute_requirement_template_ids_by_name(CLIENT, name)
@@ -354,7 +354,7 @@ def create_credential(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    credential = get_model_object(credential_type, credential_data)
+    credential = _get_model_object(credential_type, credential_data)
     try:
         CLIENT.keyring_client.put_credential_by_name(keyring_name, credential)
         print_log(f"Added Credential '{name}' to Keyring '{keyring_name}'")
@@ -388,7 +388,7 @@ def create_image_family(resource):
         )
 
     # Start by updating the outer Image Family
-    image_family = get_model_object("MachineImageFamily", resource, osType=os_type)
+    image_family = _get_model_object("MachineImageFamily", resource, osType=os_type)
 
     # Check for existing Image Family
     try:
@@ -433,7 +433,7 @@ def create_image_family(resource):
     # Update Image Groups
     for image_group in image_groups:
         # Ensure well-formed MachineImageGroup object
-        image_group = get_model_object("MachineImageGroup", image_group)
+        image_group = _get_model_object("MachineImageGroup", image_group)
         image_group.osType = ImageOsType[str(image_group.osType)]  # Replace with Enum
         _create_image_group(namespace, image_family, image_group)
 
@@ -492,7 +492,7 @@ def _create_image_group(
     # Update Images
     for image in images:
         # Ensure well-formed MachineImage object
-        image = get_model_object("MachineImage", image)
+        image = _get_model_object("MachineImage", image)
         image.osType = ImageOsType[str(image.osType)]  # Replace with Enum
         image.provider = CloudProvider[str(image.provider)]  # Replace with Enum
         # Populate the Image ID (this could be made more efficient)
@@ -541,7 +541,7 @@ def create_namespace_configuration(resource: Dict):
                 f"Updating existing Namespace Storage Configuration '{namespace}'"
             )
 
-    namespace_configuration = get_model_object(namespace_type, resource)
+    namespace_configuration = _get_model_object(namespace_type, resource)
     try:
         CLIENT.object_store_client.put_namespace_storage_configuration(
             namespace_configuration
@@ -582,7 +582,7 @@ def create_configured_worker_pool(resource: Dict):
             return
 
     try:
-        cwp_request = get_model_object("AddConfiguredWorkerPoolRequest", resource)
+        cwp_request = _get_model_object("AddConfiguredWorkerPoolRequest", resource)
         cwp_response: AddConfiguredWorkerPoolResponse = (
             CLIENT.worker_pool_client.add_configured_worker_pool(cwp_request)
         )
@@ -592,7 +592,7 @@ def create_configured_worker_pool(resource: Dict):
         if ARGS_PARSER.quiet:
             print(cwp_response.workerPool.id)
     except Exception as e:
-        print_error(f"Unable to created Configured Worker Pool '{name}'")
+        print_error(f"Unable to created Configured Worker Pool '{name}': {e}")
 
 
 def create_allowance(resource: Dict):
@@ -686,7 +686,13 @@ def create_allowance(resource: Dict):
         print_json(resource)
         return
 
-    allowance = CLIENT.allowances_client.add_allowance(get_model_object(type, resource))
+    try:
+        allowance = CLIENT.allowances_client.add_allowance(
+            _get_model_object(type, resource)
+        )
+    except Exception as e:
+        print_error(f"Unable to create Allowance: {e}")
+        return
 
     print_log(f"Created allowance ID {allowance.id}")
 
@@ -694,9 +700,10 @@ def create_allowance(resource: Dict):
         print(allowance.id)
 
 
-def get_model_object(classname: str, resource: Dict, **kwargs):
+def _get_model_object(class_name: str, resource: Dict, **kwargs):
     """
-    Return a populated YellowDog model object. Handle unexpected keywords.
+    Return a populated YellowDog model object for the resource.
+    Discard unexpected keywords.
     """
 
     def _fix_aws_fleet_properties():
@@ -728,7 +735,7 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
 
     while True:
         try:
-            model_object = get_model_class(classname)(**resource, **kwargs)
+            model_object = _get_model_class(class_name)(**resource, **kwargs)
             _fix_aws_fleet_properties()
             _fix_allowance_properties()
             return model_object
@@ -747,9 +754,9 @@ def get_model_object(classname: str, resource: Dict, **kwargs):
                 raise e
 
 
-def get_model_class(classname: str):
+def _get_model_class(classname: str):
     """
-    Return a YellowDog model class using its classname.
+    Return a YellowDog model class using its class name.
     """
     return getattr(model, classname)
 
