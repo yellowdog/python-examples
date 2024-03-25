@@ -2108,12 +2108,13 @@ Example:
 
 The `effectiveFrom` and `effectiveUntil` date-time string fields can use any format supported by the **[dateparser](https://dateparser.readthedocs.io/en/latest/)** library, including some natural language formulations.
 
-Compute Source Template and Compute Requirement Template IDs can use names instead of IDs, and the IDs will be substituted by `yd-create`. However, if a Source allowance is created (type `co.yellowdog.platform.model.SourceAllowance`), then the Compute Source ID must be used in the `sourceId` property.
+Compute Source Template and Compute Requirement Template IDs can use names instead of IDs, and the IDs will be substituted by `yd-create`. However, if a Source allowance is created (type `co.yellowdog.platform.model.SourceAllowance`), then the Compute Source ID (note: **not** the Compute Source Template ID) itself must be used in the `sourceId` property.
 
-Allowances **cannot be updated** (edited) once they have been created; they can only be removed and recreated. However, Allowances can be **boosted** (have extra hours added to the Allowance) using the `yd-boost` command.
+Allowances **cannot be updated** (edited) once they have been created; they can only be removed and recreated. If `yd-create` is invoked again, it will attempt to match Allowances on their **`description`** property, if present, because Allowances do not have a `name` property. If matches are found, these can optionally be removed before new Allowances are created. If multiple existing, matching Allowances are found, the user will be asked to select which ones (if any) to remove.
 
-Allowances can currently only be **removed** by their IDs (`yd-remove --ids <allowance_id> [<allowance_id>]`), not by using the JSON resource specification. This is because allowances don't have a `name` property on which to match the resource.
+When using `yd-remove`, Allowances are again matched using their `description` property.  As with other resources, Allowances can also be removed by their IDs (`yd-remove --ids <allowance_id> [<allowance_id>]`).
 
+Allowances can be **boosted** (have extra hours added to the Allowance) using the `yd-boost` command.
 
 # Jsonnet Support
 

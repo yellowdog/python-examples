@@ -19,6 +19,7 @@ from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
     find_compute_requirement_template_ids_by_name,
     find_compute_source_template_id_by_name,
+    remove_allowances_matching_description,
 )
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.settings import (
@@ -63,26 +64,28 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                 f" specification: {resource}"
             )
             continue
-        if resource_type == RN_SOURCE_TEMPLATE:
-            remove_compute_source_template(resource)
-        elif resource_type == RN_REQUIREMENT_TEMPLATE:
-            remove_compute_requirement_template(resource)
-        elif resource_type == RN_KEYRING:
-            remove_keyring(resource)
-        elif resource_type == RN_CREDENTIAL:
-            remove_credential(resource)
-        elif resource_type == RN_IMAGE_FAMILY:
-            remove_image_family(resource)
-        elif resource_type == RN_STORAGE_CONFIGURATION:
-            remove_namespace_configuration(resource)
-        elif resource_type == RN_CONFIGURED_POOL:
-            remove_configured_worker_pool(resource)
-        elif resource_type == RN_ALLOWANCE:
-            print_warning(
-                "Allowances must be removed using their IDs (yd-remove --ids)"
-            )
-        else:
-            print_error(f"Unknown resource type '{resource_type}'")
+        try:
+            if resource_type == RN_SOURCE_TEMPLATE:
+                remove_compute_source_template(resource)
+            elif resource_type == RN_REQUIREMENT_TEMPLATE:
+                remove_compute_requirement_template(resource)
+            elif resource_type == RN_KEYRING:
+                remove_keyring(resource)
+            elif resource_type == RN_CREDENTIAL:
+                remove_credential(resource)
+            elif resource_type == RN_IMAGE_FAMILY:
+                remove_image_family(resource)
+            elif resource_type == RN_STORAGE_CONFIGURATION:
+                remove_namespace_configuration(resource)
+            elif resource_type == RN_CONFIGURED_POOL:
+                remove_configured_worker_pool(resource)
+            elif resource_type == RN_ALLOWANCE:
+                remove_allowance(resource)
+            else:
+                print_error(f"Unknown resource type '{resource_type}'")
+        except Exception as e:
+            print_error(f"Failed to remove resource: {e}")
+            # Allow removal to continue
 
 
 def remove_compute_source_template(resource: Dict):
@@ -308,6 +311,17 @@ def remove_configured_worker_pool(resource: Dict):
                     f"Not shutting down [{worker_pool.status}] Configured Worker Pool"
                     f" '{name}' ({worker_pool.id})"
                 )
+
+
+def remove_allowance(resource: Dict):
+    """
+    Remove an allowance, matching on the 'description' property.
+    """
+    description = resource.get("description", None)
+    if description is not None:
+        print_log(f"Removing allowance(s) matching description '{description}'")
+        num_removed = remove_allowances_matching_description(CLIENT, description)
+        print_log(f"Removed {num_removed} Allowance(s)")
 
 
 def remove_resource_by_id(resource_id: str):

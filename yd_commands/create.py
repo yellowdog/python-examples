@@ -42,6 +42,7 @@ from yd_commands.object_utilities import (
     find_compute_requirement_template_ids_by_name,
     find_compute_source_template_id_by_name,
     find_image_family_ids_by_name,
+    remove_allowances_matching_description,
 )
 from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.settings import (
@@ -100,24 +101,29 @@ def create_resources(
                 f" specification: {resource}"
             )
             continue
-        if resource_type == RN_SOURCE_TEMPLATE:
-            create_compute_source_template(resource)
-        elif resource_type == RN_REQUIREMENT_TEMPLATE:
-            create_compute_requirement_template(resource)
-        elif resource_type == RN_KEYRING:
-            create_keyring(resource, show_secrets)
-        elif resource_type == RN_CREDENTIAL:
-            create_credential(resource)
-        elif resource_type == RN_IMAGE_FAMILY:
-            create_image_family(resource)
-        elif resource_type == RN_STORAGE_CONFIGURATION:
-            create_namespace_configuration(resource)
-        elif resource_type == RN_CONFIGURED_POOL:
-            create_configured_worker_pool(resource)
-        elif resource_type == RN_ALLOWANCE:
-            create_allowance(resource)
-        else:
-            print_error(f"Unknown resource type '{resource_type}'")
+        try:
+            if resource_type == RN_SOURCE_TEMPLATE:
+                create_compute_source_template(resource)
+            elif resource_type == RN_REQUIREMENT_TEMPLATE:
+                create_compute_requirement_template(resource)
+            elif resource_type == RN_KEYRING:
+                create_keyring(resource, show_secrets)
+            elif resource_type == RN_CREDENTIAL:
+                create_credential(resource)
+            elif resource_type == RN_IMAGE_FAMILY:
+                create_image_family(resource)
+            elif resource_type == RN_STORAGE_CONFIGURATION:
+                create_namespace_configuration(resource)
+            elif resource_type == RN_CONFIGURED_POOL:
+                create_configured_worker_pool(resource)
+            elif resource_type == RN_ALLOWANCE:
+                create_allowance(resource)
+            else:
+                print_error(f"Unknown resource type '{resource_type}'")
+        except Exception as e:
+            print_error(f"Failed to create resource: {e}")
+            # Allow resource creation to continue, if exceptions were not
+            # already caught in the creation functions
 
 
 def create_compute_source_template(resource: Dict):
@@ -682,19 +688,30 @@ def create_allowance(resource: Dict):
                 resource[property_] = _display_datetime(
                     resource[property_], canonical=True
                 )
-        resource["type"] = original_type
+        resource["type"] = original_type  # Reinstate property
         print_json(resource)
         return
+
+    # Look for existing Allowances that match the description string
+    description = resource.get("description", None)
+    if description is not None:
+        print_log(
+            "Checking for and removing existing Allowance(s) matching "
+            f"description '{description}'"
+        )
+        remove_allowances_matching_description(CLIENT, description)
 
     try:
         allowance = CLIENT.allowances_client.add_allowance(
             _get_model_object(type, resource)
         )
+        if description is None:
+            print_log(f"Created new Allowance {allowance.id}")
+        else:
+            print_log(f"Created new Allowance '{description}' ({allowance.id})")
     except Exception as e:
         print_error(f"Unable to create Allowance: {e}")
         return
-
-    print_log(f"Created allowance ID {allowance.id}")
 
     if ARGS_PARSER.quiet and allowance.id is not None:
         print(allowance.id)
@@ -706,7 +723,7 @@ def _get_model_object(class_name: str, resource: Dict, **kwargs):
     Discard unexpected keywords.
     """
 
-    def _fix_aws_fleet_properties():
+    def _patch_aws_fleet_enums():
         if isinstance(model_object, AwsFleetComputeSource):
             try:
                 model_object.purchaseOption = AwsFleetPurchaseOption[
@@ -718,7 +735,7 @@ def _get_model_object(class_name: str, resource: Dict, **kwargs):
                     f"'{str(model_object.purchaseOption)}'"
                 )
 
-    def _fix_allowance_properties():
+    def _patch_allowance_enums():
         if (
             isinstance(model_object, SourceAllowance)
             or isinstance(model_object, SourcesAllowance)
@@ -731,13 +748,13 @@ def _get_model_object(class_name: str, resource: Dict, **kwargs):
                 )
                 model_object.resetType = AllowanceResetType(model_object.resetType)
             except KeyError as e:
-                raise Exception(f"Invalid property: {e}")
+                raise Exception(f"Invalid Allowance property: {e}")
 
     while True:
         try:
             model_object = _get_model_class(class_name)(**resource, **kwargs)
-            _fix_aws_fleet_properties()
-            _fix_allowance_properties()
+            _patch_aws_fleet_enums()
+            _patch_allowance_enums()
             return model_object
         except Exception as e:
             # Unexpected/missing keyword argument Exception of form:
@@ -754,11 +771,11 @@ def _get_model_object(class_name: str, resource: Dict, **kwargs):
                 raise e
 
 
-def _get_model_class(classname: str):
+def _get_model_class(class_name: str):
     """
     Return a YellowDog model class using its class name.
     """
-    return getattr(model, classname)
+    return getattr(model, class_name)
 
 
 # Entry point

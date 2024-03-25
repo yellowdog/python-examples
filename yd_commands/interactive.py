@@ -8,7 +8,7 @@ from typing import List, Optional, Set, Union
 from yellowdog_client import PlatformClient
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.object_utilities import Item
+from yd_commands.items import Item
 from yd_commands.printing import (
     CONSOLE,
     print_error,

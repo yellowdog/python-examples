@@ -3,25 +3,19 @@ Various utility functions for finding objects, etc.
 """
 
 from functools import lru_cache
-from typing import List, Optional, TypeVar
+from typing import List, Optional
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
-    Allowance,
+    AllowanceSearch,
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
     ComputeRequirementTemplateSummary,
-    ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
-    ConfiguredWorkerPool,
-    Instance,
-    KeyringSummary,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
-    NamespaceStorageConfiguration,
-    ObjectPath,
     ProvisionedWorkerPool,
     Task,
     TaskGroup,
@@ -31,7 +25,8 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from yd_commands.cloudwizard_aws_types import AWSAvailabilityZone
+from yd_commands.interactive import confirmed, select
+from yd_commands.printing import print_log
 
 
 @lru_cache()
@@ -92,28 +87,6 @@ def get_filtered_work_requirements(
                     continue
 
     return filtered_work_summaries
-
-
-Item = TypeVar(
-    "Item",
-    ConfiguredWorkerPool,
-    ComputeRequirement,
-    ComputeRequirementTemplateSummary,
-    ComputeSourceTemplate,
-    ComputeSourceTemplateSummary,
-    Instance,
-    MachineImageFamilySummary,
-    KeyringSummary,
-    NamespaceStorageConfiguration,
-    ObjectPath,
-    ProvisionedWorkerPool,
-    Task,
-    TaskGroup,
-    WorkerPoolSummary,
-    WorkRequirementSummary,
-    AWSAvailabilityZone,
-    Allowance,
-)
 
 
 @lru_cache()
@@ -276,3 +249,33 @@ def clear_image_family_search_cache():
     Clear the cache of Image Family name searches.
     """
     find_image_family_ids_by_name.cache_clear()
+
+
+def remove_allowances_matching_description(
+    client: PlatformClient, description: str
+) -> int:
+    """
+    Remove Allowances that match on the description property.
+    Return the number of allowances removed.
+    """
+    allowances = client.allowances_client.get_allowances(
+        AllowanceSearch(description=description)
+    ).list_all()
+
+    if len(allowances) > 1:
+        print_log(f"Multiple Allowances match the description '{description}'")
+        print_log("Please select which Allowance(s) to remove")
+        allowances = select(
+            client=client,
+            objects=allowances,
+            object_type_name="Allowance",
+            single_result=False,
+            force_interactive=True,
+        )
+
+    for allowance in allowances:
+        if confirmed(f"Remove Allowance with YellowDog ID {allowance.id}?"):
+            client.allowances_client.delete_allowance_by_id(allowance.id)
+            print_log(f"Removed Allowance with YellowDog ID {allowance.id}")
+
+    return len(allowances)
