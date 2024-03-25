@@ -53,3 +53,7 @@ class TestList:
     def test_namespaces(self):
         result = shell("yd-list -N -n='' -t=''")
         assert result.exit_code == 0
+
+    def test_allowances(self):
+        result = shell("yd-list -A -n='' -t=''")
+        assert result.exit_code == 0
