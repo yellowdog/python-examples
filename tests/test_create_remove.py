@@ -51,5 +51,5 @@ class TestCreateRemove:
         resources = f"{RESOURCE_DIR}/allowances.json"
         result = shell(f"yd-create {resources}")
         assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
+        result = shell(f"yd-remove -My {resources}")
         assert result.exit_code == 0

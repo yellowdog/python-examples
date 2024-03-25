@@ -692,14 +692,15 @@ def create_allowance(resource: Dict):
         print_json(resource)
         return
 
-    # Look for existing Allowances that match the description string
     description = resource.get("description", None)
-    if description is not None:
-        print_log(
-            "Checking for and removing existing Allowance(s) matching "
-            f"description '{description}'"
-        )
-        remove_allowances_matching_description(CLIENT, description)
+    if ARGS_PARSER.match_allowances_by_description:
+        # Look for existing Allowances that match the description string
+        if description is not None:
+            print_log(
+                "Checking for and removing existing Allowance(s) matching "
+                f"description '{description}'"
+            )
+            remove_allowances_matching_description(CLIENT, description)
 
     try:
         allowance = CLIENT.allowances_client.add_allowance(

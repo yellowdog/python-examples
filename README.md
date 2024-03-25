@@ -2110,9 +2110,9 @@ The `effectiveFrom` and `effectiveUntil` date-time string fields can use any for
 
 Compute Source Template and Compute Requirement Template IDs can use names instead of IDs, and the IDs will be substituted by `yd-create`. However, if a Source allowance is created (type `co.yellowdog.platform.model.SourceAllowance`), then the Compute Source ID (note: **not** the Compute Source Template ID) itself must be used in the `sourceId` property.
 
-Allowances **cannot be updated** (edited) once they have been created; they can only be removed and recreated. If `yd-create` is invoked again, it will attempt to match Allowances on their **`description`** property, if present, because Allowances do not have a `name` property. If matches are found, these can optionally be removed before new Allowances are created. If multiple existing, matching Allowances are found, the user will be asked to select which ones (if any) to remove.
+Allowances **cannot be updated** (edited) once they have been created; they can only be removed and recreated. However, if using `yd-create` to update existing Allowances, the `--match-allowances-by-description`/`-M` option can be used, in which case Allowances will be matched using their `description` property. If matches are found, these can optionally be removed before new Allowances are created. If multiple existing, matching Allowances are found, the user will be asked to select which ones (if any) to remove.
 
-When using `yd-remove`, Allowances are again matched using their `description` property.  As with other resources, Allowances can also be removed by their IDs (`yd-remove --ids <allowance_id> [<allowance_id>]`).
+When using `yd-remove`, Allowances are again matched using their `description` property only if `--match-allowances-by-description`/`-M` is used. As with other resources, Allowances can also be removed by their IDs (`yd-remove --ids <allowance_id> [<allowance_id>]`).
 
 Allowances can be **boosted** (have extra hours added to the Allowance) using the `yd-boost` command.
 

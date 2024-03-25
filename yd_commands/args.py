@@ -763,6 +763,16 @@ class CLIParser:
                 required=False,
                 help="allow updates without user confirmation",
             )
+            parser.add_argument(
+                "--match-allowances-by-description",
+                "-M",
+                action="store_true",
+                required=False,
+                help=(
+                    "match using the 'description' property when updating "
+                    "(using yd-create) or removing allowances"
+                ),
+            )
         if "create" in sys.argv[0]:
             parser.add_argument(
                 "--show-keyring-passwords",
@@ -1403,6 +1413,11 @@ class CLIParser:
     @allow_missing_attribute
     def no_resequence(self) -> Optional[bool]:
         return self.args.no_resequence
+
+    @property
+    @allow_missing_attribute
+    def match_allowances_by_description(self) -> Optional[bool]:
+        return self.args.match_allowances_by_description
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

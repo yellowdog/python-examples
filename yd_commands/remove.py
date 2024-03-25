@@ -80,7 +80,15 @@ def remove_resources(resources: Optional[List[Dict]] = None):
             elif resource_type == RN_CONFIGURED_POOL:
                 remove_configured_worker_pool(resource)
             elif resource_type == RN_ALLOWANCE:
-                remove_allowance(resource)
+                if ARGS_PARSER.match_allowances_by_description:
+                    remove_allowance(resource)
+                else:
+                    print_warning(
+                        "To remove Allowances by matching on their 'description', "
+                        "please use the '--match-allowances-by-description' flag; "
+                        "alternatively, Allowances can be removed by their "
+                        "YellowDog IDs (yd-remove --ids)"
+                    )
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
