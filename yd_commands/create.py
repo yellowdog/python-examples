@@ -157,6 +157,7 @@ def create_compute_source_template(resource: Dict):
 
     if ARGS_PARSER.dry_run:
         resource["source"] = source
+        _get_model_object(source_type, source)  # Report extras and omissions
         print_json(resource)
         return
 
@@ -254,6 +255,7 @@ def create_compute_requirement_template(resource: Dict):
                 )
 
     if ARGS_PARSER.dry_run:
+        _get_model_object(type, resource)  # Report extras and omissions
         print_json(resource)
         return
 
@@ -682,6 +684,7 @@ def create_allowance(resource: Dict):
         )
 
     if ARGS_PARSER.dry_run:
+        _get_model_object(type, resource)  # Report extras and omissions
         # Datetime objects must be converted to strings for JSON presentation
         for property_ in [effective_from_property, effective_until_property]:
             if resource.get(property_, None) is not None:
