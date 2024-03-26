@@ -544,7 +544,7 @@ def list_allowances():
     )
     allowances: List[Allowance] = search_client.list_all()
     if len(allowances) == 0:
-        print_log("No allowances to display")
+        print_log("No Allowances to display")
         return
 
     if not ARGS_PARSER.details:
