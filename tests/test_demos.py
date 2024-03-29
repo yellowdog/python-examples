@@ -8,6 +8,7 @@ from cli_test_helpers import shell
 
 DEMO_DIR = "../python-examples-demos"
 CMD_SEQ = "yd-provision && yd-submit -f && yd-terminate -y && yd-delete -y"
+NEXTFLOW = "/Users/pwt/nextflow/nextflow"
 
 
 @pytest.mark.demos
@@ -50,4 +51,18 @@ class TestDemos:
 
     def test_cmd_exe(self):
         result = shell(f"cd {DEMO_DIR}/cmd.exe && {CMD_SEQ}")
+        assert result.exit_code == 0
+
+    def test_nextflow_image_montage(self):
+        result = shell(
+            f"cd {DEMO_DIR}/nextflow/image-montage && {NEXTFLOW} main.nf "
+            "&& cd .. && ./cleanup.sh"
+        )
+        assert result.exit_code == 0
+
+    def test_nextflow_salmon_rna(self):
+        result = shell(
+            f"cd {DEMO_DIR}/nextflow/salmon-rna && {NEXTFLOW} main.nf "
+            "&& cd .. && ./cleanup.sh"
+        )
         assert result.exit_code == 0
