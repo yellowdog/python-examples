@@ -66,3 +66,10 @@ class TestDemos:
             "&& cd .. && ./cleanup.sh"
         )
         assert result.exit_code == 0
+
+    def test_cmd_modelled_on_premise(self):
+        result = shell(
+            f"cd {DEMO_DIR}/modelled-on-premise && yd-instantiate "
+            "&& sleep 120 && yd-terminate -y"
+        )
+        assert result.exit_code == 0
