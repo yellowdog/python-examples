@@ -6,15 +6,20 @@ Core functionality for starting and holding Work Requirements.
 
 from typing import List
 
-from yellowdog_client.model import WorkRequirementStatus, WorkRequirementSummary
+from yellowdog_client.model import (
+    WorkRequirement,
+    WorkRequirementStatus,
+    WorkRequirementSummary,
+)
 
 from yd_commands.follow_utils import follow_ids
-from yd_commands.interactive import select
+from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_work_requirement_summary_by_name_or_id,
 )
 from yd_commands.printing import print_error, print_log, print_warning
+from yd_commands.utils import link_entity
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON
 
 
@@ -37,9 +42,6 @@ def hold_work_requirements():
 def _start_or_hold_work_requirements(
     action: str, required_state: WorkRequirementStatus, action_function: callable
 ) -> List[str]:
-    """
-    Return the list of YDIDs.
-    """
 
     if len(ARGS_PARSER.work_requirement_names) > 0:
         return _start_or_hold_work_requirements_by_name_or_id(
@@ -50,7 +52,7 @@ def _start_or_hold_work_requirements(
         )
 
     print_log(
-        f"Applying action '{action}' to Work Requirements with "
+        f"{action}ing Work Requirements with "
         f"'{CONFIG_COMMON.namespace}' in namespace and "
         f"'{CONFIG_COMMON.name_tag}' in tag"
     )
@@ -64,7 +66,7 @@ def _start_or_hold_work_requirements(
         )
     )
 
-    processed_count = 0
+    count = 0
     work_requirement_ids: List[str] = []
 
     if len(selected_work_requirement_summaries) > 0:
@@ -72,31 +74,35 @@ def _start_or_hold_work_requirements(
             CLIENT, selected_work_requirement_summaries
         )
 
-    if len(selected_work_requirement_summaries) > 0:
+    if len(selected_work_requirement_summaries) > 0 and confirmed(
+        f"{action} {len(selected_work_requirement_summaries)} Work Requirement(s)?"
+    ):
         for work_summary in selected_work_requirement_summaries:
             if work_summary.status == required_state:
                 try:
                     action_function(work_summary.id)
-                    processed_count += 1
-                    work_requirement_ids.append(work_summary.id)
+                    work_requirement: WorkRequirement = (
+                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
+                    )
+                    count += 1
                     print_log(
-                        f"Applied action '{action}' to Work Requirement '{work_summary.name}'"
+                        f"Applied {action} to "
+                        f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
+                        f"('{work_summary.name}')"
                     )
                 except Exception as e:
                     print_error(
-                        f"Unable to apply action '{action}' to Work Requirement '{work_summary.name}': {e}"
+                        f"Failed to {action} Work Requirement '{work_summary.name}': {e}"
                     )
+            work_requirement_ids.append(work_summary.id)
 
-        if processed_count > 1:
-            print_log(
-                f"Applied action '{action}' to {processed_count} Work Requirements"
-            )
+        if count > 0:
+            print_log(f"{action} applied to {count} Work Requirement(s)")
+        else:
+            print_log(f"No Work Requirements to {action}")
 
     else:
-        print_log(
-            f"No matching Work Requirements eligible for action '{action}'"
-            f" (state must be '{required_state}')"
-        )
+        print_log(f"No Work Requirements available to {action}")
 
     return work_requirement_ids
 
