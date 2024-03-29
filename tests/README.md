@@ -4,7 +4,11 @@
 
 The tests in this directory are run using Pytest.
 
-# Notes
+# Running Live Demos
+
+The `--run-demos` flag is required to run the live demos.
+
+# Parallel Testing
 
 To run tests in parallel -- the demos for example, e.g.:
 
