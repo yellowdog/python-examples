@@ -158,13 +158,15 @@ class GCPConfig(CommonCloudConfig):
             client=self._client, name_prefix=YD_RESOURCE_PREFIX
         )
         self._remove_keyring(YD_KEYRING_NAME)
-        remove_resources([
-            self._generate_namespace_configuration(
-                YD_NAMESPACE,
-                self._generate_bucket_name(),
-                credential_name=f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
-            )
-        ])
+        remove_resources(
+            [
+                self._generate_namespace_configuration(
+                    YD_NAMESPACE,
+                    self._generate_bucket_name(),
+                    credential_name=f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
+                )
+            ]
+        )
 
     def _gather_regions(self):
         """

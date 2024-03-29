@@ -491,11 +491,13 @@ class AzureConfig(CommonCloudConfig):
 
         # Create namespace configuration (Keyring/Credential creation must come first)
         print_log(f"Creating YellowDog Namespace Configuration '{YD_NAMESPACE}'")
-        create_resources([
-            self._generate_yd_namespace_configuration(
-                namespace=YD_NAMESPACE, storage_blob_name=STORAGE_BLOB_NAME
-            )
-        ])
+        create_resources(
+            [
+                self._generate_yd_namespace_configuration(
+                    namespace=YD_NAMESPACE, storage_blob_name=STORAGE_BLOB_NAME
+                )
+            ]
+        )
 
         # Save the list of resources
         # Sequence the Compute Requirement Templates before the Compute Source

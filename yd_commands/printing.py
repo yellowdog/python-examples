@@ -246,19 +246,21 @@ def compute_requirement_table(
     ]
     table = []
     for index, cr in enumerate(cr_list):
-        table.append([
-            index + 1,
-            cr.name,
-            cr.namespace,
-            cr.tag,
-            (
-                f"{cr.status}"
-                if cr.nextStatus is None
-                else (f"{cr.status} -> {cr.nextStatus}")
-            )
-            + f" ({cr.targetInstanceCount:,d}/{cr.expectedInstanceCount:,d})",
-            cr.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                cr.name,
+                cr.namespace,
+                cr.tag,
+                (
+                    f"{cr.status}"
+                    if cr.nextStatus is None
+                    else (f"{cr.status} -> {cr.nextStatus}")
+                )
+                + f" ({cr.targetInstanceCount:,d}/{cr.expectedInstanceCount:,d})",
+                cr.id,
+            ]
+        )
     return headers, table
 
 
@@ -270,14 +272,16 @@ def work_requirement_table(
     for index, wr_summary in enumerate(wr_summary_list):
         namespace = "" if wr_summary.namespace is None else wr_summary.namespace
         tag = "" if wr_summary.tag is None else wr_summary.tag
-        table.append([
-            index + 1,
-            wr_summary.name,
-            namespace,
-            tag,
-            str(wr_summary.status),
-            wr_summary.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                wr_summary.name,
+                namespace,
+                tag,
+                str(wr_summary.status),
+                wr_summary.id,
+            ]
+        )
     return headers, table
 
 
@@ -292,12 +296,14 @@ def task_group_table(
             status_msg += "/STARVED"
         if task_group.waitingOnDependency:
             status_msg += "/WAITING"
-        table.append([
-            index + 1,
-            task_group.name,
-            status_msg,
-            task_group.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                task_group.name,
+                status_msg,
+                task_group.id,
+            ]
+        )
     return headers, table
 
 
@@ -305,12 +311,14 @@ def task_table(task_list: List[Task]) -> (List[str], List[List]):
     headers = ["#", "Task Name", "Status", "ID"]
     table = []
     for index, task in enumerate(task_list):
-        table.append([
-            index + 1,
-            task.name,
-            str(task.status),
-            task.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                task.name,
+                str(task.status),
+                task.id,
+            ]
+        )
     return headers, table
 
 
@@ -341,14 +349,16 @@ def worker_pool_table(
         node_summary: NodeSummary = worker_pool.nodeSummary
         nodes_running = node_summary.statusCounts[NodeStatus.RUNNING]
 
-        table.append([
-            index + 1,
-            worker_pool_summary.name,
-            f"{worker_pool_summary.type.split('.')[-1:][0].replace('WorkerPool', '')}",
-            f"{worker_pool_summary.status}",
-            f"{min_nodes}/{nodes_running}/{max_nodes}",
-            worker_pool_summary.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                worker_pool_summary.name,
+                f"{worker_pool_summary.type.split('.')[-1:][0].replace('WorkerPool', '')}",
+                f"{worker_pool_summary.status}",
+                f"{min_nodes}/{nodes_running}/{max_nodes}",
+                worker_pool_summary.id,
+            ]
+        )
     return headers, table
 
 
@@ -375,14 +385,16 @@ def compute_requirement_template_table(
             )
         except:
             strategy_type = None
-        table.append([
-            index + 1,
-            crt_summary.name,
-            crt_summary.namespace,
-            type,
-            strategy_type,
-            crt_summary.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                crt_summary.name,
+                crt_summary.namespace,
+                type,
+                strategy_type,
+                crt_summary.id,
+            ]
+        )
     return headers, table
 
 
@@ -407,14 +419,16 @@ def compute_source_template_table(
             provider = cst_summary.provider
         except:
             provider = None
-        table.append([
-            index + 1,
-            cst_summary.name,
-            cst_summary.namespace,
-            provider,
-            type,
-            cst_summary.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                cst_summary.name,
+                cst_summary.namespace,
+                provider,
+                type,
+                cst_summary.id,
+            ]
+        )
     return headers, table
 
 
@@ -429,12 +443,14 @@ def keyring_table(
     ]
     table = []
     for index, keyring in enumerate(keyring_summaries):
-        table.append([
-            index + 1,
-            keyring.name,
-            keyring.description,
-            keyring.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                keyring.name,
+                keyring.description,
+                keyring.id,
+            ]
+        )
     return headers, table
 
 
@@ -451,14 +467,16 @@ def image_family_table(
     ]
     table = []
     for index, image_family in enumerate(image_family_summaries):
-        table.append([
-            index + 1,
-            image_family.name,
-            image_family.access,
-            image_family.namespace,
-            image_family.osType,
-            image_family.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                image_family.name,
+                image_family.access,
+                image_family.namespace,
+                image_family.osType,
+                image_family.id,
+            ]
+        )
     return headers, table
 
 
@@ -485,14 +503,16 @@ def instances_table(
     ]
     table = []
     for index, instance in enumerate(instances):
-        table.append([
-            index + 1,
-            instance.type.split(".")[-1],
-            instance.provider,
-            instance.instanceType,
-            instance.privateIpAddress,
-            instance.publicIpAddress,
-        ])
+        table.append(
+            [
+                index + 1,
+                instance.type.split(".")[-1],
+                instance.provider,
+                instance.instanceType,
+                instance.privateIpAddress,
+                instance.publicIpAddress,
+            ]
+        )
     return headers, table
 
 
@@ -511,20 +531,22 @@ def allowances_table(
     ]
     table = []
     for index, allowance in enumerate(allowances):
-        table.append([
-            index + 1,
-            allowance.type.split(".")[-1],
-            allowance.description,
-            allowance.allowedHours,
-            allowance.remainingHours,
-            allowance.limitEnforcement,
-            (
-                f"{allowance.resetInterval} {allowance.resetType}"
-                if allowance.resetInterval is not None
-                else ""
-            ),
-            allowance.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                allowance.type.split(".")[-1],
+                allowance.description,
+                allowance.allowedHours,
+                allowance.remainingHours,
+                allowance.limitEnforcement,
+                (
+                    f"{allowance.resetInterval} {allowance.resetType}"
+                    if allowance.resetInterval is not None
+                    else ""
+                ),
+                allowance.id,
+            ]
+        )
     return headers, table
 
 
@@ -539,12 +561,14 @@ def aws_availability_zone_table(
     ]
     table = []
     for index, az in enumerate(aws_azs):
-        table.append([
-            index + 1,
-            az.az,
-            az.default_subnet_id,
-            az.default_sec_grp.id,
-        ])
+        table.append(
+            [
+                index + 1,
+                az.az,
+                az.default_subnet_id,
+                az.default_sec_grp.id,
+            ]
+        )
     return headers, table
 
 
@@ -790,25 +814,29 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
 
     report: BestComputeSourceReport = result.report
     sources: List[BestComputeSourceReportSource] = report.sources
-    source_table = [[
-        "#",
-        "Rank",
-        "Provider",
-        "Type",
-        "Region",
-        "InstanceType",
-        "Source Name",
-    ]]
+    source_table = [
+        [
+            "#",
+            "Rank",
+            "Provider",
+            "Type",
+            "Region",
+            "InstanceType",
+            "Source Name",
+        ]
+    ]
     for index, source in enumerate(sources):
-        source_table.append([
-            index + 1,
-            source.rank,
-            source.provider,
-            source.type,
-            source.region,
-            source.instanceType,
-            source.name,
-        ])
+        source_table.append(
+            [
+                index + 1,
+                source.rank,
+                source.provider,
+                source.type,
+                source.region,
+                source.instanceType,
+                source.name,
+            ]
+        )
     print(flush=True)
     print_table_core(
         indent(tabulate(source_table, headers="firstrow", tablefmt="simple_outline"))
@@ -839,11 +867,13 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
     table = []
     # Yes, I know I shouldn't be accessing '_source_file_entries'
     for index, file_entry in enumerate(upload_batch_builder._source_file_entries):
-        table.append([
-            index + 1,
-            file_entry.source_file_path,
-            f"{upload_batch_builder.namespace}{NAMESPACE_PREFIX_SEPARATOR}{file_entry.default_object_name}",
-        ])
+        table.append(
+            [
+                index + 1,
+                file_entry.source_file_path,
+                f"{upload_batch_builder.namespace}{NAMESPACE_PREFIX_SEPARATOR}{file_entry.default_object_name}",
+            ]
+        )
     print(flush=True)
     print_table_core(
         indent(
@@ -876,15 +906,17 @@ def print_batch_download_files(
             if flatten_downloads is False
             else f"{object_entry.object_name.split('/')[-1:][0]}"
         )
-        table.append([
-            index + 1,
-            object_source,
-            relpath(
-                f"{download_batch_builder.destination_folder}"
-                f"{directory_separator}"
-                f"{object_target}"
-            ),
-        ])
+        table.append(
+            [
+                index + 1,
+                object_source,
+                relpath(
+                    f"{download_batch_builder.destination_folder}"
+                    f"{directory_separator}"
+                    f"{object_target}"
+                ),
+            ]
+        )
         counter += 1
 
     print(flush=True)
