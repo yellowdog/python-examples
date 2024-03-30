@@ -1,5 +1,5 @@
 """
-User interaction processing
+User interaction processing utilities.
 """
 
 from os import getenv
@@ -76,8 +76,6 @@ def select(
             else (f"Please select items (e.g.: 1,2,4-7 / *){cancel_string}:")
         )
         selector_string = CONSOLE.input(print_string(input_string) + " ")
-        if selector_string == "":  # A quirk of Rich?
-            print()
         if selector_string.strip() == "*":
             selector_string = f"1-{len(objects)}"
         selector_list = selector_string.split(",")
@@ -156,8 +154,6 @@ def confirmed(msg: str) -> bool:
     # Seek user confirmation
     while True:
         response = CONSOLE.input(print_string(f"{msg} (y/N):") + " ")
-        if response == "":  # Seems to be a quirk of Rich
-            print()
         if response.lower() in ["y", "yes"]:
             print_log("Action confirmed by user")
             return True
