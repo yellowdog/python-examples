@@ -640,16 +640,17 @@ class CLIParser:
 
         if "boost" in sys.argv[0]:
             parser.add_argument(
-                "allowance",
-                metavar="<allowance-ID>",
-                type=str,
-                help=("the YellowDog ID of the allowance to boost"),
-            )
-            parser.add_argument(
                 "boost_hours",
                 metavar="<boost hours>",
                 type=int,
                 help="the number of hours to boost the allowance by",
+            )
+            parser.add_argument(
+                "allowances",
+                metavar="<allowance-ID> [<allowance-ID>]",
+                nargs="+",
+                type=str,
+                help="the YellowDog ID(s) of the allowance(s) to boost",
             )
 
         if "shutdown" in sys.argv[0]:
@@ -1401,8 +1402,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def allowance(self) -> str:
-        return self.args.allowance
+    def allowance_list(self) -> List[str]:
+        return self.args.allowances
 
     @property
     @allow_missing_attribute
