@@ -87,7 +87,7 @@ def load_config_common() -> ConfigCommon:
     try:
         common_section = CONFIG_TOML.get(COMMON_SECTION, {})
 
-        # Check for IMPORT directive (common section in a separate file)
+        # Check for IMPORT directive ('common' section in a separate file)
         common_section_import_file = common_section.get(IMPORT_COMMON, None)
         if common_section_import_file is not None:
             common_section = import_toml(common_section_import_file)
@@ -160,7 +160,7 @@ def load_config_common() -> ConfigCommon:
 
 
 def import_toml(filename: str) -> Dict:
-    filename = relpath(join(CONFIG_FILE_DIR, filename))
+    filename = relpath(join(CONFIG_FILE_DIR, process_variable_substitutions(filename)))
     print_log(f"Loading imported common configuration data from: '{filename}'")
     try:
         common_config: Dict = load_toml_file_with_variable_substitutions(filename)
