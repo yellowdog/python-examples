@@ -4,7 +4,7 @@ Common utility functions, mostly related to loading configuration data.
 
 import os
 from os import getenv
-from os.path import dirname, relpath
+from os.path import dirname, join, relpath
 from sys import exit
 from typing import Dict, Optional
 
@@ -41,18 +41,18 @@ from yd_commands.variables import (
 )
 
 # CLI > YD_CONF > 'config.toml'
-config_file = relpath(
+CONFIG_FILE = relpath(
     getenv("YD_CONF", "config.toml")
     if ARGS_PARSER.config_file is None
     else ARGS_PARSER.config_file
 )
 
 try:
-    CONFIG_FILE_DIR = dirname(config_file)
-    print_log(f"Loading configuration data from: '{config_file}'")
-    CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(config_file)
+    CONFIG_FILE_DIR = dirname(CONFIG_FILE)
+    print_log(f"Loading configuration data from: '{CONFIG_FILE}'")
+    CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
     try:
-        validate_properties(CONFIG_TOML, f"'{config_file}'")
+        validate_properties(CONFIG_TOML, f"'{CONFIG_FILE}'")
     except Exception as e:
         print_error(e)
         exit(1)
@@ -71,7 +71,7 @@ except FileNotFoundError as e:
 
 except (PermissionError, TomlDecodeError) as e:
     print_error(
-        f"Unable to load configuration data from '{config_file}': {e}",
+        f"Unable to load configuration data from '{CONFIG_FILE}': {e}",
     )
     exit(1)
 
@@ -160,6 +160,7 @@ def load_config_common() -> ConfigCommon:
 
 
 def import_toml(filename: str) -> Dict:
+    filename = relpath(join(CONFIG_FILE_DIR, filename))
     print_log(f"Loading imported common configuration data from: '{filename}'")
     try:
         common_config: Dict = load_toml_file_with_variable_substitutions(filename)
