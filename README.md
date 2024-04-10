@@ -2,23 +2,24 @@
 
 <!--ts-->
 * [YellowDog Python Examples Commands](#yellowdog-python-examples-commands)
-* [Overview](#overview)
-* [YellowDog Prerequisites](#yellowdog-prerequisites)
-* [Script Installation with Pip](#script-installation-with-pip)
-* [Script Installation with Pipx](#script-installation-with-pipx)
+   * [Overview](#overview)
+* [Installing the Command Line Utilities](#installing-the-command-line-utilities)
+   * [YellowDog Prerequisites](#yellowdog-prerequisites)
+   * [Script Installation with Pip](#script-installation-with-pip)
+   * [Script Installation with Pipx](#script-installation-with-pipx)
 * [Usage](#usage)
+   * [Naming Rules](#naming-rules)
+   * [Variable Substitutions](#variable-substitutions)
+      * [Default Variables](#default-variables)
+      * [User-Defined Variables](#user-defined-variables)
+      * [Nested Variables](#nested-variables)
+      * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
+      * [Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data](#variable-substitutions-in-worker-pool-and-compute-requirement-specifications-and-in-user-data)
 * [Configuration](#configuration)
-* [Naming Rules](#naming-rules)
-* [Common Properties](#common-properties)
-   * [HTTPS Proxy Support](#https-proxy-support)
-   * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
-   * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
-* [Variable Substitutions](#variable-substitutions)
-   * [Default Variables](#default-variables)
-   * [User-Defined Variables](#user-defined-variables)
-   * [Nested Variables](#nested-variables)
-   * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
-   * [Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data](#variable-substitutions-in-worker-pool-and-compute-requirement-specifications-and-in-user-data)
+   * [Common Properties](#common-properties)
+      * [HTTPS Proxy Support](#https-proxy-support)
+      * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
+      * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
@@ -117,7 +118,7 @@
 
 <!--te-->
 
-# Overview
+## Overview
 
 This repository contains a set of command line utilities for driving the YellowDog Platform, written in Python. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.co/#/sdk)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
 
@@ -151,31 +152,26 @@ The operation of the commands is controlled using TOML configuration files and/o
 
 Commands are also provided for the semi-automatic setup of cloud provider accounts for use with YellowDog, and the creation of YellowDog assets to work with these cloud provider accounts. Please see **[Cloud Wizard](README_CLOUDWIZARD.md)** for more details.
 
-# YellowDog Prerequisites
+# Installing the Command Line Utilities
+
+## YellowDog Prerequisites
 
 To submit **Work Requirements** to YellowDog for processing by Configured Worker Pools (on-premise) and/or Provisioned Worker Pools (cloud-provisioned resources), you'll need:
 
 1. A YellowDog Platform Account.
-
-
 2. An Application Key & Secret: in the **Accounts** section under the **Applications** tab in the [YellowDog Portal](https://portal.yellowdog.co/#/account/applications), use the **Add Application** button to create a new Application, and make a note of its **Key** and **Secret** (these will only be displayed once).
-
 
 To create **Provisioned Worker Pools**, you'll need:
 
 3. A **Keyring** created via the YellowDog Portal, with access to Cloud Provider credentials as required. The Application must be granted access to the Keyring.
-
-
 4. One or more **Compute Sources** defined, and a **Compute Requirement Template** created. The images used by instances must include the YellowDog agent, configured with the Task Type(s) to match the Work Requirements to be submitted.
 
 To set up **Configured Worker Pools**, you'll need:
 
 5. A Configured Worker Pool Token: from the **Workers** tab in the [YellowDog Portal](https://portal.yellowdog.co/#/workers), use the **+Add Configured Worker Pool** button to create a new Worker Pool and generate a token.
-
-
 6. Obtain the YellowDog Agent and install/configure it on your on-premise systems using the Token above.
 
-# Script Installation with Pip
+## Script Installation with Pip
 
 Python version 3.7 or later is required. It's recommended that the installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
 
@@ -187,7 +183,7 @@ pip install -U yellowdog-python-examples
 
 If you're interested in including **Jsonnet** support, please see the [Jsonnet Support](#jsonnet-support) section below.
 
-# Script Installation with Pipx
+## Script Installation with Pipx
 
 The commands can also be installed using **[pipx](https://pypa.github.io/pipx/)**.
 
@@ -244,27 +240,9 @@ optional arguments:
   --yes, -y             perform destructive actions without requiring user confirmation
 ```
 
-# Configuration
+By default, the operation of all commands is configured using a **TOML** [configuration file](#configuration).
 
-By default, the operation of all commands is configured using a **TOML** configuration file.
-
-The configuration file has three possible sections:
-
-1. A `common` section that contains required security properties for interacting with the YellowDog platform, sets the Namespace in which YellowDog assets and objects are created, and a Tag that is used for tagging and naming assets and objects.
-2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
-3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. 
-
-There is a documented template TOML file provided in [config.toml.template](config.toml.template), containing the main properties that can be configured.
-
-The name of the configuration file can be supplied in three different ways:
-
-1. On the command line, using the `--config` or `-c` options, e.g.:<br>`yd-submit -c jobs/config_1.toml`
-2. Using the `YD_CONF` environment variable, e.g.: <br>`export YD_CONF="jobs/config_1.toml"`
-3. If neither of the above is supplied, the commands look for a `config.toml` file in the current directory
-
-The options above are shown in order of precedence: a filename supplied on the command line supersedes one set in `YD_CONF`, which supersedes the default.
-
-# Naming Rules
+## Naming Rules
 
 All entity names used within the YellowDog Platform must comply with the following rules:
 
@@ -275,72 +253,7 @@ All entity names used within the YellowDog Platform must comply with the followi
 
 These restrictions apply to entities including Namespaces, Tags, Work Requirements, Task Groups, Tasks, Worker Pools, and Compute Requirements, and also apply to entities that are currently used indirectly by these scripts, including Usernames, Credentials, Keyrings, Compute Sources and Compute Templates.
 
-# Common Properties
-
-The `[common]` section of the configuration file can contain the following properties:
-
-| Property    | Description                                                                                        |
-|:------------|:---------------------------------------------------------------------------------------------------|
-| `key`       | The **key** of the YellowDog Application under which the commands will run                         |
-| `secret`    | The **secret** of the YellowDog Application under which the commands will run                      |
-| `namespace` | The **namespace** to be used for grouping resources                                                |
-| `tag`       | The **tag** to be used for tagging resources and naming objects                                    |
-| `url`       | The **URL** of the YellowDog Platform API endpoint. Defaults to `https://portal.yellowdog.co/api`. |
-| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                                 |
-| `variables` | A table containing **variable substitutions** (see the Variables section below)                    |
-
-An example `common` section is shown below:
-
-```toml
-[common]
-    key = "asdfghjklzxcvb-1234567"
-    secret = "qwertyuiopasdfghjklzxcvbnm1234567890qwertyu"
-    namespace = "project-x"
-    tag = "testing-{{username}}"
-```
-
-Indentation is optional in TOML files and is for readability only.
-
-## HTTPS Proxy Support
-
-The commands will respect the value of the environment variable `HTTPS_PROXY` if routing through a proxy is required.
-
-In addition, commands can use proxy autoconfiguration (PAC) if the `--pac` command line option is specified, or if the `usePAC` property is set to `true` in the `[common]` section of the `config.toml` file.
-
-## Specifying Common Properties using the Command Line or Environment Variables
-
-All the common properties can be set using command line options, or in environment variables.
-
-The **command line options** are as follows:
-
-- `--key` or `-k`
-- `--secret` or `-s`
-- `--namespace` or `-n`
-- `--tag` or `-t`
-- `--url` or `-u`
-- `--pac`
-
-These options can also be listed by running a command with the `--help` or `-h` option.
-
-The **environment variables** are as follows:
-
-- `YD_KEY`
-- `YD_SECRET`
-- `YD_NAMESPACE`
-- `YD_TAG`
-- `YD_URL`
-
-When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in a configuration file.
-
-If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
-
-## Variable Substitutions in Common Properties
-
-Note the use of `{{username}}` in the value of the `tag` property example above: this is a **variable substitution** that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
-
-Variable substitutions are discussed in more detail below.
-
-# Variable Substitutions
+## Variable Substitutions
 
 Variable substitutions provide a powerful mechanism for introducing variable values into TOML configuration files, and JSON/Jsonnet definitions of Work Requirements and Worker Pools. They can be included in the value of any property in any of these objects, including in values within arrays (lists), e.g., for the `arguments` property, and tables (dictionaries), e.g., the `environment` property.
 
@@ -358,7 +271,7 @@ Substitutions can also be performed for non-string (number, boolean, array, and 
 
 - In the processed JSON (or TOML), these values would become `5`, `2.5`, `true`, `[1,2,3]`, and `{"A": 100, "B": 200}`, respectively, converted from strings to their correct JSON types
 
-## Default Variables
+### Default Variables
 
 The following substitutions are automatically created and can be used in any section of the configuration file, or in any JSON specification:
 
@@ -377,7 +290,7 @@ The following substitutions are automatically created and can be used in any sec
 
 For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- that is, if `{{time}}` is used within multiple properties, the identical value will be used for each substitution.
 
-## User-Defined Variables
+### User-Defined Variables
 
 User-defined variables can be supplied using an option on the command line, or by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
 
@@ -399,7 +312,7 @@ Directives set on the command line supersede directives set in environment varia
 
 This method can also be used to override the default directives, for example setting `-v username="other-user"` will override the default `{{username}}` directive.
 
-## Nested Variables
+### Nested Variables
 
 In the case of **TOML file properties only**, variable substitutions can be nested.
 
@@ -449,11 +362,96 @@ Default values can be used anywhere that variable substitutions are allowed.  In
 name = "{{name_var:={{tag}}-{{datetime}}}}"
 ```
 
-## Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
+### Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
 
 In JSON specifications for Worker Pools and Compute Requirements, variable substitutions can be used, but **they must be prefixed and postfixed by double underscores** `__`, e.g., `__{{username}}__`. This is to disambiguate client-side variable substitutions from server-side Mustache variable processing.
 
 Variable substitutions can also be used within **User Data** to be supplied to instances, for which the same prefix/postfix requirement applies, **including** for User Data supplied directly using the `userData` property in the `workerPool` section of the TOML file.
+
+# Configuration
+
+By default, the operation of all commands is configured using a **TOML** configuration file.
+
+The configuration file has three possible sections:
+
+1. A `common` section that contains required security properties for interacting with the YellowDog platform, sets the Namespace in which YellowDog assets and objects are created, and a Tag that is used for tagging and naming assets and objects.
+2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
+3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. 
+
+There is a documented template TOML file provided in [config.toml.template](config.toml.template), containing the main properties that can be configured.
+
+The name of the configuration file can be supplied in three different ways:
+
+1. On the command line, using the `--config` or `-c` options, e.g.:<br>`yd-submit -c jobs/config_1.toml`
+2. Using the `YD_CONF` environment variable, e.g.: <br>`export YD_CONF="jobs/config_1.toml"`
+3. If neither of the above is supplied, the commands look for a `config.toml` file in the current directory
+
+The options above are shown in order of precedence: a filename supplied on the command line supersedes one set in `YD_CONF`, which supersedes the default.
+
+## Common Properties
+
+The `[common]` section of the configuration file can contain the following properties:
+
+| Property    | Description                                                                                        |
+|:------------|:---------------------------------------------------------------------------------------------------|
+| `key`       | The **key** of the YellowDog Application under which the commands will run                         |
+| `secret`    | The **secret** of the YellowDog Application under which the commands will run                      |
+| `namespace` | The **namespace** to be used for grouping resources                                                |
+| `tag`       | The **tag** to be used for tagging resources and naming objects                                    |
+| `url`       | The **URL** of the YellowDog Platform API endpoint. Defaults to `https://portal.yellowdog.co/api`. |
+| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                                 |
+| `variables` | A table containing **variable substitutions** (see the [Variables](#variable-substitutions-in-common-properties) section below)                    |
+
+An example `common` section is shown below:
+
+```toml
+[common]
+    key = "asdfghjklzxcvb-1234567"
+    secret = "qwertyuiopasdfghjklzxcvbnm1234567890qwertyu"
+    namespace = "project-x"
+    tag = "testing-{{username}}"
+```
+
+Indentation is optional in TOML files and is for readability only.
+
+### HTTPS Proxy Support
+
+The commands will respect the value of the environment variable `HTTPS_PROXY` if routing through a proxy is required.
+
+In addition, commands can use proxy autoconfiguration (PAC) if the `--pac` command line option is specified, or if the `usePAC` property is set to `true` in the `[common]` section of the `config.toml` file.
+
+### Specifying Common Properties using the Command Line or Environment Variables
+
+All the common properties can be set using command line options, or in environment variables.
+
+The **command line options** are as follows:
+
+- `--key` or `-k`
+- `--secret` or `-s`
+- `--namespace` or `-n`
+- `--tag` or `-t`
+- `--url` or `-u`
+- `--pac`
+
+These options can also be listed by running a command with the `--help` or `-h` option.
+
+The **environment variables** are as follows:
+
+- `YD_KEY`
+- `YD_SECRET`
+- `YD_NAMESPACE`
+- `YD_TAG`
+- `YD_URL`
+
+When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in a configuration file.
+
+If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
+
+### Variable Substitutions in Common Properties
+
+Note the use of `{{username}}` in the value of the `tag` property example above: this is a **variable substitution** that can optionally be used to insert the login username of the user running the commands. So, for username `abc`, the `tag` would be set to `testing-abc`. This can be helpful to disambiguate multiple users running with the same configuration data.
+
+Variable substitutions are discussed in more detail below.
 
 # Work Requirement Properties
 
