@@ -156,7 +156,7 @@ def main():
     if wr_data_file is None and csv_files is not None:
         wr_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0], files_directory)
         submit_work_requirement(
-            files_directory=CONFIG_FILE_DIR,
+            files_directory=files_directory,
             wr_data=wr_data,
         )
 

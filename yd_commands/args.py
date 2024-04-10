@@ -810,8 +810,8 @@ class CLIParser:
                 type=str,
                 required=False,
                 help=(
-                    "the directory in which files for upload (or for user data) are"
-                    " found"
+                    "the directory in which files for upload (or for user data "
+                    "or CSV data) are found"
                 ),
                 metavar="<directory>",
             )

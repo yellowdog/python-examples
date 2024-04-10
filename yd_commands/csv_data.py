@@ -20,6 +20,7 @@ from yd_commands.settings import (
     BOOL_TYPE_TAG,
     CSV_VAR_CLOSING_DELIMITER,
     CSV_VAR_OPENING_DELIMITER,
+    LOWER_CASE_TYPE_TAG,
     NUMBER_TYPE_TAG,
 )
 from yd_commands.variables import (
@@ -166,7 +167,7 @@ def load_toml_file_with_csv_task_expansion(
     with open(resolve_filename(files_directory, toml_file), "r") as f:
         wr_data = toml_load(f)
 
-    return perform_csv_task_expansion(wr_data, csv_files, f)
+    return perform_csv_task_expansion(wr_data, csv_files, files_directory)
 
 
 def perform_csv_task_expansion(
@@ -273,6 +274,10 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
             raise Exception(f"Invalid Boolean substitution in CSV: '{value}'")
         input = input.replace(f"'{bool_sub_str}'", value)
 
+    lower_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{LOWER_CASE_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+    if lower_sub_str in input:
+        input = input.replace(f"{lower_sub_str}", value.lower())
+
     return input
 
 
@@ -344,6 +349,11 @@ def substitions_present(var_names: List[str], task_prototype: str) -> bool:
             in task_prototype
             for var_name in var_names
         )
+        or any(
+            f"{CSV_VAR_OPENING_DELIMITER}{LOWER_CASE_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+            in task_prototype
+            for var_name in var_names
+        )
     )
 
 
@@ -395,4 +405,4 @@ def csv_expand_toml_tasks(
         ):
             task_proto[config_name] = config_value
 
-    return perform_csv_task_expansion(wr_data, [csv_file])
+    return perform_csv_task_expansion(wr_data, [csv_file], files_directory)
