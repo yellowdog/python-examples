@@ -167,7 +167,7 @@ def load_toml_file_with_csv_task_expansion(
     with open(resolve_filename(files_directory, toml_file), "r") as f:
         wr_data = toml_load(f)
 
-    return perform_csv_task_expansion(wr_data, csv_files, f)
+    return perform_csv_task_expansion(wr_data, csv_files, files_directory)
 
 
 def perform_csv_task_expansion(
@@ -405,4 +405,4 @@ def csv_expand_toml_tasks(
         ):
             task_proto[config_name] = config_value
 
-    return perform_csv_task_expansion(wr_data, [csv_file])
+    return perform_csv_task_expansion(wr_data, [csv_file], files_directory)
