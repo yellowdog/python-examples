@@ -53,6 +53,14 @@ class TestDemos:
         result = shell(f"cd {DEMO_DIR}/cmd.exe && {CMD_SEQ}")
         assert result.exit_code == 0
 
+    def test_blender(self):
+        result = shell(f"cd {DEMO_DIR}/blender && {CMD_SEQ}")
+        assert result.exit_code == 0
+
+    def test_montecarlo(self):
+        result = shell(f"cd {DEMO_DIR}/montecarlo && {CMD_SEQ}")
+        assert result.exit_code == 0
+
     def test_nextflow_image_montage(self):
         result = shell(
             f"cd {DEMO_DIR}/nextflow/image-montage && {NEXTFLOW} main.nf "
