@@ -147,7 +147,7 @@ The commands provide the following capabilities:
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements
 
-The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
+The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files, providing extensive configurability.
 
 Commands are also provided for the semi-automatic setup of cloud provider accounts for use with YellowDog, and the creation of YellowDog assets to work with these cloud provider accounts. Please see **[Cloud Wizard](README_CLOUDWIZARD.md)** for more details.
 
@@ -375,7 +375,7 @@ The following substitutions are automatically created and can be used in any sec
 | `{{secret}}`    | The application `secret` property.                                       |                         |
 | `{{url}}`       | The Platform `url` property.                                             |                         |
 
-For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the identical value will be used for each substitution.
+For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- that is, if `{{time}}` is used within multiple properties, the identical value will be used for each substitution.
 
 ## User-Defined Variables
 
@@ -387,7 +387,7 @@ User-defined variables can be supplied using an option on the command line, or b
 2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new variable that can be used as `{{project_code}}`, which will be substituted by `pr-213-a`.
 
 
-3. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. E.g., `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
+3. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. For example, `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
 
 ```toml
 [common.variables]
@@ -395,9 +395,9 @@ User-defined variables can be supplied using an option on the command line, or b
     run_id = "1234"
 ```
 
-Directives set on the command line take precedence over directives set in environment variables, and both take precedence over directives set in a TOML file.
+Directives set on the command line supersede directives set in environment variables, and both supersede directives set in a TOML file.
 
-This method can also be used to override the default directives, e.g., setting `-v username="other-user"` will override the default `{{username}}` directive.
+This method can also be used to override the default directives, for example setting `-v username="other-user"` will override the default `{{username}}` directive.
 
 ## Nested Variables
 
