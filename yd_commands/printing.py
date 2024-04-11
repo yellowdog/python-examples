@@ -495,9 +495,9 @@ def instances_table(
 ) -> (List[str], List[str]):
     headers = [
         "#",
-        "Type",
         "Provider",
         "Instance Type",
+        "Status",
         "Private IP",
         "Public IP",
     ]
@@ -506,9 +506,9 @@ def instances_table(
         table.append(
             [
                 index + 1,
-                instance.type.split(".")[-1],
                 instance.provider,
                 instance.instanceType,
+                instance.status,
                 instance.privateIpAddress,
                 instance.publicIpAddress,
             ]
