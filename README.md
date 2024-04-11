@@ -12,58 +12,58 @@
    * [Variable Substitutions](#variable-substitutions)
       * [Default Variables](#default-variables)
       * [User-Defined Variables](#user-defined-variables)
-      * [Nested Variables](#nested-variables)
       * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
+      * [Nested Variables](#nested-variables)
       * [Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data](#variable-substitutions-in-worker-pool-and-compute-requirement-specifications-and-in-user-data)
 * [Configuration](#configuration)
    * [Common Properties](#common-properties)
       * [HTTPS Proxy Support](#https-proxy-support)
       * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
       * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
-* [Work Requirement Properties](#work-requirement-properties)
-   * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
-   * [Property Inheritance](#property-inheritance)
-   * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
-   * [Automatic Properties](#automatic-properties)
-      * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
-         * [Obtaining Names/Context from Environment Variables at Task Run Time](#obtaining-namescontext-from-environment-variables-at-task-run-time)
-      * [Task Types](#task-types)
-         * [Bash, Python, PowerShell and cmd/bat Tasks](#bash-python-powershell-and-cmdbat-tasks)
-         * [Docker Tasks](#docker-tasks)
-         * [Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing](#bash-python-powershell-cmdexebatch-and-docker-without-automatic-processing)
-      * [Task Counts](#task-counts)
-   * [Examples](#examples)
-      * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
-      * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
-      * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
-      * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
-   * [Variable Substitutions in Work Requirement Properties](#variable-substitutions-in-work-requirement-properties)
-      * [Work Requirement Name Substitution](#work-requirement-name-substitution)
-      * [Task and Task Group Name Substitutions](#task-and-task-group-name-substitutions)
-   * [Dry-Running Work Requirement Submissions](#dry-running-work-requirement-submissions)
-      * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
-   * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
-      * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
-         * [Files in the inputs List](#files-in-the-inputs-list)
-         * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
-         * [Using Wildcards in the uploadFiles List](#using-wildcards-in-the-uploadfiles-list)
-      * [File Dependencies Using verifyAtStart and verifyWait](#file-dependencies-using-verifyatstart-and-verifywait)
-      * [Files Uploaded to the Object Store Using inputsOptional](#files-uploaded-to-the-object-store-using-inputsoptional)
-      * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
-      * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
-      * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
-   * [Task Execution Context](#task-execution-context)
-      * [Task Execution Steps](#task-execution-steps)
-      * [The User and Group used for Tasks](#the-user-and-group-used-for-tasks)
-      * [Home Directory for yd-agent](#home-directory-for-yd-agent)
-      * [Task Execution Directory](#task-execution-directory)
-   * [Specifying Work Requirements using CSV Data](#specifying-work-requirements-using-csv-data)
-      * [Work Requirement CSV Data Example](#work-requirement-csv-data-example)
-      * [CSV Variable Substitutions](#csv-variable-substitutions)
-      * [Property Inheritance](#property-inheritance-1)
-      * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
-      * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
-      * [Inspecting the Results of CSV Variable Substitution](#inspecting-the-results-of-csv-variable-substitution)
+   * [Work Requirement Properties](#work-requirement-properties)
+      * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
+      * [Property Inheritance](#property-inheritance)
+      * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
+      * [Automatic Properties](#automatic-properties)
+         * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
+            * [Obtaining Names/Context from Environment Variables at Task Run  Time](#obtaining-namescontext-from-environment-variables-at-task-run-time)
+         * [Task Types](#task-types)
+            * [Bash, Python, PowerShell and cmd/bat Tasks](#bash-python-powershell-and-cmdbat-tasks)
+            * [Docker Tasks](#docker-tasks)
+            * [Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing](#bash-python-powershell-cmdexebatch-and-docker-without-automatic-processing)
+         * [Task Counts](#task-counts)
+      * [Examples](#examples)
+         * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
+         * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
+         * [JSON Properties at the Task Group Level](#json-properties-at-the-task-group-level)
+         * [JSON Properties at the Task Level](#json-properties-at-the-task-level)
+      * [Variable Substitutions in Work Requirement Properties](#variable-substitutions-in-work-requirement-properties)
+         * [Work Requirement Name Substitution](#work-requirement-name-substitution)
+         * [Task and Task Group Name Substitutions](#task-and-task-group-name-substitutions)
+      * [Dry-Running Work Requirement Submissions](#dry-running-work-requirement-submissions)
+         * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
+      * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
+         * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
+            * [Files in the inputs List](#files-in-the-inputs-list)
+            * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
+            * [Using Wildcards in the uploadFiles List](#using-wildcards-in-the-uploadfiles-list)
+         * [File Dependencies Using verifyAtStart and verifyWait](#file-dependencies-using-verifyatstart-and-verifywait)
+         * [Files Uploaded to the Object Store Using inputsOptional](#files-uploaded-to-the-object-store-using-inputsoptional)
+         * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
+         * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
+         * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
+      * [Task Execution Context](#task-execution-context)
+         * [Task Execution Steps](#task-execution-steps)
+         * [The User and Group used for Tasks](#the-user-and-group-used-for-tasks)
+         * [Home Directory for yd-agent](#home-directory-for-yd-agent)
+         * [Task Execution Directory](#task-execution-directory)
+      * [Specifying Work Requirements using CSV Data](#specifying-work-requirements-using-csv-data)
+         * [Work Requirement CSV Data Example](#work-requirement-csv-data-example)
+         * [CSV Variable Substitutions](#csv-variable-substitutions)
+         * [Property Inheritance](#property-inheritance-1)
+         * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
+         * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
+         * [Inspecting the Results of CSV Variable Substitution](#inspecting-the-results-of-csv-variable-substitution)
 * [Worker Pool Properties](#worker-pool-properties)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
@@ -255,14 +255,14 @@ These restrictions apply to entities including Namespaces, Tags, Work Requiremen
 
 ## Variable Substitutions
 
-Variable substitutions provide a powerful mechanism for introducing variable values into TOML configuration files, and JSON/Jsonnet definitions of Work Requirements and Worker Pools. They can be included in the value of any property in any of these objects, including in values within arrays (lists), e.g., for the `arguments` property, and tables (dictionaries), e.g., the `environment` property.
+Variable substitutions provide a powerful mechanism for introducing variable values into TOML configuration files, and JSON/Jsonnet definitions of Work Requirements and Worker Pools. They can be included in the value of any property in any of these objects, including in values within arrays (lists), for example for the `arguments` property, and tables (dictionaries), for example the `environment` property.
 
 Variable substitutions are expressed using the `{{variable}}` notation, where the expression is replaced by the value of `variable`.
 
 Substitutions can also be performed for non-string (number, boolean, array, and table) values using the `num:`, `bool:`, `array:`, and `table:` prefixes within the variable substitution:
 
 - Define the variable substitution using one of the following patterns: `"{{num:my_int}}"`, `"{{num:my_float}}"`, `"{{bool:my_bool}}"`, `"{{array:my_array}}"`, `"{{table:my_table}}"`
-- Variable definitions supplied on the command line would then be of the form, e.g.: 
+- Supply the variable definitions on the command line in the following format: 
 
 ```shell
  yd-submit -v my_int=5 -v my_float=2.5 -v my_bool=true \
@@ -312,26 +312,6 @@ Directives set on the command line supersede directives set in environment varia
 
 This method can also be used to override the default directives, for example setting `-v username="other-user"` will override the default `{{username}}` directive.
 
-### Nested Variables
-
-In the case of **TOML file properties only**, variable substitutions can be nested.
-
-For example, if one wanted to select a different `templateId` for a Worker Pool depending on the value of a `region` variable, one could use the following:
-
-```toml
-[common.variables]
-    template_london = "ydid:crt:65EF4F:a4d757cf-b67a-4eb6-bd39-8a6ffd46c8f4"
-    template_phoenix = "ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"
-    template_frankfurt = "ydid:crt:65EF4F:329602cf-5945-4aad-a288-ea424d64d55e"
-
-[workerPool]
-    templateId = "{{template_{{region}}}}"
-```
-
-Then, if one used `yd-provision -v region=phoenix`, the `templateId` property would first resolve to `"{{template_pheonix}}"`, and then to `"ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"`.
-
-Nesting can be up to three levels deep including the top level. Note that variable resolution is not only processed sequentially, so ordering in the TOML file does not matter: variable `{{a}}` can depend on a variable `{{b}}` that is set later in the configuration.
-
 ## Providing Default Values for User-Defined Variables
 
 Each variable can be supplied with a default value, to be used if a value is not explicitly provided for that variable name. The syntax for providing a default is:
@@ -356,11 +336,31 @@ arguments = "{{array:args:=[1,2,3]}}"
 environment = "{{table:env:={'A':100,'B':200}}}"
 ```
 
-Default values can be used anywhere that variable substitutions are allowed.  In TOML files only, nested variable substitutions can be used inside default values, e.g.:
+Default values can be used anywhere that variable substitutions are allowed.  In TOML files only, nested variable substitutions can be used inside default values, for example:
 
 ```toml
 name = "{{name_var:={{tag}}-{{datetime}}}}"
 ```
+
+### Nested Variables
+
+In the case of **TOML file properties only**, variable substitutions can be nested.
+
+For example, if one wanted to select a different `templateId` for a Worker Pool depending on the value of a `region` variable, one could use the following:
+
+```toml
+[common.variables]
+    template_london = "ydid:crt:65EF4F:a4d757cf-b67a-4eb6-bd39-8a6ffd46c8f4"
+    template_phoenix = "ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"
+    template_frankfurt = "ydid:crt:65EF4F:329602cf-5945-4aad-a288-ea424d64d55e"
+
+[workerPool]
+    templateId = "{{template_{{region}}}}"
+```
+
+Then, if one used `yd-provision -v region=phoenix`, the `templateId` property would first resolve to `"{{template_phoenix}}"`, and then to `"ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"`.
+
+Nesting can be up to three levels deep including the top level. Note that variable resolution is not only processed sequentially, so ordering in the TOML file does not matter: variable `{{a}}` can depend on a variable `{{b}}` that is set later in the configuration.
 
 ### Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
 
@@ -453,15 +453,19 @@ Note the use of `{{username}}` in the value of the `tag` property example above:
 
 Variable substitutions are discussed in more detail below.
 
-# Work Requirement Properties
+## Work Requirement Properties
 
 The `workRequirement` section of the configuration file is optional. It's used only by the `yd-submit` command, and controls the Work Requirement that is submitted to the Platform.
 
-The details of a Work Requirement to be submitted can be captured entirely within the TOML configuration file for simple (single Task Group) examples. More complex examples capture the Work Requirement in a combination of the TOML file plus a JSON document, or in a JSON document only.
+For simple (single Task Group) examples, the details of a Work Requirement to be submitted can be captured entirely within the TOML configuration file.  For more complex examples,the Work Requirement can be captured in a combination of the TOML file plus a JSON document, or in a JSON document only.
 
-## Work Requirement JSON File Structure
+### Work Requirement JSON File Structure
 
 Work Requirements are represented in JSON documents using a containment hierarchy of a **Work Requirement** containing a **list of Task Groups**, containing a **list of Tasks**.
+
+To specify the file containing the JSON document, either provide the JSON filename in the `workRequirementData` property in the `workRequirement` section of the TOML configuration file, or specify it on the command line as a positional argument (which will override the property in the TOML file), for example:
+
+`yd-submit --config myconfig.toml my_workreq.json`
 
 A very simple example document is shown below with a top-level Work Requirement containing two Task Groups each containing two Tasks, each with a different set of arguments to be passed to the Task.
 
@@ -493,19 +497,15 @@ A very simple example document is shown below with a top-level Work Requirement 
 
 ```
 
-To specify the file containing the JSON document, either populate the `workRequirementData` property in the `workRequirement` section of the TOML configuration file with the JSON filename, or specify it on the command line as a positional argument (which will override the property in the TOML file), e.g.
-
-`yd-submit --config myconfig.toml my_workreq.json`
-
-## Property Inheritance
+### Property Inheritance
 
 Work Requirement specification can be simplified substantially by the property inheritance features in `yd-submit`. In general, properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
 
 This means that a property set in the `workRequirement` section of the TOML file can be inherited successively by the Work Requirement, Task Groups, and Tasks in the JSON document (assuming the property is available at each level).  Hence, Tasks inherit from Task Groups, which inherit from the Work Requirement in the JSON document, which inherits from the `workRequirement` properties in the TOML file.
 
-Overridden properties are also inherited at lower levels in the hierarchy. E.g., if a property is set at the Task Group level, it will be inherited by the Tasks in that Task Group unless explicitly overridden.
+Overridden properties are also inherited at lower levels in the hierarchy. For example, if a property is set at the Task Group level, it will be inherited by the Tasks in that Task Group unless explicitly overridden.
 
-## Work Requirement Property Dictionary
+### Work Requirement Property Dictionary
 
 The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and property `dependentOn` can only be set at the Task Group level.
 
@@ -566,17 +566,17 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `workerTags`                           | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                                               | Yes  | Yes | Yes  |      |
 | `workRequirementData`                  | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                                                                                   | Yes  |     |      |      |
 
-## Automatic Properties
+### Automatic Properties
 
-In addition to the property inheritance mechanism, some properties are set automatically by the `yd-submit` command, as a usage convenience if they're not explicitly specified.
+In addition to the property inheritance mechanism, some properties are set automatically by the `yd-submit` command if they're not explicitly specified, as a usage convenience .
 
-### Work Requirement, Task Group and Task Naming
+#### Work Requirement, Task Group and Task Naming
 
-- The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: e,g.: `mytag_221024-15552480`.
+- The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: for example `mytag_221024-15552480`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
-- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
+- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01` and so on for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
 
-#### Obtaining Names/Context from Environment Variables at Task Run Time
+##### Obtaining Names/Context from Environment Variables at Task Run Time
 
 When a Task executes, its Task name and number, Task Group name and number, Work Requirement name, Namespace, and Tag can be made automatically available to the Task in the following environment variables, if the `addYDEnvironmentVariables` property is set to `true`:
 
@@ -604,7 +604,7 @@ In addition to the environment variables above, when a Task is executed by a Wor
 - `YD_AGENT_DATA`
 - `YD_AGENT_HOME`
 
-### Task Types
+#### Task Types
 
 - If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
 - If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
@@ -612,7 +612,7 @@ In addition to the environment variables above, when a Task is executed by a Wor
 
 For the **`bash`**, **`powershell`**, **`cmd`**/**`bat`** and **`docker`** task types, some automatic processing will be performed if the **`executable`** property is set.
 
-#### Bash, Python, PowerShell and cmd/bat Tasks
+##### Bash, Python, PowerShell and cmd/bat Tasks
 
 As a convenience, for the **`bash`**, **`python`**, **`powershell`**, and **`cmd`** (or **`bat`**) Task Types, the script nominated in the **`executable`** property is automatically added to the `inputs` file list if not already present in that list. This means the nominated 'executable' script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
 
@@ -649,9 +649,9 @@ arguments = ["/c", "{{wr_name}}\\my_script.bat", "1", "2", "3"]
 
 Note the `\\` requirement for directory separators when defining Tasks on Windows hosts. Note also that the `/c` is required when running commands or batch scripts using `cmd.exe`, otherwise the `cmd.exe` process created to execute the Task will not terminate.
 
-#### Docker Tasks
+##### Docker Tasks
 
-For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property.
+For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries.  The Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property.
 
 The `dockerUsername`, `dockerPassword`, and `dockerRegistry` properties, if supplied, are added to the `environment` property for processing by the script invoked by the Agent, which launches the Docker container. The `dockerRegistry` property is supplied when using a container repository other than DockerHub.
 
@@ -690,19 +690,19 @@ taskType = "docker"
 arguments = ["--runtime=nvidia", "--gpus=all", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
 ```
 
-#### Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing
+##### Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing
 
 If the `executable` property is not supplied, none of the automatic processing described above for `bash`, `python`, `powershell`, `cmd` (or `bat`) and `docker` task types is applied.
 
-### Task Counts
+#### Task Counts
 
-The `taskCount` property can be used to expand the number of Tasks within a Task Group, by creating duplicates of a single Task; this can be handy for testing and demos. In JSON specifications, there must be zero or one Task(s) listed within each Task Group or `taskCount` is ignored.
+The `taskCount` property can be used to expand the number of Tasks within a Task Group, by creating duplicates of a single Task.  This can be useful for testing and demos. In JSON specifications, there must be zero or one Task(s) listed within each Task Group or `taskCount` is ignored.
 
 This property can also be set on the command line using the `--task-count`/`-C` option of `yd-submit` followed by the required number of Tasks.
 
-## Examples
+### Examples
 
-### TOML Properties in the `workRequirement` Section
+#### TOML Properties in the `workRequirement` Section
 
 Here's an example of the `workRequirement` section of a TOML configuration file, showing all the possible properties that can be set:
 
@@ -762,7 +762,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     workRequirementData = "work_requirement.json"
 ```
 
-### JSON Properties at the Work Requirement Level
+#### JSON Properties at the Work Requirement Level
 
 Showing all possible properties at the Work Requirement level:
 
@@ -821,7 +821,7 @@ Showing all possible properties at the Work Requirement level:
 
 ```
 
-### JSON Properties at the Task Group Level
+#### JSON Properties at the Task Group Level
 
 Showing all possible properties at the Task Group level:
 
@@ -885,7 +885,7 @@ Showing all possible properties at the Task Group level:
 }
 ```
 
-### JSON Properties at the Task Level
+#### JSON Properties at the Task Level
 
 Showing all possible properties at the Task level:
 
@@ -927,15 +927,15 @@ Showing all possible properties at the Task level:
 }
 ```
 
-## Variable Substitutions in Work Requirement Properties
+### Variable Substitutions in Work Requirement Properties
 
 Variable substitutions can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
 
-### Work Requirement Name Substitution
+#### Work Requirement Name Substitution
 
-The name of the Work Requirement itself can be used via the variable substitution `{{wr_name}}`. This can be used anywhere in the `workRequirement` section of the TOML configuration file, or in JSON Work Requirement definitions
+The name of the Work Requirement itself can be supplied using variable substitution `{{wr_name}}`. This can be used anywhere in the `workRequirement` section of the TOML configuration file, or in JSON Work Requirement definitions.
 
-### Task and Task Group Name Substitutions
+#### Task and Task Group Name Substitutions
 
 The following naming and numbering substitutions are available for use in TOML and JSON Work Requirement specifications, along with the context(s) in which each variable can be used. The variables can be used within the value of any property.
 
@@ -979,15 +979,15 @@ As an example, the following JSON Work Requirement:
 
 ... would create Task Groups named `my_task_group_1_a1` and `my_task_group_2_b1`, each containing Tasks named `my_task_1-of-2`, `my_task_2-of-2`.
 
-## Dry-Running Work Requirement Submissions
+### Dry-Running Work Requirement Submissions
 
 To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` (`-D`) command line option when running `yd-submit`. This will print the fully processed JSON for the Work Requirement. Nothing will be submitted to the Platform.
 
-A dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, add the `--quiet` (`-q`) command line option.
+A dry run is useful for inspecting the results of all the processing that has been performed. To suppress all output except for the JSON itself, add the `--quiet` (`-q`) command line option.
 
 Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are presented directly within their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are then added to their Task Groups separately, in subsequent API calls.
 
-A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
+A simple example of the JSON output is shown below.  This shows a Work Requirement with a single Task Group, containing a single Task.
 
 `% yd-submit --dry-run --quiet`
 ```json
@@ -1031,9 +1031,9 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
 }
 ```
 
-### Submitting 'Raw' JSON Work Requirement Specifications
+#### Submitting 'Raw' JSON Work Requirement Specifications
 
-It's possible to use the JSON output of `yd-submit --dry-run` (such as the example above) as a self-contained, fully-specified Work Requirement specification, using the `--json-raw` (or `-j`) command line option, i.e.: `yd-submit --json-raw <filename.json>`.
+It's possible to use the JSON output of `yd-submit --dry-run` (such as the example above) as a self-contained, fully-specified Work Requirement specification, using the `--json-raw` (or `-j`) command line option, that is: `yd-submit --json-raw <filename.json>`.
 
 This will submit the Work Requirement, then add all the specified Tasks.
 
@@ -1041,13 +1041,13 @@ Note that variable substitutions **can** be used in the raw JSON file, just as i
 
 There is also no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START` in the `inputs` property) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload these files, and `yd-submit` will pause for user confirmation to allow this upload to happen.
 
-## File Storage Locations and File Usage
+### File Storage Locations and File Usage
 
 This section discusses how to upload files from local storage to the YellowDog Object Store, how those files are transferred to Worker Nodes for Task processing, how the results of Task processing are returned by Worker Nodes, and how files are transferred back from the YellowDog Object Store to local storage.
 
-### Files Uploaded to the Object Store from Local Storage
+#### Files Uploaded to the Object Store from Local Storage
 
-#### Files in the `inputs` List
+##### Files in the `inputs` List
 
 When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the case of the `bash` Task Type, the script specified in the `executable` property is also automatically uploaded as a convenience, even if not included in the `inputs` list.)
 
@@ -1057,9 +1057,7 @@ Files are uploaded to the Namespace specified in the configuration. Within the N
 
 1. Files to be uploaded that are in the **same directory as the Work Requirement specification** (the TOML or JSON file) are uploaded to the root of the Work Requirement folder.
 
-
 2. Files to be uploaded that are in **subdirectories below the Work Requirement specification, or where absolute pathnames are supplied** are placed in the Object Store in directories that mirror their local storage locations.
-
 
 3. Files to be uploaded that are in **directories relative to the Work Requirement specification, using `..` relative paths** are placed in Object Store directories in which the `..` parts of the pathname are replaced with an integer count of the number of `..` entries (because we can't use the `..` relative form in the Object Store).
 
@@ -1089,7 +1087,7 @@ The property default is `false`. This property **can only be set at the Work Req
 
 When files appear in the `inputs` list, they are also automatically added to the list of files required by the relevant Task(s) as `VerifyAtStart` dependencies.
 
-#### Files in the `uploadFiles` List
+##### Files in the `uploadFiles` List
 
 The `uploadFiles` property allows more flexible control over the files to be uploaded from local storage to the Object Store when `yd-submit` is run. The property can be used at all Work Requirement levels, from the TOML file through to individual Task specifications.
 
@@ -1137,15 +1135,15 @@ The `uploadFiles` property can also be set at the Work Requirement and Task Grou
 
 For `uploadPath`, the same `::` naming convention is available as is used in the `verifyAtStart`, `verifyWait` and `inputsOptional` properties discussed below:
 
-- If `::` is not used, then the file is uploaded relative to the current namespace in a directory named after the name of the Work Requirement
+- If `::` is not used, then the file is uploaded relative to the current namespace, in a directory named after the name of the Work Requirement
 - If `::` is used at the start of the `uploadPath`, the file is uploaded relative to the root of the current namespace
 - If `<namespace>::` is used at the start of `uploadPath`, the file is uploaded relative to the root of `<namespace>`
 
-Each file specified in the `uploadFiles` lists will only be uploaded once to each unique upload location for any given invocation of `yd-submit`.
+Each file specified in the `uploadFiles` lists will only be uploaded once to each unique upload location, for any given invocation of `yd-submit`.
 
 If a file in the `uploadFiles` list is required by a Task, it must separately be added to the `verifyAtStart` or `verifyWait` lists discussed below. This is not done automatically. Note also that the `flattenUploadPaths` property is ignored for files in the `uploadFiles` list.
 
-#### Using Wildcards in the `uploadFiles` List
+##### Using Wildcards in the `uploadFiles` List
 
 File and directory name wildcards can be used in `localPath` properties. If wildcards are used, then the `uploadPath` property must end with a `*`, which will be replaced with the name of each file that matches the wildcard, e.g.:
 
@@ -1159,9 +1157,9 @@ uploadFiles = [
 
 The `--dry-run` (`-D`) option can be used with `yd-submit` to print out the files that would be uploaded, along with their upload locations. 
 
-### File Dependencies Using `verifyAtStart` and `verifyWait`
+#### File Dependencies Using `verifyAtStart` and `verifyWait`
 
-It's possible to make Tasks dependent on the presence of files in the Object Store by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are uploaded manually (e.g., by using `yd-upload`), uploaded using the `uploadFiles` property, or are created as outputs from the execution of other Tasks.
+Tasks can be made dependent on the presence of files in the Object Store by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are uploaded manually (for example, by using `yd-upload`), uploaded using the `uploadFiles` property, or are created as outputs from the execution of other Tasks.
 
 Note that a given file can only appear in *one* of the `inputs`, `verifyAtStart` or `verifyWait` lists.
 
@@ -1189,11 +1187,11 @@ The use of the three different forms can be mixed within a single list, e.g.:
 "verifyAtStart": ["file_1.txt", "::dir_2/file_2.txt", "other_namespace::dir_3/file_3.txt"]
 ```
 
-### Files Uploaded to the Object Store Using `inputsOptional`
+#### Files Uploaded to the Object Store Using `inputsOptional`
 
 The `inputsOptional` property works in a similar fashion to the `verify*` properties above, but the files specified in this list are optional. This property also allows for the use of wildcards `*` and `**` to collect files using wildcard paths. The **ant** conventions are used for these wildcards.
 
-### Files Downloaded to a Node for use in Task Execution
+#### Files Downloaded to a Node for use in Task Execution
 
 When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. Files specified using the `inputsOptional` property are optionally downloaded from the Object Store. (Note that a file should only appear in one of these four lists, otherwise `yd-submit` will return an error.)
 
@@ -1206,7 +1204,6 @@ Where `ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemera
 Files that are downloaded by the Agent prior to Task execution are located as follows:
 
 1. If the `flattenInputPaths` property is set to the default of `false` for the Task, the downloaded objects are placed in subdirectories that mirror those in the Object Store, including the Work Requirement name, situated beneath the working directory.
-
 
 2. If the `flattenInputPaths` property is set to `true` for the Task, the downloaded objects are all placed directly in root of the Task's working directory.
 
@@ -1227,13 +1224,13 @@ where <working_directory> is:
 
 Note that the Work Requirement name is automatically made available to the Task via the environment variable `YD_WORK_REQUIREMENT_NAME`, by `yd-submit`. It's also available for client-side variable substitution in Work Requirements using the variable `{{wr_name}}`.
 
-### Files Uploaded from a Node to the Object Store after Task Execution
+#### Files Uploaded from a Node to the Object Store after Task Execution
 
 After Task completion, the Agent will upload the specified output files to the Object Store. The files to be uploaded are those listed in the `outputs`, `outputsRequired`, and `outputsOther` properties for the Task.
 
-In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded to the Object Store is determined by the `uploadTaskProcessOutput` property for the Task, and this is set to 'false' by default.
+In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded to the Object Store is determined by the `uploadTaskProcessOutput` property for the Task, which is set to 'false' by default.
 
-If Task outputs are created in subdirectories below the Task's working directory, include the directories for files in the `outputs` property. E.g., if a Task creates files `results/openfoam.tar.gz` and `results/openfoam.log`, then specify these for upload in the `outputs` property as follows:
+If Task outputs are created in subdirectories below the Task's working directory, include the directories for files in the `outputs` property. For example, if a Task creates files `results/openfoam.tar.gz` and `results/openfoam.log`, then specify these for upload in the `outputs` property as follows:
 
 `"outputs": ["results/openfoam.tar.gz", "results/openfoam.log"]`
 
@@ -1245,7 +1242,7 @@ development::testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.log
 development::testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
 ```
 
-The **`outputsRequired`** property can be used instead of (or in addition to) the `outputs` property, if the output file(s) **must** be available for upload to the Object Store at the conclusion of the Task or the Task will be marked as `Failed`, e.g.:
+The **`outputsRequired`** property can be used instead of (or in addition to) the `outputs` property, if the output file(s) **must** be available for upload to the Object Store at the conclusion of the Task or the Task will be marked as `Failed`, for example:
 
 `"outputsRequired": ["results/process_output.txt"]`
 
@@ -1263,7 +1260,7 @@ Then, in the list of entries in the `outputsOther` property, the `directoryName`
 "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}]
 ```
 
-### Files Downloaded from the Object Store to Local Storage
+#### Files Downloaded from the Object Store to Local Storage
 
 The `yd-download` command can download all objects from the Object Store to a local directory, on a per Work Requirement basis (including any files that have been uploaded). A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
 
@@ -1292,30 +1289,30 @@ Finer-grained downloads are also possible: please consult the output of `yd-down
 yd-download testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.tar.gz --directory ./results
 ```
 
-## Task Execution Context
+### Task Execution Context
 
-This section discusses the context within which a Task operates when it's executed by a Worker on a node. It applies specifically to the YellowDog Agent running on a Linux node, and configured using the default username, directories, etc. Configurations can vary.
+This section discusses the context within which a Task operates when executed by a Worker on a node. It applies specifically to the YellowDog Agent running on a Linux node, and configured using the default username, directories, etc. Configurations can vary.
 
-### Task Execution Steps
+#### Task Execution Steps
 
 When a Task is allocated to a Worker on a node by the YellowDog Scheduler, the following steps are followed:
 
 1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list. A number of `YD_` environment variables are also automatically set by a combination of `yd_submit` and the Agent itself -- see above for details.
 2. The downloaded files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also written by default.
-2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess to run the Task.
-3. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
-4. The Agent then gathers any files in the `outputs` and `outputsRequired` lists and uploads them to the Object Store. If a file in the `outputsRequired` list is not found, the Task will be reported as failed. The Agent will also optionally upload the console output (including both `stdout` and `stderr`) of the Task, contained in the `taskoutput.txt` file.
-5. The ephemeral Task directory is then deleted.
+3. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess to run the Task.
+4. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
+5. The Agent then gathers any files in the `outputs` and `outputsRequired` lists and uploads them to the Object Store. If a file in the `outputsRequired` list is not found, the Task will be reported as failed. The Agent will also optionally upload the console output (including both `stdout` and `stderr`) of the Task, contained in the `taskoutput.txt` file.
+6. The ephemeral Task directory is then deleted.
 
-Note that if a Task is aborted during execution, the Task's subprocess is sent a `SIGTERM`, allowing the Task an opportunity to terminate any child processes or other resources (e.g., containers) that may have been started as part of Task execution. In addition, there is the option to set an `abort` clause as part of the Task Type specification in the Agent's `application.yaml` file, in which case the script specified in the `abort` clause takes over responsibility for any abort handling.
+Note that if a Task is aborted during execution, the Task's subprocess is sent a `SIGTERM`, allowing the Task an opportunity to terminate any child processes or other resources (such as containers) that may have been started as part of Task execution. In addition, there is the option to set an `abort` clause as part of the Task Type specification in the Agent's `application.yaml` file, in which case the script specified in the `abort` clause takes over responsibility for any abort handling.
 
 Once the steps above have been completed, the Worker is ready to accept its next Task from the YellowDog scheduler.
 
 Note that if the Agent on a node advertises multiple Workers, then Tasks are executed in parallel on the node and can start and stop independently.
 
-### The User and Group used for Tasks
+#### The User and Group used for Tasks
 
-By default, in the standard YellowDog Agent VM images and in images/instances created using the [YellowDog Agent Installer Script](https://github.com/yellowdog/python-examples-templates/tree/main/agent-installer/linux), the Agent runs as user and group `yd-agent`, and hence Tasks also execute under this user.
+By default, in the standard YellowDog Agent VM images and in images/instances created using the [YellowDog Agent Installer Script](https://github.com/yellowdog/python-examples-templates/tree/main/agent-installer/linux), the Agent runs as user and group `yd-agent`, so Tasks also execute under this user.
 
 `yd-agent` does not have `sudo` privileges as standard, but this can be added if required at instance boot time via the `userData` property of a provisioning request. E.g. (for Ubuntu):
 
@@ -1324,11 +1321,11 @@ usermod -aG wheel yd-agent
 echo -e "yd-agent\tALL=(ALL)\tNOPASSWD: ALL" > /etc/sudoers.d/020-yd-agent
 ```
 
-### Home Directory for `yd-agent`
+#### Home Directory for `yd-agent`
 
 By default, the home directory of the `yd-agent` user is `/opt/yellowdog/agent`. This directory typically contains the `application.yaml` file used to configure the Agent, as well as any scripts that are used to execute the Task Types that the node supports.
 
-If one wants to SSH to an instance as user `yd-agent`, perhaps for debugging purposes, SSH keys can be inserted via instance `userData`, e.g.:
+If one wants to SSH to an instance as user `yd-agent`, perhaps for debugging purposes, SSH keys can be inserted via instance `userData`, for example:
 
 ```shell
 YDA_HOME=/opt/yellowdog/agent
@@ -1341,13 +1338,13 @@ chmod og-rw $YDA_HOME/.ssh/authorized_keys
 chown -R yd-agent:yd-agent $YDA_HOME/.ssh
 ```
 
-### Task Execution Directory
+#### Task Execution Directory
 
-Ephemeral Task working directories are by default created under `/var/opt/yellowdog/agent/data/workers`, named using their YellowDog Task IDs with colons substituted by underscores.
+Temporary Task working directories are by default created under `/var/opt/yellowdog/agent/data/workers`, and named using their YellowDog Task IDs with colons substituted by underscores.
 
 (On Windows hosts, the Task directories are found under `%AppData%\yellowdog\agent\data\workers`.)
 
-When a Task is allocated to a node, an ephemeral directory is created, e.g.:
+When a Task is allocated to a node, a temporary directory is created, for example:
 
 `/var/opt/yellowdog/agent/data/workers/ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1`
 
@@ -1355,9 +1352,9 @@ This is the directory into which downloaded objects are placed, and in which out
 
 See the [Files Downloaded to a Node](#files-downloaded-to-a-node-for-use-in-task-execution) section above for more details on how files in this directory are handled.
 
-At the conclusion of the Task, after any files requested for upload have been uploaded to the Object Store (see the [Files Uploaded from a Node](#files-uploaded-from-a-node-to-the-object-store-after-task-execution) section for more information), the `ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1` will be removed.
+At the conclusion of the Task, after any files requested for upload have been uploaded to the Object Store (see the [Files Uploaded from a Node](#files-uploaded-from-a-node-to-the-object-store-after-task-execution) section for more information), the temporary directory will be removed.
 
-## Specifying Work Requirements using CSV Data
+### Specifying Work Requirements using CSV Data
 
 CSV data files can be used to drive the generation of lists of Tasks, as follows:
 
@@ -1367,7 +1364,7 @@ CSV data files can be used to drive the generation of lists of Tasks, as follows
 - Each subsequent row of the CSV file represents a new Task to be built using the prototype, with the variables substituted by the values in the row
 - A Task will be created for each row of data
 
-### Work Requirement CSV Data Example
+#### Work Requirement CSV Data Example
 
 As an example, consider the following JSON Work Requirement `wr.json`:
 
@@ -1424,19 +1421,19 @@ If these files are processed using `yd-submit wr.json -V wr_data.csv`, the follo
 }
 ```
 
-### CSV Variable Substitutions
+#### CSV Variable Substitutions
 
-When the CSV file data is processed, the only substitutions made are those which match the variable substitutions in the prototype Task. The CSV file is the **only** source of substitutions used for this processing phase; all other variable substitutions (supplied on the command line, in the TOML configuration file, or from environment variables) are ignored -- i.e., they do not override the contents of the CSV file.
+When the CSV file data is processed, the only substitutions made are those which match the variable substitutions in the prototype Task. The CSV file is the **only** source of substitutions used for this processing phase; all other variable substitutions (supplied on the command line, in the TOML configuration file, or from environment variables) are ignored.  That is, they do not override the contents of the CSV file.
 
 All variable substitutions unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
 
 If the value to be inserted is a number (an integer or floating point value) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification. The substituted value will assume the nominated type rather than being a string. (The `array:` and `table:` prefixes are not currently supported for CSV substitutions.)
 
-### Property Inheritance
+#### Property Inheritance
 
 All the usual property inheritance features operate as normal. Properties are inherited from the `config.toml` file, and from the relevant sections of the JSON Work Requirement file. Any properties set within a Task prototype are copied to all the generated Tasks.
 
-### Multiple Task Groups using Multiple CSV Files
+#### Multiple Task Groups using Multiple CSV Files
 
 The use of multiple Task Groups is also supported, by using one CSV file per Task Group. Each Task Group must contain only a single prototype Task.
 
@@ -1487,9 +1484,9 @@ yd-submit wr.json -V wr_data_task_group_2.csv:tg_two -V wr_data_task_group_4.csv
 
 Note that only one CSV file can be applied to any given Task Group. A single CSV file can, however, be reused for multiple Task Groups.
 
-### Using CSV Data with Simple, TOML-Only Work Requirement Specifications
+#### Using CSV Data with Simple, TOML-Only Work Requirement Specifications
 
-It's possible to use TOML exclusively to derive a list of Tasks from CSV data -- i.e., a JSON Work Requirement specification is not required.
+It's possible to use TOML exclusively to derive a list of Tasks from CSV data.  That is, a JSON Work Requirement specification is not required.
 
 To make use of this:
 
@@ -1499,7 +1496,7 @@ To make use of this:
 
 When `yd-submit` is run, it will expand the Task list to match the number of data rows in the CSV file.
 
-### Inspecting the Results of CSV Variable Substitution
+#### Inspecting the Results of CSV Variable Substitution
 
 The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance applied by `yd-submit`.
 
