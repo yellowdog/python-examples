@@ -64,29 +64,29 @@
          * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
          * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
          * [Inspecting the Results of CSV Variable Substitution](#inspecting-the-results-of-csv-variable-substitution)
-* [Worker Pool Properties](#worker-pool-properties)
-   * [Automatic Properties](#automatic-properties-1)
-   * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
-   * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
-      * [Worker Pool JSON Examples](#worker-pool-json-examples)
-      * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
-   * [Variable Substitutions in Worker Pool Properties](#variable-substitutions-in-worker-pool-properties)
-   * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
-* [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
-   * [Overview of Operation](#overview-of-operation)
-      * [Resource Creation](#resource-creation)
-      * [Resource Update](#resource-update)
-      * [Resource Removal](#resource-removal)
-      * [Resource Matching](#resource-matching)
-   * [Resource Specification Definitions](#resource-specification-definitions)
-   * [Keyrings](#keyrings)
-   * [Credentials](#credentials)
-   * [Compute Source Templates](#compute-source-templates)
-   * [Compute Requirement Templates](#compute-requirement-templates)
-   * [Image Families](#image-families)
-   * [Namespace Storage Configurations](#namespace-storage-configurations)
-   * [Configured Worker Pools](#configured-worker-pools)
-   * [Allowances](#allowances)
+   * [Worker Pool Properties](#worker-pool-properties)
+      * [Automatic Properties](#automatic-properties-1)
+      * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
+      * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
+         * [Worker Pool JSON Examples](#worker-pool-json-examples)
+         * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
+      * [Variable Substitutions in Worker Pool Properties](#variable-substitutions-in-worker-pool-properties)
+      * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
+   * [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
+      * [Overview of Operation](#overview-of-operation)
+         * [Resource Creation](#resource-creation)
+         * [Resource Update](#resource-update)
+         * [Resource Removal](#resource-removal)
+         * [Resource Matching](#resource-matching)
+      * [Resource Specification Definitions](#resource-specification-definitions)
+      * [Keyrings](#keyrings)
+      * [Credentials](#credentials)
+      * [Compute Source Templates](#compute-source-templates)
+      * [Compute Requirement Templates](#compute-requirement-templates)
+      * [Image Families](#image-families)
+      * [Namespace Storage Configurations](#namespace-storage-configurations)
+      * [Configured Worker Pools](#configured-worker-pools)
+      * [Allowances](#allowances)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -1500,7 +1500,7 @@ When `yd-submit` is run, it will expand the Task list to match the number of dat
 
 The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance applied by `yd-submit`.
 
-# Worker Pool Properties
+## Worker Pool Properties
 
 The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. A subset of the properties is also used by the `yd-instantiate` command, for creating standalone Compute Requirements that are not associated with Worker Pools. Note that `computeRequirement` may be used as a synonym for `workerPool`, and the two may be used simultaneously in the same TOML file provided that their contained properties are not duplicated.
 
@@ -1530,11 +1530,11 @@ The following properties are available:
 | `workerPoolData`          | The name of a file containing a JSON document defining a Worker Pool.                                                |                         |
 | `workerTag`               | The Worker Tag to publish for the each of the Workers on the node(s).                                                |                         |
 
-## Automatic Properties
+### Automatic Properties
 
-The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, and a UTC timestamp, e,g,: `wp_mytag_221024-155524`.
+The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, and a UTC timestamp, for example: `wp_mytag_221024-155524`.
 
-## TOML Properties in the `workerPool` Section
+### TOML Properties in the `workerPool` Section
 
 Here's an example of the `workerPool` section of a TOML configuration file, showing all the possible properties that can be set:
 
@@ -1562,7 +1562,7 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
 #   workerPoolData = "worker_pool.json"
 ```
 
-## Worker Pool Specification Using JSON Documents
+### Worker Pool Specification Using JSON Documents
 
 It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either by supplying the command line positional argument for `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file with the JSON filename. Command line specification takes priority over TOML specification.
 
@@ -1570,7 +1570,7 @@ The JSON specification allows the creation of **Advanced Worker Pools**, with di
 
 When using a JSON document to specify the Worker Pool, the schema of the document is identical to that expected by the YellowDog REST API for Worker Pool Provisioning.
 
-### Worker Pool JSON Examples
+#### Worker Pool JSON Examples
 
 The example below is of a simple JSON specification of a Worker Pool with one initial node, Worker Pool shutdown, etc.
 
@@ -1685,7 +1685,7 @@ The next example is of a relatively rich JSON specification of an Advanced Worke
 }
 ```
 
-### TOML Properties Inherited by Worker Pool JSON Specifications
+#### TOML Properties Inherited by Worker Pool JSON Specifications
 
 When a JSON Worker Pool specification is used, the following properties from the `config.toml` file will be inherited if the value is absent in the JSON file:
 
@@ -1713,7 +1713,7 @@ Note that the `templateId` property can use either the YellowDog ID ('YDID') for
 - `nodeBootTimeout`
 - `workerTag`
 
-## Variable Substitutions in Worker Pool Properties
+### Variable Substitutions in Worker Pool Properties
 
 Variable substitutions can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
@@ -1721,7 +1721,7 @@ An important distinction when using variable substitutions within Worker Pool (o
 
 In general, double underscores are **not** required in variable substitutions within the `workerPool` and/or `computeRequirement` sections of a TOML file. The exception to this is if the `userData` property is supplied, in which case double underscores **are** required. They are also required within any files referenced by the `userDataFile` or `userDataFiles` properties.
 
-## Dry-Running Worker Pool Provisioning
+### Dry-Running Worker Pool Provisioning
 
 To examine the JSON that will actually be sent to the YellowDog API after all processing, use the `--dry-run` command line option when running `yd-provision`. This will print the JSON specification for the Worker Pool. Nothing will be submitted to the platform.
 
@@ -1729,14 +1729,14 @@ The generated JSON is produced after all processing (incorporating `config.toml`
 
 To suppress all output except for the JSON itself, add the `--quiet` (`-q`) command line option.
 
-The JSON dry-run output could itself be used by `yd-provision`, if captured in a file, e.g.:
+The JSON dry-run output could itself be used by `yd-provision`, if captured in a file, for example:
 
 ```shell
 yd-provision --dry-run -q > my_worker_pool.json
 yd-provision my_worker_pool.json
 ```
 
-# Creating, Updating and Removing Resources
+## Creating, Updating and Removing Resources
 
 The commands **yd-create** and **yd-remove** allow the creation, update and removal of the following YellowDog resources:
 
@@ -1749,17 +1749,17 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 - Configured Worker Pools
 - Allowances
 
-## Overview of Operation
+### Overview of Operation
 
 The **yd-create** and **yd-remove** commands operate on a list of one or more resource specification files in JSON (or Jsonnet) format.
 
 Each resource specification file can contain a single resource specification or a list of resource specifications. Different resource types can be mixed together in the same list.
 
-The complete list of resource specifications is re-sequenced on processing to ensure that possibly dependent resources are dealt with in a suitable order. For example, all Compute Source Templates are always processed before any Compute Requirement Templates on resource creation, and the reverse sequencing is used on resource removal.
+The complete list of resource specifications is re-sequenced on processing to ensure that possibly dependent resources are dealt with in a suitable order. For example, when creating resources all Compute Source Templates are always processed before any Compute Requirement Templates, and the reverse sequencing is used on resource removal.
 
 Resource specification files can use all forms of **variable substitution** just as in the case of Work Requirements, etc.
 
-### Resource Creation
+#### Resource Creation
 
 To create resources, use the `yd-create` command as follows:
 
@@ -1767,13 +1767,13 @@ To create resources, use the `yd-create` command as follows:
 yd-create resources_1.json <resources_2.json, ...>
 ```
 
-### Resource Update
+#### Resource Update
 
-Resources are updated by re-running the `yd-create` command with the same (edited) resource specifications. Update operations will prompt the user for approval: as in other commands, this can be overridden using the `--yes` command line option.
+Resources are updated by re-running the `yd-create` command with the same (edited) resource specifications. Update operations will normally prompt the user for approval, but as in other commands this can be overridden using the `--yes` command line option.
 
 The update action will create any resources that are not already present in the Platform, and it will update any resources that are already present. The command does not check for specific differences, so an unchanged resource specification will still cause an update.
 
-### Resource Removal
+#### Resource Removal
 
 Resources are removed by running the `yd-remove` command, with the same form of resource specifications. For example:
 
@@ -1788,13 +1788,13 @@ The `yd-remove` command can also be used to remove resources by their `ydid` res
 yd-remove --ids ydid:crt:D9C548:2a09093d-c74c-4bde-95d1-c576c6f03b13 ydid:imgfam:D9C548:4bc3cc57-1387-49a6-85d4-132bcf3a65fd
 ```
 
-### Resource Matching
+#### Resource Matching
 
-Resources match on **resource names** rather than on YellowDog IDs. This is done for flexibility and to allow the `yd-create` and `yd-remove` commands to be essentially stateless (i.e., we don't need to keep a local record of the YellowDog IDs of the resources created). 
+Resources match on **resource names** rather than on YellowDog IDs. This is done for flexibility and to allow the `yd-create` and `yd-remove` commands to be essentially stateless (that is, there is no need to keep a local record of the YellowDog IDs of the resources created). 
 
-However, this means that **caution is required** when updating or removing resources, since resource matching is done using **only** the **name** of the resource -- i.e., the system-generated `ydid` IDs are not used. This means that a resource with a given name could have been removed and replaced in Platform by some other means, and the resource specification(s) would still match it.
+However, this means that **caution is required** when updating or removing resources, since resource matching is done using **only** the **name** of the resource, and **not** the system-generated unique `ydid` ID. This means that a resource with a given name could have been removed and replaced in Platform by some other means, and the resource specification(s) would still match it.
 
-## Resource Specification Definitions
+### Resource Specification Definitions
 
 The JSON specification used to define each type of resource can be found by inspecting the YellowDog Platform REST API documentation at https://docs.yellowdog.co/api.
 
@@ -1811,7 +1811,7 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 - `"ConfiguredWorkerPool"`
 - `"Allowance"`
 
-To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
+To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. For example:
 
 ```shell
 yd-list --keyrings --details
@@ -1824,7 +1824,7 @@ The `--dry-run`/`-D` and `--jsonnet-dry-run`/`-J` options can be used with `yd-c
 
 Below, we'll discuss each item type with example specifications.
 
-## Keyrings
+### Keyrings
 
 The Keyring example and schema can be found at: https://docs.yellowdog.co/api/?spec=Account%20API#tag/keyring/post/keyrings.
 
@@ -1843,16 +1843,16 @@ or to specify two Keyrings at once:
 ]
 ```
 
-When a new Keyring is created it's usable only by the YellowDog application which created it. A **system-generated password** is also returned as a one time response, which would allow the Keyring also to be claimed by YellowDog Portal users. For security reasons the password is not displayed, but this behaviour can be overridden using the `--show-keyring-passwords` command line option, e.g.:
+When a new Keyring is created it can only be used by the YellowDog application that created it. A **system-generated password** is also returned as a one time response, which would allow the Keyring also to be claimed by YellowDog Portal users. For security reasons the password is not displayed, but this behaviour can be overridden using the `--show-keyring-passwords` command line option, for example:
 
 ```shell
 % yd-create --quiet --show-keyring-passwords keyring.json
 Keyring 'my-keyring-1': Password = 4OQAdcZagUX7ZiHaYvqC4yuKb4KCyN9lk4Z7mCcTYXA
 ```
 
-Note that Keyrings **cannot be updated**; they must instead be removed and recreated, and in doing so, any contained credentials will be lost.
+Note that Keyrings **cannot be updated**.  They must instead be removed and recreated, and in doing so, any contained credentials will be lost.
 
-## Credentials
+### Credentials
 
 The Credential example and schema can be found at: https://docs.yellowdog.co/api/?spec=Account%20API#tag/keyring/put/keyrings/%7BkeyringName%7D/credentials.
 
@@ -1873,7 +1873,7 @@ For example, to add a single AWS credential to a Keyring, the following resource
 ```
 To **update** a Credential, make the modifications to the resource specification and run `yd-create` again, and to remove a credential, run `yd-remove`.
 
-## Compute Source Templates
+### Compute Source Templates
 
 The Compute Source Template example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/sources.
 
@@ -1911,11 +1911,11 @@ An example Compute Source resource specification is found below:
 
 In the Compute Source Template `imageId` property, an Image Family **name** may be used instead of an ID. For example: `"imageId": "yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID. 
 
-## Compute Requirement Templates
+### Compute Requirement Templates
 
 The Compute Requirement Template example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/requirements.
 
-An example Compute Requirement resource specification is found below, for a **static** tempate:
+An example Compute Requirement resource specification is found below.  This is for a **static** tempate:
 
 ```json
 {
@@ -1934,9 +1934,9 @@ An example Compute Requirement resource specification is found below, for a **st
 
 Note that Compute Source Template **names** can be used instead of their IDs: the **yd-create** command will look up the IDs and make the substitutions. In either case, the Compute Source Templates must already exist.
 
-Also, In the `imagesId` property, an Image Family **name** may be used instead of an ID. For example: `"imagesId": "yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID.
+Similarly, in the `imagesId` property, an Image Family **name** may be used instead of an ID. For example: `"imagesId": "yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID.
 
-A **dynamic** template example is:
+A **dynamic** template example is shown below:
 
 ```json
 {
@@ -1986,7 +1986,7 @@ A **dynamic** template example is:
 }
 ```
 
-## Image Families
+### Image Families
 
 The Image Family example and schema can be found at: https://docs.yellowdog.co/api/?spec=Images%20API#tag/images/post/images/families.
 
@@ -2030,9 +2030,9 @@ An example specification, illustrating a containment hierarchy of Image Family -
 }
 ```
 
-Note that if the name of an Image Group or an Image is changed in the resource specification, the existing resource with the previous name will be removed from the Platform because it's no longer present in the resource specification. To prevent this, retain the previous resource in your specification, and add resources as required.
+Note that if the name of an Image Group or an Image is changed in the resource specification, the existing resource with the previous name will be removed from the Platform because it is no longer present in the resource specification. To prevent this, retain the previous resource in your specification, and add resources as required.
 
-## Namespace Storage Configurations
+### Namespace Storage Configurations
 
 The Namespace Storage Configuration example and schema can be found at: https://docs.yellowdog.co/api/?spec=Object%20Store%20API#tag/object-store/put/objectstore/configurations.
 
@@ -2049,7 +2049,7 @@ Example:
 }
 ```
 
-## Configured Worker Pools
+### Configured Worker Pools
 
 The Configured Worker Pool example and schema can be found at: https://docs.yellowdog.co/api/?spec=Scheduler%20API#tag/worker-pools/post/workerPools/configured.
 
@@ -2079,7 +2079,7 @@ Example:
 }
 ```
 
-## Allowances
+### Allowances
 
 The Allowances example and schema can be found at: https://docs.yellowdog.co/api/?spec=Usage%20API#tag/allowances/post/allowances.
 
@@ -2113,7 +2113,7 @@ Allowances can be **boosted** (have extra hours added to the Allowance) using th
 
 # Jsonnet Support
 
-In all circumstances where JSON files are used by the Python Examples commands,  **[Jsonnet](https://jsonnet.org)** files can be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, etc.
+In all circumstances where JSON files are used by the Python Examples commands,  **[Jsonnet](https://jsonnet.org)** files can be used instead. This allows the use of Jsonnet's powerful JSON extensions, including comments, variables, functions, and so on.
 
 A simple usage example might be:
 
@@ -2151,13 +2151,13 @@ Please get in touch with YellowDog if you get stuck.
 
 ## Variable Substitutions in Jsonnet Files
 
-The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** and **Compute Requirement** specifications, variable substitutions must be prefixed and postfixed by double underscores (`__`), e.g. `"__{{username}}}__"`.
+The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** and **Compute Requirement** specifications, variable substitutions must be surrounded by double underscores (`__`), e.g. `"__{{username}}}__"`.
 
 Variable substitution is performed before Jsonnet expansion into JSON, **and** again after the expansion.
 
 ## Checking Jsonnet Processing
 
-There are three possibilities for verifying that a Jsonnet specification is doing what is intended:
+There are three ways to verify that a Jsonnet specification is doing what is intended:
 
 1. To inspect the basic conversion of Jsonnet into JSON, without any additional processing by the Python Examples commands, the `yd-jsonnet2json` command can be used. This takes a single command line argument which is the name of the jsonnet file to be processed:
 
@@ -2165,9 +2165,7 @@ There are three possibilities for verifying that a Jsonnet specification is doin
 yd-jsonnet2json my_file.jsonnet
 ```
 
-
 2. The `jsonnet-dry-run` (`-J`) option of the `yd-submit`, `yd-provision`, `yd-instantiate`, `yd-create` and `yd-remove` commands will generate JSON output representing the Jsonnet to JSON processing only, including applicable variable substitutions, but before full property expansion into the JSON that will be submitted to the Platform.
-
 
 3. The `dry-run` (`-D`) option will generate JSON output representing the full processing of the Jsonnet file into what will be submitted to the API. This allows inspection to check that the output matches expectations, prior to submitting to the Platform.
 
@@ -2329,7 +2327,7 @@ Help is available for all commands by invoking a command with the `--help` or `-
 
 All destructive commands require user confirmation before taking effect. This can be suppressed using the `--yes` or `-y` option, in which case the command will proceed without confirmation.
 
-Some commands support the `--interactive` or `-i` option, allowing user selections to be made. E.g., this can be used to select which object paths to delete.
+Some commands support the `--interactive` or `-i` option, allowing user selections to be made. For example, this can be used to select which object paths to delete.
 
 The `--quiet` or `-q` option reduces the command output down to essential messages only. So, for example, `yd-delete -yq` would delete all matching object paths silently.
 
@@ -2356,7 +2354,6 @@ Once provisioned, the Worker Pool will appear in the **Workers** tab in the Yell
 ## yd-cancel
 
 The `yd-cancel` command cancels any active Work Requirements, including any pending Task Groups and the Tasks they contain. 
-
 The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to cancel.
 
 By default, any Tasks that are currently running on Workers will continue to run to completion or until they fail. Tasks can be instructed to abort immediately by supplying the `--abort` or `-a` option to `yd-cancel`.
@@ -2371,7 +2368,7 @@ The `namespace` and `tag` values in the `config.toml` file are used to identify 
 
 The `yd-download` command downloads objects from the YellowDog Object Store.
 
-The `namespace` and `tag` values are used to determine which objects to download. To download a specific object or directory, specify it using the `--tag` option, e.g.:
+The `namespace` and `tag` values are used to determine which objects to download. To download a specific object or directory, specify it using the `--tag` option, for example:
 
 ```shell
 yd-download --tag "path/to/my/object"
@@ -2393,7 +2390,7 @@ yd-delete -t ""
 
 This can be extended to any other namespace by using the `--namespace`/`-n` option.
 
-To delete a specific directory or object, supply the directory or object name using the `--tag` option, e.g.:
+To delete a specific directory or object, supply the directory or object name using the `--tag` option, for example:
 
 ```shell
 yd-delete --tag "path/to/my/directory"
@@ -2404,14 +2401,15 @@ Use the `--all` (`-a`) option to see the list directory/object structure and all
 
 ## yd-upload
 
-The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory matching the `tag` property or using the value of the `--prefix` (`--tag`, `-t`) option, e.g.:
+The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory matching the `tag` property or using the value of the `--prefix` (`--tag`, `-t`) option, for example:
 
 ```shell
 yd-upload --prefix my_work_requirement file_1 file_2 morefiles/file3
 ```
+
 To suppress the mirroring of the local directory structure within the object store, use the `--flatten-upload-paths` or `-f` option. Note that if this creates multiple uploaded files with the same path in the Object Store folder, files will be overwritten.
 
-Files in directories may be recursively uploaded using the `--recursive` or `-r` option, e.g.:
+Files in directories may be recursively uploaded using the `--recursive` or `-r` option, for example:
 
 ```shell
 yd-upload --prefix my_work_requirement -r mydir myotherdir myfile
@@ -2419,7 +2417,7 @@ yd-upload --prefix my_work_requirement -r mydir myotherdir myfile
 
 To upload to other namespaces, use the `--namespace`/`-n` option.
 
-To use the **batch** uploader, use the `--batch`/`-b` option. Note that the `--prefix`, `--recursive`, and `--flatten-upload-paths` options are ignored when using batch uploads. Batch uploading only accepts file patterns with wildcards, and these should be quoted to prevent shell expansion. E.g.:
+To use the **batch** uploader, use the `--batch`/`-b` option. Note that the `--prefix`, `--recursive`, and `--flatten-upload-paths` options are ignored when using batch uploads. Batch uploading only accepts file patterns with wildcards, and these should be quoted to prevent shell expansion. For example:
 
 ```shell
 yd-upload --batch '*.sh' '*.json'
@@ -2431,13 +2429,13 @@ The `yd-shutdown` command shuts down Worker Pools that match the `namespace` and
 
 ## yd-instantiate
 
-The `yd-instantiate` command instantiates a Compute Requirement (i.e., a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool).
+The `yd-instantiate` command instantiates a Compute Requirement (that is, a set of instances that are managed by their creator and do not automatically become part of a YellowDog Worker Pool).
 
 This command uses the data from the `workerPool` configuration section (or, synonymously, the `computeRequirement` section), but only uses the `name`, `templateId`, `targetInstanceCount`, `instanceTags`, `userData`, `requirementTag`, and `imagesId` properties. In addition, the Boolean property `maintainInstanceCount` (default = `false`) is available for use with `yd-instantiate`.
 
 Compute Requirements can be instantiated directly from JSON (or Jsonnet) specifications, using the `--compute-requirement` (or `-C`) command line option, followed by the filename, or by using the `computeRequirementData` property in the `workerPool`/`computeRequirement` section. The properties listed above will be inherited from the config.toml `workerPool` specification if they are not present in the JSON file.
 
-Variable substitutions must be prefixed and postfixed by a double underscore (`__`), e.g.: `"__{{my_variable}}__"`.
+Variable substitutions must be prefixed and postfixed by a double underscore (`__`), for example: `"__{{my_variable}}__"`.
 
 An example JSON specification is shown below:
 
@@ -2455,7 +2453,7 @@ An example JSON specification is shown below:
 }
 ```
 
-Note that the `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name. The same is true for the `imagesId` property.
+Note that the `templateId` property can use either the YellowDog ID (`ydid`) for the Compute Requirement Template, or its name. The same is true for the `imagesId` property.
 
 If a Worker Pool is defined in JSON, using `workerPoolData` in the configuration file or by supplying the command line positional argument, `yd-instantiate` will extract the Compute Requirement from the Worker Pool specification (ignoring Worker-Pool-specific data), and use that for instantiating the Compute Requirement.
 
@@ -2463,7 +2461,7 @@ Use the `--dry-run` option to inspect the details of the Compute Requirement spe
 
 ### Test-Running a Dynamic Template
 
-When a the `templateId` of a Dynamic Requirement is used, the `yd-instantiate` command can be used to report on a test run of the Template, using the `--report` (or `-r`) command line option. This can be used with TOML-defined Compute Requirement specifications, but not those that are JSON-defined.
+When the `templateId` of a Dynamic Requirement is used, the `yd-instantiate` command can be used to report on a test run of the Template, using the `--report` (or `-r`) command line option. This can be used with TOML-defined Compute Requirement specifications, but not those that are JSON-defined.
 
 No instances will be provisioned during the test run.
 
@@ -2534,7 +2532,7 @@ The `yd-remove` command is used to remove YellowDog resources, specified in one 
 
 ## yd-follow
 
-The `yd-follow` command is used to follow the event streams for one or more Work Requirements, Worker Pools and Compute Requirements, specified by their YellowDog IDs (`ydids`), e.g.:
+The `yd-follow` command is used to follow the event streams for one or more Work Requirements, Worker Pools and Compute Requirements, specified by their YellowDog IDs (`ydids`), for example:
 
 ```shell
 yd-follow ydid:workreq:D9C548:37d3c0cd-2651-4779-be17-89a8601b03b8 \
@@ -2548,13 +2546,13 @@ The `yd-follow` command will continue to run until manually stopped using `CTRL-
 
 The `yd-start` command is used to start `HELD` Work Requirements.
 
-It can optionally be supplied with a list of the names and/or YDIDs of the specific Work Requirements to start, otherwise the `namespace` and `tag` will be used to generate a list of candidate requirements.
+It can optionally be supplied with a list of the names and/or YellowDog IDs (`ydids`) of the specific Work Requirements to start, otherwise the `namespace` and `tag` will be used to generate a list of candidate requirements.
 
 ## yd-hold
 
 The `yd-hold` command is used to hold (pause) `RUNNING` Work Requirements.
 
-It can optionally be supplied with a list of the names and/or YDIDs of the specific Work Requirements to hold, otherwise the `namespace` and `tag` will be used to generate a list of candidate requirements.
+It can optionally be supplied with a list of the names and/or YellowDog IDs (`ydids`) of the specific Work Requirements to hold, otherwise the `namespace` and `tag` will be used to generate a list of candidate requirements.
 
 ## yd-boost
 
