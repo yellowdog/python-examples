@@ -1233,7 +1233,7 @@ def create_task(
             args.insert(0, "/c")
         return _make_task(flatten_input_paths)
 
-    # Special processing for Docker tasks if the 'executable property is set.
+    # Special processing for Docker tasks if the 'executable' property is set.
     # Sets up the '--env' environment strings and the DockerHub username and
     # password if specified.
     elif task_type == "docker":
@@ -1316,6 +1316,13 @@ def create_task(
                 "DOCKER_REGISTRY": docker_registry,
             }
             if docker_registry is not None
+            else {}
+        )
+        env_copy.update(
+            {
+                "DOCKER_IMAGE": executable,
+            }
+            if executable is not None
             else {}
         )
         return _make_task(flatten_input_paths)
