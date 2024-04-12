@@ -20,9 +20,10 @@ from yd_commands.settings import (
     BOOL_TYPE_TAG,
     CSV_VAR_CLOSING_DELIMITER,
     CSV_VAR_OPENING_DELIMITER,
-    LOWER_CASE_TYPE_TAG,
+    FORMAT_NAME_TYPE_TAG,
     NUMBER_TYPE_TAG,
 )
+from yd_commands.utils import format_yd_name
 from yd_commands.variables import (
     load_jsonnet_file_with_variable_substitutions,
     process_variable_substitutions_insitu,
@@ -274,9 +275,12 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
             raise Exception(f"Invalid Boolean substitution in CSV: '{value}'")
         input = input.replace(f"'{bool_sub_str}'", value)
 
-    lower_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{LOWER_CASE_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+    lower_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{FORMAT_NAME_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
     if lower_sub_str in input:
-        input = input.replace(f"{lower_sub_str}", value.lower())
+        input = input.replace(
+            f"{lower_sub_str}",
+            format_yd_name(value, add_prefix=False),
+        )
 
     return input
 
@@ -350,7 +354,7 @@ def substitions_present(var_names: List[str], task_prototype: str) -> bool:
             for var_name in var_names
         )
         or any(
-            f"{CSV_VAR_OPENING_DELIMITER}{LOWER_CASE_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
+            f"{CSV_VAR_OPENING_DELIMITER}{FORMAT_NAME_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
             in task_prototype
             for var_name in var_names
         )

@@ -22,7 +22,7 @@ from yd_commands.settings import (
     ARRAY_TYPE_TAG,
     BOOL_TYPE_TAG,
     ENV_VAR_PREFIX,
-    LOWER_CASE_TYPE_TAG,
+    FORMAT_NAME_TYPE_TAG,
     NUMBER_TYPE_TAG,
     RAND_VAR_SIZE,
     TABLE_TYPE_TAG,
@@ -34,7 +34,12 @@ from yd_commands.settings import (
     WP_VARIABLES_POSTFIX,
     WP_VARIABLES_PREFIX,
 )
-from yd_commands.utils import UTCNOW, remove_outer_delimiters, split_delimited_string
+from yd_commands.utils import (
+    UTCNOW,
+    format_yd_name,
+    remove_outer_delimiters,
+    split_delimited_string,
+)
 
 # Set up default variable substitutions
 VARIABLE_SUBSTITUTIONS = {
@@ -186,7 +191,7 @@ def process_variable_substitutions(
             type_tag = (
                 re.match(
                     f"^{opening_delimiter}({NUMBER_TYPE_TAG}|{BOOL_TYPE_TAG}"
-                    f"|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG}|{LOWER_CASE_TYPE_TAG})"
+                    f"|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG}|{FORMAT_NAME_TYPE_TAG})"
                     f"(?!{TAG_DEFAULT_DIFF})",
                     element,
                 )
@@ -315,8 +320,8 @@ def process_typed_variable_substitution(
     Process a single typed substitution, returning the appropriate type.
     Assumes there is a substitution present.
     """
-    if type_string == LOWER_CASE_TYPE_TAG:
-        return input_string.lower()
+    if type_string == FORMAT_NAME_TYPE_TAG:
+        return format_yd_name(input_string, add_prefix=False)
 
     if type_string == NUMBER_TYPE_TAG:
         try:

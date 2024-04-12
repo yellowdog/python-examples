@@ -57,7 +57,6 @@ from yd_commands.settings import (
 )
 from yd_commands.submit_utils import (
     UploadedFiles,
-    format_yd_name,
     generate_task_input_list,
     pause_between_batches,
     update_config_work_requirement_object,
@@ -71,7 +70,7 @@ from yd_commands.type_check import (
     check_str,
 )
 from yd_commands.upload_utils import unique_upload_pathname
-from yd_commands.utils import generate_id, link_entity
+from yd_commands.utils import format_yd_name, generate_id, link_entity
 from yd_commands.validate_properties import validate_properties
 from yd_commands.variables import (
     L_TASK_COUNT,

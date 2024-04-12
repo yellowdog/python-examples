@@ -218,3 +218,21 @@ def remove_outer_delimiters(
     return input_string.replace(f"{opening_delimiter}", "", 1)[::-1].replace(
         f"{closing_delimiter[::-1]}", "", 1
     )[::-1]
+
+
+def format_yd_name(yd_name: str, add_prefix: bool = True) -> str:
+    """
+    Format a string to be consistent with YellowDog naming requirements.
+    """
+    # Make obvious substitutions
+    new_yd_name = yd_name.replace("/", "-").replace(" ", "_").lower()
+
+    # Enforce acceptable regex
+    new_yd_name = re.sub("[^a-z0-9_-]", "", new_yd_name)
+
+    # Must start with an alphabetic character
+    if add_prefix and not new_yd_name[0].isalpha():
+        new_yd_name = f"y{new_yd_name}"
+
+    # Mustn't exceed 60 chars
+    return new_yd_name[:60]
