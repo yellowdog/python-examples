@@ -75,7 +75,7 @@ def select(
             if single_result
             else (f"Please select items (e.g.: 1,2,4-7 / *){cancel_string}:")
         )
-        selector_string = CONSOLE.input(print_string(input_string) + " ")
+        selector_string = _get_user_input(print_string(input_string) + " ")
         if selector_string.strip() == "*":
             selector_string = f"1-{len(objects)}"
         selector_list = selector_string.split(",")
@@ -153,10 +153,20 @@ def confirmed(msg: str) -> bool:
 
     # Seek user confirmation
     while True:
-        response = CONSOLE.input(print_string(f"{msg} (y/N):") + " ")
+        response = _get_user_input(print_string(f"{msg} (y/N):") + " ")
         if response.lower() in ["y", "yes"]:
             print_log("Action confirmed by user")
             return True
         elif response.lower() in ["n", "no", ""]:
             print_log("Action cancelled by user")
             return False
+
+
+def _get_user_input(input_prompt: str) -> str:
+    """
+    Get user input, respecting the --no-format option.
+    """
+    if ARGS_PARSER.no_format:
+        return input(input_prompt)
+    else:
+        return CONSOLE.input(input_prompt)
