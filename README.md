@@ -132,7 +132,7 @@ The commands provide the following capabilities:
 
 - **Provisioning** Worker Pools with the **`yd-provision`** command
 - **Submitting** Work Requirements with the **`yd-submit`** command
-- **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements
+- **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
 - **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
 - **Instantiating** Compute Requirements with the **`yd-instantiate`** command
 - **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
@@ -142,14 +142,16 @@ The commands provide the following capabilities:
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Listing** YellowDog items using the **`yd-list`** command
-- **Resizing** Worker Pools and Compute Requirements
-- **Boosting** Allowances
-- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools
-- **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements
+- **Resizing** Worker Pools and Compute Requirements with the **`yd-resize`** command
+- **Boosting** Allowances with the **`yd-boost`** command
+- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools with the **`yd-create`** and **`yd-remove`** commands
+- **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
 Commands are also provided for the semi-automatic setup of cloud provider accounts for use with YellowDog, and the creation of YellowDog assets to work with these cloud provider accounts. Please see **[Cloud Wizard](README_CLOUDWIZARD.md)** for more details.
+
+Run any command with the `--help`/`-h` option to discover the command's options.
 
 # YellowDog Prerequisites
 
@@ -2567,4 +2569,4 @@ It can optionally be supplied with a list of the names and/or YDIDs of the speci
 
 ## yd-boost
 
-The `yd-boost` command is used to boost an Allowance by the specified number of hours.
+The `yd-boost` command is used to boost Allowances by the specified number of hours.
