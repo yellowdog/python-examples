@@ -46,10 +46,10 @@ from yd_commands.object_utilities import (
     get_task_groups_from_wr_summary,
 )
 from yd_commands.printing import (
-    CONSOLE_TABLE,
     indent,
     print_log,
     print_numbered_object_list,
+    print_table_core,
     print_yd_object,
     sorted_objects,
 )
@@ -525,11 +525,11 @@ def list_namespaces():
             for index, namespace in enumerate(namespace_list)
         ]
     )
-    print()
-    CONSOLE_TABLE.print(
+    print(flush=True)
+    print_table_core(
         indent(tabulate(rows, headings, tablefmt="simple_outline")),
     )
-    print()
+    print(flush=True)
 
     if ARGS_PARSER.details:  # Print the details for non-default only
         for namespace in select(CLIENT, namespaces_config, showing_all=True):
