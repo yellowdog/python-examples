@@ -922,22 +922,12 @@ def print_batch_download_files(
         counter += 1
 
     print(flush=True)
-
-    if ARGS_PARSER.no_format:
-        print(
-            indent(
-                tabulate(table, headers=headers, tablefmt="simple_outline"),
-                indent_width=4,
-            ),
-            flush=True,
+    print_table_core(
+        indent(
+            tabulate(table, headers=headers, tablefmt="simple_outline"),
+            indent_width=4,
         )
-    else:
-        CONSOLE_TABLE.print(
-            indent(
-                tabulate(table, headers=headers, tablefmt="simple_outline"),
-                indent_width=4,
-            ),
-        )
+    )
     print(flush=True)
     return counter
 
