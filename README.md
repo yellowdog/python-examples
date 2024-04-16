@@ -1809,7 +1809,7 @@ However, this means that **caution is required** when updating or removing resou
 
 The JSON specification used to define each type of resource can be found by inspecting the YellowDog Platform REST API documentation at https://docs.yellowdog.co/api.
 
-For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API call for adding a new Compute Source template: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/sources. This will display an **Example Value**, and an adjacent tab will show the **Schema**.
+For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API call for adding a new Compute Source template: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/sources.
 
 When using the `yd-create` and `yd-remove` commands, note that an additional property `resource` must be supplied, to identify the type of resource being specified. The `"resource"` property can take the following values:
 
