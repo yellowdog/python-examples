@@ -513,6 +513,7 @@ class CLIParser:
             )
             parser.add_argument(
                 "--instances",
+                "-i",
                 action="store_true",
                 required=False,
                 help="list compute instances",
