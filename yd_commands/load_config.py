@@ -88,9 +88,12 @@ def load_config_common() -> ConfigCommon:
         common_section = CONFIG_TOML.get(COMMON_SECTION, {})
 
         # Check for IMPORT directive ('common' section in a separate file)
-        common_section_import_file = common_section.get(IMPORT_COMMON, None)
+        common_section_import_file = common_section.pop(IMPORT_COMMON, None)
         if common_section_import_file is not None:
-            common_section = import_toml(common_section_import_file)
+            common_section_imported = import_toml(common_section_import_file)
+            # Local properties supersede imported properties
+            common_section_imported.update(common_section)
+            common_section = common_section_imported
 
         # Replace common section properties with command line or
         # environment variable overrides. Precedence is:
