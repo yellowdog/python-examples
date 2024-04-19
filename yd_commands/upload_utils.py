@@ -100,19 +100,20 @@ def upload_file_core(
         destination_file_name=remote_file,
     )
     session.start()
+
     # Wait for upload to complete
     session = session.when_status_matches(lambda status: status.is_finished()).result()
+
     if session.status != FileTransferStatus.Completed:
-        print_error(f"Failed to upload file: {local_file}")
-        # Continue here?
-    else:
-        print_log(
-            f"Uploaded file '{local_file}' to"
-            f" '{namespace}{NAMESPACE_PREFIX_SEPARATOR}{remote_file}'"
-        )
-        remote_file = remote_file.replace("/", "%2F")
-        link_ = link(
-            url,
-            f"#/objects/{namespace}/{remote_file}?object=true",
-        )
-        print_log(f"Object URL: {link_}")
+        raise Exception(f"Failed to upload file: {local_file}")
+
+    print_log(
+        f"Uploaded file '{local_file}' to"
+        f" '{namespace}{NAMESPACE_PREFIX_SEPARATOR}{remote_file}'"
+    )
+    remote_file = remote_file.replace("/", "%2F")
+    link_ = link(
+        url,
+        f"#/objects/{namespace}/{remote_file}?object=true",
+    )
+    print_log(f"Object URL: {link_}")
