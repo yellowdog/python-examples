@@ -13,6 +13,8 @@ from yellowdog_client.model import (
     WorkerPoolStatus,
     WorkerPoolSummary,
     MachineImageFamily,
+    MachineImageGroup,
+    MachineImage,
 )
 
 from yd_commands.interactive import confirmed
@@ -356,6 +358,12 @@ def remove_resource_by_id(resource_id: str):
             if confirmed(f"Remove Image Family '{resource_id}'?"):
                 family: MachineImageFamily = CLIENT.images_client.get_image_family_by_id(resource_id)
                 CLIENT.images_client.delete_image_family(family)
+                print_log(f"Removed Image Family {resource_id} (if present)")
+
+        elif resource_id.startswith("ydid:imggrp:"):
+            if confirmed(f"Remove Image Group '{resource_id}'?"):
+                group: MachineImageGroup = CLIENT.images_client.get_image_group_by_id(resource_id)
+                CLIENT.images_client.delete_image_group(group)
                 print_log(f"Removed Image Family {resource_id} (if present)")
 
         elif resource_id.startswith("ydid:keyring:"):
