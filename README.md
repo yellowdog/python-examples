@@ -10,6 +10,7 @@
 * [Configuration](#configuration)
 * [Naming Rules](#naming-rules)
 * [Common Properties](#common-properties)
+   * [Importing common properties](#importing-common-properties)
    * [HTTPS Proxy Support](#https-proxy-support)
    * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
    * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
@@ -113,7 +114,7 @@
    * [yd-boost](#yd-boost)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Mar 22 14:38:21 GMT 2024 -->
+<!-- Added by: pwt, at: Fri Apr 19 11:43:37 BST 2024 -->
 
 <!--te-->
 
@@ -306,6 +307,28 @@ An example `common` section is shown below:
 ```
 
 Indentation is optional in TOML files and is for readability only.
+
+## Importing `common` properties
+
+The `common` section can import properties from a separate TOML file, using the `importCommon` property. For example, the `key` and `secret` might be in a shared TOML file called `app_credentials.toml`, with the following contents:
+
+```toml
+[common]
+    key = "asdfghjklzxcvb-1234567"
+    secret = "qwertyuiopasdfghjklzxcvbnm1234567890qwertyu"
+```
+
+This could be imported into the main configuration as follows:
+
+```toml
+[common]
+    importCommon = "app_credentials.toml"
+
+    namespace = "project-x"
+    tag = "testing-{{username}}"
+```
+
+Properties set in the imported file are superseded by any of the same properties that are present in the main configuration file.
 
 ## HTTPS Proxy Support
 
