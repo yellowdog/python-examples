@@ -127,8 +127,6 @@ class CLIParser:
             for module in [
                 "boost",
                 "resize",
-                "create",
-                "remove",
                 "cloudwizard",
                 "follow",
             ]
