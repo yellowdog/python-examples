@@ -343,6 +343,17 @@ def list_instances(compute_requirement: ComputeRequirement):
     if len(instances) == 0:
         print_log("No instances to list")
         return
+
+    if ARGS_PARSER.public_ips_only:
+        print_log("Listing public IP addresses only:")
+        for instance in instances:
+            try:
+                if instance.publicIpAddress is not None:
+                    print(instance.publicIpAddress)
+            except:
+                pass
+        return
+
     if ARGS_PARSER.details:
         for instance in select(CLIENT, search_client.list_all()):
             print_yd_object(instance)

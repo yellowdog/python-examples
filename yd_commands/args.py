@@ -517,6 +517,12 @@ class CLIParser:
                 help="list compute instances",
             )
             parser.add_argument(
+                "--public-ips-only",
+                action="store_true",
+                required=False,
+                help="when used with '--instances', lists public IP addresses only",
+            )
+            parser.add_argument(
                 "--allowances",
                 "-A",
                 action="store_true",
@@ -1418,6 +1424,11 @@ class CLIParser:
     @allow_missing_attribute
     def match_allowances_by_description(self) -> Optional[bool]:
         return self.args.match_allowances_by_description
+
+    @property
+    @allow_missing_attribute
+    def public_ips_only(self) -> Optional[bool]:
+        return self.args.public_ips_only
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
