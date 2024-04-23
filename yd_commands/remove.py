@@ -294,7 +294,7 @@ def remove_configured_worker_pool(resource: Dict):
         CLIENT.worker_pool_client.find_all_worker_pools()
     )
 
-    # Shut down all matching Configured Worker Pools in appropriate states.
+    # Shut down a matching Configured Worker Pool if in an appropriate state
     for worker_pool in worker_pools:
         if (
             worker_pool.name == name
@@ -308,13 +308,14 @@ def remove_configured_worker_pool(resource: Dict):
                     f"Shut down Configured Worker Pool '{worker_pool.name}'"
                     f" ({worker_pool.id})?"
                 ):
-                    continue
+                    break
                 try:
                     CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
                     print_log(
                         f"Shutting down [{worker_pool.status}] Configured Worker Pool"
                         f" '{name}' ({worker_pool.id})"
                     )
+                    return
                 except Exception as e:
                     print_error(f"Failed to shut down Configured Worker Pool: {e}")
             else:
@@ -322,6 +323,9 @@ def remove_configured_worker_pool(resource: Dict):
                     f"Not shutting down [{worker_pool.status}] Configured Worker Pool"
                     f" '{name}' ({worker_pool.id})"
                 )
+                return
+
+    print_log("No Configured Worker Pool shut down")
 
 
 def remove_allowance(resource: Dict):
