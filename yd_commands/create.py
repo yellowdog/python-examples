@@ -585,7 +585,7 @@ def create_configured_worker_pool(resource: Dict):
         ):
             print_log(
                 f"Existing Configured Worker Pool '{name}' ({worker_pool.status}) found"
-                " ... creation aborted"
+                " ... creation cancelled"
             )
             return
 
@@ -595,7 +595,14 @@ def create_configured_worker_pool(resource: Dict):
             CLIENT.worker_pool_client.add_configured_worker_pool(cwp_request)
         )
         print_log(
-            f"Created Configured Worker Pool '{name}': Token = {cwp_response.token}"
+            f"Created Configured Worker Pool '{name}' ({cwp_response.workerPool.id})"
+        )
+        print_log(
+            f"                   Worker Pool Token = '{cwp_response.token.secret}'"
+        )
+        print_log(
+            "                   Worker Pool Expiry Time = "
+            f"{str(cwp_response.token.expiryTime).split('.')[0]}"
         )
         if ARGS_PARSER.quiet:
             print(cwp_response.workerPool.id)
