@@ -32,9 +32,11 @@ def main():
         return
 
     print_log(
-        "Shutting down Worker Pools with Compute Requirements in "
+        "Shutting down Provisioned Worker Pools with Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
-        f"tag starting with '{CONFIG_COMMON.name_tag}'"
+        f"tag starting with '{CONFIG_COMMON.name_tag}' "
+        "(or Configured Worker Pools with names starting with "
+        f"'{CONFIG_COMMON.name_tag}')"
     )
     worker_pool_summaries: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()
@@ -43,11 +45,19 @@ def main():
 
     selected_worker_pool_summaries: List[WorkerPoolSummary] = []
     for worker_pool_summary in worker_pool_summaries:
-        if not (
-            "ProvisionedWorkerPool" not in worker_pool_summary.type
-            or worker_pool_summary.status
-            in [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
-        ):
+        if worker_pool_summary.status not in [
+            WorkerPoolStatus.TERMINATED,
+            WorkerPoolStatus.SHUTDOWN,
+        ]:
+            if "ProvisionedWorkerPool" not in worker_pool_summary.type:
+                # Configured Worker Pool: check worker pool name only
+                if (
+                    worker_pool_summary.name is not None
+                    and worker_pool_summary.name.startswith(CONFIG_COMMON.name_tag)
+                ):
+                    selected_worker_pool_summaries.append(worker_pool_summary)
+                continue
+
             worker_pool: WorkerPool = get_worker_pool_by_id(
                 CLIENT, worker_pool_summary.id
             )
