@@ -391,20 +391,24 @@ Substitutions can also be performed for non-string (number, boolean, array, and 
 
 The following substitutions are automatically created and can be used in any section of the configuration file, or in any JSON specification:
 
-| Directive       | Description                                                              | Example of Substitution |
-|:----------------|:-------------------------------------------------------------------------|:------------------------|
-| `{{username}}`  | The current user's login username, lower case, spaces replaced           | jane_smith              |
-| `{{date}}`      | The current date (UTC): YYYYMMDD                                         | 20221027                |
-| `{{time}}`      | The current time (UTC): HHMMSSss                                         | 16302699                |
-| `{{datetime}}`  | Concatenation of the date and time, with a '-' separator                 | 20221027-163026         |
-| `{{random}}`    | A random, three digit hexadecimal number (lower case)                    | a1c                     |
-| `{{namespace}}` | The `namespace` property.                                                | my_namespace            |
-| `{{tag}}`       | The `tag` property.                                                      | my_tag                  |
-| `{{key}}`       | The application `key` property.                                          |                         |
-| `{{secret}}`    | The application `secret` property.                                       |                         |
-| `{{url}}`       | The Platform `url` property.                                             |                         |
+| Directive             | Description                                                    | Example of Substitution |
+|:----------------------|:---------------------------------------------------------------|:------------------------|
+| `{{username}}`        | The current user's login username, lower case, spaces replaced | jane_smith              |
+| `{{date}}`            | The current date (UTC): YYYYMMDD                               | 20221027                |
+| `{{time}}`            | The current time (UTC): HHMMSSss                               | 16302699                |
+| `{{datetime}}`        | Concatenation of the date and time, with a '-' separator       | 20221027-163026         |
+| `{{random}}`          | A random, three digit hexadecimal number (lower case)          | a1c                     |
+| `{{namespace}}`       | The `namespace` property.                                      | my_namespace            |
+| `{{tag}}`             | The `tag` property.                                            | my_tag                  |
+| `{{key}}`             | The application `key` property.                                |                         |
+| `{{secret}}`          | The application `secret` property.                             |                         |
+| `{{url}}`             | The Platform `url` property.                                   |                         |
+| `{{config_dir_abs}}`  | The absolute directory path of the configuration file          | /yellowdog/workloads    |
+| `{{config_dir_name}}` | The immediate containing directory of the configuration file   | workloads               |
 
 For the `date`, `time`, `datetime` and `random` directives, the same values will be used for the duration of a command -- i.e., if `{{time}}` is used within multiple properties, the identical value will be used for each substitution.
+
+The `config_dir_` substitutions use the name of the directory containing the nominated TOML configuration file, or the invocation directory if no configuration file is supplied.
 
 ## User-Defined Variables
 

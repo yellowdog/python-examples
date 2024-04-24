@@ -4,7 +4,8 @@ Common utility functions, mostly related to loading configuration data.
 
 import os
 from os import getenv
-from os.path import dirname, join, relpath
+from os.path import abspath, dirname, join, relpath
+from pathlib import Path
 from sys import exit
 from typing import Dict, Optional
 
@@ -49,6 +50,11 @@ CONFIG_FILE = relpath(
 
 try:
     CONFIG_FILE_DIR = dirname(CONFIG_FILE)
+    config_dir_abs = abspath(CONFIG_FILE_DIR)
+    config_dir_short = Path(config_dir_abs).parts[-1]
+    VARIABLE_SUBSTITUTIONS.update(
+        {"config_dir_abs": config_dir_abs, "config_dir_name": config_dir_short}
+    )
     print_log(f"Loading configuration data from: '{CONFIG_FILE}'")
     CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
     try:
