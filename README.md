@@ -156,6 +156,8 @@ Run any command with the `--help`/`-h` option to discover the command's options.
 
 # YellowDog Prerequisites
 
+(See also the quick start guides for [Provisioned](https://github.com/yellowdog/python-examples-templates/blob/main/quickstart.md) and [Configured](https://github.com/yellowdog/python-examples-templates/blob/main/quickstart-configured.md) Worker Pools.)
+
 To submit **Work Requirements** to YellowDog for processing by Configured Worker Pools (on-premise) and/or Provisioned Worker Pools (cloud-provisioned resources), you'll need:
 
 1. A YellowDog Platform Account.
@@ -176,7 +178,7 @@ To set up **Configured Worker Pools**, you'll need:
 5. A Configured Worker Pool Token: from the **Workers** tab in the [YellowDog Portal](https://portal.yellowdog.co/#/workers), use the **+Add Configured Worker Pool** button to create a new Worker Pool and generate a token.
 
 
-6. Obtain the YellowDog Agent and install/configure it on your on-premise systems using the Token above.
+6. Obtain the YellowDog Agent and install/configure it on your on-premise systems using the Token obtained above. See guidance for [Linux](https://github.com/yellowdog/resources/blob/main/agent-install/linux/README.md) and [Windows](https://github.com/yellowdog/resources/blob/main/agent-install/windows/README-CONFIGURED.md).
 
 # Script Installation with Pip
 
