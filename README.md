@@ -668,7 +668,7 @@ inputs = ["my_bash_script.sh"]
 arguments = ["{{wr_name}}/my_bash_script.sh", "1", "2", "3"]
 ```
 
-In the case of Windows batch (`.bat`) files, a `/c` flag is prepended to the `cmd.exe` argument list to ensure correct execution bahaviour. For example:
+In the case of Windows batch (`.bat`) files, a `/c` flag is prepended to the `cmd.exe` argument list to ensure correct execution behaviour. For example:
 
 ```toml
 taskType = "cmd"  # or "bat"
