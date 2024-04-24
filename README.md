@@ -1603,13 +1603,13 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     templateId = "ydid:crt:D9C548:465a107c-7cea-46e3-9fdd-15116cb92c40"
     # Note: only one of 'userData'/'userDataFile'/'userDataFiles' should be set
     userData = ""
-    userDataFile = "myuserdata.txt"
-    userDataFiles = ["myuserdata1.txt", "myuserdata2.txt"]
+    # userDataFile = "myuserdata.txt"
+    # userDataFiles = ["myuserdata1.txt", "myuserdata2.txt"]
     workerTag = "tag-{{username}}"
     # Specify either workersPerNode or workersPerVCPU
     workersPerNode = 1
-    workersPerVCPU = 1
-#   workerPoolData = "worker_pool.json"
+    # workersPerVCPU = 1
+    # workerPoolData = "worker_pool.json"  # Optionally specify worker pool JSON specification
 ```
 
 ## Worker Pool Specification Using JSON Documents
