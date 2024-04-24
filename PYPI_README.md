@@ -8,6 +8,7 @@ The command scripts support:
 
 - **Provisioning** Worker Pools with the **`yd-provision`** command
 - **Submitting** Work Requirements with the **`yd-submit`** command
+- **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
 - **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
 - **Instantiating** Compute Requirements with the **`yd-instantiate`** command
 - **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
@@ -17,7 +18,9 @@ The command scripts support:
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Listing** YellowDog items using the **`yd-list`** command
-- **Resizing** Worker Pools and Compute Requirements
-- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, and Configured Worker Pools
+- **Resizing** Worker Pools and Compute Requirements with the **`yd-resize`** command
+- **Boosting** Allowances with the **`yd-boost`** command
+- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools with the **`yd-create`** and **`yd-remove`** commands
+- **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
 
-Please see the [GitHub repository](https://github.com/yellowdog/python-examples) for more details.
+Please see the documenation in the [GitHub repository](https://github.com/yellowdog/python-examples) for more details.
