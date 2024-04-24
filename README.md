@@ -1029,11 +1029,10 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
 `% yd-submit --dry-run --quiet`
 ```json
 {
-  "fulfilOnSubmit": false,
-  "name": "pyex-bash_230114-095504-53a",
-  "namespace": "pyexamples",
+  "name": "pyex-bash-pwt2_240424-12051160",
+  "namespace": "pyexamples-pwt2",
   "priority": 0,
-  "tag": "pyex-bash",
+  "tag": "pyex-bash-pwt2",
   "taskGroups": [
     {
       "finishIfAllTasksFinished": true,
@@ -1041,22 +1040,33 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
       "name": "task_group_1",
       "priority": 0,
       "runSpecification": {
-        "maximumTaskRetries": 0,
+        "maximumTaskRetries": 5,
         "taskTypes": ["bash"],
-        "workerTags": ["pyex-bash"]
+        "workerTags": ["pyex-bash-pwt2-worker", "onpremise-pwt2"]
       },
+      "starved": false,
+      "waitingOnDependency": false,
       "tasks": [
         {
-          "arguments": ["pyex-bash_230114-095504-53a/sleep_script.sh"],
-          "environment": {},
+          "arguments": ["pyex-bash-pwt2_240424-12051160/sleep_script.sh", 1, 2, 3],
+          "environment": {
+            "TEST_ENV_1": "100",
+            "TEST_ENV_2": "200",
+            "YD_TASK_NAME": "task_1",
+            "YD_TASK_NUMBER": "1",
+            "YD_TASK_GROUP_NAME": "task_group_1",
+            "YD_TASK_GROUP_NUMBER": "1",
+            "YD_WORK_REQUIREMENT_NAME": "pyex-bash-pwt2_240424-12051160",
+            "YD_NAMESPACE": "pyexamples-pwt2"
+          },
           "inputs": [
             {
-              "objectNamePattern": "pyex-bash_230114-095504-53a/sleep_script.sh",
+              "objectNamePattern": "pyex-bash-pwt2_240424-12051160/sleep_script.sh",
               "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_WAIT"
+              "verification": "VERIFY_AT_START"
             }
           ],
-          "name": "task_01",
+          "name": "task_1",
           "outputs": [
             {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
           ],
