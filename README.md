@@ -419,7 +419,7 @@ User-defined variables can be supplied using an option on the command line, or b
 1. The **command line** option is `--variable` (or `-v`). For example, `yd-submit -v project_code=pr-213-a -v run_id=1234` will establish two new variables that can be used as `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
 
-2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new variable that can be used as `{{project_code}}`, which will be substituted by `pr-213-a`.
+2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new variable that can be used as `{{project_code}}`, which will be substituted by `pr-213-a`. Note that if running on Windows, all environment variable names are case-insensitive and converted to upper case, so choose upper case variable names only.
 
 
 3. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. E.g., `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
