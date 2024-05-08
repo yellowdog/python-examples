@@ -87,6 +87,7 @@
    * [Namespace Storage Configurations](#namespace-storage-configurations)
    * [Configured Worker Pools](#configured-worker-pools)
    * [Allowances](#allowances)
+   * [String Attribute Definitions](#string-attribute-definitions)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -114,7 +115,7 @@
    * [yd-boost](#yd-boost)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Apr 19 11:43:37 BST 2024 -->
+<!-- Added by: pwt, at: Wed May  8 16:37:54 BST 2024 -->
 
 <!--te-->
 
@@ -1798,6 +1799,7 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 - Namespace Storage Configurations
 - Configured Worker Pools
 - Allowances
+- String Attribute Definitions
 
 ## Overview of Operation
 
@@ -2160,6 +2162,24 @@ Allowances **cannot be updated** (edited) once they have been created; they can 
 When using `yd-remove`, Allowances are again matched using their `description` property only if `--match-allowances-by-description`/`-M` is used. As with other resources, Allowances can also be removed by their IDs (`yd-remove --ids <allowance_id> [<allowance_id>]`).
 
 Allowances can be **boosted** (have extra hours added to the Allowance) using the `yd-boost` command.
+
+## String Attribute Definitions
+
+The Attribute Definition example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/attributes/user. Currently, only **String Attribute Definitions** are supported.
+
+Example:
+
+```json
+{
+  "resource": "StringAttributeDefinition",
+  "name": "user.my-attribute",
+  "title": "My attribute title",
+  "description": "This is a description of my attribute",
+  "options": ["yes", "no", "maybe"]
+}
+```
+
+The `name` and `title` properties are required, while the rest are optional. The `user.` prefix is required when specifying the `name` property.
 
 # Jsonnet Support
 

@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 import yellowdog_client.model as model
 from dateparser import parse as date_parse
-from requests import post
+from requests import post, put
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
     AccountAllowance,
@@ -54,6 +54,7 @@ from yd_commands.settings import (
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
+    RN_STRING_ATTRIBUTE_DEFINITION,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
@@ -118,6 +119,8 @@ def create_resources(
                 create_configured_worker_pool(resource)
             elif resource_type == RN_ALLOWANCE:
                 create_allowance(resource)
+            elif resource_type == RN_STRING_ATTRIBUTE_DEFINITION:
+                create_string_attribute_definition_via_api(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -787,6 +790,45 @@ def _get_model_class(class_name: str):
     Return a YellowDog model class using its class name.
     """
     return getattr(model, class_name)
+
+
+def create_string_attribute_definition_via_api(resource: Dict):
+    """
+    Use the API to create/update user string attribute definitions.
+    """
+    try:
+        name = resource["name"]
+        title = resource["title"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    url = f"{CONFIG_COMMON.url}/compute/attributes/user"
+    headers = {"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"}
+    payload = {
+        "name": name,
+        "title": title,
+        "type": "co.yellowdog.platform.model.StringAttributeDefinition",
+        "description": resource.get("description", ""),
+        "options": resource.get("options", []),
+    }
+
+    # Attempt attribute creation
+    response = post(url=url, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        print_log(f"Created new String Attribute Definition '{name}'")
+        return
+
+    if "Attribute already exists" in response.text:
+        if not confirmed(f"Update existing String Attribute Definition '{name}'?"):
+            return
+
+        response = put(url=url, headers=headers, json=payload)
+        if response.status_code == 200:
+            print_log(f"Updated existing String Attribute Definition '{name}'")
+            return
+
+    raise Exception(f"HTTP {response.status_code} ({response.text})")
 
 
 # Entry point

@@ -7,6 +7,7 @@ A script to remove YellowDog resources.
 from copy import deepcopy
 from typing import Dict, List, Optional
 
+from requests import delete
 from requests.exceptions import HTTPError
 from yellowdog_client.model import (
     MachineImage,
@@ -34,8 +35,9 @@ from yd_commands.settings import (
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
+    RN_STRING_ATTRIBUTE_DEFINITION,
 )
-from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
+from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
 @main_wrapper
@@ -92,6 +94,8 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                         "alternatively, Allowances can be removed by their "
                         "YellowDog IDs (yd-remove --ids)"
                     )
+            elif resource_type == RN_STRING_ATTRIBUTE_DEFINITION:
+                remove_string_attribute_definition_via_api(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -405,6 +409,29 @@ def remove_resource_by_id(resource_id: str):
 
     except Exception as e:
         print_error(f"Unable to remove resource with ID {resource_id}: {e}")
+
+
+def remove_string_attribute_definition_via_api(resource: Dict):
+    """
+    Use the API to remove user string attribute definitions.
+    """
+    try:
+        name = resource["name"]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    if not confirmed(f"Remove String Attribute Definition '{name}'?"):
+        return
+
+    url = f"{CONFIG_COMMON.url}/compute/attributes/user/{name}"
+    headers = {"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"}
+    response = delete(url=url, headers=headers)
+
+    if response.status_code == 200:
+        print_log(f"Removed String Attribute Definition '{name}' (if present)")
+        return
+
+    raise Exception(f"HTTP {response.status_code} ({response.text})")
 
 
 # Entry point

@@ -16,6 +16,7 @@ from yd_commands.settings import (
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
+    RN_STRING_ATTRIBUTE_DEFINITION,
 )
 from yd_commands.variables import (
     load_json_file_with_variable_substitutions,
@@ -94,6 +95,7 @@ def _resequence_resources(
         RN_KEYRING,
         RN_CREDENTIAL,
         RN_IMAGE_FAMILY,
+        RN_STRING_ATTRIBUTE_DEFINITION,
         RN_SOURCE_TEMPLATE,
         RN_REQUIREMENT_TEMPLATE,
         RN_ALLOWANCE,
