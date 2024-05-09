@@ -51,6 +51,7 @@ from yd_commands.settings import (
     RN_CREDENTIAL,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
+    RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
@@ -119,8 +120,11 @@ def create_resources(
                 create_configured_worker_pool(resource)
             elif resource_type == RN_ALLOWANCE:
                 create_allowance(resource)
-            elif resource_type == RN_STRING_ATTRIBUTE_DEFINITION:
-                create_string_attribute_definition_via_api(resource)
+            elif resource_type in [
+                RN_STRING_ATTRIBUTE_DEFINITION,
+                RN_NUMERIC_ATTRIBUTE_DEFINITION,
+            ]:
+                create_attribute_definition_via_api(resource, resource_type)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -792,40 +796,54 @@ def _get_model_class(class_name: str):
     return getattr(model, class_name)
 
 
-def create_string_attribute_definition_via_api(resource: Dict):
+def create_attribute_definition_via_api(resource: Dict, resource_type: str):
     """
-    Use the API to create/update user string attribute definitions.
+    Use the API to create/update user attribute definitions.
     """
     try:
         name = resource["name"]
         title = resource["title"]
+        if resource_type == RN_NUMERIC_ATTRIBUTE_DEFINITION:
+            default_rank_order = resource["defaultRankOrder"]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
     url = f"{CONFIG_COMMON.url}/compute/attributes/user"
     headers = {"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"}
-    payload = {
-        "name": name,
-        "title": title,
-        "type": "co.yellowdog.platform.model.StringAttributeDefinition",
-        "description": resource.get("description", ""),
-        "options": resource.get("options", []),
-    }
+    if resource_type == RN_STRING_ATTRIBUTE_DEFINITION:
+        payload = {
+            "type": "co.yellowdog.platform.model.StringAttributeDefinition",
+            "name": name,
+            "title": title,
+            "description": resource.get("description"),
+            "options": resource.get("options"),
+        }
+    else:  # RN_NUMERIC_ATTRIBUTE_DEFINITION
+        payload = {
+            "type": "co.yellowdog.platform.model.NumericAttributeDefinition",
+            "name": name,
+            "title": title,
+            "defaultRankOrder": default_rank_order,
+            "description": resource.get("description"),
+            "units": resource.get("units"),
+            "range": resource.get("range"),
+        }
 
     # Attempt attribute creation
+    print_log(f"Attempting to create or update Attribute Definition '{name}'")
     response = post(url=url, headers=headers, json=payload)
 
     if response.status_code == 200:
-        print_log(f"Created new String Attribute Definition '{name}'")
+        print_log(f"Created new Attribute Definition '{name}'")
         return
 
     if "Attribute already exists" in response.text:
-        if not confirmed(f"Update existing String Attribute Definition '{name}'?"):
+        if not confirmed(f"Update existing Attribute Definition '{name}'?"):
             return
 
         response = put(url=url, headers=headers, json=payload)
         if response.status_code == 200:
-            print_log(f"Updated existing String Attribute Definition '{name}'")
+            print_log(f"Updated existing Attribute Definition '{name}'")
             return
 
     raise Exception(f"HTTP {response.status_code} ({response.text})")

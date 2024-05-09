@@ -32,6 +32,7 @@ from yd_commands.settings import (
     RN_CREDENTIAL,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
+    RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
@@ -94,8 +95,11 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                         "alternatively, Allowances can be removed by their "
                         "YellowDog IDs (yd-remove --ids)"
                     )
-            elif resource_type == RN_STRING_ATTRIBUTE_DEFINITION:
-                remove_string_attribute_definition_via_api(resource)
+            elif resource_type in [
+                RN_STRING_ATTRIBUTE_DEFINITION,
+                RN_NUMERIC_ATTRIBUTE_DEFINITION,
+            ]:
+                remove_attribute_definition_via_api(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -411,7 +415,7 @@ def remove_resource_by_id(resource_id: str):
         print_error(f"Unable to remove resource with ID {resource_id}: {e}")
 
 
-def remove_string_attribute_definition_via_api(resource: Dict):
+def remove_attribute_definition_via_api(resource: Dict):
     """
     Use the API to remove user string attribute definitions.
     """
@@ -420,7 +424,7 @@ def remove_string_attribute_definition_via_api(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    if not confirmed(f"Remove String Attribute Definition '{name}'?"):
+    if not confirmed(f"Remove Attribute Definition '{name}'?"):
         return
 
     url = f"{CONFIG_COMMON.url}/compute/attributes/user/{name}"
@@ -428,7 +432,7 @@ def remove_string_attribute_definition_via_api(resource: Dict):
     response = delete(url=url, headers=headers)
 
     if response.status_code == 200:
-        print_log(f"Removed String Attribute Definition '{name}' (if present)")
+        print_log(f"Removed Attribute Definition '{name}' (if present)")
         return
 
     raise Exception(f"HTTP {response.status_code} ({response.text})")

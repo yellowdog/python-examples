@@ -87,7 +87,9 @@
    * [Namespace Storage Configurations](#namespace-storage-configurations)
    * [Configured Worker Pools](#configured-worker-pools)
    * [Allowances](#allowances)
-   * [String Attribute Definitions](#string-attribute-definitions)
+   * [Attribute Definitions](#attribute-definitions)
+      * [String Attribute Definitions](#string-attribute-definitions)
+      * [Numeric Attribute Definitions](#numeric-attribute-definitions)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -115,7 +117,7 @@
    * [yd-boost](#yd-boost)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed May  8 16:37:54 BST 2024 -->
+<!-- Added by: pwt, at: Thu May  9 16:47:20 BST 2024 -->
 
 <!--te-->
 
@@ -2163,9 +2165,11 @@ When using `yd-remove`, Allowances are again matched using their `description` p
 
 Allowances can be **boosted** (have extra hours added to the Allowance) using the `yd-boost` command.
 
-## String Attribute Definitions
+## Attribute Definitions
 
-The Attribute Definition example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/attributes/user. Currently, only **String Attribute Definitions** are supported.
+The Attribute Definition example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/attributes/user.
+
+### String Attribute Definitions
 
 Example:
 
@@ -2180,6 +2184,24 @@ Example:
 ```
 
 The `name` and `title` properties are required, while the rest are optional. The `user.` prefix is required when specifying the `name` property.
+
+### Numeric Attribute Definitions
+
+Example:
+
+```json
+{
+  "resource": "NumericAttributeDefinition",
+  "name": "my-numeric-attribute",
+  "title": "Attribute Title",
+  "defaultRankOrder": "PREFER_LOWER",
+  "description": "A description of the attribute",
+  "units": "$",
+  "range": {"min": 1, "max": 10}
+}
+```
+
+The `name`, `title` and `defaultRankOrder` properties are required, while the rest are optional. The `user.` prefix is required when specifying the `name` property.
 
 # Jsonnet Support
 
