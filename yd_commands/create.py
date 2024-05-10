@@ -826,7 +826,10 @@ def create_attribute_definition_via_api(resource: Dict, resource_type: str):
             "defaultRankOrder": default_rank_order,
             "description": resource.get("description"),
             "units": resource.get("units"),
+            # Note: Only one of 'range', 'options' can be supplied
+            # Allow the API to error-check
             "range": resource.get("range"),
+            "options": resource.get("options"),
         }
 
     # Attempt attribute creation

@@ -2201,7 +2201,7 @@ Example:
 }
 ```
 
-The `name`, `title` and `defaultRankOrder` properties are required, while the rest are optional. The `user.` prefix is required when specifying the `name` property.
+The `name`, `title` and `defaultRankOrder` properties are required, while the rest are optional. Either the `range` property or the `options` property (with numeric option values) can be specified, but not both. The `user.` prefix is required when specifying the `name` property.
 
 # Jsonnet Support
 
