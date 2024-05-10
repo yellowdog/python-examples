@@ -124,7 +124,7 @@ def create_resources(
                 RN_STRING_ATTRIBUTE_DEFINITION,
                 RN_NUMERIC_ATTRIBUTE_DEFINITION,
             ]:
-                create_attribute_definition_via_api(resource, resource_type)
+                create_attribute_definition(resource, resource_type)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -796,7 +796,7 @@ def _get_model_class(class_name: str):
     return getattr(model, class_name)
 
 
-def create_attribute_definition_via_api(resource: Dict, resource_type: str):
+def create_attribute_definition(resource: Dict, resource_type: str):
     """
     Use the API to create/update user attribute definitions.
     """
@@ -812,18 +812,22 @@ def create_attribute_definition_via_api(resource: Dict, resource_type: str):
     headers = {"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"}
     if resource_type == RN_STRING_ATTRIBUTE_DEFINITION:
         payload = {
+            # Required
             "type": "co.yellowdog.platform.model.StringAttributeDefinition",
             "name": name,
             "title": title,
+            # Optional
             "description": resource.get("description"),
             "options": resource.get("options"),
         }
     else:  # RN_NUMERIC_ATTRIBUTE_DEFINITION
         payload = {
+            # Required
             "type": "co.yellowdog.platform.model.NumericAttributeDefinition",
             "name": name,
             "title": title,
             "defaultRankOrder": default_rank_order,
+            # Optional
             "description": resource.get("description"),
             "units": resource.get("units"),
             # Note: Only one of 'range', 'options' can be supplied

@@ -99,7 +99,7 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                 RN_STRING_ATTRIBUTE_DEFINITION,
                 RN_NUMERIC_ATTRIBUTE_DEFINITION,
             ]:
-                remove_attribute_definition_via_api(resource)
+                remove_attribute_definition(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -415,9 +415,9 @@ def remove_resource_by_id(resource_id: str):
         print_error(f"Unable to remove resource with ID {resource_id}: {e}")
 
 
-def remove_attribute_definition_via_api(resource: Dict):
+def remove_attribute_definition(resource: Dict):
     """
-    Use the API to remove user string attribute definitions.
+    Use the API to remove user attribute definitions.
     """
     try:
         name = resource["name"]
