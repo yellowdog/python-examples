@@ -5,6 +5,7 @@ Command to list YellowDog entities.
 """
 
 from dataclasses import asdict, fields
+from json import loads as json_loads
 from typing import Dict, List
 
 from requests import get
@@ -47,6 +48,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import (
     indent,
+    print_json,
     print_log,
     print_numbered_object_list,
     print_table_core,
@@ -85,6 +87,8 @@ def main():
         list_namespaces()
     elif ARGS_PARSER.allowances:
         list_allowances()
+    elif ARGS_PARSER.attribute_definitions:
+        list_attribute_definitions()
 
 
 def check_for_valid_option() -> bool:
@@ -105,6 +109,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.namespace_storage_configurations,
         ARGS_PARSER.instances,
         ARGS_PARSER.allowances,
+        ARGS_PARSER.attribute_definitions,
     ].count(True) == 1:
         return True
     else:
@@ -566,6 +571,39 @@ def list_allowances():
 
     for allowance in select(CLIENT, allowances):
         print_yd_object(allowance)
+
+
+def list_attribute_definitions():
+    """
+    List user compute attribute definitions using the API.
+    """
+    response = get(
+        url=f"{CONFIG_COMMON.url}/compute/attributes/user",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+    )
+
+    if response.status_code != 200:
+        raise Exception(
+            "Unable to list user attribute definitions: HTTP "
+            f"{response.status_code} ({response.text})"
+        )
+
+    attribute_definition_list = json_loads(response.text)
+    attribute_definition_list.sort(key=lambda x: x["name"])
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(
+            CLIENT, attribute_definition_list, object_type_name="Attribute Definition"
+        )
+        return
+
+    for selected_attribute_definition in select(
+        CLIENT,
+        attribute_definition_list,
+        object_type_name="Attribute Definition",
+        sort_objects=False,
+    ):
+        print_json(selected_attribute_definition)
 
 
 # Entry point

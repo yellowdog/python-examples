@@ -529,6 +529,13 @@ class CLIParser:
                 required=False,
                 help="list allowances",
             )
+            parser.add_argument(
+                "--attribute-definitions",
+                "-R",
+                action="store_true",
+                required=False,
+                help="list attribute definitions",
+            )
 
         if any(module in sys.argv[0] for module in ["upload"]):
             parser.add_argument(
@@ -1309,6 +1316,11 @@ class CLIParser:
     @allow_missing_attribute
     def allowances(self) -> Optional[bool]:
         return self.args.allowances
+
+    @property
+    @allow_missing_attribute
+    def attribute_definitions(self) -> Optional[bool]:
+        return self.args.attribute_definitions
 
     @property
     @allow_missing_attribute

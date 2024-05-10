@@ -3,7 +3,7 @@ User interaction processing utilities.
 """
 
 from os import getenv
-from typing import List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Union
 
 from yellowdog_client import PlatformClient
 
@@ -30,13 +30,14 @@ YD_YES = "YD_YES"
 
 def select(
     client: PlatformClient,
-    objects: List[Union[Item, str]],
+    objects: List[Union[Item, str, Dict]],
     object_type_name: Optional[str] = None,
     override_quiet: bool = False,
     single_result: bool = False,
     showing_all: bool = False,
     force_interactive: bool = False,
     result_required: bool = False,
+    sort_objects: bool = True,
 ) -> List[Item]:
     """
     Print a numbered list of objects.
@@ -47,7 +48,8 @@ def select(
     if len(objects) == 0:
         return objects
 
-    objects = sorted_objects(objects)
+    if sort_objects:
+        objects = sorted_objects(objects)
 
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(

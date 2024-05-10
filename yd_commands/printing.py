@@ -552,6 +552,30 @@ def allowances_table(
     return headers, table
 
 
+def attribute_definitions_table(
+    attribute_definitions: List[Dict],
+) -> (List[str], List[str]):
+    headers = [
+        "#",
+        "Name",
+        "Type",
+        "Title",
+        "Description",
+    ]
+    table = []
+    for index, attribute_definition in enumerate(attribute_definitions):
+        table.append(
+            [
+                index + 1,
+                attribute_definition["name"],
+                attribute_definition["type"].split(".")[-1],
+                attribute_definition["title"],
+                attribute_definition.get("description", ""),
+            ]
+        )
+    return headers, table
+
+
 def aws_availability_zone_table(
     aws_azs: List[AWSAvailabilityZone],
 ) -> (List[str], List[str]):
@@ -576,7 +600,7 @@ def aws_availability_zone_table(
 
 def print_numbered_object_list(
     client: PlatformClient,
-    objects: List[Union[Item, str]],
+    objects: List[Union[Item, str, Dict]],
     object_type_name: Optional[str] = None,
     override_quiet: bool = False,
     showing_all: bool = False,
@@ -626,6 +650,8 @@ def print_numbered_object_list(
         headers, table = allowances_table(objects)
     elif isinstance(objects[0], AWSAvailabilityZone):
         headers, table = aws_availability_zone_table(objects)
+    elif object_type_name == "Attribute Definition":
+        headers, table = attribute_definitions_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
