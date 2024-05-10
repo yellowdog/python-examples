@@ -534,7 +534,7 @@ class CLIParser:
                 "-R",
                 action="store_true",
                 required=False,
-                help="list attribute definitions",
+                help="list user attribute definitions",
             )
 
         if any(module in sys.argv[0] for module in ["upload"]):
