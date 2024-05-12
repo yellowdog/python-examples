@@ -411,7 +411,10 @@ def create_task_group(
     if config_wr.task_type is not None and len(task_types) == 0:
         task_types.append(config_wr.task_type)
     if len(task_types) == 0:
-        raise Exception(f"No Task Type(s) specified in Task Group '{task_group_name}'")
+        raise Exception(
+            f"No Task Type(s) specified in Task Group '{task_group_name}': "
+            "is a valid Work Requirement defined?"
+        )
 
     vcpus_data: Optional[List[float]] = check_list(
         task_group_data.get(VCPUS, wr_data.get(VCPUS, config_wr.vcpus))
