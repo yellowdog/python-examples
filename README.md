@@ -2192,7 +2192,7 @@ Example:
 ```json
 {
   "resource": "NumericAttributeDefinition",
-  "name": "my-numeric-attribute",
+  "name": "user.my-numeric-attribute",
   "title": "Attribute Title",
   "defaultRankOrder": "PREFER_LOWER",
   "description": "A description of the attribute",
