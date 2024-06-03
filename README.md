@@ -1275,7 +1275,7 @@ where <working_directory> is:
   /var/opt/yellowdog/agent/data/workers/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
 ```
 
-Note that the Work Requirement name is automatically made available to the Task via the environment variable `YD_WORK_REQUIREMENT_NAME`, by `yd-submit`. It's also available for client-side variable substitution in Work Requirements using the variable `{{wr_name}}`.
+Note that the Work Requirement name is automatically made available to the Task via the environment variable `YD_WORK_REQUIREMENT_NAME`, by `yd-submit`, if the `addYDEnvironmentVariables` property is set to `true`. It's also available for client-side variable substitution in Work Requirements using the variable `{{wr_name}}`.
 
 ### Files Uploaded from a Node to the Object Store after Task Execution
 
@@ -1350,7 +1350,7 @@ This section discusses the context within which a Task operates when it's execut
 
 When a Task is allocated to a Worker on a node by the YellowDog Scheduler, the following steps are followed:
 
-1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list. A number of `YD_` environment variables are also automatically set by a combination of `yd_submit` and the Agent itself -- see above for details.
+1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list. A number of `YD_` environment variables are also automatically set by a combination (optionally) of `yd_submit`, and the Agent itself -- see above for details.
 2. The downloaded files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also written by default.
 2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess to run the Task.
 3. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
