@@ -150,6 +150,17 @@ def load_config_common() -> ConfigCommon:
         name_tag = process_variable_substitutions(common_section[NAME_TAG])
         add_substitutions_without_overwriting(subs={NAME_TAG: name_tag})
 
+        # Specify a certificates bundle directly by setting the requests
+        # environment variable; this will override the default certificates
+        certificates = process_variable_substitutions(
+            common_section.get(CERTIFICATES, None)
+        )
+        if certificates is not None:
+            certificates = abspath(certificates)
+            requests_ca_bundle = "REQUESTS_CA_BUNDLE"
+            print_log(f"Setting environment variable '{requests_ca_bundle}' to '{certificates}'")
+            os.environ["REQUESTS_CA_BUNDLE"] = certificates
+
         return ConfigCommon(
             # Required
             key=key,
