@@ -64,8 +64,18 @@ def download_object_paths(
         )
     )
 
-    if len(object_paths_to_download) > 0:
-        object_paths_to_download = select(CLIENT, object_paths_to_download)
+    # Check that the prefix actually matches!
+    object_paths_to_download = [
+        object_path
+        for object_path in object_paths_to_download
+        if object_path.name.startswith(prefix)
+    ]
+
+    if len(object_paths_to_download) == 0:
+        print_log("No matching Object Paths")
+        return
+
+    object_paths_to_download = select(CLIENT, object_paths_to_download)
 
     if len(object_paths_to_download) == 0:
         print_log("No Objects Paths to include")
