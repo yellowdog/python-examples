@@ -4,11 +4,8 @@
 A script to delete YellowDog Object Store items.
 """
 
-from typing import List, Optional
-
-from yellowdog_client.model import ObjectPath, ObjectPathsRequest
-
 from yd_commands.interactive import confirmed, select
+from yd_commands.object_utilities import list_matching_object_paths
 from yd_commands.printing import print_log
 from yd_commands.utils import unpack_namespace_in_prefix
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -45,18 +42,7 @@ def delete_object_paths(namespace: str, prefix: str, flat: bool):
         f"prefix starting with '{prefix}'"
     )
 
-    object_paths_to_delete: List[ObjectPath] = (
-        CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=flat)
-        )
-    )
-
-    # Check that the prefix actually matches!
-    object_paths_to_delete = [
-        object_path
-        for object_path in object_paths_to_delete
-        if object_path.name.startswith(prefix)
-    ]
+    object_paths_to_delete = list_matching_object_paths(CLIENT, namespace, prefix, flat)
 
     if len(object_paths_to_delete) == 0:
         print_log("No matching Object Paths")

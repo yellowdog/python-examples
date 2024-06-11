@@ -16,6 +16,8 @@ from yellowdog_client.model import (
     ComputeSourceTemplateSummary,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
+    ObjectPath,
+    ObjectPathsRequest,
     ProvisionedWorkerPool,
     Task,
     TaskGroup,
@@ -279,3 +281,28 @@ def remove_allowances_matching_description(
             print_log(f"Removed Allowance with YellowDog ID {allowance.id}")
 
     return len(allowances)
+
+
+def list_matching_object_paths(
+    client: PlatformClient, namespace: str, prefix: str, flat: bool
+) -> List[ObjectPath]:
+    """
+    List object paths matching the namespace and starting with the prefix.
+    """
+    object_paths: List[ObjectPath] = (
+        client.object_store_client.get_namespace_object_paths(
+            ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=flat)
+        )
+    )
+
+    if object_paths is None:
+        return []
+
+    # Check that the prefix actually matches!
+    object_paths = [
+        object_path
+        for object_path in object_paths
+        if object_path.name.startswith(prefix)
+    ]
+
+    return object_paths

@@ -29,8 +29,6 @@ from yellowdog_client.model import (
     MachineImageFamilySummary,
     NamespaceStorageConfiguration,
     ObjectDetail,
-    ObjectPath,
-    ObjectPathsRequest,
     Task,
     TaskGroup,
     TaskSearch,
@@ -45,6 +43,7 @@ from yd_commands.interactive import select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
+    list_matching_object_paths,
 )
 from yd_commands.printing import (
     indent,
@@ -210,20 +209,7 @@ def list_object_paths():
     if ARGS_PARSER.all and not ARGS_PARSER.details:
         print_log("Listing all Objects")
 
-    object_paths: List[ObjectPath] = (
-        CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(
-                namespace=namespace,
-                prefix=tag,
-                flat=ARGS_PARSER.all,
-            )
-        )
-    )
-
-    # Check that the prefix actually matches!
-    object_paths = [
-        object_path for object_path in object_paths if object_path.name.startswith(tag)
-    ]
+    object_paths = list_matching_object_paths(CLIENT, namespace, tag, ARGS_PARSER.all)
 
     if len(object_paths) == 0:
         print_log("No matching Object Paths")

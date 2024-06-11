@@ -6,9 +6,8 @@ A script to download YellowDog Object Store objects.
 
 from concurrent import futures
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
-from yellowdog_client.model import ObjectPath, ObjectPathsRequest
 from yellowdog_client.object_store.download.download_batch_builder import (
     AbstractTransferBatch,
     DownloadBatchBuilder,
@@ -17,6 +16,7 @@ from yellowdog_client.object_store.download.download_batch_builder import (
 from yellowdog_client.object_store.model import FileTransferStatus
 
 from yd_commands.interactive import confirmed, select
+from yd_commands.object_utilities import list_matching_object_paths
 from yd_commands.printing import print_batch_download_files, print_log
 from yd_commands.utils import unpack_namespace_in_prefix
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -58,18 +58,9 @@ def download_object_paths(
         + ("" if pattern is None else f", matching name pattern '{pattern}'")
     )
 
-    object_paths_to_download: List[ObjectPath] = (
-        CLIENT.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=flat)
-        )
+    object_paths_to_download = list_matching_object_paths(
+        CLIENT, namespace, prefix, flat
     )
-
-    # Check that the prefix actually matches!
-    object_paths_to_download = [
-        object_path
-        for object_path in object_paths_to_download
-        if object_path.name.startswith(prefix)
-    ]
 
     if len(object_paths_to_download) == 0:
         print_log("No matching Object Paths")
