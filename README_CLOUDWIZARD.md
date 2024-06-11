@@ -4,31 +4,31 @@
 * [YellowDog Cloud Wizard](#yellowdog-cloud-wizard)
 * [Overview](#overview)
 * [YellowDog Prerequisites](#yellowdog-prerequisites)
-* [Cloud Wizard for GCP](#cloud-wizard-for-gcp)
-   * [GCP Prerequisites](#gcp-prerequisites)
-   * [Quickstart Guide (GCP)](#quickstart-guide-gcp)
-      * [Creation](#creation)
-      * [Removal](#removal)
-   * [Details of Operation: GCP](#details-of-operation-gcp)
-      * [Cloud Wizard Setup](#cloud-wizard-setup)
-         * [Network Details](#network-details)
-         * [GCP Account Setup](#gcp-account-setup)
-         * [YellowDog Platform Setup](#yellowdog-platform-setup)
-      * [Cloud Wizard Teardown](#cloud-wizard-teardown)
-      * [Idempotency](#idempotency)
 * [Cloud Wizard for AWS](#cloud-wizard-for-aws)
    * [AWS Account Prequisites](#aws-account-prequisites)
    * [Quickstart Guide (AWS)](#quickstart-guide-aws)
+      * [Creation](#creation)
+      * [Removal](#removal)
+   * [Details of Operation: AWS](#details-of-operation-aws)
+      * [Cloud Wizard Setup](#cloud-wizard-setup)
+         * [Network Details](#network-details)
+         * [AWS Account Setup](#aws-account-setup)
+         * [YellowDog Platform Setup](#yellowdog-platform-setup)
+      * [Cloud Wizard Teardown](#cloud-wizard-teardown)
+      * [Idempotency](#idempotency)
+      * [Adding and Removing support for Inbound SSH](#adding-and-removing-support-for-inbound-ssh)
+* [Cloud Wizard for GCP](#cloud-wizard-for-gcp)
+   * [GCP Prerequisites](#gcp-prerequisites)
+   * [Quickstart Guide (GCP)](#quickstart-guide-gcp)
       * [Creation](#creation-1)
       * [Removal](#removal-1)
-   * [Details of Operation: AWS](#details-of-operation-aws)
+   * [Details of Operation: GCP](#details-of-operation-gcp)
       * [Cloud Wizard Setup](#cloud-wizard-setup-1)
          * [Network Details](#network-details-1)
-         * [AWS Account Setup](#aws-account-setup)
+         * [GCP Account Setup](#gcp-account-setup)
          * [YellowDog Platform Setup](#yellowdog-platform-setup-1)
       * [Cloud Wizard Teardown](#cloud-wizard-teardown-1)
       * [Idempotency](#idempotency-1)
-      * [Adding and Removing support for Inbound SSH](#adding-and-removing-support-for-inbound-ssh)
 * [Cloud Wizard for Azure](#cloud-wizard-for-azure)
    * [Azure Account Prequisites](#azure-account-prequisites)
       * [Azure Service Principal Setup Steps](#azure-service-principal-setup-steps)
@@ -45,7 +45,7 @@
       * [Adding and Removing support for Inbound SSH](#adding-and-removing-support-for-inbound-ssh-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Mar 22 14:38:20 GMT 2024 -->
+<!-- Added by: pwt, at: Tue Jun 11 08:44:42 BST 2024 -->
 
 <!--te-->
 
@@ -78,133 +78,6 @@ export YD_SECRET=<Insert your Application Key Secret here>
 set YD_KEY <Insert your Application Key ID here>
 set YD_SECRET <Insert your Application Key Secret here>
 ```
-
-# Cloud Wizard for GCP
-
-## GCP Prerequisites
-
-Ensure you have credentials (keys) for a **GCP Service Account** in a GCP project with the **Compute Engine API** enabled. The credentials should be in the form of a locally downloaded JSON file, of the form:
-
-```json
-{
-  "type": "service_account",
-  "project_id": "my-gcp-project",
-  "private_key_id": "<REDACTED>",
-  "private_key": "<REDACTED>",
-  "client_email": "<REDACTED>-compute@developer.gserviceaccount.com",
-  "client_id": "<REDACTED>",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/<REDACTED>-compute%40developer.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-}
-```
-
-## Quickstart Guide (GCP)
-
-### Creation
-
-Run the Cloud Wizard setup command:
-
-```commandline
-yd-cloudwizard --cloud-provider=gcp --credentials-file=credentials.json setup
-```
-
-Once the command has discovered the GCP regions in which your service account has a default subnet, it will present them in a list. Select the regions for which to create YellowDog Compute Source Templates, e.g.:
-
-```commandline
-2023-11-03 11:01:05 : Please select the Google Compute Engine regions for which to create YellowDog Compute Source Templates
-2023-11-03 11:01:05 : Displaying matching Region(s):
-
-    ┌─────┬─────────────────────────┐
-    │   # │ Name                    │
-    ├─────┼─────────────────────────┤
-    │   1 │ asia-east1              │
-    │   2 │ asia-east2              │
-    │   3 │ asia-northeast1         │
-    │   4 │ asia-northeast2         │
-    │   5 │ asia-northeast3         │
-    │   6 │ asia-south1             │
-    └─────┴─────────────────────────┘
-
-2023-11-03 11:01:05 : Please select items (e.g.: 1,2,4-7 / *) or press <Return> to cancel:
-```
-The command will then proceed to create two YellowDog Compute Source templates for each selected region, one for on-demand VMs, one for spot VMs. The command will also create a small selection of Compute Requirement Templates that make use of the Source Templates. All templates created have the prefix `cloudwizard-gcp`.
-
-The resources that were created can be inspected in JSON format in the file `cloudwizard-gcp-yellowdog-resources.json`.
-
-The Compute Requirement Templates are then available for use in YellowDog provisioning requests via the YellowDog API; note that an `Images ID` must be supplied.
-
-At the conclusion of a successful setup, the command will display the YellowDog Keyring name and password. This password will not be displayed again, and is required to claim access to the Keyring on behalf of your YellowDog Portal user account, allowing you to control GCP resources via the Portal.
-
-### Removal
-
-The GCP account  and YellowDog resources that were created can be entirely removed using the `teardown` operation:
-
-```commandline
-yd-cloudwizard --cloud-provider=gcp --credentials-file=credentials.json teardown
-```
-
-All destructive operations will require user confirmation; to avoid this, use the `--yes`/`-y` command line option.
-
-## Details of Operation: GCP
-
-### Cloud Wizard Setup
-
-#### Network Details
-
-Cloud Wizard expects to use the `default` VPC in the GCP project, and the `default` subnet in each enabled region. These are created automatically when the Compute Engine API is enabled in the project.
-
-The default **subnets** are provided with a route to a gateway which allows instances to make outbound connections to the Internet. However, no NAT gateway is provided (this is a separately chargeable GCP service), so instances must have public IP addresses to connect to the Internet and specifically to connect back to the YellowDog Platform.
-
-The default **firewall** settings allow unrestricted traffic between instances on the subnet, and allows unrestricted outbound traffic to any address including the public Internet. The firewall also allows SSH and RDP ingress, and ICMP by default.
-
-#### GCP Account Setup
-
-Cloud Wizard will create a Google Storage Bucket named `yellowdog-cloudwizard-<your_project_name>` in region `europe-west1`. This storage bucket will be mapped into a YellowDog namespace called `cloudwizard-gcp` in your YellowDog account.
-
-No other changes are made to your GCP account.
-
-#### YellowDog Platform Setup
-
-Cloud Wizard performs the following actions in your YellowDog Platform account:
-
-1. It creates a YellowDog Keyring called `cloudwizard-gcp`. The Keyring name and password are displayed at the end of the Cloud Wizard setup process, and the password will not be displayed again. The Keyring name and password are required for your YellowDog Portal user account to be able to claim the Keyring, and use the credential(s) it contains via the Portal.
-
-
-2. It creates a Credential called `cloudwizard-gcp` contained within the `cloudwizard-gcp` Keyring, containing the credentials in the supplied JSON file.
-
-
-3. It creates a range of Compute Source Templates, two for each selected GCP region, one for **on-demand** instances and the other for **spot** instances. Each source is given a name with the following pattern: `cloudwizard-gcp-europe-west1-ondemand`. Instances will use the `cloudwizard-gcp/cloudwizard-gcp` Credential. Instances will be created with public IP addresses, to permit outbound Internet access. The instance type and Images ID are left as `any`, to be set at higher levels.
-
-
-4. It creates a small range of example Compute Requirement Templates that use the sources above. There are two **static waterfall** provisioning strategy examples, one containing all the on-demand sources, the other containing all the spot sources. Two equivalent templates are created for the **static split** provisioning strategy. All of these templates specify the `f1-micro` GCP instance type by default. In addition, an example **dynamic** template is created that will be constrained to GCP instances with 4GB of memory or greater, ordered by lowest cost first. In all cases, no `Images Id` is specified, so this must be supplied at the time of instance provisioning. Each template is given a name such as: `cloudwizard-gcp-split-ondemand` or `cloudwizard-gcp-dynamic-waterfall-lowestcost`. Note that the default instance type can be overridden using the `--instance-type` command line option.
-
-
-5. The Compute Source Template and Compute Requirement Template definitions are saved in a JSON resource specification file called `cloudwizard-gcp-yellowdog-resources.json`. This file can be edited (for example, to change the instance types), and used with the `yd-create` command to update the resources.
-
-6. It creates a Namespace configuration, which maps the YellowDog namespace `cloudwizard-gcp` into the storage bucket `yellowdog-cloudwizard-<your_project_name>`.
-
-###  Cloud Wizard Teardown
-
-All settings and resources created by Cloud Wizard can be removed using `yd-cloudwizard --cloud-provider=gcp --credenials-file=credentials.json teardown`. All destructive steps will require user confirmation unless the `--yes`/`-y` option is used.
-
-The following actions are taken in the **YellowDog account**:
-
-1. All Compute Source Templates and Compute Requirement Templates with names starting with `cloudwizard-gcp` are removed.
-2. The `cloudwizard-gcp` Keyring is removed.
-3. The `cloudwizard-gcp` Namespace configuration is removed.
-
-The following actions are taken in the **GCP account**:
-
-1. The storage bucket `yellowdog-cloudwizard-<your_project_name>` is emptied of objects, and removed.
-
-### Idempotency
-
-In general, it's safe to invoke Cloud Wizard multiple times for both setup and teardown operations. Depending on the setting/resource it will be ignored if present, or the user will be asked to confirm deletion/replacement.
-
-The Compute Source and Compute Requirement templates will be updated, and may differ in their contents if different regions are selected during each invocation. The resource specification JSON file will be overwritten.
 
 # Cloud Wizard for AWS
 
@@ -354,6 +227,133 @@ To add an inbound SSH rule to the default security group for a region, Cloud Wiz
 The rule can be removed using:
 
 `yd-cloudwizard --cloud-provider=aws --region-name=eu-west-2 remove-ssh`
+
+# Cloud Wizard for GCP
+
+## GCP Prerequisites
+
+Ensure you have credentials (keys) for a **GCP Service Account** in a GCP project with the **Compute Engine API** enabled. The credentials should be in the form of a locally downloaded JSON file, of the form:
+
+```json
+{
+  "type": "service_account",
+  "project_id": "my-gcp-project",
+  "private_key_id": "<REDACTED>",
+  "private_key": "<REDACTED>",
+  "client_email": "<REDACTED>-compute@developer.gserviceaccount.com",
+  "client_id": "<REDACTED>",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/<REDACTED>-compute%40developer.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
+```
+
+## Quickstart Guide (GCP)
+
+### Creation
+
+Run the Cloud Wizard setup command:
+
+```commandline
+yd-cloudwizard --cloud-provider=gcp --credentials-file=credentials.json setup
+```
+
+Once the command has discovered the GCP regions in which your service account has a default subnet, it will present them in a list. Select the regions for which to create YellowDog Compute Source Templates, e.g.:
+
+```commandline
+2023-11-03 11:01:05 : Please select the Google Compute Engine regions for which to create YellowDog Compute Source Templates
+2023-11-03 11:01:05 : Displaying matching Region(s):
+
+    ┌─────┬─────────────────────────┐
+    │   # │ Name                    │
+    ├─────┼─────────────────────────┤
+    │   1 │ asia-east1              │
+    │   2 │ asia-east2              │
+    │   3 │ asia-northeast1         │
+    │   4 │ asia-northeast2         │
+    │   5 │ asia-northeast3         │
+    │   6 │ asia-south1             │
+    └─────┴─────────────────────────┘
+
+2023-11-03 11:01:05 : Please select items (e.g.: 1,2,4-7 / *) or press <Return> to cancel:
+```
+The command will then proceed to create two YellowDog Compute Source templates for each selected region, one for on-demand VMs, one for spot VMs. The command will also create a small selection of Compute Requirement Templates that make use of the Source Templates. All templates created have the prefix `cloudwizard-gcp`.
+
+The resources that were created can be inspected in JSON format in the file `cloudwizard-gcp-yellowdog-resources.json`.
+
+The Compute Requirement Templates are then available for use in YellowDog provisioning requests via the YellowDog API; note that an `Images ID` must be supplied.
+
+At the conclusion of a successful setup, the command will display the YellowDog Keyring name and password. This password will not be displayed again, and is required to claim access to the Keyring on behalf of your YellowDog Portal user account, allowing you to control GCP resources via the Portal.
+
+### Removal
+
+The GCP account  and YellowDog resources that were created can be entirely removed using the `teardown` operation:
+
+```commandline
+yd-cloudwizard --cloud-provider=gcp --credentials-file=credentials.json teardown
+```
+
+All destructive operations will require user confirmation; to avoid this, use the `--yes`/`-y` command line option.
+
+## Details of Operation: GCP
+
+### Cloud Wizard Setup
+
+#### Network Details
+
+Cloud Wizard expects to use the `default` VPC in the GCP project, and the `default` subnet in each enabled region. These are created automatically when the Compute Engine API is enabled in the project.
+
+The default **subnets** are provided with a route to a gateway which allows instances to make outbound connections to the Internet. However, no NAT gateway is provided (this is a separately chargeable GCP service), so instances must have public IP addresses to connect to the Internet and specifically to connect back to the YellowDog Platform.
+
+The default **firewall** settings allow unrestricted traffic between instances on the subnet, and allows unrestricted outbound traffic to any address including the public Internet. The firewall also allows SSH and RDP ingress, and ICMP by default.
+
+#### GCP Account Setup
+
+Cloud Wizard will create a Google Storage Bucket named `yellowdog-cloudwizard-<your_project_name>` in region `europe-west1`. This storage bucket will be mapped into a YellowDog namespace called `cloudwizard-gcp` in your YellowDog account.
+
+No other changes are made to your GCP account.
+
+#### YellowDog Platform Setup
+
+Cloud Wizard performs the following actions in your YellowDog Platform account:
+
+1. It creates a YellowDog Keyring called `cloudwizard-gcp`. The Keyring name and password are displayed at the end of the Cloud Wizard setup process, and the password will not be displayed again. The Keyring name and password are required for your YellowDog Portal user account to be able to claim the Keyring, and use the credential(s) it contains via the Portal.
+
+
+2. It creates a Credential called `cloudwizard-gcp` contained within the `cloudwizard-gcp` Keyring, containing the credentials in the supplied JSON file.
+
+
+3. It creates a range of Compute Source Templates, two for each selected GCP region, one for **on-demand** instances and the other for **spot** instances. Each source is given a name with the following pattern: `cloudwizard-gcp-europe-west1-ondemand`. Instances will use the `cloudwizard-gcp/cloudwizard-gcp` Credential. Instances will be created with public IP addresses, to permit outbound Internet access. The instance type and Images ID are left as `any`, to be set at higher levels.
+
+
+4. It creates a small range of example Compute Requirement Templates that use the sources above. There are two **static waterfall** provisioning strategy examples, one containing all the on-demand sources, the other containing all the spot sources. Two equivalent templates are created for the **static split** provisioning strategy. All of these templates specify the `f1-micro` GCP instance type by default. In addition, an example **dynamic** template is created that will be constrained to GCP instances with 4GB of memory or greater, ordered by lowest cost first. In all cases, no `Images Id` is specified, so this must be supplied at the time of instance provisioning. Each template is given a name such as: `cloudwizard-gcp-split-ondemand` or `cloudwizard-gcp-dynamic-waterfall-lowestcost`. Note that the default instance type can be overridden using the `--instance-type` command line option.
+
+
+5. The Compute Source Template and Compute Requirement Template definitions are saved in a JSON resource specification file called `cloudwizard-gcp-yellowdog-resources.json`. This file can be edited (for example, to change the instance types), and used with the `yd-create` command to update the resources.
+
+6. It creates a Namespace configuration, which maps the YellowDog namespace `cloudwizard-gcp` into the storage bucket `yellowdog-cloudwizard-<your_project_name>`.
+
+###  Cloud Wizard Teardown
+
+All settings and resources created by Cloud Wizard can be removed using `yd-cloudwizard --cloud-provider=gcp --credentials-file=credentials.json teardown`. All destructive steps will require user confirmation unless the `--yes`/`-y` option is used.
+
+The following actions are taken in the **YellowDog account**:
+
+1. All Compute Source Templates and Compute Requirement Templates with names starting with `cloudwizard-gcp` are removed.
+2. The `cloudwizard-gcp` Keyring is removed.
+3. The `cloudwizard-gcp` Namespace configuration is removed.
+
+The following actions are taken in the **GCP account**:
+
+1. The storage bucket `yellowdog-cloudwizard-<your_project_name>` is emptied of objects, and removed.
+
+### Idempotency
+
+In general, it's safe to invoke Cloud Wizard multiple times for both setup and teardown operations. Depending on the setting/resource it will be ignored if present, or the user will be asked to confirm deletion/replacement.
+
+The Compute Source and Compute Requirement templates will be updated, and may differ in their contents if different regions are selected during each invocation. The resource specification JSON file will be overwritten.
 
 # Cloud Wizard for Azure
 
