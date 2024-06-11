@@ -45,18 +45,24 @@ def delete_object_paths(namespace: str, prefix: str, flat: bool):
         f"prefix starting with '{prefix}'"
     )
 
-    object_paths_to_delete: Optional[List[ObjectPath]] = (
+    object_paths_to_delete: List[ObjectPath] = (
         CLIENT.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=flat)
         )
     )
 
-    if object_paths_to_delete is None:
+    # Check that the prefix actually matches!
+    object_paths_to_delete = [
+        object_path
+        for object_path in object_paths_to_delete
+        if object_path.name.startswith(prefix)
+    ]
+
+    if len(object_paths_to_delete) == 0:
         print_log("No matching Object Paths")
         return
 
-    if len(object_paths_to_delete) > 0:
-        object_paths_to_delete = select(CLIENT, object_paths_to_delete)
+    object_paths_to_delete = select(CLIENT, object_paths_to_delete)
 
     if len(object_paths_to_delete) > 0 and confirmed(
         f"Delete {len(object_paths_to_delete)} Object Path(s)?"
