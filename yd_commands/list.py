@@ -220,9 +220,13 @@ def list_object_paths():
         )
     )
 
-    # We shouldn't get a None return, but ...
-    if object_paths is None or len(object_paths) == 0:
-        print_log("No matching Object Paths found")
+    # Check that the prefix actually matches!
+    object_paths = [
+        object_path for object_path in object_paths if object_path.name.startswith(tag)
+    ]
+
+    if len(object_paths) == 0:
+        print_log("No matching Object Paths")
         return
 
     if not ARGS_PARSER.details:
