@@ -158,7 +158,9 @@ def load_config_common() -> ConfigCommon:
         if certificates is not None:
             certificates = abspath(certificates)
             requests_ca_bundle = "REQUESTS_CA_BUNDLE"
-            print_log(f"Setting environment variable '{requests_ca_bundle}' to '{certificates}'")
+            print_log(
+                f"Setting environment variable '{requests_ca_bundle}' to '{certificates}'"
+            )
             os.environ["REQUESTS_CA_BUNDLE"] = certificates
 
         return ConfigCommon(
