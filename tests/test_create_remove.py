@@ -53,3 +53,17 @@ class TestCreateRemove:
         assert result.exit_code == 0
         result = shell(f"yd-remove -My {resources}")
         assert result.exit_code == 0
+
+    def test_string_attribute(self):
+        resources = f"{RESOURCE_DIR}/stringattribute.json"
+        result = shell(f"yd-create {resources}")
+        assert result.exit_code == 0
+        result = shell(f"yd-remove -y {resources}")
+        assert result.exit_code == 0
+
+    def test_numeric_attribute(self):
+        resources = f"{RESOURCE_DIR}/numericattribute.json"
+        result = shell(f"yd-create {resources}")
+        assert result.exit_code == 0
+        result = shell(f"yd-remove -y {resources}")
+        assert result.exit_code == 0
