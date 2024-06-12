@@ -18,13 +18,13 @@
     # overall project for which YellowDog is being used
     # Required
     # --------------------------------------------------------------------------
-    namespace = "MY_NAMESPACE"
+    namespace = "my_namespace"
 
     # A name tag to sub-divide objects within the namespace, e.g., to
     # tag a given set of tasks, nodes and data objects
     # Required
     # --------------------------------------------------------------------------
-    tag = "MY_NAME_TAG"
+    tag = "my_tag"
 
 [workRequirement]  ############################################################
 
