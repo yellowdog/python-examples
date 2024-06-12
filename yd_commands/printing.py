@@ -136,6 +136,21 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
     )
 
 
+def print_simple(
+    log_message: str = "",
+    override_quiet: bool = False,
+    no_fill: bool = False,
+):
+    """
+    Simple print function without timestamp.
+    Set 'override_quiet' to print when '-q' is set.
+    """
+    if ARGS_PARSER.quiet and override_quiet is False:
+        return
+
+    CONSOLE.print(log_message)
+
+
 def print_log(
     log_message: str = "",
     override_quiet: bool = False,

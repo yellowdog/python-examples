@@ -6,7 +6,7 @@ Command to show the JSON details of YellowDog entities via their IDs.
 
 from typing import List
 
-from yellowdog_client.model import Task, TaskSearch
+from yellowdog_client.model import ConfiguredWorkerPool, Task, TaskSearch
 from yellowdog_client.model.exceptions import InvalidRequestException
 
 from yd_commands.printing import print_log, print_warning, print_yd_object
@@ -16,11 +16,7 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 @main_wrapper
 def main():
 
-    ydids_set = set(ARGS_PARSER.yellowdog_ids)
-    if len(ydids_set) < len(ARGS_PARSER.yellowdog_ids):
-        print_warning("Dropping duplicate YDIDs")
-
-    for ydid in ydids_set:
+    for ydid in ARGS_PARSER.yellowdog_ids:
         show_details(ydid)
 
 
@@ -51,13 +47,21 @@ def show_details(ydid: str):
             for source in compute_requirement.provisionStrategy.sources:
                 if source.id == ydid:
                     print_yd_object(source)
-                    break
+                    return
             else:
                 print_warning(f"Compute Source ID '{ydid}' not found")
 
         elif ":wrkrpool:" in ydid:
             print_log(f"Showing details of Worker Pool ID '{ydid}'")
-            print_yd_object(CLIENT.worker_pool_client.get_worker_pool_by_id(ydid))
+            worker_pool = CLIENT.worker_pool_client.get_worker_pool_by_id(ydid)
+            print_yd_object(worker_pool)
+            if ARGS_PARSER.show_token and isinstance(worker_pool, ConfiguredWorkerPool):
+                print_log("Showing Configured Worker Pool token data")
+                print_yd_object(
+                    CLIENT.worker_pool_client.get_configured_worker_pool_token_by_id(
+                        ydid
+                    )
+                )
 
         elif ":node:" in ydid:
             print_log(f"Showing details of Node ID '{ydid}'")
@@ -71,7 +75,7 @@ def show_details(ydid: str):
             for worker in node.workers:
                 if worker.id == ydid:
                     print_yd_object(worker)
-                    break
+                    return
             else:
                 print_warning(f"Worker ID '{ydid}' not found")
 
@@ -87,7 +91,7 @@ def show_details(ydid: str):
             for task_group in work_requirement.taskGroups:
                 if task_group.id == ydid:
                     print_yd_object(task_group)
-                    break
+                    return
             else:
                 print_warning(f"Task Group ID '{ydid}' not found")
 
@@ -110,6 +114,7 @@ def show_details(ydid: str):
             for task in tasks:
                 if task.id == ydid:
                     print_yd_object(task)
+                    return
             else:
                 print_warning(f"Task ID '{ydid}' not found")
 
@@ -131,7 +136,7 @@ def show_details(ydid: str):
             for keyring in keyrings:
                 if keyring.id == ydid:
                     print_yd_object(keyring)
-                    break
+                    return
             else:
                 print_warning(f"Keyring ID '{ydid}' not found")
 
@@ -142,8 +147,6 @@ def show_details(ydid: str):
         else:
             print_warning(f"Unknown (or unsupported) YellowDog ID type for '{ydid}'")
 
-    except InvalidRequestException as e:
-        print_warning(f"Unable to show details for '{ydid}': {e}")
     except Exception as e:
         print_warning(f"Unable to show details for '{ydid}': {e}")
 

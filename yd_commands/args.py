@@ -1003,6 +1003,14 @@ class CLIParser:
                 ),
             )
 
+        if any(module in sys.argv[0] for module in ["show"]):
+            parser.add_argument(
+                "--show-token",
+                action="store_true",
+                required=False,
+                help="display the worker pool token when showing the details of a configured worker pool",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -1443,6 +1451,11 @@ class CLIParser:
     def public_ips_only(self) -> Optional[bool]:
         return self.args.public_ips_only
 
+    @property
+    @allow_missing_attribute
+    def show_token(self) -> Optional[bool]:
+        return self.args.show_token
+
 
 def lookup_module_description(module_name: str) -> Optional[str]:
     """
@@ -1489,6 +1502,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "holding (pausing) running Work Requirements"
     elif "boost" in module_name:
         suffix = "boosting Allowances"
+    elif "show" in module_name:
+        suffix = "showing the JSON details of entities referenced by their YDIDs"
 
     return None if suffix is None else prefix + suffix
 
