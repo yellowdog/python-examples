@@ -802,14 +802,15 @@ class CLIParser:
                 help="remove resources using their YellowDog IDs (YDIDs)",
             )
 
-        if "follow" in sys.argv[0]:
+        if any(module in sys.argv[0] for module in ["follow", "show"]):
+            verb = "follow" if "follow" in sys.argv[0] else "show"
             parser.add_argument(
                 "yellowdog_ids",
                 nargs="+",
                 default=[],
                 metavar="<yellowdog-id>",
                 type=str,
-                help="the YellowDog ID(s) of the item(s) to follow",
+                help=f"the YellowDog ID(s) of the item(s) to {verb}",
             )
 
         if any(

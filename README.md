@@ -115,9 +115,10 @@
    * [yd-start](#yd-start)
    * [yd-hold](#yd-hold)
    * [yd-boost](#yd-boost)
+   * [yd-show](#yd-show)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Thu May  9 16:47:20 BST 2024 -->
+<!-- Added by: pwt, at: Wed Jun 12 11:55:06 BST 2024 -->
 
 <!--te-->
 
@@ -150,6 +151,7 @@ The commands provide the following capabilities:
 - **Boosting** Allowances with the **`yd-boost`** command
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools with the **`yd-create`** and **`yd-remove`** commands
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
+- **Showing** the details of any YellowDog entity by its YellowDog ID
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -2651,3 +2653,21 @@ It can optionally be supplied with a list of the names and/or YDIDs of the speci
 ## yd-boost
 
 The `yd-boost` command is used to boost Allowances by the specified number of hours.
+
+## yd-show
+
+The `yd-show` command will show the details (in JSON) of any YellowDog entity by its YellowDog ID. It supports IDs referring to:
+
+- Compute Source Templates
+- Compute Requirement Templates
+- Compute Requirements
+- Sources
+- Worker Pools
+- Nodes
+- Workers
+- Work Requirements
+- Task Groups
+- Tasks
+- Image Families, Image Groups, and Images
+- Keyrings
+- Allowances
