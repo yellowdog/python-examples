@@ -298,11 +298,9 @@ def list_matching_object_paths(
     if object_paths is None:
         return []
 
-    # Check that the prefix actually matches!
-    object_paths = [
+    # Check the prefix actually matches!
+    return [
         object_path
         for object_path in object_paths
         if object_path.name.startswith(prefix)
     ]
-
-    return object_paths
