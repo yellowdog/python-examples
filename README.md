@@ -581,6 +581,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `maxWorkers`                           | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                                                                                               | Yes  | Yes | Yes  |      |
 | `minWorkers`                           | The minimum number of Workers that the associated Task Group requires. This many workers must be claimed before the associated Task Group will start working. E.g., `1`.                                                                   | Yes  | Yes | Yes  |      |
 | `name`                                 | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                                                                                   | Yes  | Yes | Yes  | Yes  |
+| `namespaces`                           | Only Worker Pools whose workers match one of the namespaces in this list can be claimed by the Task Group. E.g., `["namespace_1", "namespace_2"]. Defaults to `None`.                                                                      | Yes  | Yes | Yes  |      |
 | `outputs`                              | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                                                                                             | Yes  | Yes | Yes  | Yes  |
 | `outputsOther`                         | Files to be uploaded to the YellowDog Object Store from outside the Tasks's Working Directory by a Worker node on completion of a Task. E.g., `outputsOther = [{"directoryName" = "tmp", "filePattern" = "out.txt", "required" = false}]`. | Yes  | Yes | Yes  | Yes  |
 | `outputsRequired`                      | The files that *must* be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. The Task will fail if any outputs are unavailable.                                                                             | Yes  | Yes | Yes  | Yes  |
@@ -774,6 +775,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     ]
     inputsOptional = ["optional.txt"]
     instanceTypes = ["t3a.micro", "t3.micro"]
+    namespaces = ["namespace_1", "namespace_2"]
     maxWorkers = 1
     maximumTaskRetries = 0
     minWorkers = 1
@@ -832,6 +834,7 @@ Showing all possible properties at the Work Requirement level:
   "maximumTaskRetries": 0,
   "minWorkers": 1,
   "name": "my-work-requirement",
+  "namespaces": ["namespace_1", "namespace_2"],
   "outputs": ["results.txt"],
   "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
   "outputsRequired": ["results_required.txt"],
@@ -892,6 +895,7 @@ Showing all possible properties at the Task Group level:
       "maxWorkers": 1,
       "minWorkers": 1,
       "name": "first-task-group",
+      "namespaces": ["namespace_1", "namespace_2"],
       "outputs": ["results.txt"],
       "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
       "outputsRequired": ["results_required.txt"],

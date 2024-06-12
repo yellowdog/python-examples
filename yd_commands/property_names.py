@@ -47,6 +47,7 @@ MIN_NODES = "minNodes"  # Integer
 MIN_WORKERS = "minWorkers"  # Integer
 NAME = "name"  # String
 NAMESPACE = "namespace"  # String
+NAMESPACES = "namespaces"  # List of Strings
 NAME_TAG = "tag"  # String
 NODE_BOOT_TIMEOUT = "nodeBootTimeout"  # Float
 OUTPUTS_OPTIONAL = "outputs"  # List of Strings
@@ -144,6 +145,7 @@ ALL_KEYS = [
     MIN_NODES,
     MIN_WORKERS,
     NAMESPACE,
+    NAMESPACES,
     NAME_TAG,
     NODE_BOOT_TIMEOUT,
     OUTPUTS_OPTIONAL,

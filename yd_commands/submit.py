@@ -486,6 +486,11 @@ def create_task_group(
             task_group_data.get(REGIONS, wr_data.get(REGIONS, config_wr.regions))
         ),
         taskTimeout=task_timeout,
+        namespaces=check_list(
+            task_group_data.get(
+                NAMESPACES, wr_data.get(NAMESPACES, config_wr.namespaces)
+            )
+        ),
     )
     ctttl_data = check_float_or_int(
         task_group_data.get(

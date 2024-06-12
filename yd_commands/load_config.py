@@ -291,6 +291,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
             max_retries=wr_section.get(MAX_RETRIES, 0),
             max_workers=wr_section.get(MAX_WORKERS, None),
             min_workers=wr_section.get(MIN_WORKERS, None),
+            namespaces=wr_section.get(NAMESPACES, None),
             outputs_optional=wr_section.get(OUTPUTS_OPTIONAL, []),
             outputs_other=wr_section.get(OUTPUTS_OTHER, []),
             outputs_required=wr_section.get(OUTPUTS_REQUIRED, []),

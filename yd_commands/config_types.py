@@ -43,6 +43,7 @@ class ConfigWorkRequirement:
     max_retries: int = 0
     max_workers: Optional[int] = None
     min_workers: Optional[int] = None
+    namespaces: Optional[List[str]] = None
     outputs_optional: List[str] = field(default_factory=list)
     outputs_other: List[Dict] = field(default_factory=list)
     outputs_required: List[str] = field(default_factory=list)
