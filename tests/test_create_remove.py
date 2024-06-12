@@ -1,6 +1,6 @@
 from cli_test_helpers import shell
 
-RESOURCE_DIR = "resource-examples"
+RESOURCE_DIR = "tests/resource-examples"
 
 
 class TestCreateRemove:
