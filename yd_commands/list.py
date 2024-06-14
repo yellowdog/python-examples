@@ -31,7 +31,6 @@ from yellowdog_client.model import (
     ObjectDetail,
     Task,
     TaskGroup,
-    TaskSearch,
     WorkerPool,
     WorkerPoolStatus,
     WorkerPoolSummary,
@@ -43,6 +42,7 @@ from yd_commands.interactive import select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
+    get_tasks,
     list_matching_object_paths,
 )
 from yd_commands.printing import (
@@ -185,11 +185,7 @@ def list_task_groups(work_summary: WorkRequirementSummary):
 
 
 def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
-    task_search = TaskSearch(
-        workRequirementId=work_summary.id,
-        taskGroupId=task_group.id,
-    )
-    tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
+    tasks: List[Task] = get_tasks(CLIENT, work_summary.id, task_group.id)
     tasks = sorted_objects(tasks)
     if ARGS_PARSER.details:
         for task in select(CLIENT, tasks):
