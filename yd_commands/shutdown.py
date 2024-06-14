@@ -1,18 +1,12 @@
 #!/usr/bin/env python3
 
 """
-A script to shut down Provisioned Worker Pools.
+A script to shut down Worker Pools.
 """
 
 from typing import List
 
-from yellowdog_client.model import (
-    ComputeRequirement,
-    ComputeRequirementStatus,
-    WorkerPool,
-    WorkerPoolStatus,
-    WorkerPoolSummary,
-)
+from yellowdog_client.model import WorkerPool, WorkerPoolStatus, WorkerPoolSummary
 
 from yd_commands.follow_utils import follow_ids
 from yd_commands.interactive import confirmed, select
@@ -32,12 +26,11 @@ def main():
         return
 
     print_log(
-        "Shutting down Provisioned Worker Pools with Compute Requirements in "
+        "Shutting down Worker Pools in "
         f"namespace '{CONFIG_COMMON.namespace}' and "
-        f"tag starting with '{CONFIG_COMMON.name_tag}' "
-        "(or Configured Worker Pools with names starting with "
-        f"'{CONFIG_COMMON.name_tag}')"
+        f"names including '{CONFIG_COMMON.name_tag}'"
     )
+
     worker_pool_summaries: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()
     )
@@ -49,34 +42,10 @@ def main():
             WorkerPoolStatus.TERMINATED,
             WorkerPoolStatus.SHUTDOWN,
         ]:
-            if "ProvisionedWorkerPool" not in worker_pool_summary.type:
-                # Configured Worker Pool: check worker pool name only
-                if (
-                    worker_pool_summary.name is not None
-                    and worker_pool_summary.name.startswith(CONFIG_COMMON.name_tag)
-                ):
-                    selected_worker_pool_summaries.append(worker_pool_summary)
-                continue
-
-            worker_pool: WorkerPool = get_worker_pool_by_id(
-                CLIENT, worker_pool_summary.id
-            )
-            compute_requirement: ComputeRequirement = (
-                CLIENT.compute_client.get_compute_requirement_by_id(
-                    worker_pool.computeRequirementId
-                )
-            )
-            compute_requirement.tag = (
-                "" if compute_requirement.tag is None else compute_requirement.tag
-            )
             if (
-                compute_requirement.tag.startswith(CONFIG_COMMON.name_tag)
-                and compute_requirement.namespace == CONFIG_COMMON.namespace
-                and compute_requirement.status
-                not in [
-                    ComputeRequirementStatus.TERMINATED,
-                    ComputeRequirementStatus.TERMINATING,
-                ]
+                worker_pool_summary.name is not None
+                and worker_pool_summary.namespace == CONFIG_COMMON.namespace
+                and CONFIG_COMMON.name_tag in worker_pool_summary.name
             ):
                 selected_worker_pool_summaries.append(worker_pool_summary)
 
