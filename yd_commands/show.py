@@ -4,11 +4,11 @@
 Command to show the JSON details of YellowDog entities via their IDs.
 """
 
-from typing import List
+from typing import List, Optional
 
 from yellowdog_client.model import ConfiguredWorkerPool, Task, TaskSearch
-from yellowdog_client.model.exceptions import InvalidRequestException
 
+from yd_commands.object_utilities import get_task_by_id
 from yd_commands.printing import print_log, print_warning, print_yd_object
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 
@@ -106,15 +106,11 @@ def show_details(ydid: str):
             else:
                 print_warning(f"Task Group ID '{ydid}' not found")
                 return
-            task_search = TaskSearch(
-                workRequirementId=work_requirement.id,
-                taskGroupId=task_group.id,
+            task: Optional[Task] = get_task_by_id(
+                CLIENT, work_requirement.id, task_group.id, ydid
             )
-            tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
-            for task in tasks:
-                if task.id == ydid:
-                    print_yd_object(task)
-                    return
+            if task is not None:
+                print_yd_object(task)
             else:
                 print_warning(f"Task ID '{ydid}' not found")
 

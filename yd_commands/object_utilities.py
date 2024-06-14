@@ -21,6 +21,7 @@ from yellowdog_client.model import (
     ProvisionedWorkerPool,
     Task,
     TaskGroup,
+    TaskSearch,
     WorkerPool,
     WorkerPoolSummary,
     WorkRequirementStatus,
@@ -304,3 +305,29 @@ def list_matching_object_paths(
         for object_path in object_paths
         if object_path.name.startswith(prefix)
     ]
+
+
+def get_task_by_id(
+    client: PlatformClient, wr_id: str, task_group_id: str, task_id: str
+) -> Optional[Task]:
+    """
+    Find a task by its ID.
+    """
+    tasks: List[Task] = get_tasks(client, wr_id, task_group_id)
+    for task in tasks:
+        if task.id == task_id:
+            return task
+
+
+@lru_cache()
+def get_tasks(client: PlatformClient, wr_id: str, task_group_id: str) -> List[Task]:
+    """
+    Return all the tasks in a task group, with caching.
+    There is no native way to search for a task by its id.
+    """
+    task_search = TaskSearch(
+        workRequirementId=wr_id,
+        taskGroupId=task_group_id,
+    )
+    tasks: List[Task] = client.work_client.find_tasks(task_search)
+    return tasks
