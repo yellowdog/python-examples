@@ -42,8 +42,13 @@ from yd_commands.utils import (
 )
 
 # Set up default variable substitutions
+try:
+    USERNAME = getuser().replace(" ", "_").lower()
+except:
+    USERNAME = "default-yd-user"
+
 VARIABLE_SUBSTITUTIONS = {
-    "username": getuser().replace(" ", "_").lower(),
+    "username": USERNAME,
     "date": UTCNOW.strftime("%y%m%d"),
     "time": UTCNOW.strftime("%H%M%S%f")[:-4],
     "datetime": UTCNOW.strftime("%y%m%d-%H%M%S"),
