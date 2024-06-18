@@ -2,7 +2,7 @@
 Load data for resource creation/update/removal requests.
 """
 
-from sys import exit
+from sys import argv, exit
 from typing import Dict, List
 
 from yd_commands.args import ARGS_PARSER
@@ -49,10 +49,13 @@ def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
         elif resource_spec.lower().endswith(".json"):
             resources_loaded = load_json_file_with_variable_substitutions(resource_spec)
         else:
-            raise Exception(
-                f"['{resource_spec}'] Resource specifications must end in '.toml',"
-                " '.json' or '.jsonnet'"
+            exception_message = (
+                f"['{resource_spec}'] Resource specifications must end in '.toml', "
+                "'.json' or '.jsonnet'"
             )
+            if resource_spec.startswith("ydid:") and "":
+                exception_message += "; did you mean to use the '--ids' option?"
+            raise Exception(exception_message)
 
         # Transform single resource items into lists
         if isinstance(resources_loaded, dict):
