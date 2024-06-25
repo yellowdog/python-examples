@@ -103,6 +103,7 @@ YELLOWDOG_POLICY = {
                 "EC2:RebootInstances",
                 "EC2:DescribeInstances",
                 "EC2:CreatePlacementGroup",
+                "EC2:CreateTags"
                 "S3:ListObjects",
                 "S3:DeleteBucket",
                 "S3:CreateBucket",
