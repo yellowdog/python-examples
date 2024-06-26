@@ -104,7 +104,7 @@ def main_wrapper(func):
                 print_log("Cancelled")
                 exit_code = 1
             finally:
-                CLIENT.close()
+                # CLIENT.close()
                 if exit_code == 0:
                     print_log("Done")
                 exit(exit_code)
@@ -112,7 +112,7 @@ def main_wrapper(func):
             set_proxy()
             print_account()
             func()
-            CLIENT.close()
+            # CLIENT.close()
             print_log("Done")
             exit(0)
 
