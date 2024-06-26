@@ -32,6 +32,7 @@ from yd_commands.settings import (
     RN_CREDENTIAL,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
+    RN_NAMESPACE_POLICY,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
@@ -100,6 +101,8 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                 RN_NUMERIC_ATTRIBUTE_DEFINITION,
             ]:
                 remove_attribute_definition(resource)
+            elif resource_type == RN_NAMESPACE_POLICY:
+                remove_namespace_policy(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -436,6 +439,33 @@ def remove_attribute_definition(resource: Dict):
         return
 
     raise Exception(f"HTTP {response.status_code} ({response.text})")
+
+
+def remove_namespace_policy(resource: Dict):
+    """
+    Remove a Namespace Policy (if it exists).
+    """
+    try:
+        namespace = resource["namespace"]
+    except KeyError as e:
+        print_error(f"Expected property to be defined ({e})")
+        return
+
+    # Test for existing policy
+    try:
+        CLIENT.namespaces_client.get_namespace_policy(namespace=namespace)
+        if not confirmed(f"Remove Namespace Policy '{namespace}'?"):
+            return
+    except Exception:
+        # Assume it's not found ... 404 from API
+        print_error(f"Namespace Policy '{namespace}' not found")
+        return
+
+    try:
+        CLIENT.namespaces_client.delete_namespace_policy(namespace)
+        print_log(f"Removed Namespace Policy '{namespace}'")
+    except Exception as e:
+        print_error(f"Unable to remove Namespace Policy '{namespace}': {e}")
 
 
 # Entry point

@@ -25,6 +25,7 @@ from yellowdog_client.model import (
     MachineImage,
     MachineImageFamily,
     MachineImageGroup,
+    NamespacePolicy,
     NamespaceStorageConfiguration,
     RequirementsAllowance,
     SourceAllowance,
@@ -51,6 +52,7 @@ from yd_commands.settings import (
     RN_CREDENTIAL,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
+    RN_NAMESPACE_POLICY,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
@@ -125,6 +127,8 @@ def create_resources(
                 RN_NUMERIC_ATTRIBUTE_DEFINITION,
             ]:
                 create_attribute_definition(resource, resource_type)
+            elif resource_type == RN_NAMESPACE_POLICY:
+                create_namespace_policy(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -854,6 +858,45 @@ def create_attribute_definition(resource: Dict, resource_type: str):
             return
 
     raise Exception(f"HTTP {response.status_code} ({response.text})")
+
+
+def create_namespace_policy(resource: Dict):
+    """
+    Create or update a namespace policy.
+    """
+    try:
+        namespace_policy = NamespacePolicy(
+            namespace=resource["namespace"],
+            autoscalingMaxNodes=resource.get("autoscalingMaxNodes"),
+        )
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    # Test for existing policy
+    try:
+        CLIENT.namespaces_client.get_namespace_policy(
+            namespace=namespace_policy.namespace
+        )
+        if not confirmed(
+            f"Update existing Namespace Policy '{namespace_policy.namespace}'?"
+        ):
+            return
+    except Exception:
+        # Assume it's not found ... 404 from API
+        pass
+
+    try:
+        CLIENT.namespaces_client.save_namespace_policy(namespace_policy)
+    except Exception as e:
+        print_error(
+            f"Unable to create or update Namespace Policy for '{namespace_policy.namespace}': {e}"
+        )
+        return
+
+    print_log(
+        f"Created or updated  Namespace Policy '{namespace_policy.namespace}' with "
+        f"'autoscalingMaxNodes={namespace_policy.autoscalingMaxNodes}'"
+    )
 
 
 # Entry point

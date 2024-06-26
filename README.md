@@ -90,6 +90,7 @@
    * [Attribute Definitions](#attribute-definitions)
       * [String Attribute Definitions](#string-attribute-definitions)
       * [Numeric Attribute Definitions](#numeric-attribute-definitions)
+   * [Namespace Policies](#namespace-policies)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -118,7 +119,7 @@
    * [yd-show](#yd-show)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed Jun 12 11:55:06 BST 2024 -->
+<!-- Added by: pwt, at: Wed Jun 26 20:59:32 BST 2024 -->
 
 <!--te-->
 
@@ -1808,6 +1809,7 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 - Configured Worker Pools
 - Allowances
 - String Attribute Definitions
+- Namespace Policies
 
 ## Overview of Operation
 
@@ -2208,6 +2210,20 @@ Example:
 ```
 
 The `name`, `title` and `defaultRankOrder` properties are required, while the rest are optional. Either the `range` property or the `options` property (with numeric option values) can be specified, but not both. The `user.` prefix is required when specifying the `name` property.
+
+## Namespace Policies
+
+The Namespace Policies example and schema can be found at: (TBD).
+
+```json
+{
+  "resource": "NamespacePolicy",
+  "namespace": "test_namespace",
+  "autoscalingMaxNodes": 3
+}
+```
+
+Namespace Policies are matched by their `namespace` property when using `yd-create` and `yd-remove`. The `autoscalingMaxNodes` property can be omitted or set to `null` to remove an existing limit for a namespace.
 
 # Jsonnet Support
 
