@@ -32,6 +32,7 @@ from yellowdog_client.model import (
     Instance,
     KeyringSummary,
     MachineImageFamilySummary,
+    NamespacePolicy,
     NodeStatus,
     NodeSummary,
     ObjectDetail,
@@ -202,20 +203,21 @@ def print_warning(
 
 
 TYPE_MAP = {
-    ConfiguredWorkerPool: "Configured Worker Pool",
-    ProvisionedWorkerPool: "Provisioned Worker Pool",
-    WorkerPoolSummary: "Worker Pool",
+    AWSAvailabilityZone: "AWS Availability Zones",
+    Allowance: "Allowance",
     ComputeRequirement: "Compute Requirement",
+    ComputeRequirementTemplateSummary: "Compute Requirement Template",
+    ComputeSourceTemplateSummary: "Compute Source Template",
+    ConfiguredWorkerPool: "Configured Worker Pool",
+    KeyringSummary: "Keyring",
+    MachineImageFamilySummary: "Machine Image Family",
+    NamespacePolicy: "Namespace Policy",
+    ObjectPath: "Object Path",
+    ProvisionedWorkerPool: "Provisioned Worker Pool",
     Task: "Task",
     TaskGroup: "Task Group",
     WorkRequirementSummary: "Work Requirement",
-    ObjectPath: "Object Path",
-    ComputeRequirementTemplateSummary: "Compute Requirement Template",
-    ComputeSourceTemplateSummary: "Compute Source Template",
-    KeyringSummary: "Keyring",
-    MachineImageFamilySummary: "Machine Image Family",
-    AWSAvailabilityZone: "AWS Availability Zones",
-    Allowance: "Allowance",
+    WorkerPoolSummary: "Worker Pool",
 }
 
 
@@ -613,6 +615,26 @@ def aws_availability_zone_table(
     return headers, table
 
 
+def namespace_policies_table(
+    ns_policies: List[NamespacePolicy],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Namespace",
+        "AutoscalingMaxNodes",
+    ]
+    table = []
+    for index, ns_policy in enumerate(ns_policies):
+        table.append(
+            [
+                index + 1,
+                ns_policy.namespace,
+                ns_policy.autoscalingMaxNodes,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Union[Item, str, Dict]],
@@ -667,6 +689,8 @@ def print_numbered_object_list(
         headers, table = aws_availability_zone_table(objects)
     elif object_type_name == "Attribute Definition":
         headers, table = attribute_definitions_table(objects)
+    elif isinstance(objects[0], NamespacePolicy):
+        headers, table = namespace_policies_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):

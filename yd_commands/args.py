@@ -536,6 +536,13 @@ class CLIParser:
                 required=False,
                 help="list user attribute definitions",
             )
+            parser.add_argument(
+                "--namespace-policies",
+                "-P",
+                action="store_true",
+                required=False,
+                help="list namespace policies",
+            )
 
         if any(module in sys.argv[0] for module in ["upload"]):
             parser.add_argument(
@@ -1330,6 +1337,11 @@ class CLIParser:
     @allow_missing_attribute
     def attribute_definitions(self) -> Optional[bool]:
         return self.args.attribute_definitions
+
+    @property
+    @allow_missing_attribute
+    def namespace_policies(self) -> Optional[bool]:
+        return self.args.namespace_policies
 
     @property
     @allow_missing_attribute

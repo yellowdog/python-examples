@@ -27,6 +27,8 @@ from yellowdog_client.model import (
     KeyringSummary,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
+    NamespacePolicy,
+    NamespacePolicySearch,
     NamespaceStorageConfiguration,
     ObjectDetail,
     Task,
@@ -88,6 +90,8 @@ def main():
         list_allowances()
     elif ARGS_PARSER.attribute_definitions:
         list_attribute_definitions()
+    elif ARGS_PARSER.namespace_policies:
+        list_namespace_policies()
 
 
 def check_for_valid_option() -> bool:
@@ -109,6 +113,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.instances,
         ARGS_PARSER.allowances,
         ARGS_PARSER.attribute_definitions,
+        ARGS_PARSER.namespace_policies,
     ].count(True) == 1:
         return True
     else:
@@ -590,6 +595,23 @@ def list_attribute_definitions():
         sort_objects=False,
     ):
         print_json(selected_attribute_definition)
+
+
+def list_namespace_policies():
+    """
+    List namespace policies.
+    """
+
+    np_search = NamespacePolicySearch()
+    search_client: SearchClient = CLIENT.namespaces_client.get_namespace_policies(
+        np_search
+    )
+    namespace_policies: List[NamespacePolicy] = search_client.list_all()
+    if len(namespace_policies) == 0:
+        print_log("No Namespace Policies to display")
+        return
+
+    print_numbered_object_list(CLIENT, namespace_policies)
 
 
 # Entry point
