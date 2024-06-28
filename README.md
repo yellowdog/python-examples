@@ -2607,19 +2607,23 @@ The `yd-terminate` command immediately terminates Compute Requirements that matc
 
 ## yd-list
 
-The `yd-list` command is used to list various YellowDog items, using the `namespace` and `tag` properties to target the scope of what to list:
+The `yd-list` command is used to list various YellowDog items, using the `namespace` and `tag` properties (if applicable) to target the scope of what to list:
 
+- Allowances
+- Attribute Definitions
 - Compute Requirements
-- Worker Pools
+- Compute Templates
+- Image Families, Image Groups, and Images
+- Instances
+- Keyrings
+- Namespace Policies
+- Namespace Storage Configurations
 - Objects in the Object Store
-- Work Requirements
+- Source Templates
 - Task Groups
 - Tasks
-- Compute Sources
-- Compute Templates
-- Namespace Storage Configurations
-- Keyrings
-- Image Families
+- Work Requirements
+- Worker Pools
 
 Please use `yd-list --help` to inspect the various options.
 

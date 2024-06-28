@@ -53,6 +53,7 @@ from yd_commands.printing import (
     print_log,
     print_numbered_object_list,
     print_table_core,
+    print_warning,
     print_yd_object,
     sorted_objects,
 )
@@ -611,7 +612,38 @@ def list_namespace_policies():
         print_log("No Namespace Policies to display")
         return
 
-    print_numbered_object_list(CLIENT, namespace_policies)
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, namespace_policies)
+        return
+
+    for selected_namespace_policy in select(
+        CLIENT, namespace_policies, object_type_name="Namespace Policy"
+    ):
+        if selected_namespace_policy.autoscalingMaxNodes is None:
+            print_yd_object(selected_namespace_policy)
+        else:
+            details = get_autoscaling_capacity(selected_namespace_policy.namespace)
+            details["autoscalingMaxNodes"] = (
+                selected_namespace_policy.autoscalingMaxNodes
+            )
+            print_json(details)
+
+
+def get_autoscaling_capacity(namespace: str) -> Dict:
+    """
+    Get the current autoscaling values for a namespace.
+    """
+    response = get(
+        url=f"{CONFIG_COMMON.url}/workerPools/namespaces/{namespace}/autoscalingCapacity",
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
+    )
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print_warning(
+            f"Failed to get autoscaling details for namespace '{namespace}' ({response.text})"
+        )
+        return {"namespace": namespace}
 
 
 # Entry point
