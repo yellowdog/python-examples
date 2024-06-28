@@ -67,3 +67,10 @@ class TestCreateRemove:
         assert result.exit_code == 0
         result = shell(f"yd-remove -y {resources}")
         assert result.exit_code == 0
+
+    def test_namespace_policy(self):
+        resources = f"{RESOURCE_DIR}/namespace_policies.json"
+        result = shell(f"yd-create -y {resources}")
+        assert result.exit_code == 0
+        result = shell(f"yd-remove -y {resources}")
+        assert result.exit_code == 0
