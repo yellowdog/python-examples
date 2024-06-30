@@ -1809,6 +1809,7 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 - Configured Worker Pools
 - Allowances
 - String Attribute Definitions
+- Numeric Attribute Definitions
 - Namespace Policies
 
 ## Overview of Operation
@@ -1872,6 +1873,9 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 - `"NamespaceStorageConfiguration"`
 - `"ConfiguredWorkerPool"`
 - `"Allowance"`
+- `"StringAttributeDefinition"`
+- `"NumericAttributeDefinition"`
+- `"NamespacePolicy"`
 
 To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
 
@@ -2265,7 +2269,7 @@ Please get in touch with YellowDog if you get stuck.
 
 ## Variable Substitutions in Jsonnet Files
 
-The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** and **Compute Requirement** specifications, variable substitutions must be prefixed and postfixed by double underscores (`__`), e.g. `"__{{username}}}__"`.
+The scripts provide full support for variable substitutions in Jsonnet files, using the same rules as for the JSON specifications. Remember that for **Worker Pool** and **Compute Requirement** specifications, variable substitutions must be prefixed and postfixed by double underscores (`__`), e.g. `"__{{username}}__"`.
 
 Variable substitution is performed before Jsonnet expansion into JSON, **and** again after the expansion.
 
