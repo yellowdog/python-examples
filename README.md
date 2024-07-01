@@ -152,7 +152,7 @@ The commands provide the following capabilities:
 - **Boosting** Allowances with the **`yd-boost`** command
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools with the **`yd-create`** and **`yd-remove`** commands
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
-- **Showing** the details of any YellowDog entity by its YellowDog ID
+- **Showing** the details of any YellowDog entity by its YellowDog ID with the **`yd-show`** command
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 

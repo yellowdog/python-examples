@@ -22,5 +22,6 @@ The command scripts support:
 - **Boosting** Allowances with the **`yd-boost`** command
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools with the **`yd-create`** and **`yd-remove`** commands
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
+- **Showing** the details of any YellowDog entity by its YellowDog ID with the **`yd-show`** command
 
 Please see the documenation in the [GitHub repository](https://github.com/yellowdog/python-examples) for more details.
