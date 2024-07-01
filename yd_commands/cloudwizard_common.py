@@ -332,7 +332,7 @@ class CommonCloudConfig(ABC):
         """
         if self._keyring_password is not None:
             print_log(
-                "In the 'Keyring' section of the YellowDog Portal, please claim your"
+                "In the 'Keyrings' section of the YellowDog Portal, please claim your"
                 " Keyring using the name and password below. The password will not be"
                 " shown again."
             )
