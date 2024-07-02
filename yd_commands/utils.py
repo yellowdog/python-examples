@@ -4,7 +4,7 @@ General utility functions.
 
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from os.path import join, normpath, relpath
 from typing import List, Optional
 from urllib.parse import urlparse
@@ -18,7 +18,7 @@ from yellowdog_client.model import (
 
 from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 
-UTCNOW = datetime.utcnow()
+UTCNOW = datetime.now(timezone.utc)
 
 
 def unpack_namespace_in_prefix(namespace: str, prefix: str) -> (str, str):
