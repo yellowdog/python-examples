@@ -30,6 +30,8 @@ from yellowdog_client.model import (
     NamespacePolicy,
     NamespacePolicySearch,
     NamespaceStorageConfiguration,
+    Node,
+    NodeSearch,
     ObjectDetail,
     Task,
     TaskGroup,
@@ -73,7 +75,7 @@ def main():
         list_object_paths()
     elif ARGS_PARSER.work_requirements or ARGS_PARSER.task_groups or ARGS_PARSER.tasks:
         list_work_requirements()
-    elif ARGS_PARSER.worker_pools:
+    elif ARGS_PARSER.worker_pools or ARGS_PARSER.nodes:
         list_worker_pools()
     elif ARGS_PARSER.compute_requirements or ARGS_PARSER.instances:
         list_compute_requirements()
@@ -100,21 +102,22 @@ def check_for_valid_option() -> bool:
     Only one of the listing options must be selected.
     """
     if [
-        ARGS_PARSER.object_paths,
-        ARGS_PARSER.work_requirements,
-        ARGS_PARSER.task_groups,
-        ARGS_PARSER.tasks,
-        ARGS_PARSER.worker_pools,
-        ARGS_PARSER.compute_requirements,
-        ARGS_PARSER.compute_templates,
-        ARGS_PARSER.source_templates,
-        ARGS_PARSER.keyrings,
-        ARGS_PARSER.image_families,
-        ARGS_PARSER.namespace_storage_configurations,
-        ARGS_PARSER.instances,
         ARGS_PARSER.allowances,
         ARGS_PARSER.attribute_definitions,
+        ARGS_PARSER.compute_requirements,
+        ARGS_PARSER.compute_templates,
+        ARGS_PARSER.image_families,
+        ARGS_PARSER.instances,
+        ARGS_PARSER.keyrings,
         ARGS_PARSER.namespace_policies,
+        ARGS_PARSER.namespace_storage_configurations,
+        ARGS_PARSER.nodes,
+        ARGS_PARSER.object_paths,
+        ARGS_PARSER.source_templates,
+        ARGS_PARSER.task_groups,
+        ARGS_PARSER.tasks,
+        ARGS_PARSER.work_requirements,
+        ARGS_PARSER.worker_pools,
     ].count(True) == 1:
         return True
     else:
@@ -257,6 +260,18 @@ def list_worker_pools():
     if len(worker_pool_summaries) == 0:
         print_log("No Worker Pools to display")
         return
+
+    if ARGS_PARSER.nodes:
+        print_log("Please select the Worker Pool for which to list Nodes")
+        worker_pool_summary = select(
+            CLIENT,
+            sorted_objects(worker_pool_summaries),
+            showing_all=showing_all,
+            single_result=True,
+        )
+        list_nodes(worker_pool_summary[0])
+        return
+
     if ARGS_PARSER.details:
         for worker_pool_summary in select(
             CLIENT, sorted_objects(worker_pool_summaries), showing_all=showing_all
@@ -354,6 +369,21 @@ def list_instances(compute_requirement: ComputeRequirement):
             print_yd_object(instance)
     else:
         print_numbered_object_list(CLIENT, instances)
+
+
+def list_nodes(worker_pool_summary: WorkerPoolSummary):
+    """
+    List the nodes in a Worker Pool. Supplies the detailed vuw
+    """
+    nodes_search = NodeSearch(worker_pool_summary.id)
+    search_client = CLIENT.worker_pool_client.get_nodes(search=nodes_search)
+    nodes: List[Node] = search_client.list_all()
+
+    if ARGS_PARSER.details:
+        for node in select(CLIENT, nodes):
+            print_yd_object(node)
+    else:
+        print_numbered_object_list(CLIENT, nodes)
 
 
 def list_compute_templates():

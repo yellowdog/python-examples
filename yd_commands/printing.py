@@ -33,6 +33,7 @@ from yellowdog_client.model import (
     KeyringSummary,
     MachineImageFamilySummary,
     NamespacePolicy,
+    Node,
     NodeStatus,
     NodeSummary,
     ObjectDetail,
@@ -218,6 +219,7 @@ TYPE_MAP = {
     TaskGroup: "Task Group",
     WorkRequirementSummary: "Work Requirement",
     WorkerPoolSummary: "Worker Pool",
+    Node: "Node",
 }
 
 
@@ -535,6 +537,40 @@ def instances_table(
     return headers, table
 
 
+def nodes_table(
+    nodes: List[Node],
+) -> (List[str], List[str]):
+    headers = [
+        "#",
+        "Provider",
+        "RAM",
+        "vCPUs",
+        "Task Types",
+        "Worker Tag",
+        "# Workers",
+        "Status",
+        "ID",
+    ]
+    table = []
+    for index, node in enumerate(nodes):
+        if node.details is None:
+            continue
+        table.append(
+            [
+                index + 1,
+                node.details.provider,
+                node.details.ram,
+                node.details.vcpus,
+                ", ".join(node.details.supportedTaskTypes),
+                node.details.workerTag,
+                len(node.workers),
+                node.status,
+                node.id,
+            ]
+        )
+    return headers, table
+
+
 def allowances_table(
     allowances: List[Allowance],
 ) -> (List[str], List[str]):
@@ -691,6 +727,8 @@ def print_numbered_object_list(
         headers, table = attribute_definitions_table(objects)
     elif isinstance(objects[0], NamespacePolicy):
         headers, table = namespace_policies_table(objects)
+    elif isinstance(objects[0], Node):
+        headers, table = nodes_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
@@ -731,7 +769,7 @@ def sorted_objects(
     """
     Sort objects by their 'name' property, or 'namespace' in the case of
     Namespace Storage Configurations, or 'instanceType' in the case of
-    Instances.
+    Instances, etc.
     """
     if len(objects) == 0:
         return objects
@@ -744,6 +782,9 @@ def sorted_objects(
 
     if isinstance(objects[0], Instance):
         return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)
+
+    if isinstance(objects[0], Node):
+        return sorted(objects, key=lambda x: str(x.status), reverse=reverse)
 
     if isinstance(objects[0], AWSAvailabilityZone):
         return sorted(objects)

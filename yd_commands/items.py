@@ -16,6 +16,7 @@ from yellowdog_client.model import (
     MachineImageFamilySummary,
     NamespacePolicy,
     NamespaceStorageConfiguration,
+    Node,
     ObjectPath,
     ProvisionedWorkerPool,
     Task,
@@ -46,4 +47,5 @@ Item = TypeVar(
     TaskGroup,
     WorkRequirementSummary,
     WorkerPoolSummary,
+    Node,
 )
