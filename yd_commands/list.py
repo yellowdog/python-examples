@@ -330,9 +330,7 @@ def list_instances(compute_requirement: ComputeRequirement):
     """
     List the instances within a Compute Requirement.
     """
-    instance_search: InstanceSearch = InstanceSearch(
-        computeRequirementId=compute_requirement.id
-    )
+    instance_search = InstanceSearch(computeRequirementId=compute_requirement.id)
     search_client: SearchClient = CLIENT.compute_client.get_instances(
         instance_search=instance_search
     )
@@ -352,10 +350,10 @@ def list_instances(compute_requirement: ComputeRequirement):
         return
 
     if ARGS_PARSER.details:
-        for instance in select(CLIENT, search_client.list_all()):
+        for instance in select(CLIENT, instances):
             print_yd_object(instance)
     else:
-        print_numbered_object_list(CLIENT, search_client.list_all())
+        print_numbered_object_list(CLIENT, instances)
 
 
 def list_compute_templates():
