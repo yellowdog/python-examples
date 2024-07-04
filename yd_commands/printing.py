@@ -42,6 +42,7 @@ from yellowdog_client.model import (
     ProvisionedWorkerPoolProperties,
     Task,
     TaskGroup,
+    Worker,
     WorkerPool,
     WorkerPoolSummary,
     WorkRequirement,
@@ -213,13 +214,14 @@ TYPE_MAP = {
     KeyringSummary: "Keyring",
     MachineImageFamilySummary: "Machine Image Family",
     NamespacePolicy: "Namespace Policy",
+    Node: "Node",
     ObjectPath: "Object Path",
     ProvisionedWorkerPool: "Provisioned Worker Pool",
     Task: "Task",
     TaskGroup: "Task Group",
     WorkRequirementSummary: "Work Requirement",
+    Worker: "Worker",
     WorkerPoolSummary: "Worker Pool",
-    Node: "Node",
 }
 
 
@@ -571,6 +573,34 @@ def nodes_table(
     return headers, table
 
 
+def workers_table(
+    workers: List[Worker],
+) -> (List[str], List[str]):
+    headers = [
+        "#",
+        "Task Types",
+        "Worker Tag",
+        "Status",
+        "Claims",
+        "Exclusive?",
+        "ID",
+    ]
+    table = []
+    for index, worker in enumerate(workers):
+        table.append(
+            [
+                index + 1,
+                ", ".join(worker.taskTypes),
+                worker.workerTag,
+                worker.status,
+                worker.claimCount,
+                worker.exclusive,
+                worker.id,
+            ]
+        )
+    return headers, table
+
+
 def allowances_table(
     allowances: List[Allowance],
 ) -> (List[str], List[str]):
@@ -729,6 +759,8 @@ def print_numbered_object_list(
         headers, table = namespace_policies_table(objects)
     elif isinstance(objects[0], Node):
         headers, table = nodes_table(objects)
+    elif isinstance(objects[0], Worker):
+        headers, table = workers_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
@@ -785,6 +817,9 @@ def sorted_objects(
 
     if isinstance(objects[0], Node):
         return sorted(objects, key=lambda x: str(x.status), reverse=reverse)
+
+    if isinstance(objects[0], Worker):
+        return sorted(objects, key=lambda x: str(x.id), reverse=reverse)
 
     if isinstance(objects[0], AWSAvailabilityZone):
         return sorted(objects)

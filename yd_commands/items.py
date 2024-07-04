@@ -21,6 +21,7 @@ from yellowdog_client.model import (
     ProvisionedWorkerPool,
     Task,
     TaskGroup,
+    Worker,
     WorkerPoolSummary,
     WorkRequirementSummary,
 )
@@ -45,6 +46,7 @@ Item = TypeVar(
     ProvisionedWorkerPool,
     Task,
     TaskGroup,
+    Worker,
     WorkRequirementSummary,
     WorkerPoolSummary,
     Node,

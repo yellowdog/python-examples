@@ -523,6 +523,12 @@ class CLIParser:
                 help="list worker pool nodes",
             )
             parser.add_argument(
+                "--workers",
+                action="store_true",
+                required=False,
+                help="list all workers in a worker pool",
+            )
+            parser.add_argument(
                 "--public-ips-only",
                 action="store_true",
                 required=False,
@@ -1338,6 +1344,11 @@ class CLIParser:
     @allow_missing_attribute
     def nodes(self) -> Optional[bool]:
         return self.args.nodes
+
+    @property
+    @allow_missing_attribute
+    def workers(self) -> Optional[bool]:
+        return self.args.workers
 
     @property
     @allow_missing_attribute
