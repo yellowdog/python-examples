@@ -244,23 +244,30 @@ def list_object_paths():
 
 
 def list_worker_pools():
+    print_log(f"Displaying Worker Pools with '{CONFIG_COMMON.namespace}' in namespace")
+
     worker_pool_summaries: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()
     )
+
     excluded_states = (
         [WorkerPoolStatus.TERMINATED, WorkerPoolStatus.SHUTDOWN]
         if ARGS_PARSER.active_only
         else []
     )
+
     showing_all = True
     if ARGS_PARSER.active_only:
         print_log("Displaying active Worker Pools only")
         showing_all = False
+
     worker_pool_summaries = [
         wp_summary
         for wp_summary in worker_pool_summaries
         if wp_summary.status not in excluded_states
+        and CONFIG_COMMON.namespace in wp_summary.namespace
     ]
+
     if len(worker_pool_summaries) == 0:
         print_log("No Worker Pools to display")
         return
