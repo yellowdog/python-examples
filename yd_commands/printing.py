@@ -260,7 +260,7 @@ def compute_requirement_table(
         "Namespace",
         "Tag",
         "Status (Tgt/Exp)",
-        "ID",
+        "Compute Requirement ID",
     ]
     table = []
     for index, cr in enumerate(cr_list):
@@ -285,7 +285,14 @@ def compute_requirement_table(
 def work_requirement_table(
     wr_summary_list: List[WorkRequirementSummary],
 ) -> (List[str], List[List]):
-    headers = ["#", "Work Requirement Name", "Namespace", "Tag", "Status", "ID"]
+    headers = [
+        "#",
+        "Work Requirement Name",
+        "Namespace",
+        "Tag",
+        "Status",
+        "Work Requirement ID",
+    ]
     table = []
     for index, wr_summary in enumerate(wr_summary_list):
         namespace = "" if wr_summary.namespace is None else wr_summary.namespace
@@ -306,7 +313,7 @@ def work_requirement_table(
 def task_group_table(
     task_group_list: List[TaskGroup],
 ) -> (List[str], List[List]):
-    headers = ["#", "Task Group Name", "Status", "ID"]
+    headers = ["#", "Task Group Name", "Status", "Task Group ID"]
     table = []
     for index, task_group in enumerate(task_group_list):
         status_msg = str(task_group.status)
@@ -326,7 +333,7 @@ def task_group_table(
 
 
 def task_table(task_list: List[Task]) -> (List[str], List[List]):
-    headers = ["#", "Task Name", "Status", "ID"]
+    headers = ["#", "Task Name", "Status", "Task ID"]
     table = []
     for index, task in enumerate(task_list):
         table.append(
@@ -346,9 +353,10 @@ def worker_pool_table(
     headers = [
         "#",
         "Worker Pool Name",
+        "Namespace",
         "Type",
         "Status",
-        "ID",
+        "Worker Pool ID",
     ]
     table = []
     for index, worker_pool_summary in enumerate(worker_pool_summaries):
@@ -356,6 +364,7 @@ def worker_pool_table(
             [
                 index + 1,
                 worker_pool_summary.name,
+                worker_pool_summary.namespace,
                 f"{worker_pool_summary.type.split('.')[-1:][0].replace('WorkerPool', '')}",
                 f"{worker_pool_summary.status}",
                 worker_pool_summary.id,
@@ -373,7 +382,7 @@ def compute_requirement_template_table(
         "Namespace",
         "Type",
         "Strategy Type",
-        "ID",
+        "Compute Requirement Template ID",
     ]
     table = []
     for index, crt_summary in enumerate(crt_summaries):
@@ -409,7 +418,7 @@ def compute_source_template_table(
         "Namespace",
         "Provider",
         "Type",
-        "ID",
+        "Compute Source Template ID",
     ]
     table = []
     for index, cst_summary in enumerate(cst_summaries):
@@ -441,7 +450,7 @@ def keyring_table(
         "#",
         "Name",
         "Description",
-        "ID",
+        "Keyring ID",
     ]
     table = []
     for index, keyring in enumerate(keyring_summaries):
@@ -465,7 +474,7 @@ def image_family_table(
         "Access",
         "Namespace",
         "OS Type",
-        "ID",
+        "Image Family ID",
     ]
     table = []
     for index, image_family in enumerate(image_family_summaries):
@@ -533,7 +542,7 @@ def nodes_table(
         "Worker Tag",
         "# Workers",
         "Status",
-        "ID",
+        "Node ID",
     ]
     table = []
     for index, node in enumerate(nodes):
@@ -567,7 +576,7 @@ def workers_table(
         "Status",
         "Claims",
         "Exclusive?",
-        "ID",
+        "Worker ID",
     ]
     table = []
     for index, worker in enumerate(workers):
@@ -597,7 +606,7 @@ def allowances_table(
         "Remaining Hrs",
         "Limit",
         "Reset",
-        "ID",
+        "Allowances ID",
     ]
     table = []
     for index, allowance in enumerate(allowances):
@@ -950,7 +959,7 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
             "Provider",
             "Type",
             "Region",
-            "InstanceType",
+            "Instance Type",
             "Source Name",
         ]
     ]
