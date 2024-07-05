@@ -34,8 +34,6 @@ from yellowdog_client.model import (
     MachineImageFamilySummary,
     NamespacePolicy,
     Node,
-    NodeStatus,
-    NodeSummary,
     ObjectDetail,
     ObjectPath,
     ProvisionedWorkerPool,
@@ -43,7 +41,6 @@ from yellowdog_client.model import (
     Task,
     TaskGroup,
     Worker,
-    WorkerPool,
     WorkerPoolSummary,
     WorkRequirement,
     WorkRequirementSummary,
@@ -351,32 +348,16 @@ def worker_pool_table(
         "Worker Pool Name",
         "Type",
         "Status",
-        "Min/Run/Max",
         "ID",
     ]
     table = []
     for index, worker_pool_summary in enumerate(worker_pool_summaries):
-        worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_id(
-            worker_pool_summary.id
-        )
-        try:
-            min_nodes = str(worker_pool.properties.minNodes)
-        except:
-            min_nodes = "_"
-        try:
-            max_nodes = str(worker_pool.properties.maxNodes)
-        except:
-            max_nodes = "_"
-        node_summary: NodeSummary = worker_pool.nodeSummary
-        nodes_running = node_summary.statusCounts[NodeStatus.RUNNING]
-
         table.append(
             [
                 index + 1,
                 worker_pool_summary.name,
                 f"{worker_pool_summary.type.split('.')[-1:][0].replace('WorkerPool', '')}",
                 f"{worker_pool_summary.status}",
-                f"{min_nodes}/{nodes_running}/{max_nodes}",
                 worker_pool_summary.id,
             ]
         )
@@ -544,6 +525,7 @@ def nodes_table(
 ) -> (List[str], List[str]):
     headers = [
         "#",
+        "Worker Pool Name",
         "Provider",
         "RAM",
         "vCPUs",
@@ -560,6 +542,7 @@ def nodes_table(
         table.append(
             [
                 index + 1,
+                node.worker_pool_name,
                 node.details.provider,
                 node.details.ram,
                 node.details.vcpus,
@@ -578,6 +561,7 @@ def workers_table(
 ) -> (List[str], List[str]):
     headers = [
         "#",
+        "Worker Pool Name",
         "Task Types",
         "Worker Tag",
         "Status",
@@ -590,8 +574,9 @@ def workers_table(
         table.append(
             [
                 index + 1,
-                ", ".join(worker.taskTypes),
-                worker.workerTag,
+                worker.worker_pool_name,
+                ", ".join(worker.task_types),
+                worker.worker_tag,
                 worker.status,
                 worker.claimCount,
                 worker.exclusive,
@@ -816,10 +801,11 @@ def sorted_objects(
         return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)
 
     if isinstance(objects[0], Node):
-        return sorted(objects, key=lambda x: str(x.status), reverse=reverse)
+        # Note: worker_pool property is added dynamically in yd_list
+        return sorted(objects, key=lambda x: str(x.worker_pool_name), reverse=reverse)
 
     if isinstance(objects[0], Worker):
-        return sorted(objects, key=lambda x: str(x.id), reverse=reverse)
+        return sorted(objects, key=lambda x: str(x.worker_pool_name), reverse=reverse)
 
     if isinstance(objects[0], AWSAvailabilityZone):
         return sorted(objects)

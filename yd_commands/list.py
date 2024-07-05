@@ -32,6 +32,7 @@ from yellowdog_client.model import (
     NamespaceStorageConfiguration,
     Node,
     NodeSearch,
+    NodeStatus,
     ObjectDetail,
     Task,
     TaskGroup,
@@ -39,6 +40,7 @@ from yellowdog_client.model import (
     WorkerPool,
     WorkerPoolStatus,
     WorkerPoolSummary,
+    WorkerStatus,
     WorkRequirementStatus,
     WorkRequirementSummary,
 )
@@ -67,7 +69,7 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 @main_wrapper
 def main():
     if not check_for_valid_option():
-        raise Exception("Please choose a single, valid listing type")
+        raise Exception("Please choose a (single) listing type")
 
     # Always use interactive mode for selections
     ARGS_PARSER.interactive = True
@@ -265,16 +267,15 @@ def list_worker_pools():
 
     if ARGS_PARSER.nodes or ARGS_PARSER.workers:
         print_log(
-            "Please select the Worker Pool for which to list "
-            f"{'Nodes' if ARGS_PARSER.nodes else 'all Workers'}"
+            "Please select the Worker Pool(s) for which to list "
+            f"{'Nodes' if ARGS_PARSER.nodes else 'Workers'}"
         )
-        worker_pool_summary = select(
+        worker_pool_summaries = select(
             CLIENT,
             sorted_objects(worker_pool_summaries),
             showing_all=showing_all,
-            single_result=True,
         )
-        list_nodes(worker_pool_summary[0])
+        list_nodes(worker_pool_summaries)
         return
 
     if ARGS_PARSER.details:
@@ -376,23 +377,36 @@ def list_instances(compute_requirement: ComputeRequirement):
         print_numbered_object_list(CLIENT, instances)
 
 
-def list_nodes(worker_pool_summary: WorkerPoolSummary):
+def list_nodes(worker_pool_summaries: List[WorkerPoolSummary]):
     """
-    List the nodes in a Worker Pool.
+    List the Nodes in a list of Worker Pools.
     """
-    nodes_search = NodeSearch(worker_pool_summary.id)
-    search_client = CLIENT.worker_pool_client.get_nodes(search=nodes_search)
-    nodes: List[Node] = search_client.list_all()
+    nodes_all: List[Node] = []
+    for worker_pool_summary in worker_pool_summaries:
+        nodes_search = NodeSearch(
+            worker_pool_summary.id,
+            statuses=[NodeStatus.RUNNING] if ARGS_PARSER.active_only else None,
+        )
+        search_client = CLIENT.worker_pool_client.get_nodes(search=nodes_search)
+        nodes: List[Node] = search_client.list_all()
+        for node in nodes:
+            node.worker_pool_name = worker_pool_summary.name
+        nodes_all += nodes
+
+    if len(nodes_all) == 0:
+        print_log("No Nodes to display")
+        return
 
     if ARGS_PARSER.workers:
-        list_workers(nodes)
+        list_workers(nodes_all)
         return
 
     if ARGS_PARSER.details:
-        for node in select(CLIENT, nodes):
+        for node in select(CLIENT, nodes_all):
+            delattr(node, "worker_pool_name")
             print_yd_object(node)
     else:
-        print_numbered_object_list(CLIENT, nodes)
+        print_numbered_object_list(CLIENT, nodes_all)
 
 
 def list_workers(nodes: List[Node]):
@@ -402,16 +416,31 @@ def list_workers(nodes: List[Node]):
     workers_all: List[Worker] = []
     for node in nodes:
         for worker in node.workers:
+            if ARGS_PARSER.active_only:
+                if worker.status not in [
+                    WorkerStatus.SLEEPING,
+                    WorkerStatus.DOING_TASK,
+                    WorkerStatus.FOUND,
+                ]:
+                    continue
             # Add extra info to the Worker object
-            worker.workerTag = node.details.workerTag
-            worker.taskTypes = node.details.supportedTaskTypes
+            worker.worker_tag = node.details.workerTag
+            worker.task_types = node.details.supportedTaskTypes
+            worker.worker_pool_name = node.worker_pool_name
             workers_all.append(worker)
+
+    if len(workers_all) == 0:
+        print_log("No Workers to display")
+        return
 
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, workers_all)
         return
 
     for worker in select(CLIENT, workers_all):
+        delattr(worker, "worker_tag")
+        delattr(worker, "task_types")
+        delattr(worker, "worker_pool_name")
         print_yd_object(worker)
 
 

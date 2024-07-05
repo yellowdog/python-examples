@@ -2,7 +2,7 @@
 Load data for resource creation/update/removal requests.
 """
 
-from sys import argv, exit
+from sys import exit
 from typing import Dict, List
 
 from yd_commands.args import ARGS_PARSER
