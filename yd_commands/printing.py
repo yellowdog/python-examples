@@ -226,7 +226,7 @@ def print_table_core(table: str):
     """
     Core function for printing a table.
     """
-    if ARGS_PARSER.no_format:
+    if ARGS_PARSER.no_format or table.count("\n") > MAX_LINES_COLOURED_JSON:
         print(table, flush=True)
     else:
         CONSOLE_TABLE.print(table)
@@ -1115,7 +1115,7 @@ STATUS_COUNTS_NODES = [
     StatusCount("LOST"),
 ]
 
-STATUS_COUNTS_NODEACTIONS = [
+STATUS_COUNTS_NODE_ACTIONS = [
     # StatusCount("EMPTY", True),
     StatusCount("WAITING", True),
     StatusCount("EXECUTING", True),
@@ -1201,7 +1201,7 @@ def print_event(event: str, id_type: YDIDType):
             STATUS_COUNTS_NODES, event_data["nodeSummary"]["statusCounts"]
         )
         node_actions_msg = status_counts_msg(
-            STATUS_COUNTS_NODEACTIONS,
+            STATUS_COUNTS_NODE_ACTIONS,
             event_data["nodeSummary"]["actionQueueStatuses"],
             empty_msg_if_zero_total=True,
         )
