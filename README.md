@@ -2453,6 +2453,8 @@ The `--quiet` or `-q` option reduces the command output down to essential messag
 
 If you encounter an error it can be useful for support purposes to see the full Python stack trace. This can be enabled by running the command using the `--debug` option.
 
+To suppress output formatting, including coloured output and line wrapping, the `--no-format` option can be used. Note that any outputs exceeding 1,000 lines in size (e.g., a very large JSON object, or table), will not produce coloured output.
+
 ## yd-submit
 
 The `yd-submit` command submits a new Work Requirement, according to the Work Requirement definition found in the `workRequirement` section of the TOML configuration file and/or the specification found in a Work Requirement JSON document supplied using the `--work-requirement` option.
@@ -2615,23 +2617,29 @@ The `yd-list` command is used to list various YellowDog items, using the `namesp
 
 - Allowances
 - Attribute Definitions
+- Compute Requirement Templates
 - Compute Requirements
-- Compute Templates
+- Compute Source Templates
 - Image Families, Image Groups, and Images
 - Instances
 - Keyrings
 - Namespace Policies
 - Namespace Storage Configurations
+- Nodes
 - Objects in the Object Store
-- Source Templates
 - Task Groups
 - Tasks
 - Work Requirements
 - Worker Pools
+- Workers
 
 Please use `yd-list --help` to inspect the various options.
 
 In some cases a `--details/-d` option can be supplied to drill down into additional detail on selected resources. For example `yd-list --keyrings --details` allows inspection of the Credentials within the selected Keyrings.
+
+The `--active` flag can be used to list only entities that are in a non-terminated state, if applicable, for example Work Requirements and Worker Pools.
+
+To relax filtering on `namespace` and `tag`, these can be set to empty strings using `-n -t` without values.
 
 ## yd-resize
 
@@ -2684,7 +2692,7 @@ The `yd-boost` command is used to boost Allowances by the specified number of ho
 
 ## yd-show
 
-The `yd-show` command will show the details (in JSON) of any YellowDog entity by its YellowDog ID. It supports IDs referring to:
+The `yd-show` command will show the details (in JSON) of any YellowDog entity that has a YellowDog ID. It supports IDs referring to:
 
 - Compute Source Templates
 - Compute Requirement Templates

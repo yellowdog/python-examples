@@ -60,7 +60,7 @@ from yd_commands.settings import (
     ERROR_STYLE,
     HIGHLIGHTED_STATES,
     JSON_INDENT,
-    MAX_LINES_COLOURED_JSON,
+    MAX_LINES_COLOURED_FORMATTING,
     NAMESPACE_PREFIX_SEPARATOR,
     WARNING_STYLE,
 )
@@ -226,7 +226,7 @@ def print_table_core(table: str):
     """
     Core function for printing a table.
     """
-    if ARGS_PARSER.no_format or table.count("\n") > MAX_LINES_COLOURED_JSON:
+    if ARGS_PARSER.no_format or table.count("\n") > MAX_LINES_COLOURED_FORMATTING:
         print(table, flush=True)
     else:
         CONSOLE_TABLE.print(table)
@@ -810,10 +810,11 @@ def sorted_objects(
         return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)
 
     if isinstance(objects[0], Node):
-        # Note: worker_pool property is added dynamically in yd_list
+        # Note: worker_pool_name property is added dynamically in yd_list
         return sorted(objects, key=lambda x: str(x.worker_pool_name), reverse=reverse)
 
     if isinstance(objects[0], Worker):
+        # Note: worker_pool_name property is added dynamically in yd_list
         return sorted(objects, key=lambda x: str(x.worker_pool_name), reverse=reverse)
 
     if isinstance(objects[0], AWSAvailabilityZone):
@@ -855,7 +856,7 @@ def print_json(
         json_string = "\n".join(json_string.splitlines()[1:])
 
     # Coloured formatting of JSON console output is expensive
-    if json_string.count("\n") > MAX_LINES_COLOURED_JSON or ARGS_PARSER.no_format:
+    if json_string.count("\n") > MAX_LINES_COLOURED_FORMATTING or ARGS_PARSER.no_format:
         if with_final_comma:
             print(json_string, end=",\n", flush=True)
         else:
