@@ -354,6 +354,13 @@ class CLIParser:
                 required=False,
                 help="list all objects, at all levels in the prefix hierarchy",
             )
+            parser.add_argument(
+                "--non-exact-namespace-match",
+                "-N",
+                action="store_true",
+                required=False,
+                help="match all namespaces that contain the value of 'namespace'",
+            )
 
         if "download" in sys.argv[0]:
             parser.add_argument(
@@ -1159,6 +1166,11 @@ class CLIParser:
     @allow_missing_attribute
     def all(self) -> Optional[bool]:
         return self.args.all
+
+    @property
+    @allow_missing_attribute
+    def non_exact_namespace_match(self) -> Optional[bool]:
+        return self.args.non_exact_namespace_match
 
     @property
     @allow_missing_attribute

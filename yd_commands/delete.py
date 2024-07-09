@@ -5,7 +5,10 @@ A script to delete YellowDog Object Store items.
 """
 
 from yd_commands.interactive import confirmed, select
-from yd_commands.object_utilities import list_matching_object_paths
+from yd_commands.object_utilities import (
+    get_non_exact_namespace_matches,
+    list_matching_object_paths,
+)
 from yd_commands.printing import print_log
 from yd_commands.utils import unpack_namespace_in_prefix
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -13,6 +16,22 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
+
+    # Non-exact matching of namespace property
+    if ARGS_PARSER.non_exact_namespace_match:
+        print_log("Using non-exact namespace matching")
+        matching_namespaces = get_non_exact_namespace_matches(
+            CLIENT, CONFIG_COMMON.namespace
+        )
+        if len(matching_namespaces) == 0:
+            print_log("No matching namespaces")
+            return
+        print_log(f"{len(matching_namespaces)} namespace(s) to consider")
+        for namespace in matching_namespaces:
+            _, tag = unpack_namespace_in_prefix(namespace, CONFIG_COMMON.name_tag)
+            delete_object_paths(namespace, tag, ARGS_PARSER.all)
+        return
+
     # Direct command line argument overrides tag/prefix
     if len(ARGS_PARSER.object_paths_to_delete) > 0:
         for object_path in ARGS_PARSER.object_paths_to_delete:

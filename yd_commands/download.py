@@ -16,7 +16,10 @@ from yellowdog_client.object_store.download.download_batch_builder import (
 from yellowdog_client.object_store.model import FileTransferStatus
 
 from yd_commands.interactive import confirmed, select
-from yd_commands.object_utilities import list_matching_object_paths
+from yd_commands.object_utilities import (
+    get_non_exact_namespace_matches,
+    list_matching_object_paths,
+)
 from yd_commands.printing import print_batch_download_files, print_log
 from yd_commands.utils import unpack_namespace_in_prefix
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -24,6 +27,24 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
+
+    # Non-exact matching of namespace property
+    if ARGS_PARSER.non_exact_namespace_match:
+        print_log("Using non-exact namespace matching")
+        matching_namespaces = get_non_exact_namespace_matches(
+            CLIENT, CONFIG_COMMON.namespace
+        )
+        if len(matching_namespaces) == 0:
+            print_log("No matching namespaces")
+            return
+        print_log(f"{len(matching_namespaces)} namespace(s) to consider")
+        for namespace in matching_namespaces:
+            _, tag = unpack_namespace_in_prefix(namespace, CONFIG_COMMON.name_tag)
+            download_object_paths(
+                namespace, tag, ARGS_PARSER.object_path_pattern, ARGS_PARSER.all
+            )
+        return
+
     # Direct command line argument overrides tag/prefix
     if len(ARGS_PARSER.object_paths_to_download) > 0:
         for object_path in ARGS_PARSER.object_paths_to_download:

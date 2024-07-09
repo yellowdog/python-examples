@@ -331,3 +331,23 @@ def get_tasks(client: PlatformClient, wr_id: str, task_group_id: str) -> List[Ta
     )
     tasks: List[Task] = client.work_client.find_tasks(task_search)
     return tasks
+
+
+def get_non_exact_namespace_matches(
+    client: PlatformClient, namespace_to_match: str
+) -> List[str]:
+    """
+    Find namespaces which contain 'namespace_to_match'.
+    """
+    all_namespaces = client.object_store_client.get_namespaces() + [
+        nssc.namespace
+        for nssc in client.object_store_client.get_namespace_storage_configurations()
+    ]
+    matching_namespaces = sorted(
+        list(
+            {  # Note: use set because duplicate namespaces can be returned
+                ns for ns in all_namespaces if namespace_to_match in ns
+            }
+        )
+    )
+    return matching_namespaces
