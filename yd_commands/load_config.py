@@ -120,16 +120,16 @@ def load_config_common() -> ConfigCommon:
 
         # Provide default values for namespace and tag
         if common_section.get(NAMESPACE, None) is None:
-            common_section[NAMESPACE] = "{{username}}_namespace"
+            common_section[NAMESPACE] = "namespace_{{username}}"
             print_log(
                 "Using default value for 'namespace' = "
-                f"'{VARIABLE_SUBSTITUTIONS['username']}_namespace'"
+                f"'namespace_{VARIABLE_SUBSTITUTIONS['username']}'"
             )
         if common_section.get(NAME_TAG, None) is None:
-            common_section[NAME_TAG] = "{{username}}_tag"
+            common_section[NAME_TAG] = "tag_{{username}}"
             print_log(
                 "Using default value for 'tag/prefix' = "
-                f"'{VARIABLE_SUBSTITUTIONS['username']}_tag'"
+                f"'tag_{VARIABLE_SUBSTITUTIONS['username']}'"
             )
 
         url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
