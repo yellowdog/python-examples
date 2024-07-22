@@ -616,7 +616,7 @@ In addition to the property inheritance mechanism, some properties are set autom
 
 ### Work Requirement, Task Group and Task Naming
 
-- The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: e,g.: `mytag_221024-15552480`.
+- The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: e.g.: `mytag_221024-15552480`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
 - **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
 
