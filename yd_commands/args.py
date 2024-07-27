@@ -258,6 +258,13 @@ class CLIParser:
                 required=False,
                 help="set the work requirement status to 'HELD' on submission",
             )
+            parser.add_argument(
+                "--parallel",
+                "-l",
+                action="store_true",
+                required=False,
+                help="use multithreaded parallel upload of task batches",
+            )
 
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
             parser.add_argument(
@@ -1276,6 +1283,11 @@ class CLIParser:
     @allow_missing_attribute
     def pause_between_batches(self) -> Optional[int]:
         return self.args.pause_between_batches
+
+    @property
+    @allow_missing_attribute
+    def parallel(self) -> Optional[bool]:
+        return self.args.parallel
 
     @property
     @allow_missing_attribute

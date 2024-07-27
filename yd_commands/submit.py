@@ -4,6 +4,7 @@
 A script to submit a Work Requirement.
 """
 
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from datetime import timedelta
 from math import ceil
@@ -48,9 +49,12 @@ from yd_commands.printing import (
     print_json,
     print_log,
     print_numbered_strings,
+    print_warning,
 )
 from yd_commands.property_names import *
 from yd_commands.settings import (
+    MAX_BATCH_SUBMIT_RETRIES,
+    MAX_PARALLEL_TASK_UPLOAD_THREADS,
     NAMESPACE_PREFIX_SEPARATOR,
     VAR_CLOSING_DELIMITER,
     VAR_OPENING_DELIMITER,
@@ -582,7 +586,6 @@ def add_tasks_to_task_group(
     tasks = wr_data[TASK_GROUPS][tg_number][TASKS]
     num_tasks = len(tasks) if task_count is None else task_count
     num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
-    tasks_list: List[Task] = []
     if num_task_batches > 1 and not ARGS_PARSER.dry_run:
         print_log(
             f"Adding Tasks to Task Group '{task_group.name}' in "
@@ -597,335 +600,430 @@ def add_tasks_to_task_group(
     )
     add_or_update_substitution(L_TASK_GROUP_COUNT, str(num_task_groups))
 
-    # Iterate through batches
-    for batch_number in range(num_task_batches):
-        if ARGS_PARSER.pause_between_batches is not None:
-            pause_between_batches(
-                task_batch_size=TASK_BATCH_SIZE,
-                batch_number=batch_number,
-                num_tasks=num_tasks,
-            )
-
-        # Iterate through tasks in the batch
-        for task_number in range(
-            (TASK_BATCH_SIZE * batch_number),
-            min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
-        ):
-            task_group_data = wr_data[TASK_GROUPS][tg_number]
-            task = tasks[task_number] if task_count is None else tasks[0]
-            task_name = format_yd_name(
-                get_task_name(
-                    task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
-                    task_number,
-                    num_tasks,
-                    tg_number,
-                    num_task_groups,
-                    task_group.name,
+    num_submitted_tasks = 0
+    if not ARGS_PARSER.parallel or num_task_batches == 1:
+        for batch_number in range(num_task_batches):
+            if ARGS_PARSER.pause_between_batches is not None and num_task_batches > 1:
+                pause_between_batches(
+                    task_batch_size=TASK_BATCH_SIZE,
+                    batch_number=batch_number,
+                    num_tasks=num_tasks,
                 )
+            tasks_list = generate_batch_of_tasks_for_task_group(
+                (TASK_BATCH_SIZE * batch_number),
+                min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
+                wr_data,
+                files_directory,
+                task_group,
+                tg_number,
+                tasks,
+                task_count,
+                num_tasks,
+                num_task_groups,
+                flatten_upload_paths,
+            )
+            num_submitted_tasks += submit_batch_of_tasks_to_task_group(
+                tasks_list, work_requirement, task_group, num_task_batches, batch_number
             )
 
-            add_or_update_substitution(L_TASK_NAME, str(task_name))
-            add_or_update_substitution(
-                L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
-            )
-            process_variable_substitutions_insitu(task)
-            config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
-
-            executable = check_str(
-                task.get(
-                    EXECUTABLE,
-                    task_group_data.get(
-                        EXECUTABLE, wr_data.get(EXECUTABLE, config_wr.executable)
-                    ),
-                )
-            )
-            arguments_list = check_list(
-                task.get(
-                    ARGS,
-                    wr_data.get(ARGS, task_group_data.get(ARGS, config_wr.args)),
-                )
-            )
-            env = check_dict(
-                task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, config_wr.env)))
-            )
-
-            add_yd_env_vars = check_bool(
-                task.get(
-                    ADD_YD_ENV_VARS,
-                    task_group_data.get(
-                        ADD_YD_ENV_VARS,
-                        wr_data.get(ADD_YD_ENV_VARS, config_wr.add_yd_env_vars),
-                    ),
-                )
-            )
-
-            flatten_input_paths: Optional[FlattenPath] = None
-            if check_bool(
-                task.get(
-                    FLATTEN_PATHS,
-                    task_group_data.get(
-                        FLATTEN_PATHS,
-                        wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
-                    ),
-                )
-            ):
-                flatten_input_paths = FlattenPath.FILE_NAME_ONLY
-
-            # Task timeout is automatically inherited from the Task Group level
-            # unless overridden by the Task
-            task_timeout_minutes = check_float_or_int(
-                task.get(TASK_LEVEL_TIMEOUT, CONFIG_WR.task_level_timeout)
-            )
-            task_timeout = (
-                None
-                if task_timeout_minutes is None
-                else timedelta(minutes=task_timeout_minutes)
-            )
-
-            # Set up lists of files to input, verify
-            input_files_list = check_list(
-                task.get(
-                    INPUTS_REQUIRED,
-                    task_group_data.get(
-                        INPUTS_REQUIRED,
-                        wr_data.get(INPUTS_REQUIRED, config_wr.inputs_required),
-                    ),
-                )
-            )
-            verify_at_start_files_list = check_list(
-                task.get(
-                    VERIFY_AT_START,
-                    task_group_data.get(
-                        VERIFY_AT_START,
-                        wr_data.get(VERIFY_AT_START, config_wr.verify_at_start),
-                    ),
-                )
-            )
-            verify_wait_files_list = check_list(
-                task.get(
-                    VERIFY_WAIT,
-                    task_group_data.get(
-                        VERIFY_WAIT, wr_data.get(VERIFY_WAIT, config_wr.verify_wait)
-                    ),
-                )
-            )
-            optional_inputs_list = check_list(
-                task.get(
-                    INPUTS_OPTIONAL,
-                    task_group_data.get(
-                        INPUTS_OPTIONAL,
-                        wr_data.get(INPUTS_OPTIONAL, config_wr.inputs_optional),
-                    ),
-                )
-            )
-
-            check_for_duplicates_in_file_lists(
-                input_files_list,
-                verify_at_start_files_list,
-                verify_wait_files_list,
-                optional_inputs_list,
-            )
-
-            # Upload files in the 'inputs' list, applying wildcard expansion.
-            # (Duplicates won't be re-added)
-            expanded_files_list: List[str] = []
-            for file in input_files_list:
-                expanded_files = UPLOADED_FILES.add_input_file(
-                    filename=file, flatten_upload_paths=flatten_upload_paths
-                )
-                expanded_files_list += expanded_files
-            input_files_list = expanded_files_list
-
-            # Upload files in the 'uploadFiles' list
-            upload_files = check_list(
-                task.get(
-                    UPLOAD_FILES,
-                    task_group_data.get(
-                        UPLOAD_FILES,
-                        wr_data.get(UPLOAD_FILES, config_wr.upload_files),
-                    ),
-                )
-            )
-            for file in upload_files:
-                try:
-                    UPLOADED_FILES.add_upload_file(file[LOCAL_PATH], file[UPLOAD_PATH])
-                except KeyError:
-                    raise Exception(
-                        f"Property '{UPLOAD_FILES}' must have entries with "
-                        f"properties '{LOCAL_PATH}' and '{UPLOAD_PATH}'"
-                    )
-
-            # Set up the 'inputs' property
-            inputs = generate_task_input_list(
-                files=[
-                    unique_upload_pathname(
-                        input_file, ID, INPUTS_FOLDER_NAME, False, flatten_upload_paths
-                    )
-                    for input_file in input_files_list
-                ],
-                verification=TaskInputVerification.VERIFY_AT_START,
-                wr_name=None,
-            )
-            inputs += generate_task_input_list(
-                verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START, ID
-            )
-            inputs += generate_task_input_list(
-                verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
-            )
-            inputs += generate_task_input_list(
-                files=optional_inputs_list, verification=None, wr_name=ID
-            )
-
-            inputs = deduplicate_inputs(inputs)
-
-            # Set up the 'outputs' property
-            outputs = [
-                TaskOutput.from_worker_directory(file_pattern=file, required=False)
-                for file in check_list(
-                    task.get(
-                        OUTPUTS_OPTIONAL,
-                        task_group_data.get(
-                            OUTPUTS_OPTIONAL,
-                            wr_data.get(OUTPUTS_OPTIONAL, config_wr.outputs_optional),
-                        ),
+    else:
+        with ThreadPoolExecutor(
+            max_workers=min(num_task_batches, MAX_PARALLEL_TASK_UPLOAD_THREADS)
+        ) as executor:
+            executors = []
+            tasks_lists: List[List[Task]] = []
+            for batch_number in range(num_task_batches):
+                tasks_lists.append(
+                    generate_batch_of_tasks_for_task_group(
+                        (TASK_BATCH_SIZE * batch_number),
+                        min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
+                        wr_data,
+                        files_directory,
+                        task_group,
+                        tg_number,
+                        tasks,
+                        task_count,
+                        num_tasks,
+                        num_task_groups,
+                        flatten_upload_paths,
                     )
                 )
-            ]
-
-            # Add the contents of the 'outputsRequired' property
-            outputs += [
-                TaskOutput.from_worker_directory(file_pattern=file, required=True)
-                for file in check_list(
-                    task.get(
-                        OUTPUTS_REQUIRED,
-                        task_group_data.get(
-                            OUTPUTS_REQUIRED,
-                            wr_data.get(OUTPUTS_REQUIRED, config_wr.outputs_required),
-                        ),
+                executors.append(
+                    executor.submit(
+                        submit_batch_of_tasks_to_task_group,
+                        tasks_lists[-1],
+                        work_requirement,
+                        task_group,
+                        num_task_batches,
+                        batch_number,
                     )
                 )
-            ]
 
-            # Add the contents of the 'outputsOther' property
-            for output_other in check_list(
-                task.get(
-                    OUTPUTS_OTHER,
-                    task_group_data.get(
-                        OUTPUTS_OTHER,
-                        wr_data.get(OUTPUTS_OTHER, config_wr.outputs_other),
-                    ),
-                )
-            ):
-                check_dict(output_other)
-                try:
-                    outputs.append(
-                        TaskOutput.from_directory(
-                            directory_name=output_other[DIRECTORY_NAME],
-                            file_pattern=output_other[FILE_PATTERN],
-                            required=output_other[REQUIRED],
-                        )
-                    )
-                except KeyError as e:
-                    raise Exception(
-                        f"Missing field in property '{OUTPUTS_OTHER}' ({e})"
-                    )
+            executor.shutdown()
+            num_submitted_tasks = sum([x.result() for x in executors])
 
-            # Add TaskOutput to 'outputs'?
-            if check_bool(
-                task.get(
-                    UPLOAD_TASKOUTPUT,
-                    task_group_data.get(
-                        UPLOAD_TASKOUTPUT,
-                        wr_data.get(UPLOAD_TASKOUTPUT, config_wr.upload_taskoutput),
-                    ),
-                )
-            ):
-                outputs.append(TaskOutput.from_task_process())
+    if not ARGS_PARSER.dry_run:
+        if num_submitted_tasks > 0:
+            print_log(
+                f"Added a total of {num_submitted_tasks:,d} Task(s) to Task Group"
+                f" '{task_group.name}'"
+            )
+        else:
+            print_log(f"No Tasks added to Task Group '{task_group.name}'")
 
-            always_upload = task.get(
-                ALWAYS_UPLOAD,
+
+def generate_batch_of_tasks_for_task_group(
+    start_task_number: int,
+    end_task_number: int,
+    wr_data: Dict,
+    files_directory: str,
+    task_group: TaskGroup,
+    tg_number: int,
+    tasks: List,
+    task_count: int,
+    num_tasks: int,
+    num_task_groups: int,
+    flatten_upload_paths: bool,
+) -> List[Task]:
+    """
+    Generate a batch of tasks for subsequent addition to a task group.
+    """
+    tasks_list: List[Task] = []
+    for task_number in range(start_task_number, end_task_number):
+        task_group_data = wr_data[TASK_GROUPS][tg_number]
+        task = tasks[task_number] if task_count is None else tasks[0]
+        task_name = format_yd_name(
+            get_task_name(
+                task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
+                task_number,
+                num_tasks,
+                tg_number,
+                num_task_groups,
+                task_group.name,
+            )
+        )
+
+        add_or_update_substitution(L_TASK_NAME, str(task_name))
+        add_or_update_substitution(
+            L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
+        )
+        process_variable_substitutions_insitu(task)
+        config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
+
+        executable = check_str(
+            task.get(
+                EXECUTABLE,
                 task_group_data.get(
-                    ALWAYS_UPLOAD,
-                    wr_data.get(ALWAYS_UPLOAD, config_wr.always_upload),
+                    EXECUTABLE, wr_data.get(EXECUTABLE, config_wr.executable)
                 ),
             )
+        )
+        arguments_list = check_list(
+            task.get(
+                ARGS,
+                wr_data.get(ARGS, task_group_data.get(ARGS, config_wr.args)),
+            )
+        )
+        env = check_dict(
+            task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, config_wr.env)))
+        )
 
-            # Set 'alwaysUpload' for all outputs
-            for task_output in outputs:
-                task_output.alwaysUpload = always_upload
+        add_yd_env_vars = check_bool(
+            task.get(
+                ADD_YD_ENV_VARS,
+                task_group_data.get(
+                    ADD_YD_ENV_VARS,
+                    wr_data.get(ADD_YD_ENV_VARS, config_wr.add_yd_env_vars),
+                ),
+            )
+        )
 
-            # If there's no task type in the task definition, AND
-            # there's only one task type at the task group level,
-            # use that task type
+        flatten_input_paths: Optional[FlattenPath] = None
+        if check_bool(
+            task.get(
+                FLATTEN_PATHS,
+                task_group_data.get(
+                    FLATTEN_PATHS,
+                    wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
+                ),
+            )
+        ):
+            flatten_input_paths = FlattenPath.FILE_NAME_ONLY
+
+        # Task timeout is automatically inherited from the Task Group level
+        # unless overridden by the Task
+        task_timeout_minutes = check_float_or_int(
+            task.get(TASK_LEVEL_TIMEOUT, CONFIG_WR.task_level_timeout)
+        )
+        task_timeout = (
+            None
+            if task_timeout_minutes is None
+            else timedelta(minutes=task_timeout_minutes)
+        )
+
+        # Set up lists of files to input, verify
+        input_files_list = check_list(
+            task.get(
+                INPUTS_REQUIRED,
+                task_group_data.get(
+                    INPUTS_REQUIRED,
+                    wr_data.get(INPUTS_REQUIRED, config_wr.inputs_required),
+                ),
+            )
+        )
+        verify_at_start_files_list = check_list(
+            task.get(
+                VERIFY_AT_START,
+                task_group_data.get(
+                    VERIFY_AT_START,
+                    wr_data.get(VERIFY_AT_START, config_wr.verify_at_start),
+                ),
+            )
+        )
+        verify_wait_files_list = check_list(
+            task.get(
+                VERIFY_WAIT,
+                task_group_data.get(
+                    VERIFY_WAIT, wr_data.get(VERIFY_WAIT, config_wr.verify_wait)
+                ),
+            )
+        )
+        optional_inputs_list = check_list(
+            task.get(
+                INPUTS_OPTIONAL,
+                task_group_data.get(
+                    INPUTS_OPTIONAL,
+                    wr_data.get(INPUTS_OPTIONAL, config_wr.inputs_optional),
+                ),
+            )
+        )
+
+        check_for_duplicates_in_file_lists(
+            input_files_list,
+            verify_at_start_files_list,
+            verify_wait_files_list,
+            optional_inputs_list,
+        )
+
+        # Upload files in the 'inputs' list, applying wildcard expansion.
+        # (Duplicates won't be re-added)
+        expanded_files_list: List[str] = []
+        for file in input_files_list:
+            expanded_files = UPLOADED_FILES.add_input_file(
+                filename=file, flatten_upload_paths=flatten_upload_paths
+            )
+            expanded_files_list += expanded_files
+        input_files_list = expanded_files_list
+
+        # Upload files in the 'uploadFiles' list
+        upload_files = check_list(
+            task.get(
+                UPLOAD_FILES,
+                task_group_data.get(
+                    UPLOAD_FILES,
+                    wr_data.get(UPLOAD_FILES, config_wr.upload_files),
+                ),
+            )
+        )
+        for file in upload_files:
             try:
-                task_type = task[TASK_TYPE]
+                UPLOADED_FILES.add_upload_file(file[LOCAL_PATH], file[UPLOAD_PATH])
             except KeyError:
-                if len(task_group.runSpecification.taskTypes) == 1:
-                    task_type = task_group.runSpecification.taskTypes[0]
-                else:
-                    task_type = config_wr.task_type
+                raise Exception(
+                    f"Property '{UPLOAD_FILES}' must have entries with "
+                    f"properties '{LOCAL_PATH}' and '{UPLOAD_PATH}'"
+                )
 
-            tasks_list.append(
-                create_task(
-                    config_wr=config_wr,
-                    wr_data=wr_data,
-                    task_group_data=task_group_data,
-                    task_data=task,
-                    task_name=task_name,
-                    task_number=task_number + 1,
-                    tg_name=task_group.name,
-                    tg_number=tg_number + 1,
-                    task_type=task_type,
-                    executable=executable,
-                    args=arguments_list,
-                    task_data_property=get_task_data_property(
-                        config_wr,
-                        wr_data,
-                        task_group_data,
-                        task,
-                        task_name,
-                        files_directory,
+        # Set up the 'inputs' property
+        inputs = generate_task_input_list(
+            files=[
+                unique_upload_pathname(
+                    input_file, ID, INPUTS_FOLDER_NAME, False, flatten_upload_paths
+                )
+                for input_file in input_files_list
+            ],
+            verification=TaskInputVerification.VERIFY_AT_START,
+            wr_name=None,
+        )
+        inputs += generate_task_input_list(
+            verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START, ID
+        )
+        inputs += generate_task_input_list(
+            verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
+        )
+        inputs += generate_task_input_list(
+            files=optional_inputs_list, verification=None, wr_name=ID
+        )
+
+        inputs = deduplicate_inputs(inputs)
+
+        # Set up the 'outputs' property
+        outputs = [
+            TaskOutput.from_worker_directory(file_pattern=file, required=False)
+            for file in check_list(
+                task.get(
+                    OUTPUTS_OPTIONAL,
+                    task_group_data.get(
+                        OUTPUTS_OPTIONAL,
+                        wr_data.get(OUTPUTS_OPTIONAL, config_wr.outputs_optional),
                     ),
-                    env=env,
-                    inputs=inputs,
-                    outputs=outputs,
-                    task_timeout=task_timeout,
-                    flatten_upload_paths=flatten_upload_paths,
-                    flatten_input_paths=flatten_input_paths,
-                    add_yd_env_vars=add_yd_env_vars,
                 )
             )
+        ]
 
-        if not ARGS_PARSER.dry_run:
+        # Add the contents of the 'outputsRequired' property
+        outputs += [
+            TaskOutput.from_worker_directory(file_pattern=file, required=True)
+            for file in check_list(
+                task.get(
+                    OUTPUTS_REQUIRED,
+                    task_group_data.get(
+                        OUTPUTS_REQUIRED,
+                        wr_data.get(OUTPUTS_REQUIRED, config_wr.outputs_required),
+                    ),
+                )
+            )
+        ]
+
+        # Add the contents of the 'outputsOther' property
+        for output_other in check_list(
+            task.get(
+                OUTPUTS_OTHER,
+                task_group_data.get(
+                    OUTPUTS_OTHER,
+                    wr_data.get(OUTPUTS_OTHER, config_wr.outputs_other),
+                ),
+            )
+        ):
+            check_dict(output_other)
+            try:
+                outputs.append(
+                    TaskOutput.from_directory(
+                        directory_name=output_other[DIRECTORY_NAME],
+                        file_pattern=output_other[FILE_PATTERN],
+                        required=output_other[REQUIRED],
+                    )
+                )
+            except KeyError as e:
+                raise Exception(f"Missing field in property '{OUTPUTS_OTHER}' ({e})")
+
+        # Add TaskOutput to 'outputs'?
+        if check_bool(
+            task.get(
+                UPLOAD_TASKOUTPUT,
+                task_group_data.get(
+                    UPLOAD_TASKOUTPUT,
+                    wr_data.get(UPLOAD_TASKOUTPUT, config_wr.upload_taskoutput),
+                ),
+            )
+        ):
+            outputs.append(TaskOutput.from_task_process())
+
+        always_upload = task.get(
+            ALWAYS_UPLOAD,
+            task_group_data.get(
+                ALWAYS_UPLOAD,
+                wr_data.get(ALWAYS_UPLOAD, config_wr.always_upload),
+            ),
+        )
+
+        # Set 'alwaysUpload' for all outputs
+        for task_output in outputs:
+            task_output.alwaysUpload = always_upload
+
+        # If there's no task type in the task definition, AND
+        # there's only one task type at the task group level,
+        # use that task type
+        try:
+            task_type = task[TASK_TYPE]
+        except KeyError:
+            if len(task_group.runSpecification.taskTypes) == 1:
+                task_type = task_group.runSpecification.taskTypes[0]
+            else:
+                task_type = config_wr.task_type
+
+        tasks_list.append(
+            create_task(
+                config_wr=config_wr,
+                wr_data=wr_data,
+                task_group_data=task_group_data,
+                task_data=task,
+                task_name=task_name,
+                task_number=task_number + 1,
+                tg_name=task_group.name,
+                tg_number=tg_number + 1,
+                task_type=task_type,
+                executable=executable,
+                args=arguments_list,
+                task_data_property=get_task_data_property(
+                    config_wr,
+                    wr_data,
+                    task_group_data,
+                    task,
+                    task_name,
+                    files_directory,
+                ),
+                env=env,
+                inputs=inputs,
+                outputs=outputs,
+                task_timeout=task_timeout,
+                flatten_upload_paths=flatten_upload_paths,
+                flatten_input_paths=flatten_input_paths,
+                add_yd_env_vars=add_yd_env_vars,
+            )
+        )
+
+    return tasks_list
+
+
+def submit_batch_of_tasks_to_task_group(
+    tasks_list: List[Task],
+    work_requirement: WorkRequirement,
+    task_group: TaskGroup,
+    num_task_batches: int,
+    batch_number: int,
+) -> int:
+    """
+    Submit a batch of tasks to a task group. Return the number of tasks
+    submitted.
+    """
+    if ARGS_PARSER.dry_run:
+        global WR_SNAPSHOT
+        WR_SNAPSHOT.add_tasks(task_group.name, tasks_list)
+        return len(tasks_list)
+
+    warning_displayed = False
+    last_exception = None
+    for attempts in range(MAX_BATCH_SUBMIT_RETRIES):
+        try:
             CLIENT.work_client.add_tasks_to_task_group_by_name(
                 CONFIG_COMMON.namespace,
                 work_requirement.name,
                 task_group.name,
                 tasks_list,
             )
-        else:
-            global WR_SNAPSHOT
-            WR_SNAPSHOT.add_tasks(task_group.name, tasks_list)
-
-        if not ARGS_PARSER.dry_run:
             if num_task_batches > 1:
                 print_log(
                     f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} :"
                     f" Added {len(tasks_list):,d} Task(s) to Work Requirement Task"
                     f" Group '{task_group.name}'"
                 )
+            return len(tasks_list)
 
-        # Empty the task list for the next batch
-        tasks_list.clear()
+        except Exception as e:
+            if not warning_displayed:
+                print_warning(
+                    f"Failed to submit batch {batch_number + 1} of {num_task_batches}: {e}"
+                )
+                warning_displayed = True
+            if attempts < MAX_BATCH_SUBMIT_RETRIES - 1:
+                print_log(f"Retrying submission of batch {batch_number + 1}")
+            last_exception = e
 
-    if not ARGS_PARSER.dry_run:
-        if num_tasks > 0:
-            print_log(
-                f"Added a total of {num_tasks:,d} Task(s) to Task Group"
-                f" '{task_group.name}'"
-            )
-        else:
-            print_log(f"No Tasks added to Task Group '{task_group.name}'")
+    print_error(
+        f"Failed to submit batch {batch_number + 1} of {num_task_batches}: {last_exception}"
+    )
+    return 0  # Failed to submit task batch
 
 
 def get_task_data_property(
