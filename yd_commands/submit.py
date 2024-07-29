@@ -642,7 +642,9 @@ def add_tasks_to_task_group(
                 "Option 'pause-between-batches/-P' is ignored for parallel batch uploads"
             )
         max_workers = min(num_task_batches, ARGS_PARSER.parallel_batches)
-        print_log(f"Submitting task batches using {max_workers} parallel submission threads")
+        print_log(
+            f"Submitting task batches using {max_workers} parallel submission threads"
+        )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             executors: List[Future] = []
             tasks_lists: List[List[Task]] = []
@@ -1582,38 +1584,57 @@ def submit_json_raw(wr_file: str):
     # Submit Tasks in batches
     for task_group_name, task_list in task_lists.items():
         num_batches = ceil(len(task_list) / TASK_BATCH_SIZE)
-        for index in range(num_batches):
+        for batch_number in range(num_batches):
             task_batch = task_list[
-                index
-                * TASK_BATCH_SIZE : min(len(task_list), (index + 1) * TASK_BATCH_SIZE)
-            ]
-            response = requests.post(
-                url=(
-                    f"{CONFIG_COMMON.url}/work/namespaces/"
-                    f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
-                    f"taskGroups/{task_group_name}/tasks"
-                ),
-                headers={
-                    "Authorization": (
-                        f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
-                    )
-                },
-                json=task_batch,
-            )
-
-            if response.status_code == 200:
-                print_log(
-                    f"Added {len(task_batch)} Task(s) to Task Group "
-                    f"'{task_group_name}' (Batch {index + 1} of {num_batches})"
+                batch_number
+                * TASK_BATCH_SIZE : min(
+                    len(task_list), (batch_number + 1) * TASK_BATCH_SIZE
                 )
-            else:
+            ]
+            num_tasks_submitted, response_text = submit_json_task_batch(
+                task_batch, batch_number, num_batches, task_group_name, wr_name
+            )
+            if num_tasks_submitted == 0:
                 print_error(f"Failed to add Task(s) to Task Group '{task_group_name}'")
                 print_log(f"Cancelling Work Requirement '{wr_name}'")
                 CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
-                raise Exception(f"{response.text}")
+                raise Exception(f"{response_text}")
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
+
+
+def submit_json_task_batch(
+    task_batch: Dict,
+    batch_number: int,
+    num_batches: int,
+    task_group_name: str,
+    wr_name: str,
+) -> (int, str):
+    """
+    Submit a batch of tasks using the REST API. Return the number of tasks submitted
+    and the response text.
+    """
+    response = requests.post(
+        url=(
+            f"{CONFIG_COMMON.url}/work/namespaces/"
+            f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
+            f"taskGroups/{task_group_name}/tasks"
+        ),
+        headers={
+            "Authorization": (f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}")
+        },
+        json=task_batch,
+    )
+
+    if response.status_code == 200:
+        print_log(
+            f"Added {len(task_batch)} Task(s) to Task Group "
+            f"'{task_group_name}' (Batch {batch_number + 1} of {num_batches})"
+        )
+        return len(task_batch), response.text
+
+    return 0, response.text
 
 
 # Standalone entry point
