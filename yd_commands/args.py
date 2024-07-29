@@ -7,7 +7,7 @@ import sys
 from typing import List, Optional
 
 from yd_commands.__init__ import __version__
-from yd_commands.settings import MAX_PARALLEL_TASK_UPLOAD_THREADS
+from yd_commands.settings import MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS
 from yd_commands.version import DOCS_URL
 
 
@@ -265,10 +265,10 @@ class CLIParser:
                 "-l",
                 type=int,
                 required=False,
-                default=MAX_PARALLEL_TASK_UPLOAD_THREADS,
+                default=MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
                 help=(
                     "the maximum number of parallel task batch "
-                    f"uploads (default={MAX_PARALLEL_TASK_UPLOAD_THREADS})"
+                    f"uploads (default={MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS})"
                     "; set this to '1' for sequential batch upload"
                 ),
                 metavar="<max_number_of_parallel_batches>",
