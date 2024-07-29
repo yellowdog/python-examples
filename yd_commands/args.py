@@ -7,6 +7,7 @@ import sys
 from typing import List, Optional
 
 from yd_commands.__init__ import __version__
+from yd_commands.settings import MAX_PARALLEL_TASK_UPLOAD_THREADS
 from yd_commands.version import DOCS_URL
 
 
@@ -259,11 +260,16 @@ class CLIParser:
                 help="set the work requirement status to 'HELD' on submission",
             )
             parser.add_argument(
-                "--parallel",
+                "--parallel-batches",
                 "-l",
-                action="store_true",
+                type=int,
                 required=False,
-                help="use multithreaded parallel upload of task batches",
+                default=MAX_PARALLEL_TASK_UPLOAD_THREADS,
+                help=(
+                    "the maximum number of parallel task batch "
+                    f"uploads (default={MAX_PARALLEL_TASK_UPLOAD_THREADS})"
+                ),
+                metavar="<number_of_parallel_batches>",
             )
 
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
@@ -1286,8 +1292,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def parallel(self) -> Optional[bool]:
-        return self.args.parallel
+    def parallel_batches(self) -> Optional[int]:
+        return self.args.parallel_batches
 
     @property
     @allow_missing_attribute

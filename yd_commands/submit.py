@@ -601,7 +601,11 @@ def add_tasks_to_task_group(
     add_or_update_substitution(L_TASK_GROUP_COUNT, str(num_task_groups))
 
     num_submitted_tasks = 0
-    if not ARGS_PARSER.parallel or num_task_batches == 1:
+
+    # Single batch
+    if ARGS_PARSER.parallel_batches == 1 or num_task_batches == 1:
+        if num_task_batches > 1:
+            print_log("Uploading task batches sequentially")
         for batch_number in range(num_task_batches):
             if ARGS_PARSER.pause_between_batches is not None and num_task_batches > 1:
                 pause_between_batches(
@@ -626,10 +630,11 @@ def add_tasks_to_task_group(
                 tasks_list, work_requirement, task_group, num_task_batches, batch_number
             )
 
+    # Parallel batches
     else:
-        with ThreadPoolExecutor(
-            max_workers=min(num_task_batches, MAX_PARALLEL_TASK_UPLOAD_THREADS)
-        ) as executor:
+        max_workers = min(num_task_batches, ARGS_PARSER.parallel_batches)
+        print_log(f"Uploading task batches using {max_workers} parallel threads")
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             executors = []
             tasks_lists: List[List[Task]] = []
             for batch_number in range(num_task_batches):
