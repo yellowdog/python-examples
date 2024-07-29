@@ -601,10 +601,10 @@ def add_tasks_to_task_group(
 
     num_submitted_tasks = 0
 
-    # Single batch
+    # Single batch or sequential batch submission
     if ARGS_PARSER.parallel_batches == 1 or num_task_batches == 1:
         if num_task_batches > 1:
-            print_log(f"Uploading {num_task_batches} task batches sequentially")
+            print_log(f"Uploading {num_task_batches} Task batches sequentially")
         for batch_number in range(num_task_batches):
             if ARGS_PARSER.pause_between_batches is not None and num_task_batches > 1:
                 pause_between_batches(
@@ -643,7 +643,7 @@ def add_tasks_to_task_group(
             )
         max_workers = min(num_task_batches, ARGS_PARSER.parallel_batches)
         print_log(
-            f"Submitting task batches using {max_workers} parallel submission threads"
+            f"Submitting Task batches using {max_workers} parallel submission threads"
         )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             executors: List[Future] = []
@@ -1613,7 +1613,7 @@ def submit_json_raw(wr_file: str):
             num_submitted_tasks = sum([x.result() for x in executors])
             if num_submitted_tasks == len(task_list):
                 print_log(
-                    f"Added a total of {num_submitted_tasks} task(s) to task group '{task_group_name}'"
+                    f"Added a total of {num_submitted_tasks} Task(s) to Task Group '{task_group_name}'"
                 )
 
     if ARGS_PARSER.follow:
@@ -1653,8 +1653,7 @@ def submit_json_task_batch(
     print_error(
         f"Failed to submit batch {batch_number + 1} of {num_batches}: {response.text}"
     )
-    print_log(f"Cancelling Work Requirement '{wr_name}'")
-    CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
+
     return 0
 
 
