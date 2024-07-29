@@ -53,8 +53,7 @@ from yd_commands.printing import (
 )
 from yd_commands.property_names import *
 from yd_commands.settings import (
-    MAX_BATCH_SUBMIT_RETRIES,
-    MAX_PARALLEL_TASK_UPLOAD_THREADS,
+    MAX_BATCH_SUBMIT_ATTEMPTS,
     NAMESPACE_PREFIX_SEPARATOR,
     VAR_CLOSING_DELIMITER,
     VAR_OPENING_DELIMITER,
@@ -605,7 +604,7 @@ def add_tasks_to_task_group(
     # Single batch
     if ARGS_PARSER.parallel_batches == 1 or num_task_batches == 1:
         if num_task_batches > 1:
-            print_log("Uploading task batches sequentially")
+            print_log(f"Uploading {num_task_batches} task batches sequentially")
         for batch_number in range(num_task_batches):
             if ARGS_PARSER.pause_between_batches is not None and num_task_batches > 1:
                 pause_between_batches(
@@ -997,9 +996,19 @@ def submit_batch_of_tasks_to_task_group(
         WR_SNAPSHOT.add_tasks(task_group.name, tasks_list)
         return len(tasks_list)
 
+    batch_number_str = str(batch_number + 1).zfill(len(str(num_task_batches)))
+
+    def report_success():
+        print_log(
+            f"Batch {batch_number_str} :"
+            f" Added {len(tasks_list):,d} Task(s) to Work Requirement Task"
+            f" Group '{task_group.name}'"
+        )
+
     warning_displayed = False
     last_exception = None
-    for attempts in range(MAX_BATCH_SUBMIT_RETRIES):
+
+    for attempts in range(MAX_BATCH_SUBMIT_ATTEMPTS):
         try:
             CLIENT.work_client.add_tasks_to_task_group_by_name(
                 CONFIG_COMMON.namespace,
@@ -1007,26 +1016,31 @@ def submit_batch_of_tasks_to_task_group(
                 task_group.name,
                 tasks_list,
             )
-            if num_task_batches > 1:
-                print_log(
-                    f"Batch {str(batch_number + 1).zfill(len(str(num_task_batches)))} :"
-                    f" Added {len(tasks_list):,d} Task(s) to Work Requirement Task"
-                    f" Group '{task_group.name}'"
-                )
+            report_success()
             return len(tasks_list)
 
         except Exception as e:
+            if "Task names must be unique within task group" in str(e):
+                # Interpret this as success ... it implies that a previous
+                # errored (500?) submission of this batch must have succeeded
+                report_success()
+                return len(tasks_list)
+
             if not warning_displayed:
                 print_warning(
-                    f"Failed to submit batch {batch_number + 1} of {num_task_batches}: {e}"
+                    f"Failed to submit batch {batch_number_str} of {num_task_batches}: {e}"
                 )
                 warning_displayed = True
-            if attempts < MAX_BATCH_SUBMIT_RETRIES - 1:
-                print_log(f"Retrying submission of batch {batch_number + 1}")
+
+            if attempts < MAX_BATCH_SUBMIT_ATTEMPTS - 1:
+                print_log(
+                    f"Retrying submission of batch {batch_number_str} "
+                    f"(retry attempt {attempts + 1} of {MAX_BATCH_SUBMIT_ATTEMPTS - 1})"
+                )
             last_exception = e
 
     print_error(
-        f"Failed to submit batch {batch_number + 1} of {num_task_batches}: {last_exception}"
+        f"Failed to submit batch {batch_number_str} of {num_task_batches}: {last_exception}"
     )
     return 0  # Failed to submit task batch
 
