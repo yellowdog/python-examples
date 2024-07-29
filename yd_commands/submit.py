@@ -1613,7 +1613,7 @@ def submit_json_raw(wr_file: str):
             num_submitted_tasks = sum([x.result() for x in executors])
             if num_submitted_tasks == len(task_list):
                 print_log(
-                    f"Submitted a total of {num_submitted_tasks} task(s) to task group '{task_group_name}'"
+                    f"Added a total of {num_submitted_tasks} task(s) to task group '{task_group_name}'"
                 )
 
     if ARGS_PARSER.follow:
