@@ -1584,21 +1584,37 @@ def submit_json_raw(wr_file: str):
     # Submit Tasks in batches
     for task_group_name, task_list in task_lists.items():
         num_batches = ceil(len(task_list) / TASK_BATCH_SIZE)
-        for batch_number in range(num_batches):
-            task_batch = task_list[
-                batch_number
-                * TASK_BATCH_SIZE : min(
-                    len(task_list), (batch_number + 1) * TASK_BATCH_SIZE
+        max_workers = min(num_batches, ARGS_PARSER.parallel_batches)
+        print_log(
+            f"Submitting task batches using {max_workers} parallel submission thread(s)"
+        )
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            executors: List[Future] = []
+            for batch_number in range(num_batches):
+                task_batch = task_list[
+                    batch_number
+                    * TASK_BATCH_SIZE : min(
+                        len(task_list), (batch_number + 1) * TASK_BATCH_SIZE
+                    )
+                ]
+                executors.append(
+                    executor.submit(
+                        submit_json_task_batch,
+                        task_batch,
+                        batch_number,
+                        num_batches,
+                        task_group_name,
+                        wr_name,
+                        wr_id,
+                    )
                 )
-            ]
-            num_tasks_submitted, response_text = submit_json_task_batch(
-                task_batch, batch_number, num_batches, task_group_name, wr_name
-            )
-            if num_tasks_submitted == 0:
-                print_error(f"Failed to add Task(s) to Task Group '{task_group_name}'")
-                print_log(f"Cancelling Work Requirement '{wr_name}'")
-                CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
-                raise Exception(f"{response_text}")
+
+            executor.shutdown()
+            num_submitted_tasks = sum([x.result() for x in executors])
+            if num_submitted_tasks == len(task_list):
+                print_log(
+                    f"Submitted a total of {num_submitted_tasks} task(s) to task group '{task_group_name}'"
+                )
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
@@ -1610,10 +1626,10 @@ def submit_json_task_batch(
     num_batches: int,
     task_group_name: str,
     wr_name: str,
-) -> (int, str):
+    wr_id: str,
+) -> int:
     """
-    Submit a batch of tasks using the REST API. Return the number of tasks submitted
-    and the response text.
+    Submit a batch of tasks using the REST API. Return the number of tasks submitted.
     """
     response = requests.post(
         url=(
@@ -1632,9 +1648,14 @@ def submit_json_task_batch(
             f"Added {len(task_batch)} Task(s) to Task Group "
             f"'{task_group_name}' (Batch {batch_number + 1} of {num_batches})"
         )
-        return len(task_batch), response.text
+        return len(task_batch)
 
-    return 0, response.text
+    print_error(
+        f"Failed to submit batch {batch_number + 1} of {num_batches}: {response.text}"
+    )
+    print_log(f"Cancelling Work Requirement '{wr_name}'")
+    CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
+    return 0
 
 
 # Standalone entry point
