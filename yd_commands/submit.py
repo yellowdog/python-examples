@@ -642,7 +642,7 @@ def add_tasks_to_task_group(
                 "Option 'pause-between-batches/-P' is ignored for parallel batch uploads"
             )
         max_workers = min(num_task_batches, ARGS_PARSER.parallel_batches)
-        print_log(f"Uploading task batches using {max_workers} parallel threads")
+        print_log(f"Submitting task batches using {max_workers} parallel submission threads")
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             executors: List[Future] = []
             tasks_lists: List[List[Task]] = []
