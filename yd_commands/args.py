@@ -230,7 +230,8 @@ class CLIParser:
                 metavar="<interval_between_batches_in_seconds>",
                 help=(
                     "pause for user input between task batch submissions; if no"
-                    " pause interval is provided, user input is required to advance"
+                    " pause interval is provided, user input is required to advance; "
+                    "only valid when 'parallel-batches=1'"
                 ),
             )
             parser.add_argument(
@@ -268,8 +269,9 @@ class CLIParser:
                 help=(
                     "the maximum number of parallel task batch "
                     f"uploads (default={MAX_PARALLEL_TASK_UPLOAD_THREADS})"
+                    "; set this to '1' for sequential batch upload"
                 ),
-                metavar="<number_of_parallel_batches>",
+                metavar="<max_number_of_parallel_batches>",
             )
 
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):

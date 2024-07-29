@@ -4,7 +4,7 @@
 A script to submit a Work Requirement.
 """
 
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from copy import deepcopy
 from datetime import timedelta
 from math import ceil
@@ -626,15 +626,25 @@ def add_tasks_to_task_group(
                 flatten_upload_paths,
             )
             num_submitted_tasks += submit_batch_of_tasks_to_task_group(
-                tasks_list, work_requirement, task_group, num_task_batches, batch_number
+                tasks_list,
+                work_requirement,
+                task_group,
+                num_task_batches,
+                batch_number,
+                TASK_BATCH_SIZE,
+                num_tasks,
             )
 
     # Parallel batches
     else:
+        if ARGS_PARSER.pause_between_batches is not None:
+            print_warning(
+                "Option 'pause-between-batches/-P' is ignored for parallel batch uploads"
+            )
         max_workers = min(num_task_batches, ARGS_PARSER.parallel_batches)
         print_log(f"Uploading task batches using {max_workers} parallel threads")
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            executors = []
+            executors: List[Future] = []
             tasks_lists: List[List[Task]] = []
             for batch_number in range(num_task_batches):
                 tasks_lists.append(
@@ -660,6 +670,8 @@ def add_tasks_to_task_group(
                         task_group,
                         num_task_batches,
                         batch_number,
+                        TASK_BATCH_SIZE,
+                        num_tasks,
                     )
                 )
 
@@ -986,6 +998,8 @@ def submit_batch_of_tasks_to_task_group(
     task_group: TaskGroup,
     num_task_batches: int,
     batch_number: int,
+    task_batch_size: int,
+    total_num_tasks: int,
 ) -> int:
     """
     Submit a batch of tasks to a task group. Return the number of tasks
@@ -997,13 +1011,21 @@ def submit_batch_of_tasks_to_task_group(
         return len(tasks_list)
 
     batch_number_str = str(batch_number + 1).zfill(len(str(num_task_batches)))
+    start_task = (batch_number * task_batch_size) + 1
+    start_task_str = str(start_task).zfill(len(str(total_num_tasks)))
+    end_task = start_task + len(tasks_list) - 1
+    end_task_str = str(end_task).zfill(len(str(total_num_tasks)))
+    task_range_str = (
+        f"({start_task_str}-{end_task_str}) " if len(tasks_list) > 1 else ""
+    )
 
     def report_success():
-        print_log(
-            f"Batch {batch_number_str} :"
-            f" Added {len(tasks_list):,d} Task(s) to Work Requirement Task"
-            f" Group '{task_group.name}'"
-        )
+        if num_task_batches > 1:
+            print_log(
+                f"Batch {batch_number_str} :"
+                f" Added {len(tasks_list):,d} Task(s) {task_range_str}to Work Requirement Task"
+                f" Group '{task_group.name}'"
+            )
 
     warning_displayed = False
     last_exception = None
@@ -1040,7 +1062,8 @@ def submit_batch_of_tasks_to_task_group(
             last_exception = e
 
     print_error(
-        f"Failed to submit batch {batch_number_str} of {num_task_batches}: {last_exception}"
+        f"Failed to submit batch {batch_number_str} {task_range_str}of {num_task_batches}: "
+        f"{last_exception}"
     )
     return 0  # Failed to submit task batch
 
