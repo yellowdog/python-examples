@@ -1012,11 +1012,13 @@ def submit_batch_of_tasks_to_task_group(
         WR_SNAPSHOT.add_tasks(task_group.name, tasks_list)
         return len(tasks_list)
 
-    batch_number_str = str(batch_number + 1).zfill(len(str(num_task_batches)))
+    batch_number_str = formatted_number_str(batch_number, num_task_batches)
     start_task = (batch_number * task_batch_size) + 1
-    start_task_str = str(start_task).zfill(len(str(total_num_tasks)))
+    start_task_str = formatted_number_str(
+        start_task, total_num_tasks, zero_indexed=False
+    )
     end_task = start_task + len(tasks_list) - 1
-    end_task_str = str(end_task).zfill(len(str(total_num_tasks)))
+    end_task_str = formatted_number_str(end_task, total_num_tasks, zero_indexed=False)
     task_range_str = (
         f"({start_task_str}-{end_task_str}) " if len(tasks_list) > 1 else ""
     )
@@ -1029,7 +1031,7 @@ def submit_batch_of_tasks_to_task_group(
                 f" Group '{task_group.name}'"
             )
 
-    warning_displayed = False
+    warning_already_displayed = False
     last_exception = None
 
     for attempts in range(MAX_BATCH_SUBMIT_ATTEMPTS):
@@ -1050,11 +1052,11 @@ def submit_batch_of_tasks_to_task_group(
                 report_success()
                 return len(tasks_list)
 
-            if not warning_displayed:
+            if not warning_already_displayed:
                 print_warning(
                     f"Failed to submit batch {batch_number_str} of {num_task_batches}: {e}"
                 )
-                warning_displayed = True
+                warning_already_displayed = True
 
             if attempts < MAX_BATCH_SUBMIT_ATTEMPTS - 1:
                 print_log(
@@ -1203,12 +1205,16 @@ def check_for_duplicates_in_file_lists(*args: List[str]):
         raise Exception(f"Duplicate file(s) in file lists: {files_list}")
 
 
-def formatted_number_str(current_item_number: int, num_items: int) -> str:
+def formatted_number_str(
+    current_item_number: int, num_items: int, zero_indexed: bool = True
+) -> str:
     """
     Return a nicely formatted number string given a current item number
     and a total number of items.
     """
-    return str(current_item_number + 1).zfill(len(str(num_items)))
+    return str(current_item_number + 1 if zero_indexed else current_item_number).zfill(
+        len(str(num_items))
+    )
 
 
 def get_task_name(
@@ -1605,7 +1611,6 @@ def submit_json_raw(wr_file: str):
                         num_batches,
                         task_group_name,
                         wr_name,
-                        wr_id,
                     )
                 )
 
@@ -1625,7 +1630,6 @@ def submit_json_task_batch(
     num_batches: int,
     task_group_name: str,
     wr_name: str,
-    wr_id: str,
 ) -> int:
     """
     Submit a batch of tasks using the REST API. Return the number of tasks submitted.
@@ -1645,7 +1649,8 @@ def submit_json_task_batch(
     if response.status_code == 200:
         print_log(
             f"Added {len(task_batch)} Task(s) to Task Group "
-            f"'{task_group_name}' (Batch {batch_number + 1} of {num_batches})"
+            f"'{task_group_name}' (Batch {formatted_number_str(batch_number, num_batches)} "
+            f"of {num_batches})"
         )
         return len(task_batch)
 
