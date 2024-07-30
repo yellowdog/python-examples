@@ -106,13 +106,15 @@ if ARGS_PARSER.dry_run:
 
 UPLOADED_FILES: Optional[UploadedFiles] = None
 
-# Names for environment variables that are automatically added
+# Names for environment variables that can be automatically added
 # to the environment for each Task
 YD_WORK_REQUIREMENT_NAME = "YD_WORK_REQUIREMENT_NAME"
 YD_TASK_GROUP_NAME = "YD_TASK_GROUP_NAME"
 YD_TASK_GROUP_NUMBER = "YD_TASK_GROUP_NUMBER"
+YD_NUM_TASK_GROUPS = "YD_NUM_TASK_GROUPS"
 YD_TASK_NAME = "YD_TASK_NAME"
 YD_TASK_NUMBER = "YD_TASK_NUMBER"
+YD_NUM_TASKS = "YD_NUM_TASKS"
 YD_NAMESPACE = "YD_NAMESPACE"
 YD_TAG = "YD_TAG"
 
@@ -1340,11 +1342,15 @@ def create_task(
     task_tag = task_data.get(TASK_TAG, None)
 
     # Optionally add Task details to the environment as a convenience
-    if add_yd_env_vars and task_type != "docker":
+    if add_yd_env_vars and (task_type != "docker" or executable is None):
+        num_task_groups = len(wr_data[TASK_GROUPS])
+        num_tasks = len(task_group_data[TASKS])
         env_copy[YD_TASK_NAME] = task_name
         env_copy[YD_TASK_NUMBER] = str(task_number)
+        env_copy[YD_NUM_TASKS] = str(num_tasks)
         env_copy[YD_TASK_GROUP_NAME] = tg_name
         env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
+        env_copy[YD_NUM_TASK_GROUPS] = str(num_task_groups)
         env_copy[YD_WORK_REQUIREMENT_NAME] = ID
         env_copy[YD_NAMESPACE] = CONFIG_COMMON.namespace
         if task_tag is not None:
@@ -1408,10 +1414,14 @@ def create_task(
         # Optionally Task details to the container environment as a convenience
         docker_env_list = []
         if add_yd_env_vars:
+            num_task_groups = len(wr_data[TASK_GROUPS])
+            num_tasks = len(task_group_data[TASKS])
             docker_env_list += ["--env", f"{YD_TASK_NAME}={task_name}"]
             docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]
+            docker_env_list += ["--env", f"{YD_NUM_TASKS}={num_tasks}"]
             docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
             docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
+            docker_env_list += ["--env", f"{YD_NUM_TASK_GROUPS}={num_task_groups}"]
             docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
             docker_env_list += ["--env", f"{YD_NAMESPACE}={CONFIG_COMMON.namespace}"]
             if task_tag is not None:
