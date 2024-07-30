@@ -1611,10 +1611,9 @@ def submit_json_raw(wr_file: str):
 
             executor.shutdown()
             num_submitted_tasks = sum([x.result() for x in executors])
-            if num_submitted_tasks == len(task_list):
-                print_log(
-                    f"Added a total of {num_submitted_tasks} Task(s) to Task Group '{task_group_name}'"
-                )
+            print_log(
+                f"Added a total of {num_submitted_tasks} Task(s) to Task Group '{task_group_name}'"
+            )
 
     if ARGS_PARSER.follow:
         follow_progress(CLIENT.work_client.get_work_requirement_by_id(wr_id))
