@@ -21,7 +21,7 @@ from yellowdog_client.model import (
 from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
-    find_compute_requirement_template_ids_by_name,
+    find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
     remove_allowances_matching_description,
 )
@@ -149,29 +149,22 @@ def remove_compute_requirement_template(resource: Dict):
         print_error(f"Expected property to be defined ({e})")
         return
 
-    template_ids = find_compute_requirement_template_ids_by_name(CLIENT, name)
-    if len(template_ids) == 0:
+    template_id = find_compute_requirement_template_id_by_name(CLIENT, name)
+    if template_id is None:
         print_warning(f"Cannot find Compute Requirement Template '{name}'")
         return
 
-    if len(template_ids) > 1:
-        print_warning(
-            f"{len(template_ids)} Compute Requirement Templates with the name '{name}'"
-        )
+    if not confirmed(f"Remove Compute Requirement Template '{name}' ({template_id})?"):
+        return
 
-    for template_id in template_ids:
-        if not confirmed(
-            f"Remove Compute Requirement Template '{name}' ({template_id})?"
-        ):
-            return
-        try:
-            CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
-            print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
-        except Exception as e:
-            print_error(
-                f"Unable to remove Compute Requirement Template '{name}'"
-                f" ({template_id}): {e}"
-            )
+    try:
+        CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
+        print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
+    except Exception as e:
+        print_error(
+            f"Unable to remove Compute Requirement Template '{name}'"
+            f" ({template_id}): {e}"
+        )
 
 
 def remove_keyring(resource: Dict):

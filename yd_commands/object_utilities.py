@@ -182,19 +182,16 @@ def clear_compute_source_template_cache():
     get_all_compute_source_templates.cache_clear()
 
 
-def find_compute_requirement_template_ids_by_name(
+def find_compute_requirement_template_id_by_name(
     client: PlatformClient, name: str
-) -> List[str]:
+) -> Optional[str]:
     """
-    Find Compute Template IDs that match the provided name.
-    (Compute Requirement Template names don't currently need
-    to be unique.)
+    Find the Compute Requirement Template ID that matches the
+    provided name.
     """
-    compute_template_ids = []
     for template in get_all_compute_requirement_templates(client):
         if template.name == name:
-            compute_template_ids.append(template.id)
-    return compute_template_ids
+            return template.id
 
 
 @lru_cache()

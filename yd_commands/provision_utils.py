@@ -11,7 +11,7 @@ from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.load_config import CONFIG_FILE_DIR
 from yd_commands.object_utilities import (
-    find_compute_requirement_template_ids_by_name,
+    find_compute_requirement_template_id_by_name,
     find_image_family_ids_by_name,
 )
 from yd_commands.printing import print_log
@@ -82,23 +82,17 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     if get_ydid_type(template_id_or_name) == YDIDType.CR_TEMPLATE:
         return template_id_or_name
 
-    template_ids = find_compute_requirement_template_ids_by_name(
+    template_id = find_compute_requirement_template_id_by_name(
         client=client, name=template_id_or_name
     )
-    if len(template_ids) == 0:
+    if template_id is None:
         return template_id_or_name  # Return the original input
 
-    if len(template_ids) == 1:
-        print_log(
-            f"Substituting Compute Requirement Template name '{template_id_or_name}'"
-            f" with ID {template_ids[0]}"
-        )
-    else:
-        print_log(
-            "Multiple matches for Compute Requirement Template name"
-            f" '{template_id_or_name}'; using the first ID {template_ids[0]}"
-        )
-    return template_ids[0]
+    print_log(
+        f"Substituting Compute Requirement Template name '{template_id_or_name}'"
+        f" with ID {template_id}"
+    )
+    return template_id
 
 
 def get_image_family_id(client: PlatformClient, image_family_id_or_name: str) -> str:
