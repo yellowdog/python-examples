@@ -590,7 +590,7 @@ def add_tasks_to_task_group(
     if num_task_batches > 1 and not ARGS_PARSER.dry_run:
         print_log(
             f"Adding Tasks to Task Group '{task_group.name}' in "
-            f"{num_task_batches} batches"
+            f"{num_task_batches} batches (batch size = {TASK_BATCH_SIZE})"
         )
 
     # Add lazy substitutions for use in any Task property
