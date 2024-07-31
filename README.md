@@ -1628,7 +1628,7 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
 
 It's also possible to capture a Worker Pool definition as a JSON document. The JSON filename can be supplied either by supplying the command line positional argument for `yd-provision`, or by populating the `workerPoolData` property in the TOML configuration file with the JSON filename. Command line specification takes priority over TOML specification.
 
-The JSON specification allows the creation of **Advanced Worker Pools**, with different node types and the ability to specify Node Actions.
+The JSON specification allows the creation of **Advanced Worker Pools**, with the ability to specify Node Actions and to differentiate Node Types.
 
 When using a JSON document to specify the Worker Pool, the schema of the document is identical to that expected by the YellowDog REST API for Worker Pool Provisioning.
 
