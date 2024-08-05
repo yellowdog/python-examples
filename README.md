@@ -1774,6 +1774,7 @@ Note that the `templateId` property can use either the YellowDog ID ('YDID') for
 - `minNodes`
 - `nodeBootTimeout`
 - `workerTag`
+- `workersPerNode` or `workersPerVCPU` (Note that the default value for `workersPerNode` is `1`; override this with `workersPerNode = 0` if required)
 
 ## Variable Substitutions in Worker Pool Properties
 

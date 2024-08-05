@@ -289,8 +289,7 @@ def create_compute_requirement_template(resource: Dict):
     # Update
     compute_template.id = template_id
     if not confirmed(
-        f"Update existing Compute Requirement Template '{name}'"
-        f" ({template_id})?"
+        f"Update existing Compute Requirement Template '{name}'" f" ({template_id})?"
     ):
         return
     template = CLIENT.compute_client.update_compute_requirement_template(

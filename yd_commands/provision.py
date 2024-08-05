@@ -203,6 +203,20 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                     else {"enabled": False}
                 ),
             ),
+            (
+                "createNodeWorkers",
+                (
+                    {
+                        "targetCount": CONFIG_WP.workers_per_node,
+                        "targetType": "PER_NODE",
+                    }
+                    if CONFIG_WP.workers_per_vcpu is None
+                    else {
+                        "targetCount": CONFIG_WP.workers_per_vcpu,
+                        "targetType": "PER_VCPU",
+                    }
+                ),
+            ),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
                 print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
