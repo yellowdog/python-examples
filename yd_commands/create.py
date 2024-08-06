@@ -227,8 +227,15 @@ def create_compute_requirement_template(resource: Dict):
         clear_compute_source_template_cache()
         CLEAR_CST_CACHE = False
 
+    # Allow image families to be referenced by name rather than ID
+    global CLEAR_IMAGE_FAMILY_CACHE
+    if CLEAR_IMAGE_FAMILY_CACHE:  # Update the IF cache if required
+        clear_compute_source_template_cache()
+        CLEAR_IMAGE_FAMILY_CACHE = False
+
     # Dynamic templates don't have 'sources'; return '[]'
-    counter = 0
+    source_template_substitutions = 0
+    source_image_id_substitutions = 0
     for source in resource.get("sources", []):
         template_name_or_id = source["sourceTemplateId"]
         if "ydid:cst:" not in template_name_or_id:
@@ -241,16 +248,25 @@ def create_compute_requirement_template(resource: Dict):
                 )
                 return
             source["sourceTemplateId"] = template_id
-            counter += 1
+            source_template_substitutions += 1
 
-    if counter > 0:
-        print_log(f"Replaced {counter} Compute Source Template name(s) with ID(s)")
+        source_image_id = source.get("imageId")
+        if source_image_id is not None and "ydid:image:" not in source_image_id:
+            image_family_ids = find_image_family_ids_by_name(
+                client=CLIENT, image_family_name=source_image_id
+            )
+            if len(image_family_ids) > 0:
+                source["imageId"] = image_family_ids[0]
+                source_image_id_substitutions += 1
 
-    # Allow image families to be referenced by name rather than ID
-    global CLEAR_IMAGE_FAMILY_CACHE
-    if CLEAR_IMAGE_FAMILY_CACHE:  # Update the IF cache if required
-        clear_compute_source_template_cache()
-        CLEAR_IMAGE_FAMILY_CACHE = False
+    if source_template_substitutions > 0:
+        print_log(
+            f"Replaced {source_template_substitutions} Compute Source Template name(s) with ID(s)"
+        )
+    if source_image_id_substitutions > 0:
+        print_log(
+            f"Replaced {source_image_id_substitutions} Image Family name(s) with ID(s)"
+        )
 
     images_id = resource.get("imagesId")
     if images_id is not None:
@@ -289,7 +305,7 @@ def create_compute_requirement_template(resource: Dict):
     # Update
     compute_template.id = template_id
     if not confirmed(
-        f"Update existing Compute Requirement Template '{name}'" f" ({template_id})?"
+        f"Update existing Compute Requirement Template '{name}' ({template_id})?"
     ):
         return
     template = CLIENT.compute_client.update_compute_requirement_template(
