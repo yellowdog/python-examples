@@ -233,6 +233,27 @@ def create_compute_requirement_template(resource: Dict):
         clear_compute_source_template_cache()
         CLEAR_IMAGE_FAMILY_CACHE = False
 
+    def _get_images_id(
+        image_str: str, context: Dict, key: str, report: bool = False
+    ) -> int:
+        """
+        Helper function to match an image family name into an ID.
+        """
+        if not any(
+            [x in image_str for x in ["ydid:image:", "ydid:imggrp:", "ydid:imgfam:"]]
+        ):
+            image_family_ids = find_image_family_ids_by_name(
+                client=CLIENT, image_family_name=image_str
+            )
+            if len(image_family_ids) > 0:
+                context[key] = image_family_ids[0]
+                if report:
+                    print_log(
+                        f"Replaced Image name '{image_str}' with ID {image_family_ids[0]}"
+                    )
+                return 1
+        return 0
+
     # Dynamic templates don't have 'sources'; return '[]'
     source_template_substitutions = 0
     source_image_id_substitutions = 0
@@ -251,35 +272,21 @@ def create_compute_requirement_template(resource: Dict):
             source_template_substitutions += 1
 
         source_image_id = source.get("imageId")
-        if source_image_id is not None and "ydid:image:" not in source_image_id:
-            image_family_ids = find_image_family_ids_by_name(
-                client=CLIENT, image_family_name=source_image_id
+        if source_image_id is not None:
+            source_image_id_substitutions += _get_images_id(
+                source_image_id, source, "imageId"
             )
-            if len(image_family_ids) > 0:
-                source["imageId"] = image_family_ids[0]
-                source_image_id_substitutions += 1
 
     if source_template_substitutions > 0:
         print_log(
             f"Replaced {source_template_substitutions} Compute Source Template name(s) with ID(s)"
         )
     if source_image_id_substitutions > 0:
-        print_log(
-            f"Replaced {source_image_id_substitutions} Image Family name(s) with ID(s)"
-        )
+        print_log(f"Replaced {source_image_id_substitutions} Image name(s) with ID(s)")
 
     images_id = resource.get("imagesId")
     if images_id is not None:
-        if "ydid:imgfam:" not in images_id:
-            image_family_ids = find_image_family_ids_by_name(
-                client=CLIENT, image_family_name=images_id
-            )
-            if len(image_family_ids) > 0:
-                resource["imagesId"] = image_family_ids[0]
-                print_log(
-                    f"Replaced imagesId name '{images_id}' with ID"
-                    f" {image_family_ids[0]}"
-                )
+        _get_images_id(images_id, resource, "imagesId", report=True)
 
     if ARGS_PARSER.dry_run:
         _get_model_object(type, resource)  # Report extras and omissions
