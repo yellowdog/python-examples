@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-A script to shut down Worker Pools.
+A script to shut down Worker Pools and/or Nodes.
 """
 
 from typing import List
@@ -21,8 +21,8 @@ from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.worker_pool_list) > 0:
-        shutdown_by_names_or_ids(ARGS_PARSER.worker_pool_list)
+    if len(ARGS_PARSER.worker_pool_nodes_list) > 0:
+        shutdown_by_names_or_ids(ARGS_PARSER.worker_pool_nodes_list)
         return
 
     print_log(
@@ -81,10 +81,14 @@ def main():
 
 def shutdown_by_names_or_ids(names_or_ids: List[str]):
     """
-    Shutdown Worker Pools by their names or IDs.
+    Shutdown Worker Pools and/or Nodes by their names or IDs.
     """
     worker_pool_ids: List[str] = []
+    node_ids: List[str] = []
     for name_or_id in names_or_ids:
+        if "ydid:node:" in name_or_id:
+            node_ids.append(name_or_id)
+            continue
         if "ydid:wrkrpool:" in name_or_id:
             worker_pool_id = name_or_id
         else:
@@ -94,11 +98,12 @@ def shutdown_by_names_or_ids(names_or_ids: List[str]):
                 continue
         worker_pool_ids.append(worker_pool_id)
 
-    if len(worker_pool_ids) == 0:
-        print_log("No Worker Pools to shut down")
-        return
+    if len(worker_pool_ids) == 0 and len(node_ids) == 0:
+        print_log("No Worker Pools or Nodes to shut down")
 
-    if not confirmed(f"Shut down {len(worker_pool_ids)} Worker Pool(s)?"):
+    if not confirmed(
+        f"Shut down {len(worker_pool_ids) + len(node_ids)} Worker Pool(s) and/or Node(s)?"
+    ):
         return
 
     for worker_pool_id in worker_pool_ids:
@@ -107,6 +112,13 @@ def shutdown_by_names_or_ids(names_or_ids: List[str]):
             print_log(f"Shut down Worker Pool '{worker_pool_id}'")
         except Exception as e:
             print_error(f"Unable to shut down Worker Pool '{worker_pool_id}': ({e})")
+
+    for node_id in node_ids:
+        try:
+            CLIENT.worker_pool_client.shutdown_node_by_id(node_id)
+            print_log(f"Shut down Node '{node_id}'")
+        except Exception as e:
+            print_error(f"Unable to shut down Node '{node_id}': ({e})")
 
     if ARGS_PARSER.follow:
         follow_ids(worker_pool_ids, auto_cr=ARGS_PARSER.auto_cr)

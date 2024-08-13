@@ -708,12 +708,12 @@ class CLIParser:
 
         if "shutdown" in sys.argv[0]:
             parser.add_argument(
-                "worker_pool_list",
+                "worker_pool_nodes_list",
                 nargs="*",
                 default="",
-                metavar="<worker-pool-name-or-ID>",
+                metavar="<worker-pool-name-or-ID/node-id>",
                 type=str,
-                help="the name(s) or YellowDog ID(s) of the worker pool(s)",
+                help="the name(s) or YellowDog ID(s) of the worker pool(s) and/or ID(s) of nodes",
             )
             parser.add_argument(
                 "--follow",
@@ -1304,8 +1304,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def worker_pool_list(self) -> Optional[List[str]]:
-        return self.args.worker_pool_list
+    def worker_pool_nodes_list(self) -> Optional[List[str]]:
+        return self.args.worker_pool_nodes_list
 
     @property
     @allow_missing_attribute
@@ -1545,7 +1545,7 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     elif "delete" in module_name:
         suffix = "deleting objects in the Object Store"
     elif "shutdown" in module_name:
-        suffix = "shutting down Worker Pools"
+        suffix = "shutting down Worker Pools and Nodes"
     elif "terminate" in module_name:
         suffix = "terminating Compute Requirements"
     elif "list" in module_name:

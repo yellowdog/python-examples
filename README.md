@@ -144,7 +144,7 @@ The commands provide the following capabilities:
 - **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
 - **Aborting** running Tasks with the **`yd-abort`** command
 - **Cancelling** Work Requirements with the **`yd-cancel`** command
-- **Shutting Down** Worker Pools with the **`yd-shutdown`** command
+- **Shutting Down** Worker Pools and Nodes with the **`yd-shutdown`** command
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Listing** YellowDog items using the **`yd-list`** command
