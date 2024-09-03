@@ -6,8 +6,9 @@ Command to show the JSON details of YellowDog entities via their IDs.
 
 from typing import Optional
 
-from yellowdog_client.model import ConfiguredWorkerPool, Task
+from yellowdog_client.model import ConfiguredWorkerPool, Keyring, Task
 
+from yd_commands.list import get_keyring
 from yd_commands.object_utilities import get_task_by_id
 from yd_commands.printing import print_log, print_warning, print_yd_object
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
@@ -131,7 +132,8 @@ def show_details(ydid: str):
             keyrings = CLIENT.keyring_client.find_all_keyrings()
             for keyring in keyrings:
                 if keyring.id == ydid:
-                    print_yd_object(keyring)
+                    # This fetches additional Keyring data: credentials and accessors
+                    print_yd_object(get_keyring(keyring.name))
                     return
             else:
                 print_warning(f"Keyring ID '{ydid}' not found")
