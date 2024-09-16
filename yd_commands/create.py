@@ -601,24 +601,6 @@ def create_configured_worker_pool(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    # Multiple Worker Pools with the same name can be created.
-    # Check for existing pool with the same name in an active state.
-    worker_pools: List[WorkerPoolSummary] = (
-        CLIENT.worker_pool_client.find_all_worker_pools()
-    )
-    for worker_pool in worker_pools:
-        if (
-            worker_pool.name == name
-            and worker_pool.type.split(".")[-1] == "ConfiguredWorkerPool"
-            and worker_pool.status
-            not in [WorkerPoolStatus.SHUTDOWN, WorkerPoolStatus.TERMINATED]
-        ):
-            print_log(
-                f"Existing Configured Worker Pool '{name}' ({worker_pool.status}) found"
-                " ... creation cancelled"
-            )
-            return
-
     try:
         cwp_request = _get_model_object("AddConfiguredWorkerPoolRequest", resource)
         cwp_response: AddConfiguredWorkerPoolResponse = (
