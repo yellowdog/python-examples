@@ -644,7 +644,6 @@ In addition to the environment variables above, when a Task is executed by a Wor
 - `YD_REGION`
 - `YD_INSTANCE_TYPE`
 - `YD_INSTANCE_ID`
-- `YD_WORKER_TAG`
 - `YD_TASK_GROUP_ID`
 - `YD_TASK_ID`
 - `YD_AGENT_DATA`
