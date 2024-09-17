@@ -54,7 +54,7 @@ from yd_commands.printing import (
 from yd_commands.property_names import *
 from yd_commands.settings import (
     MAX_BATCH_SUBMIT_ATTEMPTS,
-    NAMESPACE_PREFIX_SEPARATOR,
+    NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     VAR_CLOSING_DELIMITER,
     VAR_OPENING_DELIMITER,
 )
@@ -1186,7 +1186,7 @@ def deduplicate_inputs(task_inputs: List[TaskInput]) -> List[TaskInput]:
             )
             print_log(
                 f"Removing '{task_input.verification}' duplicate:"
-                f" '{namespace}{NAMESPACE_PREFIX_SEPARATOR}{task_input.objectNamePattern}'"
+                f" '{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{task_input.objectNamePattern}'"
             )
 
     return deduplicated_task_inputs
@@ -1576,7 +1576,7 @@ def submit_json_raw(wr_file: str):
                         else input["namespace"]
                     )
                     verify_at_start_files.add(
-                        f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{input['objectNamePattern']}"
+                        f"{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{input['objectNamePattern']}"
                     )
 
     # Warn about VERIFY_AT_START files & halt to allow upload or

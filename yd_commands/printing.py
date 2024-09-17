@@ -61,7 +61,7 @@ from yd_commands.settings import (
     HIGHLIGHTED_STATES,
     JSON_INDENT,
     MAX_LINES_COLOURED_FORMATTING,
-    NAMESPACE_PREFIX_SEPARATOR,
+    NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     WARNING_STYLE,
 )
 
@@ -1010,7 +1010,7 @@ def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
             [
                 index + 1,
                 file_entry.source_file_path,
-                f"{upload_batch_builder.namespace}{NAMESPACE_PREFIX_SEPARATOR}{file_entry.default_object_name}",
+                f"{upload_batch_builder.namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{file_entry.default_object_name}",
             ]
         )
     print(flush=True)
@@ -1039,7 +1039,7 @@ def print_batch_download_files(
     counter = 0
     # Yes, I know I shouldn't be accessing '_source_object_entries'
     for index, object_entry in enumerate(download_batch_builder._source_object_entries):
-        object_source = f"{object_entry.namespace}{NAMESPACE_PREFIX_SEPARATOR}{object_entry.object_name}"
+        object_source = f"{object_entry.namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{object_entry.object_name}"
         object_target = (
             f"{object_entry.object_name.replace('/', directory_separator)}"
             if flatten_downloads is False

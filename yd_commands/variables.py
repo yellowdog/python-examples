@@ -99,7 +99,7 @@ if ARGS_PARSER.variables is not None:
 
 if len(subs_list) > 0:
     print_log(
-        "Adding command-line-defined variable substitutions for "
+        "Adding command-line-defined variable substitution(s) for: "
         f"{', '.join(subs_list)}"
     )
 

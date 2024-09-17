@@ -30,6 +30,7 @@ from yellowdog_client.model import (
 
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_log
+from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 
 
 @lru_cache()
@@ -153,16 +154,41 @@ def get_work_requirement_summary_by_name_or_id(
             return work_requirement_summary
 
 
+def _find_template_id_by_name(
+    name: str, client: PlatformClient, find_function: callable
+) -> Optional[str]:
+    """
+    Find a CST or CRT by name.
+    """
+    template_ids = []
+    namespaces = []
+    namespace, name = split_namespace_and_name(name)
+    for template in find_function(client):
+        if template.name == name:
+            if namespace is not None and template.namespace != namespace:
+                continue
+            template_ids.append(template.id)
+            namespaces.append(template.namespace)
+
+    if len(template_ids) == 0:
+        return
+    if len(template_ids) == 1:
+        return template_ids[0]
+
+    raise Exception(
+        f"Name '{name}' is ambiguous: matching IDs are: {template_ids}. "
+        f"Please specify a namespace from {namespaces}."
+    )
+
+
 def find_compute_source_template_id_by_name(
     client: PlatformClient, name: str
 ) -> Optional[str]:
     """
     Find a Compute Source Template id by name.
-    Compute Source Template names are unique.
+    Compute Source Template names are unique within a namespace.
     """
-    for source in get_all_compute_source_templates(client):
-        if source.name == name:
-            return source.id
+    return _find_template_id_by_name(name, client, get_all_compute_source_templates)
 
 
 @lru_cache()
@@ -187,11 +213,11 @@ def find_compute_requirement_template_id_by_name(
 ) -> Optional[str]:
     """
     Find the Compute Requirement Template ID that matches the
-    provided name.
+    provided name. Names are unique within a namespace.
     """
-    for template in get_all_compute_requirement_templates(client):
-        if template.name == name:
-            return template.id
+    return _find_template_id_by_name(
+        name, client, get_all_compute_requirement_templates
+    )
 
 
 @lru_cache()
@@ -225,30 +251,43 @@ def get_compute_requirement_id_by_worker_pool_id(
 
 
 @lru_cache()
-def find_image_family_ids_by_name(
+def find_image_family_id_by_name(
     client: PlatformClient, image_family_name
-) -> List[str]:
+) -> Optional[str]:
     """
-    Find image family IDs by their name.
+    Find image family IDs by their name. Names are unique within a namespace.
     """
+    namespace, image_family_name = split_namespace_and_name(image_family_name)
     if_search = MachineImageFamilySearch(
-        familyName=image_family_name, includePublic=True
+        familyName=image_family_name, namespace=namespace, includePublic=True
     )
     search_client: SearchClient = client.images_client.get_image_families(if_search)
     image_families: List[MachineImageFamilySummary] = search_client.list_all()
 
-    return [
-        image_family.id
-        for image_family in image_families
-        if image_family.name == image_family_name
+    # Partial names will match, so filter for exact matches
+    image_families = [
+        img_family
+        for img_family in image_families
+        if img_family.name == image_family_name
     ]
+
+    if len(image_families) == 0:
+        return
+    if len(image_families) == 1:
+        return image_families[0].id
+
+    raise Exception(
+        f"Ambiguous Image Family name '{image_family_name}': "
+        f"{[img_fam.id for img_fam in image_families]}. "
+        "Please specify a namespace."
+    )
 
 
 def clear_image_family_search_cache():
     """
     Clear the cache of Image Family name searches.
     """
-    find_image_family_ids_by_name.cache_clear()
+    find_image_family_id_by_name.cache_clear()
 
 
 def remove_allowances_matching_description(
@@ -348,3 +387,16 @@ def get_non_exact_namespace_matches(
         )
     )
     return matching_namespaces
+
+
+def split_namespace_and_name(reference: str) -> (Optional[str], str):
+    """
+    Split a name into an (optional) namespace and a name.
+    """
+    parts = reference.split(NAMESPACE_PREFIX_SEPARATOR)
+    if len(parts) == 1:
+        return None, reference
+    if len(parts) == 2:
+        return parts[0], parts[1]
+
+    raise Exception(f"Malformed name '{reference}'")

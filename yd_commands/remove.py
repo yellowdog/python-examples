@@ -27,6 +27,8 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.settings import (
+    LEGACY_DEFAULT_NAMESPACE,
+    NAMESPACE_PREFIX_SEPARATOR,
     RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
@@ -116,11 +118,15 @@ def remove_compute_source_template(resource: Dict):
     Should handle any Source Type.
     """
     try:
+        namespace = resource.get("namespace", LEGACY_DEFAULT_NAMESPACE)
         source = resource.pop("source")  # Extract the Source properties
         name = source["name"]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
+
+    # Prepend the namespace
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     source_id = find_compute_source_template_id_by_name(CLIENT, name)
     if source_id is None:
@@ -145,9 +151,13 @@ def remove_compute_requirement_template(resource: Dict):
     """
     try:
         name = resource["name"]
+        namespace = resource.get("namespace", LEGACY_DEFAULT_NAMESPACE)
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
+
+    # Prepend the namespace
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     template_id = find_compute_requirement_template_id_by_name(CLIENT, name)
     if template_id is None:
@@ -228,31 +238,36 @@ def remove_image_family(resource: Dict):
     Remove an Image Family.
     """
     try:
-        family_name = resource["name"]
-        namespace = resource["namespace"]
+        name = resource["name"]
+        namespace = resource.get("namespace", LEGACY_DEFAULT_NAMESPACE)
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
 
+    fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+
     # Check for existence of Image Family
     try:
-        image_family = CLIENT.images_client.get_image_family_by_name(
-            namespace=namespace, family_name=family_name
+        image_family: MachineImageFamily = (
+            CLIENT.images_client.get_image_family_by_name(
+                namespace=namespace, family_name=name
+            )
         )
-        if not confirmed(f"Remove Machine Image Family '{namespace}/{family_name}'?"):
-            return
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_warning(f"Machine Image Family '{namespace}/{family_name}' not found")
+            print_warning(f"Machine Image Family '{fq_name}' not found")
             return
         else:
             raise e
 
+    if not confirmed(f"Remove Machine Image Family '{fq_name}'?"):
+        return
+
     try:
         CLIENT.images_client.delete_image_family(image_family)
-        print_log(f"Deleted Image Family '{namespace}/{family_name}'")
+        print_log(f"Deleted Image Family '{fq_name}' ('{image_family.id}')")
     except Exception as e:
-        print_error(f"Unable to delete Image Family '{namespace}/{family_name}': {e}")
+        print_error(f"Unable to delete Image Family '{fq_name}': {e}")
 
 
 def remove_namespace_configuration(resource: Dict):

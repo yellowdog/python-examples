@@ -11,7 +11,7 @@ from yellowdog_client import PlatformClient
 from yellowdog_client.object_store.model import FileTransferStatus
 
 from yd_commands.printing import print_log
-from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
+from yd_commands.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
 from yd_commands.utils import link
 
 
@@ -109,7 +109,7 @@ def upload_file_core(
 
     print_log(
         f"Uploaded file '{local_file}' to"
-        f" '{namespace}{NAMESPACE_PREFIX_SEPARATOR}{remote_file}'"
+        f" '{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{remote_file}'"
     )
     remote_file = remote_file.replace("/", "%2F")
     link_ = link(

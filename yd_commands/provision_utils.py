@@ -12,7 +12,7 @@ from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.load_config import CONFIG_FILE_DIR
 from yd_commands.object_utilities import (
     find_compute_requirement_template_id_by_name,
-    find_image_family_ids_by_name,
+    find_image_family_id_by_name,
 )
 from yd_commands.printing import print_log
 from yd_commands.property_names import USERDATA, USERDATAFILE, USERDATAFILES
@@ -103,7 +103,7 @@ def get_image_family_id(client: PlatformClient, image_family_id_or_name: str) ->
     if get_ydid_type(image_family_id_or_name) == YDIDType.IMAGE_FAMILY:
         return image_family_id_or_name
 
-    image_family_ids = find_image_family_ids_by_name(
+    image_family_id = find_image_family_id_by_name(
         client=client, image_family_name=image_family_id_or_name
     )
 
@@ -112,17 +112,11 @@ def get_image_family_id(client: PlatformClient, image_family_id_or_name: str) ->
     # listing image families, and there's a small chance of a collision
     # between a supplied specific image and an Image Family name.
 
-    if len(image_family_ids) == 0:
+    if image_family_id is None:
         return image_family_id_or_name  # Return the original input
 
-    if len(image_family_ids) == 1:
-        print_log(
-            f"Substituting Image Family name '{image_family_id_or_name}'"
-            f" with ID {image_family_ids[0]}"
-        )
-    else:
-        print_log(
-            "Multiple matches for Image Family name"
-            f" '{image_family_id_or_name}'; using the first ID {image_family_ids[0]}"
-        )
-    return image_family_ids[0]
+    print_log(
+        f"Substituting Image Family name '{image_family_id_or_name}'"
+        f" with ID {image_family_id}"
+    )
+    return image_family_id

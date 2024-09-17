@@ -30,8 +30,6 @@ from yellowdog_client.model import (
     RequirementsAllowance,
     SourceAllowance,
     SourcesAllowance,
-    WorkerPoolStatus,
-    WorkerPoolSummary,
 )
 from yellowdog_client.model.exceptions import InvalidRequestException
 
@@ -42,11 +40,12 @@ from yd_commands.object_utilities import (
     clear_image_family_search_cache,
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
-    find_image_family_ids_by_name,
+    find_image_family_id_by_name,
     remove_allowances_matching_description,
 )
 from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.settings import (
+    NAMESPACE_PREFIX_SEPARATOR,
     RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
@@ -143,6 +142,7 @@ def create_compute_source_template(resource: Dict):
     Handles all Source types.
     """
     try:
+        namespace = resource["namespace"]
         source = resource.pop("source")  # Extract the Source properties
         source_type = source.pop("type").split(".")[-1]  # Extract Source type
         name = source["name"]
@@ -157,13 +157,13 @@ def create_compute_source_template(resource: Dict):
     image_id = source.get("imageId")
     if image_id is not None:
         if "ydid:imgfam:" not in image_id:
-            image_family_ids = find_image_family_ids_by_name(
+            image_family_id = find_image_family_id_by_name(
                 client=CLIENT, image_family_name=image_id
             )
-            if len(image_family_ids) > 0:
-                source["imageId"] = image_family_ids[0]
+            if image_family_id is not None:
+                source["imageId"] = image_family_id
                 print_log(
-                    f"Replaced imageId name '{image_id}' with ID {image_family_ids[0]}"
+                    f"Replaced imageId name '{image_id}' with ID {image_family_id}"
                 )
 
     if ARGS_PARSER.dry_run:
@@ -179,6 +179,9 @@ def create_compute_source_template(resource: Dict):
     compute_source_template = _get_model_object(
         "ComputeSourceTemplate", resource, source=compute_source
     )
+
+    # Prepend the namespace when searching for existing templates
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     # Check for an existing ID
     source_id = find_compute_source_template_id_by_name(CLIENT, name)
@@ -198,7 +201,7 @@ def create_compute_source_template(resource: Dict):
             compute_source_template
         )
         print_log(
-            f"Updated existing Compute Source Template '{compute_source.source.name}'"
+            f"Updated existing Compute Source Template '{name}'"
             f" ({compute_source.id})"
         )
 
@@ -217,6 +220,7 @@ def create_compute_requirement_template(resource: Dict):
     try:
         type = resource.pop("type").split(".")[-1]  # Extract type
         name = resource["name"]
+        namespace = resource["namespace"]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -242,21 +246,25 @@ def create_compute_requirement_template(resource: Dict):
         if not any(
             [x in image_str for x in ["ydid:image:", "ydid:imggrp:", "ydid:imgfam:"]]
         ):
-            image_family_ids = find_image_family_ids_by_name(
+            image_family_id = find_image_family_id_by_name(
                 client=CLIENT, image_family_name=image_str
             )
-            if len(image_family_ids) > 0:
-                context[key] = image_family_ids[0]
+            if image_family_id is not None:
+                context[key] = image_family_id
                 if report:
                     print_log(
-                        f"Replaced Image name '{image_str}' with ID {image_family_ids[0]}"
+                        f"Replaced Image name '{image_str}' with ID {image_family_id}"
                     )
                 return 1
         return 0
 
-    # Dynamic templates don't have 'sources'; return '[]'
+    # Prepend the namespace when searching for existing templates
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+
     source_template_substitutions = 0
     source_image_id_substitutions = 0
+
+    # Dynamic templates don't have 'sources'; return '[]'
     for source in resource.get("sources", []):
         template_name_or_id = source["sourceTemplateId"]
         if "ydid:cst:" not in template_name_or_id:
@@ -319,8 +327,7 @@ def create_compute_requirement_template(resource: Dict):
         compute_template
     )
     print_log(
-        f"Updated existing Compute Requirement Template '{template.name}'"
-        f" ({template.id})"
+        f"Updated existing Compute Requirement Template '{name}'" f" ({template.id})"
     )
     if ARGS_PARSER.quiet:
         print(template.id)
@@ -417,6 +424,8 @@ def create_image_family(resource):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
+    fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{family_name}"
+
     try:
         os_type = ImageOsType[os_type_str]  # Change to Enum
     except KeyError:
@@ -435,13 +444,15 @@ def create_image_family(resource):
                 namespace=namespace, family_name=family_name
             )
         )  # Raises HTTP 404 Error if not found
-        if not confirmed(f"Update existing Machine Image Family '{family_name}'?"):
+        if not confirmed(f"Update existing Machine Image Family '{fq_name}'?"):
             return
         image_family.id = existing_image_family.id
         # This will update the Image Family but not its constituent
         # Image Group/Image resources
         CLIENT.images_client.update_image_family(image_family)
-        print_log(f"Updated existing Machine Image Family '{family_name}'")
+        print_log(
+            f"Updated existing Machine Image Family '{fq_name}' ('{image_family.id}')"
+        )
         if ARGS_PARSER.quiet:
             print(image_family.id)
     except HTTPError as e:
@@ -449,11 +460,11 @@ def create_image_family(resource):
             # This will create the Image Family and all of its constituent
             # Image Group/Image resources
             image_family = CLIENT.images_client.add_image_family(image_family)
-            print_log(f"Created Machine Image Family '{family_name}'")
+            print_log(f"Created Machine Image Family '{fq_name}' ('{image_family.id}')")
             if ARGS_PARSER.quiet:
                 print(image_family.id)
         else:
-            print_error(f"Failed to create/update Image Family '{image_family}': {e}")
+            print_error(f"Failed to create/update Image Family '{fq_name}': {e}")
         return
 
     # This is an update, so Image Groups have been ignored

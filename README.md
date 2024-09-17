@@ -65,6 +65,7 @@
       * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
       * [Inspecting the Results of CSV Variable Substitution](#inspecting-the-results-of-csv-variable-substitution)
 * [Worker Pool Properties](#worker-pool-properties)
+   * [Using Textual Names instead of IDs for Compute Requirement Templates and Image Families](#using-textual-names-instead-of-ids-for-compute-requirement-templates-and-image-families)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
    * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
@@ -119,7 +120,7 @@
    * [yd-show](#yd-show)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed Jun 26 20:59:32 BST 2024 -->
+<!-- Added by: pwt, at: Fri Sep 27 14:16:50 BST 2024 -->
 
 <!--te-->
 
@@ -1591,6 +1592,12 @@ The following properties are available:
 | `workerPoolData`          | The name of a file containing a JSON document defining a Worker Pool.                                                |                         |
 | `workerTag`               | The Worker Tag to publish for the each of the Workers on the node(s).                                                |                         |
 
+## Using Textual Names instead of IDs for Compute Requirement Templates and Image Families
+
+The `templateId` property can be directly populated with the YellowDog ID (YDID), or it can be populated with the textual name of the template, in the form `namespace/template_name`.
+
+Similarly, the `imagesId` property can be populated with the YDID of an Image Family, Image Group, Image, or a string representing the native name of a cloud provider image (e.g., an AWS AMI). It can also be populated with the textual name of an Image Family, in the form `namespace/image_family_name`.
+
 ## Automatic Properties
 
 The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, and a UTC timestamp, e,g,: `wp_mytag_221024-155524`.
@@ -1950,7 +1957,7 @@ An example Compute Source resource specification is found below:
 ```json
 {
   "resource": "ComputeSourceTemplate",
-  "namespace": null,
+  "namespace": "my-namespace",
   "description": "one",
   "attributes": [],
   "source": {
@@ -1977,7 +1984,7 @@ An example Compute Source resource specification is found below:
 }
 ```
 
-In the Compute Source Template `imageId` property, an Image Family **name** may be used instead of an ID. For example: `"imageId": "yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID. 
+In the Compute Source Template `imageId` property, an Image Family **name** may be used instead of an ID. For example: `"imageId": "yellowdog/yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID. 
 
 ## Compute Requirement Templates
 
@@ -1991,6 +1998,7 @@ An example Compute Requirement resource specification is found below, for a **st
   "imagesId": "ami-097767a3a3e071555",
   "instanceTags": {},
   "name": "my-static-compute-template",
+  "namespace": "my-namespace",
   "strategyType": "co.yellowdog.platform.model.WaterfallProvisionStrategy",
   "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
   "sources": [
@@ -2000,9 +2008,9 @@ An example Compute Requirement resource specification is found below, for a **st
 }
 ```
 
-Note that Compute Source Template **names** can be used instead of their IDs: the **yd-create** command will look up the IDs and make the substitutions. In either case, the Compute Source Templates must already exist.
+Note that Compute Source Template **names** in the form `namespace/compute_source_template_name` can be used instead of their IDs: the **yd-create** command will look up the IDs and make the substitutions. The Compute Source Templates must already exist.
 
-Also, In the `imagesId` property, an Image Family **name** may be used instead of an ID. For example: `"imagesId": "yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID.
+Also, In the `imagesId` property, an Image Family **name** may be used instead of an ID. For example: `"imagesId": "yellowdog/yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID.
 
 A **dynamic** template example is:
 
@@ -2017,6 +2025,7 @@ A **dynamic** template example is:
   "maximumSourceCount": 10,
   "minimumSourceCount": 1,
   "name": "my-dynamic-compute-template",
+  "namespace": "my-namespace",
   "constraints": [
     {
       "anyOf": ["AWS"],
@@ -2127,6 +2136,7 @@ Example:
 {
   "resource": "ConfiguredWorkerPool",
   "name": "my-configured-pool-pwt",
+  "namespace": "my-namespace", 
   "properties": {
     "nodeConfiguration": {
       "nodeTypes": [

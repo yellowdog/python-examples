@@ -6,7 +6,7 @@ Command to show the JSON details of YellowDog entities via their IDs.
 
 from typing import Optional
 
-from yellowdog_client.model import ConfiguredWorkerPool, Keyring, Task
+from yellowdog_client.model import ConfiguredWorkerPool, Task
 
 from yd_commands.list import get_keyring
 from yd_commands.object_utilities import get_task_by_id
