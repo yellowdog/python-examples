@@ -32,6 +32,7 @@ class CommonCloudConfig(ABC):
 
     def __init__(self, client: PlatformClient, cloud_provider: str = ""):
         self._cloud_provider = cloud_provider
+        self._namespace = f"cloudwizard-{cloud_provider.lower()}"
         self._client = client
 
         self._instance_type: Optional[str] = None
@@ -96,8 +97,8 @@ class CommonCloudConfig(ABC):
         if counter == 0:
             print_warning("No Compute Source Templates to remove")
 
-    @staticmethod
     def _generate_static_compute_requirement_template(
+        self,
         source_names: List[str],
         spot_or_ondemand: str,
         strategy: str,
@@ -115,6 +116,7 @@ class CommonCloudConfig(ABC):
         return {
             "resource": RN_REQUIREMENT_TEMPLATE,
             "name": f"{name_prefix}-{strategy.lower()}-{spot_or_ondemand}",
+            "namespace": self._namespace,
             "description": (
                 "Compute Requirement Template automatically created by YellowDog"
                 " Cloud Wizard"
@@ -127,8 +129,8 @@ class CommonCloudConfig(ABC):
             ],
         }
 
-    @staticmethod
     def _generate_static_compute_requirement_template_spot_ondemand_waterfall(
+        self,
         source_names_spot: List[str],
         source_names_on_demand: List[str],
         instance_type: str,
@@ -142,6 +144,7 @@ class CommonCloudConfig(ABC):
         return {
             "resource": RN_REQUIREMENT_TEMPLATE,
             "name": f"{name_prefix}-waterfall-spot-to-ondemand",
+            "namespace": self._namespace,
             "description": (
                 "Compute Requirement Template automatically created by YellowDog"
                 " Cloud Wizard"
@@ -169,6 +172,7 @@ class CommonCloudConfig(ABC):
         return {
             "resource": RN_REQUIREMENT_TEMPLATE,
             "name": f"{name_prefix}-dynamic-{strategy.lower()}-lowestcost",
+            "namespace": self._namespace,
             "description": (
                 "Compute Requirement Template automatically created by YellowDog Cloud"
                 " Wizard"

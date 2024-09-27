@@ -38,7 +38,6 @@ YD_CREDENTIAL_NAME_STORAGE = f"{YD_CREDENTIAL_NAME}-storage"
 YD_RESOURCE_PREFIX = "cloudwizard-azure"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
-YD_NAMESPACE = "cloudwizard-azure"
 YD_DEFAULT_INSTANCE_TYPE = "{{instance_type:=Standard_A1_v2}}"
 YD_SPOT_MAX_PRICE = 1.0
 
@@ -490,11 +489,11 @@ class AzureConfig(CommonCloudConfig):
                 )
 
         # Create namespace configuration (Keyring/Credential creation must come first)
-        print_log(f"Creating YellowDog Namespace Configuration '{YD_NAMESPACE}'")
+        print_log(f"Creating YellowDog Namespace Configuration '{self._namespace}'")
         create_resources(
             [
                 self._generate_yd_namespace_configuration(
-                    namespace=YD_NAMESPACE, storage_blob_name=STORAGE_BLOB_NAME
+                    namespace=self._namespace, storage_blob_name=STORAGE_BLOB_NAME
                 )
             ]
         )
@@ -523,7 +522,11 @@ class AzureConfig(CommonCloudConfig):
 
         # Remove the Namespace Configuration
         remove_resources(
-            [self._generate_yd_namespace_configuration(YD_NAMESPACE, STORAGE_BLOB_NAME)]
+            [
+                self._generate_yd_namespace_configuration(
+                    self._namespace, STORAGE_BLOB_NAME
+                )
+            ]
         )
 
     def _create_storage_account_and_blob(self):
@@ -623,6 +626,7 @@ class AzureConfig(CommonCloudConfig):
 
         return {
             "resource": RN_SOURCE_TEMPLATE,
+            "namespace": self._namespace,
             "description": (
                 f"Azure {region} {spot_str} Compute Source Template automatically"
                 " created by YellowDog Cloud Wizard"

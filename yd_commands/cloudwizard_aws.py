@@ -34,7 +34,6 @@ YD_CREDENTIAL_NAME = "cloudwizard-aws"
 YD_RESOURCE_PREFIX = "cloudwizard-aws"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
-YD_NAMESPACE = "cloudwizard-aws"
 YD_DEFAULT_INSTANCE_TYPE = "{{instance_type:=t3a.micro}}"
 
 AWS_ALL_REGIONS = [
@@ -362,12 +361,12 @@ class AWSConfig(CommonCloudConfig):
         # Create namespace configuration (Keyring/Credential creation must come first)
         print_log(
             "Creating YellowDog Namespace Configuration"
-            f" 'S3:{self._get_s3_bucket_name()}' -> '{YD_NAMESPACE}'"
+            f" 'S3:{self._get_s3_bucket_name()}' -> '{self._namespace}'"
         )
         create_resources(
             [
                 self._generate_yd_namespace_configuration(
-                    namespace=YD_NAMESPACE, s3_bucket_name=self._get_s3_bucket_name()
+                    namespace=self._namespace, s3_bucket_name=self._get_s3_bucket_name()
                 )
             ]
         )
@@ -400,7 +399,7 @@ class AWSConfig(CommonCloudConfig):
         remove_resources(
             [
                 self._generate_yd_namespace_configuration(
-                    YD_NAMESPACE, self._get_s3_bucket_name()
+                    self._namespace, self._get_s3_bucket_name()
                 )
             ]
         )
@@ -896,9 +895,8 @@ class AWSConfig(CommonCloudConfig):
                 f" '{ec2_client.meta.region_name}': {e}"
             )
 
-    @staticmethod
     def _generate_aws_compute_source_template(
-        az: AWSAvailabilityZone, name: str, spot: bool
+        self, az: AWSAvailabilityZone, name: str, spot: bool
     ) -> Dict:
         """
         Create a minimal populated YellowDog Compute Source Template resource definition.
@@ -906,6 +904,7 @@ class AWSConfig(CommonCloudConfig):
         spot_str = "Spot" if spot is True else "On-Demand"
         return {
             "resource": RN_SOURCE_TEMPLATE,
+            "namespace": self._namespace,
             "description": (
                 f"AWS {az.az} {spot_str} Compute Source Template automatically created"
                 " by YellowDog Cloud Wizard"
