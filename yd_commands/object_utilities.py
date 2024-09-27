@@ -394,10 +394,13 @@ def split_namespace_and_name(reference: str) -> (Optional[str], str):
     """
     Split a name into an (optional) namespace and a name.
     """
-    parts = reference.split(NAMESPACE_PREFIX_SEPARATOR)
+    parts = reference.strip().split(NAMESPACE_PREFIX_SEPARATOR)
     if len(parts) == 1:
         return None, reference
     if len(parts) == 2:
-        return parts[0], parts[1]
+        if parts[0] == "":  # Handle the case of a leading slash
+            return None, parts[1]
+        else:
+            return parts[0], parts[1]
 
     raise Exception(f"Malformed name '{reference}'")
