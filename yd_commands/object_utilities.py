@@ -109,12 +109,7 @@ def get_worker_pool_id_by_name(
     """
     Find a Worker Pool ID by its name.
     """
-    worker_pool_summaries: List[WorkerPoolSummary] = (
-        client.worker_pool_client.find_all_worker_pools()
-    )
-    for wp_summary in worker_pool_summaries:
-        if wp_summary.name == worker_pool_name:
-            return wp_summary.id
+    return _find_id_by_name(worker_pool_name, client, get_all_worker_pools)
 
 
 def get_compute_requirement_id_by_name(
@@ -154,29 +149,30 @@ def get_work_requirement_summary_by_name_or_id(
             return work_requirement_summary
 
 
-def _find_template_id_by_name(
+def _find_id_by_name(
     name: str, client: PlatformClient, find_function: callable
 ) -> Optional[str]:
     """
-    Find a CST or CRT by name.
+    Generic function to find an ID of entity by namespace and name.
     """
-    template_ids = []
+    ydids = []
     namespaces = []
     namespace, name = split_namespace_and_name(name)
-    for template in find_function(client):
-        if template.name == name:
-            if namespace is not None and template.namespace != namespace:
+    for entity in find_function(client):
+        if entity.name == name:
+            if namespace is not None and entity.namespace != namespace:
                 continue
-            template_ids.append(template.id)
-            namespaces.append(template.namespace)
+            ydids.append(entity.id)
+            namespaces.append(entity.namespace)
 
-    if len(template_ids) == 0:
+    if len(ydids) == 0:
         return
-    if len(template_ids) == 1:
-        return template_ids[0]
+
+    if len(ydids) == 1:
+        return ydids[0]
 
     raise Exception(
-        f"Name '{name}' is ambiguous: matching IDs are: {template_ids}. "
+        f"Name '{name}' is ambiguous: matching IDs are: {ydids}. "
         f"Please specify a namespace from {namespaces}."
     )
 
@@ -188,7 +184,7 @@ def find_compute_source_template_id_by_name(
     Find a Compute Source Template id by name.
     Compute Source Template names are unique within a namespace.
     """
-    return _find_template_id_by_name(name, client, get_all_compute_source_templates)
+    return _find_id_by_name(name, client, get_all_compute_source_templates)
 
 
 @lru_cache()
@@ -215,9 +211,7 @@ def find_compute_requirement_template_id_by_name(
     Find the Compute Requirement Template ID that matches the
     provided name. Names are unique within a namespace.
     """
-    return _find_template_id_by_name(
-        name, client, get_all_compute_requirement_templates
-    )
+    return _find_id_by_name(name, client, get_all_compute_requirement_templates)
 
 
 @lru_cache()
@@ -248,6 +242,13 @@ def get_compute_requirement_id_by_worker_pool_id(
     )
     if isinstance(worker_pool, ProvisionedWorkerPool):
         return worker_pool.computeRequirementId
+
+
+def get_all_worker_pools(client: PlatformClient) -> List[WorkerPoolSummary]:
+    """
+    Return all Worker Pool summaries.
+    """
+    return client.worker_pool_client.find_all_worker_pools()
 
 
 @lru_cache()

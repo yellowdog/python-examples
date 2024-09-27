@@ -305,9 +305,12 @@ def remove_configured_worker_pool(resource: Dict):
     """
     try:
         name = resource["name"]
+        namespace = resource.get("namespace", LEGACY_DEFAULT_NAMESPACE)
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
+
+    fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     worker_pools: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()
@@ -317,6 +320,7 @@ def remove_configured_worker_pool(resource: Dict):
     for worker_pool in worker_pools:
         if (
             worker_pool.name == name
+            and worker_pool.namespace == namespace
             and worker_pool.type.split(".")[-1] == "ConfiguredWorkerPool"
         ):
             if worker_pool.status not in [
@@ -324,7 +328,7 @@ def remove_configured_worker_pool(resource: Dict):
                 WorkerPoolStatus.TERMINATED,
             ]:
                 if not confirmed(
-                    f"Shut down Configured Worker Pool '{worker_pool.name}'"
+                    f"Shut down Configured Worker Pool '{fq_name}'"
                     f" ({worker_pool.id})?"
                 ):
                     break
@@ -332,7 +336,7 @@ def remove_configured_worker_pool(resource: Dict):
                     CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
                     print_log(
                         f"Shutting down [{worker_pool.status}] Configured Worker Pool"
-                        f" '{name}' ({worker_pool.id})"
+                        f" '{fq_name}' ({worker_pool.id})"
                     )
                     return
                 except Exception as e:
@@ -340,7 +344,7 @@ def remove_configured_worker_pool(resource: Dict):
             else:
                 print_log(
                     f"Not shutting down [{worker_pool.status}] Configured Worker Pool"
-                    f" '{name}' ({worker_pool.id})"
+                    f" '{fq_name}' ({worker_pool.id})"
                 )
                 return
 

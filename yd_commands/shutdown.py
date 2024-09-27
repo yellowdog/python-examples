@@ -100,6 +100,7 @@ def shutdown_by_names_or_ids(names_or_ids: List[str]):
 
     if len(worker_pool_ids) == 0 and len(node_ids) == 0:
         print_log("No Worker Pools or Nodes to shut down")
+        return
 
     if not confirmed(
         f"Shut down {len(worker_pool_ids) + len(node_ids)} Worker Pool(s) and/or Node(s)?"
