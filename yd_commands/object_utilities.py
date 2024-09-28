@@ -153,25 +153,39 @@ def _find_id_by_name(
     name: str, client: PlatformClient, find_function: callable
 ) -> Optional[str]:
     """
-    Generic function to find an ID of entity by namespace and name.
+    Generic function to find the ID of an entity by namespace and name.
     """
-    ydids = []
-    namespaces = []
     namespace, name = split_namespace_and_name(name)
-    for entity in find_function(client):
-        if entity.name == name and entity.namespace == namespace:
-            ydids.append(entity.id)
-            namespaces.append(entity.namespace)
 
-    if len(ydids) == 0:
+    entities = find_function(client)
+    exact_matching_entities = []
+    inexact_matching_entities = []
+
+    # Exact match: namespace and name (including matching namespace = None)
+    # Inexact match: if name matches but namespace is None
+    for entity in entities:
+        if entity.name == name:
+            if entity.namespace == namespace:
+                exact_matching_entities.append(entity)
+            elif namespace is None:
+                inexact_matching_entities.append(entity)
+
+    if len(exact_matching_entities) == 0 and len(inexact_matching_entities) == 0:
         return
 
-    if len(ydids) == 1:
-        return ydids[0]
+    if len(exact_matching_entities) == 1:
+        return exact_matching_entities[0].id
 
+    if len(inexact_matching_entities) == 1:
+        return inexact_matching_entities[0].id
+
+    matches = [
+        f"{entity.namespace}/{entity.name} ({entity.id})"
+        for entity in exact_matching_entities + inexact_matching_entities
+    ]
     raise Exception(
-        f"Name '{name}' is ambiguous: matching IDs are: {ydids}. "
-        f"Please specify a namespace from {namespaces}."
+        f"'{name}' has multiple matches: {matches}. "
+        f"Please specify the required namespace."
     )
 
 
