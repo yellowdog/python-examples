@@ -118,7 +118,7 @@ def remove_compute_source_template(resource: Dict):
     Should handle any Source Type.
     """
     try:
-        namespace = resource.get("namespace", LEGACY_DEFAULT_NAMESPACE)
+        namespace = resource.get("namespace")
         source = resource.pop("source")  # Extract the Source properties
         name = source["name"]
     except KeyError as e:
@@ -126,7 +126,8 @@ def remove_compute_source_template(resource: Dict):
         return
 
     # Prepend the namespace
-    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    if namespace is not None:
+        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     source_id = find_compute_source_template_id_by_name(CLIENT, name)
     if source_id is None:
@@ -151,13 +152,14 @@ def remove_compute_requirement_template(resource: Dict):
     """
     try:
         name = resource["name"]
-        namespace = resource.get("namespace", LEGACY_DEFAULT_NAMESPACE)
+        namespace = resource.get("namespace")
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
 
     # Prepend the namespace
-    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    if namespace is not None:
+        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     template_id = find_compute_requirement_template_id_by_name(CLIENT, name)
     if template_id is None:

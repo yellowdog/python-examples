@@ -159,9 +159,7 @@ def _find_id_by_name(
     namespaces = []
     namespace, name = split_namespace_and_name(name)
     for entity in find_function(client):
-        if entity.name == name:
-            if namespace is not None and entity.namespace != namespace:
-                continue
+        if entity.name == name and entity.namespace == namespace:
             ydids.append(entity.id)
             namespaces.append(entity.namespace)
 

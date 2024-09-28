@@ -142,7 +142,7 @@ def create_compute_source_template(resource: Dict):
     Handles all Source types.
     """
     try:
-        namespace = resource["namespace"]
+        namespace = resource.get("namespace")
         source = resource.pop("source")  # Extract the Source properties
         source_type = source.pop("type").split(".")[-1]  # Extract Source type
         name = source["name"]
@@ -181,7 +181,8 @@ def create_compute_source_template(resource: Dict):
     )
 
     # Prepend the namespace when searching for existing templates
-    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    if namespace is not None:
+        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     # Check for an existing ID
     source_id = find_compute_source_template_id_by_name(CLIENT, name)
@@ -189,10 +190,7 @@ def create_compute_source_template(resource: Dict):
         compute_source = CLIENT.compute_client.add_compute_source_template(
             compute_source_template
         )
-        print_log(
-            f"Created Compute Source Template '{compute_source.source.name}'"
-            f" ({compute_source.id})"
-        )
+        print_log(f"Created Compute Source Template '{name}'" f" ({compute_source.id})")
     else:
         if not confirmed(f"Update existing Compute Source Template '{name}'?"):
             return
@@ -220,7 +218,7 @@ def create_compute_requirement_template(resource: Dict):
     try:
         type = resource.pop("type").split(".")[-1]  # Extract type
         name = resource["name"]
-        namespace = resource["namespace"]
+        namespace = resource.get("namespace")
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -259,7 +257,8 @@ def create_compute_requirement_template(resource: Dict):
         return 0
 
     # Prepend the namespace when searching for existing templates
-    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    if namespace is not None:
+        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     source_template_substitutions = 0
     source_image_id_substitutions = 0
@@ -310,9 +309,7 @@ def create_compute_requirement_template(resource: Dict):
         template = CLIENT.compute_client.add_compute_requirement_template(
             compute_template
         )
-        print_log(
-            f"Created Compute Requirement Template '{template.name}' ({template.id})"
-        )
+        print_log(f"Created Compute Requirement Template '{name}' ({template.id})")
         if ARGS_PARSER.quiet:
             print(template.id)
         return
@@ -609,11 +606,12 @@ def create_configured_worker_pool(resource: Dict):
     """
     try:
         name = resource["name"]
-        namespace = resource["namespace"]
+        namespace = resource.get("namespace")
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    if namespace is not None:
+        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     try:
         cwp_request = _get_model_object("AddConfiguredWorkerPoolRequest", resource)
@@ -621,7 +619,7 @@ def create_configured_worker_pool(resource: Dict):
             CLIENT.worker_pool_client.add_configured_worker_pool(cwp_request)
         )
         print_log(
-            f"Created Configured Worker Pool '{fq_name}' ({cwp_response.workerPool.id})"
+            f"Created Configured Worker Pool '{name}' ({cwp_response.workerPool.id})"
         )
         print_log(
             f"                   Worker Pool Token = '{cwp_response.token.secret}'"
@@ -632,8 +630,9 @@ def create_configured_worker_pool(resource: Dict):
         )
         if ARGS_PARSER.quiet:
             print(cwp_response.workerPool.id)
+
     except Exception as e:
-        print_error(f"Unable to created Configured Worker Pool '{fq_name}': {e}")
+        print_error(f"Unable to created Configured Worker Pool '{name}': {e}")
 
 
 def create_allowance(resource: Dict):
