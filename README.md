@@ -1862,9 +1862,9 @@ yd-remove --ids ydid:crt:D9C548:2a09093d-c74c-4bde-95d1-c576c6f03b13 ydid:imgfam
 
 ### Resource Matching
 
-Resources match on **resource names** rather than on YellowDog IDs. This is done for flexibility and to allow the `yd-create` and `yd-remove` commands to be essentially stateless (i.e., we don't need to keep a local record of the YellowDog IDs of the resources created). 
+Resources match on **resource names** and (where applicable) **resource namespaces** rather than on YellowDog IDs. This is done for flexibility and to allow the `yd-create` and `yd-remove` commands to be essentially stateless (i.e., we don't need to keep a local record of the YellowDog IDs of the resources created). 
 
-However, this means that **caution is required** when updating or removing resources, since resource matching is done using **only** the **name** of the resource -- i.e., the system-generated `ydid` IDs are not used. This means that a resource with a given name could have been removed and replaced in Platform by some other means, and the resource specification(s) would still match it.
+However, this means that **caution is required** when updating or removing resources, since resource matching is done using **only** the **namespace/name** of the resource -- i.e., the system-generated `ydid` IDs are not used. This means that a resource with a given name could have been removed and replaced in Platform by some other means, and the resource specification(s) would still match it.
 
 ## Resource Specification Definitions
 
@@ -1984,7 +1984,7 @@ An example Compute Source resource specification is found below:
 }
 ```
 
-In the Compute Source Template `imageId` property, an Image Family **name** may be used instead of an ID. For example: `"imageId": "yellowdog/yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID. 
+In the Compute Source Template `imageId` property, an Image Family **namespace/name** may be used instead of an ID. For example: `"imageId": "yellowdog/yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID. 
 
 ## Compute Requirement Templates
 
@@ -2008,9 +2008,9 @@ An example Compute Requirement resource specification is found below, for a **st
 }
 ```
 
-Note that Compute Source Template **names** in the form `namespace/compute_source_template_name` can be used instead of their IDs: the **yd-create** command will look up the IDs and make the substitutions. The Compute Source Templates must already exist.
+Note that Compute Source Template **namespace/names** in the form `namespace/compute_source_template_name` can be used instead of their IDs: the **yd-create** command will look up the IDs and make the substitutions. The Compute Source Templates must already exist.
 
-Also, In the `imagesId` property, an Image Family **name** may be used instead of an ID. For example: `"imagesId": "yellowdog/yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID.
+Also, In the `imagesId` property, an Image Family **namespace/name** may be used instead of an ID. For example: `"imagesId": "yellowdog/yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID.
 
 A **dynamic** template example is:
 
