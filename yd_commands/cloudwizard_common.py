@@ -24,6 +24,8 @@ from yd_commands.remove import remove_resource_by_id
 from yd_commands.settings import RN_KEYRING, RN_REQUIREMENT_TEMPLATE
 from yd_commands.variables import process_variable_substitutions_insitu
 
+CLOUDWIZARD_NAMESPACE_PREFIX = "cloudwizard"
+
 
 class CommonCloudConfig(ABC):
     """
@@ -32,7 +34,7 @@ class CommonCloudConfig(ABC):
 
     def __init__(self, client: PlatformClient, cloud_provider: str = ""):
         self._cloud_provider = cloud_provider
-        self._namespace = f"cloudwizard-{cloud_provider.lower()}"
+        self._namespace = f"{CLOUDWIZARD_NAMESPACE_PREFIX}-{cloud_provider.lower()}"
         self._client = client
 
         self._instance_type: Optional[str] = None
@@ -58,14 +60,13 @@ class CommonCloudConfig(ABC):
             f" '{self._cloud_provider}'"
         )
 
-    @staticmethod
-    def _remove_yd_templates_by_prefix(client: PlatformClient, name_prefix: str):
+    def _remove_yd_templates_by_prefix(self, client: PlatformClient, name_prefix: str):
         """
         Remove YellowDog Compute Source & Requirement Templates based on a prefix.
         """
         if not confirmed(
-            "Remove all Compute Requirement and Compute Source Templates with names"
-            f" starting with '{name_prefix}'?"
+            f"Remove all Compute Requirement and Compute Source Templates in "
+            f"namespace '{self._namespace}' with names starting with '{name_prefix}'?"
         ):
             return
 
@@ -75,7 +76,10 @@ class CommonCloudConfig(ABC):
         for (
             compute_requirement_template_summary
         ) in get_all_compute_requirement_templates(client):
-            if compute_requirement_template_summary.name.startswith(name_prefix):
+            if (
+                compute_requirement_template_summary.name.startswith(name_prefix)
+                and compute_requirement_template_summary.namespace == self._namespace
+            ):
                 counter += 1
                 try:
                     remove_resource_by_id(compute_requirement_template_summary.id)
@@ -88,7 +92,10 @@ class CommonCloudConfig(ABC):
         clear_compute_source_template_cache()
         counter = 0
         for compute_source_template_summary in get_all_compute_source_templates(client):
-            if compute_source_template_summary.name.startswith(name_prefix):
+            if (
+                compute_source_template_summary.name.startswith(name_prefix)
+                and compute_source_template_summary.namespace == self._namespace
+            ):
                 counter += 1
                 try:
                     remove_resource_by_id(compute_source_template_summary.id)
