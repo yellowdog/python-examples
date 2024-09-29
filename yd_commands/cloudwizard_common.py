@@ -131,7 +131,10 @@ class CommonCloudConfig(ABC):
             "strategyType": f"co.yellowdog.platform.model.{strategy}ProvisionStrategy",
             "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
             "sources": [
-                {"instanceType": instance_type, "sourceTemplateId": name}
+                {
+                    "instanceType": instance_type,
+                    "sourceTemplateId": f"{self._namespace}/{name}",
+                }
                 for name in source_names
             ],
         }
@@ -159,7 +162,10 @@ class CommonCloudConfig(ABC):
             "strategyType": f"co.yellowdog.platform.model.WaterfallProvisionStrategy",
             "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
             "sources": [
-                {"instanceType": instance_type, "sourceTemplateId": name}
+                {
+                    "instanceType": instance_type,
+                    "sourceTemplateId": f"{self._namespace}/{name}",
+                }
                 for name in source_names_spot + source_names_on_demand
             ],
         }
