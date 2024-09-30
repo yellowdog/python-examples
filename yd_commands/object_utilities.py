@@ -29,7 +29,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.interactive import confirmed, select
-from yd_commands.printing import print_log
+from yd_commands.printing import print_log, print_warning
 from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 
 
@@ -270,29 +270,56 @@ def find_image_family_id_by_name(
     """
     Find image family IDs by their name. Names are unique within a namespace.
     """
-    namespace, image_family_name = split_namespace_and_name(image_family_name)
+    namespace, name = split_namespace_and_name(image_family_name)
     if_search = MachineImageFamilySearch(
-        familyName=image_family_name, namespace=namespace, includePublic=True
+        familyName=name, namespace=namespace, includePublic=True
     )
     search_client: SearchClient = client.images_client.get_image_families(if_search)
     image_families: List[MachineImageFamilySummary] = search_client.list_all()
 
     # Partial names will match, so filter for exact matches
     image_families = [
-        img_family
-        for img_family in image_families
-        if img_family.name == image_family_name
+        img_family for img_family in image_families if img_family.name == name
     ]
 
     if len(image_families) == 0:
         return
+
+    # It's possible to have both a PRIVATE and a PUBLIC match for the same
+    # namespace/image_family_name.
+    if len(image_families) == 2:
+        image_families_public = [
+            img_family
+            for img_family in image_families
+            if img_family.access.name == "PUBLIC"
+        ]
+        image_families_private = [
+            img_family
+            for img_family in image_families
+            if img_family.access.name == "PRIVATE"
+        ]
+        if len(image_families_public) == 1 and len(image_families_private) == 1:
+            # Favour the PRIVATE image
+            print_warning(
+                f"Image Family '{name}' has both PUBLIC and PRIVATE "
+                "variants; using the PRIVATE image family: "
+                f"{image_families_private[0].namespace}/{image_families_private[0].name} "
+                f"({image_families_private[0].id})"
+            )
+            image_families = image_families_private
+
     if len(image_families) == 1:
         return image_families[0].id
 
+    matches = [
+        f"{img_fam.namespace}/{img_fam.name} [{img_fam.access.name}] ({img_fam.id})"
+        for img_fam in image_families
+    ]
     raise Exception(
-        f"Ambiguous Image Family name '{image_family_name}': "
-        f"{[img_fam.id for img_fam in image_families]}. "
-        "Please specify a namespace."
+        f"Ambiguous Image Family name '{name}': "
+        f"{matches}. "
+        "Please specify a namespace. Note: PUBLIC image family are selected "
+        "over PRIVATE if namespace/name are identical."
     )
 
 
