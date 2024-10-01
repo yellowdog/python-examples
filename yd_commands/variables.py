@@ -79,7 +79,8 @@ for key, value in os.environ.items():
 
 if len(subs_list) > 0:
     print_log(
-        f"Adding environment-defined variable substitution for: {', '.join(subs_list)}"
+        "Adding environment-defined variable substitution(s) for: "
+        f"{', '.join(subs_list)}"
     )
 
 # Substitutions from the command line, which take precedence over
