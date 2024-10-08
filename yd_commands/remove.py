@@ -27,7 +27,7 @@ from yd_commands.object_utilities import (
 )
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.settings import (
-    LEGACY_DEFAULT_NAMESPACE,
+    DEFAULT_NAMESPACE,
     NAMESPACE_PREFIX_SEPARATOR,
     RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
@@ -118,16 +118,14 @@ def remove_compute_source_template(resource: Dict):
     Should handle any Source Type.
     """
     try:
-        namespace = resource.get("namespace")
+        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
         source = resource.pop("source")  # Extract the Source properties
         name = source["name"]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
 
-    # Prepend the namespace
-    if namespace is not None:
-        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     source_id = find_compute_source_template_id_by_name(CLIENT, name)
     if source_id is None:
@@ -152,14 +150,12 @@ def remove_compute_requirement_template(resource: Dict):
     """
     try:
         name = resource["name"]
-        namespace = resource.get("namespace")
+        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
 
-    # Prepend the namespace
-    if namespace is not None:
-        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     template_id = find_compute_requirement_template_id_by_name(CLIENT, name)
     if template_id is None:
@@ -241,7 +237,7 @@ def remove_image_family(resource: Dict):
     """
     try:
         name = resource["name"]
-        namespace = resource.get("namespace", LEGACY_DEFAULT_NAMESPACE)
+        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -307,7 +303,7 @@ def remove_configured_worker_pool(resource: Dict):
     """
     try:
         name = resource["name"]
-        namespace = resource.get("namespace", LEGACY_DEFAULT_NAMESPACE)
+        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return

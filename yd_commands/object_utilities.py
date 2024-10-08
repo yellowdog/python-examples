@@ -158,6 +158,7 @@ def _find_id_by_name(
     namespace, name = split_namespace_and_name(name)
 
     entities = find_function(client)
+
     exact_matching_entities = []
     inexact_matching_entities = []
 
