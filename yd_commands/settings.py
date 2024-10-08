@@ -2,7 +2,7 @@
 String and numeric constants, etc.
 """
 
-DEFAULT_URL = "https://portal.yellowdog.co/api"
+DEFAULT_URL = "https://api.yellowdog.ai"
 
 YD_KEY = "YD_KEY"
 YD_SECRET = "YD_SECRET"
