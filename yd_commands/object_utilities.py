@@ -67,7 +67,7 @@ def get_filtered_work_requirements(
 ) -> List[WorkRequirementSummary]:
     """
     Get a list of Work Requirements filtered by namespace, tag
-    and status. Populate either include_filter OR exclude_filter
+    and status. Supply either include_filter OR exclude_filter.
     """
     filtered_work_summaries: List[WorkRequirementSummary] = []
 
