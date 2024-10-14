@@ -79,7 +79,7 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     Check if 'template_id_or_name' looks like a valid CRT ID; if not,
     assume it's a CRT name and perform a lookup.
     """
-    if get_ydid_type(template_id_or_name) == YDIDType.CR_TEMPLATE:
+    if get_ydid_type(template_id_or_name) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
         return template_id_or_name
 
     template_id = find_compute_requirement_template_id_by_name(

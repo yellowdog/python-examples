@@ -6,6 +6,7 @@ from sys import exit
 from typing import Dict, List
 
 from yd_commands.args import ARGS_PARSER
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.printing import print_log, print_warning
 from yd_commands.settings import (
     RN_ALLOWANCE,
@@ -54,7 +55,7 @@ def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
                 f"['{resource_spec}'] Resource specifications must end in '.toml', "
                 "'.json' or '.jsonnet'"
             )
-            if resource_spec.startswith("ydid:") and "":
+            if get_ydid_type(resource_spec) is not None:
                 exception_message += "; did you mean to use the '--ids' option?"
             raise Exception(exception_message)
 

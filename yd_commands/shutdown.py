@@ -9,6 +9,7 @@ from typing import List
 from yellowdog_client.model import WorkerPool, WorkerPoolStatus, WorkerPoolSummary
 
 from yd_commands.follow_utils import follow_ids
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_worker_pool_by_id,
@@ -86,10 +87,10 @@ def shutdown_by_names_or_ids(names_or_ids: List[str]):
     worker_pool_ids: List[str] = []
     node_ids: List[str] = []
     for name_or_id in names_or_ids:
-        if "ydid:node:" in name_or_id:
+        if get_ydid_type(name_or_id) == YDIDType.NODE:
             node_ids.append(name_or_id)
             continue
-        if "ydid:wrkrpool:" in name_or_id:
+        if get_ydid_type(name_or_id) == YDIDType.WORKER_POOL:
             worker_pool_id = name_or_id
         else:
             worker_pool_id = get_worker_pool_id_by_name(CLIENT, name_or_id)

@@ -18,6 +18,7 @@ from yellowdog_client.model import (
     WorkerPoolSummary,
 )
 
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
@@ -365,12 +366,12 @@ def remove_resource_by_id(resource_id: str):
     Remove a resource by its YDID.
     """
     try:
-        if resource_id.startswith("ydid:cst:"):
+        if get_ydid_type(resource_id) == YDIDType.COMPUTE_SOURCE_TEMPLATE:
             if confirmed(f"Remove Compute Source Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_source_template_by_id(resource_id)
                 print_log(f"Removed Compute Source Template {resource_id} (if present)")
 
-        elif resource_id.startswith("ydid:crt:"):
+        elif get_ydid_type(resource_id) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
             if confirmed(f"Remove Compute Requirement Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_requirement_template_by_id(
                     resource_id
@@ -379,7 +380,7 @@ def remove_resource_by_id(resource_id: str):
                     f"Removed Compute Requirement Template {resource_id} (if present)"
                 )
 
-        elif resource_id.startswith("ydid:imgfam:"):
+        elif get_ydid_type(resource_id) == YDIDType.IMAGE_FAMILY:
             if confirmed(f"Remove Image Family '{resource_id}'?"):
                 family: MachineImageFamily = (
                     CLIENT.images_client.get_image_family_by_id(resource_id)
@@ -387,7 +388,7 @@ def remove_resource_by_id(resource_id: str):
                 CLIENT.images_client.delete_image_family(family)
                 print_log(f"Removed Image Family {resource_id} (if present)")
 
-        elif resource_id.startswith("ydid:imggrp:"):
+        elif get_ydid_type(resource_id) == YDIDType.IMAGE_GROUP:
             if confirmed(f"Remove Image Group '{resource_id}'?"):
                 group: MachineImageGroup = CLIENT.images_client.get_image_group_by_id(
                     resource_id
@@ -395,13 +396,13 @@ def remove_resource_by_id(resource_id: str):
                 CLIENT.images_client.delete_image_group(group)
                 print_log(f"Removed Image Family {resource_id} (if present)")
 
-        elif resource_id.startswith("ydid:image:"):
+        elif get_ydid_type(resource_id) == YDIDType.IMAGE:
             if confirmed(f"Remove Image '{resource_id}'?"):
                 image: MachineImage = CLIENT.images_client.get_image(resource_id)
                 CLIENT.images_client.delete_image(image)
                 print_log(f"Removed Image {resource_id} (if present)")
 
-        elif resource_id.startswith("ydid:keyring:"):
+        elif get_ydid_type(resource_id) == YDIDType.KEYRING:
             if confirmed(f"Remove Keyring {resource_id}?"):
                 keyrings = CLIENT.keyring_client.find_all_keyrings()
                 for keyring in keyrings:
@@ -411,12 +412,12 @@ def remove_resource_by_id(resource_id: str):
                         return
                 raise Exception(f"Keyring {resource_id} not found")
 
-        elif resource_id.startswith("ydid:wrkrpool:"):
+        elif get_ydid_type(resource_id) == YDIDType.WORKER_POOL:
             if confirmed(f"Shut down Worker Pool {resource_id}?"):
                 CLIENT.worker_pool_client.shutdown_worker_pool_by_id(resource_id)
                 print_log(f"Shut down Worker Pool {resource_id}")
 
-        elif resource_id.startswith("ydid:allow:"):
+        elif get_ydid_type(resource_id) == YDIDType.ALLOWANCE:
             if confirmed(f"Remove Allowance {resource_id}?"):
                 CLIENT.allowances_client.delete_allowance_by_id(resource_id)
                 print_log(f"Removed Allowance {resource_id} (if present)")

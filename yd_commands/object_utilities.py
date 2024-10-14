@@ -326,8 +326,8 @@ def find_image_family_id_by_name(
     raise Exception(
         f"Ambiguous Image Family name '{name}': "
         f"{matches}. "
-        "Please specify a namespace. Note: PUBLIC image family are selected "
-        "over PRIVATE if namespace/name are identical."
+        "Please specify a namespace. Note: PRIVATE image family is selected "
+        "over PUBLIC if namespace/name are identical."
     )
 
 

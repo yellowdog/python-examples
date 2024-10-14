@@ -33,6 +33,7 @@ from yellowdog_client.model import (
 )
 from yellowdog_client.model.exceptions import InvalidRequestException
 
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.object_utilities import (
@@ -156,15 +157,19 @@ def create_compute_source_template(resource: Dict):
         CLEAR_IMAGE_FAMILY_CACHE = False
 
     image_id = source.get("imageId")
-    if image_id is not None and not any(
-        [x in image_id for x in ["ydid:image:", "ydid:imggrp:", "ydid:imgfam:"]]
-    ):
+    if get_ydid_type(image_id) not in [
+        YDIDType.IMAGE_FAMILY,
+        YDIDType.IMAGE_GROUP,
+        YDIDType.IMAGE,
+    ]:
         image_family_id = find_image_family_id_by_name(
             client=CLIENT, image_family_name=image_id
         )
         if image_family_id is not None:
             source["imageId"] = image_family_id
-            print_log(f"Replaced imageId name '{image_id}' with ID {image_family_id}")
+            print_log(
+                f"Substituted imageId name '{image_id}' with ID {image_family_id}"
+            )
 
     if ARGS_PARSER.dry_run:
         resource["source"] = source
@@ -241,9 +246,11 @@ def create_compute_requirement_template(resource: Dict):
         """
         Helper function to match an image family name into an ID.
         """
-        if not any(
-            [x in image_str for x in ["ydid:image:", "ydid:imggrp:", "ydid:imgfam:"]]
-        ):
+        if get_ydid_type(image_str) not in [
+            YDIDType.IMAGE_FAMILY,
+            YDIDType.IMAGE_GROUP,
+            YDIDType.IMAGE,
+        ]:
             image_family_id = find_image_family_id_by_name(
                 client=CLIENT, image_family_name=image_str
             )
@@ -251,7 +258,7 @@ def create_compute_requirement_template(resource: Dict):
                 context[key] = image_family_id
                 if report:
                     print_log(
-                        f"Replaced Image name '{image_str}' with ID {image_family_id}"
+                        f"Substituted Image name '{image_str}' with ID {image_family_id}"
                     )
                 return 1
         return 0
@@ -266,7 +273,7 @@ def create_compute_requirement_template(resource: Dict):
     # Dynamic templates don't have 'sources'; return '[]'
     for source in resource.get("sources", []):
         template_name_or_id = source["sourceTemplateId"]
-        if "ydid:cst:" not in template_name_or_id:
+        if get_ydid_type(template_name_or_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
             template_id = find_compute_source_template_id_by_name(
                 client=CLIENT, name=template_name_or_id
             )
@@ -648,7 +655,7 @@ def create_allowance(resource: Dict):
     if type == "SourcesAllowance":
         template_name_or_id = resource.get("sourceCreatedFromId", None)
         if template_name_or_id is not None:
-            if "ydid:cst:" not in template_name_or_id:
+            if get_ydid_type(template_name_or_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
                 template_id = find_compute_source_template_id_by_name(
                     client=CLIENT, name=template_name_or_id
                 )
@@ -666,7 +673,10 @@ def create_allowance(resource: Dict):
     elif type == "RequirementsAllowance":
         template_name_or_id = resource.get("requirementCreatedFromId", None)
         if template_name_or_id is not None:
-            if "ydid:crt:" not in template_name_or_id:
+            if (
+                get_ydid_type(template_name_or_id)
+                != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE
+            ):
                 template_id = find_compute_requirement_template_id_by_name(
                     client=CLIENT, name=template_name_or_id
                 )

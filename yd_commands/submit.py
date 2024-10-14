@@ -1136,7 +1136,7 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     """
     if not ARGS_PARSER.dry_run:
         print_log("Following Work Requirement event stream")
-        follow_events(work_requirement.id, YDIDType.WORK_REQ)
+        follow_events(work_requirement.id, YDIDType.WORK_REQUIREMENT)
 
 
 def on_update(work_req: WorkRequirement):

@@ -14,6 +14,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.follow_utils import follow_ids
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import get_compute_requirement_id_by_name
 from yd_commands.printing import print_error, print_log
@@ -97,7 +98,7 @@ def terminate_cr_by_name_or_id(names_or_ids: List[str]):
     """
     compute_requirement_ids: List[str] = []
     for name_or_id in names_or_ids:
-        if "ydid:compreq:" in name_or_id:
+        if get_ydid_type(name_or_id) == YDIDType.COMPUTE_REQUIREMENT:
             compute_requirement_id = name_or_id
         else:
             compute_requirement_id = get_compute_requirement_id_by_name(

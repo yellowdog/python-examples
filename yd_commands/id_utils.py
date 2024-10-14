@@ -7,34 +7,59 @@ from typing import Optional
 
 
 class YDIDType(Enum):
-    WORK_REQ = "Work Requirement"
-    WORKER_POOL = "Worker Pool"
-    COMPUTE_REQ = "Compute Requirement"
-    CR_TEMPLATE = "Compute Requirement Template"
+    ALLOWANCE = "Allowance"
+    COMPUTE_REQUIREMENT = "Compute Requirement"
+    COMPUTE_REQUIREMENT_TEMPLATE = "Compute Requirement Template"
+    COMPUTE_SOURCE = "Compute Source"
+    COMPUTE_SOURCE_TEMPLATE = "Compute Source Template"
+    IMAGE = "Machine Image"
     IMAGE_FAMILY = "Machine Image Family"
     IMAGE_GROUP = "Machine Image Group"
-    IMAGE = "Machine Image"
+    KEYRING = "Keyring"
+    NODE = "Node"
+    TASK = "Task"
+    TASK_GROUP = "Task Group"
+    WORKER = "Worker"
+    WORKER_POOL = "Worker Pool"
+    WORK_REQUIREMENT = "Work Requirement"
 
 
-def get_ydid_type(ydid: str) -> Optional[YDIDType]:
+def get_ydid_type(ydid: Optional[str]) -> Optional[YDIDType]:
     """
-    Find the type of a YDID. Not an exhaustive list yet.
+    Find the type of a YellowDog ID.
     """
-    if ydid is None:
+    if ydid is None or not ydid.startswith("ydid:"):
         return None
-    elif "ydid:workreq:" in ydid:
-        return YDIDType.WORK_REQ
-    elif "ydid:wrkrpool:" in ydid:
+
+    if ydid.startswith("ydid:workreq:"):
+        return YDIDType.WORK_REQUIREMENT
+    if ydid.startswith("ydid:taskgrp:"):
+        return YDIDType.TASK_GROUP
+    if ydid.startswith("ydid:task:"):
+        return YDIDType.TASK
+    if ydid.startswith("ydid:wrkrpool:"):
         return YDIDType.WORKER_POOL
-    elif "ydid:compreq:" in ydid:
-        return YDIDType.COMPUTE_REQ
-    elif "ydid:crt:" in ydid:
-        return YDIDType.CR_TEMPLATE
-    elif "ydid:imgfam:" in ydid:
+    if ydid.startswith("ydid:wrkr:"):
+        return YDIDType.WORKER
+    if ydid.startswith("ydid:compreq:"):
+        return YDIDType.COMPUTE_REQUIREMENT
+    if ydid.startswith("ydid:compsrc:"):
+        return YDIDType.COMPUTE_SOURCE
+    if ydid.startswith("ydid:node:"):
+        return YDIDType.NODE
+    if ydid.startswith("ydid:crt:"):
+        return YDIDType.COMPUTE_REQUIREMENT_TEMPLATE
+    if ydid.startswith("ydid:cst:"):
+        return YDIDType.COMPUTE_SOURCE_TEMPLATE
+    if ydid.startswith("ydid:imgfam:"):
         return YDIDType.IMAGE_FAMILY
-    elif "ydid:imggrp:" in ydid:
+    if ydid.startswith("ydid:imggrp:"):
         return YDIDType.IMAGE_GROUP
-    elif "ydid:image:" in ydid:
+    if ydid.startswith("ydid:image:"):
         return YDIDType.IMAGE
-    else:
-        return None
+    if ydid.startswith("ydid:keyring:"):
+        return YDIDType.KEYRING
+    if ydid.startswith("ydid:allow:"):
+        return YDIDType.ALLOWANCE
+
+    return None

@@ -86,7 +86,7 @@ def main():
         client=CLIENT, template_id_or_name=CONFIG_WP.template_id
     )
 
-    if get_ydid_type(CONFIG_WP.template_id) != YDIDType.CR_TEMPLATE:
+    if get_ydid_type(CONFIG_WP.template_id) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
         raise Exception(
             f"Not a valid Compute Requirement Template ID: '{CONFIG_WP.template_id}'"
         )
@@ -300,7 +300,7 @@ def _create_compute_requirement_from_json(
         client=CLIENT, template_id_or_name=cr_data["templateId"]
     )
 
-    if get_ydid_type(cr_data["templateId"]) != YDIDType.CR_TEMPLATE:
+    if get_ydid_type(cr_data["templateId"]) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
         raise Exception(
             f"Not a valid Compute Requirement Template ID: '{cr_data['templateId']}'"
         )
@@ -330,7 +330,7 @@ def _create_compute_requirement_from_json(
             print(id)
         if ARGS_PARSER.follow:
             print_log("Following Compute Requirement event stream")
-            follow_events(id, YDIDType.COMPUTE_REQ)
+            follow_events(id, YDIDType.COMPUTE_REQUIREMENT)
     else:
         print_error(f"Failed to provision Compute Requirement '{name}'")
         raise Exception(f"{response.text}")

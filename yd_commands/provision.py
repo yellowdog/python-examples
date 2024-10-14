@@ -238,7 +238,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         raise Exception(f"Key error in JSON Worker Pool definition: {e}")
 
     template_id = wp_data["requirementTemplateUsage"]["templateId"]
-    if get_ydid_type(template_id) != YDIDType.CR_TEMPLATE:
+    if get_ydid_type(template_id) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
         raise Exception(f"Not a valid Compute Requirement Template ID: '{template_id}'")
 
     if ARGS_PARSER.dry_run:
@@ -289,7 +289,7 @@ def create_worker_pool_from_toml():
         client=CLIENT, template_id_or_name=CONFIG_WP.template_id
     )
 
-    if get_ydid_type(CONFIG_WP.template_id) != YDIDType.CR_TEMPLATE:
+    if get_ydid_type(CONFIG_WP.template_id) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
         raise Exception(
             "Not a valid Compute Requirement Template ID or name:"
             f" '{CONFIG_WP.template_id}'"

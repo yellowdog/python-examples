@@ -1180,7 +1180,7 @@ def print_event(event: str, id_type: YDIDType):
     indent = "\n" + (" " * PREFIX_LEN) + "--> "
     indent_2 = "\n" + (" " * (PREFIX_LEN + 4))
 
-    if id_type == YDIDType.WORK_REQ:
+    if id_type == YDIDType.WORK_REQUIREMENT:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         for task_group in event_data["taskGroups"]:
             status = task_group["status"]
@@ -1216,7 +1216,7 @@ def print_event(event: str, id_type: YDIDType):
         if len(workers_msg) > 0:
             msg += f"{indent}Worker(s):      " + workers_msg
 
-    elif id_type == YDIDType.COMPUTE_REQ:
+    elif id_type == YDIDType.COMPUTE_REQUIREMENT:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
         msg += (
             f"{indent}Instance(s): "

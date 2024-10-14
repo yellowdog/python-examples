@@ -15,7 +15,7 @@ from yellowdog_client.model import (
 )
 
 from yd_commands.follow_utils import follow_events, follow_ids
-from yd_commands.id_utils import YDIDType
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.interactive import confirmed
 from yd_commands.object_utilities import get_worker_pool_id_by_name
 from yd_commands.printing import print_log, print_warning
@@ -38,7 +38,7 @@ def _resize_worker_pool():
         f"Resizing Worker Pool '{ARGS_PARSER.worker_pool_name}' to"
         f" {ARGS_PARSER.worker_pool_size:,d} node(s)"
     )
-    if "ydid:wrkrpool:" in ARGS_PARSER.worker_pool_name:
+    if get_ydid_type(ARGS_PARSER.worker_pool_name) == YDIDType.WORKER_POOL:
         worker_pool_id = ARGS_PARSER.worker_pool_name
     else:
         worker_pool_id = get_worker_pool_id_by_name(
@@ -129,7 +129,9 @@ def _resize_compute_requirement():
                                 " ignored when resizing Compute Requirements"
                             )
                         print_log("Following event stream")
-                        follow_events(compute_requirement.id, YDIDType.COMPUTE_REQ)
+                        follow_events(
+                            compute_requirement.id, YDIDType.COMPUTE_REQUIREMENT
+                        )
                 return
     else:
         raise Exception(

@@ -46,9 +46,9 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
     for ydid in ydids_set:
         ydid_type = get_ydid_type(ydid)
         if ydid_type not in [
-            YDIDType.WORK_REQ,
+            YDIDType.WORK_REQUIREMENT,
             YDIDType.WORKER_POOL,
-            YDIDType.COMPUTE_REQ,
+            YDIDType.COMPUTE_REQUIREMENT,
         ]:
             print_error(
                 f"Invalid YellowDog ID '{ydid}' (Must be valid YDID for Work"
@@ -102,9 +102,9 @@ def get_event_url(ydid: str, ydid_type: YDIDType) -> Optional[str]:
     """
     Get the event stream URL.
     """
-    if ydid_type is YDIDType.WORK_REQ:
+    if ydid_type is YDIDType.WORK_REQUIREMENT:
         return f"{CONFIG_COMMON.url}/work/requirements/{ydid}/updates"
     if ydid_type == YDIDType.WORKER_POOL:
         return f"{CONFIG_COMMON.url}/workerPools/{ydid}/updates"
-    if ydid_type == YDIDType.COMPUTE_REQ:
+    if ydid_type == YDIDType.COMPUTE_REQUIREMENT:
         return f"{CONFIG_COMMON.url}/compute/requirements/{ydid}/updates"

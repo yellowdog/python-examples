@@ -14,6 +14,7 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
+from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.interactive import confirmed, select
 from yd_commands.object_utilities import (
     get_filtered_work_requirements,
@@ -116,7 +117,7 @@ def _abort_tasks_by_name_or_id(task_id_list: List[str]):
     """
     aborted_count = 0
     for task_id in task_id_list:
-        if "ydid:task:" not in task_id:
+        if get_ydid_type(task_id) != YDIDType.TASK:
             print_warning(f"ID '{task_id}' is not a valid Task YDID")
             continue
 
