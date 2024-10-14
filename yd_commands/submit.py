@@ -314,7 +314,7 @@ def submit_work_requirement(
         print_log(
             "Created "
             f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
-            f"({work_requirement.name})"
+            f"('{CONFIG_COMMON.namespace}/{work_requirement.name}')"
         )
         print_log(f"YellowDog ID is '{work_requirement.id}'")
         if ARGS_PARSER.hold:
@@ -1551,7 +1551,9 @@ def submit_json_raw(wr_file: str):
 
     if response.status_code == 200:
         wr_id = jsons.loads(response.text)["id"]
-        print_log(f"Created Work Requirement '{wr_name}' ({wr_id})")
+        print_log(
+            f"Created Work Requirement '{wr_data['namespace']}/{wr_name}' ({wr_id})"
+        )
         if ARGS_PARSER.quiet:
             print(wr_id)
     else:
