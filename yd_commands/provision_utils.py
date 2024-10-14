@@ -100,7 +100,11 @@ def get_image_family_id(client: PlatformClient, image_family_id_or_name: str) ->
     Check if 'image_id_or_name' looks like a valid IF ID; if not,
     assume it's an IF name and perform a lookup.
     """
-    if get_ydid_type(image_family_id_or_name) == YDIDType.IMAGE_FAMILY:
+    if get_ydid_type(image_family_id_or_name) in [
+        YDIDType.IMAGE_FAMILY,
+        YDIDType.IMAGE_GROUP,
+        YDIDType.IMAGE,
+    ]:
         return image_family_id_or_name
 
     image_family_id = find_image_family_id_by_name(

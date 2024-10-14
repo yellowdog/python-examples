@@ -11,7 +11,9 @@ class YDIDType(Enum):
     WORKER_POOL = "Worker Pool"
     COMPUTE_REQ = "Compute Requirement"
     CR_TEMPLATE = "Compute Requirement Template"
-    IMAGE_FAMILY = "Image Family"
+    IMAGE_FAMILY = "Machine Image Family"
+    IMAGE_GROUP = "Machine Image Group"
+    IMAGE = "Machine Image"
 
 
 def get_ydid_type(ydid: str) -> Optional[YDIDType]:
@@ -30,5 +32,9 @@ def get_ydid_type(ydid: str) -> Optional[YDIDType]:
         return YDIDType.CR_TEMPLATE
     elif "ydid:imgfam:" in ydid:
         return YDIDType.IMAGE_FAMILY
+    elif "ydid:imggrp:" in ydid:
+        return YDIDType.IMAGE_GROUP
+    elif "ydid:image:" in ydid:
+        return YDIDType.IMAGE
     else:
         return None
