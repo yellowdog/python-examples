@@ -251,7 +251,9 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     name = wp_data["requirementTemplateUsage"]["requirementName"]
     if response.status_code == 200:
         id = response.json()["id"]
-        print_log(f"Provisioned Worker Pool '{name}' ({id})")
+        print_log(
+            f"Provisioned Worker Pool '{reqt_template_usage['requirementNamespace']}/{name}' ({id})"
+        )
         if ARGS_PARSER.quiet:
             print(id)
         if ARGS_PARSER.follow:
@@ -355,13 +357,13 @@ def create_worker_pool_from_toml():
         )
         if num_batches > 1:
             print_log(
-                f"Provisioning Worker Pool {batch_number + 1} '{id}' "
+                f"Provisioning Worker Pool {batch_number + 1} '{CONFIG_COMMON.namespace}/{id}' "
                 f"with {batches[batch_number].initial_nodes:,d} nodes(s) "
                 f"(minNodes: {batches[batch_number].min_nodes:,d}, "
                 f"maxNodes: {batches[batch_number].max_nodes:,d})"
             )
         else:
-            print_log(f"Provisioning Worker Pool '{id}'")
+            print_log(f"Provisioning Worker Pool '{CONFIG_COMMON.namespace}/{id}'")
         try:
             compute_requirement_template_usage = ComputeRequirementTemplateUsage(
                 templateId=CONFIG_WP.template_id,
