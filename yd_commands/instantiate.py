@@ -117,11 +117,13 @@ def main():
         if not (ARGS_PARSER.dry_run or ARGS_PARSER.report):
             if num_batches > 1:
                 print_log(
-                    f"Provisioning Compute Requirement {batch_number + 1} '{id}'"
+                    f"Provisioning Compute Requirement {batch_number + 1} '{CONFIG_COMMON.namespace}/{id}'"
                     f"with {batches[batch_number].target_instances:,d} instance(s)"
                 )
             else:
-                print_log(f"Provisioning Compute Requirement '{id}'")
+                print_log(
+                    f"Provisioning Compute Requirement '{CONFIG_COMMON.namespace}/{id}'"
+                )
 
         try:
             compute_requirement_template_usage = ComputeRequirementTemplateUsage(
@@ -315,7 +317,9 @@ def _create_compute_requirement_from_json(
     name = cr_data["requirementName"]
     if response.status_code == 200:
         id = response.json()["id"]
-        print_log(f"Provisioned Compute Requirement '{name}' ({id})")
+        print_log(
+            f"Provisioned Compute Requirement '{cr_data['requirementNamespace']}/{name}' ({id})"
+        )
         if ARGS_PARSER.quiet:
             print(id)
         if ARGS_PARSER.follow:
