@@ -271,7 +271,14 @@ def find_image_family_id_by_name(
     """
     Find image family IDs by their name. Names are unique within a namespace.
     """
+    # Remove leading prefix if necessary
+    image_family_name = (
+        image_family_name[3:]
+        if image_family_name.startswith("yd/")
+        else image_family_name
+    )
     namespace, name = split_namespace_and_name(image_family_name)
+
     if_search = MachineImageFamilySearch(
         familyName=name, namespace=namespace, includePublic=True
     )
