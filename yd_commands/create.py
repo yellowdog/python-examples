@@ -149,22 +149,22 @@ def create_compute_source_template(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    # Allow image families to be referenced by name rather than ID
+    # Allow image families (etc.) to be referenced by name rather than ID
     global CLEAR_IMAGE_FAMILY_CACHE
     if CLEAR_IMAGE_FAMILY_CACHE:  # Update the IF cache if required
         clear_image_family_search_cache()
         CLEAR_IMAGE_FAMILY_CACHE = False
+
     image_id = source.get("imageId")
-    if image_id is not None:
-        if "ydid:imgfam:" not in image_id:
-            image_family_id = find_image_family_id_by_name(
-                client=CLIENT, image_family_name=image_id
-            )
-            if image_family_id is not None:
-                source["imageId"] = image_family_id
-                print_log(
-                    f"Replaced imageId name '{image_id}' with ID {image_family_id}"
-                )
+    if image_id is not None and not any(
+        [x in image_id for x in ["ydid:image:", "ydid:imggrp:", "ydid:imgfam:"]]
+    ):
+        image_family_id = find_image_family_id_by_name(
+            client=CLIENT, image_family_name=image_id
+        )
+        if image_family_id is not None:
+            source["imageId"] = image_family_id
+            print_log(f"Replaced imageId name '{image_id}' with ID {image_family_id}")
 
     if ARGS_PARSER.dry_run:
         resource["source"] = source
