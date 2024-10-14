@@ -86,11 +86,6 @@ def main():
         client=CLIENT, template_id_or_name=CONFIG_WP.template_id
     )
 
-    if get_ydid_type(CONFIG_WP.template_id) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
-        raise Exception(
-            f"Not a valid Compute Requirement Template ID: '{CONFIG_WP.template_id}'"
-        )
-
     # Allow use of IF name instead of ID
     if CONFIG_WP.images_id is not None:
         CONFIG_WP.images_id = get_image_family_id(
@@ -299,11 +294,6 @@ def _create_compute_requirement_from_json(
     cr_data["templateId"] = get_template_id(
         client=CLIENT, template_id_or_name=cr_data["templateId"]
     )
-
-    if get_ydid_type(cr_data["templateId"]) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
-        raise Exception(
-            f"Not a valid Compute Requirement Template ID: '{cr_data['templateId']}'"
-        )
 
     # Allow use of IF name instead of ID
     if cr_data.get("imagesId") is not None:

@@ -237,10 +237,6 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     except KeyError as e:
         raise Exception(f"Key error in JSON Worker Pool definition: {e}")
 
-    template_id = wp_data["requirementTemplateUsage"]["templateId"]
-    if get_ydid_type(template_id) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
-        raise Exception(f"Not a valid Compute Requirement Template ID: '{template_id}'")
-
     if ARGS_PARSER.dry_run:
         print_log("Dry-run: Printing JSON Worker Pool specification")
         print_yd_object(wp_data)
@@ -288,12 +284,6 @@ def create_worker_pool_from_toml():
     CONFIG_WP.template_id = get_template_id(
         client=CLIENT, template_id_or_name=CONFIG_WP.template_id
     )
-
-    if get_ydid_type(CONFIG_WP.template_id) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
-        raise Exception(
-            "Not a valid Compute Requirement Template ID or name:"
-            f" '{CONFIG_WP.template_id}'"
-        )
 
     # Allow the Image Family name to be used instead of ID
     if CONFIG_WP.images_id is not None:

@@ -11,6 +11,7 @@ from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_image_family_id_by_name,
+    split_namespace_and_name,
 )
 from yd_commands.load_config import CONFIG_FILE_DIR
 from yd_commands.printing import print_log
@@ -80,6 +81,11 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     assume it's a CRT name and perform a lookup.
     """
     if get_ydid_type(template_id_or_name) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
+        return template_id_or_name
+
+    # If this is a fully qualified CRT name, allow server-side lookup
+    namespace, name = split_namespace_and_name(template_id_or_name)
+    if namespace is not None:
         return template_id_or_name
 
     template_id = find_compute_requirement_template_id_by_name(
