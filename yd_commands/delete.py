@@ -4,11 +4,11 @@
 A script to delete YellowDog Object Store items.
 """
 
-from yd_commands.interactive import confirmed, select
-from yd_commands.object_utilities import (
+from yd_commands.entity_utils import (
     get_non_exact_namespace_matches,
     list_matching_object_paths,
 )
+from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_log
 from yd_commands.utils import unpack_namespace_in_prefix
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper

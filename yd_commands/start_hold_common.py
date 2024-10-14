@@ -12,12 +12,12 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from yd_commands.follow_utils import follow_ids
-from yd_commands.interactive import confirmed, select
-from yd_commands.object_utilities import (
+from yd_commands.entity_utils import (
     get_filtered_work_requirements,
     get_work_requirement_summary_by_name_or_id,
 )
+from yd_commands.follow_utils import follow_ids
+from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.utils import link_entity
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON

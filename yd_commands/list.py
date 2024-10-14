@@ -45,13 +45,13 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
-from yd_commands.interactive import select
-from yd_commands.object_utilities import (
+from yd_commands.entity_utils import (
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
     get_tasks,
     list_matching_object_paths,
 )
+from yd_commands.interactive import select
 from yd_commands.printing import (
     indent,
     print_json,

@@ -8,16 +8,13 @@ from typing import List
 
 from yellowdog_client.model import WorkerPool, WorkerPoolStatus, WorkerPoolSummary
 
+from yd_commands.entity_utils import get_worker_pool_by_id, get_worker_pool_id_by_name
 from yd_commands.follow_utils import follow_ids
-from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.interactive import confirmed, select
-from yd_commands.object_utilities import (
-    get_worker_pool_by_id,
-    get_worker_pool_id_by_name,
-)
 from yd_commands.printing import print_error, print_log
 from yd_commands.utils import link_entity
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 @main_wrapper

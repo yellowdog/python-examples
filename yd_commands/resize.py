@@ -14,12 +14,12 @@ from yellowdog_client.model import (
     WorkerPool,
 )
 
+from yd_commands.entity_utils import get_worker_pool_id_by_name
 from yd_commands.follow_utils import follow_events, follow_ids
-from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.interactive import confirmed
-from yd_commands.object_utilities import get_worker_pool_id_by_name
 from yd_commands.printing import print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 @main_wrapper

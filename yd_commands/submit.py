@@ -40,7 +40,6 @@ from yd_commands.csv_data import (
     load_toml_file_with_csv_task_expansion,
 )
 from yd_commands.follow_utils import follow_events
-from yd_commands.id_utils import YDIDType
 from yd_commands.interactive import confirmed
 from yd_commands.load_config import CONFIG_FILE_DIR, load_config_work_requirement
 from yd_commands.printing import (
@@ -92,6 +91,7 @@ from yd_commands.variables import (
     resolve_filename,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.ydid_utils import YDIDType
 
 # Import the Work Requirement configuration from the TOML file
 CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()

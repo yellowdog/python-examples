@@ -51,7 +51,6 @@ from yellowdog_client.object_store.upload import UploadBatchBuilder
 from yd_commands.args import ARGS_PARSER
 from yd_commands.cloudwizard_aws_types import AWSAvailabilityZone
 from yd_commands.compact_json import CompactJSONEncoder
-from yd_commands.id_utils import YDIDType
 from yd_commands.items import Item
 from yd_commands.property_names import NAME, TASK_GROUPS, TASKS
 from yd_commands.settings import (
@@ -64,6 +63,7 @@ from yd_commands.settings import (
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     WARNING_STYLE,
 )
+from yd_commands.ydid_utils import YDIDType
 
 try:
     LOG_WIDTH = get_terminal_size().columns

@@ -8,16 +8,16 @@ from typing import Optional
 from yellowdog_client import PlatformClient
 
 from yd_commands.config_types import ConfigWorkerPool
-from yd_commands.id_utils import YDIDType, get_ydid_type
-from yd_commands.load_config import CONFIG_FILE_DIR
-from yd_commands.object_utilities import (
+from yd_commands.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_image_family_id_by_name,
 )
+from yd_commands.load_config import CONFIG_FILE_DIR
 from yd_commands.printing import print_log
 from yd_commands.property_names import USERDATA, USERDATAFILE, USERDATAFILES
 from yd_commands.settings import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yd_commands.variables import process_variable_substitutions_in_file_contents
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 def get_user_data_property(

@@ -8,11 +8,11 @@ from typing import Optional
 
 from yellowdog_client.model import ConfiguredWorkerPool, Task
 
-from yd_commands.id_utils import YDIDType, get_ydid_type
+from yd_commands.entity_utils import get_task_by_id
 from yd_commands.list import get_keyring
-from yd_commands.object_utilities import get_task_by_id
 from yd_commands.printing import print_log, print_warning, print_yd_object
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 @main_wrapper

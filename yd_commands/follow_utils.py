@@ -7,10 +7,10 @@ from typing import List, Optional
 
 import requests
 
-from yd_commands.id_utils import YDIDType, get_ydid_type
-from yd_commands.object_utilities import get_compute_requirement_id_by_worker_pool_id
+from yd_commands.entity_utils import get_compute_requirement_id_by_worker_pool_id
 from yd_commands.printing import print_error, print_event, print_log, print_warning
 from yd_commands.wrapper import CLIENT, CONFIG_COMMON
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 def follow_ids(ydids: List[str], auto_cr: bool = False):

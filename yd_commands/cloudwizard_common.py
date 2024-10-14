@@ -12,13 +12,13 @@ from yellowdog_client import PlatformClient
 
 from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.create import create_keyring_via_api, create_resources
-from yd_commands.interactive import confirmed
-from yd_commands.object_utilities import (
+from yd_commands.entity_utils import (
     clear_compute_requirement_template_cache,
     clear_compute_source_template_cache,
     get_all_compute_requirement_templates,
     get_all_compute_source_templates,
 )
+from yd_commands.interactive import confirmed
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.remove import remove_resource_by_id
 from yd_commands.settings import RN_KEYRING, RN_REQUIREMENT_TEMPLATE

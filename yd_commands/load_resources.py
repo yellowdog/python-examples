@@ -6,7 +6,6 @@ from sys import exit
 from typing import Dict, List
 
 from yd_commands.args import ARGS_PARSER
-from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.printing import print_log, print_warning
 from yd_commands.settings import (
     RN_ALLOWANCE,
@@ -27,6 +26,7 @@ from yd_commands.variables import (
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions_insitu,
 )
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:

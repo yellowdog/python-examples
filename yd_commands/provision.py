@@ -21,7 +21,6 @@ from yellowdog_client.model import (
 
 from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.follow_utils import follow_ids
-from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.load_config import CONFIG_FILE_DIR, load_config_worker_pool
 from yd_commands.printing import (
     print_error,
@@ -54,6 +53,7 @@ from yd_commands.variables import (
     resolve_filename,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 # Specifies the cardinality for a Worker Pool batch

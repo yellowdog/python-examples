@@ -18,14 +18,13 @@ from yellowdog_client.model import (
     WorkerPoolSummary,
 )
 
-from yd_commands.id_utils import YDIDType, get_ydid_type
-from yd_commands.interactive import confirmed
-from yd_commands.load_resources import load_resource_specifications
-from yd_commands.object_utilities import (
+from yd_commands.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
     remove_allowances_matching_description,
 )
+from yd_commands.interactive import confirmed
+from yd_commands.load_resources import load_resource_specifications
 from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.settings import (
     DEFAULT_NAMESPACE,
@@ -43,6 +42,7 @@ from yd_commands.settings import (
     RN_STRING_ATTRIBUTE_DEFINITION,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 @main_wrapper

@@ -17,7 +17,6 @@ from yellowdog_client.model import (
 
 from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.follow_utils import follow_events, follow_ids
-from yd_commands.id_utils import YDIDType, get_ydid_type
 from yd_commands.load_config import load_config_worker_pool
 from yd_commands.printing import (
     print_compute_template_test_result,
@@ -37,6 +36,7 @@ from yd_commands.variables import (
     load_jsonnet_file_with_variable_substitutions,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 # Specifies the number of instances in a Compute Requirement batch
