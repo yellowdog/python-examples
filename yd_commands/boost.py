@@ -5,8 +5,9 @@ A script to boost allowances.
 """
 
 from yd_commands.interactive import confirmed
-from yd_commands.printing import print_error, print_log
+from yd_commands.printing import print_error, print_log, print_warning
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 @main_wrapper
@@ -14,6 +15,9 @@ def main():
 
     count = 0
     for allowance in ARGS_PARSER.allowance_list:
+        if get_ydid_type(allowance) != YDIDType.ALLOWANCE:
+            print_warning(f"Not a valid Allowance ID: '{allowance}'")
+            continue
         if not confirmed(
             f"Boost Allowance {allowance} by {ARGS_PARSER.boost_hours} hours?"
         ):
