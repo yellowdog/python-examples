@@ -109,6 +109,16 @@ def get_worker_pool_id_by_name(
     """
     Find a Worker Pool ID by its name.
     """
+    namespace, name = split_namespace_and_name(worker_pool_name)
+    if namespace is not None:  # Direct lookup for fully-qualified names
+        try:
+            worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_name(
+                namespace, name
+            )
+            return worker_pool.id
+        except:
+            return
+
     return _find_id_by_name(worker_pool_name, client, get_all_worker_pools)
 
 
