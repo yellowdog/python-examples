@@ -45,6 +45,7 @@ from yd_commands.interactive import confirmed
 from yd_commands.load_resources import load_resource_specifications
 from yd_commands.printing import print_error, print_json, print_log, print_warning
 from yd_commands.settings import (
+    DEFAULT_NAMESPACE,
     NAMESPACE_PREFIX_SEPARATOR,
     RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
@@ -143,7 +144,8 @@ def create_compute_source_template(resource: Dict):
     Handles all Source types.
     """
     try:
-        namespace = resource.get("namespace")
+        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
+        resource["namespace"] = namespace
         source = resource.pop("source")  # Extract the Source properties
         source_type = source.pop("type").split(".")[-1]  # Extract Source type
         name = source["name"]
@@ -186,8 +188,7 @@ def create_compute_source_template(resource: Dict):
     )
 
     # Prepend the namespace when searching for existing templates
-    if namespace is not None:
-        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     # Check for an existing ID
     source_id = find_compute_source_template_id_by_name(CLIENT, name)
@@ -223,7 +224,8 @@ def create_compute_requirement_template(resource: Dict):
     try:
         type = resource.pop("type").split(".")[-1]  # Extract type
         name = resource["name"]
-        namespace = resource.get("namespace")
+        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
+        resource["namespace"] = namespace
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -264,8 +266,7 @@ def create_compute_requirement_template(resource: Dict):
         return 0
 
     # Prepend the namespace when searching for existing templates
-    if namespace is not None:
-        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     source_template_substitutions = 0
     source_image_id_substitutions = 0
@@ -613,12 +614,12 @@ def create_configured_worker_pool(resource: Dict):
     """
     try:
         name = resource["name"]
-        namespace = resource.get("namespace")
+        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
+        resource["namespace"] = namespace
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    if namespace is not None:
-        name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
+    name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     try:
         cwp_request = _get_model_object("AddConfiguredWorkerPoolRequest", resource)
