@@ -53,7 +53,6 @@ from yd_commands.variables import (
     resolve_filename,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
-from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 # Specifies the cardinality for a Worker Pool batch

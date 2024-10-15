@@ -26,7 +26,7 @@ from yd_commands.variables import (
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions_insitu,
 )
-from yd_commands.ydid_utils import YDIDType, get_ydid_type
+from yd_commands.ydid_utils import get_ydid_type
 
 
 def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:

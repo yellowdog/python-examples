@@ -4,14 +4,14 @@ RESOURCE_DIR = "tests/resource-examples"
 
 
 class TestCreateRemove:
-    def test_compute_source(self):
+    def test_source_template(self):
         resources = f"{RESOURCE_DIR}/compute-sources.json"
         result = shell(f"yd-create {resources}")
         assert result.exit_code == 0
         result = shell(f"yd-remove -y {resources}")
         assert result.exit_code == 0
 
-    def test_compute_template(self):
+    def test_requirement_template(self):
         resources = f"{RESOURCE_DIR}/compute-template.json"
         result = shell(f"yd-create {resources}")
         assert result.exit_code == 0

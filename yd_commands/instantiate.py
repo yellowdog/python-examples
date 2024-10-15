@@ -36,7 +36,7 @@ from yd_commands.variables import (
     load_jsonnet_file_with_variable_substitutions,
 )
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
-from yd_commands.ydid_utils import YDIDType, get_ydid_type
+from yd_commands.ydid_utils import YDIDType
 
 
 # Specifies the number of instances in a Compute Requirement batch
