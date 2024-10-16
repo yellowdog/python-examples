@@ -38,7 +38,7 @@ from yd_commands.entity_utils import (
     clear_image_family_search_cache,
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
-    find_image_family_id_by_name,
+    find_image_family_reference_by_name,
     remove_allowances_matching_description,
 )
 from yd_commands.interactive import confirmed
@@ -88,6 +88,7 @@ def create_resources(
             "Dry-run: displaying processed JSON resource specifications. Note:"
             " 'resource' property is removed."
         )
+
     for resource in resources:
         try:
             resource_type = resource.pop("resource")
@@ -164,14 +165,11 @@ def create_compute_source_template(resource: Dict):
         YDIDType.IMAGE_GROUP,
         YDIDType.IMAGE,
     ]:
-        image_family_id = find_image_family_id_by_name(
+        image_family_id = find_image_family_reference_by_name(
             client=CLIENT, image_family_name=image_id
         )
         if image_family_id is not None:
             source["imageId"] = image_family_id
-            print_log(
-                f"Substituted imageId name '{image_id}' with ID {image_family_id}"
-            )
 
     if ARGS_PARSER.dry_run:
         resource["source"] = source
@@ -242,9 +240,7 @@ def create_compute_requirement_template(resource: Dict):
         clear_compute_source_template_cache()
         CLEAR_IMAGE_FAMILY_CACHE = False
 
-    def _get_images_id(
-        image_str: str, context: Dict, key: str, report: bool = False
-    ) -> int:
+    def _get_images_id(image_str: str, context: Dict, key: str) -> int:
         """
         Helper function to match an image family name into an ID.
         """
@@ -253,15 +249,11 @@ def create_compute_requirement_template(resource: Dict):
             YDIDType.IMAGE_GROUP,
             YDIDType.IMAGE,
         ]:
-            image_family_id = find_image_family_id_by_name(
+            image_family_id = find_image_family_reference_by_name(
                 client=CLIENT, image_family_name=image_str
             )
             if image_family_id is not None:
                 context[key] = image_family_id
-                if report:
-                    print_log(
-                        f"Substituted Image name '{image_str}' with ID {image_family_id}"
-                    )
                 return 1
         return 0
 
@@ -301,7 +293,7 @@ def create_compute_requirement_template(resource: Dict):
 
     images_id = resource.get("imagesId")
     if images_id is not None:
-        _get_images_id(images_id, resource, "imagesId", report=True)
+        _get_images_id(images_id, resource, "imagesId")
 
     if ARGS_PARSER.dry_run:
         _get_model_object(type, resource)  # Report extras and omissions

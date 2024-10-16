@@ -10,7 +10,7 @@ from yellowdog_client import PlatformClient
 from yd_commands.config_types import ConfigWorkerPool
 from yd_commands.entity_utils import (
     find_compute_requirement_template_id_by_name,
-    find_image_family_id_by_name,
+    find_image_family_reference_by_name,
     split_namespace_and_name,
 )
 from yd_commands.load_config import CONFIG_FILE_DIR
@@ -113,7 +113,7 @@ def get_image_family_id(client: PlatformClient, image_family_id_or_name: str) ->
     ]:
         return image_family_id_or_name
 
-    image_family_id = find_image_family_id_by_name(
+    image_family_id = find_image_family_reference_by_name(
         client=client, image_family_name=image_family_id_or_name
     )
 
@@ -125,8 +125,4 @@ def get_image_family_id(client: PlatformClient, image_family_id_or_name: str) ->
     if image_family_id is None:
         return image_family_id_or_name  # Return the original input
 
-    print_log(
-        f"Substituting Image Family name '{image_family_id_or_name}'"
-        f" with ID {image_family_id}"
-    )
     return image_family_id

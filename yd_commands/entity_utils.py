@@ -275,13 +275,17 @@ def get_all_worker_pools(client: PlatformClient) -> List[WorkerPoolSummary]:
 
 
 @lru_cache()
-def find_image_family_id_by_name(
+def find_image_family_reference_by_name(
     client: PlatformClient, image_family_name
 ) -> Optional[str]:
     """
-    Find image family IDs by their name. Names are unique within a namespace.
+    Resolve image family references. Complicated logic.
+    Fully qualified name is used for non-ambiguous PRIVATE image families.
     """
-    # Remove leading prefix if necessary
+
+    original_image_family_name = image_family_name
+
+    # Remove leading 'yd/' prefix if necessary
     image_family_name = (
         image_family_name[3:]
         if image_family_name.startswith("yd/")
@@ -295,16 +299,17 @@ def find_image_family_id_by_name(
     search_client: SearchClient = client.images_client.get_image_families(if_search)
     image_families: List[MachineImageFamilySummary] = search_client.list_all()
 
-    # Partial names will match, so filter for exact matches
+    # Partial names will match, so filter for exact matches only
     image_families = [
         img_family for img_family in image_families if img_family.name == name
     ]
 
+    # No matches
     if len(image_families) == 0:
         return
 
     # It's possible to have both a PRIVATE and a PUBLIC match for the same
-    # namespace/image_family_name.
+    # namespace/image_family_name. This is a corner case, but ...
     if len(image_families) == 2:
         image_families_public = [
             img_family
@@ -326,13 +331,42 @@ def find_image_family_id_by_name(
             )
             image_families = image_families_private
 
+    # Single match
     if len(image_families) == 1:
-        return image_families[0].id
+        substituted_image_family_name = (
+            f"yd/{image_families[0].namespace}/{image_families[0].name}"
+        )
 
+        # If this is a PRIVATE image family, we can retain the fully-qualified
+        # image family name instead of substituting the ID
+        if image_families[0].access.name == "PRIVATE":
+            if original_image_family_name != substituted_image_family_name:
+                print_log(
+                    f"Substituting Image Family name '{original_image_family_name}' "
+                    f"with fully qualified name '{substituted_image_family_name}' "
+                    f"({image_families[0].id})"
+                )
+            return substituted_image_family_name
+
+        # If PUBLIC, we need to replace with the YDID
+        else:
+            mid_msg = (
+                ""
+                if original_image_family_name == substituted_image_family_name
+                else f"('{substituted_image_family_name}') "
+            )
+            print_log(
+                f"Substituting Image Family name '{original_image_family_name}' {mid_msg}"
+                f"with ID {image_families[0].id}"
+            )
+            return image_families[0].id
+
+    # Multiple matches
     matches = [
         f"{img_fam.namespace}/{img_fam.name} [{img_fam.access.name}] ({img_fam.id})"
         for img_fam in image_families
     ]
+
     raise Exception(
         f"Ambiguous Image Family name '{name}': "
         f"{matches}. "
@@ -345,7 +379,7 @@ def clear_image_family_search_cache():
     """
     Clear the cache of Image Family name searches.
     """
-    find_image_family_id_by_name.cache_clear()
+    find_image_family_reference_by_name.cache_clear()
 
 
 def remove_allowances_matching_description(
