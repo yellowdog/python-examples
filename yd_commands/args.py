@@ -116,6 +116,7 @@ class CLIParser:
         )
         parser.add_argument(
             "--no-format",
+            "--nf",
             action="store_true",
             required=False,
             help="disable colouring and text wrapping in command output",
