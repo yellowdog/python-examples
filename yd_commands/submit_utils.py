@@ -193,9 +193,12 @@ class UploadedFiles:
         # Expand wildcards ... in the correct directory
         if self.files_directory != "":
             chdir(self.files_directory)
+
         expanded_files = glob(pathname=filename, recursive=True)
+
         if len(expanded_files) == 0:
-            print_error(f"File or files '{filename}' not found")
+            raise Exception(f"File or files '{filename}' not found")
+
         chdir(self.working_directory)
 
         for filename in expanded_files:
