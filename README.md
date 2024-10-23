@@ -17,8 +17,11 @@
 * [Variable Substitutions](#variable-substitutions)
    * [Default Variables](#default-variables)
    * [User-Defined Variables](#user-defined-variables)
-   * [Nested Variables](#nested-variables)
-   * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
+      * [Variable Naming](#variable-naming)
+      * [Setting Variable Values](#setting-variable-values)
+      * [Precedence Order](#precedence-order)
+      * [Nested Variables](#nested-variables)
+      * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
    * [Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data](#variable-substitutions-in-worker-pool-and-compute-requirement-specifications-and-in-user-data)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
@@ -120,7 +123,7 @@
    * [yd-show](#yd-show)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Sep 27 14:16:50 BST 2024 -->
+<!-- Added by: pwt, at: Mon Oct 28 08:25:56 GMT 2024 -->
 
 <!--te-->
 
@@ -421,15 +424,24 @@ The `config_dir_` substitutions use the name of the directory containing the nom
 
 ## User-Defined Variables
 
-User-defined variables can be supplied using an option on the command line, or by setting environment variables prefixed with `YD_VAR_`, or by including the directives in the `[common]` section of the TOML configuration file.
+User-defined variables can be supplied using an option on the command line, by setting environment variables prefixed with `YD_VAR_`, by using general environment variables, or by including properties in the `[common]` section of the TOML configuration file.
+
+### Variable Naming
+
+User-defined variable names must not include spaces, but are otherwise unconstrained. When enclosing a variable name in curly brackets, don't insert spaces between the variable name and the brackets.
+
+### Setting Variable Values
 
 1. The **command line** option is `--variable` (or `-v`). For example, `yd-submit -v project_code=pr-213-a -v run_id=1234` will establish two new variables that can be used as `{{project_code}}` and `{{run_id}}`, which will be substituted by `pr-213-a` and `1234` respectively.
 
 
-2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new variable that can be used as `{{project_code}}`, which will be substituted by `pr-213-a`. Note that if running on Windows, all environment variable names are case-insensitive and converted to upper case, so choose upper case variable names only.
+2. For **environment variables**, setting the variable `YD_VAR_project_code="pr-213-a"` will create a new variable that can be accessed as `{{project_code}}`, which will be substituted by `pr-213-a`. Note that if running on Windows, all environment variable names are case-insensitive and converted to upper case, so choose upper case variable names only.
 
 
-3. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. E.g., `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
+3. **General (i.e., non-`YD_VAR_`) environment variables** can be used by adding the `env:` prefix before the name of the environment varable in the substitution, e.g.: `{{env:ENV_VAR_NAME}}`. (If you also need to use one of the type prefixes, just do so as follows (e.g.): `{{num:env:COUNT}}`).
+
+
+4. For **setting within the TOML file**, include a **`variables`** table in the `[common]` section of the file. E.g., `variables = {project_code = "pr-213a", run_id = "1234"}`. Note that this can also use the form:
 
 ```toml
 [common.variables]
@@ -437,11 +449,18 @@ User-defined variables can be supplied using an option on the command line, or b
     run_id = "1234"
 ```
 
-Directives set on the command line take precedence over directives set in environment variables, and both take precedence over directives set in a TOML file.
+### Precedence Order
 
-This method can also be used to override the default directives, e.g., setting `-v username="other-user"` will override the default `{{username}}` directive.
+The precedence order for setting variables is:
 
-## Nested Variables
+1. Command line
+2. `YD_VAR` environment variables
+3. General environment variables
+4. TOML file
+
+This method can also be used to override the default variables, e.g., setting `-v username="other-user"` will override the default `{{username}}` variable.
+
+### Nested Variables
 
 In the case of **TOML file properties only**, variable substitutions can be nested.
 
@@ -459,9 +478,9 @@ For example, if one wanted to select a different `templateId` for a Worker Pool 
 
 Then, if one used `yd-provision -v region=phoenix`, the `templateId` property would first resolve to `"{{template_pheonix}}"`, and then to `"ydid:crt:65EF4F:e4239dec-78c2-421c-a7f3-71e61b72946f"`.
 
-Nesting can be up to three levels deep including the top level. Note that variable resolution is not only processed sequentially, so ordering in the TOML file does not matter: variable `{{a}}` can depend on a variable `{{b}}` that is set later in the configuration.
+Nesting can be up to three levels deep including the top level. Note that sequencing of properties in the TOML file does not matter, e.g., variable `{{a}}` can depend on a variable `{{b}}` that is defined after it in the file.
 
-## Providing Default Values for User-Defined Variables
+### Providing Default Values for User-Defined Variables
 
 Each variable can be supplied with a default value, to be used if a value is not explicitly provided for that variable name. The syntax for providing a default is:
 

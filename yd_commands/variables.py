@@ -21,7 +21,7 @@ from yd_commands.property_names import *
 from yd_commands.settings import (
     ARRAY_TYPE_TAG,
     BOOL_TYPE_TAG,
-    ENV_VAR_PREFIX,
+    ENV_VAR_SUB_PREFIX,
     FORMAT_NAME_TYPE_TAG,
     NUMBER_TYPE_TAG,
     RAND_VAR_SIZE,
@@ -33,6 +33,7 @@ from yd_commands.settings import (
     VAR_OPENING_DELIMITER,
     WP_VARIABLES_POSTFIX,
     WP_VARIABLES_PREFIX,
+    YD_ENV_VAR_PREFIX,
 )
 from yd_commands.utils import (
     UTCNOW,
@@ -72,8 +73,8 @@ if "submit" in sys.argv[0]:
 # Substitutions from environment variables
 subs_list = []
 for key, value in os.environ.items():
-    if key.startswith(ENV_VAR_PREFIX):
-        key = key[len(ENV_VAR_PREFIX) :]
+    if key.startswith(YD_ENV_VAR_PREFIX):
+        key = key[len(YD_ENV_VAR_PREFIX) :]
         VARIABLE_SUBSTITUTIONS[key] = value
         subs_list.append(f"'{key}'")
 
@@ -287,6 +288,18 @@ def process_untyped_variable_substitutions(
         input_string = input_string.replace(
             f"{opening_delimiter}{substitution}{closing_delimiter}", str(value)
         )
+
+    # Check for substitutions from general environment variables
+    if input_string.startswith(f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}"):
+        var_name = input_string.replace(
+            f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}", ""
+        ).replace(closing_delimiter, "")
+        var = os.getenv(var_name, None)
+        if var is not None:
+            input_string = input_string.replace(
+                f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}{var_name}{closing_delimiter}",
+                var,
+            )
 
     # Create list of variable substitutions with their default values
     substitutions_with_defaults = re.findall(
