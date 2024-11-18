@@ -225,7 +225,7 @@ def format_yd_name(yd_name: str, add_prefix: bool = True) -> str:
     Format a string to be consistent with YellowDog naming requirements.
     """
     # Make obvious substitutions
-    new_yd_name = yd_name.replace("/", "-").replace(" ", "_").lower()
+    new_yd_name = yd_name.replace("/", "-").replace(" ", "_").replace(".", "_").lower()
 
     # Enforce acceptable regex
     new_yd_name = re.sub("[^a-z0-9_-]", "", new_yd_name)
