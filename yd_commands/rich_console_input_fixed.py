@@ -25,9 +25,6 @@ from rich.text import TextType
 
 class ConsoleWithInputBackspaceFixed(Console):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def input(
         self,
         prompt: TextType = "",
@@ -43,7 +40,6 @@ class ConsoleWithInputBackspaceFixed(Console):
                 self.print(prompt, markup=markup, emoji=emoji, end="")
             prompt_str = capture.get()
         if self.legacy_windows:
-            # Legacy windows doesn't like ANSI codes in getpass or input (colorama bug)?
             self.file.write(prompt_str)
             prompt_str = ""
         if password:
