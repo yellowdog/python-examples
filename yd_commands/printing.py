@@ -53,6 +53,7 @@ from yd_commands.cloudwizard_aws_types import AWSAvailabilityZone
 from yd_commands.compact_json import CompactJSONEncoder
 from yd_commands.items import Item
 from yd_commands.property_names import NAME, TASK_GROUPS, TASKS
+from yd_commands.rich_console_input_fixed import ConsoleWithInputBackspaceFixed
 from yd_commands.settings import (
     DEFAULT_LOG_WIDTH,
     DEFAULT_THEME,
@@ -104,7 +105,9 @@ class PrintTableHighlighter(RegexHighlighter):
 pyexamples_theme = Theme(DEFAULT_THEME)
 
 
-CONSOLE = Console(highlighter=PrintLogHighlighter(), theme=pyexamples_theme)
+CONSOLE = ConsoleWithInputBackspaceFixed(
+    highlighter=PrintLogHighlighter(), theme=pyexamples_theme
+)
 CONSOLE_TABLE = Console(highlighter=PrintTableHighlighter(), theme=pyexamples_theme)
 CONSOLE_ERR = Console(stderr=True, highlighter=PrintLogHighlighter())
 CONSOLE_JSON = Console(highlighter=JSONHighlighter())
