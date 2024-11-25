@@ -4,12 +4,4 @@ tabulate >= 0.9.0
 PyPAC >= 0.16.4
 rich == 13.9.4
 requests
-boto3
-google-cloud-compute
-google-cloud-storage
-azure-identity
-azure-mgmt-resource
-azure-mgmt-network
-azure-mgmt-storage
-azure-mgmt-subscription
 dateparser
