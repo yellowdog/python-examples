@@ -64,9 +64,9 @@ class TestDemoDryRuns:
         result = shell(f"cd {DEMO_DIR}/montecarlo && {CMD_SEQ}")
         assert result.exit_code == 0
 
-    # def test_ansys(self):
-    #     result = shell(f"cd {DEMO_DIR}/ansys && {CMD_SEQ}")
-    #     assert result.exit_code == 0
+    def test_ansys(self):
+        result = shell(f"cd {DEMO_DIR}/ansys && {CMD_SEQ}")
+        assert result.exit_code == 0
 
     # Tests run from outside the demo directories
     def test_bash_out(self):
@@ -187,11 +187,11 @@ class TestDemoDryRuns:
         )
         assert result.exit_code == 0
 
-    # def test_ansys_out(self):
-    #     demo_name = "ansys"
-    #     result = shell(
-    #         f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-    #         f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-    #         f" {demo_name}/config.toml"
-    #     )
-    #     assert result.exit_code == 0
+    def test_ansys_out(self):
+        demo_name = "ansys"
+        result = shell(
+            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
+        )
+        assert result.exit_code == 0
