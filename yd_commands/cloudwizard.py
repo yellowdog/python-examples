@@ -4,6 +4,7 @@
 Cloud Wizard: cloud provider and YellowDog account setup.
 """
 
+from yd_commands.check_imports import check_cloudwizard_imports
 from yd_commands.cloudwizard_aws import AWSConfig
 from yd_commands.cloudwizard_azure import AzureConfig
 from yd_commands.cloudwizard_gcp import GCPConfig
@@ -16,6 +17,8 @@ def main():
     """
     Main dispatcher for Cloud Wizard setup and teardown
     """
+
+    check_cloudwizard_imports()
 
     if ARGS_PARSER.cloud_provider.lower() in ["aws", "amazon"]:
         print_log(f"YellowDog automated cloud provider setup/teardown for 'AWS'")
