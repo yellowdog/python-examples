@@ -192,9 +192,7 @@ class AWSConfig(CommonCloudConfig):
                 "IpRanges": [{"CidrIp": f"0.0.0.0/0"}],
             }
         ]
-        for region in (
-            AWS_YD_IMAGE_REGIONS if selected_region is None else [selected_region]
-        ):
+        for region in AWS_ALL_REGIONS if selected_region is None else [selected_region]:
             ec2_client = boto3.client("ec2", region_name=region)
             # Collect the default security group for the region
             try:
@@ -408,11 +406,8 @@ class AWSConfig(CommonCloudConfig):
         """
         Collect network information about the enabled regions and AZs.
         """
-        print_log(
-            "Gathering network information for all AWS regions containing YellowDog VM"
-            " images"
-        )
-        for region in AWS_YD_IMAGE_REGIONS:
+        print_log("Gathering network information for all AWS regions")
+        for region in AWS_ALL_REGIONS:
             print_log(f"Gathering network information for region '{region}'")
             ec2_client = boto3.client("ec2", region_name=region)
 

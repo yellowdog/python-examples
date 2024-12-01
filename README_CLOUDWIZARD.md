@@ -161,7 +161,7 @@ The default **subnets** are provided with a route to a gateway which allows inst
 
 The default **security group** allows unrestricted traffic between instances on the subnet, and allows unrestricted outbound traffic to any address including the public Internet. It allows **no** inbound access from outside the subnet. Hence, if inbound access is required (e.g., SSH access to an instance), this must be added for each default security group in each region for which it is required. Cloud Wizard provides a command for adding and removing SSH access; please see below.
 
-Cloud Wizard will interrogate your AWS account to find out which regions are available, and to determine the default security group for the region, and the default subnet for each availability zone within the region. Network details are **only** collected for the regions in which YellowDog supplies default public YellowDog VM images (i.e., AWS AMIs), which are as follows: `eu-west-1`, `eu-west-2`, `us-east-1`, `us-east-2`, `us-west-1`, `us-west-2`.
+Cloud Wizard will interrogate your AWS account to find out which regions are available, and to determine the default security group for the region, and the default subnet for each availability zone within the region.
 
 #### AWS Account Setup
 
