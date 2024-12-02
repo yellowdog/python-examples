@@ -1127,7 +1127,7 @@ This section discusses how to upload files from local storage to the YellowDog O
 
 #### Files in the `inputs` List
 
-When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the case of the `bash` Task Type, the script specified in the `executable` property is also automatically uploaded as a convenience, even if not included in the `inputs` list.)
+When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the **`bash`**, **`python`**, **`powershell`**, and **`cmd`** (or **`bat`**) Task Types, the file specified in the `executable` property is also automatically uploaded, as a convenience, even if not included in the `inputs` list.)
 
 The `inputs` property accepts wildcard filenames, e.g.: `["*.sh", "*.txt"]`. This can be used to add the contents of directories, e.g.: `["my_dir/*", "data*/*"]`.
 
