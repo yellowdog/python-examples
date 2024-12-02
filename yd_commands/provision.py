@@ -270,16 +270,45 @@ def create_worker_pool_from_toml():
 
     global CONFIG_WP
 
-    # Check for well-configured node quantities
-    if not (
-        CONFIG_WP.min_nodes <= CONFIG_WP.target_instance_count <= CONFIG_WP.max_nodes
-        and CONFIG_WP.max_nodes > 0
-    ):
-        print_error(
-            "Please ensure that minNodes <= targetInstanceCount <= maxNodes"
-            " and maxNodes >= 1"
+    # Automatically increase targetInstanceCount if required
+    if CONFIG_WP.target_instance_count < 0:
+        print_log(
+            f"Increasing 'targetInstanceCount' from {CONFIG_WP.target_instance_count} "
+            "to 0 to satisfy minimum constraint"
         )
-        raise Exception("Malformed configuration")
+        CONFIG_WP.target_instance_count = 0
+
+    # Automatically increase maxNodes if required
+    if CONFIG_WP.target_instance_count > CONFIG_WP.max_nodes:
+        print_log(
+            f"Increasing 'maxNodes' from {CONFIG_WP.max_nodes} to "
+            f"{CONFIG_WP.target_instance_count} to match 'targetInstanceCount'"
+        )
+        CONFIG_WP.max_nodes = CONFIG_WP.target_instance_count
+
+    # Automatically set maxNodes to 1 if required
+    if CONFIG_WP.max_nodes < 1:
+        print_log(
+            f"Increasing 'maxNodes' from {CONFIG_WP.max_nodes} to 1 to satisfy "
+            "minimum constraint"
+        )
+        CONFIG_WP.max_nodes = 1
+
+    # Automatically reduce minNodes if required
+    if CONFIG_WP.target_instance_count < CONFIG_WP.min_nodes:
+        print_log(
+            f"Reducing 'minNodes' from {CONFIG_WP.min_nodes} to "
+            f"{CONFIG_WP.target_instance_count} to match 'targetInstanceCount'"
+        )
+        CONFIG_WP.min_nodes = CONFIG_WP.target_instance_count
+
+    # Automatically set minNodes to 0 if required
+    if CONFIG_WP.min_nodes < 0:
+        print_log(
+            f"Increasing 'minNodes' from {CONFIG_WP.min_nodes} to 0 to satisfy "
+            "minimum constraint"
+        )
+        CONFIG_WP.min_nodes = 0
 
     # Allow the Compute Requirement Template name to be used instead of ID
     CONFIG_WP.template_id = get_template_id(
