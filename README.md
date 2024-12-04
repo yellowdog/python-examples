@@ -1831,9 +1831,9 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 
 - Keyrings
 - Credentials
-- Compute Sources
-- Compute Templates
-- Image Families, Image Groups and Images
+- Compute Source Templates
+- Compute Requirement Templates
+- Image Families, Image Groups, and Images
 - Namespace Storage Configurations
 - Configured Worker Pools
 - Allowances
