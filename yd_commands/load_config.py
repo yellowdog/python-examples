@@ -192,7 +192,7 @@ def import_toml(filename: str) -> Dict:
         exit(1)
 
 
-def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
+def load_config_work_requirement() -> ConfigWorkRequirement:
     """
     Load the configuration data for a Work Requirement
     """
@@ -326,7 +326,7 @@ def load_config_work_requirement() -> Optional[ConfigWorkRequirement]:
         exit(1)
 
 
-def load_config_worker_pool() -> Optional[ConfigWorkerPool]:
+def load_config_worker_pool() -> ConfigWorkerPool:
     """
     Load the configuration data for a Worker Pool or a Compute Requirement.
     """
