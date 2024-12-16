@@ -54,6 +54,7 @@ HIGHLIGHTED_STATES = [
     r"(?P<active>READY)",
     r"(?P<active>RUNNING)",
     r"(?P<active>TARGET)",
+    r"(?P<active>ALIVE)",
     r"(?P<cancelled>ABORTED)",
     r"(?P<cancelled>CANCELLED)",
     r"(?P<cancelled>CANCELLING)",

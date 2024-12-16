@@ -262,11 +262,17 @@ def compute_requirement_table(
         "Compute Requirement Name",
         "Namespace",
         "Tag",
-        "Status (Tgt/Exp)",
+        "Status (Tgt/Exp/Alive)",
         "Compute Requirement ID",
     ]
     table = []
     for index, cr in enumerate(cr_list):
+        alive_count = sum(
+            [
+                source.instanceSummary.aliveCount
+                for source in cr.provisionStrategy.sources
+            ]
+        )
         table.append(
             [
                 index + 1,
@@ -278,7 +284,7 @@ def compute_requirement_table(
                     if cr.nextStatus is None
                     else (f"{cr.status} -> {cr.nextStatus}")
                 )
-                + f" ({cr.targetInstanceCount:,d}/{cr.expectedInstanceCount:,d})",
+                + f" ({cr.targetInstanceCount:,d}/{cr.expectedInstanceCount:,d}/{alive_count:,d})",
                 cr.id,
             ]
         )
@@ -1221,10 +1227,17 @@ def print_event(event: str, id_type: YDIDType):
 
     elif id_type == YDIDType.COMPUTE_REQUIREMENT:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
+        alive_count = sum(
+            [
+                int(source["instanceSummary"]["aliveCount"])
+                for source in event_data["provisionStrategy"]["sources"]
+            ]
+        )
         msg += (
             f"{indent}Instance(s): "
             f"{event_data['targetInstanceCount']:,d} TARGET,"
-            f" {event_data['expectedInstanceCount']:,d} EXPECTED"
+            f" {event_data['expectedInstanceCount']:,d} EXPECTED,"
+            f" {alive_count:,d} ALIVE"
         )
         for source in event_data["provisionStrategy"]["sources"]:
             source_msg = status_counts_msg(
