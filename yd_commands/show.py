@@ -10,7 +10,7 @@ from yellowdog_client.model import ConfiguredWorkerPool, Task
 
 from yd_commands.entity_utils import get_task_by_id
 from yd_commands.list import get_keyring
-from yd_commands.printing import print_log, print_warning, print_yd_object
+from yd_commands.printing import print_error, print_log, print_yd_object
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
@@ -51,7 +51,7 @@ def show_details(ydid: str):
                     print_yd_object(source)
                     return
             else:
-                print_warning(f"Compute Source ID '{ydid}' not found")
+                print_error(f"Compute Source ID '{ydid}' not found")
 
         elif get_ydid_type(ydid) == YDIDType.WORKER_POOL:
             print_log(f"Showing details of Worker Pool ID '{ydid}'")
@@ -79,7 +79,7 @@ def show_details(ydid: str):
                     print_yd_object(worker)
                     return
             else:
-                print_warning(f"Worker ID '{ydid}' not found")
+                print_error(f"Worker ID '{ydid}' not found")
 
         elif get_ydid_type(ydid) == YDIDType.WORK_REQUIREMENT:
             print_log(f"Showing details of Work Requirement ID '{ydid}'")
@@ -95,7 +95,7 @@ def show_details(ydid: str):
                     print_yd_object(task_group)
                     return
             else:
-                print_warning(f"Task Group ID '{ydid}' not found")
+                print_error(f"Task Group ID '{ydid}' not found")
 
         elif get_ydid_type(ydid) == YDIDType.TASK:
             print_log(f"Showing details of Task ID '{ydid}'")
@@ -106,7 +106,7 @@ def show_details(ydid: str):
                 if task_group.id == ydid.rsplit(":", 1)[0].replace("task", "taskgrp"):
                     break
             else:
-                print_warning(f"Task Group ID '{ydid}' not found")
+                print_error(f"Task Group ID '{ydid}' not found")
                 return
             task: Optional[Task] = get_task_by_id(
                 CLIENT, work_requirement.id, task_group.id, ydid
@@ -114,7 +114,7 @@ def show_details(ydid: str):
             if task is not None:
                 print_yd_object(task)
             else:
-                print_warning(f"Task ID '{ydid}' not found")
+                print_error(f"Task ID '{ydid}' not found")
 
         elif get_ydid_type(ydid) == YDIDType.IMAGE_FAMILY:
             print_log(f"Showing details of Image Family ID '{ydid}'")
@@ -137,17 +137,17 @@ def show_details(ydid: str):
                     print_yd_object(get_keyring(keyring.name))
                     return
             else:
-                print_warning(f"Keyring ID '{ydid}' not found")
+                print_error(f"Keyring ID '{ydid}' not found")
 
         elif get_ydid_type(ydid) == YDIDType.ALLOWANCE:
             print_log(f"Showing details of Allowance ID '{ydid}'")
             print_yd_object(CLIENT.allowances_client.get_allowance_by_id(ydid))
 
         else:
-            print_warning(f"Unknown (or unsupported) YellowDog ID type for '{ydid}'")
+            print_error(f"Unknown (or unsupported) YellowDog ID type for '{ydid}'")
 
     except Exception as e:
-        print_warning(f"Unable to show details for '{ydid}': {e}")
+        print_error(f"Unable to show details for '{ydid}': {e}")
 
 
 # Entry point
