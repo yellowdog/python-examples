@@ -299,7 +299,7 @@ def get_csv_file_index(
     """
 
     # Task Group number matching
-    matches = re.findall(":\d+$", csv_filename)
+    matches = re.findall(r":\d+$", csv_filename)
     if len(matches) == 1:
         index = int(matches[0][1:])
         if not 0 < index <= len(task_groups):
