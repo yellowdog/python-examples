@@ -382,7 +382,7 @@ def create_task_group(
     try:
         if task_group_data.get(NAME, None) is None:
             task_group_data[NAME] = task_group_data[TASKS][0][TASK_GROUP_NAME]
-    except KeyError:
+    except (KeyError, IndexError):
         pass
     task_group_name = format_yd_name(
         get_task_group_name(
