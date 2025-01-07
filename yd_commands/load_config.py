@@ -379,6 +379,11 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             compute_requirement_data_file = pathname_relative_to_config_file(
                 CONFIG_FILE_DIR, compute_requirement_data_file
             )
+        workers_per_vcpu = (
+            None
+            if wp_section.get(WORKERS_PER_VCPU, None) is None
+            else float(wp_section[WORKERS_PER_VCPU])
+        )
 
         return ConfigWorkerPool(
             compute_requirement_batch_size=wp_section.get(
@@ -386,22 +391,22 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             ),
             compute_requirement_data_file=compute_requirement_data_file,
             cr_tag=wp_section.get(CR_TAG, None),
-            idle_node_timeout=wp_section.get(IDLE_NODE_TIMEOUT, 5.0),
-            idle_pool_timeout=wp_section.get(IDLE_POOL_TIMEOUT, 30.0),
+            idle_node_timeout=float(wp_section.get(IDLE_NODE_TIMEOUT, 5.0)),
+            idle_pool_timeout=float(wp_section.get(IDLE_POOL_TIMEOUT, 30.0)),
             images_id=wp_section.get(IMAGES_ID, None),
             instance_tags=wp_section.get(INSTANCE_TAGS, None),
             maintainInstanceCount=wp_section.get(MAINTAIN_INSTANCE_COUNT, False),
             max_nodes=wp_section.get(
-                MAX_NODES, max(1, wp_section.get(TARGET_INSTANCE_COUNT, 1))
+                MAX_NODES, max(1, int(wp_section.get(TARGET_INSTANCE_COUNT, 1)))
             ),
             max_nodes_set=(False if wp_section.get(MAX_NODES) is None else True),
-            min_nodes=wp_section.get(MIN_NODES, 0),
+            min_nodes=int(wp_section.get(MIN_NODES, 0)),
             min_nodes_set=(False if wp_section.get(MIN_NODES) is None else True),
             name=process_variable_substitutions(
                 wp_section.get(WP_NAME, None),
             ),
-            node_boot_timeout=wp_section.get(NODE_BOOT_TIMEOUT, 10.0),
-            target_instance_count=wp_section.get(TARGET_INSTANCE_COUNT, 1),
+            node_boot_timeout=float(wp_section.get(NODE_BOOT_TIMEOUT, 10.0)),
+            target_instance_count=int(wp_section.get(TARGET_INSTANCE_COUNT, 1)),
             target_instance_count_set=(
                 False if wp_section.get(TARGET_INSTANCE_COUNT) is None else True
             ),
@@ -411,10 +416,14 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             user_data_files=wp_section.get(USERDATAFILES, None),
             worker_pool_data_file=worker_pool_data_file,
             worker_tag=worker_tag,
-            workers_per_vcpu=wp_section.get(WORKERS_PER_VCPU, None),
-            workers_per_node=wp_section.get(WORKERS_PER_NODE, 1),
+            workers_per_vcpu=workers_per_vcpu,
+            workers_per_node=int(wp_section.get(WORKERS_PER_NODE, 1)),
         )
 
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
         exit(1)
+    
+    except ValueError as e:
+        print_error(f"Invalid type for configuration: {e}")
+        exit (1)
