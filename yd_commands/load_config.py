@@ -7,7 +7,7 @@ from os import getenv
 from os.path import abspath, dirname, join, relpath
 from pathlib import Path
 from sys import exit
-from typing import Dict, Optional
+from typing import Dict
 
 from toml import TomlDecodeError
 
