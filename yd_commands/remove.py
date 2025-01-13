@@ -130,7 +130,7 @@ def remove_compute_source_template(resource: Dict):
 
     source_id = find_compute_source_template_id_by_name(CLIENT, name)
     if source_id is None:
-        print_warning(f"Cannot find Compute Source Template '{name}'")
+        print_error(f"Cannot find Compute Source Template '{name}'")
         return
 
     if not confirmed(f"Remove Compute Source Template '{name}'?"):
@@ -160,7 +160,7 @@ def remove_compute_requirement_template(resource: Dict):
 
     template_id = find_compute_requirement_template_id_by_name(CLIENT, name)
     if template_id is None:
-        print_warning(f"Cannot find Compute Requirement Template '{name}'")
+        print_error(f"Cannot find Compute Requirement Template '{name}'")
         return
 
     if not confirmed(f"Remove Compute Requirement Template '{name}' ({template_id})?"):
@@ -194,7 +194,7 @@ def remove_keyring(resource: Dict):
         print_log(f"Deleted Keyring '{name}'")
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_warning(f"Keyring '{name}' not found")
+            print_error(f"Keyring '{name}' not found")
         else:
             print_error(f"Unable to delete Keyring '{name}': {e}")
 
@@ -224,7 +224,7 @@ def remove_credential(resource: Dict):
         )
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_warning(
+            print_error(
                 f"Keyring '{keyring_name}' not found (possibly already deleted,"
                 " including its credentials?)"
             )
@@ -254,7 +254,7 @@ def remove_image_family(resource: Dict):
         )
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_warning(f"Machine Image Family '{fq_name}' not found")
+            print_error(f"Machine Image Family '{fq_name}' not found")
             return
         else:
             raise e
@@ -283,7 +283,7 @@ def remove_namespace_configuration(resource: Dict):
         CLIENT.object_store_client.get_namespace_storage_configurations()
     )
     if namespace not in [x.namespace for x in namespaces]:
-        print_warning(f"Namespace Storage Configuration '{namespace}' not found")
+        print_error(f"Namespace Storage Configuration '{namespace}' not found")
         return
 
     if not confirmed(f"Remove Namespace Storage Configuration '{namespace}'?"):
@@ -347,7 +347,8 @@ def remove_configured_worker_pool(resource: Dict):
                 )
                 return
 
-    print_log("No Configured Worker Pool shut down")
+    else:
+        print_error(f"Cannot find Configured Worker Pool '{fq_name}'")
 
 
 def remove_allowance(resource: Dict):
