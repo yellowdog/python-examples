@@ -423,7 +423,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
         exit(1)
-    
+
     except ValueError as e:
         print_error(f"Invalid type for configuration: {e}")
-        exit (1)
+        exit(1)
