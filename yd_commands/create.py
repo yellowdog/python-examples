@@ -159,7 +159,15 @@ def create_compute_source_template(resource: Dict):
         clear_image_family_search_cache()
         CLEAR_IMAGE_FAMILY_CACHE = False
 
-    image_id = source.get("image")
+    # Google CSTs use property name 'image' instead of 'imageId'
+    image_property_name = (
+        "imageId"
+        if source_type
+        not in ["GceInstancesComputeSource", "GceInstanceGroupComputeSource"]
+        else "image"
+    )
+
+    image_id = source.get(image_property_name)
     if get_ydid_type(image_id) not in [
         YDIDType.IMAGE_FAMILY,
         YDIDType.IMAGE_GROUP,
@@ -169,7 +177,7 @@ def create_compute_source_template(resource: Dict):
             client=CLIENT, image_family_name=image_id
         )
         if image_family_id is not None:
-            source["imageId"] = image_family_id
+            source[image_property_name] = image_family_id
 
     if ARGS_PARSER.dry_run:
         resource["source"] = source
