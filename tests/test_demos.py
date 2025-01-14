@@ -61,6 +61,12 @@ class TestDemos:
         result = shell(f"cd {DEMO_DIR}/montecarlo && {CMD_SEQ}")
         assert result.exit_code == 0
 
+    def test_montecarlo_graviton(self):
+        result = shell(
+            f"cd {DEMO_DIR}/montecarlo && yd-provision -c config_graviton.toml && yd-submit -f && yd-terminate -y && yd-delete -y"
+        )
+        assert result.exit_code == 0
+
     # def test_ansys(self):
     #     result = shell(f"cd {DEMO_DIR}/ansys && {CMD_SEQ}")
     #     assert result.exit_code == 0
