@@ -159,7 +159,7 @@ def create_compute_source_template(resource: Dict):
         clear_image_family_search_cache()
         CLEAR_IMAGE_FAMILY_CACHE = False
 
-    image_id = source.get("imageId")
+    image_id = source.get("image")
     if get_ydid_type(image_id) not in [
         YDIDType.IMAGE_FAMILY,
         YDIDType.IMAGE_GROUP,
