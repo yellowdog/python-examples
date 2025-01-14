@@ -11,6 +11,15 @@ from yellowdog_client.model import ConfiguredWorkerPool, Task
 from yd_commands.entity_utils import get_task_by_id
 from yd_commands.list import get_keyring
 from yd_commands.printing import print_error, print_log, print_yd_object
+from yd_commands.settings import (
+    RESOURCE_PROPERTY_NAME,
+    RN_ALLOWANCE,
+    RN_CONFIGURED_POOL,
+    RN_IMAGE_FAMILY,
+    RN_KEYRING,
+    RN_REQUIREMENT_TEMPLATE,
+    RN_SOURCE_TEMPLATE,
+)
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
@@ -29,12 +38,24 @@ def show_details(ydid: str):
     try:
         if get_ydid_type(ydid) == YDIDType.COMPUTE_SOURCE_TEMPLATE:
             print_log(f"Showing details of Compute Source Template ID '{ydid}'")
-            print_yd_object(CLIENT.compute_client.get_compute_source_template(ydid))
+            print_yd_object(
+                CLIENT.compute_client.get_compute_source_template(ydid),
+                add_fields=(
+                    {RESOURCE_PROPERTY_NAME: RN_SOURCE_TEMPLATE}
+                    if ARGS_PARSER.add_resource_property
+                    else None
+                ),
+            )
 
         elif get_ydid_type(ydid) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
             print_log(f"Showing details of Compute Requirement Template ID '{ydid}'")
             print_yd_object(
-                CLIENT.compute_client.get_compute_requirement_template(ydid)
+                CLIENT.compute_client.get_compute_requirement_template(ydid),
+                add_fields=(
+                    {RESOURCE_PROPERTY_NAME: RN_REQUIREMENT_TEMPLATE}
+                    if ARGS_PARSER.add_resource_property
+                    else None
+                ),
             )
 
         elif get_ydid_type(ydid) == YDIDType.COMPUTE_REQUIREMENT:
@@ -56,7 +77,15 @@ def show_details(ydid: str):
         elif get_ydid_type(ydid) == YDIDType.WORKER_POOL:
             print_log(f"Showing details of Worker Pool ID '{ydid}'")
             worker_pool = CLIENT.worker_pool_client.get_worker_pool_by_id(ydid)
-            print_yd_object(worker_pool)
+            print_yd_object(
+                worker_pool,
+                add_fields=(
+                    {RESOURCE_PROPERTY_NAME: RN_CONFIGURED_POOL}
+                    if ARGS_PARSER.add_resource_property
+                    and isinstance(worker_pool, ConfiguredWorkerPool)
+                    else None
+                ),
+            )
             if ARGS_PARSER.show_token and isinstance(worker_pool, ConfiguredWorkerPool):
                 print_log("Showing Configured Worker Pool token data")
                 print_yd_object(
@@ -118,7 +147,14 @@ def show_details(ydid: str):
 
         elif get_ydid_type(ydid) == YDIDType.IMAGE_FAMILY:
             print_log(f"Showing details of Image Family ID '{ydid}'")
-            print_yd_object(CLIENT.images_client.get_image_family_by_id(ydid))
+            print_yd_object(
+                CLIENT.images_client.get_image_family_by_id(ydid),
+                add_fields=(
+                    {RESOURCE_PROPERTY_NAME: RN_IMAGE_FAMILY}
+                    if ARGS_PARSER.add_resource_property
+                    else None
+                ),
+            )
 
         elif get_ydid_type(ydid) == YDIDType.IMAGE_GROUP:
             print_log(f"Showing details of Image Group ID '{ydid}'")
@@ -134,14 +170,28 @@ def show_details(ydid: str):
             for keyring in keyrings:
                 if keyring.id == ydid:
                     # This fetches additional Keyring data: credentials and accessors
-                    print_yd_object(get_keyring(keyring.name))
+                    print_yd_object(
+                        get_keyring(keyring.name),
+                        add_fields=(
+                            {RESOURCE_PROPERTY_NAME: RN_KEYRING}
+                            if ARGS_PARSER.add_resource_property
+                            else None
+                        ),
+                    )
                     return
             else:
                 print_error(f"Keyring ID '{ydid}' not found")
 
         elif get_ydid_type(ydid) == YDIDType.ALLOWANCE:
             print_log(f"Showing details of Allowance ID '{ydid}'")
-            print_yd_object(CLIENT.allowances_client.get_allowance_by_id(ydid))
+            print_yd_object(
+                CLIENT.allowances_client.get_allowance_by_id(ydid),
+                add_fields=(
+                    {RESOURCE_PROPERTY_NAME: RN_ALLOWANCE}
+                    if ARGS_PARSER.add_resource_property
+                    else None
+                ),
+            )
 
         else:
             print_error(f"Unknown (or unsupported) YellowDog ID type for '{ydid}'")

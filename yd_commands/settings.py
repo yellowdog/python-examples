@@ -104,6 +104,7 @@ DEFAULT_THEME = {
 }
 
 # Resource type names for create/remove
+RESOURCE_PROPERTY_NAME = "resource"
 RN_ALLOWANCE = "Allowance"
 RN_CONFIGURED_POOL = "ConfiguredWorkerPool"
 RN_CREDENTIAL = "Credential"

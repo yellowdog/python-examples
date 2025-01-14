@@ -1052,6 +1052,13 @@ class CLIParser:
                 required=False,
                 help="display the worker pool token when showing the details of a configured worker pool",
             )
+            parser.add_argument(
+                "--add-resource-property",
+                "-a",
+                action="store_true",
+                required=False,
+                help="Add the 'resource' property when showing the JSON details of an object",
+            )
 
         self.args = parser.parse_args()
 
@@ -1522,6 +1529,11 @@ class CLIParser:
     @allow_missing_attribute
     def show_token(self) -> Optional[bool]:
         return self.args.show_token
+
+    @property
+    @allow_missing_attribute
+    def add_resource_property(self) -> Optional[bool]:
+        return self.args.add_resource_property
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
