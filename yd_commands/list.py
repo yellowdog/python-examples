@@ -549,11 +549,18 @@ def list_image_families():
     """
     List the Machine Image Families.
     """
-    image_search = MachineImageFamilySearch(includePublic=True)
+    image_search = MachineImageFamilySearch(
+        includePublic=True,
+        namespace=CONFIG_COMMON.namespace,  # Supports partial match
+        familyName=CONFIG_COMMON.name_tag,  # Supports partial match
+    )
     search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)
     image_family_summaries: List[MachineImageFamilySummary] = search_client.list_all()
     if len(image_family_summaries) == 0:
-        print_log("No Machine Image Families found")
+        print_log(
+            f"No matching Machine Image Families found with namespace including "
+            f"'{CONFIG_COMMON.namespace}' and tag including '{CONFIG_COMMON.name_tag}'"
+        )
         return
 
     if not ARGS_PARSER.details:
