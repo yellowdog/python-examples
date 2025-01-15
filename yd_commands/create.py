@@ -47,6 +47,30 @@ from yd_commands.printing import print_error, print_json, print_log, print_warni
 from yd_commands.settings import (
     DEFAULT_NAMESPACE,
     NAMESPACE_PREFIX_SEPARATOR,
+    PROP_AUTOSCALING_MAX_NODES,
+    PROP_CREDENTIAL,
+    PROP_CST_ID,
+    PROP_DEFAULT_RANK_ORDER,
+    PROP_DESCRIPTION,
+    PROP_EFFECTIVE_FROM,
+    PROP_EFFECTIVE_UNTIL,
+    PROP_IMAGE,
+    PROP_IMAGE_ID,
+    PROP_IMAGES_ID,
+    PROP_KEYRING_NAME,
+    PROP_NAME,
+    PROP_NAMESPACE,
+    PROP_OPTIONS,
+    PROP_OS_TYPE,
+    PROP_RANGE,
+    PROP_REQUIREMENT_CREATED_FROM,
+    PROP_RESOURCE,
+    PROP_SOURCE,
+    PROP_SOURCE_CREATED_FROM,
+    PROP_SOURCES,
+    PROP_TITLE,
+    PROP_TYPE,
+    PROP_UNITS,
     RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
@@ -91,7 +115,7 @@ def create_resources(
 
     for resource in resources:
         try:
-            resource_type = resource.pop("resource")
+            resource_type = resource.pop(PROP_RESOURCE)
             # There is potential additional processing for CRTs, CSTs and
             # Allowances; print JSON from within their creation functions
             if ARGS_PARSER.dry_run and resource_type not in [
@@ -103,7 +127,7 @@ def create_resources(
                 continue
         except KeyError:
             print_error(
-                "Missing required 'resource' property in the following resource"
+                f"Missing required '{PROP_RESOURCE}' property in the following resource"
                 f" specification: {resource}"
             )
             continue
@@ -145,11 +169,11 @@ def create_compute_source_template(resource: Dict):
     Handles all Source types.
     """
     try:
-        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
-        resource["namespace"] = namespace
-        source = resource.pop("source")  # Extract the Source properties
-        source_type = source.pop("type").split(".")[-1]  # Extract Source type
-        name = source["name"]
+        namespace = resource.get(PROP_NAMESPACE, DEFAULT_NAMESPACE)
+        resource[PROP_NAMESPACE] = namespace
+        source = resource.pop(PROP_SOURCE)  # Extract the Source properties
+        source_type = source.pop(PROP_TYPE).split(".")[-1]  # Extract Source type
+        name = source[PROP_NAME]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -161,10 +185,10 @@ def create_compute_source_template(resource: Dict):
 
     # Google CSTs use property name 'image' instead of 'imageId'
     image_property_name = (
-        "imageId"
+        PROP_IMAGE_ID
         if source_type
         not in ["GceInstancesComputeSource", "GceInstanceGroupComputeSource"]
-        else "image"
+        else PROP_IMAGE
     )
 
     image_id = source.get(image_property_name)
@@ -180,7 +204,7 @@ def create_compute_source_template(resource: Dict):
             source[image_property_name] = image_family_id
 
     if ARGS_PARSER.dry_run:
-        resource["source"] = source
+        resource[PROP_SOURCE] = source
         _get_model_object(source_type, source)  # Report extras and omissions
         print_json(resource)
         return
@@ -228,10 +252,10 @@ def create_compute_requirement_template(resource: Dict):
     Compute Requirement types.
     """
     try:
-        type = resource.pop("type").split(".")[-1]  # Extract type
-        name = resource["name"]
-        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
-        resource["namespace"] = namespace
+        type = resource.pop(PROP_TYPE).split(".")[-1]  # Extract type
+        name = resource[PROP_NAME]
+        namespace = resource.get(PROP_NAMESPACE, DEFAULT_NAMESPACE)
+        resource[PROP_NAMESPACE] = namespace
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -272,8 +296,8 @@ def create_compute_requirement_template(resource: Dict):
     source_image_id_substitutions = 0
 
     # Dynamic templates don't have 'sources'; return '[]'
-    for source in resource.get("sources", []):
-        template_name_or_id = source["sourceTemplateId"]
+    for source in resource.get(PROP_SOURCES, []):
+        template_name_or_id = source[PROP_CST_ID]
         if get_ydid_type(template_name_or_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
             template_id = find_compute_source_template_id_by_name(
                 client=CLIENT, name=template_name_or_id
@@ -283,13 +307,13 @@ def create_compute_requirement_template(resource: Dict):
                     f"Compute Source Template name '{template_name_or_id}' not found"
                 )
                 return
-            source["sourceTemplateId"] = template_id
+            source[PROP_CST_ID] = template_id
             source_template_substitutions += 1
 
-        source_image_id = source.get("imageId")
+        source_image_id = source.get(PROP_IMAGE_ID)
         if source_image_id is not None:
             source_image_id_substitutions += _get_images_id(
-                source_image_id, source, "imageId"
+                source_image_id, source, PROP_IMAGE_ID
             )
 
     if source_template_substitutions > 0:
@@ -299,9 +323,9 @@ def create_compute_requirement_template(resource: Dict):
     if source_image_id_substitutions > 0:
         print_log(f"Replaced {source_image_id_substitutions} Image name(s) with ID(s)")
 
-    images_id = resource.get("imagesId")
+    images_id = resource.get(PROP_IMAGES_ID)
     if images_id is not None:
-        _get_images_id(images_id, resource, "imagesId")
+        _get_images_id(images_id, resource, PROP_IMAGES_ID)
 
     if ARGS_PARSER.dry_run:
         _get_model_object(type, resource)  # Report extras and omissions
@@ -343,8 +367,8 @@ def create_keyring(resource: Dict, show_secrets: bool = False):
     Create or delete/recreate a Keyring.
     """
     try:
-        name = resource["name"]
-        description = resource["description"]
+        name = resource[PROP_NAME]
+        description = resource[PROP_DESCRIPTION]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -381,8 +405,8 @@ def create_keyring_via_api(name: str, description: str) -> (Keyring, str):
         url=f"{CONFIG_COMMON.url}/keyrings",
         headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
         json={
-            "name": name,
-            "description": description,
+            PROP_NAME: name,
+            PROP_DESCRIPTION: description,
         },
     )
     if response.status_code != 200:
@@ -395,12 +419,12 @@ def create_credential(resource: Dict):
     Create or update a Credential.
     """
     try:
-        keyring_name = resource["keyringName"]
-        credential_data = resource["credential"]
-        credential_type = credential_data.pop("type").split(".")[
+        keyring_name = resource[PROP_KEYRING_NAME]
+        credential_data = resource[PROP_CREDENTIAL]
+        credential_type = credential_data.pop(PROP_TYPE).split(".")[
             -1
         ]  # Extract Source type
-        name = credential_data["name"]
+        name = credential_data[PROP_NAME]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -423,9 +447,9 @@ def create_image_family(resource):
     Create or update an Image Family.
     """
     try:
-        family_name = resource["name"]
-        namespace = resource["namespace"]
-        os_type_str = resource.pop("osType")
+        family_name = resource[PROP_NAME]
+        namespace = resource[PROP_NAMESPACE]
+        os_type_str = resource.pop(PROP_OS_TYPE)
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -435,7 +459,7 @@ def create_image_family(resource):
         os_type = ImageOsType[os_type_str]  # Change to Enum
     except KeyError:
         raise Exception(
-            f"Property 'osType' has invalid value '{os_type_str}'; valid values are"
+            f"Property '{PROP_OS_TYPE}' has invalid value '{os_type_str}'; valid values are"
             f" {[e.value for e in ImageOsType]}"
         )
 
@@ -477,7 +501,7 @@ def create_image_family(resource):
 
     # Delete Image Groups that have been removed from
     # the new resource specification
-    updated_image_group_names = [image_group["name"] for image_group in image_groups]
+    updated_image_group_names = [image_group[PROP_NAME] for image_group in image_groups]
     for existing_image_group in existing_image_family.imageGroups:
         if existing_image_group.name not in updated_image_group_names:
             if confirmed(f"Remove existing Image Group '{existing_image_group.name}'?"):
@@ -536,7 +560,7 @@ def _create_image_group(
 
     # Delete Images that have been removed from
     # the new resource specification
-    updated_image_names = [image["name"] for image in images]
+    updated_image_names = [image[PROP_NAME] for image in images]
     for existing_image in existing_image_group.images:
         if existing_image.name not in updated_image_names:
             if confirmed(f"Remove existing Image '{existing_image.name}'?"):
@@ -581,8 +605,8 @@ def create_namespace_configuration(resource: Dict):
     Create or update a Namespace Configuration.
     """
     try:
-        namespace_type = resource.pop("type").split(".")[-1]  # Extract Source type
-        namespace = resource["namespace"]
+        namespace_type = resource.pop(PROP_TYPE).split(".")[-1]  # Extract Source type
+        namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -613,9 +637,9 @@ def create_configured_worker_pool(resource: Dict):
     Create a Configured Worker Pool. There's no API support for update.
     """
     try:
-        name = resource["name"]
-        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
-        resource["namespace"] = namespace
+        name = resource[PROP_NAME]
+        namespace = resource.get(PROP_NAMESPACE, DEFAULT_NAMESPACE)
+        resource[PROP_NAMESPACE] = namespace
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -648,13 +672,13 @@ def create_allowance(resource: Dict):
     Create an allowance.
     """
     try:
-        original_type = resource.pop("type")
+        original_type = resource.pop(PROP_TYPE)
         type = original_type.split(".")[-1]  # Extract type
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
     if type == "SourcesAllowance":
-        template_name_or_id = resource.get("sourceCreatedFromId", None)
+        template_name_or_id = resource.get(PROP_SOURCE_CREATED_FROM, None)
         if template_name_or_id is not None:
             if get_ydid_type(template_name_or_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
                 template_id = find_compute_source_template_id_by_name(
@@ -669,10 +693,10 @@ def create_allowance(resource: Dict):
                     f"Replaced Source Template name '{template_name_or_id}'"
                     f" with ID {template_id}"
                 )
-                resource["sourceCreatedFromId"] = template_id
+                resource[PROP_SOURCE_CREATED_FROM] = template_id
 
     elif type == "RequirementsAllowance":
-        template_name_or_id = resource.get("requirementCreatedFromId", None)
+        template_name_or_id = resource.get(PROP_REQUIREMENT_CREATED_FROM, None)
         if template_name_or_id is not None:
             if (
                 get_ydid_type(template_name_or_id)
@@ -690,7 +714,7 @@ def create_allowance(resource: Dict):
                     f"Replaced Requirement Template name '{template_name_or_id}'"
                     f" with ID {template_id}"
                 )
-                resource["requirementCreatedFromId"] = template_id
+                resource[PROP_REQUIREMENT_CREATED_FROM] = template_id
 
     # Datetime string conversion
     def _display_datetime(dt: datetime, canonical: bool = False) -> str:
@@ -699,45 +723,43 @@ def create_allowance(resource: Dict):
         else:
             return dt.strftime("%Y-%m-%d %H:%M:%S %Z%z").rstrip()
 
-    effective_from_property = "effectiveFrom"
-    effective_from = resource.get(effective_from_property, None)
+    effective_from = resource.get(PROP_EFFECTIVE_FROM, None)
     if effective_from is not None:
-        resource[effective_from_property] = date_parse(effective_from)
-        if resource[effective_from_property] is None:
+        resource[PROP_EFFECTIVE_FROM] = date_parse(effective_from)
+        if resource[PROP_EFFECTIVE_FROM] is None:
             raise Exception(
-                f"Unable to parse '{effective_from_property}' date '{effective_from}'"
+                f"Unable to parse '{PROP_EFFECTIVE_FROM}' date '{effective_from}'"
             )
         print_log(
-            f"Property '{effective_from_property}' = '{effective_from}' set to "
-            f"'{_display_datetime(resource[effective_from_property])}'"
+            f"Property '{PROP_EFFECTIVE_FROM}' = '{effective_from}' set to "
+            f"'{_display_datetime(resource[PROP_EFFECTIVE_FROM])}'"
         )
 
-    effective_until_property = "effectiveUntil"
-    effective_until = resource.get(effective_until_property, None)
+    effective_until = resource.get(PROP_EFFECTIVE_UNTIL, None)
     if effective_until is not None:
-        resource[effective_until_property] = date_parse(effective_until)
-        if resource[effective_until_property] is None:
+        resource[PROP_EFFECTIVE_UNTIL] = date_parse(effective_until)
+        if resource[PROP_EFFECTIVE_UNTIL] is None:
             raise Exception(
-                f"Unable to parse '{effective_until_property}' date '{effective_until}'"
+                f"Unable to parse '{PROP_EFFECTIVE_UNTIL}' date '{effective_until}'"
             )
         print_log(
-            f"Property '{effective_until_property}' = '{effective_until}' set to "
-            f"'{_display_datetime(resource[effective_until_property])}'"
+            f"Property '{PROP_EFFECTIVE_UNTIL}' = '{effective_until}' set to "
+            f"'{_display_datetime(resource[PROP_EFFECTIVE_UNTIL])}'"
         )
 
     if ARGS_PARSER.dry_run:
         _get_model_object(type, resource)  # Report extras and omissions
         # Datetime objects must be converted to strings for JSON presentation
-        for property_ in [effective_from_property, effective_until_property]:
+        for property_ in [PROP_EFFECTIVE_FROM, PROP_EFFECTIVE_UNTIL]:
             if resource.get(property_, None) is not None:
                 resource[property_] = _display_datetime(
                     resource[property_], canonical=True
                 )
-        resource["type"] = original_type  # Reinstate property
+        resource[PROP_TYPE] = original_type  # Reinstate property
         print_json(resource)
         return
 
-    description = resource.get("description", None)
+    description = resource.get(PROP_DESCRIPTION, None)
     if ARGS_PARSER.match_allowances_by_description:
         # Look for existing Allowances that match the description string
         if description is not None:
@@ -829,10 +851,10 @@ def create_attribute_definition(resource: Dict, resource_type: str):
     Use the API to create/update user attribute definitions.
     """
     try:
-        name = resource["name"]
-        title = resource["title"]
+        name = resource[PROP_NAME]
+        title = resource[PROP_TITLE]
         if resource_type == RN_NUMERIC_ATTRIBUTE_DEFINITION:
-            default_rank_order = resource["defaultRankOrder"]
+            default_rank_order = resource[PROP_DEFAULT_RANK_ORDER]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -841,27 +863,27 @@ def create_attribute_definition(resource: Dict, resource_type: str):
     if resource_type == RN_STRING_ATTRIBUTE_DEFINITION:
         payload = {
             # Required
-            "type": "co.yellowdog.platform.model.StringAttributeDefinition",
-            "name": name,
-            "title": title,
+            PROP_TYPE: "co.yellowdog.platform.model.StringAttributeDefinition",
+            PROP_NAME: name,
+            PROP_TITLE: title,
             # Optional
-            "description": resource.get("description"),
-            "options": resource.get("options"),
+            PROP_DESCRIPTION: resource.get(PROP_DESCRIPTION),
+            PROP_OPTIONS: resource.get(PROP_OPTIONS),
         }
     else:  # RN_NUMERIC_ATTRIBUTE_DEFINITION
         payload = {
             # Required
-            "type": "co.yellowdog.platform.model.NumericAttributeDefinition",
-            "name": name,
-            "title": title,
-            "defaultRankOrder": default_rank_order,
+            PROP_TYPE: "co.yellowdog.platform.model.NumericAttributeDefinition",
+            PROP_NAME: name,
+            PROP_TITLE: title,
+            PROP_DEFAULT_RANK_ORDER: default_rank_order,
             # Optional
-            "description": resource.get("description"),
-            "units": resource.get("units"),
+            PROP_DESCRIPTION: resource.get(PROP_DESCRIPTION),
+            PROP_UNITS: resource.get(PROP_UNITS),
             # Note: Only one of 'range', 'options' can be supplied
             # Allow the API to error-check
-            "range": resource.get("range"),
-            "options": resource.get("options"),
+            PROP_RANGE: resource.get(PROP_RANGE),
+            PROP_OPTIONS: resource.get(PROP_OPTIONS),
         }
 
     # Attempt attribute creation
@@ -890,8 +912,8 @@ def create_namespace_policy(resource: Dict):
     """
     try:
         namespace_policy = NamespacePolicy(
-            namespace=resource["namespace"],
-            autoscalingMaxNodes=resource.get("autoscalingMaxNodes"),
+            namespace=resource[PROP_NAMESPACE],
+            autoscalingMaxNodes=resource.get(PROP_AUTOSCALING_MAX_NODES),
         )
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
