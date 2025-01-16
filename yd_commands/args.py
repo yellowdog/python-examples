@@ -1050,14 +1050,20 @@ class CLIParser:
                 "--show-token",
                 action="store_true",
                 required=False,
-                help="display the worker pool token when showing the details of a configured worker pool",
+                help=(
+                    "display the worker pool token when showing the details of a "
+                    "configured worker pool"
+                ),
             )
             parser.add_argument(
                 "--add-resource-property",
                 "-a",
                 action="store_true",
                 required=False,
-                help="Add the 'resource' property when showing the JSON details of an object",
+                help=(
+                    "Add the 'resource' property (the resource type name) "
+                    "to the JSON output data"
+                ),
             )
 
         self.args = parser.parse_args()
