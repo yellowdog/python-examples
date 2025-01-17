@@ -27,19 +27,37 @@ from yd_commands.ydid_utils import YDIDType, get_ydid_type
 @main_wrapper
 def main():
 
-    for ydid in ARGS_PARSER.yellowdog_ids:
-        show_details(ydid)
+    # Generate a JSON list of resources if there are multiple YDIDs
+    # and the 'quiet' option is enabled
+    generate_json_list = len(ARGS_PARSER.yellowdog_ids) > 1 and ARGS_PARSER.quiet
+
+    if generate_json_list:
+        print("[")
+
+    for index, ydid in enumerate(ARGS_PARSER.yellowdog_ids):
+        if generate_json_list:
+            if index < len(ARGS_PARSER.yellowdog_ids) - 1:
+                show_details(ydid, initial_indent=2, with_final_comma=True)
+            else:
+                show_details(ydid, initial_indent=2, with_final_comma=False)
+        else:
+            show_details(ydid)
+
+    if generate_json_list:
+        print("]")
 
 
-def show_details(ydid: str):
+def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = False):
     """
-    Show the details for a given YDID
+    Show the details for a given YDID.
     """
     try:
         if get_ydid_type(ydid) == YDIDType.COMPUTE_SOURCE_TEMPLATE:
             print_log(f"Showing details of Compute Source Template ID '{ydid}'")
             print_yd_object(
                 CLIENT.compute_client.get_compute_source_template(ydid),
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
                 add_fields=(
                     {RESOURCE_PROPERTY_NAME: RN_SOURCE_TEMPLATE}
                     if ARGS_PARSER.add_resource_property
@@ -51,6 +69,8 @@ def show_details(ydid: str):
             print_log(f"Showing details of Compute Requirement Template ID '{ydid}'")
             print_yd_object(
                 CLIENT.compute_client.get_compute_requirement_template(ydid),
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
                 add_fields=(
                     {RESOURCE_PROPERTY_NAME: RN_REQUIREMENT_TEMPLATE}
                     if ARGS_PARSER.add_resource_property
@@ -79,6 +99,8 @@ def show_details(ydid: str):
             worker_pool = CLIENT.worker_pool_client.get_worker_pool_by_id(ydid)
             print_yd_object(
                 worker_pool,
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
                 add_fields=(
                     {RESOURCE_PROPERTY_NAME: RN_CONFIGURED_POOL}
                     if ARGS_PARSER.add_resource_property
@@ -149,6 +171,8 @@ def show_details(ydid: str):
             print_log(f"Showing details of Image Family ID '{ydid}'")
             print_yd_object(
                 CLIENT.images_client.get_image_family_by_id(ydid),
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
                 add_fields=(
                     {RESOURCE_PROPERTY_NAME: RN_IMAGE_FAMILY}
                     if ARGS_PARSER.add_resource_property
@@ -172,6 +196,8 @@ def show_details(ydid: str):
                     # This fetches additional Keyring data: credentials and accessors
                     print_yd_object(
                         get_keyring(keyring.name),
+                        initial_indent=initial_indent,
+                        with_final_comma=with_final_comma,
                         add_fields=(
                             {RESOURCE_PROPERTY_NAME: RN_KEYRING}
                             if ARGS_PARSER.add_resource_property
@@ -186,6 +212,8 @@ def show_details(ydid: str):
             print_log(f"Showing details of Allowance ID '{ydid}'")
             print_yd_object(
                 CLIENT.allowances_client.get_allowance_by_id(ydid),
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
                 add_fields=(
                     {RESOURCE_PROPERTY_NAME: RN_ALLOWANCE}
                     if ARGS_PARSER.add_resource_property
