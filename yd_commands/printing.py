@@ -11,7 +11,7 @@ from os import name as os_name
 from os.path import relpath
 from textwrap import fill
 from textwrap import indent as text_indent
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from rich.console import Console, Theme
 from rich.highlighter import JSONHighlighter, RegexHighlighter
@@ -62,6 +62,7 @@ from yd_commands.settings import (
     JSON_INDENT,
     MAX_LINES_COLOURED_FORMATTING,
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
+    PROP_RESOURCE,
     WARNING_STYLE,
 )
 from yd_commands.ydid_utils import YDIDType
@@ -899,6 +900,31 @@ def print_yd_object(
             object_data_new[key] = value
         object_data = object_data_new
     print_json(object_data, initial_indent, drop_first_line, with_final_comma)
+
+
+def print_yd_object_list(
+    objects: List[Tuple[Any, Optional[str]]],  # Tuples are (object, resource_type_name)
+):
+    """
+    Print a JSON list of objects.
+    """
+    if len(objects) > 1:
+        print("[")
+
+    for index, (object_, resource_type_name) in enumerate(objects):
+        print_yd_object(
+            object_,
+            initial_indent=2 if len(objects) > 1 else 0,
+            with_final_comma=(True if index < len(objects) - 1 else False),
+            add_fields=(
+                {PROP_RESOURCE: resource_type_name}
+                if ARGS_PARSER.add_resource_property and resource_type_name is not None
+                else {}
+            ),
+        )
+
+    if len(objects) > 1:
+        print("]")
 
 
 def print_worker_pool(

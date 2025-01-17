@@ -17,9 +17,7 @@ from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
-    ComputeRequirementTemplate,
     ComputeRequirementTemplateSummary,
-    ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
     Instance,
     InstanceSearch,
@@ -60,7 +58,18 @@ from yd_commands.printing import (
     print_table_core,
     print_warning,
     print_yd_object,
+    print_yd_object_list,
     sorted_objects,
+)
+from yd_commands.settings import (
+    PROP_RESOURCE,
+    RN_ALLOWANCE,
+    RN_IMAGE_FAMILY,
+    RN_KEYRING,
+    RN_NUMERIC_ATTRIBUTE_DEFINITION,
+    RN_REQUIREMENT_TEMPLATE,
+    RN_SOURCE_TEMPLATE,
+    RN_STRING_ATTRIBUTE_DEFINITION,
 )
 from yd_commands.utils import unpack_namespace_in_prefix
 from yd_commands.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -472,12 +481,18 @@ def list_compute_requirement_templates():
         print_numbered_object_list(CLIENT, sorted_objects(cr_templates))
         return
 
+    # Show details
     cr_templates = select(CLIENT, cr_templates)
-    for cr_template in cr_templates:
-        cr_template_detail: ComputeRequirementTemplate = (
-            CLIENT.compute_client.get_compute_requirement_template(cr_template.id)
+    cr_template_details = [
+        (
+            CLIENT.compute_client.get_compute_requirement_template(cr_template.id),
+            RN_REQUIREMENT_TEMPLATE,
         )
-        print_yd_object(cr_template_detail)
+        for cr_template in cr_templates
+    ]
+    print_yd_object_list(
+        cr_template_details,
+    )
 
 
 def list_compute_source_templates():
@@ -506,12 +521,18 @@ def list_compute_source_templates():
         print_numbered_object_list(CLIENT, sorted_objects(cs_templates))
         return
 
+    # Show details
     cs_templates = select(CLIENT, sorted_objects(cs_templates))
-    for cs_template in cs_templates:
-        cs_template_detail: ComputeSourceTemplate = (
-            CLIENT.compute_client.get_compute_source_template(cs_template.id)
+    cs_template_details = [
+        (
+            CLIENT.compute_client.get_compute_source_template(cs_template.id),
+            RN_SOURCE_TEMPLATE,
         )
-        print_yd_object(cs_template_detail)
+        for cs_template in cs_templates
+    ]
+    print_yd_object_list(
+        cs_template_details,
+    )
 
 
 def list_keyrings():
@@ -526,9 +547,10 @@ def list_keyrings():
         print_numbered_object_list(CLIENT, sorted_objects(keyrings))
         return
 
-    keyrings = select(CLIENT, keyrings)
-    for keyring_summary in keyrings:
-        print_yd_object(get_keyring(keyring_summary.name))
+    # Show details
+    print_yd_object_list(
+        [(keyring, RN_KEYRING) for keyring in select(CLIENT, keyrings)]
+    )
 
 
 def get_keyring(name: str) -> Keyring:
@@ -567,11 +589,18 @@ def list_image_families():
         print_numbered_object_list(CLIENT, sorted_objects(image_family_summaries))
         return
 
-    for image_family_summary in select(CLIENT, sorted_objects(image_family_summaries)):
-        image_family = CLIENT.images_client.get_image_family_by_id(
-            image_family_summary.id
+    # Show details
+    image_family_summaries = select(CLIENT, sorted_objects(image_family_summaries))
+    image_families = [
+        (
+            CLIENT.images_client.get_image_family_by_id(image_family_summary.id),
+            RN_IMAGE_FAMILY,
         )
-        print_yd_object(image_family)
+        for image_family_summary in image_family_summaries
+    ]
+    print_yd_object_list(
+        image_families,
+    )
 
 
 def list_namespaces():
@@ -656,8 +685,10 @@ def list_allowances():
         print_numbered_object_list(CLIENT, allowances)
         return
 
-    for allowance in select(CLIENT, allowances):
-        print_yd_object(allowance)
+    # Show details
+    print_yd_object_list(
+        [(allowance, RN_ALLOWANCE) for allowance in select(CLIENT, allowances)]
+    )
 
 
 def list_attribute_definitions():
@@ -684,13 +715,24 @@ def list_attribute_definitions():
         )
         return
 
-    for selected_attribute_definition in select(
-        CLIENT,
-        attribute_definition_list,
-        object_type_name="Attribute Definition",
-        sort_objects=False,
-    ):
-        print_json(selected_attribute_definition)
+    # Show details
+    attribute_definition_list = [
+        (
+            attribute,
+            (
+                RN_NUMERIC_ATTRIBUTE_DEFINITION
+                if "Numeric" in attribute["type"]
+                else RN_STRING_ATTRIBUTE_DEFINITION
+            ),
+        )
+        for attribute in select(
+            CLIENT,
+            attribute_definition_list,
+            object_type_name="Attribute Definition",
+            sort_objects=False,
+        )
+    ]
+    print_yd_object_list(attribute_definition_list)
 
 
 def list_namespace_policies():

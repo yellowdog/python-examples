@@ -1055,14 +1055,16 @@ class CLIParser:
                     "configured worker pool"
                 ),
             )
+
+        if any(module in sys.argv[0] for module in ["list", "show"]):
             parser.add_argument(
                 "--add-resource-property",
-                "-a",
+                "--arp",
                 action="store_true",
                 required=False,
                 help=(
-                    "Add the 'resource' property (the resource type name) "
-                    "to the JSON output data"
+                    "Add the 'resource' property (denoting the resource type) "
+                    "to the JSON output data, if applicable"
                 ),
             )
 
