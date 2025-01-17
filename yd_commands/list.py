@@ -83,9 +83,9 @@ def main():
     elif ARGS_PARSER.compute_requirements or ARGS_PARSER.instances:
         list_compute_requirements()
     elif ARGS_PARSER.compute_templates:
-        list_compute_templates()
+        list_compute_requirement_templates()
     elif ARGS_PARSER.source_templates:
-        list_source_templates()
+        list_compute_source_templates()
     elif ARGS_PARSER.keyrings:
         list_keyrings()
     elif ARGS_PARSER.image_families:
@@ -446,7 +446,7 @@ def list_workers(nodes: List[Node]):
         print_yd_object(worker)
 
 
-def list_compute_templates():
+def list_compute_requirement_templates():
     """
     Print the list of Compute Requirement Templates, filtered on Namespace
     and Name. Set these both to empty strings to generate an unfiltered list.
@@ -480,7 +480,7 @@ def list_compute_templates():
         print_yd_object(cr_template_detail)
 
 
-def list_source_templates():
+def list_compute_source_templates():
     """
     Print the list of Compute Source Templates, filtered on Namespace
     and Name. Set these both to empty strings to generate an unfiltered list.
