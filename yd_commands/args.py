@@ -1056,18 +1056,6 @@ class CLIParser:
                 ),
             )
 
-        if any(module in sys.argv[0] for module in ["list", "show"]):
-            parser.add_argument(
-                "--add-resource-property",
-                "--arp",
-                action="store_true",
-                required=False,
-                help=(
-                    "Add the 'resource' property (denoting the resource type) "
-                    "to the JSON output data, if applicable"
-                ),
-            )
-
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -1537,11 +1525,6 @@ class CLIParser:
     @allow_missing_attribute
     def show_token(self) -> Optional[bool]:
         return self.args.show_token
-
-    @property
-    @allow_missing_attribute
-    def add_resource_property(self) -> Optional[bool]:
-        return self.args.add_resource_property
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

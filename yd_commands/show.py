@@ -58,11 +58,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 CLIENT.compute_client.get_compute_source_template(ydid),
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
-                add_fields=(
-                    {RESOURCE_PROPERTY_NAME: RN_SOURCE_TEMPLATE}
-                    if ARGS_PARSER.add_resource_property
-                    else None
-                ),
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_SOURCE_TEMPLATE}),
             )
 
         elif get_ydid_type(ydid) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
@@ -71,11 +67,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 CLIENT.compute_client.get_compute_requirement_template(ydid),
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
-                add_fields=(
-                    {RESOURCE_PROPERTY_NAME: RN_REQUIREMENT_TEMPLATE}
-                    if ARGS_PARSER.add_resource_property
-                    else None
-                ),
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_REQUIREMENT_TEMPLATE}),
             )
 
         elif get_ydid_type(ydid) == YDIDType.COMPUTE_REQUIREMENT:
@@ -101,12 +93,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 worker_pool,
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
-                add_fields=(
-                    {RESOURCE_PROPERTY_NAME: RN_CONFIGURED_POOL}
-                    if ARGS_PARSER.add_resource_property
-                    and isinstance(worker_pool, ConfiguredWorkerPool)
-                    else None
-                ),
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_CONFIGURED_POOL}),
             )
             if ARGS_PARSER.show_token and isinstance(worker_pool, ConfiguredWorkerPool):
                 print_log("Showing Configured Worker Pool token data")
@@ -173,11 +160,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 CLIENT.images_client.get_image_family_by_id(ydid),
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
-                add_fields=(
-                    {RESOURCE_PROPERTY_NAME: RN_IMAGE_FAMILY}
-                    if ARGS_PARSER.add_resource_property
-                    else None
-                ),
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_IMAGE_FAMILY}),
             )
 
         elif get_ydid_type(ydid) == YDIDType.IMAGE_GROUP:
@@ -200,8 +183,6 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                         with_final_comma=with_final_comma,
                         add_fields=(
                             {RESOURCE_PROPERTY_NAME: RN_KEYRING}
-                            if ARGS_PARSER.add_resource_property
-                            else None
                         ),
                     )
                     return
@@ -216,8 +197,6 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 with_final_comma=with_final_comma,
                 add_fields=(
                     {RESOURCE_PROPERTY_NAME: RN_ALLOWANCE}
-                    if ARGS_PARSER.add_resource_property
-                    else None
                 ),
             )
 

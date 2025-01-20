@@ -62,7 +62,6 @@ from yd_commands.printing import (
     sorted_objects,
 )
 from yd_commands.settings import (
-    PROP_RESOURCE,
     RN_ALLOWANCE,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
