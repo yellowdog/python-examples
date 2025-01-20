@@ -83,6 +83,8 @@
       * [Resource Removal](#resource-removal)
       * [Resource Matching](#resource-matching)
    * [Resource Specification Definitions](#resource-specification-definitions)
+   * [Generating Resource Specifications](#generating-resource-specifications)
+   * [Preprocessing Resource Specifications](#preprocessing-resource-specifications)
    * [Keyrings](#keyrings)
    * [Credentials](#credentials)
    * [Compute Source Templates](#compute-source-templates)
@@ -123,7 +125,7 @@
    * [yd-show](#yd-show)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Mon Oct 28 08:25:56 GMT 2024 -->
+<!-- Added by: pwt, at: Mon Jan 20 08:54:22 GMT 2025 -->
 
 <!--te-->
 
@@ -1906,6 +1908,8 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 - `"NumericAttributeDefinition"`
 - `"NamespacePolicy"`
 
+## Generating Resource Specifications
+
 To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
 
 ```shell
@@ -1914,6 +1918,18 @@ yd-list --source-templates --details
 yd-list --compute-templates --details
 yd-list --image-families --details
 ```
+
+This will produce a list of resource specifications that can be copied and used directly with `yd-create` and `yd-remove`. Certain fields, such as the ID, will be ignored, with warnings.
+
+Alternatively, the `yd-show` command can be used with one or more `ydid` arguments to generate the details of each identified resource. E.g.,
+
+```
+yd-show -q ydid:cst:000000:cde265f8-0b17-4e0e-be1c-505174a620e4 > my-compute-source-template.json
+```
+
+would generate a JSON file that can be used with `yd-create` without alteration, or which could be edited.
+
+## Preprocessing Resource Specifications
 
 The `--dry-run`/`-D` and `--jsonnet-dry-run`/`-J` options can be used with `yd-create` to display the processed JSON data structures without any resources being created or updated.
 
