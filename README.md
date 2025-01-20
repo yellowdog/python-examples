@@ -1919,11 +1919,15 @@ yd-list --compute-templates --details
 yd-list --image-families --details
 ```
 
-This will produce a list of resource specifications that can be copied and used directly with `yd-create` and `yd-remove`. Certain fields, such as the ID, will be ignored, with warnings.
+This will produce a list of resource specifications that can be copied and used directly with `yd-create` and `yd-remove`. Certain fields, such as the ID, will be ignored, with warnings. The detailed resource list can also be copied directly to an output file in addition to being displayed on the console:
+
+```shell
+yd-list yd-list --source-templates --details --output-file my-resources.json
+```
 
 Alternatively, the `yd-show` command can be used with one or more `ydid` arguments to generate the details of each identified resource. E.g.,
 
-```
+```shell
 yd-show -q ydid:cst:000000:cde265f8-0b17-4e0e-be1c-505174a620e4 > my-compute-source-template.json
 ```
 

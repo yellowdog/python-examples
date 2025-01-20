@@ -2,6 +2,7 @@
 Functions focused on print outputs.
 """
 
+from contextlib import redirect_stdout
 from dataclasses import dataclass
 from datetime import datetime
 from json import dumps as json_dumps
@@ -871,11 +872,19 @@ def print_json(
             print(json_string, end=",\n", flush=True)
         else:
             print(json_string, flush=True)
+
     else:
         if with_final_comma:
             CONSOLE_JSON.print(json_string, end=",\n", soft_wrap=True)
         else:
             CONSOLE_JSON.print(json_string, soft_wrap=True)
+
+    if ARGS_PARSER.output_file is not None:  # Also output to a nominated file
+        _print_to_file(
+            json_string=json_string,
+            output_file=ARGS_PARSER.output_file,
+            with_final_comma=with_final_comma,
+        )
 
 
 def print_yd_object(
@@ -908,8 +917,14 @@ def print_yd_object_list(
     """
     Print a JSON list of objects.
     """
+
+    if ARGS_PARSER.output_file is not None:
+        print_log(f"Copying detailed resource list to '{ARGS_PARSER.output_file}'")
+
     if len(objects) > 1:
         print("[")
+        if ARGS_PARSER.output_file is not None:
+            _print_to_file("[", ARGS_PARSER.output_file)
 
     for index, (object_, resource_type_name) in enumerate(objects):
         print_yd_object(
@@ -921,6 +936,8 @@ def print_yd_object_list(
 
     if len(objects) > 1:
         print("]")
+        if ARGS_PARSER.output_file is not None:
+            _print_to_file("]", ARGS_PARSER.output_file)
 
 
 def print_worker_pool(
@@ -1274,3 +1291,25 @@ def print_event(event: str, id_type: YDIDType):
         return
 
     print_log(msg, no_fill=True)
+
+
+FIRST_OUTPUT_TO_FILE = True  # Determine whether to 'write' or 'append'
+
+
+def _print_to_file(json_string: str, output_file: str, with_final_comma: bool = False):
+    """
+    Dump details output to a file.
+    """
+    global FIRST_OUTPUT_TO_FILE
+
+    try:
+        with open(output_file, "w" if FIRST_OUTPUT_TO_FILE else "a") as f:
+            with redirect_stdout(f):
+                if with_final_comma:
+                    print(json_string, end=",\n", flush=True)
+                else:
+                    print(json_string, flush=True)
+    except Exception as e:
+        raise Exception(f"Cannot open output file for writing: {e}")
+
+    FIRST_OUTPUT_TO_FILE = False

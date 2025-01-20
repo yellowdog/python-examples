@@ -181,9 +181,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                         get_keyring(keyring.name),
                         initial_indent=initial_indent,
                         with_final_comma=with_final_comma,
-                        add_fields=(
-                            {RESOURCE_PROPERTY_NAME: RN_KEYRING}
-                        ),
+                        add_fields=({RESOURCE_PROPERTY_NAME: RN_KEYRING}),
                     )
                     return
             else:
@@ -195,9 +193,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 CLIENT.allowances_client.get_allowance_by_id(ydid),
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
-                add_fields=(
-                    {RESOURCE_PROPERTY_NAME: RN_ALLOWANCE}
-                ),
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_ALLOWANCE}),
             )
 
         else:

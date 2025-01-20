@@ -6,6 +6,7 @@ Command to list YellowDog entities.
 
 from dataclasses import asdict, fields
 from json import loads as json_loads
+from os.path import exists
 from typing import Dict, List
 
 from requests import get
@@ -49,7 +50,7 @@ from yd_commands.entity_utils import (
     get_tasks,
     list_matching_object_paths,
 )
-from yd_commands.interactive import select
+from yd_commands.interactive import confirmed, select
 from yd_commands.printing import (
     indent,
     print_json,
@@ -81,6 +82,13 @@ def main():
 
     # Always use interactive mode for selections
     ARGS_PARSER.interactive = True
+
+    if ARGS_PARSER.output_file and ARGS_PARSER.details:
+        if exists(ARGS_PARSER.output_file):
+            if not confirmed(
+                f"Overwrite file '{ARGS_PARSER.output_file}' with resource details?"
+            ):
+                return
 
     if ARGS_PARSER.object_paths:
         list_object_paths()

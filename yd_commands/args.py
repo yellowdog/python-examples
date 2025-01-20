@@ -578,6 +578,16 @@ class CLIParser:
                 required=False,
                 help="list namespace policies",
             )
+            parser.add_argument(
+                "--output-file",
+                type=str,
+                required=False,
+                help=(
+                    "if specified, the 'details' resource listing will be appended "
+                    "to the nominated output file"
+                ),
+                metavar="<output-file>",
+            )
 
         if any(module in sys.argv[0] for module in ["upload"]):
             parser.add_argument(
@@ -1525,6 +1535,11 @@ class CLIParser:
     @allow_missing_attribute
     def show_token(self) -> Optional[bool]:
         return self.args.show_token
+
+    @property
+    @allow_missing_attribute
+    def output_file(self) -> Optional[str]:
+        return self.args.output_file
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
