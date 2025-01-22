@@ -1073,7 +1073,8 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "substitute compute source template IDs and image family IDs for names"
+                    "substitute compute source template IDs and image family IDs for "
+                    "names in detailed compute requirement templates"
                 ),
             )
 
