@@ -1066,6 +1066,17 @@ class CLIParser:
                 ),
             )
 
+        if any(module in sys.argv[0] for module in ["list", "show"]):
+            parser.add_argument(
+                "--substitute-ids",
+                "-U",
+                action="store_true",
+                required=False,
+                help=(
+                    "substitute compute source template IDs and image family IDs for names"
+                ),
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -1540,6 +1551,11 @@ class CLIParser:
     @allow_missing_attribute
     def output_file(self) -> Optional[str]:
         return self.args.output_file
+
+    @property
+    @allow_missing_attribute
+    def substitute_ids(self) -> Optional[bool]:
+        return self.args.substitute_ids
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

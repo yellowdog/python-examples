@@ -61,6 +61,7 @@ from yd_commands.printing import (
     print_yd_object,
     print_yd_object_list,
     sorted_objects,
+    substitute_ids_for_names_in_crt,
 )
 from yd_commands.settings import (
     RN_ALLOWANCE,
@@ -492,7 +493,10 @@ def list_compute_requirement_templates():
     cr_templates = select(CLIENT, cr_templates)
     cr_template_details = [
         (
-            CLIENT.compute_client.get_compute_requirement_template(cr_template.id),
+            substitute_ids_for_names_in_crt(
+                CLIENT,
+                CLIENT.compute_client.get_compute_requirement_template(cr_template.id),
+            ),
             RN_REQUIREMENT_TEMPLATE,
         )
         for cr_template in cr_templates

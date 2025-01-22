@@ -5,6 +5,7 @@ Functions focused on print outputs.
 from contextlib import redirect_stdout
 from dataclasses import dataclass
 from datetime import datetime
+from functools import lru_cache
 from json import dumps as json_dumps
 from json import loads as json_loads
 from os import get_terminal_size
@@ -25,13 +26,16 @@ from yellowdog_client.model import (
     BestComputeSourceReportSource,
     ComputeRequirement,
     ComputeRequirementDynamicTemplateTestResult,
+    ComputeRequirementTemplate,
     ComputeRequirementTemplateSummary,
     ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
+    ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
     ConfiguredWorkerPool,
     Instance,
     KeyringSummary,
+    MachineImageFamily,
     MachineImageFamilySummary,
     NamespacePolicy,
     Node,
@@ -66,7 +70,7 @@ from yd_commands.settings import (
     PROP_RESOURCE,
     WARNING_STYLE,
 )
-from yd_commands.ydid_utils import YDIDType
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 try:
     LOG_WIDTH = get_terminal_size().columns
@@ -1313,3 +1317,65 @@ def _print_to_file(json_string: str, output_file: str, with_final_comma: bool = 
         raise Exception(f"Cannot open output file for writing: {e}")
 
     FIRST_OUTPUT_TO_FILE = False
+
+
+def substitute_ids_for_names_in_crt(
+    client: PlatformClient, crt: ComputeRequirementTemplate
+) -> ComputeRequirementTemplate:
+    """
+    Substitute CST and Image Family IDs for namespace/name,
+    if option is selected.
+    """
+    if not ARGS_PARSER.substitute_ids:
+        return crt
+
+    # Image family
+    try:
+        crt.imagesId = _get_image_family_name_from_id(client, crt.imagesId)
+    except:
+        pass
+
+    # Source templates
+    try:
+        for source in crt.sources:
+            source.sourceTemplateId = _get_source_template_name_from_id(
+                client, source.sourceTemplateId
+            )
+    except:
+        pass
+
+    return crt
+
+
+@lru_cache()
+def _get_source_template_name_from_id(client: PlatformClient, cst_id: str) -> str:
+    """
+    Obtain the namespace/name of a source template.
+    Otherwise, return the original string
+    """
+    if get_ydid_type(cst_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
+        return cst_id
+    try:
+        cst: ComputeSourceTemplate = client.compute_client.get_compute_source_template(
+            cst_id
+        )
+        return f"{cst.namespace}/{cst.source.name}"
+    except:
+        return cst_id
+
+
+@lru_cache()
+def _get_image_family_name_from_id(client: PlatformClient, image_family_id: str) -> str:
+    """
+    Obtain the namespace/name of an image family.
+    Otherwise, return the original string
+    """
+    if get_ydid_type(image_family_id) != YDIDType.IMAGE_FAMILY:
+        return image_family_id
+    try:
+        image_family: MachineImageFamily = client.images_client.get_image_family_by_id(
+            image_family_id
+        )
+        return f"{image_family.namespace}/{image_family.name}"
+    except:
+        return image_family_id

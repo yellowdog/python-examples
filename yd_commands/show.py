@@ -10,7 +10,12 @@ from yellowdog_client.model import ConfiguredWorkerPool, Task
 
 from yd_commands.entity_utils import get_task_by_id
 from yd_commands.list import get_keyring
-from yd_commands.printing import print_error, print_log, print_yd_object
+from yd_commands.printing import (
+    print_error,
+    print_log,
+    print_yd_object,
+    substitute_ids_for_names_in_crt,
+)
 from yd_commands.settings import (
     RESOURCE_PROPERTY_NAME,
     RN_ALLOWANCE,
@@ -64,7 +69,9 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
         elif get_ydid_type(ydid) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
             print_log(f"Showing details of Compute Requirement Template ID '{ydid}'")
             print_yd_object(
-                CLIENT.compute_client.get_compute_requirement_template(ydid),
+                substitute_ids_for_names_in_crt(
+                    CLIENT, CLIENT.compute_client.get_compute_requirement_template(ydid)
+                ),
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
                 add_fields=({RESOURCE_PROPERTY_NAME: RN_REQUIREMENT_TEMPLATE}),

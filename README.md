@@ -1933,6 +1933,8 @@ yd-show -q ydid:cst:000000:cde265f8-0b17-4e0e-be1c-505174a620e4 > my-compute-sou
 
 would generate a JSON file that can be used with `yd-create` without alteration, or which could be edited.
 
+Both `yd-list` and `yd-show` support the `--substitute-ids`/`-U` option. For Compute Requirement Template detailed output, this will substitute Compute Source Template IDs and Image Family IDs with their names, to make it easier to use the output acrosss YellowDog accounts.
+
 ## Preprocessing Resource Specifications
 
 The `--dry-run`/`-D` and `--jsonnet-dry-run`/`-J` options can be used with `yd-create` to display the processed JSON data structures without any resources being created or updated.
