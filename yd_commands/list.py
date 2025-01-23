@@ -491,6 +491,10 @@ def list_compute_requirement_templates():
 
     # Show details
     cr_templates = select(CLIENT, cr_templates)
+    if len(cr_templates) > 0 and ARGS_PARSER.substitute_ids:
+        print_log(
+            "Substituting Compute Source Template IDs and Image Family IDs with names"
+        )
     cr_template_details = [
         (
             substitute_ids_for_names_in_crt(
