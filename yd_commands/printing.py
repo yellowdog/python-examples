@@ -1347,7 +1347,7 @@ def substitute_ids_for_names_in_crt(
     return crt
 
 
-@lru_cache()
+@lru_cache
 def _get_source_template_name_from_id(client: PlatformClient, cst_id: str) -> str:
     """
     Obtain the namespace/name of a source template.
@@ -1364,7 +1364,7 @@ def _get_source_template_name_from_id(client: PlatformClient, cst_id: str) -> st
         return cst_id
 
 
-@lru_cache()
+@lru_cache
 def _get_image_family_name_from_id(client: PlatformClient, image_family_id: str) -> str:
     """
     Obtain the namespace/name of an image family.

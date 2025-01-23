@@ -33,7 +33,7 @@ from yd_commands.printing import print_log, print_warning
 from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
 
 
-@lru_cache()
+@lru_cache
 def get_task_groups_from_wr_summary(
     client: PlatformClient, wr_summary_id: str
 ) -> List[TaskGroup]:
@@ -93,7 +93,7 @@ def get_filtered_work_requirements(
     return filtered_work_summaries
 
 
-@lru_cache()
+@lru_cache
 def get_worker_pool_by_id(client: PlatformClient, worker_pool_id: str) -> WorkerPool:
     """
     Pass-through function to cache results.
@@ -210,7 +210,7 @@ def find_compute_source_template_id_by_name(
     return _find_id_by_name(name, client, get_all_compute_source_templates)
 
 
-@lru_cache()
+@lru_cache
 def get_all_compute_source_templates(
     client: PlatformClient,
 ) -> List[ComputeSourceTemplateSummary]:
@@ -237,7 +237,7 @@ def find_compute_requirement_template_id_by_name(
     return _find_id_by_name(name, client, get_all_compute_requirement_templates)
 
 
-@lru_cache()
+@lru_cache
 def get_all_compute_requirement_templates(
     client: PlatformClient,
 ) -> List[ComputeRequirementTemplateSummary]:
@@ -274,7 +274,7 @@ def get_all_worker_pools(client: PlatformClient) -> List[WorkerPoolSummary]:
     return client.worker_pool_client.find_all_worker_pools()
 
 
-@lru_cache()
+@lru_cache
 def find_image_family_reference_by_name(
     client: PlatformClient, image_family_name
 ) -> Optional[str]:
@@ -447,7 +447,7 @@ def get_task_by_id(
             return task
 
 
-@lru_cache()
+@lru_cache
 def get_tasks(client: PlatformClient, wr_id: str, task_group_id: str) -> List[Task]:
     """
     Return all the tasks in a task group, with caching.
