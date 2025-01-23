@@ -8,14 +8,9 @@ from typing import Optional
 
 from yellowdog_client.model import ConfiguredWorkerPool, Task
 
-from yd_commands.entity_utils import get_task_by_id
+from yd_commands.entity_utils import get_task_by_id, substitute_ids_for_names_in_crt
 from yd_commands.list import get_keyring
-from yd_commands.printing import (
-    print_error,
-    print_log,
-    print_yd_object,
-    substitute_ids_for_names_in_crt,
-)
+from yd_commands.printing import print_error, print_log, print_yd_object
 from yd_commands.settings import (
     RESOURCE_PROPERTY_NAME,
     RN_ALLOWANCE,

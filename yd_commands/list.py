@@ -49,6 +49,7 @@ from yd_commands.entity_utils import (
     get_task_groups_from_wr_summary,
     get_tasks,
     list_matching_object_paths,
+    substitute_ids_for_names_in_crt,
 )
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import (
@@ -61,7 +62,6 @@ from yd_commands.printing import (
     print_yd_object,
     print_yd_object_list,
     sorted_objects,
-    substitute_ids_for_names_in_crt,
 )
 from yd_commands.settings import (
     RN_ALLOWANCE,

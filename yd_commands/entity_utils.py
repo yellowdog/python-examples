@@ -12,8 +12,11 @@ from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
+    ComputeRequirementTemplate,
     ComputeRequirementTemplateSummary,
+    ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
+    MachineImageFamily,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
     ObjectPath,
@@ -28,9 +31,11 @@ from yellowdog_client.model import (
     WorkRequirementSummary,
 )
 
+from yd_commands.args import ARGS_PARSER
 from yd_commands.interactive import confirmed, select
 from yd_commands.printing import print_log, print_warning
 from yd_commands.settings import NAMESPACE_PREFIX_SEPARATOR
+from yd_commands.ydid_utils import YDIDType, get_ydid_type
 
 
 @lru_cache
@@ -495,3 +500,65 @@ def split_namespace_and_name(reference: str) -> (Optional[str], str):
             return parts[0], parts[1]
 
     raise Exception(f"Malformed name '{reference}'")
+
+
+def substitute_ids_for_names_in_crt(
+    client: PlatformClient, crt: ComputeRequirementTemplate
+) -> ComputeRequirementTemplate:
+    """
+    Substitute CST and Image Family IDs for namespace/name,
+    if option is selected.
+    """
+    if not ARGS_PARSER.substitute_ids:
+        return crt
+
+    # Image family
+    try:
+        crt.imagesId = _get_image_family_name_from_id(client, crt.imagesId)
+    except:
+        pass
+
+    # Source templates
+    try:
+        for source in crt.sources:
+            source.sourceTemplateId = _get_source_template_name_from_id(
+                client, source.sourceTemplateId
+            )
+    except:
+        pass
+
+    return crt
+
+
+@lru_cache
+def _get_source_template_name_from_id(client: PlatformClient, cst_id: str) -> str:
+    """
+    Obtain the namespace/name of a source template.
+    Otherwise, return the original string
+    """
+    if get_ydid_type(cst_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
+        return cst_id
+    try:
+        cst: ComputeSourceTemplate = client.compute_client.get_compute_source_template(
+            cst_id
+        )
+        return f"{cst.namespace}/{cst.source.name}"
+    except:
+        return cst_id
+
+
+@lru_cache
+def _get_image_family_name_from_id(client: PlatformClient, image_family_id: str) -> str:
+    """
+    Obtain the namespace/name of an image family.
+    Otherwise, return the original string
+    """
+    if get_ydid_type(image_family_id) != YDIDType.IMAGE_FAMILY:
+        return image_family_id
+    try:
+        image_family: MachineImageFamily = client.images_client.get_image_family_by_id(
+            image_family_id
+        )
+        return f"{image_family.namespace}/{image_family.name}"
+    except:
+        return image_family_id
