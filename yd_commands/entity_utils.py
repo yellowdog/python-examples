@@ -524,6 +524,7 @@ def substitute_ids_for_names_in_crt(
             source.sourceTemplateId = _get_source_template_name_from_id(
                 client, source.sourceTemplateId
             )
+            source.imageId = _get_image_family_name_from_id(client, source.imageId)
     except:
         pass
 
@@ -531,10 +532,12 @@ def substitute_ids_for_names_in_crt(
 
 
 @lru_cache
-def _get_source_template_name_from_id(client: PlatformClient, cst_id: str) -> str:
+def _get_source_template_name_from_id(
+    client: PlatformClient, cst_id: Optional[str]
+) -> Optional[str]:
     """
     Obtain the namespace/name of a source template.
-    Otherwise, return the original string
+    Otherwise, return the original value.
     """
     if get_ydid_type(cst_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
         return cst_id
@@ -548,10 +551,12 @@ def _get_source_template_name_from_id(client: PlatformClient, cst_id: str) -> st
 
 
 @lru_cache
-def _get_image_family_name_from_id(client: PlatformClient, image_family_id: str) -> str:
+def _get_image_family_name_from_id(
+    client: PlatformClient, image_family_id: Optional[str]
+) -> Optional[str]:
     """
     Obtain the namespace/name of an image family.
-    Otherwise, return the original string
+    Otherwise, return the original value.
     """
     if get_ydid_type(image_family_id) != YDIDType.IMAGE_FAMILY:
         return image_family_id
@@ -559,6 +564,6 @@ def _get_image_family_name_from_id(client: PlatformClient, image_family_id: str)
         image_family: MachineImageFamily = client.images_client.get_image_family_by_id(
             image_family_id
         )
-        return f"{image_family.namespace}/{image_family.name}"
+        return f"yd/{image_family.namespace}/{image_family.name}"
     except:
         return image_family_id
