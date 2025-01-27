@@ -1,12 +1,12 @@
 .DEFAULT_GOAL := no_op
 
-SRC = yd_commands/*.py
+SRC = yellowdog_cli/*.py yellowdog_cli/utils/*.py
 TESTS = tests/*.py conftest.py
 MANIFEST = LICENSE README.md requirements.txt
 BUILD_DIST = build dist yellowdog_python_examples.egg-info
 PYCACHE = __pycache__
 TOC_BACKUP = README.md.* README_CLOUDWIZARD.md.*
-PYINSTALLER = yd_commands/*.spec yd_commands/build yd_commands/dist
+PYINSTALLER = yellowdog_cli/*.spec yellowdog_cli/build yellowdog_cli/dist
 
 build: $(SRC) $(MANIFEST)
 	python -m build

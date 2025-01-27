@@ -1,27 +1,27 @@
-# Example Python Commands using the YellowDog Python SDK
+# Example Python CLI commands using the YellowDog Python SDK
 
 ## Overview
 
-This is a set of command line Python scripts for interacting with the YellowDog Platform, providing examples of usage of the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html).
+This is a set of Python CLI commands for interacting with the YellowDog Platform, providing examples of usage of the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html).
 
-The command scripts support:
+The commands support:
 
-- **Provisioning** Worker Pools with the **`yd-provision`** command
-- **Submitting** Work Requirements with the **`yd-submit`** command
-- **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
-- **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
-- **Instantiating** Compute Requirements with the **`yd-instantiate`** command
-- **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
 - **Aborting** running Tasks with the **`yd-abort`** command
-- **Cancelling** Work Requirements with the **`yd-cancel`** command
-- **Shutting Down** Worker Pools with the **`yd-shutdown`** command
-- **Terminating** Compute Requirements with the **`yd-terminate`** command
-- **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
-- **Listing** YellowDog items using the **`yd-list`** command
-- **Resizing** Worker Pools and Compute Requirements with the **`yd-resize`** command
 - **Boosting** Allowances with the **`yd-boost`** command
-- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, and Configured Worker Pools with the **`yd-create`** and **`yd-remove`** commands
+- **Cancelling** Work Requirements with the **`yd-cancel`** command
+- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, Source Template Attribute definitions, and Configured Worker Pools with the **`yd-create`** and **`yd-remove`** commands
+- **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
+- **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
+- **Instantiating** Compute Requirements with the **`yd-instantiate`** command
+- **Listing** many types of YellowDog item using the **`yd-list`** command
+- **Provisioning** Cloud Worker Pools with the **`yd-provision`** command
+- **Resizing** Worker Pools and Compute Requirements with the **`yd-resize`** command
 - **Showing** the details of any YellowDog entity by its YellowDog ID with the **`yd-show`** command
+- **Shutting Down** Worker Pools with the **`yd-shutdown`** command
+- **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
+- **Submitting** Work Requirements with the **`yd-submit`** command
+- **Terminating** Compute Requirements with the **`yd-terminate`** command
+- **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
 
 Please see the documenation in the [GitHub repository](https://github.com/yellowdog/python-examples) for more details.

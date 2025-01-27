@@ -4,7 +4,7 @@
 
 [project]
     name = "yellowdog-python-examples"
-    description = "Example Python commands using the YellowDog Python SDK"
+    description = "Python CLI commands using the YellowDog Python SDK"
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
@@ -41,36 +41,36 @@
     ]
 
 [project.scripts]
-    yd-abort = "yd_commands.abort:main"
-    yd-boost = "yd_commands.boost:main"
-    yd-cancel = "yd_commands.cancel:main"
-    yd-cloudwizard = "yd_commands.cloudwizard:main"
-    yd-create = "yd_commands.create:main"
-    yd-delete = "yd_commands.delete:main"
-    yd-download = "yd_commands.download:main"
-    yd-follow = "yd_commands.follow:main"
-    yd-format-json = "yd_commands.format_json:main"
-    yd-hold = "yd_commands.hold:main"
-    yd-instantiate = "yd_commands.instantiate:main"
-    yd-jsonnet2json = "yd_commands.jsonnet2json:main"
-    yd-list = "yd_commands.list:main"
-    yd-provision = "yd_commands.provision:main"
-    yd-remove = "yd_commands.remove:main"
-    yd-resize = "yd_commands.resize:main"
-    yd-show = "yd_commands.show:main"
-    yd-shutdown = "yd_commands.shutdown:main"
-    yd-submit = "yd_commands.submit:main"
-    yd-start = "yd_commands.start:main"
-    yd-terminate = "yd_commands.terminate:main"
-    yd-upload = "yd_commands.upload:main"
-    yd-version = "yd_commands.version:main"
+    yd-abort = "yellowdog_cli.abort:main"
+    yd-boost = "yellowdog_cli.boost:main"
+    yd-cancel = "yellowdog_cli.cancel:main"
+    yd-cloudwizard = "yellowdog_cli.cloudwizard:main"
+    yd-create = "yellowdog_cli.create:main"
+    yd-delete = "yellowdog_cli.delete:main"
+    yd-download = "yellowdog_cli.download:main"
+    yd-follow = "yellowdog_cli.follow:main"
+    yd-format-json = "yellowdog_cli.format_json:main"
+    yd-hold = "yellowdog_cli.hold:main"
+    yd-instantiate = "yellowdog_cli.instantiate:main"
+    yd-jsonnet2json = "yellowdog_cli.jsonnet2json:main"
+    yd-list = "yellowdog_cli.list:main"
+    yd-provision = "yellowdog_cli.provision:main"
+    yd-remove = "yellowdog_cli.remove:main"
+    yd-resize = "yellowdog_cli.resize:main"
+    yd-show = "yellowdog_cli.show:main"
+    yd-shutdown = "yellowdog_cli.shutdown:main"
+    yd-submit = "yellowdog_cli.submit:main"
+    yd-start = "yellowdog_cli.start:main"
+    yd-terminate = "yellowdog_cli.terminate:main"
+    yd-upload = "yellowdog_cli.upload:main"
+    yd-version = "yellowdog_cli.version:main"
 
 [tool.setuptools]
     include-package-data = false
-    packages = ["yd_commands"]
+    packages = ["yellowdog_cli", "yellowdog_cli.utils"]
 
 [tool.setuptools.dynamic.version]
-    attr = "yd_commands.__init__.__version__"
+    attr = "yellowdog_cli.__init__.__version__"
 
 [tool.setuptools.dynamic.dependencies]
     file = ["requirements.txt"]

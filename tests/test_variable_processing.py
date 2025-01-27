@@ -4,7 +4,10 @@ Unit tests for variable processing
 
 import pytest
 
-from yd_commands.utils import remove_outer_delimiters, split_delimited_string
+from yellowdog_cli.utils.misc_utils import (
+    remove_outer_delimiters,
+    split_delimited_string,
+)
 
 
 class TestVariableProcessing:
