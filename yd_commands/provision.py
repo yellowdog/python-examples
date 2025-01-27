@@ -322,7 +322,7 @@ def create_worker_pool_from_toml():
     # Create the Worker Pool
     print_log(
         f"Provisioning {CONFIG_WP.target_instance_count:,d} node(s) "
-        f"with {node_workers.targetCount} worker(s) per "
+        f"with {node_workers.targetCount} worker(s) "
         f"{node_workers.targetType} "
         f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
         f"maxNodes: {CONFIG_WP.max_nodes:,d})"
