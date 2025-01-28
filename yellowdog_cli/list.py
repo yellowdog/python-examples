@@ -184,11 +184,12 @@ def list_work_requirements():
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
     if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
         if ARGS_PARSER.details:
-            work_requirement_list = [
-                (CLIENT.work_client.get_work_requirement_by_id(wr_summary.id), None)
-                for wr_summary in select(CLIENT, work_requirement_summaries)
-            ]
-            print_yd_object_list(work_requirement_list)
+            print_yd_object_list(
+                [
+                    (CLIENT.work_client.get_work_requirement_by_id(wr_summary.id), None)
+                    for wr_summary in select(CLIENT, work_requirement_summaries)
+                ]
+            )
         else:
             print_numbered_object_list(CLIENT, work_requirement_summaries)
     else:
@@ -207,8 +208,9 @@ def list_task_groups(work_summary: WorkRequirementSummary):
     task_groups = sorted_objects(task_groups)
     if not ARGS_PARSER.tasks:
         if ARGS_PARSER.details:
-            for task_group in select(CLIENT, task_groups):
-                print_yd_object(task_group)
+            print_yd_object_list(
+                [(task_group, None) for task_group in select(CLIENT, task_groups)]
+            )
         else:
             print_numbered_object_list(CLIENT, task_groups)
     else:
@@ -221,8 +223,7 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
     tasks: List[Task] = get_tasks(CLIENT, work_summary.id, task_group.id)
     tasks = sorted_objects(tasks)
     if ARGS_PARSER.details:
-        for task in select(CLIENT, tasks):
-            print_yd_object(task)
+        print_yd_object_list([(task, None) for task in select(CLIENT, tasks)])
     else:
         print_numbered_object_list(CLIENT, tasks)
 
@@ -252,6 +253,8 @@ def list_object_paths():
     object_paths = select(CLIENT, object_paths, override_quiet=True)
     if len(object_paths) != 0:
         print_log(f"Showing Object details for {len(object_paths)} Object(s)")
+
+    object_detail_list = []
     for object_path in object_paths:
         if object_path.prefix:
             print_log(f"Object Path '{object_path.name}' is a prefix not an object")
@@ -259,8 +262,9 @@ def list_object_paths():
         object_detail: ObjectDetail = CLIENT.object_store_client.get_object_detail(
             namespace=namespace, name=object_path.name
         )
+        object_detail_list.append((object_detail, None))
         # print_object_detail(object_detail)  # Retired for now
-        print_yd_object(object_detail)
+    print_yd_object_list(object_detail_list)
 
 
 def list_worker_pools():
@@ -303,13 +307,17 @@ def list_worker_pools():
         return
 
     if ARGS_PARSER.details:
-        for worker_pool_summary in select(
-            CLIENT, sorted_objects(worker_pool_summaries)
-        ):
-            worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
-                worker_pool_summary.id
-            )
-            print_yd_object(worker_pool)
+        print_yd_object_list(
+            [
+                (
+                    CLIENT.worker_pool_client.get_worker_pool_by_id(
+                        worker_pool_summary.id
+                    ),
+                    None,
+                )
+                for worker_pool_summary in select(CLIENT, worker_pool_summaries)
+            ]
+        )
     else:
         print_numbered_object_list(CLIENT, sorted_objects(worker_pool_summaries))
 
@@ -363,8 +371,12 @@ def list_compute_requirements():
         return
 
     if ARGS_PARSER.details:
-        for compute_requirement in select(CLIENT, filtered_compute_requirements):
-            print_yd_object(compute_requirement)
+        print_yd_object_list(
+            [
+                (compute_requirement, None)
+                for compute_requirement in select(CLIENT, filtered_compute_requirements)
+            ]
+        )
     else:
         print_numbered_object_list(CLIENT, filtered_compute_requirements)
 
@@ -393,8 +405,9 @@ def list_instances(compute_requirement: ComputeRequirement):
         return
 
     if ARGS_PARSER.details:
-        for instance in select(CLIENT, instances):
-            print_yd_object(instance)
+        print_yd_object_list(
+            [(instance, None) for instance in select(CLIENT, instances)]
+        )
     else:
         print_numbered_object_list(CLIENT, instances)
 
@@ -412,7 +425,7 @@ def list_nodes(worker_pool_summaries: List[WorkerPoolSummary]):
         search_client = CLIENT.worker_pool_client.get_nodes(search=nodes_search)
         nodes: List[Node] = search_client.list_all()
         for node in nodes:
-            node.worker_pool_name = worker_pool_summary.name
+            node.workerPoolName = worker_pool_summary.name
         nodes_all += nodes
 
     if len(nodes_all) == 0:
@@ -424,9 +437,7 @@ def list_nodes(worker_pool_summaries: List[WorkerPoolSummary]):
         return
 
     if ARGS_PARSER.details:
-        for node in select(CLIENT, nodes_all):
-            delattr(node, "worker_pool_name")
-            print_yd_object(node)
+        print_yd_object_list([(node, None) for node in select(CLIENT, nodes_all)])
     else:
         print_numbered_object_list(CLIENT, nodes_all)
 
@@ -446,9 +457,9 @@ def list_workers(nodes: List[Node]):
                 ]:
                     continue
             # Add extra info to the Worker object
-            worker.worker_tag = node.details.workerTag
-            worker.task_types = node.details.supportedTaskTypes
-            worker.worker_pool_name = node.worker_pool_name
+            worker.workerTag = node.details.workerTag
+            worker.taskTypes = node.details.supportedTaskTypes
+            worker.workerPoolName = node.workerPoolName
             workers_all.append(worker)
 
     if len(workers_all) == 0:
@@ -459,11 +470,8 @@ def list_workers(nodes: List[Node]):
         print_numbered_object_list(CLIENT, workers_all)
         return
 
-    for worker in select(CLIENT, workers_all):
-        delattr(worker, "worker_tag")
-        delattr(worker, "task_types")
-        delattr(worker, "worker_pool_name")
-        print_yd_object(worker)
+    # Details
+    print_yd_object_list([(worker, None) for worker in select(CLIENT, workers_all)])
 
 
 def list_compute_requirement_templates():
@@ -682,8 +690,12 @@ def list_namespaces():
     print(flush=True)
 
     if ARGS_PARSER.details:  # Print the details for non-default only
-        for namespace in select(CLIENT, namespaces_config, showing_all=True):
-            print_yd_object(namespace)
+        print_yd_object_list(
+            [
+                (namespace, None)
+                for namespace in select(CLIENT, namespaces_config, showing_all=True)
+            ]
+        )
 
 
 def list_allowances():

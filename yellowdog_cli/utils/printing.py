@@ -562,7 +562,7 @@ def nodes_table(
         table.append(
             [
                 index + 1,
-                node.worker_pool_name,
+                node.workerPoolName,
                 node.details.provider,
                 node.details.ram,
                 node.details.vcpus,
@@ -594,9 +594,9 @@ def workers_table(
         table.append(
             [
                 index + 1,
-                worker.worker_pool_name,
-                ", ".join(worker.task_types),
-                worker.worker_tag,
+                worker.workerPoolName,
+                ", ".join(worker.taskTypes),
+                worker.workerTag,
                 worker.status,
                 worker.claimCount,
                 worker.exclusive,
@@ -822,11 +822,11 @@ def sorted_objects(
 
     if isinstance(objects[0], Node):
         # Note: worker_pool_name property is added dynamically in yd_list
-        return sorted(objects, key=lambda x: str(x.worker_pool_name), reverse=reverse)
+        return sorted(objects, key=lambda x: str(x.workerPoolName), reverse=reverse)
 
     if isinstance(objects[0], Worker):
         # Note: worker_pool_name property is added dynamically in yd_list
-        return sorted(objects, key=lambda x: str(x.worker_pool_name), reverse=reverse)
+        return sorted(objects, key=lambda x: str(x.workerPoolName), reverse=reverse)
 
     if isinstance(objects[0], AWSAvailabilityZone):
         return sorted(objects)
