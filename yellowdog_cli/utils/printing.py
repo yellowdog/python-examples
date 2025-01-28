@@ -931,7 +931,11 @@ def print_yd_object_list(
             object_,
             initial_indent=2 if len(objects) > 1 else 0,
             with_final_comma=(True if index < len(objects) - 1 else False),
-            add_fields=({PROP_RESOURCE: resource_type_name}),
+            add_fields=(
+                {}
+                if resource_type_name is None
+                else {PROP_RESOURCE: resource_type_name}
+            ),
         )
 
     if len(objects) > 1:
