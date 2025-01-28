@@ -103,7 +103,11 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 worker_pool,
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
-                add_fields=({RESOURCE_PROPERTY_NAME: RN_CONFIGURED_POOL}),
+                add_fields=(
+                    {RESOURCE_PROPERTY_NAME: RN_CONFIGURED_POOL}
+                    if isinstance(worker_pool, ConfiguredWorkerPool)
+                    else {}
+                ),
             )
             if ARGS_PARSER.show_token and isinstance(worker_pool, ConfiguredWorkerPool):
                 print_log("Showing Configured Worker Pool token data")
