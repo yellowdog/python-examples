@@ -184,8 +184,11 @@ def list_work_requirements():
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
     if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
         if ARGS_PARSER.details:
-            for wr_summary in select(CLIENT, work_requirement_summaries):
-                print_yd_object(wr_summary)
+            work_requirement_list = [
+                (CLIENT.work_client.get_work_requirement_by_id(wr_summary.id), None)
+                for wr_summary in select(CLIENT, work_requirement_summaries)
+            ]
+            print_yd_object_list(work_requirement_list)
         else:
             print_numbered_object_list(CLIENT, work_requirement_summaries)
     else:
