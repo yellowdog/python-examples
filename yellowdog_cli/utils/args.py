@@ -131,6 +131,7 @@ class CLIParser:
                 "resize",
                 "cloudwizard",
                 "follow",
+                "list",
             ]
         ):
             parser.add_argument(
@@ -159,6 +160,32 @@ class CLIParser:
                     " or the prefix (directory) when used with the object store;"
                     " this is set to '' if the option is provided without a value"
                 ),
+                metavar="<tag>",
+            )
+
+        # Namespace and tag attributes are defaulted to "" when using 'yd-list'
+        if any(module in sys.argv[0] for module in ["list"]):
+            parser.add_argument(
+                "--namespace",
+                "-n",
+                type=str,
+                required=False,
+                nargs="?",
+                const="",
+                default="",
+                help="the namespace to search when listing entities",
+                metavar="<namespace>",
+            )
+            parser.add_argument(
+                "--tag",
+                "-t",
+                "--prefix",
+                type=str,
+                required=False,
+                nargs="?",
+                const="",
+                default="",
+                help="the tag to search when listing entities",
                 metavar="<tag>",
             )
 
