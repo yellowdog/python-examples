@@ -399,6 +399,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
                 MAX_NODES, max(1, int(wp_section.get(TARGET_INSTANCE_COUNT, 1)))
             ),
             max_nodes_set=(False if wp_section.get(MAX_NODES) is None else True),
+            metrics_enabled=wp_section.get(METRICS_ENABLED, False),
             min_nodes=int(wp_section.get(MIN_NODES, 0)),
             min_nodes_set=(False if wp_section.get(MIN_NODES) is None else True),
             name=process_variable_substitutions(

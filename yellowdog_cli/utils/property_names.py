@@ -43,6 +43,7 @@ MAINTAIN_INSTANCE_COUNT = "maintainInstanceCount"  # Bool
 MAX_NODES = "maxNodes"  # Integer
 MAX_RETRIES = "maximumTaskRetries"  # Integer
 MAX_WORKERS = "maxWorkers"  # Integer
+METRICS_ENABLED = "metricsEnabled"  # Boolean
 MIN_NODES = "minNodes"  # Integer
 MIN_WORKERS = "minWorkers"  # Integer
 NAME = "name"  # String
@@ -142,6 +143,7 @@ ALL_KEYS = [
     MAX_NODES,
     MAX_RETRIES,
     MAX_WORKERS,
+    METRICS_ENABLED,
     MIN_NODES,
     MIN_WORKERS,
     NAMESPACE,

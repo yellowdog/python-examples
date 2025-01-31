@@ -222,6 +222,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                     }
                 ),
             ),
+            ("metricsEnabled", CONFIG_WP.metrics_enabled),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
                 print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
@@ -382,6 +383,7 @@ def create_worker_pool_from_toml():
                 idleNodeShutdown=idle_node_auto_shutdown,
                 idlePoolShutdown=idle_pool_auto_shutdown,
                 nodeBootTimeout=node_boot_timeout,
+                metricsEnabled=CONFIG_WP.metrics_enabled,
             )
             if not ARGS_PARSER.dry_run:
                 worker_pool = CLIENT.worker_pool_client.provision_worker_pool(

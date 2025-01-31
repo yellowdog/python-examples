@@ -84,6 +84,7 @@ class ConfigWorkerPool:
     maintainInstanceCount: bool = False  # Only for yd-instantiate
     max_nodes: int = 0
     max_nodes_set: bool = False  # Is max_nodes explicitly set?
+    metrics_enabled: bool = False
     min_nodes: int = 0
     min_nodes_set: bool = False
     name: Optional[str] = None

@@ -1600,6 +1600,7 @@ The following properties are available:
 | `instanceTags`            | The dictionary of instance tags to apply to the instances. Tag names must be lower case.                             |                         |
 | `maintainInstanceCount`   | Only used when instantiating Compute Requirements; attempt to maintain the requested number of instances.            | `False`                 |
 | `maxNodes`                | The maximum number of nodes to which the Worker Pool can be scaled up.                                               | `1`                     |
+| `metricsEnabled`          | Whether to enable performance metrics for nodes in the Worker Pool                                                   | `false`                 |
 | `minNodes`                | The minimum number of nodes to which the Worker Pool can be scaled down.                                             | `0`                     |
 | `name`                    | The name of the Worker Pool.                                                                                         | Automatically Generated |
 | `nodeBootTimeout`         | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.      | `10.0`                  |
@@ -1636,6 +1637,7 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     instanceTags = {}
     maxNodes = 1
     minNodes = 1
+    metricsEnabled = true
     name = "my-worker-pool"
     nodeBootTimeout = 5
     requirementTag = "my_tag"
@@ -1679,6 +1681,7 @@ The example below is of a simple JSON specification of a Worker Pool with one in
     "idlePoolShutdown": {"enabled": true, "timeout": "PT1H"},
     "createNodeWorkers": {"targetCount": 1, "targetType": "PER_VCPU"},
     "maxNodes": 5,
+    "metricsEnabled": true,
     "minNodes": 0,
     "nodeBootTimeout": "PT5M",
     "nodeIdleGracePeriod": "PT3M",
@@ -1799,6 +1802,7 @@ Note that the `templateId` property can use either the YellowDog ID ('YDID') for
 - `idleNodeTimeout` (set to `0` to disable)
 - `idlePoolTimeout` (set to `0` to disable)
 - `maxNodes`
+- `metricsEnabled`
 - `minNodes`
 - `nodeBootTimeout`
 - `workerTag`
