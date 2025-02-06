@@ -103,6 +103,8 @@ class PrintTableHighlighter(RegexHighlighter):
         rf"(?P<table_outline>[{table_outline_chars}]*)",
         rf"(?P<table_content>[^{table_outline_chars}]*)",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
     ] + HIGHLIGHTED_STATES
 
 
