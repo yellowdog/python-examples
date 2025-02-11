@@ -427,6 +427,9 @@ def create_worker_pool_from_toml():
     )
     print_log(idle_pool_shutdown_msg)
 
+    if CONFIG_WP.metrics_enabled:
+        print_log("Node metrics are enabled")
+
     if ARGS_PARSER.dry_run:
         print_log("Dry-run: Complete")
         return
