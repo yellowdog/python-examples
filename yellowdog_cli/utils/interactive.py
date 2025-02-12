@@ -63,8 +63,23 @@ def select(
     if not ARGS_PARSER.interactive and force_interactive is False:
         return objects
 
+    return [
+        objects[x - 1]
+        for x in get_selected_list_items(
+            len(objects), result_required=result_required, single_result=single_result
+        )
+    ]
+
+
+def get_selected_list_items(
+    num_items, result_required: bool = False, single_result: bool = False
+) -> List[int]:
+    """
+    Get a numbered selection list.
+    """
+
     def in_range(num: int) -> bool:
-        if 1 <= num <= len(objects):
+        if 1 <= num <= num_items:
             return True
         else:
             print_error(f"'{num}' is out of range")
@@ -79,7 +94,7 @@ def select(
         )
         selector_string = _get_user_input(print_string(input_string) + " ")
         if selector_string.strip() == "*":
-            selector_string = f"1-{len(objects)}"
+            selector_string = f"1-{num_items}"
         selector_list = selector_string.split(",")
         selector_set: Set[int] = set()
         error_flag = False
@@ -133,7 +148,7 @@ def select(
     else:
         print_log("No items selected")
 
-    return [objects[x - 1] for x in selected_list]
+    return selected_list
 
 
 def confirmed(msg: str) -> bool:

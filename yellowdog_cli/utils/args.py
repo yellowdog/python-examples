@@ -38,6 +38,9 @@ class CLIParser:
         Create the argument parser, and parse the command
         line arguments. Argument availability depends on module.
         """
+        self.tag_required = False
+        self.namespace_required = False
+
         parser = argparse.ArgumentParser(description=description)
 
         # Common arguments across all commands
@@ -84,25 +87,6 @@ class CLIParser:
             metavar="<url>",
         )
         parser.add_argument(
-            "--variable",
-            "-v",
-            type=str,
-            required=False,
-            action="append",
-            help=(
-                "user-defined variable substitution; the option can be supplied"
-                " multiple times, one per variable"
-            ),
-            metavar="<var1=v1>",
-        )
-        parser.add_argument(
-            "--quiet",
-            "-q",
-            action="store_true",
-            required=False,
-            help="suppress (non-error, non-interactive) status and progress messages",
-        )
-        parser.add_argument(
             "--debug",
             action="store_true",
             required=False,
@@ -122,7 +106,28 @@ class CLIParser:
             help="disable colouring and text wrapping in command output",
         )
 
+        parser.add_argument(
+            "--quiet",
+            "-q",
+            action="store_true",
+            required=False,
+            help="suppress (non-error, non-interactive) status and progress messages",
+        )
+
         # Module-specific argument sets
+        if not any(module in sys.argv[0] for module in ["analyse"]):
+            parser.add_argument(
+                "--variable",
+                "-v",
+                type=str,
+                required=False,
+                action="append",
+                help=(
+                    "user-defined variable substitution; the option can be supplied"
+                    " multiple times, one per variable"
+                ),
+                metavar="<var1=v1>",
+            )
 
         if not any(
             module in sys.argv[0]
@@ -132,8 +137,10 @@ class CLIParser:
                 "cloudwizard",
                 "follow",
                 "list",
+                "analyse",
             ]
         ):
+            self.namespace_required = True
             parser.add_argument(
                 "--namespace",
                 "-n",
@@ -147,6 +154,7 @@ class CLIParser:
                 ),
                 metavar="<namespace>",
             )
+            self.tag_required = True
             parser.add_argument(
                 "--tag",
                 "-t",
@@ -1105,6 +1113,16 @@ class CLIParser:
                 ),
             )
 
+        if "analyse" in sys.argv[0]:
+            parser.add_argument(
+                "ydid",
+                metavar="<ydid-of-work-requirement-or-task-group>",
+                type=str,
+                help=(
+                    "the YellowDog ID of the work requirement or task group to be analysed"
+                ),
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -1585,6 +1603,11 @@ class CLIParser:
     def substitute_ids(self) -> Optional[bool]:
         return self.args.substitute_ids
 
+    @property
+    @allow_missing_attribute
+    def ydid(self) -> Optional[str]:
+        return self.args.ydid
+
 
 def lookup_module_description(module_name: str) -> Optional[str]:
     """
@@ -1633,6 +1656,10 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "boosting Allowances"
     elif "show" in module_name:
         suffix = "showing the JSON details of entities referenced by their YDIDs"
+    elif "analyse" in module_name:
+        suffix = (
+            "analysing if a task group is matched by workers in selected worker pools"
+        )
 
     return None if suffix is None else prefix + suffix
 

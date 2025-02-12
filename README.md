@@ -123,9 +123,10 @@
    * [yd-hold](#yd-hold)
    * [yd-boost](#yd-boost)
    * [yd-show](#yd-show)
+   * [yd-analyse](#yd-analyse)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Mon Jan 20 08:54:22 GMT 2025 -->
+<!-- Added by: pwt, at: Wed Feb 12 12:13:59 GMT 2025 -->
 
 <!--te-->
 
@@ -159,6 +160,7 @@ The commands provide the following capabilities:
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, and Namespace Policies with the **`yd-create`** and **`yd-remove`** commands
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
 - **Showing** the details of any YellowDog entity using its YellowDog ID with the **`yd-show`** command
+- **Analysing** whether worker pools are match for task groups
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -2765,3 +2767,24 @@ The `yd-show` command will show the details (in JSON) of any YellowDog entity th
 - Image Families, Image Groups, and Images
 - Keyrings
 - Allowances
+
+## yd-analyse
+
+The `yd-analyse` command takes a Work Requirement or Task Group ID, and matches the selected Task Group against the available Nodes/Workers in selected Worker Pools.
+
+```commandline
+yd-analyse ydid:taskgrp:000000:83587010-5e26-4174-92a7-c7cc2612638d:1
+```
+
+The command checks if the **Run Specification** of a Task Group matches the properties of the selected Worker Pools and their registered Nodes and Workers, meaning there are Workers in the Worker Pool that could be claimed by the Task Group and that the Worker Pool would be a candidate for scaling up to meet the demands of the Task Group.
+
+A detailed matching report showing the match against each specific property can be created, which can be used to highlight which properties are preventing a Worker Pool match.
+
+The match status of a Worker Pool falls into one of four categories:
+
+| **Match Status** | **Meaning**                                                                                                     |
+|------------------|-----------------------------------------------------------------------------------------------------------------|
+| **YES**          | The Worker Pool and every Node/Worker that has registered so far match the Task Group.                          |
+| **NO**           | The Worker Pool and/or none of the Nodes/Workers that have registered so far match the Task Group.              |
+| **MAYBE**        | The Worker Pool matches the Task Group but no Nodes have yet registered, so Node/Worker properties are unknown. |
+| **PARTIAL**      | The Worker Pool and some of the Nodes/Workers that have registered are a match for the Task Group.              |

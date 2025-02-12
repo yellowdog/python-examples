@@ -42,6 +42,7 @@
 
 [project.scripts]
     yd-abort = "yellowdog_cli.abort:main"
+    yd-analyse = "yellowdog_cli.analyse:main"
     yd-boost = "yellowdog_cli.boost:main"
     yd-cancel = "yellowdog_cli.cancel:main"
     yd-cloudwizard = "yellowdog_cli.cloudwizard:main"
