@@ -1115,12 +1115,19 @@ class CLIParser:
 
         if "analyse" in sys.argv[0]:
             parser.add_argument(
-                "ydid",
-                metavar="<ydid-of-work-requirement-or-task-group>",
+                "wr_or_tg_id",
+                metavar="<work-requirement-or-task-group-ID>",
                 type=str,
                 help=(
                     "the YellowDog ID of the work requirement or task group to be analysed"
                 ),
+            )
+            parser.add_argument(
+                "worker_pool_ids",
+                metavar="<worker-pool-ID>",
+                type=str,
+                nargs="+",
+                help="the YellowDog ID(s) of the worker pool(s) to analyse",
             )
 
         self.args = parser.parse_args()
@@ -1605,8 +1612,13 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def ydid(self) -> Optional[str]:
-        return self.args.ydid
+    def wr_or_tg_id(self) -> Optional[str]:
+        return self.args.wr_or_tg_id
+
+    @property
+    @allow_missing_attribute
+    def worker_pool_ids(self) -> Optional[List[str]]:
+        return self.args.worker_pool_ids
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

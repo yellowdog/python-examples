@@ -19,10 +19,9 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
-from yellowdog_cli.utils.interactive import get_selected_list_items, select
+from yellowdog_cli.utils.entity_utils import get_worker_pool_by_id
 from yellowdog_cli.utils.printing import (
     indent,
-    print_error,
     print_log,
     print_table_core,
     print_warning,
@@ -44,7 +43,7 @@ class MatchType(Enum):
 @dataclass
 class PropertyMatch:
     property_name: str
-    task_group_value: str
+    task_group_values: str
     worker_pool_values: str
     match: MatchType
 
@@ -59,6 +58,7 @@ class MatchReport:
         self,
         worker_pool_name: str,
         worker_pool_id: str,
+        worker_pool_status: str,
         worker_tags: PropertyMatch,
         task_types: PropertyMatch,
         instance_types: PropertyMatch,
@@ -70,6 +70,7 @@ class MatchReport:
     ):
         self.worker_pool_name = worker_pool_name
         self.worker_pool_id = worker_pool_id
+        self.worker_pool_status = worker_pool_status
         self._namespaces = namespaces
         self._worker_tags = worker_tags
         self._task_types = task_types
@@ -129,14 +130,14 @@ class MatchReport:
         else:
             match_str = "NON-MATCHING"
         print_log(
-            f"Detailed report for {match_str} worker pool "
+            f"Detailed report for {match_str} ({self.worker_pool_status}) worker pool "
             f"'{self.worker_pool_name}' ({self.worker_pool_id})",
             override_quiet=True,
         )
 
         # Print table
         header_row = [
-            "Property Name",
+            "Property",
             "Task Group Run Specification",
             "Worker Pool Nodes/Workers",
             "Match Status",
@@ -146,7 +147,7 @@ class MatchReport:
             table_rows.append(
                 [
                     p.property_name,
-                    p.task_group_value,
+                    p.task_group_values,
                     p.worker_pool_values,
                     p.match.value,
                 ]
@@ -166,24 +167,9 @@ class WorkerPools:
     Populates once for each run of the script.
     """
 
-    def __init__(self):
+    def __init__(self, worker_pools: List[WorkerPool]):
         self._populated = False
-        self._worker_pools: List[WorkerPool] = []
-
-    def populate(self) -> bool:
-        """
-        Populate the worker pool and compute requirement data, if not
-        already populated.
-        """
-        if self._populated:
-            return True
-
-        self._worker_pools = self._get_selected_worker_pools()
-        if len(self._worker_pools) == 0:
-            return False
-
-        self._populated = True
-        return True
+        self._worker_pools = worker_pools
 
     def check_task_group_for_matching_worker_pools(
         self, task_group: TaskGroup
@@ -206,6 +192,7 @@ class WorkerPools:
         return MatchReport(
             worker_pool_name=worker_pool.name,
             worker_pool_id=worker_pool.id,
+            worker_pool_status=worker_pool.status.value,
             namespaces=self._match_namespaces(task_group, worker_pool),
             worker_tags=self._match_worker_tags(task_group, worker_pool),
             instance_types=self._match_instance_types(task_group, worker_pool),
@@ -222,7 +209,7 @@ class WorkerPools:
     ) -> PropertyMatch:
         return PropertyMatch(
             property_name="Worker Tag(s)",
-            task_group_value=(
+            task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.workerTags is None
                 else ", ".join(task_group.runSpecification.workerTags)
@@ -287,7 +274,7 @@ class WorkerPools:
 
         return PropertyMatch(
             property_name="Instance Type(s)",
-            task_group_value=(
+            task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.instanceTypes is None
                 else ", ".join(task_group.runSpecification.instanceTypes)
@@ -338,7 +325,7 @@ class WorkerPools:
 
         return PropertyMatch(
             property_name="Task Type(s)",
-            task_group_value=(
+            task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.taskTypes is None
                 else ", ".join(task_group.runSpecification.taskTypes)
@@ -377,7 +364,7 @@ class WorkerPools:
 
         return PropertyMatch(
             property_name="Provider(s)",
-            task_group_value=(
+            task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.providers is None
                 else ", ".join([x.value for x in task_group.runSpecification.providers])
@@ -426,7 +413,7 @@ class WorkerPools:
 
         return PropertyMatch(
             property_name="Region(s)",
-            task_group_value=(
+            task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.regions is None
                 else ", ".join(task_group.runSpecification.regions)
@@ -445,7 +432,7 @@ class WorkerPools:
     ) -> PropertyMatch:
         return PropertyMatch(
             property_name="Namespace(s)",
-            task_group_value=(
+            task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.namespaces is None
                 else ", ".join(task_group.runSpecification.namespaces)
@@ -489,7 +476,7 @@ class WorkerPools:
 
         return PropertyMatch(
             property_name="RAM (GB)",
-            task_group_value=(
+            task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.ram is None
                 else self._doublerange_str(task_group.runSpecification.ram)
@@ -530,7 +517,7 @@ class WorkerPools:
 
         return PropertyMatch(
             property_name="vCPUs Count",
-            task_group_value=(
+            task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.vcpus is None
                 else self._doublerange_str(task_group.runSpecification.vcpus)
@@ -544,17 +531,11 @@ class WorkerPools:
         )
 
     @staticmethod
-    def _check_in_range(value: float, range: DoubleRange) -> bool:
+    def _check_in_range(value: float, range_: DoubleRange) -> bool:
         """
         Check whether a value is within a DoubleRange.
         """
-        return True if range.min <= value <= range.max else False
-
-    def _get_all_nodes_in_worker_pool(self, worker_pool: WorkerPool) -> List[Node]:
-        """
-        Return all nodes in the worker pool.
-        """
-        return self._get_all_nodes_in_worker_pool_cached(worker_pool.id)
+        return True if range_.min <= value <= range_.max else False
 
     @staticmethod
     def _doublerange_str(dr: DoubleRange) -> str:
@@ -565,6 +546,12 @@ class WorkerPools:
             return str(dr.min)
         else:
             return f"{dr.min} to {dr.max}"
+
+    def _get_all_nodes_in_worker_pool(self, worker_pool: WorkerPool) -> List[Node]:
+        """
+        Return all nodes in the worker pool.
+        """
+        return self._get_all_nodes_in_worker_pool_cached(worker_pool.id)
 
     @staticmethod
     @cache
@@ -578,60 +565,6 @@ class WorkerPools:
             ).list_all()
         except Exception as e:
             raise Exception(f"Unable to get details of nodes: {e}")
-
-    @staticmethod
-    def _get_selected_worker_pools() -> List[WorkerPool]:
-        """
-        Get the list of worker pools.
-        """
-        print_log("Select Worker Pools to be analysed", override_quiet=True)
-        try:
-            return [
-                CLIENT.worker_pool_client.get_worker_pool_by_id(wps.id)
-                for wps in select(
-                    client=CLIENT,
-                    objects=CLIENT.worker_pool_client.find_all_worker_pools(),
-                    force_interactive=True,
-                    override_quiet=True,
-                )
-            ]
-        except Exception as e:
-            raise Exception(f"Failed to obtain list of Worker Pools: {e}")
-
-
-WORKER_POOLS = WorkerPools()
-
-
-@main_wrapper
-def main():
-
-    if get_ydid_type(ARGS_PARSER.ydid) == YDIDType.TASK_GROUP:
-        _analyse_task_group(_get_task_group_by_id(ARGS_PARSER.ydid))
-
-    elif get_ydid_type(ARGS_PARSER.ydid) == YDIDType.WORK_REQUIREMENT:
-        work_requirement = _get_work_requirement_by_id(ARGS_PARSER.ydid)
-        if len(work_requirement.taskGroups) == 1:
-            _analyse_task_group(work_requirement.taskGroups[0])
-        else:
-            print_log("Please select the Task Group to analyse", override_quiet=True)
-            task_group = select(
-                CLIENT,
-                work_requirement.taskGroups,
-                override_quiet=True,
-                force_interactive=True,
-                single_result=True,
-                result_required=True,
-            )
-            print_log(
-                f"Selected Task Group '{task_group[0].name}' ({task_group[0].id})",
-                override_quiet=True,
-            )
-            _analyse_task_group(task_group[0])
-
-    else:
-        print_error(
-            f"Not a YellowDog Work Requirement or Task Group ID: '{ARGS_PARSER.ydid}'"
-        )
 
 
 def _get_task_group_by_id(task_group_id) -> TaskGroup:
@@ -662,52 +595,100 @@ def _get_work_requirement_by_id(work_requirement_id) -> WorkRequirement:
             )
 
 
-def _analyse_task_group(task_group: TaskGroup):
+def _get_worker_pool_by_id(worker_pool_id) -> WorkerPool:
+    try:
+        return get_worker_pool_by_id(CLIENT, worker_pool_id)
+    except Exception as e:
+        if "404" in str(e):
+            raise Exception(f"Work Pool ID '{worker_pool_id}' not found")
+        else:
+            raise Exception(
+                f"Unable to obtain Worker Pool details for '{worker_pool_id}': {e}"
+            )
+
+
+def _analyse_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
     """
     Analyse a Task Group.
     """
     print_log(
-        f"Analysing Task Group: '{task_group.name}' ({task_group.id})",
+        f"Analysing Task Group '{task_group.name}' ({task_group.id})",
         override_quiet=True,
     )
-
-    if not WORKER_POOLS.populate():
-        print_log("No Worker Pools selected")
-        return
 
     match_reports: List[MatchReport] = (
-        WORKER_POOLS.check_task_group_for_matching_worker_pools(task_group=task_group)
+        worker_pools.check_task_group_for_matching_worker_pools(task_group=task_group)
     )
 
-    # Summary table
-    print_log("Summary of Worker Pool matches:", override_quiet=True)
-    header_row = ["", "Worker Pool Name", "Worker Pool ID", "Worker Pool Match?"]
-    table_rows = []
-    for index, match_report in enumerate(match_reports):
-        table_rows.append(
-            [
-                index + 1,
-                match_report.worker_pool_name,
-                match_report.worker_pool_id,
-                match_report.summary().value,
-            ]
+    if len(match_reports) > 1:
+        # Summary report
+        print_log("Summary of Worker Pool matches:", override_quiet=True)
+        header_row = [
+            "",
+            "Worker Pool Name",
+            "Status",
+            "Worker Pool ID",
+            "Worker Pool Match?",
+        ]
+        table_rows = []
+        for index, match_report in enumerate(match_reports):
+            table_rows.append(
+                [
+                    index + 1,
+                    match_report.worker_pool_name,
+                    match_report.worker_pool_status,
+                    match_report.worker_pool_id,
+                    match_report.summary().value,
+                ]
+            )
+        print_table_core(
+            indent(
+                tabulate(table_rows, headers=header_row, tablefmt="simple_outline"),
+                indent_width=4,
+            ),
         )
-    print_table_core(
-        indent(
-            tabulate(table_rows, headers=header_row, tablefmt="simple_outline"),
-            indent_width=4,
-        ),
-    )
 
-    # Detailed reporting
-    print_log(
-        "Please select Worker Pools for which to show a detailed report",
-        override_quiet=True,
-    )
-    for selected_item in get_selected_list_items(len(match_reports)):
-        match_reports[selected_item - 1].print_detailed_report()
+    # Detailed reports
+    for match_report in match_reports:
+        match_report.print_detailed_report()
 
     print_log("Task Group analysis complete")
+
+
+@main_wrapper
+def main():
+
+    # Worker pools
+    wp_list: List[WorkerPool] = []
+    for wp_id in ARGS_PARSER.worker_pool_ids:
+        if get_ydid_type(wp_id) != YDIDType.WORKER_POOL:
+            raise Exception(
+                f"Not a YellowDog Worker Pool ID: '{ARGS_PARSER.wr_or_tg_id}'"
+            )
+        wp_list.append(_get_worker_pool_by_id(wp_id))
+    worker_pools = WorkerPools(wp_list)
+
+    # Task group
+    if get_ydid_type(ARGS_PARSER.wr_or_tg_id) == YDIDType.TASK_GROUP:
+        _analyse_task_group(
+            _get_task_group_by_id(ARGS_PARSER.wr_or_tg_id), worker_pools
+        )
+
+    # Work requirement
+    elif get_ydid_type(ARGS_PARSER.wr_or_tg_id) == YDIDType.WORK_REQUIREMENT:
+        work_requirement = _get_work_requirement_by_id(ARGS_PARSER.wr_or_tg_id)
+        print_log(
+            f"Analysing all Task Groups in Work Requirement '{work_requirement.name}' "
+            f"({work_requirement.id})",
+            override_quiet=True,
+        )
+        for task_group in work_requirement.taskGroups:
+            _analyse_task_group(task_group, worker_pools)
+
+    else:
+        raise Exception(
+            f"Not a YellowDog Work Requirement or Task Group ID: '{ARGS_PARSER.wr_or_tg_id}'"
+        )
 
 
 # Entry point
