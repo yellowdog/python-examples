@@ -1670,7 +1670,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "showing the JSON details of entities referenced by their YDIDs"
     elif "analyse" in module_name:
         suffix = (
-            "analysing if a task group is matched by workers in selected worker pools"
+            "analysing if a work requirement or single task group is matched by "
+            "workers in the specified worker pools"
         )
 
     return None if suffix is None else prefix + suffix
