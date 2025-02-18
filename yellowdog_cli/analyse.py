@@ -82,11 +82,11 @@ class MatchReport:
         self._property_match_list = [
             self._worker_tags,
             self._namespaces,
-            self._task_types,
             self._instance_types,
             self._providers,
-            self._regions,
             self._ram,
+            self._regions,
+            self._task_types,
             self._vcpus,
         ]
 
@@ -124,7 +124,7 @@ class MatchReport:
         if self.summary() == MatchType.YES:
             match_str = "MATCHING"
         elif self.summary() == MatchType.MAYBE:
-            match_str = "POSSIBLY MATCHING"
+            match_str = "MAYBE MATCHING"
         elif self.summary() == MatchType.PARTIAL:
             match_str = "PARTIALLY MATCHING"
         else:
