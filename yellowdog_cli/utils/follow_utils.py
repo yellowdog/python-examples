@@ -3,6 +3,7 @@ Utility function to follow event streams.
 """
 
 from threading import Thread
+from time import sleep
 from typing import List, Optional
 
 import requests
@@ -18,6 +19,8 @@ from yellowdog_cli.utils.printing import (
 )
 from yellowdog_cli.utils.wrapper import CLIENT, CONFIG_COMMON
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
+
+EVENT_STREAM_RETRY_INTERVAL = 5.0  # Seconds
 
 
 def follow_ids(ydids: List[str], auto_cr: bool = False):
@@ -82,25 +85,39 @@ def follow_events(ydid: str, ydid_type: YDIDType):
     """
     Follow events.
     """
-    response = requests.get(
-        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
-        url=get_event_url(ydid, ydid_type),
-        stream=True,
-    )
+    while True:
+        response = requests.get(
+            headers={
+                "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"
+            },
+            url=get_event_url(ydid, ydid_type),
+            stream=True,
+        )
 
-    if response.status_code != 200:
-        print_error(f"'{ydid}': {response.json()['message']}")
-        return
+        if response.status_code != 200:
+            print_error(f"'{ydid}': {response.json()['message']}")
+            return
 
-    if response.encoding is None:
-        response.encoding = "utf-8"
+        if response.encoding is None:
+            response.encoding = "utf-8"
 
-    try:
-        for event in response.iter_lines(decode_unicode=True):
-            if event:
-                print_event(event, ydid_type)
-    except Exception as e:
-        print_warning(f"Event stream error: {e}")
+        try:
+            for event in response.iter_lines(decode_unicode=True):
+                if event:
+                    print_event(event, ydid_type)
+            break
+
+        except Exception as e:
+            if "Connection broken" in str(e):
+                print_warning(
+                    f"Event stream interruption for '{ydid}'"
+                    f"(retrying in {EVENT_STREAM_RETRY_INTERVAL}s): {e}"
+                )
+                sleep(EVENT_STREAM_RETRY_INTERVAL)
+                continue
+            else:
+                print_error(f"Event stream error: {e}")
+                break
 
     print_log(f"Event stream concluded for '{ydid}'")
 
