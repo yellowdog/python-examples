@@ -36,7 +36,6 @@ from yellowdog_client.model import (
     Task,
     TaskGroup,
     Worker,
-    WorkerPool,
     WorkerPoolStatus,
     WorkerPoolSummary,
     WorkerStatus,
