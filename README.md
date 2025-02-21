@@ -1247,7 +1247,7 @@ It's possible to make Tasks dependent on the presence of files in the Object Sto
 
 Note that a given file can only appear in *one* of the `inputs`, `verifyAtStart` or `verifyWait` lists.
 
-Tasks with `verifyAtStart` dependencies will fail immediately if the required files are not present when the Task is submitted. Tasks with `verifyWait` dependencies will not become `READY` to be scheduled to Workers until their dependencies are satisfied.
+Tasks with `verifyAtStart` dependencies will fail immediately if the required files are not present when the Task is submitted. Tasks with `verifyWait` dependencies will not become `READY` to be allocated to Workers until their dependencies are satisfied.
 
 When specifying files in the `verifyAtStart` and `verifyWait` lists, as with the `uploadPath` property discussed above, the file locations can be (1) relative to the Work Requirement name in the current namespace (the default), (2) relative to the root of the current namespace, or (3) relative to the root of a different namespace in the user's Account.
 
@@ -1258,12 +1258,12 @@ When specifying files in the `verifyAtStart` and `verifyWait` lists, as with the
 
 2. For files relative to the root of the current namespace, prefix the file path with `::`, e.g.
 ```shell
-"verifyWait": ["::file_1.txt"] -> development:file_1.txt
+"verifyWait": ["::file_1.txt"] -> development::file_1.txt
 ```
 
 3. For files relative to the root of a different namespace, prefix the file path with the namespace name and `::`, e.g.
 ```shell
-"verifyWait": ["other_namespace::file_1.txt"] -> other_namespace:file_1.txt
+"verifyWait": ["other_namespace::file_1.txt"] -> other_namespace::file_1.txt
 ```
 
 The use of the three different forms can be mixed within a single list, e.g.:
