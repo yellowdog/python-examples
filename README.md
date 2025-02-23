@@ -34,7 +34,7 @@
          * [Bash, Python, PowerShell and cmd/bat Tasks](#bash-python-powershell-and-cmdbat-tasks)
          * [Docker Tasks](#docker-tasks)
          * [Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing](#bash-python-powershell-cmdexebatch-and-docker-without-automatic-processing)
-      * [Task Counts](#task-counts)
+      * [Task and Task Group Counts](#task-and-task-group-counts)
    * [Examples](#examples)
       * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
       * [JSON Properties at the Work Requirement Level](#json-properties-at-the-work-requirement-level)
@@ -126,7 +126,7 @@
    * [yd-analyse](#yd-analyse)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed Feb 12 12:13:59 GMT 2025 -->
+<!-- Added by: pwt, at: Sun Feb 23 10:18:32 GMT 2025 -->
 
 <!--te-->
 
@@ -620,6 +620,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `taskData`                  | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when The Task executes.                                                                        | Yes  | Yes | Yes  | Yes  |
 | `taskDataFile`              | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                                                                                           | Yes  | Yes | Yes  | Yes  |
 | `taskName`                  | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                                                     | Yes  |     |      |      |
+| `taskGroupCount`            | Create `taskGroupCount` duplicates of a single Task Group.                                                                                                                                                                                 | Yes  | Yes |      |      |
 | `taskGroupName`             | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                                            | Yes  |     |      |      |
 | `taskTimeout`               | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. The default is no timeout.                                                                                                 | Yes  | Yes | Yes  |      |
 | `timeout`                   | As above, but set at the individual Task level, which overrides the group level `taskTimeout` property (if present).                                                                                                                       | Yes  |     |      | Yes  |
@@ -763,11 +764,13 @@ arguments = ["--runtime=nvidia", "--gpus=all", "my_dockerhubrepo/my_container_im
 
 If the `executable` property is not supplied, none of the automatic processing described above for `bash`, `python`, `powershell`, `cmd` (or `bat`) and `docker` task types is applied.
 
-### Task Counts
+### Task and Task Group Counts
 
 The `taskCount` property can be used to expand the number of Tasks within a Task Group, by creating duplicates of a single Task; this can be handy for testing and demos. In JSON specifications, there must be zero or one Task(s) listed within each Task Group or `taskCount` is ignored.
 
 This property can also be set on the command line using the `--task-count`/`-C` option of `yd-submit` followed by the required number of Tasks.
+
+The `taskGroupCount` property can be set to expand the number of Task Groups in the Work Requirement, by creating duplicates of a single Task Group.
 
 ## Examples
 
@@ -819,6 +822,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskData = "my_data_string"
     taskDataFile = "my_data_file.txt"
     taskName = "my_task_number_{{task_number}}"
+    taskGroupCount = 5
     taskGroupName = "my_task_group_number_{{task_group_number}}"
     taskTimeout = 120.0
     taskType = "docker"
@@ -872,6 +876,7 @@ Showing all possible properties at the Work Requirement level:
   "taskCount": 100,
   "taskData": "my_task_data_string",
   "taskDataFile": "my_data_file.txt",
+  "taskGroupCount": 5,
   "taskTimeout": 120.0,
   "taskTypes": ["docker"],
   "tasksPerWorker": 1,

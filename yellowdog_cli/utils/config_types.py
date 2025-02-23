@@ -55,6 +55,7 @@ class ConfigWorkRequirement:
     task_count: int = 1
     task_data: Optional[str] = None
     task_data_file: Optional[str] = None
+    task_group_count: int = 1
     task_group_name: Optional[str] = None
     task_level_timeout: Optional[float] = None
     task_name: Optional[str] = None

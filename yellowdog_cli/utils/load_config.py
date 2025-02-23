@@ -305,6 +305,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             task_count=task_count,
             task_data=wr_section.get(TASK_DATA, None),
             task_data_file=wr_section.get(TASK_DATA_FILE, None),
+            task_group_count=wr_section.get(TASK_GROUP_COUNT, 1),
             task_group_name=wr_section.get(TASK_GROUP_NAME, None),
             task_name=wr_section.get(TASK_NAME, None),
             task_timeout=wr_section.get(TASK_TIMEOUT, None),

@@ -290,7 +290,27 @@ def submit_work_requirement(
         wr_data.get(FLATTEN_UPLOAD_PATHS, CONFIG_WR.flatten_upload_paths)
     )
 
-    # Create the list of Task Groups
+    # Expand number of task groups if there's a single task group
+    # and taskGroupCount is set
+    task_group_count = check_float_or_int(
+        wr_data.get(TASK_GROUP_COUNT, CONFIG_WR.task_group_count)
+    )
+    if task_group_count > 1:
+        if len(wr_data[TASK_GROUPS]) == 1:
+            print_log(
+                f"Expanding number of Task Groups to 'taskGroupCount = {task_group_count}'"
+            )
+            wr_data[TASK_GROUPS] = [
+                deepcopy(wr_data[TASK_GROUPS][0]) for _ in range(task_group_count)
+            ]
+        else:
+            print_warning(
+                f"Note: Work Requirement already contains"
+                f" {len(wr_data[TASK_GROUPS])} Task Groups: ignoring expansion "
+                f"using 'taskGroupCount = {int(task_group_count)}'"
+            )
+
+    # Create the list of TaskGroup objects
     task_groups: List[TaskGroup] = []
     for tg_number, task_group_data in enumerate(wr_data[TASK_GROUPS]):
         task_groups.append(create_task_group(tg_number, wr_data, task_group_data))
@@ -571,14 +591,14 @@ def add_tasks_to_task_group(
             # Expand the number of Tasks to match the specified Task count
             print_log(
                 f"Expanding number of Tasks in Task Group '{task_group.name}' to"
-                f" 'taskCount={task_group_task_count}' Tasks"
+                f" 'taskCount = {task_group_task_count}' Tasks"
             )
             for _ in range(1, task_group_task_count):
                 wr_data[TASK_GROUPS][tg_number][TASKS].append(
                     deepcopy(wr_data[TASK_GROUPS][tg_number][TASKS][0])
                 )
         elif task_group_task_count > 1:
-            print_log(
+            print_warning(
                 f"Note: Task Group '{task_group.name}' already contains"
                 f" {num_tasks} Tasks: ignoring expansion using 'taskCount ="
                 f" {int(task_group_task_count)}'"
