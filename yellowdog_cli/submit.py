@@ -298,16 +298,17 @@ def submit_work_requirement(
     if task_group_count > 1:
         if len(wr_data[TASK_GROUPS]) == 1:
             print_log(
-                f"Expanding number of Task Groups to 'taskGroupCount = {task_group_count}'"
+                f"Expanding number of Task Groups to '{TASK_GROUP_COUNT} = "
+                f"{task_group_count}'"
             )
             wr_data[TASK_GROUPS] = [
                 deepcopy(wr_data[TASK_GROUPS][0]) for _ in range(task_group_count)
             ]
-        else:
+        elif len(wr_data[TASK_GROUPS]) > 1:
             print_warning(
                 f"Note: Work Requirement already contains"
                 f" {len(wr_data[TASK_GROUPS])} Task Groups: ignoring expansion "
-                f"using 'taskGroupCount = {int(task_group_count)}'"
+                f"using '{TASK_GROUP_COUNT} = {int(task_group_count)}'"
             )
 
     # Create the list of TaskGroup objects
@@ -591,7 +592,7 @@ def add_tasks_to_task_group(
             # Expand the number of Tasks to match the specified Task count
             print_log(
                 f"Expanding number of Tasks in Task Group '{task_group.name}' to"
-                f" 'taskCount = {task_group_task_count}' Tasks"
+                f" '{TASK_COUNT} = {task_group_task_count}' Tasks"
             )
             for _ in range(1, task_group_task_count):
                 wr_data[TASK_GROUPS][tg_number][TASKS].append(
@@ -600,7 +601,7 @@ def add_tasks_to_task_group(
         elif task_group_task_count > 1:
             print_warning(
                 f"Note: Task Group '{task_group.name}' already contains"
-                f" {num_tasks} Tasks: ignoring expansion using 'taskCount ="
+                f" {num_tasks} Tasks: ignoring expansion using '{TASK_COUNT} ="
                 f" {int(task_group_task_count)}'"
             )
 
