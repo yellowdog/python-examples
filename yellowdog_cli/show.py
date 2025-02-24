@@ -4,15 +4,10 @@
 Command to show the JSON details of YellowDog entities via their IDs.
 """
 
-from typing import Optional
-
 from yellowdog_client.model import ConfiguredWorkerPool, Task
 
 from yellowdog_cli.list import get_keyring
-from yellowdog_cli.utils.entity_utils import (
-    get_task_by_id,
-    substitute_ids_for_names_in_crt,
-)
+from yellowdog_cli.utils.entity_utils import substitute_ids_for_names_in_crt
 from yellowdog_cli.utils.printing import print_error, print_log, print_yd_object
 from yellowdog_cli.utils.settings import (
     RESOURCE_PROPERTY_NAME,
@@ -151,22 +146,11 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
         elif ydid_type == YDIDType.TASK:
             print_log(f"Showing details of Task ID '{ydid}'")
-            work_requirement = CLIENT.work_client.get_work_requirement_by_id(
-                ydid.rsplit(":", 2)[0].replace("task", "workreq")
-            )
-            for task_group in work_requirement.taskGroups:
-                if task_group.id == ydid.rsplit(":", 1)[0].replace("task", "taskgrp"):
-                    break
-            else:
-                print_error(f"Task Group ID '{ydid}' not found")
-                return
-            task: Optional[Task] = get_task_by_id(
-                CLIENT, work_requirement.id, task_group.id, ydid
-            )
-            if task is not None:
-                print_yd_object(task)
-            else:
-                print_error(f"Task ID '{ydid}' not found")
+            try:
+                print_yd_object(CLIENT.work_client.get_task_by_id(ydid))
+            except Exception as e:
+                if "404" in str(e):
+                    print_error(f"Task ID '{ydid}' not found")
 
         elif ydid_type == YDIDType.IMAGE_FAMILY:
             print_log(f"Showing details of Image Family ID '{ydid}'")
