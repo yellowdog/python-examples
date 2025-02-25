@@ -298,7 +298,7 @@ def submit_work_requirement(
     if task_group_count > 1:
         if len(wr_data[TASK_GROUPS]) == 1:
             print_log(
-                f"Expanding number of Task Groups to '{TASK_GROUP_COUNT} = "
+                f"Expanding number of Task Groups to '{TASK_GROUP_COUNT}="
                 f"{task_group_count}'"
             )
             wr_data[TASK_GROUPS] = [
@@ -592,7 +592,7 @@ def add_tasks_to_task_group(
             # Expand the number of Tasks to match the specified Task count
             print_log(
                 f"Expanding number of Tasks in Task Group '{task_group.name}' to"
-                f" '{TASK_COUNT} = {task_group_task_count}' Tasks"
+                f" '{TASK_COUNT}={task_group_task_count}' Tasks"
             )
             for _ in range(1, task_group_task_count):
                 wr_data[TASK_GROUPS][tg_number][TASKS].append(

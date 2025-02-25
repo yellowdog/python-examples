@@ -245,8 +245,16 @@ class CLIParser:
                 "-C",
                 type=int,
                 required=False,
-                help="the number of times to submit the Task",
+                help="the number of tasks to submit (copies of a single task)",
                 metavar="<task_count>",
+            )
+            parser.add_argument(
+                "--task-group-count",
+                "-G",
+                type=int,
+                required=False,
+                help="the number of task groups to submit (copies of a single task group)",
+                metavar="<task_group_count>",
             )
             parser.add_argument(
                 "--task-batch-size",
@@ -1329,6 +1337,11 @@ class CLIParser:
     @allow_missing_attribute
     def task_count(self) -> Optional[int]:
         return self.args.task_count
+
+    @property
+    @allow_missing_attribute
+    def task_group_count(self) -> Optional[int]:
+        return self.args.task_group_count
 
     @property
     @allow_missing_attribute

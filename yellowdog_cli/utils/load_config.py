@@ -266,6 +266,12 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             else wr_section.get(TASK_COUNT, 1)
         )
 
+        task_group_count = (
+            ARGS_PARSER.task_group_count
+            if ARGS_PARSER.task_group_count is not None
+            else wr_section.get(TASK_GROUP_COUNT, 1)
+        )
+
         return ConfigWorkRequirement(
             add_yd_env_vars=wr_section.get(ADD_YD_ENV_VARS, False),
             always_upload=wr_section.get(ALWAYS_UPLOAD, True),
@@ -305,7 +311,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             task_count=task_count,
             task_data=wr_section.get(TASK_DATA, None),
             task_data_file=wr_section.get(TASK_DATA_FILE, None),
-            task_group_count=wr_section.get(TASK_GROUP_COUNT, 1),
+            task_group_count=task_group_count,
             task_group_name=wr_section.get(TASK_GROUP_NAME, None),
             task_name=wr_section.get(TASK_NAME, None),
             task_timeout=wr_section.get(TASK_TIMEOUT, None),

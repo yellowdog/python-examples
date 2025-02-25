@@ -766,11 +766,9 @@ If the `executable` property is not supplied, none of the automatic processing d
 
 ### Task and Task Group Counts
 
-The `taskCount` property can be used to expand the number of Tasks within a Task Group, by creating duplicates of a single Task; this can be handy for testing and demos. In JSON specifications, there must be zero or one Task(s) listed within each Task Group or `taskCount` is ignored.
+The `taskCount` property can be used to expand the number of Tasks within a Task Group, by creating duplicates of a single Task; this can be handy for testing and demos. In JSON specifications, there must be zero or one Task(s) listed within each Task Group or `taskCount` is ignored. This property can also be set on the command line using the `--task-count`/`-C` option of `yd-submit` followed by the required number of Tasks.
 
-This property can also be set on the command line using the `--task-count`/`-C` option of `yd-submit` followed by the required number of Tasks.
-
-The `taskGroupCount` property can be set to expand the number of Task Groups in the Work Requirement, by creating duplicates of a single Task Group.
+Also useful for testing, the `taskGroupCount` property or the command line option `--task-group-count`/`-G` can be set to expand the number of Task Groups in the Work Requirement, by creating duplicates of a single Task Group. If used, the `taskCount` property will apply to every Task Group, i.e., the total number of tasks is the multiple of `taskGroupCount` and `taskGroup`.
 
 ## Examples
 
