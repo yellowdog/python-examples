@@ -95,8 +95,12 @@ def follow_events(ydid: str, ydid_type: YDIDType):
         )
 
         if response.status_code != 200:
-            print_error(f"'{ydid}': {response.json()['message']}")
-            return
+            try:
+                error_text = response.json()["message"]
+            except:
+                error_text = "(JSON error cannot be decoded)"
+            print_error(f"'{ydid}': {error_text}")
+            break
 
         if response.encoding is None:
             response.encoding = "utf-8"
