@@ -2773,7 +2773,7 @@ The `yd-show` command will show the details (in JSON) of any YellowDog entity th
 
 ## yd-compare
 
-The `yd-compare` command takes a Work Requirement or Task Group ID and one or more Worker Pool IDs, and compares the selected Task Group(s) against the available Nodes/Workers in the Worker Pool(s). If a Work Requirement ID is supplied, all Task Groups in the Work Requirement will be comapared.
+The `yd-compare` command takes a Work Requirement or Task Group ID and one or more Worker Pool IDs, and compares the selected Task Group(s) against the available Nodes/Workers in the Worker Pool(s). If a Work Requirement ID is supplied, all Task Groups in the Work Requirement will be compared.
 
 ```commandline
 yd-compare ydid:taskgrp:000000:83587010-5e26-4174-92a7-c7cc2612638d:1 ydid:wrkrpool:000000:3666e4c5-382e-4512-a2c7-33dbb839f75
