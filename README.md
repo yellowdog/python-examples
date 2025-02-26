@@ -1060,7 +1060,7 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 A dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, add the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are presented directly within their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with its Task Groups is submitted first, and Tasks are then added to their Task Groups separately, in subsequent API calls.
+Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are presented directly within their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with zero or more Task Groups is submitted first, and Tasks are then added to their Task Groups separately, in subsequent API calls. Task Groups and Tasks can also later be added to the Work Requirement.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
