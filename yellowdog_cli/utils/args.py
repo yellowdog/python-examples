@@ -115,7 +115,7 @@ class CLIParser:
         )
 
         # Module-specific argument sets
-        if not any(module in sys.argv[0] for module in ["analyse"]):
+        if not any(module in sys.argv[0] for module in ["compare"]):
             parser.add_argument(
                 "--variable",
                 "-v",
@@ -137,7 +137,7 @@ class CLIParser:
                 "cloudwizard",
                 "follow",
                 "list",
-                "analyse",
+                "compare",
             ]
         ):
             self.namespace_required = True
@@ -1121,13 +1121,13 @@ class CLIParser:
                 ),
             )
 
-        if "analyse" in sys.argv[0]:
+        if "compare" in sys.argv[0]:
             parser.add_argument(
                 "wr_or_tg_id",
                 metavar="<work-requirement-or-task-group-ID>",
                 type=str,
                 help=(
-                    "the YellowDog ID of the work requirement or task group to be analysed"
+                    "the YellowDog ID of the work requirement or task group to be compared"
                 ),
             )
             parser.add_argument(
@@ -1135,7 +1135,7 @@ class CLIParser:
                 metavar="<worker-pool-ID>",
                 type=str,
                 nargs="+",
-                help="the YellowDog ID(s) of the worker pool(s) to analyse",
+                help="the YellowDog ID(s) of the worker pool(s) to compare",
             )
 
         self.args = parser.parse_args()
@@ -1681,9 +1681,9 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "boosting Allowances"
     elif "show" in module_name:
         suffix = "showing the JSON details of entities referenced by their YDIDs"
-    elif "analyse" in module_name:
+    elif "compare" in module_name:
         suffix = (
-            "analysing if a work requirement or single task group is matched by "
+            "comparing whether a work requirement or task group is matched by "
             "workers in the specified worker pools"
         )
 

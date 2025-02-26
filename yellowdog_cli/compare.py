@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 """
-A script to analyse task groups and check for matching worker pools.
+A script to compare work requirements and task groups with worker pools,
+and check for matches.
 """
 
 from dataclasses import dataclass
@@ -130,7 +131,7 @@ class MatchReport:
         else:
             match_str = "NON-MATCHING"
         print_log(
-            f"Detailed report for {match_str} ({self.worker_pool_status}) worker pool "
+            f"Detailed comparison report for {match_str} ({self.worker_pool_status}) worker pool "
             f"'{self.worker_pool_name}' ({self.worker_pool_id})",
             override_quiet=True,
         )
@@ -607,12 +608,12 @@ def _get_worker_pool_by_id(worker_pool_id) -> WorkerPool:
             )
 
 
-def _analyse_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
+def _compare_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
     """
-    Analyse a Task Group.
+    Compare a Task Group.
     """
     print_log(
-        f"Analysing Task Group '{task_group.name}' ({task_group.id})",
+        f"Comparing Task Group '{task_group.name}' ({task_group.id})",
         override_quiet=True,
     )
 
@@ -652,7 +653,7 @@ def _analyse_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
     for match_report in match_reports:
         match_report.print_detailed_report()
 
-    print_log("Task Group analysis complete")
+    print_log("Task Group comparison complete")
 
 
 @main_wrapper
@@ -670,7 +671,7 @@ def main():
 
     # Task group
     if get_ydid_type(ARGS_PARSER.wr_or_tg_id) == YDIDType.TASK_GROUP:
-        _analyse_task_group(
+        _compare_task_group(
             _get_task_group_by_id(ARGS_PARSER.wr_or_tg_id), worker_pools
         )
 
@@ -678,12 +679,12 @@ def main():
     elif get_ydid_type(ARGS_PARSER.wr_or_tg_id) == YDIDType.WORK_REQUIREMENT:
         work_requirement = _get_work_requirement_by_id(ARGS_PARSER.wr_or_tg_id)
         print_log(
-            f"Analysing all Task Groups in Work Requirement '{work_requirement.name}' "
+            f"Comparing all Task Groups in Work Requirement '{work_requirement.name}' "
             f"({work_requirement.id})",
             override_quiet=True,
         )
         for task_group in work_requirement.taskGroups:
-            _analyse_task_group(task_group, worker_pools)
+            _compare_task_group(task_group, worker_pools)
 
     else:
         raise Exception(

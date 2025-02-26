@@ -123,10 +123,10 @@
    * [yd-hold](#yd-hold)
    * [yd-boost](#yd-boost)
    * [yd-show](#yd-show)
-   * [yd-analyse](#yd-analyse)
+   * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Sun Feb 23 10:18:32 GMT 2025 -->
+<!-- Added by: pwt, at: Wed Feb 26 15:47:37 GMT 2025 -->
 
 <!--te-->
 
@@ -160,7 +160,7 @@ The commands provide the following capabilities:
 - **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, and Namespace Policies with the **`yd-create`** and **`yd-remove`** commands
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
 - **Showing** the details of any YellowDog entity using its YellowDog ID with the **`yd-show`** command
-- **Analysing** whether worker pools are match for task groups
+- **Comparing** whether worker pools are a match for task groups with the **`yd-compare`** command
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -2771,17 +2771,17 @@ The `yd-show` command will show the details (in JSON) of any YellowDog entity th
 - Keyrings
 - Allowances
 
-## yd-analyse
+## yd-compare
 
-The `yd-analyse` command takes a Work Requirement or Task Group ID and one or more Worker Pool IDs, and matches the selected Task Group(s) against the available Nodes/Workers in the Worker Pool(s). If a Work Requirement ID is supplied, all Task Groups in the Work Requirement will be analysed.
+The `yd-compare` command takes a Work Requirement or Task Group ID and one or more Worker Pool IDs, and compares the selected Task Group(s) against the available Nodes/Workers in the Worker Pool(s). If a Work Requirement ID is supplied, all Task Groups in the Work Requirement will be comapared.
 
 ```commandline
-yd-analyse ydid:taskgrp:000000:83587010-5e26-4174-92a7-c7cc2612638d:1 ydid:wrkrpool:000000:3666e4c5-382e-4512-a2c7-33dbb839f75
+yd-compare ydid:taskgrp:000000:83587010-5e26-4174-92a7-c7cc2612638d:1 ydid:wrkrpool:000000:3666e4c5-382e-4512-a2c7-33dbb839f75
 ```
 
 The command checks if the **Run Specification** of a Task Group matches the properties of the Worker Pools and their registered Nodes and Workers, meaning there are Workers in the Worker Pool that could be claimed by the Task Group and that the Worker Pool would be a candidate for scaling up to meet the demands of the Task Group.
 
-A detailed matching report showing the match against each specific property is created, which can be used to determine which properties are preventing a Worker Pool match.
+A detailed matching report showing the comparison against each specific property is created, which can be used to determine which properties are preventing a Worker Pool match.
 
 The match status of a Worker Pool falls into one of four categories:
 
