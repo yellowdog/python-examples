@@ -614,6 +614,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `providers`                 | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                                                                                             | Yes  | Yes | Yes  |      |
 | `ram`                       | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                                                                                      | Yes  | Yes | Yes  |      |
 | `regions`                   | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                                                                                    | Yes  | Yes | Yes  |      |
+| `setTaskNames`              | Set this to `false` to suppress automatic generation of task names. Defaults to `true`. Task names that are set by the user will still be observed. Note that Task names must be set if any outputs are specified.                         | Yes  | Yes | Yes  | Yes  |
 | `tag`                       | A tag that can be associated with a Work Requirement, Task Group or Task. Note there is **no property inheritance** for these tags.                                                                                                        | Yes  | Yes | Yes  | Yes  |
 | `taskBatchSize`             | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                                                                                              | Yes  |     |      |      |
 | `taskCount`                 | The number of times to execute the Task.                                                                                                                                                                                                   | Yes  | Yes | Yes  |      |
@@ -643,7 +644,7 @@ In addition to the property inheritance mechanism, some properties are set autom
 
 - The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: e.g.: `mytag_221024-15552480`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
-- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below.
+- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below. Automatic Task name generation can be suppressed by setting the `setTaskNames` property to `false`, in which case the `task_name` variable will be set to `none`. Note that Task names must be set for any tasks that specify outputs.
 
 #### Obtaining Names/Context from Environment Variables at Task Run Time
 
@@ -814,6 +815,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     providers = ["AWS"]
     ram = [0.5, 2.0]
     regions = ["eu-west-2"]
+    setTaskNames = false
     tag = "my_tag"
     taskBatchSize = 1000
     taskCount = 100
@@ -870,6 +872,7 @@ Showing all possible properties at the Work Requirement level:
   "providers": ["AWS"],
   "ram": [0.5, 2],
   "regions": ["eu-west-2"],
+  "setTaskNames": false,
   "tag": "my_tag"
   "taskCount": 100,
   "taskData": "my_task_data_string",
@@ -932,6 +935,7 @@ Showing all possible properties at the Task Group level:
       "providers": ["AWS"],
       "ram": [0.5, 2],
       "regions": ["eu-west-2"],
+      "setTaskNames": false,
       "tag": "my_tag",
       "taskCount": 5,
       "taskData": "my_task_data_string",
@@ -986,6 +990,7 @@ Showing all possible properties at the Task level:
           "outputs": ["results.txt"],
           "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
           "outputsRequired": ["results_required.txt"],
+          "setTaskNames": false,
           "tag": "my_tag",
           "taskData": "my_task_data_string",
           "taskDataFile": "my_data_file.txt",

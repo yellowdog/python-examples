@@ -51,6 +51,7 @@ class ConfigWorkRequirement:
     providers: Optional[List[str]] = None
     ram: Optional[List[float]] = None
     regions: Optional[List[str]] = None
+    set_task_names: bool = True
     task_batch_size: int = TASK_BATCH_SIZE_DEFAULT
     task_count: int = 1
     task_data: Optional[str] = None

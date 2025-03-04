@@ -307,6 +307,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             providers=wr_section.get(PROVIDERS, None),
             ram=wr_section.get(RAM, None),
             regions=wr_section.get(REGIONS, None),
+            set_task_names=wr_section.get(SET_TASK_NAMES, True),
             task_batch_size=task_batch_size,
             task_count=task_count,
             task_data=wr_section.get(TASK_DATA, None),

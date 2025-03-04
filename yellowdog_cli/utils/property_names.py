@@ -60,6 +60,7 @@ RAM = "ram"  # List of two Floats
 REGIONS = "regions"  # List of Strings
 REQUIRED = "required"  # Boolean
 SECRET = "secret"  # String
+SET_TASK_NAMES = "setTaskNames"  # Set to False to suppress task naming
 TARGET_INSTANCE_COUNT = "targetInstanceCount"  # Integer
 TASKS = "tasks"  # List of Tasks
 TASKS_PER_WORKER = "tasksPerWorker"  # Integer
@@ -160,6 +161,7 @@ ALL_KEYS = [
     REGIONS,
     REQUIRED,
     SECRET,
+    SET_TASK_NAMES,
     TARGET_INSTANCE_COUNT,
     TASKS,
     TASKS_PER_WORKER,

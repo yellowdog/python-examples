@@ -59,6 +59,7 @@ from yellowdog_cli.utils.settings import (
     MAX_BATCH_SUBMIT_ATTEMPTS,
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     VAR_CLOSING_DELIMITER,
+    VAR_NAME_OF_UNNAMED_TASK,
     VAR_OPENING_DELIMITER,
 )
 from yellowdog_cli.utils.submit_utils import (
@@ -736,18 +737,33 @@ def generate_batch_of_tasks_for_task_group(
     for task_number in range(start_task_number, end_task_number):
         task_group_data = wr_data[TASK_GROUPS][tg_number]
         task = tasks[task_number] if task_count is None else tasks[0]
-        task_name = format_yd_name(
-            get_task_name(
-                task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
-                task_number,
-                num_tasks,
-                tg_number,
-                num_task_groups,
-                task_group.name,
+
+        set_task_names = check_bool(
+            task.get(
+                SET_TASK_NAMES,
+                task_group_data.get(
+                    SET_TASK_NAMES,
+                    wr_data.get(SET_TASK_NAMES, CONFIG_WR.set_task_names),
+                ),
             )
         )
 
-        add_or_update_substitution(L_TASK_NAME, str(task_name))
+        task_name = get_task_name(
+            task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
+            set_task_names,
+            task_number,
+            num_tasks,
+            tg_number,
+            num_task_groups,
+            task_group.name,
+        )
+
+        task_name = None if task_name is None else format_yd_name(task_name)
+
+        add_or_update_substitution(
+            L_TASK_NAME,
+            VAR_NAME_OF_UNNAMED_TASK if task_name is None else task_name,
+        )
         add_or_update_substitution(
             L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
         )
@@ -1180,13 +1196,13 @@ def on_update(work_req: WorkRequirement):
 
 def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     """
-    Clean up the Work Requirement and any uploaded Objects on failure
+    Clean up the Work Requirement and any uploaded Objects on failure.
     """
     if ARGS_PARSER.dry_run:
         return
 
     CLIENT.work_client.cancel_work_requirement(work_requirement)
-    print_log(f"Cancelled Work Requirement '{work_requirement.name}'")
+    print_warning(f"Cancelled Work Requirement '{work_requirement.name}'")
 
     # Delete uploaded objects
     UPLOADED_FILES.delete()
@@ -1195,7 +1211,7 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
 def deduplicate_inputs(task_inputs: List[TaskInput]) -> List[TaskInput]:
     """
     Deduplicate a list of TaskInputs. This is useful when wildcards
-    are used. Note that TaskInputs that differ only in their verification
+    are used. Note that TaskInputs which differ only in their verification
     type will be caught by 'check_for_duplicates_in_file_lists()'.
     """
     deduplicated_task_inputs: List[TaskInput] = []
@@ -1245,12 +1261,13 @@ def formatted_number_str(
 
 def get_task_name(
     name: Optional[str],
+    set_task_names: bool,
     task_number: int,
     num_tasks: int,
     task_group_number: int,
     num_task_groups: int,
     task_group_name: str,
-) -> str:
+) -> Optional[str]:
     """
     Create the name of a Task.
     Supports lazy substitution.
@@ -1278,8 +1295,11 @@ def get_task_name(
             task_group_name,
         )
 
-    else:
+    elif set_task_names:
         name = "task_" + formatted_number_str(task_number, num_tasks)
+
+    else:
+        name = None
 
     return name
 
@@ -1320,7 +1340,7 @@ def create_task(
     wr_data: Dict,
     task_group_data: Dict,
     task_data: Dict,
-    task_name: str,
+    task_name: Optional[str],
     task_number: int,
     tg_name: str,
     tg_number: int,
@@ -1349,6 +1369,9 @@ def create_task(
         # Cannot use flatten_input_paths if there are no inputs
         if inputs is None or len(inputs) == 0:
             flatten_input_paths = None
+
+        if task_name is None and len(outputs) > 0:
+            raise Exception(f"Tasks must be named if outputs are specified")
 
         return Task(
             name=task_name,
