@@ -115,7 +115,7 @@ def follow_events(ydid: str, ydid_type: YDIDType):
             if "Connection broken" in str(e):
                 print_warning(
                     f"Event stream interruption for '{ydid}'"
-                    f"(retrying in {EVENT_STREAM_RETRY_INTERVAL}s): {e}"
+                    f"(retrying in {EVENT_STREAM_RETRY_INTERVAL}s)"
                 )
                 sleep(EVENT_STREAM_RETRY_INTERVAL)
                 continue
