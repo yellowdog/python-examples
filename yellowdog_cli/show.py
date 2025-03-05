@@ -4,7 +4,7 @@
 Command to show the JSON details of YellowDog entities via their IDs.
 """
 
-from yellowdog_client.model import ConfiguredWorkerPool, Task
+from yellowdog_client.model import ConfiguredWorkerPool
 
 from yellowdog_cli.list import get_keyring
 from yellowdog_cli.utils.entity_utils import substitute_ids_for_names_in_crt
