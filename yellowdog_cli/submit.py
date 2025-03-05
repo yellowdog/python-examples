@@ -57,6 +57,7 @@ from yellowdog_cli.utils.printing import (
 from yellowdog_cli.utils.property_names import *
 from yellowdog_cli.utils.settings import (
     MAX_BATCH_SUBMIT_ATTEMPTS,
+    MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     VAR_CLOSING_DELIMITER,
     VAR_NAME_OF_UNNAMED_TASK,
@@ -628,8 +629,20 @@ def add_tasks_to_task_group(
 
     num_submitted_tasks = 0
 
+    # Determine number of parallel upload threads
+    parallel_upload_threads = (
+        CONFIG_WR.parallel_batches
+        if ARGS_PARSER.parallel_batches is None
+        else ARGS_PARSER.parallel_batches
+    )
+    parallel_upload_threads = (
+        MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS
+        if parallel_upload_threads is None
+        else parallel_upload_threads
+    )
+
     # Single batch or sequential batch submission
-    if ARGS_PARSER.parallel_batches == 1 or num_task_batches == 1:
+    if parallel_upload_threads == 1 or num_task_batches == 1:
         if num_task_batches > 1:
             print_log(f"Uploading {num_task_batches} Task batches sequentially")
         for batch_number in range(num_task_batches):
@@ -668,7 +681,7 @@ def add_tasks_to_task_group(
             print_warning(
                 "Option 'pause-between-batches/-P' is ignored for parallel batch uploads"
             )
-        max_workers = min(num_task_batches, ARGS_PARSER.parallel_batches)
+        max_workers = min(num_task_batches, parallel_upload_threads)
         print_log(
             f"Submitting Task batches using {max_workers} parallel submission threads"
         )

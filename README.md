@@ -610,11 +610,12 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `outputs`                   | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                                                                                             | Yes  | Yes | Yes  | Yes  |
 | `outputsOther`              | Files to be uploaded to the YellowDog Object Store from outside the Tasks's Working Directory by a Worker node on completion of a Task. E.g., `outputsOther = [{"directoryName" = "tmp", "filePattern" = "out.txt", "required" = false}]`. | Yes  | Yes | Yes  | Yes  |
 | `outputsRequired`           | The files that *must* be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. The Task will fail if any outputs are unavailable.                                                                             | Yes  | Yes | Yes  | Yes  |
+| `parallelBatches`           | The number of parallel threads to use when uploading batches of Tasks.                                                                                                                                                                     | Yes  |     |      |      |
 | `priority`                  | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. E.g., `0.0`.                                                                                                                  | Yes  | Yes | Yes  |      |
 | `providers`                 | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                                                                                             | Yes  | Yes | Yes  |      |
 | `ram`                       | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                                                                                      | Yes  | Yes | Yes  |      |
 | `regions`                   | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                                                                                    | Yes  | Yes | Yes  |      |
-| `setTaskNames`              | Set this to `false` to suppress automatic generation of task names. Defaults to `true`. Task names that are set by the user will still be observed. Note that Task names must be set if any outputs are specified.                         | Yes  | Yes | Yes  | Yes  |
+| `setTaskNames`              | Set this to `false` to suppress automatic generation of Task names. Defaults to `true`. Task names that are set by the user will still be observed. Note that Task names must be set if any outputs are specified.                         | Yes  | Yes | Yes  | Yes  |
 | `tag`                       | A tag that can be associated with a Work Requirement, Task Group or Task. Note there is **no property inheritance** for these tags.                                                                                                        | Yes  | Yes | Yes  | Yes  |
 | `taskBatchSize`             | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                                                                                              | Yes  |     |      |      |
 | `taskCount`                 | The number of times to execute the Task.                                                                                                                                                                                                   | Yes  | Yes | Yes  |      |
@@ -811,6 +812,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     outputs = ["results.txt"]
     outputsOther = [{"directoryName" = "my_output_dir", "filePattern" = "out.txt", "required" = true}]
     outputsRequired = ["results_required.txt"]
+    parallelBatches = 5
     priority = 0.0
     providers = ["AWS"]
     ram = [0.5, 2.0]

@@ -309,7 +309,6 @@ class CLIParser:
                 "-l",
                 type=int,
                 required=False,
-                default=MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
                 help=(
                     "the maximum number of parallel task batch "
                     f"uploads (default={MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS})"

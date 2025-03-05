@@ -54,6 +54,7 @@ NODE_BOOT_TIMEOUT = "nodeBootTimeout"  # Float
 OUTPUTS_OPTIONAL = "outputs"  # List of Strings
 OUTPUTS_OTHER = "outputsOther"  # List of Dicts
 OUTPUTS_REQUIRED = "outputsRequired"  # List of Strings
+PARALLEL_BATCHES = "parallelBatches"  # Integer
 PRIORITY = "priority"  # Float
 PROVIDERS = "providers"  # List of Strings
 RAM = "ram"  # List of two Floats
@@ -155,6 +156,7 @@ ALL_KEYS = [
     OUTPUTS_OPTIONAL,
     OUTPUTS_OTHER,
     OUTPUTS_REQUIRED,
+    PARALLEL_BATCHES,
     PRIORITY,
     PROVIDERS,
     RAM,

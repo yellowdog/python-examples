@@ -47,6 +47,7 @@ class ConfigWorkRequirement:
     outputs_optional: List[str] = field(default_factory=list)
     outputs_other: List[Dict] = field(default_factory=list)
     outputs_required: List[str] = field(default_factory=list)
+    parallel_batches: Optional[int] = None
     priority: float = 0.0
     providers: Optional[List[str]] = None
     ram: Optional[List[float]] = None

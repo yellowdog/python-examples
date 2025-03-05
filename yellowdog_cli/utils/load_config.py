@@ -303,6 +303,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             outputs_optional=wr_section.get(OUTPUTS_OPTIONAL, []),
             outputs_other=wr_section.get(OUTPUTS_OTHER, []),
             outputs_required=wr_section.get(OUTPUTS_REQUIRED, []),
+            parallel_batches=wr_section.get(PARALLEL_BATCHES, None),
             priority=wr_section.get(PRIORITY, 0.0),
             providers=wr_section.get(PROVIDERS, None),
             ram=wr_section.get(RAM, None),
