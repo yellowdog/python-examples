@@ -17,10 +17,9 @@ from yellowdog_cli.utils.printing import (
     print_log,
     print_warning,
 )
+from yellowdog_cli.utils.settings import EVENT_STREAM_RETRY_INTERVAL
 from yellowdog_cli.utils.wrapper import CLIENT, CONFIG_COMMON
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
-
-EVENT_STREAM_RETRY_INTERVAL = 5.0  # Seconds
 
 
 def follow_ids(ydids: List[str], auto_cr: bool = False):
