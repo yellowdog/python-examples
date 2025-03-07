@@ -196,6 +196,13 @@ class CLIParser:
                 help="the tag to search when listing entities",
                 metavar="<tag>",
             )
+            parser.add_argument(
+                "--ids-only",
+                "-D",
+                action="store_true",
+                required=False,
+                help="list the YellowDog IDs only",
+            )
 
         if any(module in sys.argv[0] for module in ["submit"]):
             parser.add_argument(
@@ -1631,6 +1638,11 @@ class CLIParser:
     @allow_missing_attribute
     def worker_pool_ids(self) -> Optional[List[str]]:
         return self.args.worker_pool_ids
+
+    @property
+    @allow_missing_attribute
+    def ids_only(self) -> Optional[bool]:
+        return self.args.ids_only
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

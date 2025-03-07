@@ -189,6 +189,9 @@ def list_work_requirements():
                     for wr_summary in select(CLIENT, work_requirement_summaries)
                 ]
             )
+        elif ARGS_PARSER.ids_only:
+            for wr_summary in work_requirement_summaries:
+                print(wr_summary.id)
         else:
             print_numbered_object_list(CLIENT, work_requirement_summaries)
     else:
@@ -210,6 +213,9 @@ def list_task_groups(work_summary: WorkRequirementSummary):
             print_yd_object_list(
                 [(task_group, None) for task_group in select(CLIENT, task_groups)]
             )
+        elif ARGS_PARSER.ids_only:
+            for task_group in task_groups:
+                print(task_group.id)
         else:
             print_numbered_object_list(CLIENT, task_groups)
     else:
@@ -223,6 +229,9 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
     tasks = sorted_objects(tasks)
     if ARGS_PARSER.details:
         print_yd_object_list([(task, None) for task in select(CLIENT, tasks)])
+    elif ARGS_PARSER.ids_only:
+        for task in tasks:
+            print(task.id)
     else:
         print_numbered_object_list(CLIENT, tasks)
 
@@ -317,6 +326,9 @@ def list_worker_pools():
                 for worker_pool_summary in select(CLIENT, worker_pool_summaries)
             ]
         )
+    elif ARGS_PARSER.ids_only:
+        for wp_summary in worker_pool_summaries:
+            print(wp_summary.id)
     else:
         print_numbered_object_list(CLIENT, sorted_objects(worker_pool_summaries))
 
@@ -376,6 +388,9 @@ def list_compute_requirements():
                 for compute_requirement in select(CLIENT, filtered_compute_requirements)
             ]
         )
+    elif ARGS_PARSER.ids_only:
+        for compute_requirement in filtered_compute_requirements:
+            print(compute_requirement.id)
     else:
         print_numbered_object_list(CLIENT, filtered_compute_requirements)
 
@@ -407,6 +422,9 @@ def list_instances(compute_requirement: ComputeRequirement):
         print_yd_object_list(
             [(instance, None) for instance in select(CLIENT, instances)]
         )
+    elif ARGS_PARSER.ids_only:
+        for instance in instances:
+            print(instance.id.instanceId)
     else:
         print_numbered_object_list(CLIENT, instances)
 
@@ -437,6 +455,9 @@ def list_nodes(worker_pool_summaries: List[WorkerPoolSummary]):
 
     if ARGS_PARSER.details:
         print_yd_object_list([(node, None) for node in select(CLIENT, nodes_all)])
+    elif ARGS_PARSER.ids_only:
+        for node in nodes_all:
+            print(node.id)
     else:
         print_numbered_object_list(CLIENT, nodes_all)
 
@@ -469,6 +490,11 @@ def list_workers(nodes: List[Node]):
         print_numbered_object_list(CLIENT, workers_all)
         return
 
+    if ARGS_PARSER.ids_only:
+        for worker in workers_all:
+            print(worker.id)
+        return
+
     # Details
     print_yd_object_list([(worker, None) for worker in select(CLIENT, workers_all)])
 
@@ -495,6 +521,12 @@ def list_compute_requirement_templates():
     if len(cr_templates) == 0:
         print_log("No matching Compute Requirement Templates found")
         return
+
+    if ARGS_PARSER.ids_only:
+        for crt in cr_templates:
+            print(crt.id)
+        return
+
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, sorted_objects(cr_templates))
         return
@@ -542,6 +574,12 @@ def list_compute_source_templates():
     if len(cs_templates) == 0:
         print_log("No matching Compute Source Templates found")
         return
+
+    if ARGS_PARSER.ids_only:
+        for cst in cs_templates:
+            print(cst.id)
+        return
+
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, sorted_objects(cs_templates))
         return
@@ -568,6 +606,12 @@ def list_keyrings():
     if len(keyrings) == 0:
         print_log("No Keyrings found")
         return
+
+    if ARGS_PARSER.ids_only:
+        for keyring in keyrings:
+            print(keyring.id)
+        return
+
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, sorted_objects(keyrings))
         return
@@ -608,6 +652,11 @@ def list_image_families():
             f"No matching Machine Image Families found with namespace including "
             f"'{CONFIG_COMMON.namespace}' and tag including '{CONFIG_COMMON.name_tag}'"
         )
+        return
+
+    if ARGS_PARSER.ids_only:
+        for image_family in image_family_summaries:
+            print(image_family.id)
         return
 
     if not ARGS_PARSER.details:
