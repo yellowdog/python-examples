@@ -1619,10 +1619,10 @@ The following properties are available:
 | `requirementTag`          | The tag to apply to the Compute Requirement.                                                                         | `tag` set in `common`   |
 | `targetInstanceCount`     | The initial number of nodes to create in the Worker Pool.                                                            | `1`                     |
 | `templateId`              | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**)                        | No default provided     |
+| `userData`                | User Data to be supplied to instances on boot.                                                                       |                         |
 | `userDataFile`            | As above, but read the User Data from the filename supplied in this property.                                        |                         |
 | `userDataFiles`           | As above, but create the User Data by concatenating the contents of the list of filenames supplied in this property. |                         |
-| `userData`                | User Data to be supplied to instances on boot.                                                                       |                         |
-| `workerPoolData`          | The name of a file containing a JSON document defining a Worker Pool.                                                |                         |
+| `workerPoolData`          | The name of a file containing a JSON specification of a Worker Pool.                                                 |                         |
 | `workerTag`               | The Worker Tag to publish for the each of the Workers on the node(s).                                                |                         |
 | `workersPerNode`          | The number of Workers to establish on each node in the Worker Pool.                                                  | `1`                     |
 | `workersPerVCPU`          | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.)           |                         |
