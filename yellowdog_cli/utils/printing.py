@@ -148,7 +148,6 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
 def print_simple(
     log_message: str = "",
     override_quiet: bool = False,
-    no_fill: bool = False,
 ):
     """
     Simple print function without timestamp.
