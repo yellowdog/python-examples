@@ -7,10 +7,17 @@ from glob import glob
 from os import chdir, getcwd
 from os.path import exists
 from time import sleep
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from yellowdog_client import PlatformClient
-from yellowdog_client.model import ObjectPath, TaskInput, TaskInputVerification
+from yellowdog_client.model import (
+    ObjectPath,
+    TaskData,
+    TaskDataInput,
+    TaskDataOutput,
+    TaskInput,
+    TaskInputVerification,
+)
 
 from yellowdog_cli.utils.config_types import ConfigCommon, ConfigWorkRequirement
 from yellowdog_cli.utils.printing import print_error, print_log
@@ -296,3 +303,31 @@ def pause_between_batches(task_batch_size: int, batch_number: int, num_tasks: in
         )
         if not first_batch:
             sleep(ARGS_PARSER.pause_between_batches)
+
+
+def generate_taskdata_object(
+    task_data_inputs: Optional[List[Dict]], task_data_outputs: Optional[List[Dict]]
+) -> Optional[TaskData]:
+    """
+    Generate a TaskData object based on task data inputs/outputs.
+    """
+    if task_data_inputs is None and task_data_outputs is None:
+        return None
+
+    try:
+        return TaskData(
+            inputs=(
+                None
+                if task_data_inputs is None
+                else [TaskDataInput(**x) for x in task_data_inputs]
+            ),
+            outputs=(
+                None
+                if task_data_outputs is None
+                else [TaskDataOutput(**x) for x in task_data_outputs]
+            ),
+        )
+    except TypeError as e:
+        raise Exception(
+            f"Unable to generate 'taskDataInputs' or 'taskDataOutputs' list: {str(e)}"
+        )

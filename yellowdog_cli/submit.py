@@ -22,6 +22,7 @@ from yellowdog_client.model import (
     FlattenPath,
     RunSpecification,
     Task,
+    TaskData,
     TaskGroup,
     TaskInput,
     TaskInputSource,
@@ -66,6 +67,7 @@ from yellowdog_cli.utils.settings import (
 from yellowdog_cli.utils.submit_utils import (
     UploadedFiles,
     generate_task_input_list,
+    generate_taskdata_object,
     pause_between_batches,
     update_config_work_requirement_object,
 )
@@ -1000,9 +1002,32 @@ def generate_batch_of_tasks_for_task_group(
             ),
         )
 
-        # Set 'alwaysUpload' for all outputs
+        # Set 'alwaysUpload' for all object store outputs
         for task_output in outputs:
             task_output.alwaysUpload = always_upload
+
+        # Data client inputs and outputs
+        task_data_inputs = check_list(
+            task.get(
+                TASK_DATA_INPUTS,
+                task_group_data.get(
+                    TASK_DATA_INPUTS,
+                    wr_data.get(TASK_DATA_INPUTS, config_wr.task_data_inputs),
+                ),
+            )
+        )
+        task_data_outputs = check_list(
+            task.get(
+                TASK_DATA_OUTPUTS,
+                task_group_data.get(
+                    TASK_DATA_OUTPUTS,
+                    wr_data.get(TASK_DATA_OUTPUTS, config_wr.task_data_outputs),
+                ),
+            )
+        )
+        task_data_inputs_and_outputs = generate_taskdata_object(
+            task_data_inputs, task_data_outputs
+        )
 
         # If there's no task type in the task definition, AND
         # there's only one task type at the task group level,
@@ -1043,6 +1068,7 @@ def generate_batch_of_tasks_for_task_group(
                 flatten_upload_paths=flatten_upload_paths,
                 flatten_input_paths=flatten_input_paths,
                 add_yd_env_vars=add_yd_env_vars,
+                task_data_inputs_and_outputs=task_data_inputs_and_outputs,
             )
         )
 
@@ -1368,6 +1394,7 @@ def create_task(
     flatten_upload_paths: bool = False,
     flatten_input_paths: Optional[FlattenPath] = None,
     add_yd_env_vars: bool = False,
+    task_data_inputs_and_outputs: Optional[TaskData] = None,
 ) -> Task:
     """
     Create a Task object, handling special processing for specific Task Types.
@@ -1397,6 +1424,7 @@ def create_task(
             taskData=task_data_property,
             timeout=task_timeout,
             tag=task_tag,
+            data=task_data_inputs_and_outputs,
         )
 
     task_tag = task_data.get(TASK_TAG, None)

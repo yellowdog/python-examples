@@ -68,7 +68,11 @@ TASKS_PER_WORKER = "tasksPerWorker"  # Integer
 TASK_BATCH_SIZE = "taskBatchSize"  # Integer
 TASK_COUNT = "taskCount"  # Integer
 TASK_DATA = "taskData"  # String
+TASK_DATA_DESTINATION = "destination"  # String
 TASK_DATA_FILE = "taskDataFile"  # String
+TASK_DATA_INPUTS = "taskDataInputs"  # List of dictionaries
+TASK_DATA_OUTPUTS = "taskDataOutputs"  # List of dictionaries
+TASK_DATA_SOURCE = "source"  # String
 TASK_GROUPS = "taskGroups"  # List of Task Groups
 TASK_GROUP_COUNT = "taskGroupCount"  # Integer
 TASK_GROUP_NAME = "taskGroupName"  # String
@@ -170,7 +174,11 @@ ALL_KEYS = [
     TASK_BATCH_SIZE,
     TASK_COUNT,
     TASK_DATA,
+    TASK_DATA_DESTINATION,
     TASK_DATA_FILE,
+    TASK_DATA_INPUTS,
+    TASK_DATA_OUTPUTS,
+    TASK_DATA_SOURCE,
     TASK_GROUPS,
     TASK_GROUP_COUNT,
     TASK_GROUP_NAME,

@@ -621,6 +621,8 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `taskCount`                 | The number of times to execute the Task.                                                                                                                                                                                                   | Yes  | Yes | Yes  |      |
 | `taskData`                  | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when The Task executes.                                                                        | Yes  | Yes | Yes  | Yes  |
 | `taskDataFile`              | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                                                                                           | Yes  | Yes | Yes  | Yes  |
+| `taskDataInputs`            | A list of data inputs to downloaded by the task E.g., JSON: `{"source": "src", "destination": "dest"}`, TOML: `{source = "src", destination = "dest"}`.                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `taskDataOutputs`           | A list of data outputs to be uploaded at the conclusion of a task E.g., JSON: `{"source": "src", "destination": "dest", "alwaysUpload": true}`, TOML: `{source = "src", destination = "dest", alwaysUpload = true}`.                       | Yes  | Yes | Yes  | Yes  |
 | `taskName`                  | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                                                     | Yes  |     |      |      |
 | `taskGroupCount`            | Create `taskGroupCount` duplicates of a single Task Group.                                                                                                                                                                                 | Yes  | Yes |      |      |
 | `taskGroupName`             | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                                            | Yes  |     |      |      |
@@ -823,6 +825,14 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskCount = 100
     taskData = "my_data_string"
     taskDataFile = "my_data_file.txt"
+    taskDataInputs = [
+      {source = "in_src_path_1", destination = "dest_path_1"},
+      {source = "in_src_path_2", destination = "dest_path_2"},
+    ]
+    taskDataOutputs = [
+        {source = "out_src_path_1", destination = "dest_path_1", alwaysUpload = true},
+        {source = "out_src_path_2", destination = "dest_path_2", alwaysUpload = false},
+    ]
     taskName = "my_task_number_{{task_number}}"
     taskGroupCount = 5
     taskGroupName = "my_task_group_number_{{task_group_number}}"
@@ -879,6 +889,14 @@ Showing all possible properties at the Work Requirement level:
   "taskCount": 100,
   "taskData": "my_task_data_string",
   "taskDataFile": "my_data_file.txt",
+  "taskDataInputs": [
+    {"destination": "dest_path_1", "source": "in_src_path_1"},
+    {"destination": "dest_path_2", "source": "in_src_path_2"}
+  ],
+  "taskDataOutputs": [
+    {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
+    {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
+  ],
   "taskGroupCount": 5,
   "taskTimeout": 120.0,
   "taskTypes": ["docker"],
@@ -942,6 +960,14 @@ Showing all possible properties at the Task Group level:
       "taskCount": 5,
       "taskData": "my_task_data_string",
       "taskDataFile": "my_data_file.txt",
+      "taskDataInputs": [
+        {"destination": "dest_path_1", "source": "in_src_path_1"},
+        {"destination": "dest_path_2", "source": "in_src_path_2"}
+      ],
+      "taskDataOutputs": [
+        {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
+        {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
+      ],
       "taskTimeout": 120.0,
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,
@@ -996,6 +1022,14 @@ Showing all possible properties at the Task level:
           "tag": "my_tag",
           "taskData": "my_task_data_string",
           "taskDataFile": "my_data_file.txt",
+          "taskDataInputs": [
+            {"destination": "dest_path_1", "source": "in_src_path_1"},
+            {"destination": "dest_path_2", "source": "in_src_path_2"}
+          ],
+          "taskDataOutputs": [
+            {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
+            {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
+          ],
           "timeout": 120.0,
           "taskType": "docker",
           "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],

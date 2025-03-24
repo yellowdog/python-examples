@@ -378,7 +378,8 @@ def csv_expand_toml_tasks(
         (config_wr.add_yd_env_vars, ADD_YD_ENV_VARS),
         (config_wr.always_upload, ALWAYS_UPLOAD),
         (config_wr.args, ARGS),
-        (config_wr.upload_taskoutput, UPLOAD_TASKOUTPUT),
+        (config_wr.task_data_inputs, TASK_DATA_INPUTS),
+        (config_wr.task_data_outputs, TASK_DATA_OUTPUTS),
         (config_wr.docker_env, DOCKER_ENV),
         (config_wr.docker_options, DOCKER_OPTIONS),
         (config_wr.docker_password, DOCKER_PASSWORD),
@@ -395,11 +396,12 @@ def csv_expand_toml_tasks(
         (config_wr.task_data, TASK_DATA),
         (config_wr.task_data_file, TASK_DATA_FILE),
         (config_wr.task_group_name, TASK_GROUP_NAME),  # Note: oddity
+        (config_wr.task_level_timeout, TASK_LEVEL_TIMEOUT),
         (config_wr.task_name, TASK_NAME),
         (config_wr.task_timeout, TASK_TIMEOUT),
         (config_wr.task_type, TASK_TYPE),
-        (config_wr.task_level_timeout, TASK_LEVEL_TIMEOUT),
         (config_wr.upload_files, UPLOAD_FILES),
+        (config_wr.upload_taskoutput, UPLOAD_TASKOUTPUT),
         (config_wr.verify_at_start, VERIFY_AT_START),
         (config_wr.verify_wait, VERIFY_WAIT),
         # Note: not TASK_COUNT; count determined by CSV data
