@@ -6,7 +6,12 @@ A script to shut down Worker Pools and/or Nodes.
 
 from typing import List
 
-from yellowdog_client.model import WorkerPool, WorkerPoolStatus, WorkerPoolSummary
+from yellowdog_client.model import (
+    ProvisionedWorkerPool,
+    WorkerPool,
+    WorkerPoolStatus,
+    WorkerPoolSummary,
+)
 
 from yellowdog_cli.utils.entity_utils import (
     get_worker_pool_by_id,
@@ -66,6 +71,7 @@ def main():
                     CLIENT, worker_pool_summary.id
                 )
                 print_log(f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}")
+                optionally_terminate_compute_requirement(worker_pool_summary.id)
             except Exception as e:
                 print_error(f"Unable to shut down '{worker_pool_summary.name}': {e}")
 
@@ -112,6 +118,7 @@ def shutdown_by_names_or_ids(names_or_ids: List[str]):
         try:
             CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool_id)
             print_log(f"Shut down Worker Pool '{worker_pool_id}'")
+            optionally_terminate_compute_requirement(worker_pool_id)
         except Exception as e:
             print_error(f"Unable to shut down Worker Pool '{worker_pool_id}': ({e})")
 
@@ -124,6 +131,27 @@ def shutdown_by_names_or_ids(names_or_ids: List[str]):
 
     if ARGS_PARSER.follow:
         follow_ids(worker_pool_ids, auto_cr=ARGS_PARSER.auto_cr)
+
+
+def optionally_terminate_compute_requirement(worker_pool_id: str):
+    """
+    Optionally terminate the associated compute requirement.
+    """
+    if not ARGS_PARSER.terminate:
+        return
+
+    try:
+        worker_pool: ProvisionedWorkerPool = (
+            CLIENT.worker_pool_client.get_worker_pool_by_id(worker_pool_id)
+        )
+        CLIENT.compute_client.terminate_compute_requirement_by_id(
+            worker_pool.computeRequirementId
+        )
+        print_log(
+            f"Terminated associated Compute Requirement '{worker_pool.computeRequirementId}'"
+        )
+    except Exception as e:
+        print_error(f"Error terminating Compute Requirement: ({e})")
 
 
 # Entry point

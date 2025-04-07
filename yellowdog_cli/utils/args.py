@@ -782,6 +782,13 @@ class CLIParser:
                 required=False,
                 help="follow worker pool shutdown to completion",
             )
+            parser.add_argument(
+                "--terminate",
+                "-T",
+                action="store_true",
+                required=False,
+                help="also immediately terminate associated compute requirement(s)",
+            )
 
         if "terminate" in sys.argv[0]:
             parser.add_argument(
@@ -1643,6 +1650,11 @@ class CLIParser:
     @allow_missing_attribute
     def ids_only(self) -> Optional[bool]:
         return self.args.ids_only
+
+    @property
+    @allow_missing_attribute
+    def terminate(self) -> Optional[bool]:
+        return self.args.terminate
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
