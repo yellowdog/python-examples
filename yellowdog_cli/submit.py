@@ -1740,9 +1740,7 @@ def submit_json_task_batch(
             f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
             f"taskGroups/{task_group_name}/tasks"
         ),
-        headers={
-            "Authorization": (f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}")
-        },
+        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
         json=task_batch,
     )
 
