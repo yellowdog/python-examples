@@ -474,6 +474,8 @@ def list_workers(nodes: List[Node]):
                     WorkerStatus.SLEEPING,
                     WorkerStatus.DOING_TASK,
                     WorkerStatus.FOUND,
+                    WorkerStatus.STOPPED,
+                    WorkerStatus.STARTING,
                 ]:
                     continue
             # Add extra info to the Worker object
