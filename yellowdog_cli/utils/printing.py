@@ -1157,6 +1157,8 @@ STATUS_COUNTS_INSTANCES = [
 STATUS_COUNTS_WORKERS = [
     StatusCount("DOING_TASK", True),
     StatusCount("SLEEPING", True),
+    StatusCount("STOPPED", True),
+    StatusCount("STARTING", True),
     StatusCount("LATE"),
     StatusCount("FOUND"),
     StatusCount("LOST"),

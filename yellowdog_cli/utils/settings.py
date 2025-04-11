@@ -76,6 +76,8 @@ HIGHLIGHTED_STATES = [
     r"(?P<idle>FOUND)",
     r"(?P<idle>IDLE)",
     r"(?P<idle>SLEEPING)",
+    r"(?P<idle>STOPPED)",
+    r"(?P<idle>STARTING)",
     r"(?P<idle>WAITING)",
     r"(?P<idle>HELD)",
     r"(?P<starved>STARVED)",
