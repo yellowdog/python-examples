@@ -333,9 +333,15 @@ def create_compute_requirement_template(resource: Dict):
         _get_images_id(images_id, resource, PROP_IMAGES_ID)
 
     if ARGS_PARSER.dry_run:
-        _get_model_object(type, resource)  # Report extras and omissions
+        _get_model_object(type, resource)  # Report omissions, extras, errors
         print_json(resource)
         return
+
+    # Overwrite source dictionaries with ComputeSourceUsage objects
+    resource[PROP_SOURCES] = [
+        _get_model_object("ComputeSourceUsage", source)
+        for source in resource.get(PROP_SOURCES, [])
+    ]
 
     compute_template = _get_model_object(type, resource)
 
