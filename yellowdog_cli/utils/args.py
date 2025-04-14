@@ -343,7 +343,7 @@ class CLIParser:
                 "-a",
                 action="store_true",
                 required=False,
-                help="abort all running tasks with immediate effect",
+                help="abort running tasks with immediate effect",
             )
             parser.add_argument(
                 "--follow",
@@ -816,7 +816,7 @@ class CLIParser:
                 type=str,
                 help=(
                     "the name(s) or YellowDog ID(s) of the work requirement(s) to be"
-                    " cancelled"
+                    " cancelled; can also supply task IDs"
                 ),
             )
 

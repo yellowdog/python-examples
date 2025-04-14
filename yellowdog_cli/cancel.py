@@ -21,6 +21,7 @@ from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import link_entity
 from yellowdog_cli.utils.printing import print_error, print_log, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
+from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 
 @main_wrapper
@@ -107,7 +108,22 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
     Cancel Work Requirements by their names or IDs.
     """
     work_requirement_summaries: List[WorkRequirementSummary] = []
+
     for name_or_id in names_or_ids:
+
+        # Handle a task ID
+        if get_ydid_type(name_or_id) == YDIDType.TASK:
+            if not confirmed(
+                f"Cancel {'' if not ARGS_PARSER.abort else 'and abort '}"
+                f"Task '{name_or_id}'?"
+            ):
+                continue
+            try:
+                CLIENT.work_client.cancel_task_by_id(name_or_id, ARGS_PARSER.abort)
+            except Exception as e:
+                print_error(f"Failed to cancel Task '{name_or_id}': {e}")
+            continue
+
         work_requirement_summary: WorkRequirementSummary = (
             get_work_requirement_summary_by_name_or_id(CLIENT, name_or_id)
         )
