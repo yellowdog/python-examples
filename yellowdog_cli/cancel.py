@@ -4,13 +4,9 @@
 A script to cancel Work Requirements and optionally abort Tasks.
 """
 
-from time import sleep
 from typing import List
 
 from yellowdog_client.model import (
-    Task,
-    TaskSearch,
-    TaskStatus,
     WorkRequirement,
     WorkRequirementStatus,
     WorkRequirementSummary,
@@ -18,14 +14,12 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.entity_utils import (
     get_filtered_work_requirements,
-    get_task_group_name,
     get_work_requirement_summary_by_name_or_id,
 )
 from yellowdog_cli.utils.follow_utils import follow_ids
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import link_entity
-from yellowdog_cli.utils.printing import print_error, print_log
-from yellowdog_cli.utils.settings import TASK_ABORT_CHECK_INTERVAL
+from yellowdog_cli.utils.printing import print_error, print_log, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -64,12 +58,16 @@ def main():
         )
 
     if len(selected_work_requirement_summaries) > 0 and confirmed(
-        f"Cancel {len(selected_work_requirement_summaries)} Work Requirement(s)?"
+        f"Cancel {len(selected_work_requirement_summaries)} "
+        f"Work Requirement(s)"
+        f"{'' if not ARGS_PARSER.abort else ' and abort all allocated tasks'}?"
     ):
         for work_summary in selected_work_requirement_summaries:
             if work_summary.status != WorkRequirementStatus.CANCELLING:
                 try:
-                    CLIENT.work_client.cancel_work_requirement_by_id(work_summary.id)
+                    CLIENT.work_client.cancel_work_requirement_by_id(
+                        work_summary.id, ARGS_PARSER.abort
+                    )
                     work_requirement: WorkRequirement = (
                         CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
                     )
@@ -77,7 +75,9 @@ def main():
                     print_log(
                         f"Cancelled {link_entity(CONFIG_COMMON.url, work_requirement)} "
                         f"('{work_summary.name}')"
+                        f"{'' if not ARGS_PARSER.abort else ' and aborted all allocated tasks'}"
                     )
+
                 except Exception as e:
                     print_error(
                         f"Failed to cancel Work Requirement '{work_summary.name}': {e}"
@@ -95,55 +95,11 @@ def main():
         elif cancelled_count == 0 and cancelling_count == 0:
             print_log("No Work Requirements to cancel")
 
-        if ARGS_PARSER.abort:
-            if cancelled_count == 0 and cancelling_count == 0:
-                print_log("No Tasks to abort")
-            else:
-                _abort_and_follow(selected_work_requirement_summaries)
-
         if ARGS_PARSER.follow:
             follow_ids(work_requirement_ids)
 
     else:
         print_log("No Work Requirements to cancel")
-
-
-def _abort_all_tasks(
-    selected_work_requirement_summaries: List[WorkRequirementSummary],
-) -> int:
-    """
-    Abort all Tasks in selected Work Requirements.
-    """
-    aborted_tasks = 0
-    for wr_summary in selected_work_requirement_summaries:
-        task_search = TaskSearch(
-            workRequirementId=wr_summary.id,
-            statuses=[
-                TaskStatus.EXECUTING,
-                TaskStatus.DOWNLOADING,
-                TaskStatus.UPLOADING,
-            ],
-        )
-        tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
-        for task in tasks:
-            try:
-                CLIENT.work_client.cancel_task(task, abort=True)
-                print_log(
-                    f"Aborting Task '{task.name}' in Task Group"
-                    f" '{get_task_group_name(CLIENT, wr_summary, task)}' in Work"
-                    f" Requirement '{wr_summary.name}'"
-                )
-                aborted_tasks += 1
-            except Exception as e:
-                print_error(f"Error aborting Task '{task.name}': {e}")
-
-    if aborted_tasks == 0:
-        print_log("No Tasks to abort")
-    if aborted_tasks <= 5:
-        pass
-    else:
-        print_log(f"Aborting {aborted_tasks} Task(s)")
-    return aborted_tasks
 
 
 def _cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
@@ -163,51 +119,34 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
             WorkRequirementStatus.RUNNING,
             WorkRequirementStatus.HELD,
         ]:
-            raise Exception(
+            print_warning(
                 f"Work Requirement '{name_or_id}' is not in a valid state"
                 f" ('{work_requirement_summary.status}') for cancellation"
             )
+            continue
 
         work_requirement_summaries.append(work_requirement_summary)
         if work_requirement_summary.status == WorkRequirementStatus.CANCELLING:
             print_log(f"Work Requirement '{name_or_id}' is already cancelling")
         else:
-            if not confirmed(f"Cancel Work Requirement '{name_or_id}'?"):
+            if not confirmed(
+                f"Cancel Work Requirement '{name_or_id}'"
+                f"{'' if not ARGS_PARSER.abort else ' and abort all allocated tasks'}?"
+            ):
                 continue
             try:
                 CLIENT.work_client.cancel_work_requirement_by_id(
-                    work_requirement_summary.id
+                    work_requirement_summary.id, ARGS_PARSER.abort
                 )
-                print_log(f"Cancelled Work Requirement '{name_or_id}'")
+                print_log(
+                    f"Cancelled Work Requirement '{name_or_id}'"
+                    f"{'' if not ARGS_PARSER.abort else ' and aborted all allocated tasks'}"
+                )
             except Exception as e:
                 print_error(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
 
-    if ARGS_PARSER.abort:
-        _abort_and_follow(work_requirement_summaries)
-
     if ARGS_PARSER.follow:
         follow_ids([wrs.id for wrs in work_requirement_summaries])
-
-
-def _abort_and_follow(work_requirement_summaries: List[WorkRequirementSummary]):
-    """
-    Abort Tasks in one or more Work Requirements and optionally follow
-    abort progress.
-    """
-    if ARGS_PARSER.follow:
-        attempt = 0
-        while True:
-            attempt += 1
-            print_log(f"Collecting Tasks to abort (attempt {attempt})")
-            if _abort_all_tasks(work_requirement_summaries) == 0:
-                break
-            print_log(
-                f"Waiting {TASK_ABORT_CHECK_INTERVAL}s for abort confirmation ..."
-            )
-            sleep(TASK_ABORT_CHECK_INTERVAL)
-    else:
-        print_log("Aborting all currently running Tasks")
-        _abort_all_tasks(work_requirement_summaries)
 
 
 # Entry point
