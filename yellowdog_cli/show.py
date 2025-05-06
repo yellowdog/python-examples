@@ -12,11 +12,15 @@ from yellowdog_cli.utils.printing import print_error, print_log, print_yd_object
 from yellowdog_cli.utils.settings import (
     RESOURCE_PROPERTY_NAME,
     RN_ALLOWANCE,
+    RN_APPLICATION,
     RN_CONFIGURED_POOL,
+    RN_GROUP,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
     RN_REQUIREMENT_TEMPLATE,
+    RN_ROLE,
     RN_SOURCE_TEMPLATE,
+    RN_USER,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
@@ -192,6 +196,42 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
                 add_fields=({RESOURCE_PROPERTY_NAME: RN_ALLOWANCE}),
+            )
+
+        elif ydid_type == YDIDType.APPLICATION:
+            print_log(f"Showing details of Application ID '{ydid}'")
+            print_yd_object(
+                CLIENT.account_client.get_application(ydid),
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_APPLICATION}),
+            )
+
+        elif ydid_type == YDIDType.USER:
+            print_log(f"Showing details of User ID '{ydid}'")
+            print_yd_object(
+                CLIENT.account_client.get_user(ydid),
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_USER}),
+            )
+
+        elif ydid_type == YDIDType.GROUP:
+            print_log(f"Showing details of Group ID '{ydid}'")
+            print_yd_object(
+                CLIENT.account_client.get_group(ydid),
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_GROUP}),
+            )
+
+        elif ydid_type == YDIDType.ROLE:
+            print_log(f"Showing details of Role ID '{ydid}'")
+            print_yd_object(
+                CLIENT.account_client.get_role(ydid),
+                initial_indent=initial_indent,
+                with_final_comma=with_final_comma,
+                add_fields=({RESOURCE_PROPERTY_NAME: RN_ROLE}),
             )
 
         else:

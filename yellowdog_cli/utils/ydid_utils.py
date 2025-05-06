@@ -8,17 +8,21 @@ from typing import Optional
 
 class YDIDType(Enum):
     ALLOWANCE = "Allowance"
+    APPLICATION = "Application"
     COMPUTE_REQUIREMENT = "Compute Requirement"
     COMPUTE_REQUIREMENT_TEMPLATE = "Compute Requirement Template"
     COMPUTE_SOURCE = "Compute Source"
     COMPUTE_SOURCE_TEMPLATE = "Compute Source Template"
+    GROUP = "Group"
     IMAGE = "Machine Image"
     IMAGE_FAMILY = "Machine Image Family"
     IMAGE_GROUP = "Machine Image Group"
     KEYRING = "Keyring"
     NODE = "Node"
+    ROLE = "Role"
     TASK = "Task"
     TASK_GROUP = "Task Group"
+    USER = "User"
     WORKER = "Worker"
     WORKER_POOL = "Worker Pool"
     WORK_REQUIREMENT = "Work Requirement"
@@ -61,5 +65,13 @@ def get_ydid_type(ydid: Optional[str]) -> Optional[YDIDType]:
         return YDIDType.KEYRING
     if ydid.startswith("ydid:allow:"):
         return YDIDType.ALLOWANCE
+    if ydid.startswith("ydid:app:"):
+        return YDIDType.APPLICATION
+    if ydid.startswith("ydid:user:"):
+        return YDIDType.USER
+    if ydid.startswith("ydid:group:"):
+        return YDIDType.GROUP
+    if ydid.startswith("ydid:role:"):
+        return YDIDType.ROLE
 
     return None

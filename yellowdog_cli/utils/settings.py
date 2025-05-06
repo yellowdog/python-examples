@@ -112,16 +112,20 @@ DEFAULT_THEME = {
 # Resource type names for create/remove
 RESOURCE_PROPERTY_NAME = "resource"
 RN_ALLOWANCE = "Allowance"
+RN_APPLICATION = "Application"
 RN_CONFIGURED_POOL = "ConfiguredWorkerPool"
 RN_CREDENTIAL = "Credential"
+RN_GROUP = "Group"
 RN_IMAGE_FAMILY = "MachineImageFamily"
 RN_KEYRING = "Keyring"
+RN_NAMESPACE_POLICY = "NamespacePolicy"
+RN_NUMERIC_ATTRIBUTE_DEFINITION = "NumericAttributeDefinition"
 RN_REQUIREMENT_TEMPLATE = "ComputeRequirementTemplate"
+RN_ROLE = "Role"
 RN_SOURCE_TEMPLATE = "ComputeSourceTemplate"
 RN_STORAGE_CONFIGURATION = "NamespaceStorageConfiguration"
 RN_STRING_ATTRIBUTE_DEFINITION = "StringAttributeDefinition"
-RN_NUMERIC_ATTRIBUTE_DEFINITION = "NumericAttributeDefinition"
-RN_NAMESPACE_POLICY = "NamespacePolicy"
+RN_USER = "User"
 
 # Property Names
 PROP_AUTOSCALING_MAX_NODES = "autoscalingMaxNodes"
