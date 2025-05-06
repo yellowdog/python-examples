@@ -6,6 +6,7 @@ from typing import TypeVar
 
 from yellowdog_client.model import (
     Allowance,
+    Application,
     ComputeRequirement,
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplate,
@@ -33,6 +34,7 @@ Item = TypeVar(
     "Item",
     AWSAvailabilityZone,
     Allowance,
+    Application,
     ComputeRequirement,
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplate,
@@ -43,13 +45,13 @@ Item = TypeVar(
     MachineImageFamilySummary,
     NamespacePolicy,
     NamespaceStorageConfiguration,
+    Node,
     ObjectPath,
     ProvisionedWorkerPool,
     Task,
     TaskGroup,
-    Worker,
-    WorkRequirementSummary,
-    WorkerPoolSummary,
-    Node,
     User,
+    WorkRequirementSummary,
+    Worker,
+    WorkerPoolSummary,
 )

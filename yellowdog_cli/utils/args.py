@@ -634,6 +634,12 @@ class CLIParser:
                 help="list users",
             )
             parser.add_argument(
+                "--applications",
+                action="store_true",
+                required=False,
+                help="list applications",
+            )
+            parser.add_argument(
                 "--output-file",
                 type=str,
                 required=False,
@@ -1511,6 +1517,11 @@ class CLIParser:
     @allow_missing_attribute
     def users(self) -> Optional[bool]:
         return self.args.users
+
+    @property
+    @allow_missing_attribute
+    def applications(self) -> Optional[bool]:
+        return self.args.applications
 
     @property
     @allow_missing_attribute

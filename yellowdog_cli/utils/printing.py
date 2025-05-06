@@ -21,6 +21,7 @@ from yellowdog_client import PlatformClient
 from yellowdog_client.common.json import Json
 from yellowdog_client.model import (
     Allowance,
+    Application,
     BestComputeSourceReport,
     BestComputeSourceReportSource,
     ComputeRequirement,
@@ -750,6 +751,28 @@ def users_table(
     return headers, table
 
 
+def applications_table(
+    applications: List[Application],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Name",
+        "Description",
+        "ID",
+    ]
+    table = []
+    for index, application in enumerate(applications):
+        table.append(
+            [
+                index + 1,
+                application.name,
+                application.description,
+                application.id,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Union[Item, str, Dict]],
@@ -812,6 +835,8 @@ def print_numbered_object_list(
         headers, table = workers_table(objects)
     elif isinstance(objects[0], User):
         headers, table = users_table(objects)
+    elif isinstance(objects[0], Application):
+        headers, table = applications_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):

@@ -15,6 +15,8 @@ from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     Allowance,
     AllowanceSearch,
+    Application,
+    ApplicationSearch,
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
@@ -118,6 +120,8 @@ def main():
         list_namespace_policies()
     elif ARGS_PARSER.users:
         list_users()
+    elif ARGS_PARSER.applications:
+        list_applications()
 
 
 def check_for_valid_option() -> bool:
@@ -126,6 +130,7 @@ def check_for_valid_option() -> bool:
     """
     if [
         ARGS_PARSER.allowances,
+        ARGS_PARSER.applications,
         ARGS_PARSER.attribute_definitions,
         ARGS_PARSER.compute_requirements,
         ARGS_PARSER.compute_templates,
@@ -860,7 +865,7 @@ def list_users():
     users: List[User] = search_client.list_all()
 
     if len(users) == 0:
-        print_log("No users to display")
+        print_log("No Users to display")
         return
 
     if not ARGS_PARSER.details:
@@ -868,6 +873,28 @@ def list_users():
         return
 
     for selected_users in select(CLIENT, users, object_type_name="User"):
+        print_yd_object(selected_users)
+
+
+def list_applications():
+    """
+    List all applications in the account.
+    """
+    application_search = ApplicationSearch()
+    search_client: SearchClient = CLIENT.account_client.get_applications(
+        application_search
+    )
+    applications: List[Application] = search_client.list_all()
+
+    if len(applications) == 0:
+        print_log("No Applications to display")
+        return
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, applications, object_type_name="Application")
+        return
+
+    for selected_users in select(CLIENT, applications, object_type_name="Application"):
         print_yd_object(selected_users)
 
 
