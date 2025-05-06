@@ -628,6 +628,12 @@ class CLIParser:
                 help="list namespace policies",
             )
             parser.add_argument(
+                "--users",
+                action="store_true",
+                required=False,
+                help="list users",
+            )
+            parser.add_argument(
                 "--output-file",
                 type=str,
                 required=False,
@@ -1500,6 +1506,11 @@ class CLIParser:
     @allow_missing_attribute
     def namespace_policies(self) -> Optional[bool]:
         return self.args.namespace_policies
+
+    @property
+    @allow_missing_attribute
+    def users(self) -> Optional[bool]:
+        return self.args.users
 
     @property
     @allow_missing_attribute

@@ -35,6 +35,8 @@ from yellowdog_client.model import (
     ObjectDetail,
     Task,
     TaskGroup,
+    User,
+    UserSearch,
     Worker,
     WorkerPoolStatus,
     WorkerPoolSummary,
@@ -114,6 +116,8 @@ def main():
         list_attribute_definitions()
     elif ARGS_PARSER.namespace_policies:
         list_namespace_policies()
+    elif ARGS_PARSER.users:
+        list_users()
 
 
 def check_for_valid_option() -> bool:
@@ -135,6 +139,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.source_templates,
         ARGS_PARSER.task_groups,
         ARGS_PARSER.tasks,
+        ARGS_PARSER.users,
         ARGS_PARSER.work_requirements,
         ARGS_PARSER.worker_pools,
         ARGS_PARSER.workers,
@@ -844,6 +849,26 @@ def list_namespace_policies():
                 selected_namespace_policy.autoscalingMaxNodes
             )
             print_json(details)
+
+
+def list_users():
+    """
+    List all users in the account.
+    """
+    user_search = UserSearch()
+    search_client: SearchClient = CLIENT.account_client.get_users(user_search)
+    users: List[User] = search_client.list_all()
+
+    if len(users) == 0:
+        print_log("No users to display")
+        return
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, users, object_type_name="User")
+        return
+
+    for selected_users in select(CLIENT, users, object_type_name="User"):
+        print_yd_object(selected_users)
 
 
 def get_autoscaling_capacity(namespace: str) -> Dict:

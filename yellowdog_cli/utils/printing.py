@@ -30,7 +30,9 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateUsage,
     ComputeSourceTemplateSummary,
     ConfiguredWorkerPool,
+    ExternalUser,
     Instance,
+    InternalUser,
     KeyringSummary,
     MachineImageFamilySummary,
     NamespacePolicy,
@@ -41,6 +43,7 @@ from yellowdog_client.model import (
     ProvisionedWorkerPoolProperties,
     Task,
     TaskGroup,
+    User,
     Worker,
     WorkerPoolSummary,
     WorkRequirement,
@@ -709,6 +712,44 @@ def namespace_policies_table(
     return headers, table
 
 
+def users_table(
+    users: List[User],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Name",
+        "User Type",
+        "Username",
+        "Email",
+        "ID",
+    ]
+    table = []
+    for index, user in enumerate(users):
+        if isinstance(user, InternalUser):
+            table.append(
+                [
+                    index + 1,
+                    user.name,
+                    "Internal",
+                    user.username,
+                    user.email,
+                    user.id,
+                ]
+            )
+        elif isinstance(user, ExternalUser):  # External user
+            table.append(
+                [
+                    index + 1,
+                    user.name,
+                    "External",
+                    "",
+                    user.email,
+                    user.id,
+                ]
+            )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Union[Item, str, Dict]],
@@ -769,6 +810,8 @@ def print_numbered_object_list(
         headers, table = nodes_table(objects)
     elif isinstance(objects[0], Worker):
         headers, table = workers_table(objects)
+    elif isinstance(objects[0], User):
+        headers, table = users_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):
