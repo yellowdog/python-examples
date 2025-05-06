@@ -2811,6 +2811,10 @@ The `yd-show` command will show the details (in JSON) of any YellowDog entity th
 - Image Families, Image Groups, and Images
 - Keyrings
 - Allowances
+- Users
+- Applications
+- Groups
+- Roles
 
 ## yd-compare
 
