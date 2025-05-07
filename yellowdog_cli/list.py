@@ -22,6 +22,9 @@ from yellowdog_client.model import (
     ComputeRequirementStatus,
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplateSummary,
+    Group,
+    GroupSearch,
+    GroupSummary,
     Instance,
     InstanceSearch,
     Keyring,
@@ -35,6 +38,9 @@ from yellowdog_client.model import (
     NodeSearch,
     NodeStatus,
     ObjectDetail,
+    Role,
+    RoleSearch,
+    RoleSummary,
     Task,
     TaskGroup,
     User,
@@ -122,6 +128,10 @@ def main():
         list_users()
     elif ARGS_PARSER.applications:
         list_applications()
+    elif ARGS_PARSER.groups:
+        list_groups()
+    elif ARGS_PARSER.roles:
+        list_roles()
 
 
 def check_for_valid_option() -> bool:
@@ -134,6 +144,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.attribute_definitions,
         ARGS_PARSER.compute_requirements,
         ARGS_PARSER.compute_templates,
+        ARGS_PARSER.groups,
         ARGS_PARSER.image_families,
         ARGS_PARSER.instances,
         ARGS_PARSER.keyrings,
@@ -142,6 +153,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.nodes,
         ARGS_PARSER.object_paths,
         ARGS_PARSER.source_templates,
+        ARGS_PARSER.roles,
         ARGS_PARSER.task_groups,
         ARGS_PARSER.tasks,
         ARGS_PARSER.users,
@@ -895,6 +907,52 @@ def list_applications():
         return
 
     for selected_users in select(CLIENT, applications, object_type_name="Application"):
+        print_yd_object(selected_users)
+
+
+def list_groups():
+    """
+    List all groups in the account.
+    """
+    group_search = GroupSearch()
+    search_client: SearchClient = CLIENT.account_client.get_groups(group_search)
+    group_summaries: List[GroupSummary] = search_client.list_all()
+
+    if len(group_summaries) == 0:
+        print_log("No Groups to display")
+        return
+
+    groups: List[Group] = [
+        CLIENT.account_client.get_group(x.id) for x in group_summaries
+    ]
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, groups, object_type_name="Group")
+        return
+
+    for selected_users in select(CLIENT, groups, object_type_name="Group"):
+        print_yd_object(selected_users)
+
+
+def list_roles():
+    """
+    List all roles in the account.
+    """
+    role_search = RoleSearch()
+    search_client: SearchClient = CLIENT.account_client.get_roles(role_search)
+    role_summaries: List[RoleSummary] = search_client.list_all()
+
+    if len(role_summaries) == 0:
+        print_log("No Roles to display")
+        return
+
+    groups: List[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, groups, object_type_name="Role")
+        return
+
+    for selected_users in select(CLIENT, groups, object_type_name="Role"):
         print_yd_object(selected_users)
 
 

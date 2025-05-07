@@ -32,6 +32,7 @@ from yellowdog_client.model import (
     ComputeSourceTemplateSummary,
     ConfiguredWorkerPool,
     ExternalUser,
+    Group,
     Instance,
     InternalUser,
     KeyringSummary,
@@ -42,6 +43,7 @@ from yellowdog_client.model import (
     ObjectPath,
     ProvisionedWorkerPool,
     ProvisionedWorkerPoolProperties,
+    Role,
     Task,
     TaskGroup,
     User,
@@ -773,6 +775,55 @@ def applications_table(
     return headers, table
 
 
+def groups_table(
+    groups: List[Group],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Name",
+        "Admin Group?",
+        "Description",
+        "Roles",
+        "ID",
+    ]
+    table = []
+    for index, group in enumerate(groups):
+        table.append(
+            [
+                index + 1,
+                group.name,
+                group.adminGroup,
+                f"{group.description[:40] + '...' if len(group.description) > 40 else group.description}",
+                ", ".join([x.role.name for x in group.roles]),
+                group.id,
+            ]
+        )
+    return headers, table
+
+
+def roles_table(
+    roles: List[Role],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Name",
+        "Permissions",
+        "ID",
+    ]
+    table = []
+    for index, role in enumerate(roles):
+        permissions = ", ".join(sorted([x.value for x in role.permissions]))
+        table.append(
+            [
+                index + 1,
+                role.name,
+                f"{permissions[:40] + '...' if len(permissions) > 40 else permissions}",
+                role.id,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Union[Item, str, Dict]],
@@ -837,6 +888,10 @@ def print_numbered_object_list(
         headers, table = users_table(objects)
     elif isinstance(objects[0], Application):
         headers, table = applications_table(objects)
+    elif isinstance(objects[0], Group):
+        headers, table = groups_table(objects)
+    elif isinstance(objects[0], Role):
+        headers, table = roles_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):

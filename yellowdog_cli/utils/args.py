@@ -640,6 +640,18 @@ class CLIParser:
                 help="list applications",
             )
             parser.add_argument(
+                "--groups",
+                action="store_true",
+                required=False,
+                help="list groups",
+            )
+            parser.add_argument(
+                "--roles",
+                action="store_true",
+                required=False,
+                help="list roles",
+            )
+            parser.add_argument(
                 "--output-file",
                 type=str,
                 required=False,
@@ -1522,6 +1534,16 @@ class CLIParser:
     @allow_missing_attribute
     def applications(self) -> Optional[bool]:
         return self.args.applications
+
+    @property
+    @allow_missing_attribute
+    def groups(self) -> Optional[bool]:
+        return self.args.groups
+
+    @property
+    @allow_missing_attribute
+    def roles(self) -> Optional[bool]:
+        return self.args.roles
 
     @property
     @allow_missing_attribute
