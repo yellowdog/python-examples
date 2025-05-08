@@ -68,6 +68,7 @@ from yellowdog_cli.utils.settings import (
     HIGHLIGHTED_STATES,
     JSON_INDENT,
     MAX_LINES_COLOURED_FORMATTING,
+    MAX_TABLE_DESCRIPTION,
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     PROP_RESOURCE,
     WARNING_STYLE,
@@ -478,7 +479,7 @@ def keyring_table(
             [
                 index + 1,
                 keyring.name,
-                keyring.description,
+                _truncate_text(keyring.description),
                 keyring.id,
             ]
         )
@@ -634,7 +635,7 @@ def allowances_table(
             [
                 index + 1,
                 allowance.type.split(".")[-1],
-                allowance.description,
+                _truncate_text(allowance.description),
                 allowance.allowedHours,
                 allowance.remainingHours,
                 allowance.limitEnforcement,
@@ -667,7 +668,7 @@ def attribute_definitions_table(
                 attribute_definition["name"],
                 attribute_definition["type"].split(".")[-1],
                 attribute_definition["title"],
-                attribute_definition.get("description", ""),
+                _truncate_text(attribute_definition.get("description", "")),
             ]
         )
     return headers, table
@@ -768,7 +769,7 @@ def applications_table(
             [
                 index + 1,
                 application.name,
-                application.description,
+                _truncate_text(application.description),
                 application.id,
             ]
         )
@@ -793,7 +794,7 @@ def groups_table(
                 index + 1,
                 group.name,
                 group.adminGroup,
-                f"{group.description[:40] + '...' if len(group.description) > 40 else group.description}",
+                _truncate_text(group.description),
                 ", ".join([x.role.name for x in group.roles]),
                 group.id,
             ]
@@ -817,7 +818,7 @@ def roles_table(
             [
                 index + 1,
                 role.name,
-                f"{permissions[:40] + '...' if len(permissions) > 40 else permissions}",
+                _truncate_text(permissions),
                 role.id,
             ]
         )
@@ -1445,3 +1446,10 @@ def _print_to_file(json_string: str, output_file: str, with_final_comma: bool = 
         raise Exception(f"Cannot open output file for writing: {e}")
 
     FIRST_OUTPUT_TO_FILE = False
+
+
+def _truncate_text(description: str):
+    """
+    Truncate a description to fit within MAX_TABLE_DESCRIPTION.
+    """
+    return f"{description[:MAX_TABLE_DESCRIPTION - 3] + '...' if len(description) > MAX_TABLE_DESCRIPTION else description}"
