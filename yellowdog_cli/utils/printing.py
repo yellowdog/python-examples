@@ -402,6 +402,7 @@ def compute_requirement_template_table(
         "Name",
         "Namespace",
         "Type",
+        "Description",
         "Strategy Type",
         "Compute Requirement Template ID",
     ]
@@ -423,6 +424,7 @@ def compute_requirement_template_table(
                 crt_summary.name,
                 crt_summary.namespace,
                 type,
+                _truncate_text(crt_summary.description),
                 strategy_type,
                 crt_summary.id,
             ]
@@ -437,6 +439,7 @@ def compute_source_template_table(
         "#",
         "Name",
         "Namespace",
+        "Description",
         "Provider",
         "Type",
         "Compute Source Template ID",
@@ -456,6 +459,7 @@ def compute_source_template_table(
                 index + 1,
                 cst_summary.name,
                 cst_summary.namespace,
+                _truncate_text(cst_summary.description),
                 provider,
                 type,
                 cst_summary.id,
@@ -1448,8 +1452,11 @@ def _print_to_file(json_string: str, output_file: str, with_final_comma: bool = 
     FIRST_OUTPUT_TO_FILE = False
 
 
-def _truncate_text(description: str):
+def _truncate_text(description: Union[str, None]):
     """
     Truncate a description to fit within MAX_TABLE_DESCRIPTION.
     """
+    if description is None:
+        return ""
+
     return f"{description[:MAX_TABLE_DESCRIPTION - 3] + '...' if len(description) > MAX_TABLE_DESCRIPTION else description}"
