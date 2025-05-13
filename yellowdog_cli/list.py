@@ -876,6 +876,8 @@ def list_users():
     search_client: SearchClient = CLIENT.account_client.get_users(user_search)
     users: List[User] = search_client.list_all()
 
+    users.sort(key=lambda user: user.name)
+
     if len(users) == 0:
         print_log("No Users to display")
         return
