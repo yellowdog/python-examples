@@ -946,13 +946,16 @@ def list_roles():
         print_log("No Roles to display")
         return
 
-    groups: List[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
+    role_summaries.sort(key=lambda role: role.name)
+
+    print_log("Obtaining permissions for each role ...")
+    roles: List[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
 
     if not ARGS_PARSER.details:
-        print_numbered_object_list(CLIENT, groups, object_type_name="Role")
+        print_numbered_object_list(CLIENT, roles, object_type_name="Role")
         return
 
-    for selected_users in select(CLIENT, groups, object_type_name="Role"):
+    for selected_users in select(CLIENT, roles, object_type_name="Role"):
         print_yd_object(selected_users)
 
 
