@@ -922,6 +922,8 @@ def list_groups():
         print_log("No Groups to display")
         return
 
+    group_summaries.sort(key=lambda group: group.name if group.name is not None else "")
+
     groups: List[Group] = [
         CLIENT.account_client.get_group(x.id) for x in group_summaries
     ]
@@ -946,7 +948,7 @@ def list_roles():
         print_log("No Roles to display")
         return
 
-    role_summaries.sort(key=lambda role: role.name)
+    role_summaries.sort(key=lambda role: role.name if role.name is not None else "")
 
     print_log("Obtaining permissions for each role ...")
     roles: List[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
