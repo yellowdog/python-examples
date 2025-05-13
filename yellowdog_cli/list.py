@@ -897,6 +897,7 @@ def list_applications():
         application_search
     )
     applications: List[Application] = search_client.list_all()
+    applications.sort(key=lambda app: app.name)
 
     if len(applications) == 0:
         print_log("No Applications to display")
