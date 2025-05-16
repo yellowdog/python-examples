@@ -1191,6 +1191,8 @@ def get_task_data_property(
             ) as f:
                 return f.read()
 
+    return None
+
 
 def follow_progress_old(work_requirement: WorkRequirement) -> None:
     """
