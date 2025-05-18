@@ -337,11 +337,12 @@ def create_compute_requirement_template(resource: Dict):
         print_json(resource)
         return
 
-    # Overwrite source dictionaries with ComputeSourceUsage objects
-    resource[PROP_SOURCES] = [
-        _get_model_object("ComputeSourceUsage", source)
-        for source in resource.get(PROP_SOURCES, [])
-    ]
+    # Overwrite source dictionaries with ComputeSourceUsage objects for static CRTs
+    if resource.get(PROP_SOURCES) is not None:
+        resource[PROP_SOURCES] = [
+            _get_model_object("ComputeSourceUsage", source)
+            for source in resource.get(PROP_SOURCES, [])
+        ]
 
     compute_template = _get_model_object(type, resource)
 
