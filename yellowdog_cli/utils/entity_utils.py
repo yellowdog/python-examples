@@ -9,6 +9,8 @@ from yellowdog_client import PlatformClient
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     AllowanceSearch,
+    Application,
+    ApplicationSearch,
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
@@ -568,7 +570,7 @@ def get_role_id_by_name(client: PlatformClient, role_name: str) -> Optional[str]
     if get_ydid_type(role_name) == YDIDType.ROLE:
         return role_name
 
-    for role in _get_all_roles(client):
+    for role in get_all_roles(client):
         if role_name == role.name:
             return role.id
 
@@ -580,7 +582,7 @@ def get_role_name_by_id(client: PlatformClient, role_id: str) -> Optional[str]:
     """
     Get the name of a role by its ID.
     """
-    for role in _get_all_roles(client):
+    for role in get_all_roles(client):
         if role.id == role_id:
             return role.name
 
@@ -588,7 +590,7 @@ def get_role_name_by_id(client: PlatformClient, role_id: str) -> Optional[str]:
 
 
 @lru_cache
-def _get_all_roles(client: PlatformClient) -> List[RoleSummary]:
+def get_all_roles(client: PlatformClient) -> List[RoleSummary]:
     """
     Cache all roles.
     """
@@ -611,3 +613,25 @@ def get_group_id_by_name(client: PlatformClient, group_name: str) -> Optional[st
             return group_summary.id
 
     return None
+
+
+@lru_cache
+def get_all_groups(client: PlatformClient) -> List[GroupSummary]:
+    """
+    Return a list of all the groups.
+    """
+    group_search = GroupSearch()
+    search_client: SearchClient = client.account_client.get_groups(group_search)
+    return search_client.list_all()
+
+
+@lru_cache
+def get_all_applications(client: PlatformClient) -> List[Application]:
+    """
+    Return a list of all the applications.
+    """
+    application_search = ApplicationSearch()
+    search_client: SearchClient = client.account_client.get_applications(
+        application_search
+    )
+    return search_client.list_all()

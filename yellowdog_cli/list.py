@@ -15,16 +15,12 @@ from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     Allowance,
     AllowanceSearch,
-    Application,
-    ApplicationSearch,
     ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplateSummary,
     Group,
-    GroupSearch,
-    GroupSummary,
     Instance,
     InstanceSearch,
     Keyring,
@@ -39,8 +35,6 @@ from yellowdog_client.model import (
     NodeStatus,
     ObjectDetail,
     Role,
-    RoleSearch,
-    RoleSummary,
     Task,
     TaskGroup,
     User,
@@ -54,6 +48,9 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.entity_utils import (
+    get_all_applications,
+    get_all_groups,
+    get_all_roles,
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
     get_tasks,
@@ -894,16 +891,13 @@ def list_applications():
     """
     List all applications in the account.
     """
-    application_search = ApplicationSearch()
-    search_client: SearchClient = CLIENT.account_client.get_applications(
-        application_search
-    )
-    applications: List[Application] = search_client.list_all()
-    applications.sort(key=lambda app: app.name)
+    applications = get_all_applications(CLIENT)
 
     if len(applications) == 0:
         print_log("No Applications to display")
         return
+
+    applications.sort(key=lambda app: app.name)
 
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, applications, object_type_name="Application")
@@ -917,9 +911,7 @@ def list_groups():
     """
     List all groups in the account.
     """
-    group_search = GroupSearch()
-    search_client: SearchClient = CLIENT.account_client.get_groups(group_search)
-    group_summaries: List[GroupSummary] = search_client.list_all()
+    group_summaries = get_all_groups(CLIENT)
 
     if len(group_summaries) == 0:
         print_log("No Groups to display")
@@ -943,9 +935,7 @@ def list_roles():
     """
     List all roles in the account.
     """
-    role_search = RoleSearch()
-    search_client: SearchClient = CLIENT.account_client.get_roles(role_search)
-    role_summaries: List[RoleSummary] = search_client.list_all()
+    role_summaries = get_all_roles(CLIENT)
 
     if len(role_summaries) == 0:
         print_log("No Roles to display")
