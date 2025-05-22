@@ -97,6 +97,7 @@
       * [String Attribute Definitions](#string-attribute-definitions)
       * [Numeric Attribute Definitions](#numeric-attribute-definitions)
    * [Namespace Policies](#namespace-policies)
+   * [Groups](#groups)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -126,7 +127,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed Feb 26 15:47:37 GMT 2025 -->
+<!-- Added by: pwt, at: Thu May 22 08:45:39 BST 2025 -->
 
 <!--te-->
 
@@ -1957,6 +1958,7 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 - `"StringAttributeDefinition"`
 - `"NumericAttributeDefinition"`
 - `"NamespacePolicy"`
+- `"Group"`
 
 ## Generating Resource Specifications
 
@@ -2332,6 +2334,21 @@ The Namespace Policies example and schema can be found at: (TBD).
 ```
 
 Namespace Policies are matched by their `namespace` property when using `yd-create` and `yd-remove`. The `autoscalingMaxNodes` property can be omitted or set to `null` to remove an existing limit for a namespace.
+
+## Groups
+
+When creating and removing groups, a list of roles can can be supplied and the group will be created or updated with the roles specified. Roles can be identified by their names or YellowDog IDs.
+
+Example:
+
+```json
+{
+    "resource": "Group",
+    "name": "my-group",
+    "description": "Description of my group",
+    "roles" : ["work-viewer", "compute-viewer"]
+}
+```
 
 # Jsonnet Support
 

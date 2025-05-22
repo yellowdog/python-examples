@@ -16,12 +16,16 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
+    GroupSearch,
+    GroupSummary,
     MachineImageFamily,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
     ObjectPath,
     ObjectPathsRequest,
     ProvisionedWorkerPool,
+    RoleSearch,
+    RoleSummary,
     Task,
     TaskGroup,
     TaskSearch,
@@ -554,3 +558,56 @@ def _get_image_family_name_from_id(
         return f"yd/{image_family.namespace}/{image_family.name}"
     except:
         return image_family_id
+
+
+@lru_cache
+def get_role_id_by_name(client: PlatformClient, role_name: str) -> Optional[str]:
+    """
+    Find the ID of a role by its name. Accept IDs and return unchanged.
+    """
+    if get_ydid_type(role_name) == YDIDType.ROLE:
+        return role_name
+
+    for role in _get_all_roles(client):
+        if role_name == role.name:
+            return role.id
+
+    return None
+
+
+@lru_cache
+def get_role_name_by_id(client: PlatformClient, role_id: str) -> Optional[str]:
+    """
+    Get the name of a role by its ID.
+    """
+    for role in _get_all_roles(client):
+        if role.id == role_id:
+            return role.name
+
+    return None
+
+
+@lru_cache
+def _get_all_roles(client: PlatformClient) -> List[RoleSummary]:
+    """
+    Cache all roles.
+    """
+    role_search = RoleSearch()
+    search_client: SearchClient = client.account_client.get_roles(role_search)
+    return search_client.list_all()
+
+
+@lru_cache
+def get_group_id_by_name(client: PlatformClient, group_name: str) -> Optional[str]:
+    """
+    Get a group's ID by its name.
+    """
+    group_search = GroupSearch(name=group_name)
+    search_client: SearchClient = client.account_client.get_groups(group_search)
+    group_summaries: List[GroupSummary] = search_client.list_all()
+
+    for group_summary in group_summaries:
+        if group_summary.name == group_name:
+            return group_summary.id
+
+    return None

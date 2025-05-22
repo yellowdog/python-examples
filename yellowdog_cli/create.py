@@ -12,6 +12,7 @@ import yellowdog_client.model as model
 from dateparser import parse as date_parse
 from requests import post, put
 from requests.exceptions import HTTPError
+from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     AccountAllowance,
     AddConfiguredWorkerPoolResponse,
@@ -20,6 +21,9 @@ from yellowdog_client.model import (
     AwsFleetComputeSource,
     AwsFleetPurchaseOption,
     CloudProvider,
+    Group,
+    GroupSearch,
+    GroupSummary,
     ImageOsType,
     Keyring,
     MachineImage,
@@ -39,6 +43,9 @@ from yellowdog_cli.utils.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
     find_image_family_reference_by_name,
+    get_group_id_by_name,
+    get_role_id_by_name,
+    get_role_name_by_id,
     remove_allowances_matching_description,
 )
 from yellowdog_cli.utils.interactive import confirmed
@@ -70,15 +77,18 @@ from yellowdog_cli.utils.settings import (
     PROP_RANGE,
     PROP_REQUIREMENT_CREATED_FROM,
     PROP_RESOURCE,
+    PROP_ROLES,
     PROP_SOURCE,
     PROP_SOURCE_CREATED_FROM,
     PROP_SOURCES,
     PROP_TITLE,
     PROP_TYPE,
     PROP_UNITS,
+    RN_ADD_GROUP_REQUEST,
     RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
+    RN_GROUP,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
     RN_NAMESPACE_POLICY,
@@ -87,6 +97,7 @@ from yellowdog_cli.utils.settings import (
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
+    RN_UPDATE_GROUP_REQUEST,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
@@ -160,6 +171,8 @@ def create_resources(
                 create_attribute_definition(resource, resource_type)
             elif resource_type == RN_NAMESPACE_POLICY:
                 create_namespace_policy(resource)
+            elif resource_type == RN_GROUP:
+                create_group(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -955,6 +968,77 @@ def create_namespace_policy(resource: Dict):
         f"Created or updated  Namespace Policy '{namespace_policy.namespace}' with "
         f"'autoscalingMaxNodes={namespace_policy.autoscalingMaxNodes}'"
     )
+
+
+def create_group(resource: Dict):
+    """
+    Create or update a group. Will also add or remove roles specified
+    by their names or IDs.
+    """
+    try:
+        name = resource[PROP_NAME]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    # Convert role names to IDs
+    roles: List[str] = resource.pop(PROP_ROLES, [])
+    new_role_ids = set()
+    for role_name in roles:
+        role_id = get_role_id_by_name(CLIENT, role_name)
+        if role_id is None:
+            print_warning(f"Role name '{role_name}' not found ... ignoring")
+        else:
+            new_role_ids.add(role_id)
+
+    def update_roles(group: Group):
+        """
+        Helper function to add/remove roles from a group.
+        """
+        current_role_ids = {role.role.id for role in group.roles}
+
+        role_ids_to_remove = current_role_ids - new_role_ids
+        for role_id in role_ids_to_remove:
+            CLIENT.account_client.remove_role_from_group(group.id, role_id)
+            print_log(
+                f"Removed role '{get_role_name_by_id(CLIENT, role_id)}' "
+                f"from Group ({role_id})"
+            )
+
+        role_ids_to_add = new_role_ids - current_role_ids
+        for role_id in role_ids_to_add:
+            CLIENT.account_client.add_role_to_group(group.id, role_id)
+            print_log(
+                f"Added role '{get_role_name_by_id(CLIENT, role_id)}' "
+                f"to Group ({role_id})"
+            )
+
+    def add_group():
+        """
+        Helper function to add a new group and its roles.
+        """
+        group: Group = CLIENT.account_client.add_group(
+            _get_model_object(RN_ADD_GROUP_REQUEST, resource)
+        )
+        print_log(f"Created Group '{group.name}' ({group.id})")
+        update_roles(group)
+
+    def update_group(group_id: str):
+        """
+        Helper function to update an existing group, including updating
+        its roles.
+        """
+        group: Group = CLIENT.account_client.update_group(
+            group_id, _get_model_object(RN_UPDATE_GROUP_REQUEST, resource)
+        )
+        print_log(f"Updated Group '{group.name}' ({group.id})")
+        update_roles(group)
+
+    # Main logic
+    group_id = get_group_id_by_name(CLIENT, name)
+    if group_id is None:
+        add_group()
+    else:
+        update_group(group_id)
 
 
 # Entry point

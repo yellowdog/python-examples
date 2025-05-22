@@ -112,6 +112,7 @@ DEFAULT_THEME = {
 
 # Resource type names for create/remove
 RESOURCE_PROPERTY_NAME = "resource"
+RN_ADD_GROUP_REQUEST = "AddGroupRequest"
 RN_ALLOWANCE = "Allowance"
 RN_APPLICATION = "Application"
 RN_CONFIGURED_POOL = "ConfiguredWorkerPool"
@@ -126,6 +127,7 @@ RN_ROLE = "Role"
 RN_SOURCE_TEMPLATE = "ComputeSourceTemplate"
 RN_STORAGE_CONFIGURATION = "NamespaceStorageConfiguration"
 RN_STRING_ATTRIBUTE_DEFINITION = "StringAttributeDefinition"
+RN_UPDATE_GROUP_REQUEST = "UpdateGroupRequest"
 RN_USER = "User"
 
 # Property Names
@@ -146,6 +148,7 @@ PROP_NAMESPACE = "namespace"
 PROP_OPTIONS = "options"
 PROP_OS_TYPE = "osType"
 PROP_RANGE = "range"
+PROP_ROLES = "roles"
 PROP_REQUIREMENT_CREATED_FROM = "requirementCreatedFromId"
 PROP_RESOURCE = "resource"
 PROP_SOURCE = "source"

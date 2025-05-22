@@ -42,7 +42,7 @@ pypi_test_upload: clean build
 pypi_check: build
 	twine check dist/*
 
-toc: toc toc_cloudwizard
+toc_all: toc toc_cloudwizard
 
 toc: README.md
 	./gh-md-toc --insert README.md

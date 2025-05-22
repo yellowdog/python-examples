@@ -11,6 +11,7 @@ from yellowdog_cli.utils.settings import (
     RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
+    RN_GROUP,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
     RN_NAMESPACE_POLICY,
@@ -109,6 +110,7 @@ def _resequence_resources(
         RN_NAMESPACE_POLICY,
         RN_STORAGE_CONFIGURATION,
         RN_CONFIGURED_POOL,
+        RN_GROUP,
     ]
 
     try:

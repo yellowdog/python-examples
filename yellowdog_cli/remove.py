@@ -21,6 +21,7 @@ from yellowdog_client.model import (
 from yellowdog_cli.utils.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
+    get_group_id_by_name,
     remove_allowances_matching_description,
 )
 from yellowdog_cli.utils.interactive import confirmed
@@ -32,6 +33,7 @@ from yellowdog_cli.utils.settings import (
     RN_ALLOWANCE,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
+    RN_GROUP,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
     RN_NAMESPACE_POLICY,
@@ -106,6 +108,8 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                 remove_attribute_definition(resource)
             elif resource_type == RN_NAMESPACE_POLICY:
                 remove_namespace_policy(resource)
+            elif resource_type == RN_GROUP:
+                remove_group(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -423,6 +427,11 @@ def remove_resource_by_id(resource_id: str):
                 CLIENT.allowances_client.delete_allowance_by_id(resource_id)
                 print_log(f"Removed Allowance {resource_id} (if present)")
 
+        elif get_ydid_type(resource_id) == YDIDType.GROUP:
+            if confirmed(f"Remove Group {resource_id}?"):
+                CLIENT.account_client.delete_group(resource_id)
+                print_log(f"Removed Group {resource_id} (if present)")
+
         else:
             print_error(f"Resource ID type is unknown/unsupported: {resource_id}")
 
@@ -478,6 +487,28 @@ def remove_namespace_policy(resource: Dict):
         print_log(f"Removed Namespace Policy '{namespace}'")
     except Exception as e:
         print_error(f"Unable to remove Namespace Policy '{namespace}': {e}")
+
+
+def remove_group(resource: Dict):
+    """
+    Remove a group.
+    """
+    try:
+        group_name = resource["name"]
+    except KeyError as e:
+        print_error(f"Expected property to be defined ({e})")
+        return
+
+    group_id = get_group_id_by_name(CLIENT, group_name)
+    if group_id is None:
+        print_warning(f"Group '{group_name}' not found")
+        return
+
+    try:
+        CLIENT.account_client.delete_group(group_id)
+        print_log(f"Removed Group '{group_name}' ({group_id})")
+    except Exception as e:
+        print_error(f"Unable to delete Group '{group_name}' ({group_id}): {e}")
 
 
 # Entry point
