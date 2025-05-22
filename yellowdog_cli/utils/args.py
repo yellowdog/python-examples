@@ -925,6 +925,12 @@ class CLIParser:
                 required=False,
                 help="display YellowDog-generated password when creating a Keyring",
             )
+            parser.add_argument(
+                "--regenerate-app-keys",
+                action="store_true",
+                required=False,
+                help="regenerate the application key & secret when updating an application",
+            )
 
         if "remove" in sys.argv[0]:
             parser.add_argument(
@@ -1549,6 +1555,11 @@ class CLIParser:
     @allow_missing_attribute
     def show_keyring_passwords(self) -> Optional[bool]:
         return self.args.show_keyring_passwords
+
+    @property
+    @allow_missing_attribute
+    def regenerate_app_keys(self) -> Optional[bool]:
+        return self.args.regenerate_app_keys
 
     @property
     @allow_missing_attribute

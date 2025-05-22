@@ -616,6 +616,18 @@ def get_group_id_by_name(client: PlatformClient, group_name: str) -> Optional[st
 
 
 @lru_cache
+def get_group_name_by_id(client: PlatformClient, group_id: str) -> Optional[str]:
+    """
+    Get a group's name by its ID.
+    """
+    for group in get_all_groups(client):
+        if group.id == group_id:
+            return group.name
+
+    return None
+
+
+@lru_cache
 def get_all_groups(client: PlatformClient) -> List[GroupSummary]:
     """
     Return a list of all the groups.
@@ -635,3 +647,22 @@ def get_all_applications(client: PlatformClient) -> List[Application]:
         application_search
     )
     return search_client.list_all()
+
+
+@lru_cache
+def get_application_id_by_name(client: PlatformClient, app_name: str) -> Optional[str]:
+    """
+    Get an application ID by its name.
+    """
+    for app in get_all_applications(client):
+        if app.name == app_name:
+            return app.id
+
+    return None
+
+
+def get_application_groups(client: PlatformClient, app_id: str) -> List[GroupSummary]:
+    """
+    Get the groups to which an application belongs.
+    """
+    return client.account_client.get_application_groups(app_id).list_all()

@@ -21,6 +21,7 @@ from yellowdog_client.model import (
 from yellowdog_cli.utils.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
+    get_application_id_by_name,
     get_group_id_by_name,
     remove_allowances_matching_description,
 )
@@ -31,6 +32,7 @@ from yellowdog_cli.utils.settings import (
     DEFAULT_NAMESPACE,
     NAMESPACE_PREFIX_SEPARATOR,
     RN_ALLOWANCE,
+    RN_APPLICATION,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
     RN_GROUP,
@@ -110,6 +112,8 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                 remove_namespace_policy(resource)
             elif resource_type == RN_GROUP:
                 remove_group(resource)
+            elif resource_type == RN_APPLICATION:
+                remove_application(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -432,6 +436,11 @@ def remove_resource_by_id(resource_id: str):
                 CLIENT.account_client.delete_group(resource_id)
                 print_log(f"Removed Group {resource_id} (if present)")
 
+        elif get_ydid_type(resource_id) == YDIDType.APPLICATION:
+            if confirmed(f"Remove Application {resource_id}?"):
+                CLIENT.account_client.delete_application(resource_id)
+                print_log(f"Removed Application {resource_id} (if present)")
+
         else:
             print_error(f"Resource ID type is unknown/unsupported: {resource_id}")
 
@@ -509,6 +518,28 @@ def remove_group(resource: Dict):
         print_log(f"Removed Group '{group_name}' ({group_id})")
     except Exception as e:
         print_error(f"Unable to delete Group '{group_name}' ({group_id}): {e}")
+
+
+def remove_application(resource: Dict):
+    """
+    Remove an application.
+    """
+    try:
+        app_name = resource["name"]
+    except KeyError as e:
+        print_error(f"Expected property to be defined ({e})")
+        return
+
+    app_id = get_application_id_by_name(CLIENT, app_name)
+    if app_id is None:
+        print_warning(f"Application '{app_name}' not found")
+        return
+
+    try:
+        CLIENT.account_client.delete_application(app_id)
+        print_log(f"Removed Application '{app_name}' ({app_id})")
+    except Exception as e:
+        print_error(f"Unable to delete Application '{app_name}' ({app_id}): {e}")
 
 
 # Entry point

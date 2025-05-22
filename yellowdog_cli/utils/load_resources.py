@@ -9,6 +9,7 @@ from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.printing import print_log, print_warning
 from yellowdog_cli.utils.settings import (
     RN_ALLOWANCE,
+    RN_APPLICATION,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
     RN_GROUP,
@@ -111,6 +112,7 @@ def _resequence_resources(
         RN_STORAGE_CONFIGURATION,
         RN_CONFIGURED_POOL,
         RN_GROUP,
+        RN_APPLICATION,
     ]
 
     try:

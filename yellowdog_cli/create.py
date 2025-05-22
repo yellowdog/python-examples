@@ -12,18 +12,18 @@ import yellowdog_client.model as model
 from dateparser import parse as date_parse
 from requests import post, put
 from requests.exceptions import HTTPError
-from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     AccountAllowance,
+    AddApplicationResponse,
     AddConfiguredWorkerPoolResponse,
     AllowanceLimitEnforcement,
     AllowanceResetType,
+    ApiKey,
+    Application,
     AwsFleetComputeSource,
     AwsFleetPurchaseOption,
     CloudProvider,
     Group,
-    GroupSearch,
-    GroupSummary,
     ImageOsType,
     Keyring,
     MachineImage,
@@ -43,7 +43,10 @@ from yellowdog_cli.utils.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
     find_image_family_reference_by_name,
+    get_application_groups,
+    get_application_id_by_name,
     get_group_id_by_name,
+    get_group_name_by_id,
     get_role_id_by_name,
     get_role_name_by_id,
     remove_allowances_matching_description,
@@ -66,6 +69,7 @@ from yellowdog_cli.utils.settings import (
     PROP_DESCRIPTION,
     PROP_EFFECTIVE_FROM,
     PROP_EFFECTIVE_UNTIL,
+    PROP_GROUPS,
     PROP_IMAGE,
     PROP_IMAGE_ID,
     PROP_IMAGES_ID,
@@ -84,8 +88,10 @@ from yellowdog_cli.utils.settings import (
     PROP_TITLE,
     PROP_TYPE,
     PROP_UNITS,
+    RN_ADD_APPLICATION_REQUEST,
     RN_ADD_GROUP_REQUEST,
     RN_ALLOWANCE,
+    RN_APPLICATION,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
     RN_GROUP,
@@ -97,6 +103,7 @@ from yellowdog_cli.utils.settings import (
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
+    RN_UPDATE_APPLICATION_REQUEST,
     RN_UPDATE_GROUP_REQUEST,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -173,6 +180,8 @@ def create_resources(
                 create_namespace_policy(resource)
             elif resource_type == RN_GROUP:
                 create_group(resource)
+            elif resource_type == RN_APPLICATION:
+                create_application(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -980,27 +989,32 @@ def create_group(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    # Convert role names to IDs
-    roles: List[str] = resource.pop(PROP_ROLES, [])
-    new_role_ids = set()
-    for role_name in roles:
-        role_id = get_role_id_by_name(CLIENT, role_name)
-        if role_id is None:
-            print_warning(f"Role name '{role_name}' not found ... ignoring")
-        else:
-            new_role_ids.add(role_id)
+    roles: Optional[List[str]] = resource.pop(PROP_ROLES, None)
+
+    if roles is not None:
+        # Convert role names to IDs
+        new_role_ids = set()
+        for role_name in roles:
+            role_id = get_role_id_by_name(CLIENT, role_name)
+            if role_id is None:
+                print_warning(f"Role name '{role_name}' not found ... ignoring")
+            else:
+                new_role_ids.add(role_id)
 
     def update_roles(group: Group):
         """
         Helper function to add/remove roles from a group.
         """
+        if roles is None:
+            return
+
         current_role_ids = {role.role.id for role in group.roles}
 
         role_ids_to_remove = current_role_ids - new_role_ids
         for role_id in role_ids_to_remove:
             CLIENT.account_client.remove_role_from_group(group.id, role_id)
             print_log(
-                f"Removed role '{get_role_name_by_id(CLIENT, role_id)}' "
+                f"Removed Role '{get_role_name_by_id(CLIENT, role_id)}' "
                 f"from Group ({role_id})"
             )
 
@@ -1008,7 +1022,7 @@ def create_group(resource: Dict):
         for role_id in role_ids_to_add:
             CLIENT.account_client.add_role_to_group(group.id, role_id)
             print_log(
-                f"Added role '{get_role_name_by_id(CLIENT, role_id)}' "
+                f"Added Role '{get_role_name_by_id(CLIENT, role_id)}' "
                 f"to Group ({role_id})"
             )
 
@@ -1039,6 +1053,101 @@ def create_group(resource: Dict):
         add_group()
     else:
         update_group(group_id)
+
+
+def create_application(resource: Dict):
+    """
+    Create or update an application. Will also add or remove groups specified
+    by their names or IDs.
+    """
+    try:
+        name = resource[PROP_NAME]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    groups: Optional[List[str]] = resource.pop(PROP_GROUPS, None)
+
+    if groups is not None:
+        # Convert group names to IDs
+        new_group_ids = set()
+        for group_name in groups:
+            app_id = get_group_id_by_name(CLIENT, group_name)
+            if app_id is None:
+                print_warning(f"Group name '{group_name}' not found ... ignoring")
+            else:
+                new_group_ids.add(app_id)
+
+    def update_groups(app: Application):
+        """
+        Helper function to add/remove groups from an application.
+        """
+        if groups is None:
+            return
+
+        current_group_ids = {
+            group.id for group in get_application_groups(CLIENT, app.id)
+        }
+
+        group_ids_to_remove = current_group_ids - new_group_ids
+        for group_id in group_ids_to_remove:
+            CLIENT.account_client.remove_application_from_group(group_id, app.id)
+            print_log(
+                f"Removed Group '{get_group_name_by_id(CLIENT, group_id)}' "
+                f"from Application ({group_id})"
+            )
+
+        group_ids_to_add = new_group_ids - current_group_ids
+        for group_id in group_ids_to_add:
+            CLIENT.account_client.add_application_to_group(group_id, app.id)
+            print_log(
+                f"Added Group '{get_group_name_by_id(CLIENT, group_id)}' "
+                f"to Application ({group_id})"
+            )
+
+    def show_key_and_secret(api_key: ApiKey):
+        """
+        Helper function to display the app key and secret.
+        """
+        print_log(f"Application Key ID     = '{api_key.id}'", override_quiet=True)
+        print_log(f"Application Key Secret = '{api_key.secret}'", override_quiet=True)
+
+    def add_application():
+        """
+        Helper function to add a new application and its groups.
+        """
+        app_response: AddApplicationResponse = CLIENT.account_client.add_application(
+            _get_model_object(RN_ADD_APPLICATION_REQUEST, resource)
+        )
+        app = app_response.application
+        print_log(f"Created Application '{app.name}' ({app.id})")
+        show_key_and_secret(app_response.apiKey)
+        update_groups(app)
+
+    def update_application(app_id: str):
+        """
+        Helper function to update an existing application, including updating
+        its groups.
+        """
+        app: Application = CLIENT.account_client.update_application(
+            app_id, _get_model_object(RN_UPDATE_APPLICATION_REQUEST, resource)
+        )
+        print_log(f"Updated Application '{app.name}' ({app.id})")
+        update_groups(app)
+
+        if ARGS_PARSER.regenerate_app_keys:
+            print_log("Regenerating Application key and secret")
+            api_key = CLIENT.account_client.regenerate_application_api_key(app_id)
+            if api_key is None:
+                print_error("New API key/secret not returned")
+            else:
+                show_key_and_secret(api_key)
+
+    # Main logic
+    app_id = get_application_id_by_name(CLIENT, name)
+    if app_id is None:
+        add_application()
+    else:
+        update_application(app_id)
 
 
 # Entry point

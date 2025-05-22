@@ -98,6 +98,8 @@
       * [Numeric Attribute Definitions](#numeric-attribute-definitions)
    * [Namespace Policies](#namespace-policies)
    * [Groups](#groups)
+   * [Applications](#applications)
+      * [Creating and Regenrating Application Keys](#creating-and-regenrating-application-keys)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -127,7 +129,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Thu May 22 08:45:39 BST 2025 -->
+<!-- Added by: pwt, at: Thu May 22 17:38:32 BST 2025 -->
 
 <!--te-->
 
@@ -2349,6 +2351,27 @@ Example:
     "roles" : ["work-viewer", "compute-viewer"]
 }
 ```
+
+## Applications
+
+When creating and updating Applications, a list of groups to which the Application should belong can optionally be supplied. Groups can be specified by their names or YellowDog IDs.
+
+Example:
+
+```json
+{
+    "resource": "Application",
+    "name": "my-app",
+    "description": "Description of my app",
+    "groups" : ["administrators"]
+}
+```
+
+### Creating and Regenrating Application Keys
+
+When Application is created its Application Key ID and Secret will be displayed (even if the `--quiet` option is used).
+
+When an Application is updated, the `--regenerate-app-keys` option can be used. This will invalidate the current Application key and secret, revoke any Keyring access, and generate a new key and secret which will be displayed.
 
 # Jsonnet Support
 
