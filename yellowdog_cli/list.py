@@ -34,6 +34,7 @@ from yellowdog_client.model import (
     NodeSearch,
     NodeStatus,
     ObjectDetail,
+    PermissionDetail,
     Role,
     Task,
     TaskGroup,
@@ -131,6 +132,8 @@ def main():
         list_groups()
     elif ARGS_PARSER.roles:
         list_roles()
+    elif ARGS_PARSER.permissions:
+        list_permissions()
 
 
 def check_for_valid_option() -> bool:
@@ -151,8 +154,9 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.namespace_storage_configurations,
         ARGS_PARSER.nodes,
         ARGS_PARSER.object_paths,
-        ARGS_PARSER.source_templates,
+        ARGS_PARSER.permissions,
         ARGS_PARSER.roles,
+        ARGS_PARSER.source_templates,
         ARGS_PARSER.task_groups,
         ARGS_PARSER.tasks,
         ARGS_PARSER.users,
@@ -962,6 +966,21 @@ def list_roles():
 
     for selected_users in select(CLIENT, roles, object_type_name="Role"):
         print_yd_object(selected_users)
+
+
+def list_permissions():
+    """
+    List all permissions in the account.
+    """
+    permissions: List[PermissionDetail] = CLIENT.account_client.list_permissions()
+    permissions.sort(key=lambda permission: permission.name)
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, permissions, object_type_name="Permission")
+        return
+
+    for permission in select(CLIENT, permissions, object_type_name="Permission"):
+        print_yd_object(permission)
 
 
 def get_autoscaling_capacity(namespace: str) -> Dict:

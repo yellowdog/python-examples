@@ -82,7 +82,7 @@ HIGHLIGHTED_STATES = [
     r"(?P<starved>STARVED)",
     r"(?P<transitioning>CONFIGURING)",
     r"(?P<transitioning>DOWNLOADING)",
-    r"(?P<transitioning>LATE)",
+    # r"(?P<transitioning>LATE$)",
     r"(?P<transitioning>NEW)",
     r"(?P<transitioning>PROVISIONING)",
     r"(?P<transitioning>STOPPING)",

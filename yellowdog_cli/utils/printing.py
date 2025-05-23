@@ -41,6 +41,7 @@ from yellowdog_client.model import (
     Node,
     ObjectDetail,
     ObjectPath,
+    PermissionDetail,
     ProvisionedWorkerPool,
     ProvisionedWorkerPoolProperties,
     Role,
@@ -230,6 +231,7 @@ TYPE_MAP = {
     NamespacePolicy: "Namespace Policy",
     Node: "Node",
     ObjectPath: "Object Path",
+    PermissionDetail: "Permission",
     ProvisionedWorkerPool: "Provisioned Worker Pool",
     Task: "Task",
     TaskGroup: "Task Group",
@@ -831,6 +833,29 @@ def roles_table(
     return headers, table
 
 
+def permissions_table(
+    permissions: List[PermissionDetail],
+) -> (List[str], List[List]):
+    headers = [
+        "#",
+        "Name",
+        "Description",
+        "Includes",
+    ]
+    table = []
+    for index, permission in enumerate(permissions):
+        includes = ", ".join(sorted([x for x in permission.includes]))
+        table.append(
+            [
+                index + 1,
+                permission.name,
+                permission.title,
+                includes,
+            ]
+        )
+    return headers, table
+
+
 def print_numbered_object_list(
     client: PlatformClient,
     objects: List[Union[Item, str, Dict]],
@@ -899,6 +924,8 @@ def print_numbered_object_list(
         headers, table = groups_table(objects)
     elif isinstance(objects[0], Role):
         headers, table = roles_table(objects)
+    elif isinstance(objects[0], PermissionDetail):
+        headers, table = permissions_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):

@@ -652,6 +652,12 @@ class CLIParser:
                 help="list roles",
             )
             parser.add_argument(
+                "--permissions",
+                action="store_true",
+                required=False,
+                help="list permissions",
+            )
+            parser.add_argument(
                 "--output-file",
                 type=str,
                 required=False,
@@ -1550,6 +1556,11 @@ class CLIParser:
     @allow_missing_attribute
     def roles(self) -> Optional[bool]:
         return self.args.roles
+
+    @property
+    @allow_missing_attribute
+    def permissions(self) -> Optional[bool]:
+        return self.args.permissions
 
     @property
     @allow_missing_attribute
