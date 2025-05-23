@@ -96,6 +96,7 @@ VARIABLES = "variables"  # Dictionary
 VCPUS = "vcpus"  # List of two Floats
 VERIFY_AT_START = "verifyAtStart"  # List of Strings
 VERIFY_WAIT = "verifyWait"  # List of Strings
+WORKERS_CUSTOM_COMMAND = "workersCustomCommand"  # String
 WORKERS_PER_NODE = "workersPerNode"  # Integer
 WORKERS_PER_VCPU = "workersPerVCPU"  # Integer
 WORKER_POOL_DATA_FILE = "workerPoolData"  # String
@@ -202,6 +203,7 @@ ALL_KEYS = [
     VCPUS,
     VERIFY_AT_START,
     VERIFY_WAIT,
+    WORKERS_CUSTOM_COMMAND,
     WORKERS_PER_NODE,
     WORKERS_PER_VCPU,
     WORKER_POOL_DATA_FILE,

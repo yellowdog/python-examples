@@ -430,6 +430,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             user_data_files=wp_section.get(USERDATAFILES, None),
             worker_pool_data_file=worker_pool_data_file,
             worker_tag=worker_tag,
+            workers_custom_command=wp_section.get(WORKERS_CUSTOM_COMMAND, None),
             workers_per_vcpu=workers_per_vcpu,
             workers_per_node=int(wp_section.get(WORKERS_PER_NODE, 1)),
         )

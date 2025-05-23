@@ -16,6 +16,7 @@ from yellowdog_client.model import (
     AutoShutdown,
     ComputeRequirementTemplateUsage,
     NodeWorkerTarget,
+    NodeWorkerTargetType,
     ProvisionedWorkerPoolProperties,
 )
 
@@ -176,6 +177,23 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         # provisionedProperties insertions
         provisioned_properties = wp_data["provisionedProperties"]
 
+        # Three options for the number of workers per node
+        if CONFIG_WP.workers_custom_command is not None:
+            create_node_workers = {
+                "customTargetCommand": CONFIG_WP.workers_custom_command,
+                "targetType": "CUSTOM",
+            }
+        elif CONFIG_WP.workers_per_vcpu is not None:
+            create_node_workers = {
+                "targetCount": CONFIG_WP.workers_per_vcpu,
+                "targetType": "PER_VCPU",
+            }
+        else:  # Default option
+            create_node_workers = {
+                "targetCount": CONFIG_WP.workers_per_node,
+                "targetType": "PER_NODE",
+            }
+
         for key, value in [
             (WORKER_TAG, CONFIG_WP.worker_tag),
             (
@@ -208,20 +226,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                     else {"enabled": False}
                 ),
             ),
-            (
-                "createNodeWorkers",
-                (
-                    {
-                        "targetCount": CONFIG_WP.workers_per_node,
-                        "targetType": "PER_NODE",
-                    }
-                    if CONFIG_WP.workers_per_vcpu is None
-                    else {
-                        "targetCount": CONFIG_WP.workers_per_vcpu,
-                        "targetType": "PER_VCPU",
-                    }
-                ),
-            ),
+            ("createNodeWorkers", create_node_workers),
             ("metricsEnabled", CONFIG_WP.metrics_enabled),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
@@ -313,7 +318,11 @@ def create_worker_pool_from_toml():
     )
 
     # Establish the number of Workers to create
-    if CONFIG_WP.workers_per_vcpu is not None:
+    if CONFIG_WP.workers_custom_command is not None:
+        node_workers = NodeWorkerTarget.per_custom_command(
+            CONFIG_WP.workers_custom_command
+        )
+    elif CONFIG_WP.workers_per_vcpu is not None:
         node_workers = NodeWorkerTarget.per_vcpus(CONFIG_WP.workers_per_vcpu)
     else:
         node_workers = NodeWorkerTarget.per_node(CONFIG_WP.workers_per_node)
@@ -325,13 +334,21 @@ def create_worker_pool_from_toml():
         )
 
     # Create the Worker Pool
-    print_log(
-        f"Provisioning {CONFIG_WP.target_instance_count:,d} node(s) "
-        f"with {node_workers.targetCount} worker(s) "
-        f"{node_workers.targetType} "
-        f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
-        f"maxNodes: {CONFIG_WP.max_nodes:,d})"
-    )
+    if node_workers.targetType == NodeWorkerTargetType.CUSTOM:
+        print_log(
+            f"Provisioning {CONFIG_WP.target_instance_count:,d} node(s) "
+            f"with a custom number of workers per node "
+            f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
+            f"maxNodes: {CONFIG_WP.max_nodes:,d})"
+        )
+    else:
+        print_log(
+            f"Provisioning {CONFIG_WP.target_instance_count:,d} node(s) "
+            f"with {node_workers.targetCount} worker(s) "
+            f"{node_workers.targetType} "
+            f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
+            f"maxNodes: {CONFIG_WP.max_nodes:,d})"
+        )
     batches: List[WPBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
         CONFIG_WP.target_instance_count,

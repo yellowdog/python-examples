@@ -102,5 +102,6 @@ class ConfigWorkerPool:
     user_data_files: Optional[List[str]] = None
     worker_pool_data_file: Optional[str] = None
     worker_tag: Optional[str] = None
-    workers_per_vcpu: Optional[int] = None
+    workers_custom_command: Optional[str] = None
     workers_per_node: int = 1
+    workers_per_vcpu: Optional[int] = None

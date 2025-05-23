@@ -277,7 +277,7 @@ The configuration file has three possible sections:
 2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
 3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. 
 
-There is a documented template TOML file provided in [config.toml.template](config.toml.template), containing the main properties that can be configured.
+There is a documented template TOML file provided in [config-template.toml](config-template.toml), containing the main properties that can be configured.
 
 The name of the configuration file can be supplied in three different ways:
 
@@ -1642,28 +1642,29 @@ The `templateId` property can use either the YellowDog ID ('YDID') for the Compu
 
 The following properties are available:
 
-| Property                  | Description                                                                                                          | Default                 |
-|:--------------------------|:---------------------------------------------------------------------------------------------------------------------|:------------------------|
-| `idleNodeTimeout`         | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.           | `5.0`                   |
-| `idlePoolTimeout`         | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.    | `30.0`                  |
-| `imagesId`                | The image ID, Image Family ID, or Image Family name to use when booting instances.                                   |                         |
-| `instanceTags`            | The dictionary of instance tags to apply to the instances. Tag names must be lower case.                             |                         |
-| `maintainInstanceCount`   | Only used when instantiating Compute Requirements; attempt to maintain the requested number of instances.            | `False`                 |
-| `maxNodes`                | The maximum number of nodes to which the Worker Pool can be scaled up.                                               | `1`                     |
-| `metricsEnabled`          | Whether to enable performance metrics for nodes in the Worker Pool                                                   | `false`                 |
-| `minNodes`                | The minimum number of nodes to which the Worker Pool can be scaled down.                                             | `0`                     |
-| `name`                    | The name of the Worker Pool.                                                                                         | Automatically Generated |
-| `nodeBootTimeout`         | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.      | `10.0`                  |
-| `requirementTag`          | The tag to apply to the Compute Requirement.                                                                         | `tag` set in `common`   |
-| `targetInstanceCount`     | The initial number of nodes to create in the Worker Pool.                                                            | `1`                     |
-| `templateId`              | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**)                        | No default provided     |
-| `userData`                | User Data to be supplied to instances on boot.                                                                       |                         |
-| `userDataFile`            | As above, but read the User Data from the filename supplied in this property.                                        |                         |
-| `userDataFiles`           | As above, but create the User Data by concatenating the contents of the list of filenames supplied in this property. |                         |
-| `workerPoolData`          | The name of a file containing a JSON specification of a Worker Pool.                                                 |                         |
-| `workerTag`               | The Worker Tag to publish for the each of the Workers on the node(s).                                                |                         |
-| `workersPerNode`          | The number of Workers to establish on each node in the Worker Pool.                                                  | `1`                     |
-| `workersPerVCPU`          | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.)           |                         |
+| Property                | Description                                                                                                                                | Default                 |
+|:------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------|:------------------------|
+| `idleNodeTimeout`       | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.                                 | `5.0`                   |
+| `idlePoolTimeout`       | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.                          | `30.0`                  |
+| `imagesId`              | The image ID, Image Family ID, or Image Family name to use when booting instances.                                                         |                         |
+| `instanceTags`          | The dictionary of instance tags to apply to the instances. Tag names must be lower case.                                                   |                         |
+| `maintainInstanceCount` | Only used when instantiating Compute Requirements; attempt to maintain the requested number of instances.                                  | `False`                 |
+| `maxNodes`              | The maximum number of nodes to which the Worker Pool can be scaled up.                                                                     | `1`                     |
+| `metricsEnabled`        | Whether to enable performance metrics for nodes in the Worker Pool                                                                         | `false`                 |
+| `minNodes`              | The minimum number of nodes to which the Worker Pool can be scaled down.                                                                   | `0`                     |
+| `name`                  | The name of the Worker Pool.                                                                                                               | Automatically Generated |
+| `nodeBootTimeout`       | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.                            | `10.0`                  |
+| `requirementTag`        | The tag to apply to the Compute Requirement.                                                                                               | `tag` set in `common`   |
+| `targetInstanceCount`   | The initial number of nodes to create in the Worker Pool.                                                                                  | `1`                     |
+| `templateId`            | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**)                                              | No default provided     |
+| `userData`              | User Data to be supplied to instances on boot.                                                                                             |                         |
+| `userDataFile`          | As above, but read the User Data from the filename supplied in this property.                                                              |                         |
+| `userDataFiles`         | As above, but create the User Data by concatenating the contents of the list of filenames supplied in this property.                       |                         |
+| `workerPoolData`        | The name of a file containing a JSON specification of a Worker Pool.                                                                       |                         |
+| `workerTag`             | The Worker Tag to publish for the each of the Workers on the node(s).                                                                      |                         |
+| `workersPerNode`        | The number of Workers to establish on each node in the Worker Pool.                                                                        | `1`                     |
+| `workersPerVCPU`        | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.)                                 |                         |
+| `workersCustomCommand`  | The number of Workers to establish on each node in the Worker Pool, determined by a command run on the node. (Overrides `workersPerNode`.) |                         |
 
 ## Using Textual Names instead of IDs for Compute Requirement Templates and Image Families
 

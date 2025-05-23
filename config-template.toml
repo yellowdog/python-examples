@@ -1,6 +1,6 @@
 #
 # A template for creating TOML configuration files for the YellowDog Python
-# script examples. TOML key names are case sensitive.
+# script examples. TOML key names are case-sensitive.
 #
 # Note that this is only a subset of the available properties. Please consult
 # The README file for a complete list.
@@ -20,7 +20,7 @@
     # --------------------------------------------------------------------------
     namespace = "my_namespace"
 
-    # A name tag to sub-divide objects within the namespace, e.g., to
+    # A name tag to subdivide objects within the namespace, e.g., to
     # tag a given set of tasks, nodes and data objects
     # Required
     # --------------------------------------------------------------------------
