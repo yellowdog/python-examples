@@ -74,3 +74,24 @@ class TestCreateRemove:
         assert result.exit_code == 0
         result = shell(f"yd-remove -y {resources}")
         assert result.exit_code == 0
+
+    def test_group(self):
+        resources = f"{RESOURCE_DIR}/group.json"
+        result = shell(f"yd-create -y {resources}")
+        assert result.exit_code == 0
+        result = shell(f"yd-remove -y {resources}")
+        assert result.exit_code == 0
+
+    def test_application(self):
+        resources = f"{RESOURCE_DIR}/application.json"
+        result = shell(f"yd-create -y {resources}")
+        assert result.exit_code == 0
+        result = shell(f"yd-remove -y {resources}")
+        assert result.exit_code == 0
+
+    def test_user(self):
+        resources = f"{RESOURCE_DIR}/user.json"
+        result = shell(f"yd-create -y {resources}")
+        assert result.exit_code == 0
+        result = shell(f"yd-remove -y {resources}")
+        assert result.exit_code == 0
