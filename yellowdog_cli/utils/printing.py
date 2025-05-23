@@ -1036,9 +1036,9 @@ def print_yd_object(
         # Requires a copy of the 'object' datatype to be made,
         # in order to insert additional fields
         object_data_new = {}
-        for key, value in add_fields.items():
-            object_data_new[key] = value
         for key, value in object_data.items():
+            object_data_new[key] = value
+        for key, value in add_fields.items():
             object_data_new[key] = value
         object_data = object_data_new
     print_json(object_data, initial_indent, drop_first_line, with_final_comma)
