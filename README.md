@@ -1896,6 +1896,9 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 - String Attribute Definitions
 - Numeric Attribute Definitions
 - Namespace Policies
+- Groups
+- Applications
+- Users (update only)
 
 ## Overview of Operation
 
@@ -1962,6 +1965,8 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 - `"NumericAttributeDefinition"`
 - `"NamespacePolicy"`
 - `"Group"`
+- `"Application"`
+- `"User"`
 
 ## Generating Resource Specifications
 
