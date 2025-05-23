@@ -51,6 +51,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_all_groups,
     get_all_roles,
     get_all_users,
+    get_application_groups,
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
     get_tasks,
@@ -907,8 +908,13 @@ def list_applications():
         print_numbered_object_list(CLIENT, applications, object_type_name="Application")
         return
 
-    for selected_users in select(CLIENT, applications, object_type_name="Application"):
-        print_yd_object(selected_users)
+    for selected_app in select(CLIENT, applications, object_type_name="Application"):
+        add_groups_field = {
+            "groups": [
+                group.name for group in get_application_groups(CLIENT, selected_app.id)
+            ]
+        }
+        print_yd_object(selected_app, add_fields=add_groups_field)
 
 
 def list_groups():
