@@ -100,6 +100,7 @@
    * [Groups](#groups)
    * [Applications](#applications)
       * [Creating and Regenrating Application Keys](#creating-and-regenrating-application-keys)
+   * [Users](#users)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -129,7 +130,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Thu May 22 17:38:32 BST 2025 -->
+<!-- Added by: pwt, at: Fri May 23 08:51:46 BST 2025 -->
 
 <!--te-->
 
@@ -2367,11 +2368,35 @@ Example:
 }
 ```
 
-### Creating and Regenrating Application Keys
+### Creating and Regenerating Application Keys
 
 When Application is created its Application Key ID and Secret will be displayed (even if the `--quiet` option is used).
 
 When an Application is updated, the `--regenerate-app-keys` option can be used. This will invalidate the current Application key and secret, revoke any Keyring access, and generate a new key and secret which will be displayed.
+
+## Users
+
+Users cannot be created or removed using the resource specification approach, but their groups can be managed.
+
+Example:
+
+```json
+{
+  "resource": "User",
+  "name": "my-username",
+  "groups": ["administrators", "test"]
+}
+```
+
+Using `yd-create` with this resource specification will amend the user's groups. The user can also be specified by its YellowDog ID:
+
+```json
+{
+  "resource": "User",
+  "id": "ydid:user:000000:73c3189e-4e87-4e32-bdbd-8b45e7e9780c",
+  "groups": ["administrators", "test"]
+}
+```
 
 # Jsonnet Support
 

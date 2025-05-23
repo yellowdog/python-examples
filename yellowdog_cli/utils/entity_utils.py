@@ -18,8 +18,10 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplate,
     ComputeSourceTemplateSummary,
+    ExternalUser,
     GroupSearch,
     GroupSummary,
+    InternalUser,
     MachineImageFamily,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
@@ -31,6 +33,8 @@ from yellowdog_client.model import (
     Task,
     TaskGroup,
     TaskSearch,
+    User,
+    UserSearch,
     WorkerPool,
     WorkerPoolSummary,
     WorkRequirementStatus,
@@ -666,3 +670,39 @@ def get_application_groups(client: PlatformClient, app_id: str) -> List[GroupSum
     Get the groups to which an application belongs.
     """
     return client.account_client.get_application_groups(app_id).list_all()
+
+
+def get_user_groups(client: PlatformClient, user_id: str) -> List[GroupSummary]:
+    """
+    Get the groups to which a user belongs.
+    """
+    return client.account_client.get_user_groups(user_id).list_all()
+
+
+def get_user_by_name_or_id(
+    client: PlatformClient, user_name_or_id: str
+) -> Optional[User]:
+    """
+    Get a user ID by their username or ID.
+    """
+    for user in get_all_users(client):
+
+        if user.id == user_name_or_id:
+            return user
+
+        if (isinstance(user, InternalUser) and user.username == user_name_or_id) or (
+            isinstance(user, ExternalUser) and user.name == user_name_or_id
+        ):
+            return user
+
+    return None
+
+
+@lru_cache
+def get_all_users(client: PlatformClient) -> List[User]:
+    """
+    Return a list of all users.
+    """
+    user_search = UserSearch()
+    search_client: SearchClient = client.account_client.get_users(user_search)
+    return search_client.list_all()

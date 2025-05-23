@@ -38,7 +38,6 @@ from yellowdog_client.model import (
     Task,
     TaskGroup,
     User,
-    UserSearch,
     Worker,
     WorkerPoolStatus,
     WorkerPoolSummary,
@@ -51,6 +50,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_all_applications,
     get_all_groups,
     get_all_roles,
+    get_all_users,
     get_filtered_work_requirements,
     get_task_groups_from_wr_summary,
     get_tasks,
@@ -869,15 +869,13 @@ def list_users():
     """
     List all users in the account.
     """
-    user_search = UserSearch()
-    search_client: SearchClient = CLIENT.account_client.get_users(user_search)
-    users: List[User] = search_client.list_all()
-
-    users.sort(key=lambda user: user.name)
+    users: List[User] = get_all_users(CLIENT)
 
     if len(users) == 0:
         print_log("No Users to display")
         return
+
+    users.sort(key=lambda user: user.name)
 
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, users, object_type_name="User")
