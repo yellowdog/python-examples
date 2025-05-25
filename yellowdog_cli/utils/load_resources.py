@@ -21,6 +21,7 @@ from yellowdog_cli.utils.settings import (
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
+    RN_USER,
 )
 from yellowdog_cli.utils.variables import (
     load_json_file_with_variable_substitutions,
@@ -113,6 +114,7 @@ def _resequence_resources(
         RN_CONFIGURED_POOL,
         RN_GROUP,
         RN_APPLICATION,
+        RN_USER,
     ]
 
     try:

@@ -574,8 +574,11 @@ def get_role_id_by_name(client: PlatformClient, role_name: str) -> Optional[str]
     if get_ydid_type(role_name) == YDIDType.ROLE:
         return role_name
 
-    for role in get_all_roles(client):
-        if role_name == role.name:
+    role_search = RoleSearch(name=role_name)
+    search_client: SearchClient = client.account_client.get_roles(role_search)
+
+    for role in search_client.list_all():
+        if role.name == role_name:
             return role.id
 
     return None
@@ -606,8 +609,11 @@ def get_all_roles(client: PlatformClient) -> List[RoleSummary]:
 @lru_cache
 def get_group_id_by_name(client: PlatformClient, group_name: str) -> Optional[str]:
     """
-    Get a group's ID by its name.
+    Get a group's ID by its name. Accept IDs and return unchanged.
     """
+    if get_ydid_type(group_name) == YDIDType.GROUP:
+        return group_name
+
     group_search = GroupSearch(name=group_name)
     search_client: SearchClient = client.account_client.get_groups(group_search)
     group_summaries: List[GroupSummary] = search_client.list_all()
@@ -641,6 +647,15 @@ def get_all_groups(client: PlatformClient) -> List[GroupSummary]:
     return search_client.list_all()
 
 
+def clear_group_caches():
+    """
+    Clear the group caches.
+    """
+    get_all_groups.cache_clear()
+    get_group_name_by_id.cache_clear()
+    get_group_id_by_name.cache_clear()
+
+
 @lru_cache
 def get_all_applications(client: PlatformClient) -> List[Application]:
     """
@@ -656,13 +671,24 @@ def get_all_applications(client: PlatformClient) -> List[Application]:
 @lru_cache
 def get_application_id_by_name(client: PlatformClient, app_name: str) -> Optional[str]:
     """
-    Get an application ID by its name.
+    Get an application ID by its name. Accept IDs and return unchanged.
     """
+    if get_ydid_type(app_name) == YDIDType.APPLICATION:
+        return app_name
+
     for app in get_all_applications(client):
         if app.name == app_name:
             return app.id
 
     return None
+
+
+def clear_application_caches():
+    """
+    Clear the application caches.
+    """
+    get_all_applications.cache_clear()
+    get_application_id_by_name.cache_clear()
 
 
 def get_application_groups(client: PlatformClient, app_id: str) -> List[GroupSummary]:
@@ -679,6 +705,7 @@ def get_user_groups(client: PlatformClient, user_id: str) -> List[GroupSummary]:
     return client.account_client.get_user_groups(user_id).list_all()
 
 
+@lru_cache
 def get_user_by_name_or_id(
     client: PlatformClient, user_name_or_id: str
 ) -> Optional[User]:

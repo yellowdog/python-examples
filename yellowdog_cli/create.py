@@ -39,7 +39,9 @@ from yellowdog_client.model import (
 from yellowdog_client.model.exceptions import InvalidRequestException
 
 from yellowdog_cli.utils.entity_utils import (
+    clear_application_caches,
     clear_compute_source_template_cache,
+    clear_group_caches,
     clear_image_family_search_cache,
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
@@ -1041,6 +1043,7 @@ def create_group(resource: Dict):
             _get_model_object(RN_ADD_GROUP_REQUEST, resource)
         )
         print_log(f"Created Group '{group.name}' ({group.id})")
+        clear_group_caches()
         update_roles(group)
 
     def update_group(group_id: str):
@@ -1128,6 +1131,7 @@ def create_application(resource: Dict):
         app = app_response.application
         print_log(f"Created Application '{app.name}' ({app.id})")
         show_key_and_secret(app_response.apiKey)
+        clear_application_caches()
         update_groups(app)
 
     def update_application(app_id: str):
@@ -1159,8 +1163,8 @@ def create_application(resource: Dict):
 
 def update_user(resource: Dict):
     """
-    Update a user. Will also add or remove groups specified
-    by their names or IDs.
+    Update a user (specified by name or ID). Will also add or remove
+    groups specified by their names or IDs.
     """
 
     name = resource.get(PROP_NAME)
@@ -1178,11 +1182,11 @@ def update_user(resource: Dict):
         # Convert group names to IDs
         new_group_ids = set()
         for group_name in groups:
-            app_id = get_group_id_by_name(CLIENT, group_name)
-            if app_id is None:
+            group_id = get_group_id_by_name(CLIENT, group_name)
+            if group_id is None:
                 print_warning(f"Group name '{group_name}' not found ... ignoring")
             else:
-                new_group_ids.add(app_id)
+                new_group_ids.add(group_id)
 
     def update_groups(user: User):
         """

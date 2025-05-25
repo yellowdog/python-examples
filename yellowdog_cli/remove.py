@@ -19,6 +19,8 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.entity_utils import (
+    clear_application_caches,
+    clear_group_caches,
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
     get_application_id_by_name,
@@ -521,6 +523,7 @@ def remove_group(resource: Dict):
     try:
         CLIENT.account_client.delete_group(group_id)
         print_log(f"Removed Group '{group_name}' ({group_id})")
+        clear_group_caches()
     except Exception as e:
         print_error(f"Unable to delete Group '{group_name}' ({group_id}): {e}")
 
@@ -543,6 +546,7 @@ def remove_application(resource: Dict):
     try:
         CLIENT.account_client.delete_application(app_id)
         print_log(f"Removed Application '{app_name}' ({app_id})")
+        clear_application_caches()
     except Exception as e:
         print_error(f"Unable to delete Application '{app_name}' ({app_id}): {e}")
 
