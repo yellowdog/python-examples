@@ -25,6 +25,7 @@ from yellowdog_client.model import (
     CloudProvider,
     Group,
     ImageOsType,
+    InternalUser,
     Keyring,
     MachineImage,
     MachineImageFamily,
@@ -1202,7 +1203,7 @@ def update_user(resource: Dict):
             CLIENT.account_client.remove_user_from_group(group_id, user.id)
             print_log(
                 f"Removed Group '{get_group_name_by_id(CLIENT, group_id)}' "
-                f"from User ({group_id})"
+                f"({group_id})"
             )
 
         group_ids_to_add = new_group_ids - current_group_ids
@@ -1210,13 +1211,16 @@ def update_user(resource: Dict):
             CLIENT.account_client.add_user_to_group(group_id, user.id)
             print_log(
                 f"Added Group '{get_group_name_by_id(CLIENT, group_id)}' "
-                f"to User ({group_id})"
+                f"({group_id})"
             )
 
-    # Main logic: try name then ID if present
+    # Main logic: try name then ID if present; check for ID match
     user = None
     if name is not None:
         user = get_user_by_name_or_id(CLIENT, name)
+    if user is not None and id is not None:
+        if user.id != id:
+            raise Exception(f"User name '{name}' and supplied ID do not match")
     if user is None and id is not None:
         user = get_user_by_name_or_id(CLIENT, id)
 
@@ -1225,11 +1229,15 @@ def update_user(resource: Dict):
             f"User '{name}' not found; Users cannot be created using "
             "the CLI, please use the YellowDog Portal"
         )
-    elif groups is not None:
-        print_log(f"Updating Groups for User '{name}' ({user.id})")
+        return
+
+    username = user.username if isinstance(user, InternalUser) else user.name
+
+    if groups is not None:
+        print_log(f"Updating Groups for User '{username}' ({user.id})")
         update_groups(user)
     else:
-        print_log(f"Nothing to do for User '{name}' ({user.id})")
+        print_log(f"Nothing to do for User '{username}' ({user.id})")
 
 
 # Entry point
