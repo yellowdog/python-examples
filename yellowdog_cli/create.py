@@ -834,7 +834,6 @@ def _get_model_object(class_name: str, resource: Dict, **kwargs):
     Return a populated YellowDog model object for the resource.
     Discard unexpected keywords.
     """
-
     def _patch_aws_fleet_enums():
         if isinstance(model_object, AwsFleetComputeSource):
             try:
@@ -1020,6 +1019,10 @@ def create_group(resource: Dict):
 
         current_role_ids = {role.role.id for role in group.roles}
 
+        if current_role_ids == new_role_ids:
+            print_log("No Role additions or deletions required")
+            return
+
         role_ids_to_remove = current_role_ids - new_role_ids
         for role_id in role_ids_to_remove:
             CLIENT.account_client.remove_role_from_group(group.id, role_id)
@@ -1099,6 +1102,10 @@ def create_application(resource: Dict):
             group.id for group in get_application_groups(CLIENT, app.id)
         }
 
+        if current_group_ids == new_group_ids:
+            print_log("No Group additions or deletions required")
+            return
+
         group_ids_to_remove = current_group_ids - new_group_ids
         for group_id in group_ids_to_remove:
             CLIENT.account_client.remove_application_from_group(group_id, app.id)
@@ -1167,7 +1174,6 @@ def update_user(resource: Dict):
     Update a user (specified by name or ID). Will also add or remove
     groups specified by their names or IDs.
     """
-
     name = resource.get(PROP_NAME)
     id = resource.get(PROP_ID)
 
@@ -1197,6 +1203,10 @@ def update_user(resource: Dict):
             return
 
         current_group_ids = {group.id for group in get_user_groups(CLIENT, user.id)}
+
+        if current_group_ids == new_group_ids:
+            print_log("No Group additions or deletions required")
+            return
 
         group_ids_to_remove = current_group_ids - new_group_ids
         for group_id in group_ids_to_remove:
