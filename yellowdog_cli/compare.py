@@ -31,6 +31,7 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 NONE_STRING = "NONE"
+EMPTY_STRING = ""
 UNKNOWN_STRING = "NOT YET KNOWN"
 
 
@@ -211,7 +212,7 @@ class WorkerPools:
         return PropertyMatch(
             property_name="Worker Tag(s)",
             task_group_values=(
-                NONE_STRING
+                EMPTY_STRING
                 if task_group.runSpecification.workerTags is None
                 else ", ".join(task_group.runSpecification.workerTags)
             ),
@@ -478,7 +479,7 @@ class WorkerPools:
         return PropertyMatch(
             property_name="RAM (GB)",
             task_group_values=(
-                NONE_STRING
+                EMPTY_STRING
                 if task_group.runSpecification.ram is None
                 else self._doublerange_str(task_group.runSpecification.ram)
             ),
@@ -519,7 +520,7 @@ class WorkerPools:
         return PropertyMatch(
             property_name="vCPUs Count",
             task_group_values=(
-                NONE_STRING
+                EMPTY_STRING
                 if task_group.runSpecification.vcpus is None
                 else self._doublerange_str(task_group.runSpecification.vcpus)
             ),
