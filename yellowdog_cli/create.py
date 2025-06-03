@@ -834,6 +834,7 @@ def _get_model_object(class_name: str, resource: Dict, **kwargs):
     Return a populated YellowDog model object for the resource.
     Discard unexpected keywords.
     """
+
     def _patch_aws_fleet_enums():
         if isinstance(model_object, AwsFleetComputeSource):
             try:

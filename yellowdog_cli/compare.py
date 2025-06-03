@@ -443,7 +443,7 @@ class WorkerPools:
             ),
             match=(
                 MatchType.YES
-                if task_group.runSpecification.namespaces is None
+                if task_group.runSpecification.namespaces in [None, []]
                 or worker_pool.namespace in task_group.runSpecification.namespaces
                 else MatchType.NO
             ),
