@@ -8,7 +8,7 @@ and check for matches.
 from dataclasses import dataclass
 from enum import Enum
 from functools import cache
-from typing import List
+from typing import List, Optional
 
 from tabulate import tabulate
 from yellowdog_client.model import (
@@ -39,8 +39,8 @@ UNKNOWN_STRING = "NOT YET KNOWN"
 class MatchType(Enum):
     YES = "YES"  # Definite match to the worker pool (so far)
     NO = "NO"  # Definite non-match to the worker pool
-    MAYBE = "MAYBE (no Nodes have registered yet)"  # Possible match to the worker pool; no nodes yet
-    PARTIAL = "PARTIAL (at least one Node matches, but not all)"  # Some nodes in the worker pool match
+    MAYBE = "MAYBE (no Nodes available)"  # Possible match to the worker pool; no nodes available
+    PARTIAL = "PARTIAL (one or more Nodes match, but not all)"  # Some nodes in the worker pool match
 
 
 @dataclass
@@ -49,6 +49,8 @@ class PropertyMatch:
     task_group_values: str
     worker_pool_values: str
     match: MatchType
+    match_count: Optional[int] = None
+    total_nodes: Optional[int] = None
 
 
 class MatchReport:
@@ -152,7 +154,14 @@ class MatchReport:
                     p.property_name,
                     p.task_group_values,
                     p.worker_pool_values,
-                    p.match.value,
+                    (
+                        f"{p.match.value}"
+                        + (
+                            f" ({p.match_count}/{p.total_nodes})"
+                            if p.match_count is not None
+                            else ""
+                        )
+                    ),
                 ]
             )
 
@@ -259,12 +268,12 @@ class WorkerPools:
         )
 
         # Calculate match
+        matching_nodes_counter = 0
         if len(runspec_instance_types) == 0:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
         else:
-            matching_nodes_counter = 0
             for node in nodes:
                 if node.details.instanceType in runspec_instance_types:
                     matching_nodes_counter += 1
@@ -284,6 +293,10 @@ class WorkerPools:
             ),
             worker_pool_values=worker_pool_values,
             match=match_type,
+            match_count=(
+                matching_nodes_counter if len(runspec_instance_types) > 0 else None
+            ),
+            total_nodes=len(nodes) if len(runspec_instance_types) > 0 else None,
         )
 
     def _match_task_types(
@@ -312,10 +325,10 @@ class WorkerPools:
         )
 
         # Calculate match
+        matching_node_counter = 0
         if len(nodes) == 0:
             match_type = MatchType.MAYBE
         else:
-            matching_node_counter = 0
             for node in nodes:
                 if runspec_task_types <= set(node.details.supportedTaskTypes):
                     matching_node_counter += 1
@@ -335,6 +348,8 @@ class WorkerPools:
             ),
             worker_pool_values=worker_pool_values,
             match=match_type,
+            match_count=matching_node_counter,
+            total_nodes=len(nodes),
         )
 
     def _match_providers(
@@ -349,12 +364,12 @@ class WorkerPools:
         node_providers = {node.details.provider.value for node in nodes}
 
         # Calculate match
+        matching_node_counter = 0
         if len(runspec_providers) == 0:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
         else:
-            matching_node_counter = 0
             for node in nodes:
                 if node.details.provider in runspec_providers:
                     matching_node_counter += 1
@@ -382,6 +397,8 @@ class WorkerPools:
                 )
             ),
             match=match_type,
+            match_count=matching_node_counter if len(runspec_providers) > 0 else None,
+            total_nodes=len(nodes) if len(runspec_providers) > 0 else None,
         )
 
     def _match_regions(
@@ -398,12 +415,12 @@ class WorkerPools:
         }
 
         # Calculate match
+        matching_node_counter = 0
         if len(runspec_regions) == 0:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
         else:
-            matching_node_counter = 0
             for node in nodes:
                 if node.details.region in runspec_regions:
                     matching_node_counter += 1
@@ -427,6 +444,8 @@ class WorkerPools:
                 else ", ".join(node_regions) if len(node_regions) > 0 else NONE_STRING
             ),
             match=match_type,
+            match_count=matching_node_counter if len(runspec_regions) > 0 else None,
+            total_nodes=len(nodes) if len(runspec_regions) > 0 else None,
         )
 
     @staticmethod
@@ -459,12 +478,12 @@ class WorkerPools:
         nodes_ram = {node.details.ram for node in nodes}
 
         # Calculate match
+        matching_node_counter = 0
         if task_group.runSpecification.ram is None:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
         else:
-            matching_node_counter = 0
             for node in nodes:
                 if self._check_in_range(
                     node.details.ram, task_group.runSpecification.ram
@@ -490,6 +509,12 @@ class WorkerPools:
                 else ", ".join([str(node_ram) for node_ram in nodes_ram])
             ),
             match=match_type,
+            match_count=(
+                None
+                if task_group.runSpecification.ram is None
+                else matching_node_counter
+            ),
+            total_nodes=None if task_group.runSpecification.ram is None else len(nodes),
         )
 
     def _match_vcpus(
@@ -500,12 +525,12 @@ class WorkerPools:
         nodes_vcpus = {node.details.vcpus for node in nodes}
 
         # Calculate match
+        matching_node_counter = 0
         if task_group.runSpecification.vcpus is None:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
         else:
-            matching_node_counter = 0
             for node in nodes:
                 if self._check_in_range(
                     node.details.vcpus, task_group.runSpecification.vcpus
@@ -531,6 +556,14 @@ class WorkerPools:
                 else ", ".join([str(node_vcpus) for node_vcpus in nodes_vcpus])
             ),
             match=match_type,
+            match_count=(
+                None
+                if task_group.runSpecification.vcpus is None
+                else matching_node_counter
+            ),
+            total_nodes=(
+                None if task_group.runSpecification.vcpus is None else len(nodes)
+            ),
         )
 
     @staticmethod
