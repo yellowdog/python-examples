@@ -1186,6 +1186,13 @@ class CLIParser:
                 nargs="+",
                 help="the YellowDog ID(s) of the worker pool(s) to compare",
             )
+            parser.add_argument(
+                "--running-nodes-only",
+                "-R",
+                action="store_true",
+                required=False,
+                help="only include RUNNING nodes in the specified worker pools in the comparison",
+            )
 
         self.args = parser.parse_args()
 
@@ -1721,6 +1728,11 @@ class CLIParser:
     @allow_missing_attribute
     def terminate(self) -> Optional[bool]:
         return self.args.terminate
+
+    @property
+    @allow_missing_attribute
+    def running_nodes_only(self) -> Optional[bool]:
+        return self.args.running_nodes_only
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

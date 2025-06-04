@@ -15,6 +15,7 @@ from yellowdog_client.model import (
     DoubleRange,
     Node,
     NodeSearch,
+    NodeStatus,
     TaskGroup,
     WorkerPool,
     WorkRequirement,
@@ -217,7 +218,7 @@ class WorkerPools:
                 else ", ".join(task_group.runSpecification.workerTags)
             ),
             worker_pool_values=(
-                NONE_STRING
+                EMPTY_STRING
                 if worker_pool.properties.workerTag is None
                 else worker_pool.properties.workerTag
             ),
@@ -248,7 +249,7 @@ class WorkerPools:
             if node.details.instanceType != ""
         }
         worker_pool_values = (
-            UNKNOWN_STRING
+            EMPTY_STRING
             if len(nodes) == 0
             else (
                 ", ".join(node_instance_types)
@@ -277,7 +278,7 @@ class WorkerPools:
         return PropertyMatch(
             property_name="Instance Type(s)",
             task_group_values=(
-                NONE_STRING
+                EMPTY_STRING
                 if task_group.runSpecification.instanceTypes is None
                 else ", ".join(task_group.runSpecification.instanceTypes)
             ),
@@ -367,7 +368,7 @@ class WorkerPools:
         return PropertyMatch(
             property_name="Provider(s)",
             task_group_values=(
-                NONE_STRING
+                EMPTY_STRING
                 if task_group.runSpecification.providers is None
                 else ", ".join([x.value for x in task_group.runSpecification.providers])
             ),
@@ -375,7 +376,7 @@ class WorkerPools:
                 UNKNOWN_STRING
                 if len(nodes) == 0
                 else (
-                    NONE_STRING
+                    EMPTY_STRING
                     if len(node_providers) == 0
                     else ", ".join(node_providers)
                 )
@@ -416,12 +417,12 @@ class WorkerPools:
         return PropertyMatch(
             property_name="Region(s)",
             task_group_values=(
-                NONE_STRING
+                EMPTY_STRING
                 if task_group.runSpecification.regions is None
                 else ", ".join(task_group.runSpecification.regions)
             ),
             worker_pool_values=(
-                UNKNOWN_STRING
+                EMPTY_STRING
                 if len(nodes) == 0
                 else ", ".join(node_regions) if len(node_regions) > 0 else NONE_STRING
             ),
@@ -435,12 +436,12 @@ class WorkerPools:
         return PropertyMatch(
             property_name="Namespace(s)",
             task_group_values=(
-                NONE_STRING
+                EMPTY_STRING
                 if task_group.runSpecification.namespaces is None
                 else ", ".join(task_group.runSpecification.namespaces)
             ),
             worker_pool_values=(
-                NONE_STRING if worker_pool.namespace is None else worker_pool.namespace
+                EMPTY_STRING if worker_pool.namespace is None else worker_pool.namespace
             ),
             match=(
                 MatchType.YES
@@ -551,9 +552,14 @@ class WorkerPools:
 
     def _get_all_nodes_in_worker_pool(self, worker_pool: WorkerPool) -> List[Node]:
         """
-        Return all nodes in the worker pool.
+        Return all nodes in the worker pool. Optionally restrict to running nodes only.
         """
-        return self._get_all_nodes_in_worker_pool_cached(worker_pool.id)
+        nodes = self._get_all_nodes_in_worker_pool_cached(worker_pool.id)
+        return (
+            [node for node in nodes if node.status == NodeStatus.RUNNING]
+            if ARGS_PARSER.running_nodes_only
+            else nodes
+        )
 
     @staticmethod
     @cache
@@ -684,6 +690,8 @@ def main():
             f"({work_requirement.id})",
             override_quiet=True,
         )
+        if ARGS_PARSER.running_nodes_only:
+            print_log("Comparing RUNNING nodes in the worker pool(s) only")
         for task_group in work_requirement.taskGroups:
             _compare_task_group(task_group, worker_pools)
 
