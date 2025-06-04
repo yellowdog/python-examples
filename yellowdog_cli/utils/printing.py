@@ -997,6 +997,9 @@ def sorted_objects(
         except TypeError:
             return objects
 
+    if isinstance(objects[0], Task):  # Sort tasks by their task number
+        return sorted(objects, key=lambda x: int(x.id.split(":")[-1]), reverse=reverse)
+
     try:
         return sorted(objects, key=lambda x: x.name, reverse=reverse)
     except:
