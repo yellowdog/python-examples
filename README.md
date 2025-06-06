@@ -824,6 +824,9 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     providers = ["AWS"]
     ram = [0.5, 2.0]
     regions = ["eu-west-2"]
+    retryableErrors = [
+      {processExitCodes = [143], statusesAtFailure = ["FAILED"], errorTypes = ["ALLOCATION_LOST"]},
+    ]
     setTaskNames = false
     tag = "my_tag"
     taskBatchSize = 1000
@@ -844,9 +847,6 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskTimeout = 120.0
     taskType = "docker"
     tasksPerWorker = 1
-    retryableErrors = [
-        {processExitCodes = [143], statusesAtFailure = ["FAILED"], errorTypes = ["ALLOCATION_LOST"]},
-    ]
     uploadFiles = [{localPath = "file_1.txt", uploadPath = "file_1.txt"}]
     uploadTaskProcessOutput = true
     vcpus = [1, 4]
@@ -892,6 +892,13 @@ Showing all possible properties at the Work Requirement level:
   "providers": ["AWS"],
   "ram": [0.5, 2],
   "regions": ["eu-west-2"],
+  "retryableErrors": [
+    {
+      "processExitCodes": [143],
+      "statusesAtFailure" : ["FAILED"],
+      "errorTypes": ["ALLOCATION_LOST"]
+    }
+  ]
   "setTaskNames": false,
   "tag": "my_tag"
   "taskCount": 100,
@@ -906,13 +913,6 @@ Showing all possible properties at the Work Requirement level:
     {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
   ],
   "taskGroupCount": 5,
-  "retryableErrors": [
-    {
-      "processExitCodes": [143],
-      "statusesAtFailure" : ["FAILED"],
-      "errorTypes": ["ALLOCATION_LOST"]
-    }
-  ]
   "taskTimeout": 120.0,
   "taskTypes": ["docker"],
   "tasksPerWorker": 1,
@@ -970,6 +970,13 @@ Showing all possible properties at the Task Group level:
       "providers": ["AWS"],
       "ram": [0.5, 2],
       "regions": ["eu-west-2"],
+      "retryableErrors": [
+        {
+          "processExitCodes": [143],
+          "statusesAtFailure" : ["FAILED"],
+          "errorTypes": ["ALLOCATION_LOST"]
+        }
+      ]
       "setTaskNames": false,
       "tag": "my_tag",
       "taskCount": 5,
@@ -983,13 +990,6 @@ Showing all possible properties at the Task Group level:
         {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
         {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
       ],
-      "retryableErrors": [
-        {
-          "processExitCodes": [143],
-          "statusesAtFailure" : ["FAILED"],
-          "errorTypes": ["ALLOCATION_LOST"]
-        }
-      ]
       "taskTimeout": 120.0,
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,
