@@ -52,6 +52,7 @@ class ConfigWorkRequirement:
     providers: Optional[List[str]] = None
     ram: Optional[List[float]] = None
     regions: Optional[List[str]] = None
+    retryable_errors: Optional[List[Dict]] = None
     set_task_names: bool = True
     task_batch_size: int = TASK_BATCH_SIZE_DEFAULT
     task_count: int = 1
@@ -63,7 +64,6 @@ class ConfigWorkRequirement:
     task_group_name: Optional[str] = None
     task_level_timeout: Optional[float] = None
     task_name: Optional[str] = None
-    task_retry_error_matchers: Optional[List[Dict]] = None
     task_timeout: Optional[float] = None
     task_type: Optional[str] = None
     tasks_per_worker: Optional[int] = None

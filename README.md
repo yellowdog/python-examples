@@ -619,6 +619,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `providers`                 | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                                                                                             | Yes  | Yes | Yes  |      |
 | `ram`                       | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                                                                                      | Yes  | Yes | Yes  |      |
 | `regions`                   | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                                                                                    | Yes  | Yes | Yes  |      |
+| `retryableErrors`           | A list of error condition combinations under which Tasks will be retried (up to `maximumTaskRetries`). Retries will always be attempted if the list is empty (the default). See the TOML/JSON section for examples.                        | Yes  | Yes | Yes  |      |
 | `setTaskNames`              | Set this to `false` to suppress automatic generation of Task names. Defaults to `true`. Task names that are set by the user will still be observed. Note that Task names must be set if any outputs are specified.                         | Yes  | Yes | Yes  | Yes  |
 | `tag`                       | A tag that can be associated with a Work Requirement, Task Group or Task. Note there is **no property inheritance** for these tags.                                                                                                        | Yes  | Yes | Yes  | Yes  |
 | `taskBatchSize`             | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                                                                                              | Yes  |     |      |      |
@@ -630,7 +631,6 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `taskName`                  | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                                                     | Yes  |     |      |      |
 | `taskGroupCount`            | Create `taskGroupCount` duplicates of a single Task Group.                                                                                                                                                                                 | Yes  | Yes |      |      |
 | `taskGroupName`             | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                                            | Yes  |     |      |      |
-| `taskRetryErrorMatchers`    | A list of error condition combinations under which Tasks will be retried (up to `maximumTaskRetries`). Retries will always be attempted if the list is empty (the default). See the TOML/JSON section for examples.                       | Yes  | Yes | Yes  |      |
 | `taskTimeout`               | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. The default is no timeout.                                                                                                 | Yes  | Yes | Yes  |      |
 | `timeout`                   | As above, but set at the individual Task level, which overrides the group level `taskTimeout` property (if present).                                                                                                                       | Yes  |     |      | Yes  |
 | `taskType`                  | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                                                 | Yes  |     |      | Yes  |
@@ -844,8 +844,8 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskTimeout = 120.0
     taskType = "docker"
     tasksPerWorker = 1
-    taskRetryErrorMatchers = [
-        {taskRetryErrorExitCodes = [143], taskRetryErrorStatuses = ["FAILED"], taskRetryErrorTypes = ["ALLOCATION_LOST"]},
+    retryableErrors = [
+        {processExitCodes = [143], statusesAtFailure = ["FAILED"], errorTypes = ["ALLOCATION_LOST"]},
     ]
     uploadFiles = [{localPath = "file_1.txt", uploadPath = "file_1.txt"}]
     uploadTaskProcessOutput = true
@@ -906,11 +906,11 @@ Showing all possible properties at the Work Requirement level:
     {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
   ],
   "taskGroupCount": 5,
-  "taskRetryErrorMatchers": [
+  "retryableErrors": [
     {
-      "taskRetryErrorExitCodes": [143],
-      "taskRetryErrorStatuses" : ["FAILED"],
-      "taskRetryErrorTypes": ["ALLOCATION_LOST"]
+      "processExitCodes": [143],
+      "statusesAtFailure" : ["FAILED"],
+      "errorTypes": ["ALLOCATION_LOST"]
     }
   ]
   "taskTimeout": 120.0,
@@ -983,11 +983,11 @@ Showing all possible properties at the Task Group level:
         {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
         {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
       ],
-      "taskRetryErrorMatchers": [
+      "retryableErrors": [
         {
-          "taskRetryErrorExitCodes": [143],
-          "taskRetryErrorStatuses" : ["FAILED"],
-          "taskRetryErrorTypes": ["ALLOCATION_LOST"]
+          "processExitCodes": [143],
+          "statusesAtFailure" : ["FAILED"],
+          "errorTypes": ["ALLOCATION_LOST"]
         }
       ]
       "taskTimeout": 120.0,

@@ -22,6 +22,7 @@ DOCKER_PASSWORD = "dockerPassword"  # String
 DOCKER_REGISTRY = "dockerRegistry"  # String
 DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
+ERROR_TYPES = "errorTypes"  # List of Strings
 EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
 EXECUTABLE = "executable"  # String
 FILE_PATTERN = "filePattern"  # String
@@ -56,12 +57,15 @@ OUTPUTS_OTHER = "outputsOther"  # List of Dicts
 OUTPUTS_REQUIRED = "outputsRequired"  # List of Strings
 PARALLEL_BATCHES = "parallelBatches"  # Integer
 PRIORITY = "priority"  # Float
+PROCESS_EXIT_CODES = "processExitCodes"  # List of Ints
 PROVIDERS = "providers"  # List of Strings
 RAM = "ram"  # List of two Floats
 REGIONS = "regions"  # List of Strings
 REQUIRED = "required"  # Boolean
+RETRYABLE_ERRORS = "retryableErrors"  # List of Dicts
 SECRET = "secret"  # String
 SET_TASK_NAMES = "setTaskNames"  # Set to False to suppress task naming
+STATUSES_AT_FAILURE = "statusesAtFailure"  # List of Strings
 TARGET_INSTANCE_COUNT = "targetInstanceCount"  # Integer
 TASKS = "tasks"  # List of Tasks
 TASKS_PER_WORKER = "tasksPerWorker"  # Integer
@@ -79,10 +83,6 @@ TASK_GROUP_NAME = "taskGroupName"  # String
 TASK_GROUP_TAG = "tag"  # String
 TASK_LEVEL_TIMEOUT = "timeout"  # Float
 TASK_NAME = "taskName"  # String
-TASK_RETRY_ERROR_EXIT_CODES = "taskRetryErrorExitCodes"  # List of Ints
-TASK_RETRY_ERROR_MATCHERS = "taskRetryErrorMatchers"  # List of Dicts
-TASK_RETRY_ERROR_STATUSES = "taskRetryErrorStatuses"  # List of Strings
-TASK_RETRY_ERROR_TYPES = "taskRetryErrorTypes"  # List of Strings
 TASK_TAG = "tag"  # String
 TASK_TIMEOUT = "taskTimeout"  # Float
 TASK_TYPE = "taskType"  # String
@@ -135,6 +135,7 @@ ALL_KEYS = [
     DOCKER_REGISTRY,
     DOCKER_USERNAME,
     ENV,
+    ERROR_TYPES,
     EXCLUSIVE_WORKERS,
     EXECUTABLE,
     FILE_PATTERN,
@@ -168,12 +169,15 @@ ALL_KEYS = [
     OUTPUTS_REQUIRED,
     PARALLEL_BATCHES,
     PRIORITY,
+    PROCESS_EXIT_CODES,
     PROVIDERS,
     RAM,
     REGIONS,
     REQUIRED,
+    RETRYABLE_ERRORS,
     SECRET,
     SET_TASK_NAMES,
+    STATUSES_AT_FAILURE,
     TARGET_INSTANCE_COUNT,
     TASKS,
     TASKS_PER_WORKER,
@@ -191,10 +195,6 @@ ALL_KEYS = [
     TASK_GROUP_TAG,
     TASK_LEVEL_TIMEOUT,
     TASK_NAME,
-    TASK_RETRY_ERROR_EXIT_CODES,
-    TASK_RETRY_ERROR_MATCHERS,
-    TASK_RETRY_ERROR_STATUSES,
-    TASK_RETRY_ERROR_TYPES,
     TASK_TAG,
     TASK_TIMEOUT,
     TASK_TYPE,

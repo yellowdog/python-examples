@@ -24,10 +24,10 @@ from yellowdog_client.model import (
 from yellowdog_cli.utils.config_types import ConfigCommon, ConfigWorkRequirement
 from yellowdog_cli.utils.printing import print_error, print_log
 from yellowdog_cli.utils.property_names import (
-    TASK_RETRY_ERROR_EXIT_CODES,
-    TASK_RETRY_ERROR_MATCHERS,
-    TASK_RETRY_ERROR_STATUSES,
-    TASK_RETRY_ERROR_TYPES,
+    ERROR_TYPES,
+    PROCESS_EXIT_CODES,
+    RETRYABLE_ERRORS,
+    STATUSES_AT_FAILURE,
 )
 from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
 from yellowdog_cli.utils.type_check import check_list
@@ -350,8 +350,8 @@ def generate_task_error_matchers_list(
     """
     error_matchers: Optional[List[Dict]] = check_list(
         tg_data.get(
-            TASK_RETRY_ERROR_MATCHERS,
-            wr_data.get(TASK_RETRY_ERROR_MATCHERS, config_wr.task_retry_error_matchers),
+            RETRYABLE_ERRORS,
+            wr_data.get(RETRYABLE_ERRORS, config_wr.retryable_errors),
         )
     )
 
@@ -372,7 +372,7 @@ def _generate_task_error_matcher(task_error_matcher_data: Dict) -> TaskErrorMatc
     try:
 
         exit_codes_str: Optional[List[int]] = check_list(
-            task_error_matcher_data.get(TASK_RETRY_ERROR_EXIT_CODES, None)
+            task_error_matcher_data.get(PROCESS_EXIT_CODES, None)
         )
         try:
             # Ensure ints
@@ -385,7 +385,7 @@ def _generate_task_error_matcher(task_error_matcher_data: Dict) -> TaskErrorMatc
             raise Exception(f"Unable to process error exit codes: {e}")
 
         statuses_str: Optional[List[str]] = check_list(
-            task_error_matcher_data.get(TASK_RETRY_ERROR_STATUSES, None)
+            task_error_matcher_data.get(STATUSES_AT_FAILURE, None)
         )
         try:
             statuses = (
@@ -397,7 +397,7 @@ def _generate_task_error_matcher(task_error_matcher_data: Dict) -> TaskErrorMatc
             raise Exception(f"Unable to process error status: {e}")
 
         error_types: Optional[List[str]] = check_list(
-            task_error_matcher_data.get(TASK_RETRY_ERROR_TYPES, None)
+            task_error_matcher_data.get(ERROR_TYPES, None)
         )
 
         return TaskErrorMatcher(
