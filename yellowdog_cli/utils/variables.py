@@ -397,6 +397,8 @@ def process_typed_variable_substitution(
                 f"(Use JSON syntax?) ({e})"
             )
 
+    return None
+
 
 def resolve_filename(files_directory: str, filename: str) -> str:
     """
