@@ -63,6 +63,7 @@ class ConfigWorkRequirement:
     task_group_name: Optional[str] = None
     task_level_timeout: Optional[float] = None
     task_name: Optional[str] = None
+    task_retry_error_matchers: Optional[List[Dict]] = None
     task_timeout: Optional[float] = None
     task_type: Optional[str] = None
     tasks_per_worker: Optional[int] = None

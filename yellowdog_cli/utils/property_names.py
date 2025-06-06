@@ -79,6 +79,10 @@ TASK_GROUP_NAME = "taskGroupName"  # String
 TASK_GROUP_TAG = "tag"  # String
 TASK_LEVEL_TIMEOUT = "timeout"  # Float
 TASK_NAME = "taskName"  # String
+TASK_RETRY_ERROR_EXIT_CODES = "taskRetryErrorExitCodes"  # List of Ints
+TASK_RETRY_ERROR_MATCHERS = "taskRetryErrorMatchers"  # List of Dicts
+TASK_RETRY_ERROR_STATUSES = "taskRetryErrorStatuses"  # List of Strings
+TASK_RETRY_ERROR_TYPES = "taskRetryErrorTypes"  # List of Strings
 TASK_TAG = "tag"  # String
 TASK_TIMEOUT = "taskTimeout"  # Float
 TASK_TYPE = "taskType"  # String
@@ -108,6 +112,7 @@ WP_NAME = "name"  # String
 WR_DATA = "workRequirementData"  # String
 WR_NAME = "name"  # String
 WR_TAG = "tag"  # String
+
 
 ALL_KEYS = [
     ADD_YD_ENV_VARS,
@@ -186,6 +191,10 @@ ALL_KEYS = [
     TASK_GROUP_TAG,
     TASK_LEVEL_TIMEOUT,
     TASK_NAME,
+    TASK_RETRY_ERROR_EXIT_CODES,
+    TASK_RETRY_ERROR_MATCHERS,
+    TASK_RETRY_ERROR_STATUSES,
+    TASK_RETRY_ERROR_TYPES,
     TASK_TAG,
     TASK_TIMEOUT,
     TASK_TYPE,

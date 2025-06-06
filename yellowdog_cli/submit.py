@@ -23,6 +23,8 @@ from yellowdog_client.model import (
     RunSpecification,
     Task,
     TaskData,
+    TaskErrorMatcher,
+    TaskErrorType,
     TaskGroup,
     TaskInput,
     TaskInputSource,
@@ -54,6 +56,7 @@ from yellowdog_cli.utils.printing import (
     print_log,
     print_numbered_strings,
     print_warning,
+    print_yd_object,
 )
 from yellowdog_cli.utils.property_names import *
 from yellowdog_cli.utils.settings import (
@@ -66,6 +69,7 @@ from yellowdog_cli.utils.settings import (
 )
 from yellowdog_cli.utils.submit_utils import (
     UploadedFiles,
+    generate_task_error_matchers_list,
     generate_task_input_list,
     generate_taskdata_object,
     pause_between_batches,
@@ -523,6 +527,9 @@ def create_task_group(
             task_group_data.get(
                 NAMESPACES, wr_data.get(NAMESPACES, config_wr.namespaces)
             )
+        ),
+        retryableErrors=generate_task_error_matchers_list(
+            config_wr, wr_data, task_group_data
         ),
     )
     ctttl_data = check_float_or_int(

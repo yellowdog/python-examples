@@ -318,6 +318,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             task_group_count=task_group_count,
             task_group_name=wr_section.get(TASK_GROUP_NAME, None),
             task_name=wr_section.get(TASK_NAME, None),
+            task_retry_error_matchers=wr_section.get(TASK_RETRY_ERROR_MATCHERS, None),
             task_timeout=wr_section.get(TASK_TIMEOUT, None),
             task_type=task_type,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
@@ -331,9 +332,11 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             wr_name=wr_section.get(WR_NAME, None),
             wr_tag=wr_section.get(WR_TAG, None),
         )
+
     except KeyError as e:
         print_error(f"Missing configuration data: {e}")
         exit(1)
+
     except Exception as e:
         print_error(f"{e}")
         exit(1)

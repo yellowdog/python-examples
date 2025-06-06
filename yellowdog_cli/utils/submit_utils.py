@@ -15,13 +15,22 @@ from yellowdog_client.model import (
     TaskData,
     TaskDataInput,
     TaskDataOutput,
+    TaskErrorMatcher,
     TaskInput,
     TaskInputVerification,
+    TaskStatus,
 )
 
 from yellowdog_cli.utils.config_types import ConfigCommon, ConfigWorkRequirement
 from yellowdog_cli.utils.printing import print_error, print_log
+from yellowdog_cli.utils.property_names import (
+    TASK_RETRY_ERROR_EXIT_CODES,
+    TASK_RETRY_ERROR_MATCHERS,
+    TASK_RETRY_ERROR_STATUSES,
+    TASK_RETRY_ERROR_TYPES,
+)
 from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
+from yellowdog_cli.utils.type_check import check_list
 from yellowdog_cli.utils.upload_utils import unique_upload_pathname, upload_file_core
 from yellowdog_cli.utils.variables import process_variable_substitutions_insitu
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
@@ -330,4 +339,74 @@ def generate_taskdata_object(
     except TypeError as e:
         raise Exception(
             f"Unable to generate 'taskDataInputs' or 'taskDataOutputs' list: {str(e)}"
+        )
+
+
+def generate_task_error_matchers_list(
+    config_wr: ConfigWorkRequirement, wr_data: dict, tg_data: dict
+) -> Optional[List[TaskErrorMatcher]]:
+    """
+    Generate a list of TaskErrorMatcher objects.
+    """
+    error_matchers: Optional[List[Dict]] = check_list(
+        tg_data.get(
+            TASK_RETRY_ERROR_MATCHERS,
+            wr_data.get(TASK_RETRY_ERROR_MATCHERS, config_wr.task_retry_error_matchers),
+        )
+    )
+
+    return (
+        None
+        if error_matchers is None
+        else [
+            _generate_task_error_matcher(task_error_matcher_data)
+            for task_error_matcher_data in error_matchers
+        ]
+    )
+
+
+def _generate_task_error_matcher(task_error_matcher_data: Dict) -> TaskErrorMatcher:
+    """
+    Generate a TaskErrorMatcher object.
+    """
+    try:
+
+        exit_codes_str: Optional[List[int]] = check_list(
+            task_error_matcher_data.get(TASK_RETRY_ERROR_EXIT_CODES, None)
+        )
+        try:
+            # Ensure ints
+            exit_codes = (
+                None
+                if exit_codes_str is None
+                else [int(exit_code_str) for exit_code_str in exit_codes_str]
+            )
+        except Exception as e:
+            raise Exception(f"Unable to process error exit codes: {e}")
+
+        statuses_str: Optional[List[str]] = check_list(
+            task_error_matcher_data.get(TASK_RETRY_ERROR_STATUSES, None)
+        )
+        try:
+            statuses = (
+                None
+                if statuses_str is None
+                else [TaskStatus(status) for status in statuses_str]
+            )
+        except Exception as e:
+            raise Exception(f"Unable to process error status: {e}")
+
+        error_types: Optional[List[str]] = check_list(
+            task_error_matcher_data.get(TASK_RETRY_ERROR_TYPES, None)
+        )
+
+        return TaskErrorMatcher(
+            errorTypes=error_types,
+            statusesAtFailure=statuses,
+            processExitCodes=exit_codes,
+        )
+
+    except Exception as e:
+        raise Exception(
+            f"Unable to process task retry error matcher data '{task_error_matcher_data}': {e}"
         )
