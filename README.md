@@ -161,7 +161,7 @@ The commands provide the following capabilities:
 - **Listing** YellowDog items using the **`yd-list`** command
 - **Resizing** Worker Pools and Compute Requirements with the **`yd-resize`** command
 - **Boosting** Allowances with the **`yd-boost`** command
-- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, and Namespace Policies with the **`yd-create`** and **`yd-remove`** commands
+- **Creating, Updating and Removing** Compute Source Templates, Compute Requirement Templates, Keyrings, Credentials, Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, Namespace Policies, Groups, and Applications with the **`yd-create`** and **`yd-remove`** commands
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
 - **Showing** the details of any YellowDog entity using its YellowDog ID with the **`yd-show`** command
 - **Comparing** whether worker pools are a match for task groups with the **`yd-compare`** command
