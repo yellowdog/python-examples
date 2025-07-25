@@ -328,7 +328,7 @@ An example `common` section is shown below:
 
 Indentation is optional in TOML files and is for readability only.
 
-## Importing `common` properties
+## Importing `common` Properties
 
 The `common` section can import properties from a separate TOML file, using the `importCommon` property. For example, the `key` and `secret` might be in a shared TOML file called `app_credentials.toml`, with the following contents:
 
@@ -382,6 +382,12 @@ The **environment variables** are as follows:
 When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in a configuration file.
 
 If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
+
+## Support for `.env` Files
+
+Environment variables can also be set in a `.env` file, typically in the user's home directory. Entries in the `.env` file will not overwrite existing environment variables -- i.e., environment variables take precedence over entries in the `.env` file.
+
+Environment variables sourced from a `.env` file whose names start with `YD` will be reported on the command line. Variables that do not start with `YD` will not be reported, but they will still be applied.
 
 ## Variable Substitutions in Common Properties
 
@@ -464,7 +470,8 @@ The precedence order for setting variables is:
 1. Command line
 2. `YD_VAR` environment variables
 3. General environment variables
-4. TOML file
+4. Variables in a `.env` file
+5. TOML file
 
 This method can also be used to override the default variables, e.g., setting `-v username="other-user"` will override the default `{{username}}` variable.
 
