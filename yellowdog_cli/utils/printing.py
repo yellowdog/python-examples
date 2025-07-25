@@ -71,6 +71,7 @@ from yellowdog_cli.utils.settings import (
     MAX_LINES_COLOURED_FORMATTING,
     MAX_TABLE_DESCRIPTION,
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
+    PROP_ID,
     PROP_RESOURCE,
     WARNING_STYLE,
 )
@@ -1062,6 +1063,11 @@ def print_yd_object(
     using the compact JSON encoder.
     """
     object_data: object = Json.dump(yd_object)
+
+    # Remove the 'id' property?
+    if ARGS_PARSER.strip_ids:
+        object_data.pop(PROP_ID, None)
+
     if add_fields is not None:
         # Requires a copy of the 'object' datatype to be made,
         # in order to insert additional fields
@@ -1071,6 +1077,7 @@ def print_yd_object(
         for key, value in add_fields.items():
             object_data_new[key] = value
         object_data = object_data_new
+
     print_json(object_data, initial_indent, drop_first_line, with_final_comma)
 
 

@@ -1169,6 +1169,14 @@ class CLIParser:
                     "names in detailed compute requirement templates"
                 ),
             )
+            parser.add_argument(
+                "--strip-ids",
+                action="store_true",
+                required=False,
+                help=(
+                    "don't include objects' YellowDog IDs in their JSON representation"
+                ),
+            )
 
         if "compare" in sys.argv[0]:
             parser.add_argument(
@@ -1733,6 +1741,11 @@ class CLIParser:
     @allow_missing_attribute
     def running_nodes_only(self) -> Optional[bool]:
         return self.args.running_nodes_only
+
+    @property
+    @allow_missing_attribute
+    def strip_ids(self) -> Optional[bool]:
+        return self.args.strip_ids
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
