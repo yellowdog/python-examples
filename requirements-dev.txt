@@ -1,13 +1,14 @@
-twine
-wheel
-setuptools
 black
-isort
 build
+cli-test-helpers
+isort
+packaging
+pipdeptree
+pyinstaller
+pyqt6
 pytest
 pytest-xdist
-cli-test-helpers
 python-dispatch >= 0.2.2 # Eliminates pytest packaging warnings, but conflicts with SDK requirement
-pyinstaller
-pipdeptree
-pyqt6
+setuptools
+twine
+wheel
