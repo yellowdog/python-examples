@@ -662,7 +662,7 @@ class CLIParser:
                 type=str,
                 required=False,
                 help=(
-                    "if specified, the 'details' resource listing will be appended "
+                    "if specified, the 'details' JSON resource listing will also be written "
                     "to the nominated output file"
                 ),
                 metavar="<output-file>",
