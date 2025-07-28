@@ -547,14 +547,14 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
-                "--compute-templates",
+                "--compute-requirement-templates",
                 "-C",
                 action="store_true",
                 required=False,
                 help="list compute requirement templates",
             )
             parser.add_argument(
-                "--source-templates",
+                "--compute-source-templates",
                 "-S",
                 action="store_true",
                 required=False,
@@ -1499,13 +1499,13 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def compute_templates(self) -> Optional[bool]:
-        return self.args.compute_templates
+    def compute_requirement_templates(self) -> Optional[bool]:
+        return self.args.compute_requirement_templates
 
     @property
     @allow_missing_attribute
-    def source_templates(self) -> Optional[bool]:
-        return self.args.source_templates
+    def compute_source_templates(self) -> Optional[bool]:
+        return self.args.compute_source_templates
 
     @property
     @allow_missing_attribute

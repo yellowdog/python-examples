@@ -111,9 +111,9 @@ def main():
         list_worker_pools()
     elif ARGS_PARSER.compute_requirements or ARGS_PARSER.instances:
         list_compute_requirements()
-    elif ARGS_PARSER.compute_templates:
+    elif ARGS_PARSER.compute_requirement_templates:
         list_compute_requirement_templates()
-    elif ARGS_PARSER.source_templates:
+    elif ARGS_PARSER.compute_source_templates:
         list_compute_source_templates()
     elif ARGS_PARSER.keyrings:
         list_keyrings()
@@ -148,7 +148,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.applications,
         ARGS_PARSER.attribute_definitions,
         ARGS_PARSER.compute_requirements,
-        ARGS_PARSER.compute_templates,
+        ARGS_PARSER.compute_requirement_templates,
         ARGS_PARSER.groups,
         ARGS_PARSER.image_families,
         ARGS_PARSER.instances,
@@ -159,7 +159,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.object_paths,
         ARGS_PARSER.permissions,
         ARGS_PARSER.roles,
-        ARGS_PARSER.source_templates,
+        ARGS_PARSER.compute_source_templates,
         ARGS_PARSER.task_groups,
         ARGS_PARSER.tasks,
         ARGS_PARSER.users,
