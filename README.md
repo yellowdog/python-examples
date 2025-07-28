@@ -10,9 +10,10 @@
 * [Configuration](#configuration)
 * [Naming Rules](#naming-rules)
 * [Common Properties](#common-properties)
-   * [Importing common properties](#importing-common-properties)
+   * [Importing common Properties](#importing-common-properties)
    * [HTTPS Proxy Support](#https-proxy-support)
    * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
+   * [Support for .env Files](#support-for-env-files)
    * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
 * [Variable Substitutions](#variable-substitutions)
    * [Default Variables](#default-variables)
@@ -99,7 +100,7 @@
    * [Namespace Policies](#namespace-policies)
    * [Groups](#groups)
    * [Applications](#applications)
-      * [Creating and Regenrating Application Keys](#creating-and-regenrating-application-keys)
+      * [Creating and Regenerating Application Keys](#creating-and-regenerating-application-keys)
    * [Users](#users)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
@@ -130,7 +131,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri May 23 08:51:46 BST 2025 -->
+<!-- Added by: pwt, at: Mon Jul 28 21:41:59 BST 2025 -->
 
 <!--te-->
 
