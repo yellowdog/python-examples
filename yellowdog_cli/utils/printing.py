@@ -1064,9 +1064,22 @@ def print_yd_object(
     """
     object_data: object = Json.dump(yd_object)
 
-    # Remove the 'id' property?
+    def remove_id(d):
+        """
+        Helper function to remove the 'id' property recursively.
+        """
+        if isinstance(d, dict):
+            # Create a new dictionary omitting the 'id' key
+            return {k: remove_id(v) for k, v in d.items() if k != PROP_ID}
+        elif isinstance(d, list):
+            # Recursively process each item in the list
+            return [remove_id(item) for item in d]
+        else:
+            # Return non-dict/list values unchanged
+            return d
+
     if ARGS_PARSER.strip_ids:
-        object_data.pop(PROP_ID, None)
+        object_data = remove_id(object_data)
 
     if add_fields is not None:
         # Requires a copy of the 'object' datatype to be made,
