@@ -495,13 +495,6 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
-                "--details",
-                "-d",
-                action="store_true",
-                required=False,
-                help="show the full details of (interactively) selected objects",
-            )
-            parser.add_argument(
                 "--work-requirements",
                 "-w",
                 action="store_true",
@@ -658,6 +651,13 @@ class CLIParser:
                 help="list permissions",
             )
             parser.add_argument(
+                "--details",
+                "-d",
+                action="store_true",
+                required=False,
+                help="show the full JSON representation of objects",
+            )
+            parser.add_argument(
                 "--output-file",
                 type=str,
                 required=False,
@@ -666,6 +666,12 @@ class CLIParser:
                     "to the nominated output file"
                 ),
                 metavar="<output-file>",
+            )
+            parser.add_argument(
+                "--auto-select-all",
+                action="store_true",
+                required=False,
+                help="use with '--details' to select all objects automatically",
             )
 
         if any(module in sys.argv[0] for module in ["upload"]):
@@ -1165,8 +1171,8 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "substitute compute source template IDs and image family IDs for "
-                    "names in detailed compute requirement templates"
+                    "use with '--details' to substitute compute source template IDs and "
+                    "image family IDs for names in detailed compute requirement templates"
                 ),
             )
             parser.add_argument(
@@ -1174,7 +1180,8 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "don't include objects' YellowDog IDs in their JSON representation"
+                    "use with '--details' to omit the YellowDog IDs of objects from "
+                    "their JSON representations"
                 ),
             )
 
@@ -1746,6 +1753,11 @@ class CLIParser:
     @allow_missing_attribute
     def strip_ids(self) -> Optional[bool]:
         return self.args.strip_ids
+
+    @property
+    @allow_missing_attribute
+    def auto_select_all(self) -> Optional[bool]:
+        return self.args.auto_select_all
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:

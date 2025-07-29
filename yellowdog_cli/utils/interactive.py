@@ -63,6 +63,10 @@ def select(
     if not ARGS_PARSER.interactive and force_interactive is False:
         return objects
 
+    if ARGS_PARSER.auto_select_all:
+        print_log("Automatically selecting all objects")
+        return objects
+
     return [
         objects[x - 1]
         for x in get_selected_list_items(
