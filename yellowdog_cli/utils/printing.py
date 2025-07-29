@@ -73,7 +73,10 @@ from yellowdog_cli.utils.settings import (
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     PROP_CREATED_TIME,
     PROP_ID,
+    PROP_INSTANCE_PRICING,
     PROP_RESOURCE,
+    PROP_SUPPORTING_RESOURCE_CREATED,
+    PROP_TRAITS,
     WARNING_STYLE,
 )
 from yellowdog_cli.utils.ydid_utils import YDIDType
@@ -1067,16 +1070,22 @@ def print_yd_object(
 
     def remove_unused_props(d):
         """
-        Helper function to remove the 'id' and 'createdTime' properties
-        recursively.
+        Helper function to remove the 'id' and other properties
+        not required for 'yd-create' and 'yd-remove', recursively.
         """
         if isinstance(d, dict):
-            # Create a new dictionary omitting the 'id' and 'createdTime'
-            # keys
+            # Create a new dictionary omitting redundant properties
             return {
                 k: remove_unused_props(v)
                 for k, v in d.items()
-                if k not in [PROP_ID, PROP_CREATED_TIME]
+                if k
+                not in [
+                    PROP_ID,
+                    PROP_CREATED_TIME,
+                    PROP_INSTANCE_PRICING,
+                    PROP_SUPPORTING_RESOURCE_CREATED,
+                    PROP_TRAITS,
+                ]
             }
         elif isinstance(d, list):
             # Recursively process each item in the list

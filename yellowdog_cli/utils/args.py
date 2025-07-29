@@ -1188,7 +1188,8 @@ class CLIParser:
                 required=False,
                 help=(
                     "use with '--details' to omit the YellowDog IDs of objects from "
-                    "their JSON representations"
+                    "their JSON representations, as well as other properties not "
+                    "required when capturing JSON for use with yd-create and yd-remove"
                 ),
             )
 
