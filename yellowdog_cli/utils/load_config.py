@@ -118,7 +118,10 @@ def load_config_common() -> ConfigCommon:
         ]:
             if args_parser_value is not None:
                 common_section[key_name] = args_parser_value
-                print_log(f"Using '{key_name}' provided on command line")
+                print_log(
+                    f"Using '{key_name}' provided on command line "
+                    "(or automatically set)"
+                )
             elif os.environ.get(env_var_name, None) is not None:
                 common_section[key_name] = os.environ[env_var_name]
                 print_log(f"Using '{key_name}' provided via the environment")
