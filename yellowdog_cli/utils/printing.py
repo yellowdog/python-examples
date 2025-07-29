@@ -71,6 +71,7 @@ from yellowdog_cli.utils.settings import (
     MAX_LINES_COLOURED_FORMATTING,
     MAX_TABLE_DESCRIPTION,
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
+    PROP_CREATED_TIME,
     PROP_ID,
     PROP_RESOURCE,
     WARNING_STYLE,
@@ -1064,22 +1065,28 @@ def print_yd_object(
     """
     object_data: object = Json.dump(yd_object)
 
-    def remove_id(d):
+    def remove_unused_props(d):
         """
-        Helper function to remove the 'id' property recursively.
+        Helper function to remove the 'id' and 'createdTime' properties
+        recursively.
         """
         if isinstance(d, dict):
-            # Create a new dictionary omitting the 'id' key
-            return {k: remove_id(v) for k, v in d.items() if k != PROP_ID}
+            # Create a new dictionary omitting the 'id' and 'createdTime'
+            # keys
+            return {
+                k: remove_unused_props(v)
+                for k, v in d.items()
+                if k not in [PROP_ID, PROP_CREATED_TIME]
+            }
         elif isinstance(d, list):
             # Recursively process each item in the list
-            return [remove_id(item) for item in d]
+            return [remove_unused_props(item) for item in d]
         else:
             # Return non-dict/list values unchanged
             return d
 
     if ARGS_PARSER.strip_ids:
-        object_data = remove_id(object_data)
+        object_data = remove_unused_props(object_data)
 
     if add_fields is not None:
         # Requires a copy of the 'object' datatype to be made,

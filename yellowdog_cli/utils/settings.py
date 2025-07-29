@@ -134,6 +134,7 @@ RN_USER = "User"
 
 # Property Names
 PROP_AUTOSCALING_MAX_NODES = "autoscalingMaxNodes"
+PROP_CREATED_TIME = "createdTime"
 PROP_CREDENTIAL = "credential"
 PROP_CST_ID = "sourceTemplateId"
 PROP_DEFAULT_RANK_ORDER = "defaultRankOrder"
