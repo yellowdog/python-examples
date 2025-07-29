@@ -7,7 +7,10 @@ import sys
 from typing import List, Optional
 
 from yellowdog_cli.__init__ import __version__
-from yellowdog_cli.utils.settings import MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS
+from yellowdog_cli.utils.settings import (
+    DEFAULT_URL,
+    MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
+)
 from yellowdog_cli.version import DOCS_URL
 
 
@@ -66,24 +69,23 @@ class CLIParser:
             "-k",
             type=str,
             required=False,
-            help="the YellowDog Application key",
-            metavar="<app-key>",
+            help="the application key ID",
+            metavar="<app-key-id>",
         )
         parser.add_argument(
             "--secret",
             "-s",
             required=False,
             type=str,
-            help="the YellowDog Application secret",
-            metavar="<app-secret>",
+            help="the application key secret",
+            metavar="<app-key-secret>",
         )
-
         parser.add_argument(
             "--url",
             "-u",
             type=str,
             required=False,
-            help="the URL of the YellowDog Platform API",
+            help=f"the YellowDog Platform API URL (defaults to '{DEFAULT_URL}')",
             metavar="<url>",
         )
         parser.add_argument(
