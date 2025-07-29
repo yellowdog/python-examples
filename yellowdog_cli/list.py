@@ -93,6 +93,15 @@ def main():
     # Always use interactive mode for selections
     ARGS_PARSER.interactive = True
 
+    if (
+        ARGS_PARSER.auto_select_all
+        or ARGS_PARSER.strip_ids
+        or ARGS_PARSER.substitute_ids
+        or ARGS_PARSER.output_file
+    ) and not ARGS_PARSER.details:
+        print_log("Automatically setting the '--details' option")
+        ARGS_PARSER.details = True
+
     if ARGS_PARSER.details and ARGS_PARSER.strip_ids:
         print_log("Omitting YellowDog IDs from detailed JSON objects")
 

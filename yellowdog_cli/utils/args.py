@@ -1349,6 +1349,10 @@ class CLIParser:
     def details(self) -> Optional[bool]:
         return self.args.details
 
+    @details.setter
+    def details(self, interactive: bool):
+        self.args.details = interactive
+
     @property
     @allow_missing_attribute
     def debug(self) -> Optional[bool]:
