@@ -1178,7 +1178,8 @@ class CLIParser:
                 required=False,
                 help=(
                     "use with '--details' to substitute compute source template IDs and "
-                    "image family IDs for names in detailed compute requirement templates"
+                    "image family IDs for names in detailed compute requirement templates; "
+                    "also image family IDs in compute source templates"
                 ),
             )
             parser.add_argument(

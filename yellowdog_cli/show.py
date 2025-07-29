@@ -7,7 +7,10 @@ Command to show the JSON details of YellowDog entities via their IDs.
 from yellowdog_client.model import ConfiguredWorkerPool
 
 from yellowdog_cli.list import get_keyring
-from yellowdog_cli.utils.entity_utils import substitute_ids_for_names_in_crt
+from yellowdog_cli.utils.entity_utils import (
+    substitute_ids_for_names_in_crt,
+    substitute_image_family_id_for_name_in_cst,
+)
 from yellowdog_cli.utils.printing import print_error, print_log, print_yd_object
 from yellowdog_cli.utils.settings import (
     RESOURCE_PROPERTY_NAME,
@@ -60,8 +63,12 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
         ydid_type = get_ydid_type(ydid)
         if ydid_type == YDIDType.COMPUTE_SOURCE_TEMPLATE:
             print_log(f"Showing details of Compute Source Template ID '{ydid}'")
+            if ARGS_PARSER.substitute_ids:
+                print_log("Substituting Image Family ID with name")
             print_yd_object(
-                CLIENT.compute_client.get_compute_source_template(ydid),
+                substitute_image_family_id_for_name_in_cst(
+                    CLIENT, CLIENT.compute_client.get_compute_source_template(ydid)
+                ),
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
                 add_fields=({RESOURCE_PROPERTY_NAME: RN_SOURCE_TEMPLATE}),

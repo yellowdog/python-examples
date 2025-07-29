@@ -528,6 +528,33 @@ def substitute_ids_for_names_in_crt(
     return crt
 
 
+def substitute_image_family_id_for_name_in_cst(
+    client: PlatformClient, cst: ComputeSourceTemplate
+) -> ComputeSourceTemplate:
+    """
+    Substitute Image Family IDs for namespace/name,
+    if option is selected.
+    """
+
+    if not ARGS_PARSER.substitute_ids:
+        return cst
+
+    try:
+        cst.source.imageId = _get_image_family_name_from_id(client, cst.source.imageId)
+        return cst
+    except:
+        pass
+
+    try:
+        # Google uses a different property name
+        cst.source.image = _get_image_family_name_from_id(client, cst.source.image)
+        return cst
+    except:
+        pass
+
+    return cst
+
+
 @lru_cache
 def _get_source_template_name_from_id(
     client: PlatformClient, cst_id: Optional[str]

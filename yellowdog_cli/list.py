@@ -59,6 +59,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_user_groups,
     list_matching_object_paths,
     substitute_ids_for_names_in_crt,
+    substitute_image_family_id_for_name_in_cst,
 )
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import unpack_namespace_in_prefix
@@ -628,7 +629,10 @@ def list_compute_source_templates():
     cs_templates = select(CLIENT, sorted_objects(cs_templates))
     cs_template_details = [
         (
-            CLIENT.compute_client.get_compute_source_template(cs_template.id),
+            substitute_image_family_id_for_name_in_cst(
+                CLIENT,
+                CLIENT.compute_client.get_compute_source_template(cs_template.id),
+            ),
             RN_SOURCE_TEMPLATE,
         )
         for cs_template in cs_templates
