@@ -409,7 +409,10 @@ class CLIParser:
                 "-y",
                 action="store_true",
                 required=False,
-                help="perform modifying actions without requiring user confirmation",
+                help=(
+                    "perform modifying/destructive actions without "
+                    "requiring user confirmation"
+                ),
             )
 
         if any(module in sys.argv[0] for module in ["delete", "download"]):

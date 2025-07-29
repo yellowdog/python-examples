@@ -130,7 +130,7 @@ def main():
     elif ARGS_PARSER.image_families:
         list_image_families()
     elif ARGS_PARSER.namespace_storage_configurations:
-        list_namespaces()
+        list_namespace_storage_configurations()
     elif ARGS_PARSER.allowances:
         list_allowances()
     elif ARGS_PARSER.attribute_definitions:
@@ -717,7 +717,7 @@ def list_image_families():
     )
 
 
-def list_namespaces():
+def list_namespace_storage_configurations():
     """
     List Storage Namespaces. For now, prints a table directly rather than
     calling the printing module, due to it being a bit fiddly.
