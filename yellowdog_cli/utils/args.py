@@ -677,7 +677,7 @@ class CLIParser:
                 "--auto-select-all",
                 action="store_true",
                 required=False,
-                help="use with '--details' to select all objects automatically",
+                help="automatically select all listed objects (implies '--details')",
             )
 
         if any(module in sys.argv[0] for module in ["upload"]):
@@ -1177,9 +1177,10 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "use with '--details' to substitute compute source template IDs and "
-                    "image family IDs for names in detailed compute requirement templates; "
-                    "also image family IDs in compute source templates"
+                    "substitute compute source template IDs and image family IDs "
+                    "for names in detailed compute requirement templates, "
+                    "and image family IDs in compute source templates "
+                    "(implies '--details')"
                 ),
             )
             parser.add_argument(
@@ -1187,9 +1188,10 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help=(
-                    "use with '--details' to omit the YellowDog IDs of objects from "
-                    "their JSON representations, as well as other properties not "
-                    "required when capturing JSON for use with yd-create and yd-remove"
+                    "omit the YellowDog IDs of objects from their JSON "
+                    "representations, as well as other properties not "
+                    "required when capturing JSON for use with yd-create and yd-remove "
+                    "(implies '--details')"
                 ),
             )
 
