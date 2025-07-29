@@ -108,7 +108,8 @@ def main():
     if ARGS_PARSER.output_file and ARGS_PARSER.details:
         if exists(ARGS_PARSER.output_file):
             if not confirmed(
-                f"Overwrite file '{ARGS_PARSER.output_file}' with resource details?"
+                f"Overwrite file '{ARGS_PARSER.output_file}' with new "
+                "resource details?"
             ):
                 return
 

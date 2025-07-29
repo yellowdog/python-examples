@@ -401,6 +401,7 @@ class CLIParser:
                 "boost",
                 "hold",
                 "start",
+                "list",
             ]
         ):
             parser.add_argument(
