@@ -977,6 +977,11 @@ def list_roles():
     print_log("Obtaining permissions for each role ...")
     roles: List[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
 
+    # Sort permissions alphabetically (contorting the type)
+    for role in roles:
+        role.permissions = list(role.permissions)
+        role.permissions.sort(key=lambda permission: permission.name)
+
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, roles, object_type_name="Role")
         return
