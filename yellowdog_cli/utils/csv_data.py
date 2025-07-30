@@ -8,7 +8,7 @@ from ast import literal_eval
 from collections import OrderedDict
 from json import load as json_load
 from os.path import relpath
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from toml import load as toml_load
 
@@ -290,7 +290,7 @@ USED_FILE_INDEXES = []
 
 def get_csv_file_index(
     csv_filename: str, task_groups: List[Dict]
-) -> [str, Optional[int]]:
+) -> Tuple[str, Optional[int]]:
     """
     Check if the CSV filename ends in an integer index (':<integer>'),
     or in a Task Group name (':<task_group_name>').
