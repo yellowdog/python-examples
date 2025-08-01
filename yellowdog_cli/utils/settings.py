@@ -133,7 +133,10 @@ RN_UPDATE_GROUP_REQUEST = "UpdateGroupRequest"
 RN_USER = "User"
 
 # Property Names
+PROP_ACCESS_DELEGATES = "accessDelegates"
+PROP_ADMIN_GROUP = "adminGroup"
 PROP_AUTOSCALING_MAX_NODES = "autoscalingMaxNodes"
+PROP_CREATED_BY_USER_ID = "createdByUserId"
 PROP_CREATED_TIME = "createdTime"
 PROP_CREDENTIAL = "credential"
 PROP_CST_ID = "sourceTemplateId"

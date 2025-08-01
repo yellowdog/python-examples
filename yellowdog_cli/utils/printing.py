@@ -71,6 +71,9 @@ from yellowdog_cli.utils.settings import (
     MAX_LINES_COLOURED_FORMATTING,
     MAX_TABLE_DESCRIPTION,
     NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
+    PROP_ACCESS_DELEGATES,
+    PROP_ADMIN_GROUP,
+    PROP_CREATED_BY_USER_ID,
     PROP_CREATED_TIME,
     PROP_ID,
     PROP_INSTANCE_PRICING,
@@ -1085,6 +1088,9 @@ def print_yd_object(
                 if k
                 not in [
                     PROP_ID,
+                    PROP_ACCESS_DELEGATES,
+                    PROP_ADMIN_GROUP,
+                    PROP_CREATED_BY_USER_ID,
                     PROP_CREATED_TIME,
                     PROP_INSTANCE_PRICING,
                     PROP_SUPPORTING_RESOURCE_CREATED,
