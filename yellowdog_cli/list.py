@@ -76,10 +76,13 @@ from yellowdog_cli.utils.printing import (
 )
 from yellowdog_cli.utils.settings import (
     RN_ALLOWANCE,
+    RN_APPLICATION,
+    RN_GROUP,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
+    RN_ROLE,
     RN_SOURCE_TEMPLATE,
     RN_STRING_ATTRIBUTE_DEFINITION,
 )
@@ -929,13 +932,9 @@ def list_applications():
         print_numbered_object_list(CLIENT, applications, object_type_name="Application")
         return
 
-    for selected_app in select(CLIENT, applications, object_type_name="Application"):
-        add_groups_field = {
-            "groups": [
-                group.name for group in get_application_groups(CLIENT, selected_app.id)
-            ]
-        }
-        print_yd_object(selected_app, add_fields=add_groups_field)
+    print_yd_object_list(
+        [(application, RN_APPLICATION) for application in select(CLIENT, applications)]
+    )
 
 
 def list_groups():
@@ -958,8 +957,7 @@ def list_groups():
         print_numbered_object_list(CLIENT, groups, object_type_name="Group")
         return
 
-    for selected_users in select(CLIENT, groups, object_type_name="Group"):
-        print_yd_object(selected_users)
+    print_yd_object_list([(group, RN_GROUP) for group in select(CLIENT, groups)])
 
 
 def list_roles():
@@ -986,8 +984,7 @@ def list_roles():
         print_numbered_object_list(CLIENT, roles, object_type_name="Role")
         return
 
-    for selected_users in select(CLIENT, roles, object_type_name="Role"):
-        print_yd_object(selected_users)
+    print_yd_object_list([(role, RN_ROLE) for role in select(CLIENT, roles)])
 
 
 def list_permissions():
