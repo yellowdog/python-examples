@@ -13,6 +13,7 @@ from yellowdog_cli.utils.entity_utils import (
 )
 from yellowdog_cli.utils.printing import print_error, print_log, print_yd_object
 from yellowdog_cli.utils.settings import (
+    PROP_GROUPS,
     RESOURCE_PROPERTY_NAME,
     RN_ALLOWANCE,
     RN_APPLICATION,
@@ -36,8 +37,8 @@ def main():
     # and the 'quiet' option is enabled
     generate_json_list = len(ARGS_PARSER.yellowdog_ids) > 1 and ARGS_PARSER.quiet
 
-    if ARGS_PARSER.details and ARGS_PARSER.strip_ids:
-        print_log("Omitting YellowDog IDs from detailed JSON objects")
+    if ARGS_PARSER.strip_ids:
+        print_log("Omitting YellowDog IDs (etc.) from detailed JSON objects")
 
     if generate_json_list:
         print("[")
@@ -210,11 +211,22 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
         elif ydid_type == YDIDType.APPLICATION:
             print_log(f"Showing details of Application ID '{ydid}'")
+            group_names = [
+                group.name
+                for group in CLIENT.account_client.get_application_groups(
+                    ydid
+                ).list_all()
+            ]
             print_yd_object(
                 CLIENT.account_client.get_application(ydid),
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
-                add_fields=({RESOURCE_PROPERTY_NAME: RN_APPLICATION}),
+                add_fields=(
+                    {
+                        PROP_GROUPS: group_names,
+                        RESOURCE_PROPERTY_NAME: RN_APPLICATION,
+                    }
+                ),
             )
 
         elif ydid_type == YDIDType.USER:
