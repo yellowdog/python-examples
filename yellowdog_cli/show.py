@@ -12,7 +12,12 @@ from yellowdog_cli.utils.entity_utils import (
     substitute_ids_for_names_in_crt,
     substitute_image_family_id_for_name_in_cst,
 )
-from yellowdog_cli.utils.printing import print_error, print_log, print_yd_object
+from yellowdog_cli.utils.printing import (
+    print_error,
+    print_log,
+    print_to_file,
+    print_yd_object,
+)
 from yellowdog_cli.utils.settings import (
     PROP_GROUPS,
     RESOURCE_PROPERTY_NAME,
@@ -43,6 +48,8 @@ def main():
 
     if generate_json_list:
         print("[")
+        if ARGS_PARSER.output_file is not None:
+            print_to_file("[", ARGS_PARSER.output_file)
 
     for index, ydid in enumerate(ARGS_PARSER.yellowdog_ids):
         if generate_json_list:
@@ -55,6 +62,8 @@ def main():
 
     if generate_json_list:
         print("]")
+        if ARGS_PARSER.output_file is not None:
+            print_to_file("]", ARGS_PARSER.output_file)
 
 
 def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = False):

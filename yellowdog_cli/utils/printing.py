@@ -1054,7 +1054,7 @@ def print_json(
             CONSOLE_JSON.print(json_string, soft_wrap=True)
 
     if ARGS_PARSER.output_file is not None:  # Also output to a nominated file
-        _print_to_file(
+        print_to_file(
             json_string=json_string,
             output_file=ARGS_PARSER.output_file,
             with_final_comma=with_final_comma,
@@ -1132,7 +1132,7 @@ def print_yd_object_list(
     if len(objects) > 1:
         print("[")
         if ARGS_PARSER.output_file is not None:
-            _print_to_file("[", ARGS_PARSER.output_file)
+            print_to_file("[", ARGS_PARSER.output_file)
 
     for index, (object_, add_fields) in enumerate(objects):
         print_yd_object(
@@ -1145,7 +1145,7 @@ def print_yd_object_list(
     if len(objects) > 1:
         print("]")
         if ARGS_PARSER.output_file is not None:
-            _print_to_file("]", ARGS_PARSER.output_file)
+            print_to_file("]", ARGS_PARSER.output_file)
 
 
 def print_worker_pool(
@@ -1506,7 +1506,7 @@ def print_event(event: str, id_type: YDIDType):
 FIRST_OUTPUT_TO_FILE = True  # Determine whether to 'write' or 'append'
 
 
-def _print_to_file(json_string: str, output_file: str, with_final_comma: bool = False):
+def print_to_file(json_string: str, output_file: str, with_final_comma: bool = False):
     """
     Dump details output to a file.
     """

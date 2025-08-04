@@ -669,16 +669,6 @@ class CLIParser:
                 help="show the full JSON representation of objects",
             )
             parser.add_argument(
-                "--output-file",
-                type=str,
-                required=False,
-                help=(
-                    "if specified, the 'details' JSON resource listing will also be written "
-                    "to the nominated output file"
-                ),
-                metavar="<output-file>",
-            )
-            parser.add_argument(
                 "--auto-select-all",
                 action="store_true",
                 required=False,
@@ -1198,6 +1188,16 @@ class CLIParser:
                     "required when capturing JSON for use with yd-create and yd-remove "
                     "(implies '--details')"
                 ),
+            )
+            parser.add_argument(
+                "--output-file",
+                type=str,
+                required=False,
+                help=(
+                    "if specified, the detailed JSON resource listing will also be written "
+                    "to the nominated output file"
+                ),
+                metavar="<output-file>",
             )
 
         if "compare" in sys.argv[0]:
