@@ -23,8 +23,6 @@ from yellowdog_client.model import (
     RunSpecification,
     Task,
     TaskData,
-    TaskErrorMatcher,
-    TaskErrorType,
     TaskGroup,
     TaskInput,
     TaskInputSource,
@@ -56,7 +54,6 @@ from yellowdog_cli.utils.printing import (
     print_log,
     print_numbered_strings,
     print_warning,
-    print_yd_object,
 )
 from yellowdog_cli.utils.property_names import *
 from yellowdog_cli.utils.settings import (

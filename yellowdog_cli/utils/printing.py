@@ -77,7 +77,6 @@ from yellowdog_cli.utils.settings import (
     PROP_CREATED_TIME,
     PROP_ID,
     PROP_INSTANCE_PRICING,
-    PROP_RESOURCE,
     PROP_SUPPORTING_RESOURCE_CREATED,
     PROP_TRAITS,
     WARNING_STYLE,
