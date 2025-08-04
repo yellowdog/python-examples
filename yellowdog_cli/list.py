@@ -75,6 +75,8 @@ from yellowdog_cli.utils.printing import (
     sorted_objects,
 )
 from yellowdog_cli.utils.settings import (
+    PROP_GROUPS,
+    PROP_RESOURCE,
     RN_ALLOWANCE,
     RN_APPLICATION,
     RN_GROUP,
@@ -587,7 +589,7 @@ def list_compute_requirement_templates():
                 CLIENT,
                 CLIENT.compute_client.get_compute_requirement_template(cr_template.id),
             ),
-            RN_REQUIREMENT_TEMPLATE,
+            {PROP_RESOURCE: RN_REQUIREMENT_TEMPLATE},
         )
         for cr_template in cr_templates
     ]
@@ -636,7 +638,7 @@ def list_compute_source_templates():
                 CLIENT,
                 CLIENT.compute_client.get_compute_source_template(cs_template.id),
             ),
-            RN_SOURCE_TEMPLATE,
+            {PROP_RESOURCE: RN_SOURCE_TEMPLATE},
         )
         for cs_template in cs_templates
     ]
@@ -665,7 +667,7 @@ def list_keyrings():
 
     # Show details
     print_yd_object_list(
-        [(keyring, RN_KEYRING) for keyring in select(CLIENT, keyrings)]
+        [(keyring, {PROP_RESOURCE: RN_KEYRING}) for keyring in select(CLIENT, keyrings)]
     )
 
 
@@ -715,7 +717,7 @@ def list_image_families():
     image_families = [
         (
             CLIENT.images_client.get_image_family_by_id(image_family_summary.id),
-            RN_IMAGE_FAMILY,
+            {PROP_RESOURCE: RN_IMAGE_FAMILY},
         )
         for image_family_summary in image_family_summaries
     ]
@@ -812,7 +814,10 @@ def list_allowances():
 
     # Show details
     print_yd_object_list(
-        [(allowance, RN_ALLOWANCE) for allowance in select(CLIENT, allowances)]
+        [
+            (allowance, {PROP_RESOURCE: RN_ALLOWANCE})
+            for allowance in select(CLIENT, allowances)
+        ]
     )
 
 
@@ -844,11 +849,13 @@ def list_attribute_definitions():
     attribute_definition_list = [
         (
             attribute,
-            (
-                RN_NUMERIC_ATTRIBUTE_DEFINITION
-                if "Numeric" in attribute["type"]
-                else RN_STRING_ATTRIBUTE_DEFINITION
-            ),
+            {
+                PROP_RESOURCE: (
+                    RN_NUMERIC_ATTRIBUTE_DEFINITION
+                    if "Numeric" in attribute["type"]
+                    else RN_STRING_ATTRIBUTE_DEFINITION
+                )
+            },
         )
         for attribute in select(
             CLIENT,
@@ -907,13 +914,20 @@ def list_users():
         print_numbered_object_list(CLIENT, users, object_type_name="User")
         return
 
-    for selected_user in select(CLIENT, users, object_type_name="User"):
-        add_groups_field = {
-            "groups": [
-                group.name for group in get_user_groups(CLIENT, selected_user.id)
-            ]
-        }
-        print_yd_object(selected_user, add_fields=add_groups_field)
+    # Add the list of groups to the user details
+    print_yd_object_list(
+        [
+            (
+                user,
+                {
+                    PROP_GROUPS: [
+                        group.name for group in get_user_groups(CLIENT, user.id)
+                    ]
+                },
+            )
+            for user in select(CLIENT, users)
+        ]
+    )
 
 
 def list_applications():
@@ -932,8 +946,21 @@ def list_applications():
         print_numbered_object_list(CLIENT, applications, object_type_name="Application")
         return
 
+    # Add the list of group names for each application
     print_yd_object_list(
-        [(application, RN_APPLICATION) for application in select(CLIENT, applications)]
+        [
+            (
+                application,
+                {
+                    PROP_GROUPS: [
+                        group.name
+                        for group in get_application_groups(CLIENT, application.id)
+                    ],
+                    PROP_RESOURCE: RN_APPLICATION,
+                },
+            )
+            for application in select(CLIENT, applications)
+        ]
     )
 
 
@@ -957,7 +984,9 @@ def list_groups():
         print_numbered_object_list(CLIENT, groups, object_type_name="Group")
         return
 
-    print_yd_object_list([(group, RN_GROUP) for group in select(CLIENT, groups)])
+    print_yd_object_list(
+        [(group, {PROP_RESOURCE: RN_GROUP}) for group in select(CLIENT, groups)]
+    )
 
 
 def list_roles():
@@ -984,7 +1013,9 @@ def list_roles():
         print_numbered_object_list(CLIENT, roles, object_type_name="Role")
         return
 
-    print_yd_object_list([(role, RN_ROLE) for role in select(CLIENT, roles)])
+    print_yd_object_list(
+        [(role, {PROP_RESOURCE: RN_ROLE}) for role in select(CLIENT, roles)]
+    )
 
 
 def list_permissions():

@@ -1121,7 +1121,7 @@ def print_yd_object(
 
 
 def print_yd_object_list(
-    objects: List[Tuple[Any, Optional[str]]],  # Tuples are (object, resource_type_name)
+    objects: List[Tuple[Any, Optional[Dict]]],
 ):
     """
     Print a JSON list of objects.
@@ -1135,16 +1135,12 @@ def print_yd_object_list(
         if ARGS_PARSER.output_file is not None:
             _print_to_file("[", ARGS_PARSER.output_file)
 
-    for index, (object_, resource_type_name) in enumerate(objects):
+    for index, (object_, add_fields) in enumerate(objects):
         print_yd_object(
             object_,
             initial_indent=2 if len(objects) > 1 else 0,
             with_final_comma=(True if index < len(objects) - 1 else False),
-            add_fields=(
-                {}
-                if resource_type_name is None
-                else {PROP_RESOURCE: resource_type_name}
-            ),
+            add_fields=add_fields,
         )
 
     if len(objects) > 1:

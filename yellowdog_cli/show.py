@@ -8,6 +8,7 @@ from yellowdog_client.model import ConfiguredWorkerPool
 
 from yellowdog_cli.list import get_keyring
 from yellowdog_cli.utils.entity_utils import (
+    get_application_groups,
     substitute_ids_for_names_in_crt,
     substitute_image_family_id_for_name_in_cst,
 )
@@ -211,12 +212,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
         elif ydid_type == YDIDType.APPLICATION:
             print_log(f"Showing details of Application ID '{ydid}'")
-            group_names = [
-                group.name
-                for group in CLIENT.account_client.get_application_groups(
-                    ydid
-                ).list_all()
-            ]
+            group_names = [group.name for group in get_application_groups(CLIENT, ydid)]
             print_yd_object(
                 CLIENT.account_client.get_application(ydid),
                 initial_indent=initial_indent,
