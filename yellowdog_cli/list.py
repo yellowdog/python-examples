@@ -977,15 +977,23 @@ def list_groups():
     group_summaries.sort(key=lambda group: group.name if group.name is not None else "")
 
     groups: List[Group] = [
-        CLIENT.account_client.get_group(x.id) for x in group_summaries
+        CLIENT.account_client.get_group(group.id) for group in group_summaries
     ]
 
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, groups, object_type_name="Group")
         return
 
+    selected_groups = select(CLIENT, groups)
+
+    # If stripping IDs, just supply the list of role names;
+    # subverts the type
+    if ARGS_PARSER.strip_ids:
+        for group in selected_groups:
+            group.roles = [group_role.role.name for group_role in group.roles]
+
     print_yd_object_list(
-        [(group, {PROP_RESOURCE: RN_GROUP}) for group in select(CLIENT, groups)]
+        [(group, {PROP_RESOURCE: RN_GROUP}) for group in selected_groups]
     )
 
 
