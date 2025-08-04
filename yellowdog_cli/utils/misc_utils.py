@@ -2,6 +2,7 @@
 General utility functions.
 """
 
+import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -9,6 +10,7 @@ from os.path import join, normpath, relpath
 from typing import List, Optional
 from urllib.parse import urlparse
 
+from dotenv import dotenv_values, find_dotenv, load_dotenv
 from yellowdog_client.model import (
     ComputeRequirement,
     ConfiguredWorkerPool,
@@ -16,6 +18,8 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
+from yellowdog_cli.utils.args import ARGS_PARSER
+from yellowdog_cli.utils.printing import print_log
 from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
 
 UTCNOW = datetime.now(timezone.utc)
@@ -236,3 +240,31 @@ def format_yd_name(yd_name: str, add_prefix: bool = True) -> str:
 
     # Mustn't exceed 60 chars
     return new_yd_name[:60]
+
+
+def load_dotenv_file():
+    """
+    Load extra environment variables from a .env file if it exists.
+    Do not override existing variables (environment takes precedence)
+    unless --env-override option is set.
+    Report on YD vars that are taken from .env.
+    """
+    dotenv_file = find_dotenv()
+    if dotenv_file == "":
+        return
+
+    dotenv_yd_substitutions = [  # Find 'YD' variables
+        f"'{key}'"
+        for key in dotenv_values(dotenv_file).keys()
+        if key.startswith("YD")
+        and (os.environ.get(key) is None or ARGS_PARSER.env_override)
+    ]
+
+    if len(dotenv_yd_substitutions) > 0:
+        print_log(
+            f"Adding 'YD' environment variables from '.env' file '{dotenv_file}': "
+            f"{', '.join(dotenv_yd_substitutions)}"
+        )
+
+    # Actually load the variables (including non-'YD' variables)
+    load_dotenv(dotenv_file, override=ARGS_PARSER.env_override)

@@ -107,13 +107,18 @@ class CLIParser:
             required=False,
             help="disable colouring and text wrapping in command output",
         )
-
         parser.add_argument(
             "--quiet",
             "-q",
             action="store_true",
             required=False,
             help="suppress (non-error, non-interactive) status and progress messages",
+        )
+        parser.add_argument(
+            "--env-override",
+            action="store_true",
+            required=False,
+            help="values in '.env' file override values in the environment",
         )
 
         # Module-specific argument sets
@@ -1264,6 +1269,11 @@ class CLIParser:
     @allow_missing_attribute
     def quiet(self) -> Optional[bool]:
         return self.args.quiet
+
+    @property
+    @allow_missing_attribute
+    def env_override(self) -> Optional[bool]:
+        return self.args.env_override
 
     @property
     @allow_missing_attribute

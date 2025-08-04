@@ -9,7 +9,6 @@ from pathlib import Path
 from sys import exit
 from typing import Dict
 
-from dotenv import dotenv_values, find_dotenv, load_dotenv
 from toml import TomlDecodeError
 
 from yellowdog_cli.utils.args import ARGS_PARSER
@@ -18,7 +17,14 @@ from yellowdog_cli.utils.config_types import (
     ConfigWorkerPool,
     ConfigWorkRequirement,
 )
-from yellowdog_cli.utils.misc_utils import pathname_relative_to_config_file
+from yellowdog_cli.utils.misc_utils import (
+    load_dotenv_file,
+    pathname_relative_to_config_file,
+)
+
+# Load additional environment variables as early as possible
+load_dotenv_file()
+
 from yellowdog_cli.utils.printing import print_error, print_log
 from yellowdog_cli.utils.property_names import *
 from yellowdog_cli.utils.settings import (
@@ -101,10 +107,6 @@ def load_config_common() -> ConfigCommon:
             # Local properties supersede imported properties
             common_section_imported.update(common_section)
             common_section = common_section_imported
-
-        # Load extra environment variables from a .env file if it exists;
-        # do not override existing variables (environment takes precedence)
-        _load_dotenv()
 
         # Replace common section properties with command line or
         # environment variable overrides. Precedence is:
@@ -453,29 +455,3 @@ def load_config_worker_pool() -> ConfigWorkerPool:
     except ValueError as e:
         print_error(f"Invalid type for configuration: {e}")
         exit(1)
-
-
-def _load_dotenv():
-    """
-    Load extra environment variables from a .env file if it exists.
-    Do not override existing variables (environment takes precedence).
-    Report on YD vars that are taken from .env.
-    """
-    dotenv_file = find_dotenv()
-    if dotenv_file == "":
-        return
-
-    dotenv_yd_substitutions = [  # Find 'YD' variables
-        f"'{key}'"
-        for key in dotenv_values(dotenv_file).keys()
-        if key.startswith("YD") and os.environ.get(key) is None
-    ]
-
-    if len(dotenv_yd_substitutions) > 0:
-        print_log(
-            f"Adding 'YD' environment variables from '.env' file '{dotenv_file}': "
-            f"{', '.join(dotenv_yd_substitutions)}"
-        )
-
-    # Actually load the variables (including non-'YD' variables)
-    load_dotenv(dotenv_file, override=False)

@@ -84,7 +84,7 @@
       * [Resource Removal](#resource-removal)
       * [Resource Matching](#resource-matching)
    * [Resource Specification Definitions](#resource-specification-definitions)
-   * [Generating Resource Specifications](#generating-resource-specifications)
+   * [Generating Resource Specifications using yd-list](#generating-resource-specifications-using-yd-list)
    * [Preprocessing Resource Specifications](#preprocessing-resource-specifications)
    * [Keyrings](#keyrings)
    * [Credentials](#credentials)
@@ -131,7 +131,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Mon Jul 28 21:41:59 BST 2025 -->
+<!-- Added by: pwt, at: Mon Aug  4 15:27:22 BST 2025 -->
 
 <!--te-->
 
@@ -386,7 +386,7 @@ If all the required common properties are set using the command line or environm
 
 ## Support for `.env` Files
 
-Environment variables can also be set in a `.env` file, typically in the user's home directory. Entries in the `.env` file will not overwrite existing environment variables -- i.e., environment variables take precedence over entries in the `.env` file.
+Environment variables can also be set in a `.env` file, typically in the user's home directory. Entries in the `.env` file will not overwrite existing environment variables -- i.e., environment variables take precedence over entries in the `.env` file. This precedence can be reversed by using the `--env-override` command line option.
 
 Environment variables sourced from a `.env` file whose names start with `YD` will be reported on the command line. Variables that do not start with `YD` will not be reported, but they will still be applied.
 
@@ -1995,7 +1995,7 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 - `"Application"`
 - `"User"`
 
-## Generating Resource Specifications
+## Generating Resource Specifications using `yd-list`
 
 To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
 
