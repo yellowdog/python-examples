@@ -85,6 +85,7 @@
       * [Resource Matching](#resource-matching)
    * [Resource Specification Definitions](#resource-specification-definitions)
    * [Generating Resource Specifications using yd-list](#generating-resource-specifications-using-yd-list)
+      * [Usage Scenario: Moving Resources to a New Namespace](#usage-scenario-moving-resources-to-a-new-namespace)
    * [Preprocessing Resource Specifications](#preprocessing-resource-specifications)
    * [Keyrings](#keyrings)
    * [Credentials](#credentials)
@@ -131,7 +132,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Mon Aug  4 15:27:22 BST 2025 -->
+<!-- Added by: pwt, at: Tue Aug  5 13:52:07 BST 2025 -->
 
 <!--te-->
 
@@ -386,9 +387,11 @@ If all the required common properties are set using the command line or environm
 
 ## Support for `.env` Files
 
-Environment variables can also be set in a `.env` file, typically in the user's home directory. Entries in the `.env` file will not overwrite existing environment variables -- i.e., environment variables take precedence over entries in the `.env` file. This precedence can be reversed by using the `--env-override` command line option.
+Environment variables can also be set in a `.env` file, typically in the user's home directory or the current working directory.
 
-Environment variables sourced from a `.env` file whose names start with `YD` will be reported on the command line. Variables that do not start with `YD` will not be reported, but they will still be applied.
+Entries in the `.env` file will not overwrite existing environment variables -- i.e., environment variables take precedence over entries in the `.env` file. This precedence can be reversed by using the `--env-override` command line option.
+
+Environment variables sourced from a `.env` file whose names start with `YD` will be reported on the command line. Variables whose names do not start with `YD` will not be reported, but they will still be applied.
 
 ## Variable Substitutions in Common Properties
 
@@ -1997,16 +2000,17 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 
 ## Generating Resource Specifications using `yd-list`
 
-To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details` option, and select the resources for which details are required. E.g.:
+To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details`, `--substitute-ids`/`-U`, and  `--strip-ids` options, and select the resources for which details are required. E.g.:
 
 ```shell
-yd-list --keyrings --details
-yd-list --source-templates --details
-yd-list --compute-templates --details
-yd-list --image-families --details
+yd-list --source-templates --details --substitute-ids --strip-ids
+yd-list --compute-templates --details --substitute-ids --strip-ids
+yd-list --image-families --details --substitute-ids --strip-ids
 ```
 
-This will produce a list of resource specifications that can be copied and used directly with `yd-create` and `yd-remove`. Certain fields, such as the ID, will be ignored, with warnings. The detailed resource list can also be copied directly to an output file in addition to being displayed on the console:
+This will produce a list of resource specifications that can be copied and used directly with `yd-create` and `yd-remove`.
+
+The detailed resource list can also be copied directly to an output file in addition to being displayed on the console using the `--output-file` option:
 
 ```shell
 yd-list yd-list --source-templates --details --output-file my-resources.json
@@ -2015,12 +2019,46 @@ yd-list yd-list --source-templates --details --output-file my-resources.json
 Alternatively, the `yd-show` command can be used with one or more `ydid` arguments to generate the details of each identified resource. E.g.,
 
 ```shell
-yd-show -q ydid:cst:000000:cde265f8-0b17-4e0e-be1c-505174a620e4 > my-compute-source-template.json
+yd-show -q ydid:cst:000000:cde265f8-0b17-4e0e-be1c-505174a620e4 --substitute-ids --strip-ids --output-file my-compute-source-template.json
 ```
 
 would generate a JSON file that can be used with `yd-create` without alteration, or which could be edited.
 
-Both `yd-list` and `yd-show` support the `--substitute-ids`/`-U` option. For Compute Requirement Template detailed output, this will substitute Compute Source Template IDs and Image Family IDs with their names, to make it easier to use the output acrosss YellowDog accounts.
+As illustrated above, both `yd-list` and `yd-show` support the `--substitute-ids`/`-U` option. For Compute Requirement Template detailed output, this will substitute Compute Source Template IDs and Image Family IDs with their names, to make it easier to reuse the outputs. For Compute Source Templates, Image Family IDs will be substituted. (Only Image Family IDs are substituted, not Image Group or Image IDs; if these are used in CRTs/CSTs, the JSON resource output may not be reusable.)
+
+The `--strip-ids` option will remove any YellowDog IDs ('ydids') from the JSON output, as well as any other properties that are not required in order to use the output with `yd-create`.
+
+### Usage Scenario: Moving Resources to a New Namespace
+
+In the following usage scenario, we want to move a set of resources from one namespace `ns-1`, to another `ns-2`. We'll move all compute source templates, compute requirement templates, and image families.
+
+**Step 1: Capture the target resources in JSON files**
+
+```
+yd-list -q --compute-source-templates --namespace ns-1 --substitute-ids --strip-ids --auto-select-all --output-file csts.json
+yd-list -q --compute-requirement-templates --namespace ns-1 --substitute-ids --strip-ids --auto-select-all --output-file crts.json
+yd-list -q --image-families --namespace ns-1 --substitute-ids --strip-ids --auto-select-all --output-file ifs.json
+```
+
+**Step 2: Remove all target resources**
+
+The following will remove all target resources included in the JSON resource files **without user confirmation**.
+
+```
+yd-remove -y csts.json crts.json ifs.json
+```
+
+**Step 3: Change the namespace in all the resources**
+
+Use an editor's search and replace function, or a command line tool such as `sed` to replace all occurences of `"ns-1"` with `"ns-2`", for every `namespace` property, in each of the JSON files.
+
+**Step 4: Recreate all resources in the new namespace**
+
+```
+yd-create -y csts.json crts.json ifs.json
+```
+
+Once the resources have been created successfully, the JSON files can be deleted (or retained for your records).
 
 ## Preprocessing Resource Specifications
 
@@ -2402,7 +2440,7 @@ Example:
 
 ### Creating and Regenerating Application Keys
 
-When Application is created its Application Key ID and Secret will be displayed (even if the `--quiet` option is used).
+When an Application is created its Application Key ID and Secret will be displayed (even if the `--quiet` option is used).
 
 When an Application is updated, the `--regenerate-app-keys` option can be used. This will invalidate the current Application key and secret, revoke any Keyring access, and generate a new key and secret which will be displayed.
 
