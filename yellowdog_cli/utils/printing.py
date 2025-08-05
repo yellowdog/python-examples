@@ -100,10 +100,13 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<date_time>[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
         r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])",
         r"(?P<quoted>'[a-zA-Z0-9-._=;:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
         r"(?P<ydid>ydid:[a-z]*:[0-9abcdef-]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
         r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)",
     ] + HIGHLIGHTED_STATES
 
@@ -122,6 +125,9 @@ class PrintTableHighlighter(RegexHighlighter):
         r"(?P<ydid>ydid:[a-z]*:[0-9abcdef-]*)",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
         r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
+        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
     ] + HIGHLIGHTED_STATES
 
 
