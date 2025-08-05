@@ -532,7 +532,7 @@ def create_image_family(resource):
         if e.response.status_code == 404:
             # This will create the Image Family and all of its constituent
             # Image Group/Image resources
-            image_family = CLIENT.images_client.add_image_family(image_family)
+            image_family = _create_image_family(image_family, fq_name)
             print_log(f"Created Machine Image Family '{fq_name}' ('{image_family.id}')")
             if ARGS_PARSER.quiet:
                 print(image_family.id)
@@ -1249,6 +1249,44 @@ def update_user(resource: Dict):
         update_groups(user)
     else:
         print_log(f"Nothing to do for User '{username}' ({user.id})")
+
+
+def _create_image_family(
+    image_family: MachineImageFamily, fq_name: str
+) -> MachineImageFamily:
+    """
+    Creates a new image family. Only one image group can be added at the time of
+    image family creation, so any additional image groups must be added separately.
+    """
+
+    # Remove all except the first image group; keep the rest as a separate list
+    image_groups = image_family.imageGroups
+    if image_groups is not None:
+        image_family.imageGroups = image_groups[:1]
+        image_groups = image_groups[1:]  # Remaining image groups
+
+    # Create the image family
+    try:
+        image_family = CLIENT.images_client.add_image_family(image_family)
+    except Exception as e:
+        raise Exception(f"Failed to create Machine Image Family '{fq_name}': {e}")
+
+    if image_groups is None or len(image_groups) == 0:
+        return image_family
+
+    # Create any additional image groups
+    for image_group in image_groups:
+        try:
+            image_group = CLIENT.images_client.add_image_group(
+                image_family, image_group
+            )
+        except Exception as e:
+            raise Exception(
+                f"Failed to add Machine Image Group '{image_group.name}' to "
+                f"Image Family '{fq_name}': {e}"
+            )
+
+    return image_family
 
 
 # Entry point
