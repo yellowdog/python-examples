@@ -984,7 +984,7 @@ def create_namespace_policy(resource: Dict):
         return
 
     print_log(
-        f"Created or updated  Namespace Policy '{namespace_policy.namespace}' with "
+        f"Created or updated Namespace Policy '{namespace_policy.namespace}' with "
         f"'autoscalingMaxNodes={namespace_policy.autoscalingMaxNodes}'"
     )
 
@@ -1007,7 +1007,7 @@ def create_group(resource: Dict):
         for role_name in roles:
             role_id = get_role_id_by_name(CLIENT, role_name)
             if role_id is None:
-                print_warning(f"Role name '{role_name}' not found ... ignoring")
+                print_warning(f"Role '{role_name}' not found ... ignoring")
             else:
                 new_role_ids.add(role_id)
 
@@ -1056,6 +1056,9 @@ def create_group(resource: Dict):
         Helper function to update an existing group, including updating
         its roles.
         """
+        if not confirmed(f"Update Group '{name}' ({group_id})?"):
+            return
+
         group: Group = CLIENT.account_client.update_group(
             group_id, _get_model_object(RN_UPDATE_GROUP_REQUEST, resource)
         )
@@ -1088,7 +1091,7 @@ def create_application(resource: Dict):
         for group_name in groups:
             app_id = get_group_id_by_name(CLIENT, group_name)
             if app_id is None:
-                print_warning(f"Group name '{group_name}' not found ... ignoring")
+                print_warning(f"Group '{group_name}' not found ... ignoring")
             else:
                 new_group_ids.add(app_id)
 
@@ -1148,6 +1151,9 @@ def create_application(resource: Dict):
         Helper function to update an existing application, including updating
         its groups.
         """
+        if not confirmed(f"Update Application '{name}' ({app_id})?"):
+            return
+
         app: Application = CLIENT.account_client.update_application(
             app_id, _get_model_object(RN_UPDATE_APPLICATION_REQUEST, resource)
         )
@@ -1192,7 +1198,7 @@ def update_user(resource: Dict):
         for group_name in groups:
             group_id = get_group_id_by_name(CLIENT, group_name)
             if group_id is None:
-                print_warning(f"Group name '{group_name}' not found ... ignoring")
+                print_warning(f"Group '{group_name}' not found ... ignoring")
             else:
                 new_group_ids.add(group_id)
 
@@ -1201,6 +1207,9 @@ def update_user(resource: Dict):
         Helper function to add/remove groups from a user.
         """
         if groups is None:
+            return
+
+        if not confirmed(f"Update Groups for User '{username}' ({user.id})?"):
             return
 
         current_group_ids = {group.id for group in get_user_groups(CLIENT, user.id)}
@@ -1245,7 +1254,6 @@ def update_user(resource: Dict):
     username = user.username if isinstance(user, InternalUser) else user.name
 
     if groups is not None:
-        print_log(f"Updating Groups for User '{username}' ({user.id})")
         update_groups(user)
     else:
         print_log(f"Nothing to do for User '{username}' ({user.id})")

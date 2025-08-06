@@ -520,6 +520,9 @@ def remove_group(resource: Dict):
         print_warning(f"Group '{group_name}' not found")
         return
 
+    if not confirmed(f"Remove Group '{group_name}' ({group_id})?"):
+        return
+
     try:
         CLIENT.account_client.delete_group(group_id)
         print_log(f"Removed Group '{group_name}' ({group_id})")
@@ -543,12 +546,15 @@ def remove_application(resource: Dict):
         print_warning(f"Application '{app_name}' not found")
         return
 
+    if not confirmed(f"Remove Application '{app_name}' ({app_id})?"):
+        return
+
     try:
         CLIENT.account_client.delete_application(app_id)
         print_log(f"Removed Application '{app_name}' ({app_id})")
         clear_application_caches()
     except Exception as e:
-        print_error(f"Unable to delete Application '{app_name}' ({app_id}): {e}")
+        print_error(f"Unable to remove Application '{app_name}' ({app_id}): {e}")
 
 
 # Entry point
