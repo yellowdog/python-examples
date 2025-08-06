@@ -85,7 +85,7 @@
       * [Resource Matching](#resource-matching)
    * [Resource Specification Definitions](#resource-specification-definitions)
    * [Generating Resource Specifications using yd-list](#generating-resource-specifications-using-yd-list)
-      * [Usage Scenario: Moving Resources to a New Namespace](#usage-scenario-moving-resources-to-a-new-namespace)
+      * [Usage Scenario: Moving or Copying Resources to a New Namespace](#usage-scenario-moving-or-copying-resources-to-a-new-namespace)
    * [Preprocessing Resource Specifications](#preprocessing-resource-specifications)
    * [Keyrings](#keyrings)
    * [Credentials](#credentials)
@@ -132,7 +132,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Tue Aug  5 13:52:07 BST 2025 -->
+<!-- Added by: pwt, at: Wed Aug  6 08:55:44 BST 2025 -->
 
 <!--te-->
 
@@ -2028,23 +2028,23 @@ As illustrated above, both `yd-list` and `yd-show` support the `--substitute-ids
 
 The `--strip-ids` option will remove any YellowDog IDs ('ydids') from the JSON output, as well as any other properties that are not required in order to use the output with `yd-create`.
 
-### Usage Scenario: Moving Resources to a New Namespace
+### Usage Scenario: Moving or Copying Resources to a New Namespace
 
 In the following usage scenario, we want to move a set of resources from one namespace `ns-1`, to another `ns-2`. We'll move all compute source templates, compute requirement templates, and image families.
 
 **Step 1: Capture the target resources in JSON files**
 
-```
+```shell
 yd-list -q --compute-source-templates --namespace ns-1 --substitute-ids --strip-ids --auto-select-all --output-file csts.json
 yd-list -q --compute-requirement-templates --namespace ns-1 --substitute-ids --strip-ids --auto-select-all --output-file crts.json
 yd-list -q --image-families --namespace ns-1 --substitute-ids --strip-ids --auto-select-all --output-file ifs.json
 ```
 
-**Step 2: Remove all target resources**
+**Step 2: Remove all target resources** if moving resources
 
-The following will remove all target resources included in the JSON resource files **without user confirmation**.
+The following will remove all target resources included in the JSON resource files **without user confirmation**. If one instead wants to **copy** the resources to the new namespace rather than move them, omit this step.
 
-```
+```shell
 yd-remove -y csts.json crts.json ifs.json
 ```
 
@@ -2054,11 +2054,12 @@ Use an editor's search and replace function, or a command line tool such as `sed
 
 **Step 4: Recreate all resources in the new namespace**
 
-```
+```shell
 yd-create -y csts.json crts.json ifs.json
 ```
 
 Once the resources have been created successfully, the JSON files can be deleted (or retained for your records).
+
 
 ## Preprocessing Resource Specifications
 
@@ -2410,7 +2411,7 @@ Namespace Policies are matched by their `namespace` property when using `yd-crea
 
 ## Groups
 
-When creating and removing groups, a list of roles can can be supplied and the group will be created or updated with the roles specified. Roles can be identified by their names or YellowDog IDs.
+When creating and updating groups, a list of roles can can be supplied and the group will be created or updated with the roles specified. Roles can be identified by their names or YellowDog IDs.
 
 Example:
 
