@@ -498,6 +498,9 @@ def remove_namespace_policy(resource: Dict):
         print_error(f"Namespace Policy '{namespace}' not found")
         return
 
+    if not confirmed(f"Remove Namespace Policy '{namespace}'?"):
+        return
+
     try:
         CLIENT.namespaces_client.delete_namespace_policy(namespace)
         print_log(f"Removed Namespace Policy '{namespace}'")
