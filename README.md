@@ -2447,23 +2447,36 @@ When an Application is updated, the `--regenerate-app-keys` option can be used. 
 
 ## Users
 
-Users cannot be created or removed using the resource specification approach, but their groups can be managed.
+Users cannot be created or removed using the resource specification approach, but their groups can be managed. Groups can be specified by their names or YellowDog IDs.
 
-Example:
+Users can be identified as follows:
+
+**Internal** YellowDog users can be identified by their `username`, `name`, or `id` properties:
 
 ```json
 {
-  "resource": "User",
-  "name": "my-username",
+  "resource": "InternalUser",
+  "username": "my-username",
   "groups": ["administrators", "test"]
 }
 ```
 
-Using `yd-create` with this resource specification will amend the user's groups. The user can also be specified by its YellowDog ID:
+**External** users (users authenticated by an external auth provider) can be identified by their `name` or `id` properties:
+
 
 ```json
 {
-  "resource": "User",
+  "resource": "ExternalUser",
+  "name": "Firstname Lastname",
+  "groups": ["administrators", "test"]
+}
+```
+
+When specified by the YellowDog ID:
+
+```json
+{
+  "resource": "InternalUser",
   "id": "ydid:user:000000:73c3189e-4e87-4e32-bdbd-8b45e7e9780c",
   "groups": ["administrators", "test"]
 }

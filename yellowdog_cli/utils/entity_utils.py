@@ -737,16 +737,17 @@ def get_user_by_name_or_id(
     client: PlatformClient, user_name_or_id: str
 ) -> Optional[User]:
     """
-    Get a user ID by their username or ID.
+    Get a user ID by name, username or ID.
     """
     for user in get_all_users(client):
 
         if user.id == user_name_or_id:
             return user
 
-        if (isinstance(user, InternalUser) and user.username == user_name_or_id) or (
-            isinstance(user, ExternalUser) and user.name == user_name_or_id
-        ):
+        if (
+            isinstance(user, InternalUser)
+            and (user.username == user_name_or_id or user.name == user_name_or_id)
+        ) or (isinstance(user, ExternalUser) and user.name == user_name_or_id):
             return user
 
     return None

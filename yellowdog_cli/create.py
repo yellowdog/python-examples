@@ -95,14 +95,17 @@ from yellowdog_cli.utils.settings import (
     PROP_TITLE,
     PROP_TYPE,
     PROP_UNITS,
+    PROP_USERNAME,
     RN_ADD_APPLICATION_REQUEST,
     RN_ADD_GROUP_REQUEST,
     RN_ALLOWANCE,
     RN_APPLICATION,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
+    RN_EXTERNAL_USER,
     RN_GROUP,
     RN_IMAGE_FAMILY,
+    RN_INTERNAL_USER,
     RN_KEYRING,
     RN_NAMESPACE_POLICY,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
@@ -112,7 +115,6 @@ from yellowdog_cli.utils.settings import (
     RN_STRING_ATTRIBUTE_DEFINITION,
     RN_UPDATE_APPLICATION_REQUEST,
     RN_UPDATE_GROUP_REQUEST,
-    RN_USER,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
@@ -190,8 +192,10 @@ def create_resources(
                 create_group(resource)
             elif resource_type == RN_APPLICATION:
                 create_application(resource)
-            elif resource_type == RN_USER:
-                update_user(resource)
+            elif resource_type == RN_INTERNAL_USER:
+                update_user(resource, internal_user=True)
+            elif resource_type == RN_EXTERNAL_USER:
+                update_user(resource, internal_user=False)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -1115,18 +1119,26 @@ def create_application(resource: Dict):
         update_application(app_id)
 
 
-def update_user(resource: Dict):
+def update_user(resource: Dict, internal_user: bool):
     """
-    Update a user (specified by name or ID). Will also add or remove
+    Update a user specified by name, username or ID. Will also add or remove
     groups specified by their names or IDs.
     """
     name = resource.get(PROP_NAME)
+    username = resource.get(PROP_USERNAME)
     id = resource.get(PROP_ID)
 
-    if name is None and id is None:
+    # Check we have a user identity
+    if internal_user:
+        if not any([username, name, id]):
+            raise Exception(
+                f"Expected one of '{PROP_NAME}', '{PROP_USERNAME}', '{PROP_ID}' "
+                f"to be defined for resource '{RN_INTERNAL_USER}' ({resource})"
+            )
+    elif not any([name, id]):
         raise Exception(
             f"Expected one of '{PROP_NAME}', '{PROP_ID}' to be defined for "
-            f"resource '{RN_USER}'"
+            f"resource '{RN_EXTERNAL_USER}' ({resource})"
         )
 
     groups: Optional[List[str]] = resource.pop(PROP_GROUPS, None)
@@ -1173,19 +1185,21 @@ def update_user(resource: Dict):
                 f"({group_id})"
             )
 
-    # Main logic: try name then ID if present; check for ID match
-    user = None
+    # Main logic: try name, username, then ID if present; check for ID match
+    user: Optional[User] = None
     if name is not None:
         user = get_user_by_name_or_id(CLIENT, name)
+    if user is None and username is not None:
+        user = get_user_by_name_or_id(CLIENT, username)
     if user is not None and id is not None:
         if user.id != id:
-            raise Exception(f"User name '{name}' and supplied ID do not match")
+            raise Exception(f"User name and supplied ID do not match ({resource})")
     if user is None and id is not None:
         user = get_user_by_name_or_id(CLIENT, id)
 
     if user is None:
         print_warning(
-            f"User '{name}' not found; Users cannot be created using "
+            f"User not found ({resource}); Users cannot be created using "
             "the CLI, please use the YellowDog Portal"
         )
         return

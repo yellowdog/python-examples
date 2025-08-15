@@ -37,8 +37,10 @@ from yellowdog_cli.utils.settings import (
     RN_APPLICATION,
     RN_CONFIGURED_POOL,
     RN_CREDENTIAL,
+    RN_EXTERNAL_USER,
     RN_GROUP,
     RN_IMAGE_FAMILY,
+    RN_INTERNAL_USER,
     RN_KEYRING,
     RN_NAMESPACE_POLICY,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
@@ -46,7 +48,6 @@ from yellowdog_cli.utils.settings import (
     RN_SOURCE_TEMPLATE,
     RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
-    RN_USER,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
@@ -117,7 +118,7 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                 remove_group(resource)
             elif resource_type == RN_APPLICATION:
                 remove_application(resource)
-            elif resource_type == RN_USER:
+            elif resource_type in [RN_INTERNAL_USER, RN_EXTERNAL_USER]:
                 print_warning(
                     "Users cannot be removed by the CLI; please use the YellowDog Portal"
                 )
