@@ -37,6 +37,7 @@ from yellowdog_client.model import (
     InternalUser,
     KeyringSummary,
     MachineImageFamilySummary,
+    Namespace,
     NamespacePolicy,
     Node,
     ObjectDetail,
@@ -243,6 +244,7 @@ TYPE_MAP = {
     Group: "Group",
     KeyringSummary: "Keyring",
     MachineImageFamilySummary: "Machine Image Family",
+    Namespace: "Namespace",
     NamespacePolicy: "Namespace Policy",
     Node: "Node",
     ObjectPath: "Object Path",
@@ -289,7 +291,7 @@ def get_type_name(obj: Item) -> str:
 
 def compute_requirement_table(
     cr_list: List[ComputeRequirement],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Compute Requirement Name",
@@ -326,7 +328,7 @@ def compute_requirement_table(
 
 def work_requirement_table(
     wr_summary_list: List[WorkRequirementSummary],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Work Requirement Name",
@@ -354,7 +356,7 @@ def work_requirement_table(
 
 def task_group_table(
     task_group_list: List[TaskGroup],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = ["#", "Task Group Name", "Status", "Task Group ID"]
     table = []
     for index, task_group in enumerate(task_group_list):
@@ -374,7 +376,7 @@ def task_group_table(
     return headers, table
 
 
-def task_table(task_list: List[Task]) -> (List[str], List[List]):
+def task_table(task_list: List[Task]) -> Tuple[List[str], List[List]]:
     headers = ["#", "Task Name", "Status", "Task ID"]
     table = []
     for index, task in enumerate(task_list):
@@ -391,7 +393,7 @@ def task_table(task_list: List[Task]) -> (List[str], List[List]):
 
 def worker_pool_table(
     client: PlatformClient, worker_pool_summaries: List[WorkerPoolSummary]
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Worker Pool Name",
@@ -417,7 +419,7 @@ def worker_pool_table(
 
 def compute_requirement_template_table(
     crt_summaries: List[ComputeRequirementTemplateSummary],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Name",
@@ -455,7 +457,7 @@ def compute_requirement_template_table(
 
 def compute_source_template_table(
     cst_summaries: List[ComputeSourceTemplateSummary],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Name",
@@ -491,7 +493,7 @@ def compute_source_template_table(
 
 def keyring_table(
     keyring_summaries: List[KeyringSummary],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Name",
@@ -513,7 +515,7 @@ def keyring_table(
 
 def image_family_table(
     image_family_summaries: List[MachineImageFamilySummary],
-) -> (List[str], List[str]):
+) -> Tuple[List[str], List[str]]:
     headers = [
         "#",
         "Name",
@@ -539,7 +541,7 @@ def image_family_table(
 
 def object_path_table(
     object_paths: List[ObjectPath],
-) -> (List[str], List[str]):
+) -> Tuple[List[str], List[str]]:
     headers = ["#", "Name"]
     table = []
     for index, object_path in enumerate(object_paths):
@@ -549,7 +551,7 @@ def object_path_table(
 
 def instances_table(
     instances: List[Instance],
-) -> (List[str], List[str]):
+) -> Tuple[List[str], List[str]]:
     headers = [
         "#",
         "Provider",
@@ -577,7 +579,7 @@ def instances_table(
 
 def nodes_table(
     nodes: List[Node],
-) -> (List[str], List[str]):
+) -> Tuple[List[str], List[str]]:
     headers = [
         "#",
         "Worker Pool Name",
@@ -613,7 +615,7 @@ def nodes_table(
 
 def workers_table(
     workers: List[Worker],
-) -> (List[str], List[str]):
+) -> Tuple[List[str], List[str]]:
     headers = [
         "#",
         "Worker Pool Name",
@@ -643,7 +645,7 @@ def workers_table(
 
 def allowances_table(
     allowances: List[Allowance],
-) -> (List[str], List[str]):
+) -> Tuple[List[str], List[str]]:
     headers = [
         "#",
         "Type",
@@ -677,7 +679,7 @@ def allowances_table(
 
 def attribute_definitions_table(
     attribute_definitions: List[Dict],
-) -> (List[str], List[str]):
+) -> Tuple[List[str], List[str]]:
     headers = [
         "#",
         "Name",
@@ -701,7 +703,7 @@ def attribute_definitions_table(
 
 def aws_availability_zone_table(
     aws_azs: List[AWSAvailabilityZone],
-) -> (List[str], List[str]):
+) -> Tuple[List[str], List[str]]:
     headers = [
         "#",
         "Availability Zone",
@@ -721,9 +723,31 @@ def aws_availability_zone_table(
     return headers, table
 
 
+def namespaces_table(
+    ns_policies: List[Namespace],
+) -> Tuple[List[str], List[List]]:
+    headers = [
+        "#",
+        "Namespace Name",
+        "ID",
+        "Deletable",
+    ]
+    table = []
+    for index, namespace in enumerate(ns_policies):
+        table.append(
+            [
+                index + 1,
+                namespace.namespace,
+                namespace.id,
+                "Yes" if namespace.deletable else "No",
+            ]
+        )
+    return headers, table
+
+
 def namespace_policies_table(
     ns_policies: List[NamespacePolicy],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Namespace",
@@ -743,7 +767,7 @@ def namespace_policies_table(
 
 def users_table(
     users: List[User],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Name",
@@ -781,7 +805,7 @@ def users_table(
 
 def applications_table(
     applications: List[Application],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Name",
@@ -803,7 +827,7 @@ def applications_table(
 
 def groups_table(
     groups: List[Group],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Name",
@@ -829,7 +853,7 @@ def groups_table(
 
 def roles_table(
     roles: List[Role],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Name",
@@ -852,7 +876,7 @@ def roles_table(
 
 def permissions_table(
     permissions: List[PermissionDetail],
-) -> (List[str], List[List]):
+) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
         "Name",
@@ -943,6 +967,8 @@ def print_numbered_object_list(
         headers, table = roles_table(objects)
     elif isinstance(objects[0], PermissionDetail):
         headers, table = permissions_table(objects)
+    elif isinstance(objects[0], Namespace):
+        headers, table = namespaces_table(objects)
     else:
         table = []
         for index, obj in enumerate(objects):

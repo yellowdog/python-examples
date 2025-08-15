@@ -27,8 +27,10 @@ from yellowdog_client.model import (
     KeyringSummary,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
+    Namespace,
     NamespacePolicy,
     NamespacePolicySearch,
+    NamespaceSearch,
     NamespaceStorageConfiguration,
     Node,
     NodeSearch,
@@ -141,6 +143,8 @@ def main():
         list_allowances()
     elif ARGS_PARSER.attribute_definitions:
         list_attribute_definitions()
+    elif ARGS_PARSER.namespaces:
+        list_namespaces()
     elif ARGS_PARSER.namespace_policies:
         list_namespace_policies()
     elif ARGS_PARSER.users:
@@ -169,6 +173,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.image_families,
         ARGS_PARSER.instances,
         ARGS_PARSER.keyrings,
+        ARGS_PARSER.namespaces,
         ARGS_PARSER.namespace_policies,
         ARGS_PARSER.namespace_storage_configurations,
         ARGS_PARSER.nodes,
@@ -865,6 +870,28 @@ def list_attribute_definitions():
         )
     ]
     print_yd_object_list(attribute_definition_list)
+
+
+def list_namespaces():
+    """
+    List namespaces.
+    """
+
+    namespaces: List[Namespace] = CLIENT.namespaces_client.get_namespaces(
+        NamespaceSearch()
+    ).list_all()
+
+    if len(namespaces) == 0:
+        print_log("No Namespaces found")
+        return
+
+    if not ARGS_PARSER.details:
+        print_numbered_object_list(CLIENT, namespaces)
+        return
+
+    print_yd_object_list(
+        [(namespace, None) for namespace in select(CLIENT, namespaces)]
+    )
 
 
 def list_namespace_policies():

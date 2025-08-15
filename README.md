@@ -1921,6 +1921,7 @@ The commands **yd-create** and **yd-remove** allow the creation, update and remo
 - Compute Source Templates
 - Compute Requirement Templates
 - Image Families, Image Groups, and Images
+- Namespaces
 - Namespace Storage Configurations
 - Configured Worker Pools
 - Allowances
@@ -2892,6 +2893,7 @@ The `yd-list` command is used to list various YellowDog items, using the `namesp
 - Image Families, Image Groups, and Images
 - Instances
 - Keyrings
+- Namespaces
 - Namespace Policies
 - Namespace Storage Configurations
 - Nodes
@@ -2910,7 +2912,7 @@ In some cases a `--details/-d` option can be supplied to drill down into additio
 
 The `--active` flag can be used to list only entities that are in a non-terminated state, if applicable, for example Work Requirements and Worker Pools.
 
-To relax filtering on `namespace` and `tag`, these can be set to empty strings using `-n -t` without values.
+For convenience, `namespace` and `tag`, are set to empty strings unless explicitly set on the command line.
 
 ## yd-resize
 
