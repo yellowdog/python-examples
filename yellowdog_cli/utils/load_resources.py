@@ -17,6 +17,7 @@ from yellowdog_cli.utils.settings import (
     RN_IMAGE_FAMILY,
     RN_INTERNAL_USER,
     RN_KEYRING,
+    RN_NAMESPACE,
     RN_NAMESPACE_POLICY,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
@@ -102,6 +103,7 @@ def _resequence_resources(
         return resources
 
     resource_creation_order = [
+        RN_NAMESPACE,
         RN_KEYRING,
         RN_CREDENTIAL,
         RN_IMAGE_FAMILY,

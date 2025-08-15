@@ -25,6 +25,7 @@ from yellowdog_client.model import (
     MachineImageFamily,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
+    NamespaceSearch,
     ObjectPath,
     ObjectPathsRequest,
     ProvisionedWorkerPool,
@@ -761,3 +762,19 @@ def get_all_users(client: PlatformClient) -> List[User]:
     user_search = UserSearch()
     search_client: SearchClient = client.account_client.get_users(user_search)
     return search_client.list_all()
+
+
+def get_namespace_id_by_name(
+    client: PlatformClient, namespace_name: str
+) -> Optional[str]:
+    """
+    Get a namespace's ID by its name.
+    """
+    search_client: SearchClient = client.namespaces_client.get_namespaces(
+        NamespaceSearch(namespace_name)
+    )
+    for namespace in search_client.list_all():
+        if namespace.namespace == namespace_name:
+            return namespace.id
+
+    return None

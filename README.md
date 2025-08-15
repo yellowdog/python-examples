@@ -103,6 +103,7 @@
    * [Applications](#applications)
       * [Creating and Regenerating Application Keys](#creating-and-regenerating-application-keys)
    * [Users](#users)
+   * [Namespaces](#namespaces)
 * [Jsonnet Support](#jsonnet-support)
    * [Jsonnet Installation](#jsonnet-installation)
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
@@ -132,7 +133,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed Aug  6 08:55:44 BST 2025 -->
+<!-- Added by: pwt, at: Fri Aug 15 15:49:13 BST 2025 -->
 
 <!--te-->
 
@@ -2481,6 +2482,19 @@ When specified by the YellowDog ID:
   "groups": ["administrators", "test"]
 }
 ```
+
+## Namespaces
+
+Namespaces can be created and removed using specifications of the form:
+
+```json
+{
+  "resource": "Namespace",
+  "name": "my-namespace"
+}
+```
+
+Note that namespaces cannot currently be removed if they have been populated at any point.
 
 # Jsonnet Support
 

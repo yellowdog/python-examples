@@ -23,6 +23,7 @@ from yellowdog_client.model import (
     AwsFleetComputeSource,
     AwsFleetPurchaseOption,
     CloudProvider,
+    CreateNamespaceRequest,
     Group,
     ImageOsType,
     InternalUser,
@@ -107,6 +108,7 @@ from yellowdog_cli.utils.settings import (
     RN_IMAGE_FAMILY,
     RN_INTERNAL_USER,
     RN_KEYRING,
+    RN_NAMESPACE,
     RN_NAMESPACE_POLICY,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
@@ -196,6 +198,8 @@ def create_resources(
                 update_user(resource, internal_user=True)
             elif resource_type == RN_EXTERNAL_USER:
                 update_user(resource, internal_user=False)
+            elif resource_type == RN_NAMESPACE:
+                create_namespace(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -1210,6 +1214,30 @@ def update_user(resource: Dict, internal_user: bool):
         update_groups(user)
     else:
         print_log(f"Nothing to do for User '{username}' ({user.id})")
+
+
+def create_namespace(resource: Dict):
+    """
+    Create a namespace.
+    """
+    try:
+        name = resource[PROP_NAME]
+    except KeyError as e:
+        raise Exception(f"Expected property to be defined ({e})")
+
+    try:
+        namespace_id = CLIENT.namespaces_client.create_namespace(
+            CreateNamespaceRequest(namespace=name)
+        )
+    except Exception as e:
+        if "ConflictException" in str(e):
+            raise Exception(f"Namespace '{name}' already exists")
+        raise Exception(f"Failed to create namespace '{name}' ({e})")
+
+    print_log(f"Created namespace '{name}' ({namespace_id})")
+
+    if ARGS_PARSER.quiet:
+        print(namespace_id)
 
 
 def _get_model_object(class_name: str, resource: Dict, **kwargs):

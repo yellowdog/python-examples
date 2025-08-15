@@ -25,6 +25,7 @@ from yellowdog_cli.utils.entity_utils import (
     find_compute_source_template_id_by_name,
     get_application_id_by_name,
     get_group_id_by_name,
+    get_namespace_id_by_name,
     remove_allowances_matching_description,
 )
 from yellowdog_cli.utils.interactive import confirmed
@@ -42,6 +43,7 @@ from yellowdog_cli.utils.settings import (
     RN_IMAGE_FAMILY,
     RN_INTERNAL_USER,
     RN_KEYRING,
+    RN_NAMESPACE,
     RN_NAMESPACE_POLICY,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
@@ -122,6 +124,8 @@ def remove_resources(resources: Optional[List[Dict]] = None):
                 print_warning(
                     "Users cannot be removed by the CLI; please use the YellowDog Portal"
                 )
+            elif resource_type == RN_NAMESPACE:
+                remove_namespace(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
         except Exception as e:
@@ -559,6 +563,40 @@ def remove_application(resource: Dict):
         clear_application_caches()
     except Exception as e:
         print_error(f"Unable to remove Application '{app_name}' ({app_id}): {e}")
+
+
+def remove_namespace(resource: Dict):
+    """
+    Remove a namespace.
+    """
+    try:
+        name = resource["name"]
+    except KeyError as e:
+        print_error(f"Expected property to be defined ({e})")
+        return
+
+    namespace_id = get_namespace_id_by_name(CLIENT, name)
+    if namespace_id is None:
+        print_warning(f"Namespace '{name}' not found")
+        return
+
+    if not confirmed(f"Remove Namespace '{name}'?"):
+        return
+
+    try:
+        CLIENT.namespaces_client.delete_namespace(
+            get_namespace_id_by_name(CLIENT, name)
+        )
+    except Exception as e:
+        if "ConflictException" in str(e):
+            print_error(
+                f"Unable to remove Namespace '{name}'; note: Namespaces that "
+                f"have been populated cannot currently be removed"
+            )
+        else:
+            print_error(f"Unable to remove Namespace '{name}': {e}")
+
+    print_log(f"Removed Namespace '{name}' ({namespace_id})")
 
 
 # Entry point
