@@ -829,67 +829,6 @@ def create_allowance(resource: Dict):
         print(allowance.id)
 
 
-def _get_model_object(class_name: str, resource: Dict, **kwargs):
-    """
-    Return a populated YellowDog model object for the resource.
-    Discard unexpected keywords.
-    """
-
-    def _patch_aws_fleet_enums():
-        if isinstance(model_object, AwsFleetComputeSource):
-            try:
-                model_object.purchaseOption = AwsFleetPurchaseOption[
-                    str(model_object.purchaseOption)
-                ]
-            except KeyError:
-                raise Exception(
-                    "Invalid AWS Fleet Compute Source Purchase Option property: "
-                    f"'{str(model_object.purchaseOption)}'"
-                )
-
-    def _patch_allowance_enums():
-        if (
-            isinstance(model_object, SourceAllowance)
-            or isinstance(model_object, SourcesAllowance)
-            or isinstance(model_object, RequirementsAllowance)
-            or isinstance(model_object, AccountAllowance)
-        ):
-            try:
-                model_object.limitEnforcement = AllowanceLimitEnforcement(
-                    model_object.limitEnforcement
-                )
-                model_object.resetType = AllowanceResetType(model_object.resetType)
-            except KeyError as e:
-                raise Exception(f"Invalid Allowance property: {e}")
-
-    while True:
-        try:
-            model_object = _get_model_class(class_name)(**resource, **kwargs)
-            _patch_aws_fleet_enums()
-            _patch_allowance_enums()
-            return model_object
-        except Exception as e:
-            # Unexpected/missing keyword argument Exception of form:
-            # __init__() got an unexpected keyword argument 'keyword', or
-            # __init__() missing 1 required positional argument: 'credential'
-            if "unexpected" in str(e):
-                keyword = str(e).split("'")[1]
-                print_warning(f"Ignoring unexpected property '{keyword}'")
-                resource.pop(keyword)
-            elif "missing" in str(e):
-                keyword = str(e).split("'")[1]
-                raise Exception(f"Missing expected property '{keyword}'")
-            else:
-                raise e
-
-
-def _get_model_class(class_name: str):
-    """
-    Return a YellowDog model class using its class name.
-    """
-    return getattr(model, class_name)
-
-
 def create_attribute_definition(resource: Dict, resource_type: str):
     """
     Use the API to create/update user attribute definitions.
@@ -1257,6 +1196,67 @@ def update_user(resource: Dict):
         update_groups(user)
     else:
         print_log(f"Nothing to do for User '{username}' ({user.id})")
+
+
+def _get_model_object(class_name: str, resource: Dict, **kwargs):
+    """
+    Return a populated YellowDog model object for the resource.
+    Discard unexpected keywords.
+    """
+
+    def _patch_aws_fleet_enums():
+        if isinstance(model_object, AwsFleetComputeSource):
+            try:
+                model_object.purchaseOption = AwsFleetPurchaseOption[
+                    str(model_object.purchaseOption)
+                ]
+            except KeyError:
+                raise Exception(
+                    "Invalid AWS Fleet Compute Source Purchase Option property: "
+                    f"'{str(model_object.purchaseOption)}'"
+                )
+
+    def _patch_allowance_enums():
+        if (
+            isinstance(model_object, SourceAllowance)
+            or isinstance(model_object, SourcesAllowance)
+            or isinstance(model_object, RequirementsAllowance)
+            or isinstance(model_object, AccountAllowance)
+        ):
+            try:
+                model_object.limitEnforcement = AllowanceLimitEnforcement(
+                    model_object.limitEnforcement
+                )
+                model_object.resetType = AllowanceResetType(model_object.resetType)
+            except KeyError as e:
+                raise Exception(f"Invalid Allowance property: {e}")
+
+    while True:
+        try:
+            model_object = _get_model_class(class_name)(**resource, **kwargs)
+            _patch_aws_fleet_enums()
+            _patch_allowance_enums()
+            return model_object
+        except Exception as e:
+            # Unexpected/missing keyword argument Exception of form:
+            # __init__() got an unexpected keyword argument 'keyword', or
+            # __init__() missing 1 required positional argument: 'credential'
+            if "unexpected" in str(e):
+                keyword = str(e).split("'")[1]
+                print_warning(f"Ignoring unexpected property '{keyword}'")
+                resource.pop(keyword)
+            elif "missing" in str(e):
+                keyword = str(e).split("'")[1]
+                raise Exception(f"Missing expected property '{keyword}'")
+            else:
+                raise e
+
+
+def _get_model_class(class_name: str):
+    """
+    Return a YellowDog model class using its class name.
+    """
+    return getattr(model, class_name)
 
 
 def _create_image_family(
