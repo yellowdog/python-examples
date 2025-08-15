@@ -625,6 +625,13 @@ class CLIParser:
                 help="list user attribute definitions",
             )
             parser.add_argument(
+                "--namespaces",
+                "-M",
+                action="store_true",
+                required=False,
+                help="list namespaces",
+            )
+            parser.add_argument(
                 "--namespace-policies",
                 "-P",
                 action="store_true",
@@ -1577,6 +1584,11 @@ class CLIParser:
     @allow_missing_attribute
     def attribute_definitions(self) -> Optional[bool]:
         return self.args.attribute_definitions
+
+    @property
+    @allow_missing_attribute
+    def namespaces(self) -> Optional[bool]:
+        return self.args.namespaces
 
     @property
     @allow_missing_attribute
