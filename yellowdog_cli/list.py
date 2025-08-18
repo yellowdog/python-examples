@@ -84,6 +84,7 @@ from yellowdog_cli.utils.settings import (
     RN_GROUP,
     RN_IMAGE_FAMILY,
     RN_KEYRING,
+    RN_NAMESPACE,
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_ROLE,
@@ -890,7 +891,10 @@ def list_namespaces():
         return
 
     print_yd_object_list(
-        [(namespace, None) for namespace in select(CLIENT, namespaces)]
+        [
+            (namespace, {PROP_RESOURCE: RN_NAMESPACE})
+            for namespace in select(CLIENT, namespaces)
+        ]
     )
 
 
