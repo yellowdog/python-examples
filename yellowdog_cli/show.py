@@ -30,7 +30,6 @@ from yellowdog_cli.utils.settings import (
     RN_REQUIREMENT_TEMPLATE,
     RN_ROLE,
     RN_SOURCE_TEMPLATE,
-    RN_USER,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
@@ -240,7 +239,6 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 CLIENT.account_client.get_user(ydid),
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
-                add_fields=({RESOURCE_PROPERTY_NAME: RN_USER}),
             )
 
         elif ydid_type == YDIDType.GROUP:

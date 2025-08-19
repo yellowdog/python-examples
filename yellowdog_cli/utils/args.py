@@ -122,6 +122,7 @@ class CLIParser:
         )
         parser.add_argument(
             "--print-pid",
+            "--pp",
             action="store_true",
             required=False,
             help="include the process ID of this CLI invocation alongside timestamp in logging messages",
