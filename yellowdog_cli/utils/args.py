@@ -120,6 +120,12 @@ class CLIParser:
             required=False,
             help="values in '.env' file override values in the environment",
         )
+        parser.add_argument(
+            "--print-pid",
+            action="store_true",
+            required=False,
+            help="include the process ID of this CLI invocation alongside timestamp in logging messages",
+        )
 
         # Module-specific argument sets
         if not any(module in sys.argv[0] for module in ["compare"]):
@@ -1281,6 +1287,11 @@ class CLIParser:
     @allow_missing_attribute
     def env_override(self) -> Optional[bool]:
         return self.args.env_override
+
+    @property
+    @allow_missing_attribute
+    def print_pid(self) -> Optional[bool]:
+        return self.args.print_pid
 
     @property
     @allow_missing_attribute

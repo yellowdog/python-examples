@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from json import dumps as json_dumps
 from json import loads as json_loads
-from os import get_terminal_size
+from os import get_terminal_size, getpid
 from os import name as os_name
 from os.path import relpath
 from textwrap import fill
@@ -152,7 +152,15 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
     for the terminal width.
     """
     global PREFIX_LEN
-    prefix = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " : "
+
+    prefix = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Optionally add the PID to the prefix to disambiguate interleaved
+    # log messages
+    if ARGS_PARSER.print_pid:
+        prefix += f" ({getpid()}) : "
+    else:
+        prefix += " : "
+
     if PREFIX_LEN == 0:
         PREFIX_LEN = len(prefix)
 
