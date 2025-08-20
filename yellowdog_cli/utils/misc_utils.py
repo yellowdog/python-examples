@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from os.path import join, normpath, relpath
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 from dotenv import dotenv_values, find_dotenv, load_dotenv
@@ -25,16 +25,19 @@ from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
 UTCNOW = datetime.now(timezone.utc)
 
 
-def unpack_namespace_in_prefix(namespace: str, prefix: str) -> (str, str):
+def unpack_namespace_in_prefix(namespace: str, prefix: str) -> Tuple[str, str]:
     """
     Allow the prefix to include the namespace, which can override the supplied
     namespace. Return the unpacked (namespace, prefix) tuple.
     """
     elems = prefix.split(NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR)
+
     if len(elems) == 1:
         return namespace, prefix.lstrip("/")
     if len(elems) == 2:
         return elems[0] if elems[0] != "" else namespace, elems[1].lstrip("/")
+
+    raise Exception(f"Cannot unpack '{namespace}/{prefix}")
 
 
 def pathname_relative_to_config_file(config_file_dir: str, file: str) -> str:
