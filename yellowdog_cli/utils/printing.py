@@ -632,7 +632,7 @@ def workers_table(
         "Worker Tag",
         "Status",
         "Claims",
-        "Exclusive?",
+        "Exclusive",
         "Worker ID",
     ]
     table = []
@@ -645,7 +645,7 @@ def workers_table(
                 worker.workerTag,
                 worker.status,
                 worker.claimCount,
-                worker.exclusive,
+                _yes_or_no(worker.exclusive),
                 worker.id,
             ]
         )
@@ -748,7 +748,7 @@ def namespaces_table(
                 index + 1,
                 namespace.namespace,
                 namespace.id,
-                "Yes" if namespace.deletable else "No",
+                _yes_or_no(namespace.deletable),
             ]
         )
     return headers, table
@@ -840,7 +840,7 @@ def groups_table(
     headers = [
         "#",
         "Name",
-        "Admin Group?",
+        "Admin Group",
         "Description",
         "Roles",
         "ID",
@@ -851,7 +851,7 @@ def groups_table(
             [
                 index + 1,
                 group.name,
-                group.adminGroup,
+                _yes_or_no(group.adminGroup),
                 _truncate_text(group.description),
                 ", ".join([x.role.name for x in group.roles]),
                 group.id,
@@ -1575,3 +1575,10 @@ def _truncate_text(description: Union[str, None]):
         return ""
 
     return f"{description[:MAX_TABLE_DESCRIPTION - 3] + '...' if len(description) > MAX_TABLE_DESCRIPTION else description}"
+
+
+def _yes_or_no(true_: bool) -> str:
+    """
+    Swap bools into strings.
+    """
+    return "Yes" if true_ else "No"
