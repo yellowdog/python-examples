@@ -34,6 +34,7 @@ from yellowdog_client.model import (
     NamespacePolicy,
     NamespaceStorageConfiguration,
     RequirementsAllowance,
+    RoleScope,
     SourceAllowance,
     SourcesAllowance,
     User,
@@ -981,7 +982,9 @@ def create_group(resource: Dict):
 
         role_ids_to_add = new_role_ids - current_role_ids
         for role_id in role_ids_to_add:
-            CLIENT.account_client.add_role_to_group(group.id, role_id)
+            CLIENT.account_client.add_role_to_group(
+                group.id, role_id, RoleScope(global_=True)
+            )
             print_log(
                 f"Added Role '{get_role_name_by_id(CLIENT, role_id)}' "
                 f"to Group ({role_id})"
