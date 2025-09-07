@@ -133,7 +133,7 @@
    * [yd-compare](#yd-compare)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Aug 15 15:49:13 BST 2025 -->
+<!-- Added by: pwt, at: Thu Oct  2 10:08:27 BST 2025 -->
 
 <!--te-->
 
@@ -235,39 +235,52 @@ Both of the installation methods above will install a number of **`yd-`** comman
 Commands are run from the command line. Invoking any command with the `--help` or `-h` option will display the command line options applicable to that command, e.g.:
 
 ```text
- % yd-cancel --help
-usage: yd-cancel [-h] [--docs] [--config <config_file.toml>] [--key <app-key>]
-                 [--secret <app-secret>] [--namespace <namespace>] [--tag <tag>] [--url <url>]
-                 [--variable <var1=v1>] [--quiet] [--debug] [--pac] [--abort] [--follow]
-                 [--interactive] [--yes]
+ % yd-cancel -h
+usage: yd-cancel [-h] [--docs] [--config <config_file.toml>] [--key <app-key-id>] [--secret <app-key-secret>]
+                 [--url <url>] [--debug] [--pac] [--no-format] [--quiet] [--env-override] [--print-pid]
+                 [--variable <var1=v1>] [--namespace [<namespace>]] [--tag [<tag>]] [--abort] [--follow]
+                 [--interactive] [--yes] [--raw-events]
+                 [<work-requirement-name-or-ID> ...]
 
 YellowDog command line utility for cancelling Work Requirements
+
+positional arguments:
+  <work-requirement-name-or-ID>
+                        the name(s) or YellowDog ID(s) of the work requirement(s) to be cancelled; can also supply
+                        task IDs
 
 optional arguments:
   -h, --help            show this help message and exit
   --docs                provide a link to the documentation for this version
   --config <config_file.toml>, -c <config_file.toml>
-                        configuration file in TOML format; default is 'config.toml' in the current
+                        configuration file in TOML format; the default to use is 'config.toml' in the current
                         directory
-  --key <app-key>, -k <app-key>
-                        the YellowDog Application key
-  --secret <app-secret>, -s <app-secret>
-                        the YellowDog Application secret
-  --namespace <namespace>, -n <namespace>
-                        the namespace to use when creating and identifying entities
-  --tag <tag>, -t <tag>
-                        the tag to use for tagging and naming entities
+  --key <app-key-id>, -k <app-key-id>
+                        the application key ID
+  --secret <app-key-secret>, -s <app-key-secret>
+                        the application key secret
   --url <url>, -u <url>
-                        the URL of the YellowDog Platform API
-  --variable <var1=v1>, -v <var1=v1>
-                        user-defined variable substitutions; can be supplied multiple times
-  --quiet, -q           suppress (non-error, non-interactive) status and progress messages
-  --debug               print a stack trace (etc.) on error
+                        the YellowDog Platform API URL (defaults to 'https://api.yellowdog.ai')
+  --debug               display the Python stack trace on error
   --pac                 enable PAC (proxy auto-configuration) support
-  --abort, -a           abort all running tasks with immediate effect
-  --follow, -f          when using --abort, poll until all Tasks have been aborted
-  --interactive, -i     list, and interactively select, items to act on
-  --yes, -y             perform destructive actions without requiring user confirmation
+  --no-format, --nf     disable colouring and text wrapping in command output
+  --quiet, -q           suppress (non-error, non-interactive) status and progress messages
+  --env-override        values in '.env' file override values in the environment
+  --print-pid, --pp     include the process ID of this CLI invocation alongside timestamp in logging messages
+  --variable <var1=v1>, -v <var1=v1>
+                        user-defined variable substitution; the option can be supplied multiple times, one per
+                        variable
+  --namespace [<namespace>], -n [<namespace>]
+                        the namespace to use when specifying entities; this is set to '' if the option is provided
+                        without a value
+  --tag [<tag>], -t [<tag>], --prefix [<tag>]
+                        the tag to use when naming, tagging, or selecting entities, or the prefix (directory) when
+                        used with the object store; this is set to '' if the option is provided without a value
+  --abort, -a           abort running tasks with immediate effect
+  --follow, -f          follow progress after cancelling the work requirement(s)
+  --interactive, -i     list, and interactively select, the items to act on
+  --yes, -y             perform modifying/destructive actions without requiring user confirmation
+  --raw-events          print the raw JSON event stream when following events
 ```
 
 # Configuration
@@ -376,11 +389,11 @@ These options can also be listed by running a command with the `--help` or `-h` 
 
 The **environment variables** are as follows:
 
-- `YD_KEY`
-- `YD_SECRET`
+- `YD_KEY` (or `YD_API_KEY_ID`)
+- `YD_SECRET` (or `YD_API_KEY_SECRET`)
+- `YD_URL` (or `YD_API_URL`)
 - `YD_NAMESPACE`
 - `YD_TAG`
-- `YD_URL`
 
 When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in a configuration file.
 

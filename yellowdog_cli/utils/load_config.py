@@ -33,10 +33,13 @@ from yellowdog_cli.utils.settings import (
     TASK_BATCH_SIZE_DEFAULT,
     TOML_VAR_NESTED_DEPTH,
     YD_KEY,
+    YD_KEY_ALT,
     YD_NAMESPACE,
     YD_SECRET,
+    YD_SECRET_ALT,
     YD_TAG,
     YD_URL,
+    YD_URL_ALT,
 )
 from yellowdog_cli.utils.type_check import check_list, check_str
 from yellowdog_cli.utils.validate_properties import validate_properties
@@ -47,6 +50,16 @@ from yellowdog_cli.utils.variables import (
     process_variable_substitutions,
     process_variable_substitutions_insitu,
 )
+
+# Support for alternative common env. vars; written into the normal vars.
+for norm, alt in [
+    (YD_KEY, YD_KEY_ALT),
+    (YD_SECRET, YD_SECRET_ALT),
+    (YD_URL, YD_URL_ALT),
+]:
+    if os.getenv(norm) is None and os.getenv(alt) is not None:
+        os.environ[norm] = os.getenv(alt)
+        print_log(f"Setting environment variable '{norm}' using value of '{alt}'")
 
 # CLI > YD_CONF > 'config.toml'
 CONFIG_FILE = relpath(
