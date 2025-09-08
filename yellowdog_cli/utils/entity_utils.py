@@ -3,7 +3,7 @@ Various utility functions for finding objects, etc.
 """
 
 from functools import lru_cache
-from typing import List, Optional
+from typing import Callable, List, Optional, Tuple
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.common import SearchClient
@@ -176,7 +176,7 @@ def get_work_requirement_summary_by_name_or_id(
 
 
 def _find_id_by_name(
-    name: str, client: PlatformClient, find_function: callable
+    name: str, client: PlatformClient, find_function: Callable
 ) -> Optional[str]:
     """
     Generic function to find the ID of an entity by namespace and name.
@@ -505,7 +505,7 @@ def get_non_exact_namespace_matches(
     return matching_namespaces
 
 
-def split_namespace_and_name(reference: str) -> (Optional[str], str):
+def split_namespace_and_name(reference: str) -> Tuple[Optional[str], str]:
     """
     Split a name into an (optional) namespace and a name.
     """
