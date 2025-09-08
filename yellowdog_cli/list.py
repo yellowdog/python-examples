@@ -697,7 +697,9 @@ def list_image_families():
     """
     image_search = MachineImageFamilySearch(
         includePublic=True,
-        namespace=CONFIG_COMMON.namespace,  # Supports partial match
+        namespace=(
+            None if CONFIG_COMMON.namespace is "" else CONFIG_COMMON.namespace
+        ),  # Supports partial match
         familyName=CONFIG_COMMON.name_tag,  # Supports partial match
     )
     search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)

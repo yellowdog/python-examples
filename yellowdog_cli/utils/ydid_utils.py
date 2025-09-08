@@ -30,7 +30,7 @@ class YDIDType(Enum):
 
 def get_ydid_type(ydid: Optional[str]) -> Optional[YDIDType]:
     """
-    Find the type of a YellowDog ID.
+    Find the type of YellowDog ID.
     """
     if ydid is None or not ydid.startswith("ydid:"):
         return None
