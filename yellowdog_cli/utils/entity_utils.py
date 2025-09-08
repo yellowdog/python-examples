@@ -310,7 +310,9 @@ def find_image_family_reference_by_name(
     namespace, name = split_namespace_and_name(image_family_name)
 
     if_search = MachineImageFamilySearch(
-        familyName=name, namespace=namespace, includePublic=True
+        familyName=name,
+        namespace=None if namespace == "" else namespace,
+        includePublic=True,
     )
     search_client: SearchClient = client.images_client.get_image_families(if_search)
     image_families: List[MachineImageFamilySummary] = search_client.list_all()

@@ -43,7 +43,7 @@ def main():
     )
 
     cr_search = ComputeRequirementSearch(
-        namespace=CONFIG_COMMON.namespace,
+        namespace=None if CONFIG_COMMON.namespace == "" else CONFIG_COMMON.namespace,
         statuses=VALID_TERMINATION_STATUSES,
     )
     search_client: SearchClient = CLIENT.compute_client.get_compute_requirements(
