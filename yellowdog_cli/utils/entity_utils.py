@@ -299,6 +299,12 @@ def find_image_family_reference_by_name(
     Fully qualified name is used for non-ambiguous PRIVATE image families.
     """
 
+    if image_family_name.startswith("ami-") or image_family_name.startswith(
+        "ocid1.image."
+    ):
+        # We can identify AWS AMIs and OCI OCIDs, and return immediately
+        return image_family_name
+
     original_image_family_name = image_family_name
 
     # Remove leading 'yd/' prefix if necessary
@@ -315,7 +321,20 @@ def find_image_family_reference_by_name(
         includePublic=True,
     )
     search_client: SearchClient = client.images_client.get_image_families(if_search)
-    image_families: List[MachineImageFamilySummary] = search_client.list_all()
+
+    try:
+        image_families: List[MachineImageFamilySummary] = search_client.list_all()
+    except Exception as e:
+        if "MissingPermissionException" in str(e) and "IMAGE_READ" in str(e):
+            # IMAGE_READ permission (globally, or for this namespace) is absent;
+            # abandon lookup and return the original image family name
+            print_log(
+                f"Note: failed attempt to resolve image name '{original_image_family_name}' "
+                "due to lack of 'IMAGE_READ' permission; using original name"
+            )
+            return original_image_family_name
+        else:
+            raise
 
     # Partial names will match, so filter for exact matches only
     image_families = [
