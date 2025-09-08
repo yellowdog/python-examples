@@ -394,7 +394,7 @@ def list_compute_requirements():
         print_log("Listing active Compute Requirements only")
 
     cr_search = ComputeRequirementSearch(
-        namespace=CONFIG_COMMON.namespace,
+        namespace=None if CONFIG_COMMON.namespace == "" else CONFIG_COMMON.namespace,
     )
     search_client: SearchClient = CLIENT.compute_client.get_compute_requirements(
         cr_search
