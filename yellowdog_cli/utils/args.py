@@ -185,7 +185,6 @@ class CLIParser:
                 metavar="<tag>",
             )
 
-        # Namespace and tag attributes are defaulted to "" when using 'yd-list'
         if any(module in sys.argv[0] for module in ["list"]):
             parser.add_argument(
                 "--namespace",
@@ -194,10 +193,11 @@ class CLIParser:
                 required=False,
                 nargs="?",
                 const="",
-                default="",
+                # default="",
                 help="the namespace to search when listing entities",
                 metavar="<namespace>",
             )
+            # Tag attribute is defaulted to "" when using 'yd-list'
             parser.add_argument(
                 "--tag",
                 "-t",
