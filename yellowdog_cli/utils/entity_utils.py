@@ -41,6 +41,7 @@ from yellowdog_client.model import (
     WorkerPool,
     WorkerPoolSearch,
     WorkerPoolSummary,
+    WorkRequirementSearch,
     WorkRequirementStatus,
     WorkRequirementSummary,
 )
@@ -90,8 +91,11 @@ def get_filtered_work_requirements(
     """
     filtered_work_summaries: List[WorkRequirementSummary] = []
 
+    wr_search = WorkRequirementSearch(namespaces=[namespace], tag=tag)
+    wr_search_client = client.work_client.get_work_requirements(wr_search)
+
     work_requirement_summaries: List[WorkRequirementSummary] = (
-        client.work_client.find_all_work_requirements()
+        wr_search_client.list_all()
     )
 
     for work_summary in work_requirement_summaries:

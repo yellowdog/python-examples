@@ -31,8 +31,8 @@ def main():
         return
 
     print_log(
-        "Cancelling Work Requirements with "
-        f"'{CONFIG_COMMON.namespace}' in namespace and "
+        "Cancelling Work Requirements in namespace "
+        f"'{CONFIG_COMMON.namespace}' with "
         f"'{CONFIG_COMMON.name_tag}' in tag"
     )
 

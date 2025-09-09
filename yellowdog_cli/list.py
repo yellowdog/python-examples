@@ -203,8 +203,8 @@ def list_work_requirements():
     options chosen.
     """
     print_log(
-        f"Listing Work Requirements with  '{CONFIG_COMMON.namespace}' in namespace "
-        f"and '{CONFIG_COMMON.name_tag}' in tag",
+        f"Listing Work Requirements in namespace  '{CONFIG_COMMON.namespace}' "
+        f"with '{CONFIG_COMMON.name_tag}' in tag",
     )
     if ARGS_PARSER.active_only:
         print_log("Listing active Work Requirements only")

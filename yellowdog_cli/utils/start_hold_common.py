@@ -52,8 +52,8 @@ def _start_or_hold_work_requirements(
         )
 
     print_log(
-        f"{action}ing Work Requirements with "
-        f"'{CONFIG_COMMON.namespace}' in namespace and "
+        f"{action}ing Work Requirements in namespace "
+        f"'{CONFIG_COMMON.namespace}' with "
         f"'{CONFIG_COMMON.name_tag}' in tag"
     )
 

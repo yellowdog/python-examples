@@ -37,8 +37,8 @@ def main():
         return
 
     print_log(
-        "Finding active Work Requirements with "
-        f"'{CONFIG_COMMON.namespace}' in namespace and "
+        "Finding active Work Requirements in"
+        f"namespace '{CONFIG_COMMON.namespace}' with "
         f"'{CONFIG_COMMON.name_tag}' in tag"
     )
 
