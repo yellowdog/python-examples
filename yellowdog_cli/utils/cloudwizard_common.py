@@ -75,7 +75,7 @@ class CommonCloudConfig(ABC):
         counter = 0
         for (
             compute_requirement_template_summary
-        ) in get_all_compute_requirement_templates(client):
+        ) in get_all_compute_requirement_templates(client, self._namespace):
             if (
                 compute_requirement_template_summary.name.startswith(name_prefix)
                 and compute_requirement_template_summary.namespace == self._namespace
@@ -91,7 +91,9 @@ class CommonCloudConfig(ABC):
         # Remove Compute Source Templates
         clear_compute_source_template_cache()
         counter = 0
-        for compute_source_template_summary in get_all_compute_source_templates(client):
+        for compute_source_template_summary in get_all_compute_source_templates(
+            client, self._namespace
+        ):
             if (
                 compute_source_template_summary.name.startswith(name_prefix)
                 and compute_source_template_summary.namespace == self._namespace

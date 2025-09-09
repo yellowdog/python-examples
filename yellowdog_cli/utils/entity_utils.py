@@ -15,8 +15,10 @@ from yellowdog_client.model import (
     ComputeRequirementSearch,
     ComputeRequirementStatus,
     ComputeRequirementTemplate,
+    ComputeRequirementTemplateSearch,
     ComputeRequirementTemplateSummary,
     ComputeSourceTemplate,
+    ComputeSourceTemplateSearch,
     ComputeSourceTemplateSummary,
     ExternalUser,
     GroupSearch,
@@ -37,6 +39,7 @@ from yellowdog_client.model import (
     User,
     UserSearch,
     WorkerPool,
+    WorkerPoolSearch,
     WorkerPoolSummary,
     WorkRequirementStatus,
     WorkRequirementSummary,
@@ -183,7 +186,7 @@ def _find_id_by_name(
     """
     namespace, name = split_namespace_and_name(name)
 
-    entities = find_function(client)
+    entities = find_function(client, namespace)
 
     exact_matching_entities = []
     inexact_matching_entities = []
@@ -228,12 +231,18 @@ def find_compute_source_template_id_by_name(
 
 @lru_cache
 def get_all_compute_source_templates(
-    client: PlatformClient,
+    client: PlatformClient, namespace: Optional[str]
 ) -> List[ComputeSourceTemplateSummary]:
     """
-    Cache the list of Sources.
+    Cache the list of Compute Source Templates.
     """
-    return client.compute_client.find_all_compute_source_templates()
+    cst_search = ComputeSourceTemplateSearch(
+        namespaces=None if namespace in [None, ""] else [namespace]
+    )
+    cst_search_client: SearchClient = (
+        client.compute_client.get_compute_source_templates(cst_search)
+    )
+    return cst_search_client.list_all()
 
 
 def clear_compute_source_template_cache():
@@ -255,12 +264,18 @@ def find_compute_requirement_template_id_by_name(
 
 @lru_cache
 def get_all_compute_requirement_templates(
-    client: PlatformClient,
+    client: PlatformClient, namespace: Optional[str]
 ) -> List[ComputeRequirementTemplateSummary]:
     """
     Cache the list of Compute Requirement Templates.
     """
-    return client.compute_client.find_all_compute_requirement_templates()
+    crt_search = ComputeRequirementTemplateSearch(
+        namespaces=None if namespace in [None, ""] else [namespace]
+    )
+    crt_search_client: SearchClient = (
+        client.compute_client.get_compute_requirement_templates(crt_search)
+    )
+    return crt_search_client.list_all()
 
 
 def clear_compute_requirement_template_cache():
@@ -283,11 +298,19 @@ def get_compute_requirement_id_by_worker_pool_id(
         return worker_pool.computeRequirementId
 
 
-def get_all_worker_pools(client: PlatformClient) -> List[WorkerPoolSummary]:
+def get_all_worker_pools(
+    client: PlatformClient, namespace: Optional[str]
+) -> List[WorkerPoolSummary]:
     """
-    Return all Worker Pool summaries.
+    Return all Worker Pool summaries for a namespace.
     """
-    return client.worker_pool_client.find_all_worker_pools()
+    wp_search = WorkerPoolSearch(
+        namespaces=None if namespace in [None, ""] else [namespace]
+    )
+    wp_search_client: SearchClient = client.worker_pool_client.get_worker_pools(
+        wp_search
+    )
+    return wp_search_client.list_all()
 
 
 @lru_cache
@@ -317,7 +340,7 @@ def find_image_family_reference_by_name(
 
     if_search = MachineImageFamilySearch(
         familyName=name,
-        namespace=None if namespace == "" else namespace,
+        namespaces=None if namespace in [None, ""] else [namespace],
         includePublic=True,
     )
     search_client: SearchClient = client.images_client.get_image_families(if_search)
@@ -329,7 +352,7 @@ def find_image_family_reference_by_name(
             # IMAGE_READ permission (globally, or for this namespace) is absent;
             # abandon lookup and return the original image family name
             print_log(
-                f"Note: failed attempt to resolve image name '{original_image_family_name}' "
+                f"Note: failed to resolve image name '{original_image_family_name}' "
                 "due to lack of 'IMAGE_READ' permission; using original name"
             )
             return original_image_family_name
