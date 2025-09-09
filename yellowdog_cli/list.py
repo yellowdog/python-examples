@@ -326,7 +326,7 @@ def list_object_paths():
 
 
 def list_worker_pools():
-    print_log(f"Displaying Worker Pools with '{CONFIG_COMMON.namespace}' in namespace")
+    print_log(f"Displaying Worker Pools in namespace '{CONFIG_COMMON.namespace}'")
 
     worker_pool_summaries: List[WorkerPoolSummary] = (
         CLIENT.worker_pool_client.find_all_worker_pools()
@@ -385,8 +385,8 @@ def list_worker_pools():
 
 def list_compute_requirements():
     print_log(
-        "Listing Compute Requirements with "
-        f"namespace containing '{CONFIG_COMMON.namespace}' and "
+        "Listing Compute Requirements in "
+        f"namespace '{CONFIG_COMMON.namespace}' with "
         f" names containing '{CONFIG_COMMON.name_tag}'"
     )
 
@@ -560,9 +560,9 @@ def list_compute_requirement_templates():
         CLIENT.compute_client.find_all_compute_requirement_templates()
     )
     print_log(
-        "Listing Compute Requirement Templates with namespaces including"
-        f" '{CONFIG_COMMON.namespace}' and names including"
-        f" '{CONFIG_COMMON.name_tag}'"
+        "Listing Compute Requirement Templates in namespace "
+        f"'{CONFIG_COMMON.namespace}' with names including "
+        f"'{CONFIG_COMMON.name_tag}'"
     )
     cr_templates = [
         crt
@@ -613,9 +613,9 @@ def list_compute_source_templates():
         CLIENT.compute_client.find_all_compute_source_templates()
     )
     print_log(
-        "Listing Compute Source Templates with namespaces including"
-        f" '{CONFIG_COMMON.namespace}' and names including"
-        f" '{CONFIG_COMMON.name_tag}'"
+        "Listing Compute Source Templates in namespace "
+        f"'{CONFIG_COMMON.namespace}' with names including "
+        f"'{CONFIG_COMMON.name_tag}'"
     )
     cs_templates = [
         cst
@@ -697,17 +697,17 @@ def list_image_families():
     """
     image_search = MachineImageFamilySearch(
         includePublic=True,
-        namespace=(
-            None if CONFIG_COMMON.namespace == "" else CONFIG_COMMON.namespace
-        ),  # Supports partial match
+        namespaces=(
+            None if CONFIG_COMMON.namespace == "" else [CONFIG_COMMON.namespace]
+        ),
         familyName=CONFIG_COMMON.name_tag,  # Supports partial match
     )
     search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)
     image_family_summaries: List[MachineImageFamilySummary] = search_client.list_all()
     if len(image_family_summaries) == 0:
         print_log(
-            f"No matching Machine Image Families found with namespace including "
-            f"'{CONFIG_COMMON.namespace}' and tag including '{CONFIG_COMMON.name_tag}'"
+            f"No matching Machine Image Families found in namespace "
+            f"'{CONFIG_COMMON.namespace}' with tag including '{CONFIG_COMMON.name_tag}'"
         )
         return
 
