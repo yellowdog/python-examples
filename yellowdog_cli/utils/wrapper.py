@@ -101,7 +101,7 @@ def main_wrapper(func):
                 exit_code = 1
             except KeyboardInterrupt:
                 print("\r", end="")  # Overwrite the display of ^C
-                print_log("Cancelled")
+                print_log("Keyboard interruption ... exiting")
                 exit_code = 1
             finally:
                 CLIENT.close()
