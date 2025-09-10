@@ -267,13 +267,15 @@ def find_compute_requirement_template_id_by_name(
 
 @lru_cache
 def get_all_compute_requirement_templates(
-    client: PlatformClient, namespace: Optional[str]
+    client: PlatformClient,
+    namespace: Optional[str],
+    name: Optional[str],
 ) -> List[ComputeRequirementTemplateSummary]:
     """
     Cache the list of Compute Requirement Templates.
     """
     crt_search = ComputeRequirementTemplateSearch(
-        namespaces=None if namespace in [None, ""] else [namespace]
+        name=name, namespaces=None if namespace in [None, ""] else [namespace]
     )
     crt_search_client: SearchClient = (
         client.compute_client.get_compute_requirement_templates(crt_search)

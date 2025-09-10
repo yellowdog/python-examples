@@ -51,6 +51,7 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.entity_utils import (
     get_all_applications,
+    get_all_compute_requirement_templates,
     get_all_compute_source_templates,
     get_all_groups,
     get_all_roles,
@@ -557,20 +558,18 @@ def list_compute_requirement_templates():
     Print the list of Compute Requirement Templates, filtered on Namespace
     and Name. Set these both to empty strings to generate an unfiltered list.
     """
-    cr_templates: List[ComputeRequirementTemplateSummary] = (
-        CLIENT.compute_client.find_all_compute_requirement_templates()
-    )
     print_log(
         "Listing Compute Requirement Templates in namespace "
         f"'{CONFIG_COMMON.namespace}' with names including "
         f"'{CONFIG_COMMON.name_tag}'"
     )
-    cr_templates = [
-        crt
-        for crt in cr_templates
-        if (CONFIG_COMMON.namespace in ("" if crt.namespace is None else crt.namespace))
-        and CONFIG_COMMON.name_tag in crt.name
-    ]
+
+    cr_templates: List[ComputeRequirementTemplateSummary] = (
+        get_all_compute_requirement_templates(
+            CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
+        )
+    )
+
     if len(cr_templates) == 0:
         print_log("No matching Compute Requirement Templates found")
         return
