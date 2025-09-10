@@ -138,7 +138,7 @@ def get_worker_pool_id_by_name(
         except:
             return
 
-    return _find_id_by_name(worker_pool_name, client, get_all_worker_pools)
+    return _find_id_by_name(worker_pool_name, client, get_worker_pools)
 
 
 def get_compute_requirement_id_by_name(
@@ -227,17 +227,17 @@ def find_compute_source_template_id_by_name(
     Find a Compute Source Template id by name.
     Compute Source Template names are unique within a namespace.
     """
-    return _find_id_by_name(name, client, get_all_compute_source_templates)
+    return _find_id_by_name(name, client, get_compute_source_templates)
 
 
 @lru_cache
-def get_all_compute_source_templates(
+def get_compute_source_templates(
     client: PlatformClient,
     namespace: Optional[str],
     name: Optional[str] = None,
 ) -> List[ComputeSourceTemplateSummary]:
     """
-    Cache the list of Compute Source Templates.
+    Cache the list of Compute Source Templates, scoped by namespace and name.
     """
     cst_search = ComputeSourceTemplateSearch(
         name=name, namespaces=None if namespace in [None, ""] else [namespace]
@@ -252,7 +252,7 @@ def clear_compute_source_template_cache():
     """
     Clear the cache of Compute Source Templates.
     """
-    get_all_compute_source_templates.cache_clear()
+    get_compute_source_templates.cache_clear()
 
 
 def find_compute_requirement_template_id_by_name(
@@ -262,17 +262,18 @@ def find_compute_requirement_template_id_by_name(
     Find the Compute Requirement Template ID that matches the
     provided name. Names are unique within a namespace.
     """
-    return _find_id_by_name(name, client, get_all_compute_requirement_templates)
+    return _find_id_by_name(name, client, get_compute_requirement_templates)
 
 
 @lru_cache
-def get_all_compute_requirement_templates(
+def get_compute_requirement_templates(
     client: PlatformClient,
     namespace: Optional[str],
     name: Optional[str] = None,
 ) -> List[ComputeRequirementTemplateSummary]:
     """
-    Cache the list of Compute Requirement Templates.
+    Cache the list of Compute Requirement Templates, scoped by namespace
+    and name.
     """
     crt_search = ComputeRequirementTemplateSearch(
         name=name, namespaces=None if namespace in [None, ""] else [namespace]
@@ -287,7 +288,7 @@ def clear_compute_requirement_template_cache():
     """
     Clear the cache of Compute Requirement Templates.
     """
-    get_all_compute_requirement_templates.cache_clear()
+    get_compute_requirement_templates.cache_clear()
 
 
 def get_compute_requirement_id_by_worker_pool_id(
@@ -304,7 +305,7 @@ def get_compute_requirement_id_by_worker_pool_id(
     return None
 
 
-def get_all_worker_pools(
+def get_worker_pools(
     client: PlatformClient,
     namespace: Optional[str],
     name: Optional[str] = None,

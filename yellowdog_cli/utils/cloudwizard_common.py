@@ -16,8 +16,8 @@ from yellowdog_cli.utils.compact_json import CompactJSONEncoder
 from yellowdog_cli.utils.entity_utils import (
     clear_compute_requirement_template_cache,
     clear_compute_source_template_cache,
-    get_all_compute_requirement_templates,
-    get_all_compute_source_templates,
+    get_compute_requirement_templates,
+    get_compute_source_templates,
 )
 from yellowdog_cli.utils.interactive import confirmed
 from yellowdog_cli.utils.printing import print_error, print_log, print_warning
@@ -73,9 +73,9 @@ class CommonCloudConfig(ABC):
         # Compute Requirement Templates
         clear_compute_requirement_template_cache()
         counter = 0
-        for (
-            compute_requirement_template_summary
-        ) in get_all_compute_requirement_templates(client, self._namespace):
+        for compute_requirement_template_summary in get_compute_requirement_templates(
+            client, self._namespace
+        ):
             if (
                 compute_requirement_template_summary.name.startswith(name_prefix)
                 and compute_requirement_template_summary.namespace == self._namespace
@@ -91,7 +91,7 @@ class CommonCloudConfig(ABC):
         # Remove Compute Source Templates
         clear_compute_source_template_cache()
         counter = 0
-        for compute_source_template_summary in get_all_compute_source_templates(
+        for compute_source_template_summary in get_compute_source_templates(
             client, self._namespace
         ):
             if (

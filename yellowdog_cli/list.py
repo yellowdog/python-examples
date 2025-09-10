@@ -51,17 +51,17 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.entity_utils import (
     get_all_applications,
-    get_all_compute_requirement_templates,
-    get_all_compute_source_templates,
     get_all_groups,
     get_all_roles,
     get_all_users,
-    get_all_worker_pools,
     get_application_groups,
+    get_compute_requirement_templates,
+    get_compute_source_templates,
     get_filtered_work_requirements,
     get_task_groups_from_wr_by_id,
     get_tasks,
     get_user_groups,
+    get_worker_pools,
     list_matching_object_paths,
     substitute_ids_for_names_in_crt,
     substitute_image_family_id_for_name_in_cst,
@@ -334,7 +334,7 @@ def list_worker_pools():
         f"with '{CONFIG_COMMON.name_tag}' in name"
     )
 
-    worker_pool_summaries: List[WorkerPoolSummary] = get_all_worker_pools(
+    worker_pool_summaries: List[WorkerPoolSummary] = get_worker_pools(
         CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
 
@@ -569,7 +569,7 @@ def list_compute_requirement_templates():
     )
 
     cr_templates: List[ComputeRequirementTemplateSummary] = (
-        get_all_compute_requirement_templates(
+        get_compute_requirement_templates(
             CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
         )
     )
@@ -620,7 +620,7 @@ def list_compute_source_templates():
         f"'{CONFIG_COMMON.name_tag}'"
     )
 
-    cs_templates = get_all_compute_source_templates(
+    cs_templates = get_compute_source_templates(
         CLIENT, namespace=CONFIG_COMMON.namespace, name=CONFIG_COMMON.name_tag
     )
 

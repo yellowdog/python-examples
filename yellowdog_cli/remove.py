@@ -23,10 +23,10 @@ from yellowdog_cli.utils.entity_utils import (
     clear_group_caches,
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
-    get_all_worker_pools,
     get_application_id_by_name,
     get_group_id_by_name,
     get_namespace_id_by_name,
+    get_worker_pools,
     remove_allowances_matching_description,
 )
 from yellowdog_cli.utils.interactive import confirmed
@@ -332,7 +332,7 @@ def remove_configured_worker_pool(resource: Dict):
 
     fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
-    worker_pools: List[WorkerPoolSummary] = get_all_worker_pools(
+    worker_pools: List[WorkerPoolSummary] = get_worker_pools(
         CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
 
