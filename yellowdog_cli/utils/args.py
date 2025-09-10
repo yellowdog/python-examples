@@ -163,7 +163,7 @@ class CLIParser:
                 nargs="?",
                 const="",
                 help=(
-                    "the namespace to use when creating and identifying entities;"
+                    "the namespace to use when specifying entities;"
                     " this is set to '' if the option is provided without a value"
                 ),
                 metavar="<namespace>",
@@ -194,7 +194,7 @@ class CLIParser:
                 nargs="?",
                 const="",
                 # default="",
-                help="the namespace to search when listing entities",
+                help="the namespace to use when listing entities",
                 metavar="<namespace>",
             )
             # Tag attribute is defaulted to "" when using 'yd-list'
