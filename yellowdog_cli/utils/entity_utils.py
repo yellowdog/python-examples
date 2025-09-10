@@ -11,7 +11,6 @@ from yellowdog_client.model import (
     AllowanceSearch,
     Application,
     ApplicationSearch,
-    ComputeRequirement,
     ComputeRequirementSearch,
     ComputeRequirementStatus,
     ComputeRequirementTemplate,
@@ -246,6 +245,21 @@ def get_compute_source_templates(
         client.compute_client.get_compute_source_templates(cst_search)
     )
     return cst_search_client.list_all()
+
+
+def get_work_requirement_summaries(
+    client: PlatformClient,
+    namespace: Optional[str] = None,
+    name: Optional[str] = None,
+) -> List[WorkRequirementSummary]:
+    """
+    Get the list of Work Requirement summaries, scoped by namespace and name.
+    """
+    wr_search = WorkRequirementSearch(
+        name=name, namespaces=None if namespace in [None, ""] else [namespace]
+    )
+    wr_search_client: SearchClient = client.work_client.get_work_requirements(wr_search)
+    return wr_search_client.list_all()
 
 
 def clear_compute_source_template_cache():
