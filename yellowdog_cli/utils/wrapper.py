@@ -94,7 +94,7 @@ def main_wrapper(func):
                         "Your Application does not have the required permissions to"
                         " perform the requested operation. Please check that the"
                         " Application belongs to the required group(s), e.g.,"
-                        f" 'administrators', with roles in the required namespace: {e}"
+                        f" 'administrators', with roles in the required namespace(s): {e}"
                     )
                 else:
                     print_error(e)
