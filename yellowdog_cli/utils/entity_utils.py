@@ -233,7 +233,7 @@ def find_compute_source_template_id_by_name(
 @lru_cache
 def get_compute_source_templates(
     client: PlatformClient,
-    namespace: Optional[str],
+    namespace: Optional[str] = None,
     name: Optional[str] = None,
 ) -> List[ComputeSourceTemplateSummary]:
     """
@@ -268,7 +268,7 @@ def find_compute_requirement_template_id_by_name(
 @lru_cache
 def get_compute_requirement_templates(
     client: PlatformClient,
-    namespace: Optional[str],
+    namespace: Optional[str] = None,
     name: Optional[str] = None,
 ) -> List[ComputeRequirementTemplateSummary]:
     """
@@ -307,7 +307,7 @@ def get_compute_requirement_id_by_worker_pool_id(
 
 def get_worker_pools(
     client: PlatformClient,
-    namespace: Optional[str],
+    namespace: Optional[str] = None,
     name: Optional[str] = None,
 ) -> List[WorkerPoolSummary]:
     """
