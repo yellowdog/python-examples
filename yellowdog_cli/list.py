@@ -56,6 +56,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_all_groups,
     get_all_roles,
     get_all_users,
+    get_all_worker_pools,
     get_application_groups,
     get_filtered_work_requirements,
     get_task_groups_from_wr_by_id,
@@ -328,10 +329,13 @@ def list_object_paths():
 
 
 def list_worker_pools():
-    print_log(f"Displaying Worker Pools in namespace '{CONFIG_COMMON.namespace}'")
+    print_log(
+        f"Displaying Worker Pools in namespace '{CONFIG_COMMON.namespace}' "
+        f"with '{CONFIG_COMMON.name_tag}' in name"
+    )
 
-    worker_pool_summaries: List[WorkerPoolSummary] = (
-        CLIENT.worker_pool_client.find_all_worker_pools()
+    worker_pool_summaries: List[WorkerPoolSummary] = get_all_worker_pools(
+        CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
 
     excluded_states = (

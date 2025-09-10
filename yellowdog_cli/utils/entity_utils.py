@@ -234,7 +234,7 @@ def find_compute_source_template_id_by_name(
 def get_all_compute_source_templates(
     client: PlatformClient,
     namespace: Optional[str],
-    name: Optional[str],
+    name: Optional[str] = None,
 ) -> List[ComputeSourceTemplateSummary]:
     """
     Cache the list of Compute Source Templates.
@@ -269,7 +269,7 @@ def find_compute_requirement_template_id_by_name(
 def get_all_compute_requirement_templates(
     client: PlatformClient,
     namespace: Optional[str],
-    name: Optional[str],
+    name: Optional[str] = None,
 ) -> List[ComputeRequirementTemplateSummary]:
     """
     Cache the list of Compute Requirement Templates.
@@ -304,13 +304,15 @@ def get_compute_requirement_id_by_worker_pool_id(
 
 
 def get_all_worker_pools(
-    client: PlatformClient, namespace: Optional[str]
+    client: PlatformClient,
+    namespace: Optional[str],
+    name: Optional[str] = None,
 ) -> List[WorkerPoolSummary]:
     """
-    Return all Worker Pool summaries for a namespace.
+    Return all Worker Pool summaries for a namespace, name.
     """
     wp_search = WorkerPoolSearch(
-        namespaces=None if namespace in [None, ""] else [namespace]
+        name=name, namespaces=None if namespace in [None, ""] else [namespace]
     )
     wp_search_client: SearchClient = client.worker_pool_client.get_worker_pools(
         wp_search
