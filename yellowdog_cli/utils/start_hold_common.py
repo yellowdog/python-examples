@@ -4,7 +4,7 @@
 Core functionality for starting and holding Work Requirements.
 """
 
-from typing import List
+from typing import Callable, List
 
 from yellowdog_client.model import (
     WorkRequirement,
@@ -40,7 +40,7 @@ def hold_work_requirements():
 
 
 def _start_or_hold_work_requirements(
-    action: str, required_state: WorkRequirementStatus, action_function: callable
+    action: str, required_state: WorkRequirementStatus, action_function: Callable
 ) -> List[str]:
 
     if len(ARGS_PARSER.work_requirement_names) > 0:
@@ -110,7 +110,7 @@ def _start_or_hold_work_requirements(
 def _start_or_hold_work_requirements_by_name_or_id(
     action: str,
     required_state: WorkRequirementStatus,
-    action_function: callable,
+    action_function: Callable,
     names_or_ids: List[str],
 ) -> List[str]:
     """
