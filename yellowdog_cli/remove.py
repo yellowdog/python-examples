@@ -23,6 +23,7 @@ from yellowdog_cli.utils.entity_utils import (
     clear_group_caches,
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
+    get_all_worker_pools,
     get_application_id_by_name,
     get_group_id_by_name,
     get_namespace_id_by_name,
@@ -331,17 +332,13 @@ def remove_configured_worker_pool(resource: Dict):
 
     fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
-    worker_pools: List[WorkerPoolSummary] = (
-        CLIENT.worker_pool_client.find_all_worker_pools()
+    worker_pools: List[WorkerPoolSummary] = get_all_worker_pools(
+        CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
 
     # Shut down a matching Configured Worker Pool if in an appropriate state
     for worker_pool in worker_pools:
-        if (
-            worker_pool.name == name
-            and worker_pool.namespace == namespace
-            and worker_pool.type.split(".")[-1] == "ConfiguredWorkerPool"
-        ):
+        if worker_pool.type.split(".")[-1] == "ConfiguredWorkerPool":
             if worker_pool.status not in [
                 WorkerPoolStatus.SHUTDOWN,
                 WorkerPoolStatus.TERMINATED,
