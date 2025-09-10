@@ -232,13 +232,15 @@ def find_compute_source_template_id_by_name(
 
 @lru_cache
 def get_all_compute_source_templates(
-    client: PlatformClient, namespace: Optional[str]
+    client: PlatformClient,
+    namespace: Optional[str],
+    name: Optional[str],
 ) -> List[ComputeSourceTemplateSummary]:
     """
     Cache the list of Compute Source Templates.
     """
     cst_search = ComputeSourceTemplateSearch(
-        namespaces=None if namespace in [None, ""] else [namespace]
+        name=name, namespaces=None if namespace in [None, ""] else [namespace]
     )
     cst_search_client: SearchClient = (
         client.compute_client.get_compute_source_templates(cst_search)

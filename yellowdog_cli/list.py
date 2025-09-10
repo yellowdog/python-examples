@@ -51,6 +51,7 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.entity_utils import (
     get_all_applications,
+    get_all_compute_source_templates,
     get_all_groups,
     get_all_roles,
     get_all_users,
@@ -609,20 +610,17 @@ def list_compute_source_templates():
     Print the list of Compute Source Templates, filtered on Namespace
     and Name. Set these both to empty strings to generate an unfiltered list.
     """
-    cs_templates: List[ComputeSourceTemplateSummary] = (
-        CLIENT.compute_client.find_all_compute_source_templates()
-    )
+
     print_log(
         "Listing Compute Source Templates in namespace "
         f"'{CONFIG_COMMON.namespace}' with names including "
         f"'{CONFIG_COMMON.name_tag}'"
     )
-    cs_templates = [
-        cst
-        for cst in cs_templates
-        if (CONFIG_COMMON.namespace in ("" if cst.namespace is None else cst.namespace))
-        and CONFIG_COMMON.name_tag in cst.name
-    ]
+
+    cs_templates = get_all_compute_source_templates(
+        CLIENT, namespace=CONFIG_COMMON.namespace, name=CONFIG_COMMON.name_tag
+    )
+
     if len(cs_templates) == 0:
         print_log("No matching Compute Source Templates found")
         return
