@@ -301,6 +301,7 @@ def get_compute_requirement_id_by_worker_pool_id(
     )
     if isinstance(worker_pool, ProvisionedWorkerPool):
         return worker_pool.computeRequirementId
+    return None
 
 
 def get_all_worker_pools(
