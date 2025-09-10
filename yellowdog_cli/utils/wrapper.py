@@ -86,7 +86,7 @@ def main_wrapper(func):
             exit_code = 0
             try:
                 set_proxy()
-                print_account()
+                # print_account()
                 func()
             except Exception as e:
                 if "MissingPermissionException" in str(e):
@@ -110,7 +110,7 @@ def main_wrapper(func):
                 exit(exit_code)
         else:
             set_proxy()
-            print_account()
+            # print_account()
             func()
             CLIENT.close()
             print_log("Done")
