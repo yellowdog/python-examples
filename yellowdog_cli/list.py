@@ -56,7 +56,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_all_users,
     get_application_groups,
     get_filtered_work_requirements,
-    get_task_groups_from_wr_summary,
+    get_task_groups_from_wr_by_id,
     get_tasks,
     get_user_groups,
     list_matching_object_paths,
@@ -254,7 +254,7 @@ def list_work_requirements():
 
 
 def list_task_groups(work_summary: WorkRequirementSummary):
-    task_groups: List[TaskGroup] = get_task_groups_from_wr_summary(
+    task_groups: List[TaskGroup] = get_task_groups_from_wr_by_id(
         CLIENT, work_summary.id
     )
     task_groups = sorted_objects(task_groups)

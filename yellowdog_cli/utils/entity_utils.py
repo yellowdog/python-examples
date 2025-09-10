@@ -54,14 +54,14 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 
 @lru_cache
-def get_task_groups_from_wr_summary(
-    client: PlatformClient, wr_summary_id: str
+def get_task_groups_from_wr_by_id(
+    client: PlatformClient, wr_id: str
 ) -> List[TaskGroup]:
     """
     Get the list of the Work Requirement's Task Groups.
     Cache results to avoid repeatedly hitting the API for the same thing.
     """
-    work_requirement = client.work_client.get_work_requirement_by_id(wr_summary_id)
+    work_requirement = client.work_client.get_work_requirement_by_id(wr_id)
     return work_requirement.taskGroups
 
 
@@ -72,7 +72,7 @@ def get_task_group_name(
     Function to find the Task Group Name for a given Task
     within a Work Requirement.
     """
-    for task_group in get_task_groups_from_wr_summary(client, wr_summary.id):
+    for task_group in get_task_groups_from_wr_by_id(client, wr_summary.id):
         if task.taskGroupId == task_group.id:
             return task_group.name
     return ""  # Shouldn't get here
@@ -89,31 +89,27 @@ def get_filtered_work_requirements(
     Get a list of Work Requirements filtered by namespace, tag
     and status. Supply either include_filter OR exclude_filter.
     """
-    filtered_work_summaries: List[WorkRequirementSummary] = []
 
-    wr_search = WorkRequirementSearch(namespaces=[namespace], tag=tag)
+    if include_filter is None:
+        wr_search = WorkRequirementSearch(namespaces=[namespace], tag=tag)
+    else:
+        wr_search = WorkRequirementSearch(
+            namespaces=[namespace], tag=tag, statuses=include_filter
+        )
+
     wr_search_client = client.work_client.get_work_requirements(wr_search)
-
     work_requirement_summaries: List[WorkRequirementSummary] = (
         wr_search_client.list_all()
     )
 
-    for work_summary in work_requirement_summaries:
-        work_summary.tag = "" if work_summary.tag is None else work_summary.tag
-        work_summary.namespace = (
-            "" if work_summary.namespace is None else work_summary.namespace
-        )
-        if namespace in work_summary.namespace and tag in work_summary.tag:
-            if include_filter is not None:
-                if work_summary.status in include_filter:
-                    filtered_work_summaries.append(work_summary)
-                    continue
-            if exclude_filter is not None:
-                if work_summary.status not in exclude_filter:
-                    filtered_work_summaries.append(work_summary)
-                    continue
+    if include_filter is not None or exclude_filter is None:
+        return work_requirement_summaries
 
-    return filtered_work_summaries
+    return [
+        work_summary
+        for work_summary in work_requirement_summaries
+        if work_summary.status not in exclude_filter
+    ]
 
 
 @lru_cache
