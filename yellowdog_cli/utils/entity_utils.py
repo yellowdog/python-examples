@@ -150,15 +150,16 @@ def get_compute_requirement_id_by_name(
     Find a Compute Requirement ID by its name.
     Restrict search by status.
     """
-    cr_search = ComputeRequirementSearch(statuses=statuses)
+    cr_search = ComputeRequirementSearch(
+        name=compute_requirement_name, statuses=statuses
+    )
     search_client: SearchClient = client.compute_client.get_compute_requirements(
         cr_search
     )
-    compute_requirements: List[ComputeRequirement] = search_client.list_all()
-
-    for compute_requirement in compute_requirements:
-        if compute_requirement.name == compute_requirement_name:
-            return compute_requirement.id
+    try:
+        return search_client.list_all()[0].id
+    except IndexError:
+        return None
 
 
 def get_work_requirement_summary_by_name_or_id(

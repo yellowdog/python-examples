@@ -17,7 +17,7 @@ from yellowdog_cli.utils.entity_utils import get_compute_requirement_id_by_name
 from yellowdog_cli.utils.follow_utils import follow_ids
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import link_entity
-from yellowdog_cli.utils.printing import print_error, print_log
+from yellowdog_cli.utils.printing import print_error, print_log, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -105,7 +105,9 @@ def terminate_cr_by_name_or_id(names_or_ids: List[str]):
                 CLIENT, name_or_id, VALID_TERMINATION_STATUSES
             )
             if compute_requirement_id is None:
-                print_error(f"Valid Compute Requirement not found for '{name_or_id}'")
+                print_warning(
+                    f"Compute Requirement in valid state not found for '{name_or_id}'"
+                )
                 continue
             else:
                 print_log(f"Found Compute Requirement ID: {compute_requirement_id}")
