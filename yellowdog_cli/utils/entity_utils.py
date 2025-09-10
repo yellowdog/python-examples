@@ -162,20 +162,26 @@ def get_compute_requirement_id_by_name(
 
 
 def get_work_requirement_summary_by_name_or_id(
-    client: PlatformClient, work_requirement_name_or_id: str
+    client: PlatformClient,
+    work_requirement_name_or_id: str,
+    namespace: str = None,
 ) -> Optional[WorkRequirementSummary]:
     """
     Get a Work Requirement Summary by its name or ID.
+    Scoped by namespace.
     """
-    work_requirement_summaries: List[WorkRequirementSummary] = (
-        client.work_client.find_all_work_requirements()
+    work_requirement_summaries = get_work_requirement_summaries(
+        client, namespace=namespace
     )
+
     for work_requirement_summary in work_requirement_summaries:
         if (
             work_requirement_summary.name == work_requirement_name_or_id
             or work_requirement_summary.id == work_requirement_name_or_id
         ):
             return work_requirement_summary
+
+    return None
 
 
 def _find_id_by_name(

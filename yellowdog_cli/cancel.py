@@ -125,10 +125,17 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
             continue
 
         work_requirement_summary: WorkRequirementSummary = (
-            get_work_requirement_summary_by_name_or_id(CLIENT, name_or_id)
+            get_work_requirement_summary_by_name_or_id(
+                CLIENT,
+                name_or_id,
+                namespace=CONFIG_COMMON.namespace,
+            )
         )
         if work_requirement_summary is None:
-            print_error(f"Work Requirement '{name_or_id}' not found")
+            print_error(
+                f"Work Requirement '{name_or_id}' not found in "
+                f"namespace '{CONFIG_COMMON.namespace}'"
+            )
             continue
 
         if work_requirement_summary.status not in [
