@@ -19,7 +19,6 @@ from yellowdog_client.model import (
     ComputeRequirementSearch,
     ComputeRequirementStatus,
     ComputeRequirementTemplateSummary,
-    ComputeSourceTemplateSummary,
     Group,
     Instance,
     InstanceSearch,
