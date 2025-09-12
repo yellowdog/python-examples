@@ -26,6 +26,7 @@ from yellowdog_client.model import (
     BestComputeSourceReportSource,
     ComputeRequirement,
     ComputeRequirementDynamicTemplateTestResult,
+    ComputeRequirementSummary,
     ComputeRequirementTemplateSummary,
     ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
@@ -246,7 +247,8 @@ TYPE_MAP = {
     AWSAvailabilityZone: "AWS Availability Zones",
     Allowance: "Allowance",
     Application: "Application",
-    ComputeRequirement: "Compute Requirement",
+    ComputeRequirement: "ComputeRequirement",
+    ComputeRequirementSummary: "Compute Requirement",
     ComputeRequirementTemplateSummary: "Compute Requirement Template",
     ComputeSourceTemplateSummary: "Compute Source Template",
     ConfiguredWorkerPool: "Configured Worker Pool",
@@ -299,7 +301,7 @@ def get_type_name(obj: Item) -> str:
 
 
 def compute_requirement_table(
-    cr_list: List[ComputeRequirement],
+    cr_list: List[ComputeRequirementSummary],
 ) -> Tuple[List[str], List[List]]:
     headers = [
         "#",
@@ -311,24 +313,14 @@ def compute_requirement_table(
     ]
     table = []
     for index, cr in enumerate(cr_list):
-        alive_count = sum(
-            [
-                source.instanceSummary.aliveCount
-                for source in cr.provisionStrategy.sources
-            ]
-        )
         table.append(
             [
                 index + 1,
                 cr.name,
                 cr.namespace,
                 cr.tag,
-                (
-                    f"{cr.status}"
-                    if cr.nextStatus is None
-                    else (f"{cr.status} -> {cr.nextStatus}")
-                )
-                + f" ({cr.targetInstanceCount:,d}/{cr.expectedInstanceCount:,d}/{alive_count:,d})",
+                str(cr.status)
+                + f" ({cr.targetInstanceCount:,d}/{cr.expectedInstanceCount:,d}/{cr.aliveInstanceCount:,d})",
                 cr.id,
             ]
         )
@@ -932,7 +924,7 @@ def print_numbered_object_list(
     if isinstance(objects[0], str):
         headers = ["#", "Name"]
         table = [[index + 1, name] for index, name in enumerate(objects)]
-    elif isinstance(objects[0], ComputeRequirement):
+    elif isinstance(objects[0], ComputeRequirementSummary):
         headers, table = compute_requirement_table(objects)
     elif isinstance(objects[0], WorkRequirementSummary):
         headers, table = work_requirement_table(objects)

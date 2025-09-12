@@ -6,14 +6,16 @@ A script to terminate Compute Requirements.
 
 from typing import List
 
-from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     ComputeRequirement,
-    ComputeRequirementSearch,
     ComputeRequirementStatus,
+    ComputeRequirementSummary,
 )
 
-from yellowdog_cli.utils.entity_utils import get_compute_requirement_id_by_name
+from yellowdog_cli.utils.entity_utils import (
+    get_compute_requirement_id_by_name,
+    get_compute_requirement_summaries,
+)
 from yellowdog_cli.utils.follow_utils import follow_ids
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import link_entity
@@ -39,55 +41,49 @@ def main():
     print_log(
         "Terminating Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' and tag "
-        f"starting with '{CONFIG_COMMON.name_tag}'"
+        f"including '{CONFIG_COMMON.name_tag}'"
     )
 
-    cr_search = ComputeRequirementSearch(
-        namespace=None if CONFIG_COMMON.namespace == "" else CONFIG_COMMON.namespace,
-        statuses=VALID_TERMINATION_STATUSES,
+    compute_requirement_summaries: List[ComputeRequirementSummary] = (
+        get_compute_requirement_summaries(
+            CLIENT,
+            CONFIG_COMMON.namespace,
+            CONFIG_COMMON.name_tag,
+            VALID_TERMINATION_STATUSES,
+        )
     )
-    search_client: SearchClient = CLIENT.compute_client.get_compute_requirements(
-        cr_search
-    )
-    compute_requirements: List[ComputeRequirement] = search_client.list_all()
 
     terminated_count = 0
-    selected_compute_requirements: List[ComputeRequirement] = []
+    selected_compute_requirement_summaries: List[ComputeRequirementSummary] = select(
+        CLIENT, compute_requirement_summaries
+    )
 
-    for compute_requirement in compute_requirements:
-        compute_requirement.tag = (
-            "" if compute_requirement.tag is None else compute_requirement.tag
-        )
-        if compute_requirement.tag.startswith(CONFIG_COMMON.name_tag):
-            selected_compute_requirements.append(compute_requirement)
-
-    if len(selected_compute_requirements) > 0:
-        selected_compute_requirements = select(CLIENT, selected_compute_requirements)
-
-    if len(selected_compute_requirements) > 0 and confirmed(
-        f"Terminate {len(selected_compute_requirements)} Compute Requirement(s)?"
+    if len(selected_compute_requirement_summaries) > 0 and confirmed(
+        f"Terminate {len(selected_compute_requirement_summaries)} Compute Requirement(s)?"
     ):
-        for compute_requirement in selected_compute_requirements:
+        for compute_requirement_summary in selected_compute_requirement_summaries:
             try:
                 CLIENT.compute_client.terminate_compute_requirement_by_id(
-                    compute_requirement.id
+                    compute_requirement_summary.id
                 )
-                compute_requirement: ComputeRequirement = (
+                compute_requirement_summary: ComputeRequirement = (
                     CLIENT.compute_client.get_compute_requirement_by_id(
-                        compute_requirement.id
+                        compute_requirement_summary.id
                     )
                 )
                 terminated_count += 1
                 print_log(
-                    f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement)}"
+                    f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement_summary)}"
                 )
             except Exception as e:
-                print_error(f"Unable to terminate '{compute_requirement.name}': {e}")
+                print_error(
+                    f"Unable to terminate '{compute_requirement_summary.name}': {e}"
+                )
 
     if terminated_count > 0:
         print_log(f"Terminated {terminated_count} Compute Requirement(s)")
         if ARGS_PARSER.follow:
-            follow_ids([cr.id for cr in selected_compute_requirements])
+            follow_ids([cr.id for cr in selected_compute_requirement_summaries])
     else:
         print_log("No Compute Requirements terminated")
 

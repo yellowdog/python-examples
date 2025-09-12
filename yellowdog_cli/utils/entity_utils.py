@@ -11,8 +11,9 @@ from yellowdog_client.model import (
     AllowanceSearch,
     Application,
     ApplicationSearch,
-    ComputeRequirementSearch,
     ComputeRequirementStatus,
+    ComputeRequirementSummary,
+    ComputeRequirementSummarySearch,
     ComputeRequirementTemplate,
     ComputeRequirementTemplateSearch,
     ComputeRequirementTemplateSummary,
@@ -149,11 +150,11 @@ def get_compute_requirement_id_by_name(
     Find a Compute Requirement ID by its name.
     Restrict search by status.
     """
-    cr_search = ComputeRequirementSearch(
+    crs_search = ComputeRequirementSummarySearch(
         name=compute_requirement_name, statuses=statuses
     )
-    search_client: SearchClient = client.compute_client.get_compute_requirements(
-        cr_search
+    search_client: SearchClient = (
+        client.compute_client.get_compute_requirement_summaries(crs_search)
     )
     try:
         return search_client.list_all()[0].id
@@ -851,3 +852,24 @@ def get_namespace_id_by_name(
             return namespace.id
 
     return None
+
+
+def get_compute_requirement_summaries(
+    client: PlatformClient,
+    namespace: Optional[str] = None,
+    tag: Optional[str] = None,
+    statuses: Optional[List[ComputeRequirementStatus]] = None,
+) -> List[ComputeRequirementSummary]:
+    """
+    Get compute requirement summaries for a namespace, tag.
+    Optionally filter on statuses.
+    """
+    crs_search = ComputeRequirementSummarySearch(
+        namespaces=(None if namespace in [None, ""] else [namespace]),
+        tag=tag,
+        statuses=statuses,
+    )
+    search_client: SearchClient = (
+        client.compute_client.get_compute_requirement_summaries(crs_search)
+    )
+    return search_client.list_all()

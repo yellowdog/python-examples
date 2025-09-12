@@ -15,9 +15,8 @@ from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     Allowance,
     AllowanceSearch,
-    ComputeRequirement,
-    ComputeRequirementSearch,
     ComputeRequirementStatus,
+    ComputeRequirementSummary,
     ComputeRequirementTemplateSummary,
     Group,
     Instance,
@@ -54,6 +53,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_all_roles,
     get_all_users,
     get_application_groups,
+    get_compute_requirement_summaries,
     get_compute_requirement_templates,
     get_compute_source_templates,
     get_filtered_work_requirements,
@@ -397,64 +397,55 @@ def list_compute_requirements():
 
     if ARGS_PARSER.active_only:
         print_log("Listing active Compute Requirements only")
+        included_statuses = [
+            ComputeRequirementStatus.NEW,
+            ComputeRequirementStatus.STARTING,
+            ComputeRequirementStatus.RUNNING,
+            ComputeRequirementStatus.STOPPING,
+            ComputeRequirementStatus.STOPPED,
+            ComputeRequirementStatus.TERMINATING,
+        ]
+    else:
+        included_statuses = None
 
-    cr_search = ComputeRequirementSearch(
-        namespace=None if CONFIG_COMMON.namespace == "" else CONFIG_COMMON.namespace,
-    )
-    search_client: SearchClient = CLIENT.compute_client.get_compute_requirements(
-        cr_search
-    )
-    compute_requirements: List[ComputeRequirement] = search_client.list_all()
-
-    filtered_compute_requirements: List[ComputeRequirement] = []
-    excluded_states = (
-        [ComputeRequirementStatus.TERMINATED, ComputeRequirementStatus.TERMINATING]
-        if ARGS_PARSER.active_only
-        else []
-    )
-    for compute_requirement in compute_requirements:
-        compute_requirement.tag = (
-            "" if compute_requirement.tag is None else compute_requirement.tag
+    compute_requirement_summaries: List[ComputeRequirementSummary] = (
+        get_compute_requirement_summaries(
+            CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag, included_statuses
         )
-        if (
-            CONFIG_COMMON.name_tag in compute_requirement.tag
-            and CONFIG_COMMON.namespace in compute_requirement.namespace
-            and compute_requirement.status not in excluded_states
-        ):
-            filtered_compute_requirements.append(compute_requirement)
+    )
 
-    if len(filtered_compute_requirements) == 0:
+    if len(compute_requirement_summaries) == 0:
         print_log("No matching Compute Requirements")
         return
 
-    filtered_compute_requirements = sorted_objects(filtered_compute_requirements)
+    compute_requirement_summaries = sorted_objects(compute_requirement_summaries)
 
     if ARGS_PARSER.instances:
-        for compute_requirement in select(
-            CLIENT, filtered_compute_requirements, single_result=True
+        for compute_requirement_summary in select(
+            CLIENT, compute_requirement_summaries, single_result=True
         ):
-            list_instances(compute_requirement)
+            list_instances(compute_requirement_summary.id)
         return
 
     if ARGS_PARSER.details:
         print_yd_object_list(
             [
                 (compute_requirement, None)
-                for compute_requirement in select(CLIENT, filtered_compute_requirements)
+                for compute_requirement in select(CLIENT, compute_requirement_summaries)
             ]
         )
     elif ARGS_PARSER.ids_only:
-        for compute_requirement in filtered_compute_requirements:
-            print(compute_requirement.id)
+        for compute_requirement_summary in compute_requirement_summaries:
+            print(compute_requirement_summary.id)
     else:
-        print_numbered_object_list(CLIENT, filtered_compute_requirements)
+        print_numbered_object_list(CLIENT, compute_requirement_summaries)
 
 
-def list_instances(compute_requirement: ComputeRequirement):
+def list_instances(compute_requirement_id: str):
     """
     List the instances within a Compute Requirement.
     """
-    instance_search = InstanceSearch(computeRequirementId=compute_requirement.id)
+    instance_search = InstanceSearch(computeRequirementId=compute_requirement_id)
     search_client: SearchClient = CLIENT.compute_client.get_instances(
         instance_search=instance_search
     )
