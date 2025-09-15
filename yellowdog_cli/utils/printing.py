@@ -557,10 +557,13 @@ def instances_table(
         "#",
         "Provider",
         "Instance Type",
+        "Spot",
         "Hostname",
         "Status",
         "Private IP",
         "Public IP",
+        "Source ID",
+        "Instance ID",
     ]
     table = []
     for index, instance in enumerate(instances):
@@ -569,10 +572,13 @@ def instances_table(
                 index + 1,
                 instance.provider,
                 instance.instanceType,
+                _yes_or_no(instance.spot),
                 instance.hostname,
                 instance.status,
                 instance.privateIpAddress,
                 instance.publicIpAddress,
+                instance.id.sourceId,
+                instance.id.instanceId,
             ]
         )
     return headers, table
