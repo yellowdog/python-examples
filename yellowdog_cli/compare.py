@@ -33,7 +33,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 NONE_STRING = "NONE"
 EMPTY_STRING = ""
-UNKNOWN_STRING = "NOT YET KNOWN"
+UNKNOWN_STRING = "NOT CURRENTLY KNOWN"
 
 
 class MatchType(Enum):
