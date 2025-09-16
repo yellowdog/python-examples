@@ -85,14 +85,14 @@ class MatchReport:
         self._ram = ram
         self._vcpus = vcpus
         self._property_match_list = [
-            self._worker_tags,
-            self._namespaces,
             self._instance_types,
+            self._namespaces,
             self._providers,
             self._ram,
             self._regions,
             self._task_types,
             self._vcpus,
+            self._worker_tags,
         ]
 
     @cache
