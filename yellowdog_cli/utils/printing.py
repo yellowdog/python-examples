@@ -336,6 +336,8 @@ def work_requirement_table(
         "Namespace",
         "Tag",
         "Status",
+        "Tasks",
+        "Healthy",
         "Work Requirement ID",
     ]
     table = []
@@ -349,6 +351,8 @@ def work_requirement_table(
                 namespace,
                 tag,
                 str(wr_summary.status),
+                f"{wr_summary.completedTaskCount}/{wr_summary.totalTaskCount}",
+                _yes_or_no(wr_summary.healthy),
                 wr_summary.id,
             ]
         )
