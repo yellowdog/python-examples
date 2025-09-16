@@ -135,7 +135,7 @@ class MatchReport:
         else:
             match_str = "NON-MATCHING"
         print_log(
-            f"Detailed comparison report for {match_str} ({self.worker_pool_status}) worker pool "
+            f"Detailed comparison report for {match_str} ({self.worker_pool_status}) Worker Pool "
             f"'{self.worker_pool_name}' ({self.worker_pool_id})",
             override_quiet=True,
         )
@@ -724,7 +724,7 @@ def main():
             override_quiet=True,
         )
         if ARGS_PARSER.running_nodes_only:
-            print_log("Comparing RUNNING nodes in the worker pool(s) only")
+            print_log("Only comparing RUNNING nodes in the Worker Pool(s)")
         for task_group in work_requirement.taskGroups:
             _compare_task_group(task_group, worker_pools)
 
