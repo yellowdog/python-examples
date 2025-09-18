@@ -91,6 +91,7 @@ YELLOWDOG_POLICY = {
                 "EC2:DeleteLaunchTemplate",
                 "EC2:DeletePlacementGroup",
                 "EC2:DescribeFleets",
+                "EC2:DescribeImages",
                 "EC2:DescribeInstanceTypes",
                 "EC2:DescribeInstances",
                 "EC2:DescribeLaunchTemplates",
