@@ -66,6 +66,7 @@ from yellowdog_cli.utils.settings import (
 )
 from yellowdog_cli.utils.submit_utils import (
     UploadedFiles,
+    generate_dependencies,
     generate_task_error_matchers_list,
     generate_task_input_list,
     generate_taskdata_object,
@@ -541,7 +542,7 @@ def create_task_group(
     task_group = TaskGroup(
         name=task_group_name,
         runSpecification=run_specification,
-        dependentOn=check_str(task_group_data.get(DEPENDENT_ON, None)),
+        dependencies=generate_dependencies(task_group_data),
         finishIfAllTasksFinished=check_bool(
             task_group_data.get(
                 FINISH_IF_ALL_TASKS_FINISHED,

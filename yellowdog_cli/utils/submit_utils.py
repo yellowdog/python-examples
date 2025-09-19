@@ -22,15 +22,17 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.config_types import ConfigCommon, ConfigWorkRequirement
-from yellowdog_cli.utils.printing import print_error, print_log
+from yellowdog_cli.utils.printing import print_error, print_log, print_warning
 from yellowdog_cli.utils.property_names import (
+    DEPENDENCIES,
+    DEPENDENT_ON,
     ERROR_TYPES,
     PROCESS_EXIT_CODES,
     RETRYABLE_ERRORS,
     STATUSES_AT_FAILURE,
 )
 from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
-from yellowdog_cli.utils.type_check import check_list
+from yellowdog_cli.utils.type_check import check_list, check_str
 from yellowdog_cli.utils.upload_utils import unique_upload_pathname, upload_file_core
 from yellowdog_cli.utils.variables import process_variable_substitutions_insitu
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
@@ -363,6 +365,33 @@ def generate_task_error_matchers_list(
             for task_error_matcher_data in error_matchers
         ]
     )
+
+
+def generate_dependencies(task_group_data: Dict) -> Optional[List[str]]:
+    """
+    Generate the contents of the 'dependencies' property of the TaskGroup.
+    """
+    dependent_on = check_str(task_group_data.get(DEPENDENT_ON, None))
+    dependencies = check_list(task_group_data.get(DEPENDENCIES, None))
+
+    if dependent_on is not None and dependencies is not None:
+        raise Exception(
+            "Only one of 'dependencies' or 'dependentOn' (deprecated) can "
+            "be specified in a task group"
+        )
+
+    if dependent_on is None and dependencies is None:
+        return None
+
+    if dependencies is not None:
+        return dependencies
+
+    if dependent_on is not None:
+        print_warning(
+            "The 'dependentOn' task group property is deprecated; "
+            "please use 'dependencies' instead"
+        )
+        return [dependent_on]
 
 
 def _generate_task_error_matcher(task_error_matcher_data: Dict) -> TaskErrorMatcher:
