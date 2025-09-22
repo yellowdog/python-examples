@@ -478,22 +478,21 @@ class WorkerPools:
         nodes_ram = {node.details.ram for node in nodes}
 
         # Calculate match
-        matching_node_counter = 0
         if task_group.runSpecification.ram is None:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
         else:
             for node in nodes:
-                if self._check_in_range(
+                if not self._check_in_range(
                     node.details.ram, task_group.runSpecification.ram
                 ):
-                    matching_node_counter += 1
-            if matching_node_counter == 0:
-                match_type = MatchType.NO
-            elif matching_node_counter < len(nodes):
-                match_type = MatchType.PARTIAL
+                    # If ANY nodes fail to match, the worker
+                    # pool is not considered a match
+                    match_type = MatchType.NO
+                    break
             else:
+                # All current nodes match
                 match_type = MatchType.YES
 
         return PropertyMatch(
@@ -509,12 +508,6 @@ class WorkerPools:
                 else ", ".join([str(node_ram) for node_ram in nodes_ram])
             ),
             match=match_type,
-            match_count=(
-                None
-                if task_group.runSpecification.ram is None
-                else matching_node_counter
-            ),
-            total_nodes=None if task_group.runSpecification.ram is None else len(nodes),
         )
 
     def _match_vcpus(
@@ -525,22 +518,21 @@ class WorkerPools:
         nodes_vcpus = {node.details.vcpus for node in nodes}
 
         # Calculate match
-        matching_node_counter = 0
         if task_group.runSpecification.vcpus is None:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
         else:
             for node in nodes:
-                if self._check_in_range(
+                if not self._check_in_range(
                     node.details.vcpus, task_group.runSpecification.vcpus
                 ):
-                    matching_node_counter += 1
-            if matching_node_counter == 0:
-                match_type = MatchType.NO
-            elif matching_node_counter < len(nodes):
-                match_type = MatchType.PARTIAL
+                    # If ANY nodes fail to match, the worker
+                    # pool is not considered a match
+                    match_type = MatchType.NO
+                    break
             else:
+                # All current nodes match
                 match_type = MatchType.YES
 
         return PropertyMatch(
@@ -556,14 +548,6 @@ class WorkerPools:
                 else ", ".join([str(node_vcpus) for node_vcpus in nodes_vcpus])
             ),
             match=match_type,
-            match_count=(
-                None
-                if task_group.runSpecification.vcpus is None
-                else matching_node_counter
-            ),
-            total_nodes=(
-                None if task_group.runSpecification.vcpus is None else len(nodes)
-            ),
         )
 
     @staticmethod
