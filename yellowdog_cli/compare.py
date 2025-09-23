@@ -298,14 +298,9 @@ class WorkerPools:
             else set(task_group.runSpecification.taskTypes)
         )
         nodes = self._get_all_nodes_in_worker_pool(worker_pool)
-        node_task_types = set(
-            [
-                task_type
-                for node in nodes
-                for task_type in node.details.supportedTaskTypes
-            ]
-        )
-
+        node_task_types = {
+            task_type for node in nodes for task_type in node.details.supportedTaskTypes
+        }
         worker_pool_values = (
             UNKNOWN_STRING
             if len(nodes) == 0
@@ -314,20 +309,14 @@ class WorkerPools:
             )
         )
 
-        # Calculate match
-        matching_node_counter = 0
+        # Calculate match: the task types in the worker pool must be
+        # a subset of the instance types in the run specification
         if len(nodes) == 0:
             match_type = MatchType.MAYBE
+        elif node_task_types <= runspec_task_types:
+            match_type = MatchType.YES
         else:
-            for node in nodes:
-                if runspec_task_types <= set(node.details.supportedTaskTypes):
-                    matching_node_counter += 1
-            if matching_node_counter == 0:
-                match_type = MatchType.NO
-            elif matching_node_counter < len(nodes):
-                match_type = MatchType.PARTIAL
-            else:
-                match_type = MatchType.YES
+            match_type = MatchType.NO
 
         return PropertyMatch(
             property_name="Task Type(s)",
@@ -338,8 +327,6 @@ class WorkerPools:
             ),
             worker_pool_values=worker_pool_values,
             match=match_type,
-            match_count=matching_node_counter,
-            total_nodes=len(nodes),
         )
 
     def _match_providers(
