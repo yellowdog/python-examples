@@ -268,7 +268,7 @@ class WorkerPools:
         )
 
         # Calculate match: the instance types in the worker pool must be
-        # a subset of the instance types in the run specification
+        # a subset of those in the run specification
         if len(runspec_instance_types) == 0:
             match_type = MatchType.YES
         elif len(nodes) == 0:
@@ -310,7 +310,7 @@ class WorkerPools:
         )
 
         # Calculate match: the task types in the worker pool must be
-        # a subset of the instance types in the run specification
+        # a subset of those in the run specification
         if len(nodes) == 0:
             match_type = MatchType.MAYBE
         elif node_task_types <= runspec_task_types:
@@ -335,27 +335,21 @@ class WorkerPools:
         runspec_providers = (
             set()
             if task_group.runSpecification.providers is None
-            else set(task_group.runSpecification.providers)
+            else {provider.value for provider in task_group.runSpecification.providers}
         )
         nodes = self._get_all_nodes_in_worker_pool(worker_pool)
         node_providers = {node.details.provider.value for node in nodes}
 
-        # Calculate match
-        matching_node_counter = 0
+        # Calculate match: the providers in the worker pool must be
+        # a subset of those in the run specification
         if len(runspec_providers) == 0:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
+        elif node_providers <= runspec_providers:
+            match_type = MatchType.YES
         else:
-            for node in nodes:
-                if node.details.provider in runspec_providers:
-                    matching_node_counter += 1
-            if matching_node_counter == 0:
-                match_type = MatchType.NO
-            elif matching_node_counter < len(nodes):
-                match_type = MatchType.PARTIAL
-            else:
-                match_type = MatchType.YES
+            match_type = MatchType.NO
 
         return PropertyMatch(
             property_name="Provider(s)",
@@ -374,8 +368,6 @@ class WorkerPools:
                 )
             ),
             match=match_type,
-            match_count=matching_node_counter if len(runspec_providers) > 0 else None,
-            total_nodes=len(nodes) if len(runspec_providers) > 0 else None,
         )
 
     def _match_regions(
