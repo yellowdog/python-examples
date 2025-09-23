@@ -383,22 +383,16 @@ class WorkerPools:
             node.details.region for node in nodes if node.details.region != ""
         }
 
-        # Calculate match
-        matching_node_counter = 0
+        # Calculate match: the regions in the worker pool must be
+        # a subset of those in the run specification
         if len(runspec_regions) == 0:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
+        elif node_regions <= runspec_regions:
+            match_type = MatchType.YES
         else:
-            for node in nodes:
-                if node.details.region in runspec_regions:
-                    matching_node_counter += 1
-            if matching_node_counter == 0:
-                match_type = MatchType.NO
-            elif matching_node_counter < len(nodes):
-                match_type = MatchType.PARTIAL
-            else:
-                match_type = MatchType.YES
+            match_type = MatchType.NO
 
         return PropertyMatch(
             property_name="Region(s)",
@@ -413,8 +407,6 @@ class WorkerPools:
                 else ", ".join(node_regions) if len(node_regions) > 0 else NONE_STRING
             ),
             match=match_type,
-            match_count=matching_node_counter if len(runspec_regions) > 0 else None,
-            total_nodes=len(nodes) if len(runspec_regions) > 0 else None,
         )
 
     @staticmethod
