@@ -8,14 +8,17 @@ and check for matches.
 from dataclasses import dataclass
 from enum import Enum
 from functools import cache
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from tabulate import tabulate
 from yellowdog_client.model import (
+    ComputeRequirement,
+    ComputeSource,
     DoubleRange,
     Node,
     NodeSearch,
     NodeStatus,
+    ProvisionedWorkerPool,
     TaskGroup,
     WorkerPool,
     WorkRequirement,
@@ -34,6 +37,13 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 NONE_STRING = "NONE"
 EMPTY_STRING = ""
 UNKNOWN_STRING = "NOT CURRENTLY KNOWN"
+
+AWS = "AWS"
+AZURE = "AZURE"
+GCE = "GCE"
+GOOGLE = "GOOGLE"
+OCI = "OCI"
+ON_PREMISE = "ON_PREMISE"
 
 
 class MatchType(Enum):
@@ -215,6 +225,65 @@ class WorkerPools:
             vcpus=self._match_vcpus(task_group, worker_pool),
         )
 
+    def _get_providers(self, worker_pool: WorkerPool) -> Set[str]:
+        if not isinstance(worker_pool, ProvisionedWorkerPool):
+            return {ON_PREMISE}
+
+        providers = set()
+        for source in self._get_cr(worker_pool).provisionStrategy.sources:
+            providers.add(self._get_provider_from_source(source))
+        return providers
+
+    def _get_regions(self, worker_pool: WorkerPool) -> Set[str]:
+        if not isinstance(worker_pool, ProvisionedWorkerPool):
+            return set()
+
+        regions = set()
+        for source in self._get_cr(worker_pool).provisionStrategy.sources:
+            regions.add(source.region)
+        return regions
+
+    def _get_instance_types(self, worker_pool: WorkerPool) -> Set[str]:
+        if not isinstance(worker_pool, ProvisionedWorkerPool):
+            return set()
+
+        instance_types = set()
+        for source in self._get_cr(worker_pool).provisionStrategy.sources:
+            provider = self._get_provider_from_source(source)
+            if provider == AWS:
+                instance_types.add(source.instanceType)
+                try:  # Only for Fleet sources
+                    for override in source.instanceOverrides:
+                        instance_types.add(override.instanceType)
+                except:
+                    pass
+            # ToDo: Add similar checks for the fleet equivalents
+            elif provider == AZURE:
+                instance_types.add(source.vmSize)
+            elif provider == GOOGLE:
+                instance_types.add(source.machineType)
+            elif provider == OCI:
+                instance_types.add(source.shape)
+        return instance_types
+
+    @staticmethod
+    def _get_cr(worker_pool: ProvisionedWorkerPool) -> ComputeRequirement:
+        return CLIENT.compute_client.get_compute_requirement_by_id(
+            worker_pool.computeRequirementId
+        )
+
+    @staticmethod
+    def _get_provider_from_source(source: ComputeSource) -> Optional[str]:
+        if AWS.lower() in source.type.lower():
+            return AWS
+        elif AZURE.lower() in source.type.lower():
+            return AZURE
+        elif GCE.lower() in source.type.lower():
+            return GOOGLE
+        elif OCI.lower() in source.type.lower():
+            return OCI
+        return None
+
     @staticmethod
     def _match_worker_tags(
         task_group: TaskGroup, worker_pool: WorkerPool
@@ -251,29 +320,20 @@ class WorkerPools:
             if task_group.runSpecification.instanceTypes is None
             else set(task_group.runSpecification.instanceTypes)
         )
-        nodes = self._get_all_nodes_in_worker_pool(worker_pool)
-        node_instance_types = {
-            node.details.instanceType
-            for node in nodes
-            if node.details.instanceType != ""
-        }
+
+        worker_pool_instance_types = self._get_instance_types(worker_pool)
         worker_pool_values = (
-            EMPTY_STRING
-            if len(nodes) == 0
-            else (
-                ", ".join(node_instance_types)
-                if len(node_instance_types) > 0
-                else NONE_STRING
-            )
+            ", ".join(sorted(list(worker_pool_instance_types)))
+            if len(worker_pool_instance_types) > 0
+            else NONE_STRING
         )
 
         # Calculate match: the instance types in the worker pool must be
         # a subset of those in the run specification
-        if len(runspec_instance_types) == 0:
-            match_type = MatchType.YES
-        elif len(nodes) == 0:
-            match_type = MatchType.MAYBE
-        elif node_instance_types <= runspec_instance_types:
+        if (
+            len(runspec_instance_types) == 0
+            or worker_pool_instance_types <= runspec_instance_types
+        ):
             match_type = MatchType.YES
         else:
             match_type = MatchType.NO
@@ -283,7 +343,7 @@ class WorkerPools:
             task_group_values=(
                 EMPTY_STRING
                 if task_group.runSpecification.instanceTypes is None
-                else ", ".join(task_group.runSpecification.instanceTypes)
+                else ", ".join(sorted(task_group.runSpecification.instanceTypes))
             ),
             worker_pool_values=worker_pool_values,
             match=match_type,
@@ -298,22 +358,28 @@ class WorkerPools:
             else set(task_group.runSpecification.taskTypes)
         )
         nodes = self._get_all_nodes_in_worker_pool(worker_pool)
-        node_task_types = {
-            task_type for node in nodes for task_type in node.details.supportedTaskTypes
-        }
+        if len(nodes) > 0:
+            node_task_types = set(nodes[0].details.supportedTaskTypes)
+        else:
+            node_task_types = set()
+
         worker_pool_values = (
             UNKNOWN_STRING
             if len(nodes) == 0
             else (
-                ", ".join(node_task_types) if len(node_task_types) > 0 else NONE_STRING
+                ", ".join(sorted(list(node_task_types)))
+                if len(node_task_types) > 0
+                else NONE_STRING
             )
         )
 
-        # Calculate match: the task types in the worker pool must be
-        # a subset of those in the run specification
+        # Calculate match: the task types in the worker pool must include
+        # all of those in the run specification. The scheduler calculates
+        # this based on what the first node reports, but we have to take
+        # a node that possibly is not the first.
         if len(nodes) == 0:
             match_type = MatchType.MAYBE
-        elif node_task_types <= runspec_task_types:
+        elif runspec_task_types <= node_task_types:
             match_type = MatchType.YES
         else:
             match_type = MatchType.NO
@@ -323,7 +389,7 @@ class WorkerPools:
             task_group_values=(
                 NONE_STRING
                 if task_group.runSpecification.taskTypes is None
-                else ", ".join(task_group.runSpecification.taskTypes)
+                else ", ".join(sorted(task_group.runSpecification.taskTypes))
             ),
             worker_pool_values=worker_pool_values,
             match=match_type,
@@ -337,16 +403,11 @@ class WorkerPools:
             if task_group.runSpecification.providers is None
             else {provider.value for provider in task_group.runSpecification.providers}
         )
-        nodes = self._get_all_nodes_in_worker_pool(worker_pool)
-        node_providers = {node.details.provider.value for node in nodes}
+        worker_pool_providers = self._get_providers(worker_pool)
 
         # Calculate match: the providers in the worker pool must be
         # a subset of those in the run specification
-        if len(runspec_providers) == 0:
-            match_type = MatchType.YES
-        elif len(nodes) == 0:
-            match_type = MatchType.MAYBE
-        elif node_providers <= runspec_providers:
+        if len(runspec_providers) == 0 or worker_pool_providers <= runspec_providers:
             match_type = MatchType.YES
         else:
             match_type = MatchType.NO
@@ -356,17 +417,11 @@ class WorkerPools:
             task_group_values=(
                 EMPTY_STRING
                 if task_group.runSpecification.providers is None
-                else ", ".join([x.value for x in task_group.runSpecification.providers])
-            ),
-            worker_pool_values=(
-                UNKNOWN_STRING
-                if len(nodes) == 0
-                else (
-                    EMPTY_STRING
-                    if len(node_providers) == 0
-                    else ", ".join(node_providers)
+                else ", ".join(
+                    sorted([x.value for x in task_group.runSpecification.providers])
                 )
             ),
+            worker_pool_values=", ".join(sorted(list(worker_pool_providers))),
             match=match_type,
         )
 
@@ -378,18 +433,11 @@ class WorkerPools:
             if task_group.runSpecification.regions is None
             else set(task_group.runSpecification.regions)
         )
-        nodes = self._get_all_nodes_in_worker_pool(worker_pool)
-        node_regions = {
-            node.details.region for node in nodes if node.details.region != ""
-        }
+        worker_pool_regions = self._get_regions(worker_pool)
 
         # Calculate match: the regions in the worker pool must be
         # a subset of those in the run specification
-        if len(runspec_regions) == 0:
-            match_type = MatchType.YES
-        elif len(nodes) == 0:
-            match_type = MatchType.MAYBE
-        elif node_regions <= runspec_regions:
+        if len(runspec_regions) == 0 or worker_pool_regions <= runspec_regions:
             match_type = MatchType.YES
         else:
             match_type = MatchType.NO
@@ -399,12 +447,12 @@ class WorkerPools:
             task_group_values=(
                 EMPTY_STRING
                 if task_group.runSpecification.regions is None
-                else ", ".join(task_group.runSpecification.regions)
+                else ", ".join(sorted(task_group.runSpecification.regions))
             ),
             worker_pool_values=(
-                EMPTY_STRING
-                if len(nodes) == 0
-                else ", ".join(node_regions) if len(node_regions) > 0 else NONE_STRING
+                ", ".join(sorted(list(worker_pool_regions)))
+                if len(worker_pool_regions) > 0
+                else NONE_STRING
             ),
             match=match_type,
         )
