@@ -267,22 +267,16 @@ class WorkerPools:
             )
         )
 
-        # Calculate match
-        matching_nodes_counter = 0
+        # Calculate match: the instance types in the worker pool must be
+        # a subset of the instance types in the run specification
         if len(runspec_instance_types) == 0:
             match_type = MatchType.YES
         elif len(nodes) == 0:
             match_type = MatchType.MAYBE
+        elif node_instance_types <= runspec_instance_types:
+            match_type = MatchType.YES
         else:
-            for node in nodes:
-                if node.details.instanceType in runspec_instance_types:
-                    matching_nodes_counter += 1
-            if matching_nodes_counter == 0:
-                match_type = MatchType.NO
-            elif matching_nodes_counter < len(nodes):
-                match_type = MatchType.PARTIAL
-            else:
-                match_type = MatchType.YES
+            match_type = MatchType.NO
 
         return PropertyMatch(
             property_name="Instance Type(s)",
@@ -293,10 +287,6 @@ class WorkerPools:
             ),
             worker_pool_values=worker_pool_values,
             match=match_type,
-            match_count=(
-                matching_nodes_counter if len(runspec_instance_types) > 0 else None
-            ),
-            total_nodes=len(nodes) if len(runspec_instance_types) > 0 else None,
         )
 
     def _match_task_types(
