@@ -144,7 +144,7 @@ class MatchReport:
         header_row = [
             "Property",
             "Task Group Run Specification",
-            "Worker Pool Nodes/Workers",
+            "Worker Pool",
             "Match Status",
         ]
         table_rows = []
@@ -705,8 +705,6 @@ def main():
             f"({work_requirement.id})",
             override_quiet=True,
         )
-        if ARGS_PARSER.running_nodes_only:
-            print_log("Only comparing RUNNING nodes in the Worker Pool(s)")
         for task_group in work_requirement.taskGroups:
             _compare_task_group(task_group, worker_pools)
 
