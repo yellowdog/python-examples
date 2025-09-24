@@ -43,7 +43,6 @@ AZURE = "AZURE"
 GCE = "GCE"
 GOOGLE = "GOOGLE"
 OCI = "OCI"
-ON_PREMISE = "ON_PREMISE"
 
 
 class MatchType(Enum):
@@ -189,7 +188,7 @@ class WorkerPools:
     Populates once for each run of the script.
     """
 
-    def __init__(self, worker_pools: List[WorkerPool]):
+    def __init__(self, worker_pools: List[ProvisionedWorkerPool]):
         self._populated = False
         self._worker_pools = worker_pools
 
@@ -225,28 +224,19 @@ class WorkerPools:
             vcpus=self._match_vcpus(task_group, worker_pool),
         )
 
-    def _get_providers(self, worker_pool: WorkerPool) -> Set[str]:
-        if not isinstance(worker_pool, ProvisionedWorkerPool):
-            return {ON_PREMISE}
-
+    def _get_providers(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
         providers = set()
         for source in self._get_cr(worker_pool).provisionStrategy.sources:
             providers.add(self._get_provider_from_source(source))
         return providers
 
-    def _get_regions(self, worker_pool: WorkerPool) -> Set[str]:
-        if not isinstance(worker_pool, ProvisionedWorkerPool):
-            return set()
-
+    def _get_regions(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
         regions = set()
         for source in self._get_cr(worker_pool).provisionStrategy.sources:
             regions.add(source.region)
         return regions
 
-    def _get_instance_types(self, worker_pool: WorkerPool) -> Set[str]:
-        if not isinstance(worker_pool, ProvisionedWorkerPool):
-            return set()
-
+    def _get_instance_types(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
         instance_types = set()
         for source in self._get_cr(worker_pool).provisionStrategy.sources:
             provider = self._get_provider_from_source(source)
@@ -286,7 +276,7 @@ class WorkerPools:
 
     @staticmethod
     def _match_worker_tags(
-        task_group: TaskGroup, worker_pool: WorkerPool
+        task_group: TaskGroup, worker_pool: ProvisionedWorkerPool
     ) -> PropertyMatch:
         return PropertyMatch(
             property_name="Worker Tag(s)",
@@ -313,7 +303,7 @@ class WorkerPools:
         )
 
     def _match_instance_types(
-        self, task_group: TaskGroup, worker_pool: WorkerPool
+        self, task_group: TaskGroup, worker_pool: ProvisionedWorkerPool
     ) -> PropertyMatch:
         runspec_instance_types = (
             set()
@@ -350,7 +340,7 @@ class WorkerPools:
         )
 
     def _match_task_types(
-        self, task_group: TaskGroup, worker_pool: WorkerPool
+        self, task_group: TaskGroup, worker_pool: ProvisionedWorkerPool
     ) -> PropertyMatch:
         runspec_task_types = (
             set()
@@ -396,7 +386,7 @@ class WorkerPools:
         )
 
     def _match_providers(
-        self, task_group: TaskGroup, worker_pool: WorkerPool
+        self, task_group: TaskGroup, worker_pool: ProvisionedWorkerPool
     ) -> PropertyMatch:
         runspec_providers = (
             set()
@@ -426,7 +416,7 @@ class WorkerPools:
         )
 
     def _match_regions(
-        self, task_group: TaskGroup, worker_pool: WorkerPool
+        self, task_group: TaskGroup, worker_pool: ProvisionedWorkerPool
     ) -> PropertyMatch:
         runspec_regions = (
             set()
@@ -459,7 +449,7 @@ class WorkerPools:
 
     @staticmethod
     def _match_namespaces(
-        task_group: TaskGroup, worker_pool: WorkerPool
+        task_group: TaskGroup, worker_pool: ProvisionedWorkerPool
     ) -> PropertyMatch:
         return PropertyMatch(
             property_name="Namespace(s)",
@@ -480,7 +470,7 @@ class WorkerPools:
         )
 
     def _match_ram(
-        self, task_group: TaskGroup, worker_pool: WorkerPool
+        self, task_group: TaskGroup, worker_pool: ProvisionedWorkerPool
     ) -> PropertyMatch:
 
         nodes = self._get_all_nodes_in_worker_pool(worker_pool)
@@ -520,7 +510,7 @@ class WorkerPools:
         )
 
     def _match_vcpus(
-        self, task_group: TaskGroup, worker_pool: WorkerPool
+        self, task_group: TaskGroup, worker_pool: ProvisionedWorkerPool
     ) -> PropertyMatch:
 
         nodes = self._get_all_nodes_in_worker_pool(worker_pool)
@@ -629,9 +619,9 @@ def _get_work_requirement_by_id(work_requirement_id) -> WorkRequirement:
             )
 
 
-def _get_worker_pool_by_id(worker_pool_id) -> WorkerPool:
+def _get_provisioned_worker_pool_by_id(worker_pool_id) -> ProvisionedWorkerPool:
     try:
-        return get_worker_pool_by_id(CLIENT, worker_pool_id)
+        worker_pool = get_worker_pool_by_id(CLIENT, worker_pool_id)
     except Exception as e:
         if "404" in str(e):
             raise Exception(f"Work Pool ID '{worker_pool_id}' not found")
@@ -639,6 +629,14 @@ def _get_worker_pool_by_id(worker_pool_id) -> WorkerPool:
             raise Exception(
                 f"Unable to obtain Worker Pool details for '{worker_pool_id}': {e}"
             )
+
+    if isinstance(worker_pool, ProvisionedWorkerPool):
+        return worker_pool
+    else:
+        raise Exception(
+            f"Worker Pool ID '{worker_pool_id}' is not a Provisioned Worker Pool; "
+            "Configured Worker Pools are not supported by 'yd-compare'"
+        )
 
 
 def _compare_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
@@ -693,13 +691,13 @@ def _compare_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
 def main():
 
     # Worker pools
-    wp_list: List[WorkerPool] = []
+    wp_list: List[ProvisionedWorkerPool] = []
     for wp_id in ARGS_PARSER.worker_pool_ids:
         if get_ydid_type(wp_id) != YDIDType.WORKER_POOL:
             raise Exception(
                 f"Not a YellowDog Worker Pool ID: '{ARGS_PARSER.wr_or_tg_id}'"
             )
-        wp_list.append(_get_worker_pool_by_id(wp_id))
+        wp_list.append(_get_provisioned_worker_pool_by_id(wp_id))
     worker_pools = WorkerPools(wp_list)
 
     # Task group

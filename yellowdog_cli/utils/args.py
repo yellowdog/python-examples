@@ -1225,17 +1225,10 @@ class CLIParser:
             )
             parser.add_argument(
                 "worker_pool_ids",
-                metavar="<worker-pool-ID>",
+                metavar="<provisioned-worker-pool-ID>",
                 type=str,
                 nargs="+",
-                help="the YellowDog ID(s) of the worker pool(s) to compare",
-            )
-            parser.add_argument(
-                "--running-nodes-only",
-                "-R",
-                action="store_true",
-                required=False,
-                help="only include RUNNING nodes in the specified worker pools in the comparison",
+                help="the YellowDog ID(s) of the provisioned worker pool(s) to compare",
             )
 
         self.args = parser.parse_args()
@@ -1858,7 +1851,7 @@ def lookup_module_description(module_name: str) -> Optional[str]:
     elif "compare" in module_name:
         suffix = (
             "comparing whether a work requirement or task group is matched by "
-            "workers in the specified worker pools"
+            "workers in the specified provisioned worker pools"
         )
 
     return None if suffix is None else prefix + suffix
