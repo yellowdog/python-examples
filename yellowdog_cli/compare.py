@@ -216,20 +216,20 @@ class WorkerPools:
         )
 
     def _get_providers(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
-        providers = set()
-        for source in self._get_cr(worker_pool).provisionStrategy.sources:
-            providers.add(self._get_provider_from_source(source))
-        return providers
+        return {
+            self._get_provider_from_source(source)
+            for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources
+        }
 
     def _get_regions(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
-        regions = set()
-        for source in self._get_cr(worker_pool).provisionStrategy.sources:
-            regions.add(source.region)
-        return regions
+        return {
+            source.region
+            for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources
+        }
 
     def _get_instance_types(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
         instance_types = set()
-        for source in self._get_cr(worker_pool).provisionStrategy.sources:
+        for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources:
             provider = self._get_provider_from_source(source)
             if provider == AWS:
                 instance_types.add(source.instanceType)
@@ -248,7 +248,7 @@ class WorkerPools:
         return instance_types
 
     @staticmethod
-    def _get_cr(worker_pool: ProvisionedWorkerPool) -> ComputeRequirement:
+    def _get_cr_from_wp(worker_pool: ProvisionedWorkerPool) -> ComputeRequirement:
         return CLIENT.compute_client.get_compute_requirement_by_id(
             worker_pool.computeRequirementId
         )
