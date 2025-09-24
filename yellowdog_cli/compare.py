@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-A script to compare work requirements and task groups with worker pools,
-and check for matches.
+A script to compare work requirements and task groups with provisioned worker pools,
+and to check for matches.
 """
 
 from dataclasses import dataclass
@@ -49,7 +49,6 @@ class MatchType(Enum):
     YES = "YES"  # Definite match to the worker pool (so far)
     NO = "NO"  # Definite non-match to the worker pool
     MAYBE = "MAYBE (no Nodes available)"  # Possible match to the worker pool; no nodes available
-    PARTIAL = "PARTIAL (one or more Nodes match, but not all)"  # Some nodes in the worker pool match
 
 
 @dataclass
@@ -116,19 +115,13 @@ class MatchReport:
             return MatchType.NO
 
         elif all(
-            p.match == MatchType.YES or p.match == MatchType.PARTIAL
-            for p in self._property_match_list
-        ):
-            return MatchType.PARTIAL
-
-        elif all(
             p.match == MatchType.YES or p.match == MatchType.MAYBE
             for p in self._property_match_list
         ):
             return MatchType.MAYBE
 
         # Shouldn't get here
-        print_warning("Unable to calculate YES/PARTIAL/MAYBE/NO summary")
+        print_warning("Unable to calculate YES/MAYBE/NO summary")
         return MatchType.NO
 
     def print_detailed_report(self):
@@ -139,8 +132,6 @@ class MatchReport:
             match_str = "MATCHING"
         elif self.summary() == MatchType.MAYBE:
             match_str = "MAYBE MATCHING"
-        elif self.summary() == MatchType.PARTIAL:
-            match_str = "PARTIALLY MATCHING"
         else:
             match_str = "NON-MATCHING"
         print_log(
