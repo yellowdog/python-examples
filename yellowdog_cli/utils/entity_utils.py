@@ -3,7 +3,7 @@ Various utility functions for finding objects, etc.
 """
 
 from functools import lru_cache
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.common import SearchClient
@@ -31,8 +31,11 @@ from yellowdog_client.model import (
     ObjectPath,
     ObjectPathsRequest,
     ProvisionedWorkerPool,
+    RequirementsAllowance,
     RoleSearch,
     RoleSummary,
+    SourceAllowance,
+    SourcesAllowance,
     Task,
     TaskGroup,
     TaskSearch,
@@ -630,6 +633,30 @@ def substitute_image_family_id_for_name_in_cst(
     return cst
 
 
+def substitute_id_for_name_in_allowance(
+    client: PlatformClient,
+    allowance: Union[RequirementsAllowance, SourcesAllowance, SourceAllowance],
+) -> Union[RequirementsAllowance, SourcesAllowance, SourceAllowance]:
+    """
+    Substitute IDs in Allowance objects.
+    """
+    if isinstance(allowance, RequirementsAllowance):
+        allowance.requirementCreatedFromId = _get_requirement_template_name_from_id(
+            client, allowance.requirementCreatedFromId
+        )
+
+    elif isinstance(allowance, SourcesAllowance):
+        allowance.sourceCreatedFromId = _get_source_template_name_from_id(
+            client, allowance.sourceCreatedFromId
+        )
+
+    elif isinstance(allowance, SourceAllowance):
+        # No processing for source allowances
+        pass
+
+    return allowance
+
+
 @lru_cache
 def _get_source_template_name_from_id(
     client: PlatformClient, cst_id: Optional[str]
@@ -647,6 +674,25 @@ def _get_source_template_name_from_id(
         return f"{cst.namespace}/{cst.source.name}"
     except:
         return cst_id
+
+
+@lru_cache
+def _get_requirement_template_name_from_id(
+    client: PlatformClient, crt_id: Optional[str]
+) -> Optional[str]:
+    """
+    Obtain the namespace/name of a requirement template.
+    Otherwise, return the original value.
+    """
+    if get_ydid_type(crt_id) != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
+        return crt_id
+    try:
+        crt: ComputeRequirementTemplate = (
+            client.compute_client.get_compute_requirement_template(crt_id)
+        )
+        return f"{crt.namespace}/{crt.name}"
+    except:
+        return crt_id
 
 
 @lru_cache

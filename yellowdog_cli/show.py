@@ -9,6 +9,7 @@ from yellowdog_client.model import ConfiguredWorkerPool
 from yellowdog_cli.list import get_keyring
 from yellowdog_cli.utils.entity_utils import (
     get_application_groups,
+    substitute_id_for_name_in_allowance,
     substitute_ids_for_names_in_crt,
     substitute_image_family_id_for_name_in_cst,
 )
@@ -211,8 +212,12 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
         elif ydid_type == YDIDType.ALLOWANCE:
             print_log(f"Showing details of Allowance ID '{ydid}'")
+            allowance = CLIENT.allowances_client.get_allowance_by_id(ydid)
+            if ARGS_PARSER.substitute_ids:
+                print_log("Substituting ID with name")
+                allowance = substitute_id_for_name_in_allowance(CLIENT, allowance)
             print_yd_object(
-                CLIENT.allowances_client.get_allowance_by_id(ydid),
+                allowance,
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
                 add_fields=({RESOURCE_PROPERTY_NAME: RN_ALLOWANCE}),
