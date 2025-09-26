@@ -26,6 +26,7 @@ from yellowdog_client.model import (
     CreateNamespaceRequest,
     Group,
     ImageOsType,
+    InstanceStatus,
     InternalUser,
     Keyring,
     MachineImage,
@@ -1273,6 +1274,9 @@ def _get_model_object(class_name: str, resource: Dict, **kwargs):
                     model_object.limitEnforcement
                 )
                 model_object.resetType = AllowanceResetType(model_object.resetType)
+                model_object.monitoredStatuses = [
+                    InstanceStatus(status) for status in model_object.monitoredStatuses
+                ]
             except KeyError as e:
                 raise Exception(f"Invalid Allowance property: {e}")
 
