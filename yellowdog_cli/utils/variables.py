@@ -294,11 +294,33 @@ def process_untyped_variable_substitutions(
         var_name = input_string.replace(
             f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}", ""
         ).replace(closing_delimiter, "")
+        if VAR_DEFAULT_SEPARATOR in var_name:  # Check for a default
+            split_result = var_name.split(VAR_DEFAULT_SEPARATOR)
+            if split_result[0] == "" or len(split_result) != 2:
+                raise Exception(
+                    f"Malformed '<variable>:=<default>' substitution: '{var_name}'"
+                )
+            var_name, var_default = split_result
+        else:
+            var_default = None
         var = os.getenv(var_name, None)
-        if var is not None:
+        if var is not None:  # Matching environment variable
+            if var_default is None:  # Just replace the prefix and the variable name
+                input_string = input_string.replace(
+                    f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}{var_name}{closing_delimiter}",
+                    var,
+                )
+            else:  # Also replace the default separator & value
+                input_string = input_string.replace(
+                    f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}{var_name}"
+                    f"{VAR_DEFAULT_SEPARATOR}{var_default}{closing_delimiter}",
+                    var,
+                )
+        elif var_default is not None:  # Variable not found, but default exists
             input_string = input_string.replace(
-                f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}{var_name}{closing_delimiter}",
-                var,
+                f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}{var_name}"
+                f"{VAR_DEFAULT_SEPARATOR}{var_default}{closing_delimiter}",
+                var_default,
             )
 
     # Create list of variable substitutions with their default values
