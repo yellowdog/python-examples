@@ -256,6 +256,8 @@ def load_dotenv_file():
     if dotenv_file == "":
         return
 
+    print_log(f"Loading environment variables from '{dotenv_file}'")
+
     dotenv_yd_substitutions = [  # Find 'YD' variables
         f"'{key}'"
         for key in dotenv_values(dotenv_file).keys()
@@ -265,7 +267,7 @@ def load_dotenv_file():
 
     if len(dotenv_yd_substitutions) > 0:
         print_log(
-            f"Adding 'YD' environment variables from '.env' file '{dotenv_file}': "
+            "Adding 'YD' environment variable(s): "
             f"{', '.join(dotenv_yd_substitutions)}"
         )
 
