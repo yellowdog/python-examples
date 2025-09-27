@@ -252,7 +252,7 @@ def load_dotenv_file():
     unless --env-override option is set.
     Report on YD vars that are taken from .env.
     """
-    dotenv_file = find_dotenv()
+    dotenv_file = find_dotenv(usecwd=True)
     if dotenv_file == "":
         return
 
