@@ -59,7 +59,6 @@ for norm, alt in [
 ]:
     if os.getenv(norm) is None and os.getenv(alt) is not None:
         os.environ[norm] = os.getenv(alt)
-        print_log(f"Setting environment variable '{norm}' using value of '{alt}'")
 
 # CLI > YD_CONF > 'config.toml'
 CONFIG_FILE = relpath(
