@@ -127,6 +127,13 @@ class CLIParser:
             required=False,
             help="include the process ID of this CLI invocation alongside timestamp in logging messages",
         )
+        parser.add_argument(
+            "--no-config",
+            "--nc",
+            action="store_true",
+            required=False,
+            help="ignore the contents of any TOML configuration file (even if specified on the command line)",
+        )
 
         # Module-specific argument sets
         if not any(module in sys.argv[0] for module in ["compare"]):
@@ -1286,6 +1293,11 @@ class CLIParser:
     @allow_missing_attribute
     def print_pid(self) -> Optional[bool]:
         return self.args.print_pid
+
+    @property
+    @allow_missing_attribute
+    def no_config(self) -> Optional[bool]:
+        return self.args.no_config
 
     @property
     @allow_missing_attribute

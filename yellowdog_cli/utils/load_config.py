@@ -67,42 +67,50 @@ CONFIG_FILE = relpath(
     else ARGS_PARSER.config_file
 )
 
-try:
-    CONFIG_FILE_DIR = dirname(CONFIG_FILE)
-    config_dir_abs = abspath(CONFIG_FILE_DIR)
-    config_dir_short = Path(config_dir_abs).parts[-1]
-    VARIABLE_SUBSTITUTIONS.update(
-        {"config_dir_abs": config_dir_abs, "config_dir_name": config_dir_short}
-    )
-    print_log(f"Loading configuration data from: '{CONFIG_FILE}'")
-    CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
-    try:
-        validate_properties(CONFIG_TOML, f"'{CONFIG_FILE}'")
-    except Exception as e:
-        print_error(e)
-        exit(1)
-
-except FileNotFoundError as e:
-    if ARGS_PARSER.config_file is not None:
-        print_error(e)
-        exit(1)
-    # No config file, so create a stub config dictionary
-    print_log(
-        "No configuration file; expecting configuration data on command line "
-        "or in environment variables"
-    )
+if ARGS_PARSER.no_config:
+    # Suppress use of any TOML config file
+    print_log(f"Configuration file ('{CONFIG_FILE}') ignored")
     CONFIG_TOML = {COMMON_SECTION: {}}
     CONFIG_FILE_DIR = os.getcwd()
 
-except (PermissionError, TomlDecodeError) as e:
-    print_error(
-        f"Unable to load configuration data from '{CONFIG_FILE}': {e}",
-    )
-    exit(1)
+else:
+    # Attempt to load configuration data from TOML file
+    try:
+        CONFIG_FILE_DIR = dirname(CONFIG_FILE)
+        config_dir_abs = abspath(CONFIG_FILE_DIR)
+        config_dir_short = Path(config_dir_abs).parts[-1]
+        VARIABLE_SUBSTITUTIONS.update(
+            {"config_dir_abs": config_dir_abs, "config_dir_name": config_dir_short}
+        )
+        print_log(f"Loading configuration data from: '{CONFIG_FILE}'")
+        CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
+        try:
+            validate_properties(CONFIG_TOML, f"'{CONFIG_FILE}'")
+        except Exception as e:
+            print_error(e)
+            exit(1)
 
-except Exception as e:
-    print_error(e)
-    exit(1)
+    except FileNotFoundError as e:
+        if ARGS_PARSER.config_file is not None:
+            print_error(e)
+            exit(1)
+        # No config file, so create a stub config dictionary
+        print_log(
+            "No configuration file; expecting configuration data on command line "
+            "or in environment variables"
+        )
+        CONFIG_TOML = {COMMON_SECTION: {}}
+        CONFIG_FILE_DIR = os.getcwd()
+
+    except (PermissionError, TomlDecodeError) as e:
+        print_error(
+            f"Unable to load configuration data from '{CONFIG_FILE}': {e}",
+        )
+        exit(1)
+
+    except Exception as e:
+        print_error(e)
+        exit(1)
 
 
 def load_config_common() -> ConfigCommon:
