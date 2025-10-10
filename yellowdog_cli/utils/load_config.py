@@ -122,7 +122,7 @@ def load_config_common() -> ConfigCommon:
 
         # Replace common section properties with command line or
         # environment variable overrides. Precedence is:
-        # command line > environment variable > config file
+        # command line > config file > environment variable
         for key_name, args_parser_value, env_var_name in [
             (KEY, ARGS_PARSER.key, YD_KEY),
             (SECRET, ARGS_PARSER.secret, YD_SECRET),
@@ -136,7 +136,10 @@ def load_config_common() -> ConfigCommon:
                     f"Using '{key_name}' provided on command line "
                     "(or automatically set)"
                 )
-            elif os.environ.get(env_var_name, None) is not None:
+            elif (
+                common_section.get(key_name, None) is None
+                and os.environ.get(env_var_name, None) is not None
+            ):
                 common_section[key_name] = os.environ[env_var_name]
                 print_log(f"Using '{key_name}' provided via the environment")
 

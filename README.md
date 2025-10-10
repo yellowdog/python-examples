@@ -395,7 +395,7 @@ The **environment variables** are as follows:
 - `YD_NAMESPACE`
 - `YD_TAG`
 
-When setting the value of the above properties, a property set on the command line takes precedence over one set via an environment variable, and both take precedence over a value set in a configuration file.
+When setting the value of the above properties, a property set on the command line takes precedence over one set via the configuration file, and both take precedence over a value set in an environment variable.
 
 If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
 
@@ -486,10 +486,10 @@ User-defined variable names must not include spaces, but are otherwise unconstra
 The precedence order for setting variables is:
 
 1. Command line
-2. `YD_VAR` environment variables
-3. General environment variables
-4. Variables in a `.env` file
-5. TOML file
+2. TOML configuration file
+3. `YD_VAR` environment variables
+4. General environment variables
+5. Variables in a `.env` file
 
 This method can also be used to override the default variables, e.g., setting `-v username="other-user"` will override the default `{{username}}` variable.
 
