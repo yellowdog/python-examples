@@ -807,6 +807,11 @@ def list_allowances():
         print_log("No Allowances to display")
         return
 
+    if ARGS_PARSER.ids_only:
+        for allowance in allowances:
+            print(allowance.id)
+        return
+
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, allowances)
         return
