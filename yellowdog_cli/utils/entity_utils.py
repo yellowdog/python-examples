@@ -640,6 +640,10 @@ def substitute_id_for_name_in_allowance(
     """
     Substitute IDs in Allowance objects.
     """
+
+    if not ARGS_PARSER.substitute_ids:
+        return allowance
+
     if isinstance(allowance, RequirementsAllowance):
         allowance.requirementCreatedFromId = _get_requirement_template_name_from_id(
             client, allowance.requirementCreatedFromId

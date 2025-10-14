@@ -62,6 +62,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_user_groups,
     get_worker_pools,
     list_matching_object_paths,
+    substitute_id_for_name_in_allowance,
     substitute_ids_for_names_in_crt,
     substitute_image_family_id_for_name_in_cst,
 )
@@ -817,9 +818,16 @@ def list_allowances():
         return
 
     # Show details
+    if len(allowances) > 0 and ARGS_PARSER.substitute_ids:
+        print_log(
+            "Substituting Compute Requirement Template IDs with names (if applicable)"
+        )
     print_yd_object_list(
         [
-            (allowance, {PROP_RESOURCE: RN_ALLOWANCE})
+            (
+                substitute_id_for_name_in_allowance(CLIENT, allowance),
+                {PROP_RESOURCE: RN_ALLOWANCE},
+            )
             for allowance in select(CLIENT, allowances)
         ]
     )
