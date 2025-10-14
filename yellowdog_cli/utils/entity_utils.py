@@ -8,6 +8,7 @@ from typing import Callable, List, Optional, Tuple, Union
 from yellowdog_client import PlatformClient
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
+    AccountAllowance,
     AllowanceSearch,
     Application,
     ApplicationSearch,
@@ -635,8 +636,10 @@ def substitute_image_family_id_for_name_in_cst(
 
 def substitute_id_for_name_in_allowance(
     client: PlatformClient,
-    allowance: Union[RequirementsAllowance, SourcesAllowance, SourceAllowance],
-) -> Union[RequirementsAllowance, SourcesAllowance, SourceAllowance]:
+    allowance: Union[
+        AccountAllowance, RequirementsAllowance, SourcesAllowance, SourceAllowance
+    ],
+) -> Union[AccountAllowance, RequirementsAllowance, SourcesAllowance, SourceAllowance]:
     """
     Substitute IDs in Allowance objects.
     """
@@ -654,9 +657,7 @@ def substitute_id_for_name_in_allowance(
             client, allowance.sourceCreatedFromId
         )
 
-    elif isinstance(allowance, SourceAllowance):
-        # No processing for source allowances
-        pass
+    # No processing for other allowance types
 
     return allowance
 
