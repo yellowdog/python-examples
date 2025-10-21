@@ -2427,16 +2427,31 @@ Namespace Policies are matched by their `namespace` property when using `yd-crea
 
 ## Groups
 
-When creating and updating groups, a list of roles can can be supplied and the group will be created or updated with the roles specified. Roles can be identified by their names or YellowDog IDs.
+When creating and updating groups, a list of roles with their scopes can can be supplied and the group will be created or updated with the roles specified. Roles can be identified by their names or YellowDog IDs.
 
 Example:
 
 ```json
 {
-    "resource": "Group",
-    "name": "my-group",
-    "description": "Description of my group",
-    "roles" : ["work-viewer", "compute-viewer"]
+  "resource": "Group",
+  "name": "my-group",
+  "description": "Description of my group",
+  "roles": [
+    {
+      "role": {"name": "work-viewer"},
+      "scope": {"global": true}
+    },
+    {
+      "role": {"name": "work-manager"},
+      "scope": {
+        "global": false,
+        "namespaces": [
+          {"namespace": "namespace-1"},
+          {"namespace": "namespace-2"}
+        ]
+      }
+    }
+  ]
 }
 ```
 

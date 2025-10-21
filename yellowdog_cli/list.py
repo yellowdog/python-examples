@@ -1023,12 +1023,6 @@ def list_groups():
 
     selected_groups = select(CLIENT, groups)
 
-    # If stripping IDs, just supply the list of role names;
-    # subverts the type
-    if ARGS_PARSER.strip_ids:
-        for group in selected_groups:
-            group.roles = [group_role.role.name for group_role in group.roles]
-
     print_yd_object_list(
         [(group, {PROP_RESOURCE: RN_GROUP}) for group in selected_groups]
     )

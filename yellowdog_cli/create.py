@@ -5,8 +5,9 @@ A script to create or update YellowDog resources.
 """
 
 from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 import yellowdog_client.model as model
 from dateparser import parse as date_parse
@@ -16,6 +17,7 @@ from yellowdog_client.model import (
     AccountAllowance,
     AddApplicationResponse,
     AddConfiguredWorkerPoolResponse,
+    AddGroupRequest,
     AllowanceLimitEnforcement,
     AllowanceResetType,
     ApiKey,
@@ -25,6 +27,7 @@ from yellowdog_client.model import (
     CloudProvider,
     CreateNamespaceRequest,
     Group,
+    GroupRole,
     ImageOsType,
     InstanceStatus,
     InternalUser,
@@ -38,6 +41,7 @@ from yellowdog_client.model import (
     RoleScope,
     SourceAllowance,
     SourcesAllowance,
+    UpdateGroupRequest,
     User,
 )
 from yellowdog_client.model.exceptions import InvalidRequestException
@@ -78,6 +82,7 @@ from yellowdog_cli.utils.settings import (
     PROP_DESCRIPTION,
     PROP_EFFECTIVE_FROM,
     PROP_EFFECTIVE_UNTIL,
+    PROP_GLOBAL,
     PROP_GROUPS,
     PROP_ID,
     PROP_IMAGE,
@@ -86,12 +91,15 @@ from yellowdog_cli.utils.settings import (
     PROP_KEYRING_NAME,
     PROP_NAME,
     PROP_NAMESPACE,
+    PROP_NAMESPACES,
     PROP_OPTIONS,
     PROP_OS_TYPE,
     PROP_RANGE,
     PROP_REQUIREMENT_CREATED_FROM,
     PROP_RESOURCE,
+    PROP_ROLE,
     PROP_ROLES,
+    PROP_SCOPE,
     PROP_SOURCE,
     PROP_SOURCE_CREATED_FROM,
     PROP_SOURCES,
@@ -100,7 +108,6 @@ from yellowdog_cli.utils.settings import (
     PROP_UNITS,
     PROP_USERNAME,
     RN_ADD_APPLICATION_REQUEST,
-    RN_ADD_GROUP_REQUEST,
     RN_ALLOWANCE,
     RN_APPLICATION,
     RN_CONFIGURED_POOL,
@@ -118,7 +125,6 @@ from yellowdog_cli.utils.settings import (
     RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
     RN_UPDATE_APPLICATION_REQUEST,
-    RN_UPDATE_GROUP_REQUEST,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
@@ -938,69 +944,171 @@ def create_namespace_policy(resource: Dict):
     )
 
 
+@dataclass
+class RoleSpecification:
+    """
+    Class to represent a compact expression of a role.
+    """
+
+    id: str
+    name: str
+    global_: Optional[bool]
+    namespaces: Optional[Set[str]]
+
+
 def create_group(resource: Dict):
     """
-    Create or update a group. Will also add or remove roles specified
-    by their names or IDs.
+    Create or update a group. Will also add or remove scoped
+    roles specified by their names or IDs.
     """
     try:
         name = resource[PROP_NAME]
+        description = resource.get(PROP_DESCRIPTION)
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    roles: Optional[List[str]] = resource.pop(PROP_ROLES, None)
+    def get_updated_role_specifications() -> List[RoleSpecification]:
+        """
+        Helper function to generate the list of supplied role specifications.
+        """
+        roles_input = resource.get(PROP_ROLES)
+        if roles_input is None:
+            return []
 
-    if roles is not None:
-        # Convert role names to IDs
-        new_role_ids = set()
-        for role_name in roles:
-            role_id = get_role_id_by_name(CLIENT, role_name)
-            if role_id is None:
-                print_warning(f"Role '{role_name}' not found ... ignoring")
+        role_specifications = []
+        for role_item in roles_input:
+            # Get the role
+            role = role_item.get(PROP_ROLE)
+            if role is None:
+                raise Exception("Role must have 'role' property")
+
+            # Get the ID and name of the role
+            id_ = role.get(PROP_ID)
+            if id_ is None:
+                name_ = role.get(PROP_NAME)
+                if name_ is None:
+                    raise Exception("Group role must have 'id' or 'name' specified")
+                id_ = get_role_id_by_name(CLIENT, name_)
             else:
-                new_role_ids.add(role_id)
+                name_ = role.get(PROP_NAME)
+                if name_ is None:
+                    name_ = get_role_name_by_id(CLIENT, id_)
 
-    def update_roles(group: Group):
+            # Get the scope of the role
+            scope = role_item.get(PROP_SCOPE)
+            if scope is None:
+                raise Exception(f"Group role '{name_}' must have 'scope' specified")
+            global_ = scope.get(PROP_GLOBAL)
+            if global_ is None or global_ is False:
+                namespaces_ = scope.get(PROP_NAMESPACES)
+                if namespaces_ is None:
+                    raise Exception(
+                        f"Non-global group role '{name_}' must have 'namespaces' specified"
+                    )
+                namespace_names = []
+                for namespace_ in namespaces_:
+                    namespace_name = namespace_.get(PROP_NAMESPACE)
+                    if namespace_name is None:
+                        raise Exception(
+                            f"Namespace applied to role '{name_}' "
+                            "must have 'namespace' property"
+                        )
+                    namespace_names.append(namespace_name)
+
+                # Construct the role specification & add to the list
+                if len(namespace_names) == 0:
+                    raise Exception(
+                        f"Non-global role '{name_}' must have at least one namespace scope"
+                    )
+                role_specifications.append(
+                    RoleSpecification(
+                        id=id_,
+                        name=name_,
+                        global_=False,
+                        namespaces=set(namespace_names),
+                    )
+                )
+            else:
+                role_specifications.append(
+                    RoleSpecification(id=id_, name=name_, global_=True, namespaces=None)
+                )
+
+        return role_specifications
+
+    def add_or_update_roles(role_specifications: List[RoleSpecification]):
         """
-        Helper function to add/remove roles from a group.
+        Helper function to add/update a list of roles.
         """
-        if roles is None:
-            return
-
-        current_role_ids = {role.role.id for role in group.roles}
-
-        if current_role_ids == new_role_ids:
-            print_log("No Role additions or deletions required")
-            return
-
-        role_ids_to_remove = current_role_ids - new_role_ids
-        for role_id in role_ids_to_remove:
-            CLIENT.account_client.remove_role_from_group(group.id, role_id)
-            print_log(
-                f"Removed Role '{get_role_name_by_id(CLIENT, role_id)}' "
-                f"from Group ({role_id})"
-            )
-
-        role_ids_to_add = new_role_ids - current_role_ids
-        for role_id in role_ids_to_add:
+        for role_spec in role_specifications:
             CLIENT.account_client.add_role_to_group(
-                group.id, role_id, RoleScope(global_=True)
+                group_id,
+                role_spec.id,
+                RoleScope(role_spec.global_, role_spec.namespaces),
             )
-            print_log(
-                f"Added Role '{get_role_name_by_id(CLIENT, role_id)}' "
-                f"to Group ({role_id})"
-            )
+            if role_spec.global_:
+                print_log(f"Added/updated role '{role_spec.name}' with global scope")
+            else:
+                ns_list_quoted = [f"'{ns}'" for ns in role_spec.namespaces]
+                print_log(
+                    f"Added/updated role '{role_spec.name}' scoped to "
+                    f"namespace(s): {', '.join(ns_list_quoted)}"
+                )
 
-    def add_group():
+    def remove_roles(role_specifications: List[RoleSpecification]):
         """
-        Helper function to add a new group and its roles.
+        Helper function to remove a list of roles.
+        """
+        for role_spec in role_specifications:
+            CLIENT.account_client.remove_role_from_group(
+                group_id,
+                role_spec.id,
+            )
+            if role_spec.global_:
+                print_log(f"Removed role '{role_spec.name}' with global scope")
+            else:
+                ns_list_quoted = [f"'{ns}'" for ns in role_spec.namespaces]
+                print_log(
+                    f"Removed role '{role_spec.name}' scoped to "
+                    f"namespace(s): {', '.join(ns_list_quoted)}"
+                )
+
+    def get_roles_to_remove(
+        existing_roles: List[GroupRole], new_roles: List[RoleSpecification]
+    ) -> List[RoleSpecification]:
+        """
+        Helper function to determine the roles to be removed.
+        """
+        existing_role_specifications = [
+            RoleSpecification(
+                id=role.role.id,
+                name=role.role.name,
+                global_=role.scope.global_,
+                namespaces=(
+                    None
+                    if role.scope.namespaces is None
+                    else set([ns.namespace for ns in role.scope.namespaces])
+                ),
+            )
+            for role in existing_roles
+        ]
+        # Select roles to remove
+        return [
+            role_spec
+            for role_spec in existing_role_specifications
+            if role_spec.name not in [role_spec.name for role_spec in new_roles]
+        ]
+
+    def add_group() -> str:
+        """
+        Helper function to add a new group.
+        Return the ID of the newly created group.
         """
         group: Group = CLIENT.account_client.add_group(
-            _get_model_object(RN_ADD_GROUP_REQUEST, resource)
+            AddGroupRequest(name=name, description=description)
         )
         print_log(f"Created Group '{group.name}' ({group.id})")
         clear_group_caches()
-        update_roles(group)
+        return group.id
 
     def update_group(group_id: str):
         """
@@ -1009,18 +1117,20 @@ def create_group(resource: Dict):
         """
         if not confirmed(f"Update Group '{name}' ({group_id})?"):
             return
-
         group: Group = CLIENT.account_client.update_group(
-            group_id, _get_model_object(RN_UPDATE_GROUP_REQUEST, resource)
+            group_id, UpdateGroupRequest(name=name, description=description)
         )
         print_log(f"Updated Group '{group.name}' ({group.id})")
-        update_roles(group)
+        updated_role_specs = get_updated_role_specifications()
+        remove_roles(get_roles_to_remove(group.roles, updated_role_specs))
+        add_or_update_roles(updated_role_specs)
 
     # Main logic
     group_id = get_group_id_by_name(CLIENT, name)
-    if group_id is None:
-        add_group()
-    else:
+    if group_id is None:  # New group
+        group_id = add_group()
+        add_or_update_roles(get_updated_role_specifications())
+    else:  # Existing group
         update_group(group_id)
 
 
