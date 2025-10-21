@@ -980,7 +980,7 @@ def create_group(resource: Dict):
             # Get the role
             role = role_item.get(PROP_ROLE)
             if role is None:
-                raise Exception("Role must have 'role' property")
+                raise Exception("Role must have 'role' specified")
 
             # Get the ID and name of the role
             id_ = role.get(PROP_ID)
@@ -1122,8 +1122,8 @@ def create_group(resource: Dict):
         )
         print_log(f"Updated Group '{group.name}' ({group.id})")
         updated_role_specs = get_updated_role_specifications()
-        remove_roles(get_roles_to_remove(group.roles, updated_role_specs))
         add_or_update_roles(updated_role_specs)
+        remove_roles(get_roles_to_remove(group.roles, updated_role_specs))
 
     # Main logic
     group_id = get_group_id_by_name(CLIENT, name)
