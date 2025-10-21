@@ -10,7 +10,7 @@ The commands support:
 - **Boosting** Allowances with the **`yd-boost`** command
 - **Cancelling** Work Requirements with the **`yd-cancel`** command
 - **Comparing** whether worker pools are a match for task groups with the **`yd-compare`** command
-- **Creating, Updating and Removing** Source Templates, Compute Templates, Keyrings, Credentials, Namespace Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, and Namespace Policies with the **`yd-create`** and **`yd-remove`** commands
+- **Creating, Updating and Removing** Compute Source Templates, Compute Requirement Templates, Keyrings, Credentials, Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, Namespace Policies, Groups, and Applications with the **`yd-create`** and **`yd-remove`** commands
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command

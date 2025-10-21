@@ -150,24 +150,24 @@ Template solutions for experimenting with these utilities can be found in the **
 
 The commands provide the following capabilities:
 
-- **Provisioning** Worker Pools with the **`yd-provision`** command
-- **Submitting** Work Requirements with the **`yd-submit`** command
-- **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
-- **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
-- **Instantiating** Compute Requirements with the **`yd-instantiate`** command
-- **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
 - **Aborting** running Tasks with the **`yd-abort`** command
-- **Cancelling** Work Requirements with the **`yd-cancel`** command
-- **Shutting Down** Worker Pools and Nodes with the **`yd-shutdown`** command
-- **Terminating** Compute Requirements with the **`yd-terminate`** command
-- **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
-- **Listing** YellowDog items using the **`yd-list`** command
-- **Resizing** Worker Pools and Compute Requirements with the **`yd-resize`** command
 - **Boosting** Allowances with the **`yd-boost`** command
-- **Creating, Updating and Removing** Compute Source Templates, Compute Requirement Templates, Keyrings, Credentials, Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, Namespace Policies, Groups, and Applications with the **`yd-create`** and **`yd-remove`** commands
-- **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
-- **Showing** the details of any YellowDog entity using its YellowDog ID with the **`yd-show`** command
+- **Cancelling** Work Requirements with the **`yd-cancel`** command
 - **Comparing** whether worker pools are a match for task groups with the **`yd-compare`** command
+- **Creating, Updating and Removing** Compute Source Templates, Compute Requirement Templates, Keyrings, Credentials, Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, Namespace Policies, Groups, and Applications with the **`yd-create`** and **`yd-remove`** commands
+- **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
+- **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
+- **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
+- **Instantiating** Compute Requirements with the **`yd-instantiate`** command
+- **Listing** YellowDog items using the **`yd-list`** command
+- **Provisioning** Worker Pools with the **`yd-provision`** command
+- **Resizing** Worker Pools and Compute Requirements with the **`yd-resize`** command
+- **Showing** the details of any YellowDog entity using its YellowDog ID with the **`yd-show`** command
+- **Shutting Down** Worker Pools and Nodes with the **`yd-shutdown`** command
+- **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
+- **Submitting** Work Requirements with the **`yd-submit`** command
+- **Terminating** Compute Requirements with the **`yd-terminate`** command
+- **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
