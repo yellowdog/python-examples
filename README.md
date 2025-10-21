@@ -2554,15 +2554,7 @@ To install Jsonnet separately from `yellowdog-python-examples`, try:
 pip install -U jsonnet
 ```
 
-If this fails, try:
-
-```shell
-pip install -U jsonnet-binary
-```
-
-If both of these methods fail, you'll need to ensure that the platform on which you're running has the required build tools available, so that the Jsonnet binary components can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
-
-Please get in touch with YellowDog if you get stuck.
+If Jsonnet installation fails, you'll need to ensure that the platform on which you're running has the required build tools available, so that the Jsonnet binary components can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
 
 ## Variable Substitutions in Jsonnet Files
 

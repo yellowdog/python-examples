@@ -14,6 +14,7 @@ def check_jsonnet_import():
             "Jsonnet support is not included by default. The 'jsonnet' Python package"
             " can usually be installed by adding the option to pip:"
             ' pip install -U "yellowdog-python-examples[jsonnet]"'
+            " or installed separately using: pip install -U jsonnet"
         )
 
 
