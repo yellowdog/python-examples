@@ -57,3 +57,15 @@ class TestList:
     def test_allowances(self):
         result = shell("yd-list -A -n='' -t=''")
         assert result.exit_code == 0
+
+    def test_groups(self):
+        result = shell("yd-list --groups -n='' -t=''")
+        assert result.exit_code == 0
+
+    def test_roles(self):
+        result = shell("yd-list --roles -n='' -t=''")
+        assert result.exit_code == 0
+
+    def test_permissions(self):
+        result = shell("yd-list --permissions -n='' -t=''")
+        assert result.exit_code == 0
