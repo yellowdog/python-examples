@@ -1256,32 +1256,27 @@ def update_user(resource: Dict, internal_user: bool):
             f"resource '{RN_EXTERNAL_USER}' ({resource})"
         )
 
-    groups: Optional[List[str]] = resource.pop(PROP_GROUPS, None)
+    groups: Optional[List[str]] = resource.pop(PROP_GROUPS, [])
+    new_group_ids = set()
+    # Convert group names to IDs
+    for group_name in groups:
+        group_id = get_group_id_by_name(CLIENT, group_name)
+        if group_id is None:
+            print_warning(f"Group '{group_name}' not found ... ignoring")
+        else:
+            new_group_ids.add(group_id)
 
-    if groups is not None:
-        # Convert group names to IDs
-        new_group_ids = set()
-        for group_name in groups:
-            group_id = get_group_id_by_name(CLIENT, group_name)
-            if group_id is None:
-                print_warning(f"Group '{group_name}' not found ... ignoring")
-            else:
-                new_group_ids.add(group_id)
-
-    def update_groups(user: User):
+    def update_groups():
         """
         Helper function to add/remove groups from a user.
         """
-        if groups is None:
-            return
-
-        if not confirmed(f"Update Groups for User '{username}' ({user.id})?"):
-            return
-
         current_group_ids = {group.id for group in get_user_groups(CLIENT, user.id)}
 
         if current_group_ids == new_group_ids:
             print_log("No Group additions or deletions required")
+            return
+
+        if not confirmed(f"Update Groups for User '{username}' ({user.id})?"):
             return
 
         group_ids_to_remove = current_group_ids - new_group_ids
@@ -1320,11 +1315,8 @@ def update_user(resource: Dict, internal_user: bool):
         return
 
     username = user.username if isinstance(user, InternalUser) else user.name
-
-    if groups is not None:
-        update_groups(user)
-    else:
-        print_log(f"Nothing to do for User '{username}' ({user.id})")
+    update_groups()
+    print_log(f"Actions complete for User '{username}' ({user.id})")
 
 
 def create_namespace(resource: Dict):
