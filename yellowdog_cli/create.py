@@ -1035,13 +1035,15 @@ def create_group(resource: Dict):
 
         return role_specifications
 
-    def add_or_update_roles(role_specifications: List[RoleSpecification]):
+    def add_or_update_roles(
+        group_id_: str, role_specifications: List[RoleSpecification]
+    ):
         """
         Helper function to add/update a list of roles.
         """
         for role_spec in role_specifications:
             CLIENT.account_client.add_role_to_group(
-                group_id,
+                group_id_,
                 role_spec.id,
                 RoleScope(role_spec.global_, role_spec.namespaces),
             )
@@ -1054,23 +1056,16 @@ def create_group(resource: Dict):
                     f"namespace(s): {', '.join(ns_list_quoted)}"
                 )
 
-    def remove_roles(role_specifications: List[RoleSpecification]):
+    def remove_roles(group_id_: str, role_specifications: List[RoleSpecification]):
         """
         Helper function to remove a list of roles.
         """
         for role_spec in role_specifications:
             CLIENT.account_client.remove_role_from_group(
-                group_id,
+                group_id_,
                 role_spec.id,
             )
-            if role_spec.global_:
-                print_log(f"Removed role '{role_spec.name}' with global scope")
-            else:
-                ns_list_quoted = [f"'{ns}'" for ns in role_spec.namespaces]
-                print_log(
-                    f"Removed role '{role_spec.name}' scoped to "
-                    f"namespace(s): {', '.join(ns_list_quoted)}"
-                )
+            print_log(f"Removed role '{role_spec.name}'")
 
     def get_roles_to_remove(
         existing_roles: List[GroupRole], new_roles: List[RoleSpecification]
@@ -1098,40 +1093,42 @@ def create_group(resource: Dict):
             if role_spec.name not in [role_spec.name for role_spec in new_roles]
         ]
 
-    def add_group() -> str:
+    def add_group() -> Group:
         """
         Helper function to add a new group.
         Return the ID of the newly created group.
         """
-        group: Group = CLIENT.account_client.add_group(
+        group_: Group = CLIENT.account_client.add_group(
             AddGroupRequest(name=name, description=description)
         )
-        print_log(f"Created Group '{group.name}' ({group.id})")
+        print_log(f"Created Group '{group_.name}' ({group_.id})")
         clear_group_caches()
-        return group.id
+        return group_
 
-    def update_group(group_id: str):
+    def update_group(group_id_: str) -> Optional[Group]:
         """
         Helper function to update an existing group, including updating
         its roles.
         """
-        if not confirmed(f"Update Group '{name}' ({group_id})?"):
-            return
-        group: Group = CLIENT.account_client.update_group(
-            group_id, UpdateGroupRequest(name=name, description=description)
+        if not confirmed(f"Update Group '{name}' ({group_id_})?"):
+            return None
+        group_: Group = CLIENT.account_client.update_group(
+            group_id_, UpdateGroupRequest(name=name, description=description)
         )
-        print_log(f"Updated Group '{group.name}' ({group.id})")
-        updated_role_specs = get_updated_role_specifications()
-        add_or_update_roles(updated_role_specs)
-        remove_roles(get_roles_to_remove(group.roles, updated_role_specs))
+        print_log(f"Updated Group '{group_.name}' ({group_.id})")
+        return group_
 
     # Main logic
     group_id = get_group_id_by_name(CLIENT, name)
     if group_id is None:  # New group
-        group_id = add_group()
-        add_or_update_roles(get_updated_role_specifications())
+        group = add_group()
+        add_or_update_roles(group.id, get_updated_role_specifications())
     else:  # Existing group
-        update_group(group_id)
+        group = update_group(group_id)
+        if group is not None:
+            updated_role_specs = get_updated_role_specifications()
+            add_or_update_roles(group_id, updated_role_specs)
+            remove_roles(group_id, get_roles_to_remove(group.roles, updated_role_specs))
 
 
 def create_application(resource: Dict):
