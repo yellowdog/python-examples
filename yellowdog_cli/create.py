@@ -1141,25 +1141,20 @@ def create_application(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    groups: Optional[List[str]] = resource.pop(PROP_GROUPS, None)
-
-    if groups is not None:
-        # Convert group names to IDs
-        new_group_ids = set()
-        for group_name in groups:
-            app_id = get_group_id_by_name(CLIENT, group_name)
-            if app_id is None:
-                print_warning(f"Group '{group_name}' not found ... ignoring")
-            else:
-                new_group_ids.add(app_id)
+    groups: List[str] = resource.pop(PROP_GROUPS, [])
+    # Convert group names to IDs
+    new_group_ids = set()
+    for group_name in groups:
+        app_id = get_group_id_by_name(CLIENT, group_name)
+        if app_id is None:
+            print_warning(f"Group '{group_name}' not found ... ignoring")
+        else:
+            new_group_ids.add(app_id)
 
     def update_groups(app: Application):
         """
         Helper function to add/remove groups from an application.
         """
-        if groups is None:
-            return
-
         current_group_ids = {
             group.id for group in get_application_groups(CLIENT, app.id)
         }
@@ -1256,7 +1251,7 @@ def update_user(resource: Dict, internal_user: bool):
             f"resource '{RN_EXTERNAL_USER}' ({resource})"
         )
 
-    groups: Optional[List[str]] = resource.pop(PROP_GROUPS, [])
+    groups: List[str] = resource.pop(PROP_GROUPS, [])
     new_group_ids = set()
     # Convert group names to IDs
     for group_name in groups:
