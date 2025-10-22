@@ -959,7 +959,8 @@ def list_users():
                 {
                     PROP_GROUPS: [
                         group.name for group in get_user_groups(CLIENT, user.id)
-                    ]
+                    ],
+                    PROP_RESOURCE: user.__class__.__name__,
                 },
             )
             for user in select(CLIENT, users)

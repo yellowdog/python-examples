@@ -240,10 +240,12 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
         elif ydid_type == YDIDType.USER:
             print_log(f"Showing details of User ID '{ydid}'")
+            user = CLIENT.account_client.get_user(ydid)
             print_yd_object(
-                CLIENT.account_client.get_user(ydid),
+                user,
                 initial_indent=initial_indent,
                 with_final_comma=with_final_comma,
+                add_fields=({RESOURCE_PROPERTY_NAME: user.__class__.__name__}),
             )
 
         elif ydid_type == YDIDType.GROUP:
