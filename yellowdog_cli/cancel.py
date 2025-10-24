@@ -141,6 +141,7 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
         if work_requirement_summary.status not in [
             WorkRequirementStatus.RUNNING,
             WorkRequirementStatus.HELD,
+            WorkRequirementStatus.FINISHING,
         ]:
             print_warning(
                 f"Work Requirement '{name_or_id}' is not in a valid state"
