@@ -13,6 +13,7 @@ The commands support:
 - **Creating, Updating and Removing** Compute Source Templates, Compute Requirement Templates, Keyrings, Credentials, Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, Namespace Policies, Groups, and Applications with the **`yd-create`** and **`yd-remove`** commands
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
+- **Finishing** Work Requirements with the **`yd-finish`** command
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
 - **Instantiating** Compute Requirements with the **`yd-instantiate`** command
 - **Listing** YellowDog items using the **`yd-list`** command

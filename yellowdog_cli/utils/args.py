@@ -379,6 +379,7 @@ class CLIParser:
             for module in [
                 "start",
                 "hold",
+                "finish",
             ]
         ):
             parser.add_argument(
@@ -399,6 +400,7 @@ class CLIParser:
                 "terminate",
                 "start",
                 "hold",
+                "finish",
             ]
         ):
             parser.add_argument(
@@ -423,6 +425,7 @@ class CLIParser:
                 "hold",
                 "start",
                 "list",
+                "finish",
             ]
         ):
             parser.add_argument(
@@ -904,6 +907,19 @@ class CLIParser:
                 ),
             )
 
+        if "finish" in sys.argv[0]:
+            parser.add_argument(
+                "work_requirements",
+                nargs="*",
+                default="",
+                metavar="<work-requirement-name-or-ID>",
+                type=str,
+                help=(
+                    "the name(s) or YellowDog ID(s) of the work requirement(s) to be"
+                    " finished"
+                ),
+            )
+
         if "delete" in sys.argv[0]:
             parser.add_argument(
                 "object_paths_to_delete",
@@ -1046,6 +1062,7 @@ class CLIParser:
                 "cancel",
                 "start",
                 "hold",
+                "finish",
             ]
         ):
             parser.add_argument(
@@ -1860,6 +1877,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
         suffix = "boosting Allowances"
     elif "show" in module_name:
         suffix = "showing the JSON details of entities referenced by their YDIDs"
+    elif "finish" in module_name:
+        suffix = "finishing Work Requirements"
     elif "compare" in module_name:
         suffix = (
             "comparing whether a work requirement or task group is matched by "

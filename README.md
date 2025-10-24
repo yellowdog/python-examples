@@ -131,9 +131,10 @@
    * [yd-boost](#yd-boost)
    * [yd-show](#yd-show)
    * [yd-compare](#yd-compare)
+   * [yd-finish](#yd-finish)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Thu Oct  2 10:08:27 BST 2025 -->
+<!-- Added by: pwt, at: Fri Oct 24 12:05:26 BST 2025 -->
 
 <!--te-->
 
@@ -157,6 +158,7 @@ The commands provide the following capabilities:
 - **Creating, Updating and Removing** Compute Source Templates, Compute Requirement Templates, Keyrings, Credentials, Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, Namespace Policies, Groups, and Applications with the **`yd-create`** and **`yd-remove`** commands
 - **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
 - **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
+- **Finishing** Work Requirements with the **`yd-finish`** command
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
 - **Instantiating** Compute Requirements with the **`yd-instantiate`** command
 - **Listing** YellowDog items using the **`yd-list`** command
@@ -3026,3 +3028,7 @@ The match status of a Worker Pool falls into one of four categories:
 | **NO**           | The Worker Pool and/or none of the Nodes/Workers that have registered so far match the Task Group.              |
 | **MAYBE**        | The Worker Pool matches the Task Group but no Nodes have yet registered, so Node/Worker properties are unknown. |
 | **PARTIAL**      | The Worker Pool and some of the Nodes/Workers that have registered are a match for the Task Group.              |
+
+## yd-finish
+
+The `yd-finish` command moves work requirements into the `FINISHING` state, meaning the requirements will be allowed to conclude but that no new tasks can be added.
