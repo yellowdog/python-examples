@@ -50,3 +50,5 @@ def test_entrypoints():
     assert result.exit_code == 0
     result = shell("yd-show --help")
     assert result.exit_code == 0
+    result = shell("yd-finish --help")
+    assert result.exit_code == 0
