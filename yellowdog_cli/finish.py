@@ -44,6 +44,7 @@ def main():
                 WorkRequirementStatus.COMPLETED,
                 WorkRequirementStatus.CANCELLED,
                 WorkRequirementStatus.FAILED,
+                WorkRequirementStatus.CANCELLING,
             ],
         )
     )
@@ -61,7 +62,7 @@ def main():
         f"Finish {len(selected_work_requirement_summaries)} " f"Work Requirement(s)?"
     ):
         for work_summary in selected_work_requirement_summaries:
-            if work_summary.status != WorkRequirementStatus.RUNNING:
+            if work_summary.status != WorkRequirementStatus.FINISHING:
                 try:
                     CLIENT.work_client.finish_work_requirement_by_id(work_summary.id)
                     work_requirement: WorkRequirement = (
@@ -121,10 +122,11 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: List[str]):
 
         if work_requirement_summary.status not in [
             WorkRequirementStatus.RUNNING,
+            WorkRequirementStatus.HELD,
         ]:
             print_warning(
                 f"Work Requirement '{name_or_id}' is not in a valid state"
-                f" ('{work_requirement_summary.status}') for cancellation"
+                f" ('{work_requirement_summary.status}') to be finished"
             )
             continue
 
