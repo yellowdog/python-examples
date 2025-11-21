@@ -895,6 +895,7 @@ def permissions_table(
     headers = [
         "#",
         "Name",
+        "Scope",
         "Description",
         "Includes",
     ]
@@ -905,6 +906,7 @@ def permissions_table(
             [
                 index + 1,
                 permission.name,
+                permission.scope,
                 permission.title,
                 includes,
             ]
