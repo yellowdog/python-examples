@@ -417,9 +417,9 @@ Variable substitutions are discussed in more detail below.
 
 # Variable Substitutions
 
-Variable substitutions provide a powerful mechanism for introducing variable values into TOML configuration files, and JSON/Jsonnet definitions of Work Requirements and Worker Pools. They can be included in the value of any property in any of these objects, including in values within arrays (lists), e.g., for the `arguments` property, and tables (dictionaries), e.g., the `environment` property.
+Variable substitutions provide a powerful mechanism for introducing variable values into TOML configuration files, and JSON/Jsonnet definitions. They can be included in the value of any property in any of these objects, including in values within arrays (lists), e.g., for the `arguments` property, and tables (dictionaries), e.g., the `environment` property.
 
-Variable substitutions are expressed using the `{{variable}}` notation, where the expression is replaced by the value of `variable`.
+Variable substitutions are expressed using the `{{variable}}` notation (note: no spaces between the double brackets and the variable name), where the expression is replaced by the value of `variable`.
 
 Substitutions can also be performed for non-string (number, boolean, array, and table) values using the `num:`, `bool:`, `array:`, and `table:` prefixes within the variable substitution:
 
@@ -493,7 +493,7 @@ The precedence order for setting variables is:
 4. General environment variables
 5. Variables in a `.env` file
 
-This method can also be used to override the default variables, e.g., setting `-v username="other-user"` will override the default `{{username}}` variable.
+This method can also be used to override some default variables, e.g., setting `-v username="other-user"` will override the default `{{username}}` variable.
 
 ### Nested Variables
 
@@ -547,7 +547,7 @@ name = "{{name_var:={{tag}}-{{datetime}}}}"
 
 ## Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
 
-In JSON specifications for Worker Pools and Compute Requirements, variable substitutions can be used, but **they must be prefixed and postfixed by double underscores** `__`, e.g., `__{{username}}__`. This is to disambiguate client-side variable substitutions from server-side Mustache variable processing.
+In JSON/Jsonnet specifications for Worker Pools and Compute Requirements, variable substitutions **must be prefixed and postfixed by double underscores** `__`, e.g., `__{{username}}__`. This is to disambiguate client-side variable substitutions from server-side Mustache variable processing.
 
 Variable substitutions can also be used within **User Data** to be supplied to instances, for which the same prefix/postfix requirement applies, **including** for User Data supplied directly using the `userData` property in the `workerPool` section of the TOML file.
 
@@ -1990,7 +1990,7 @@ yd-remove --ids ydid:crt:D9C548:2a09093d-c74c-4bde-95d1-c576c6f03b13 ydid:imgfam
 
 ### Resource Matching
 
-Resources match on **resource names** and (where applicable) **resource namespaces** rather than on YellowDog IDs. This is done for flexibility and to allow the `yd-create` and `yd-remove` commands to be essentially stateless (i.e., we don't need to keep a local record of the YellowDog IDs of the resources created). 
+Resources match on **resource names** and (where applicable) **resource namespaces** rather than on YellowDog IDs. This is done for flexibility and to allow the `yd-create` and `yd-remove` commands to be stateless (i.e., we don't need to keep a local record of the YellowDog IDs of the resources created).
 
 However, this means that **caution is required** when updating or removing resources, since resource matching is done using **only** the **namespace/name** of the resource -- i.e., the system-generated `ydid` IDs are not used. This means that a resource with a given name could have been removed and replaced in Platform by some other means, and the resource specification(s) would still match it.
 
@@ -1998,7 +1998,7 @@ However, this means that **caution is required** when updating or removing resou
 
 The JSON specification used to define each type of resource can be found by inspecting the YellowDog Platform REST API documentation at https://docs.yellowdog.co/api.
 
-For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API call for adding a new Compute Source template: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/sources.
+For example, to obtain the JSON schema for creating a Compute Source Template, take a look at the REST API models for the Compute API: https://docs.yellowdog.ai/api?spec=Compute%20API.
 
 When using the `yd-create` and `yd-remove` commands, note that an additional property `resource` must be supplied, to identify the type of resource being specified. The `"resource"` property can take the following values:
 
@@ -2088,7 +2088,7 @@ Below, we'll discuss each item type with example specifications.
 
 ## Keyrings
 
-The Keyring example and schema can be found at: https://docs.yellowdog.co/api/?spec=Account%20API#tag/keyring/post/keyrings.
+The Keyring models can be found in the Account API at: https://docs.yellowdog.ai/api?spec=Account%20API.
 
 An example Keyring specification is shown below:
 
@@ -2116,7 +2116,7 @@ Note that Keyrings **cannot be updated**; they must instead be removed and recre
 
 ## Credentials
 
-The Credential example and schema can be found at: https://docs.yellowdog.co/api/?spec=Account%20API#tag/keyring/put/keyrings/%7BkeyringName%7D/credentials.
+The Credential models can be found in the Account API at: https://docs.yellowdog.ai/api?spec=Account%20API.
 
 For example, to add a single AWS credential to a Keyring, the following resource specification might be used:
 
@@ -2137,7 +2137,7 @@ To **update** a Credential, make the modifications to the resource specification
 
 ## Compute Source Templates
 
-The Compute Source Template example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/sources.
+The Compute Source Template models can be found in the Compute API at: https://docs.yellowdog.ai/api?spec=Compute%20API.
 
 An example Compute Source resource specification is found below:
 
@@ -2175,7 +2175,7 @@ In the Compute Source Template `imageId` property, an Image Family **namespace/n
 
 ## Compute Requirement Templates
 
-The Compute Requirement Template example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/templates/requirements.
+The Compute Requirement Template models can be found in the Compute API at: https://docs.yellowdog.ai/api?spec=Compute%20API.
 
 An example Compute Requirement resource specification is found below, for a **static** tempate:
 
@@ -2252,7 +2252,7 @@ A **dynamic** template example is:
 
 ## Image Families
 
-The Image Family example and schema can be found at: https://docs.yellowdog.co/api/?spec=Images%20API#tag/images/post/images/families.
+The Image Family models can be found in the Image API: https://docs.yellowdog.ai/api?spec=Images%20API.
 
 An example specification, illustrating a containment hierarchy of Image Family -> Image Group -> Image, is shown below:
 
@@ -2298,7 +2298,7 @@ Note that if the name of an Image Group or an Image is changed in the resource s
 
 ## Namespace Storage Configurations
 
-The Namespace Storage Configuration example and schema can be found at: https://docs.yellowdog.co/api/?spec=Object%20Store%20API#tag/object-store/put/objectstore/configurations.
+The Namespace Storage Configuration models can be found in the Object Store API at: https://docs.yellowdog.ai/api?spec=Object%20Store%20API.
 
 Example:
 
@@ -2315,7 +2315,7 @@ Example:
 
 ## Configured Worker Pools
 
-The Configured Worker Pool example and schema can be found at: https://docs.yellowdog.co/api/?spec=Scheduler%20API#tag/worker-pools/post/workerPools/configured.
+The Configured Worker Pool models can be found in the  Scheduler API at: https://docs.yellowdog.ai/api?spec=Scheduler%20API.
 
 Example:
 
@@ -2346,7 +2346,7 @@ Example:
 
 ## Allowances
 
-The Allowances example and schema can be found at: https://docs.yellowdog.co/api/?spec=Usage%20API#tag/allowances/post/allowances.
+The Allowance models can be found in the Usage API at: https://docs.yellowdog.ai/api?spec=Usage%20API.
 
 Example:
 ```json
@@ -2378,7 +2378,7 @@ Allowances can be **boosted** (have extra hours added to the Allowance) using th
 
 ## Attribute Definitions
 
-The Attribute Definition example and schema can be found at: https://docs.yellowdog.co/api/?spec=Compute%20API#tag/compute/post/compute/attributes/user.
+The Attribute Definition models can be found in the Compute API at: https://docs.yellowdog.ai/api?spec=Compute%20API.
 
 ### String Attribute Definitions
 
@@ -2416,7 +2416,7 @@ The `name`, `title` and `defaultRankOrder` properties are required, while the re
 
 ## Namespace Policies
 
-The Namespace Policies example and schema can be found at: (TBD).
+Example:
 
 ```json
 {
@@ -2475,7 +2475,7 @@ Example:
 
 ### Creating and Regenerating Application Keys
 
-When an Application is created its Application Key ID and Secret will be displayed (even if the `--quiet` option is used).
+When an Application is created, its Application Key ID and Secret will be displayed (even if the `--quiet` option is used).
 
 When an Application is updated, the `--regenerate-app-keys` option can be used. This will invalidate the current Application key and secret, revoke any Keyring access, and generate a new key and secret which will be displayed.
 
@@ -2539,11 +2539,11 @@ A simple usage example might be:
 yd-submit my_work_req.jsonnet
 ```
 
-The use of the filename extension `.jsonnet` will invoke Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages: this file will have been deleted before the command exits.)
+The use of the filename extension `.jsonnet` will activate Jsonnet evaluation. (Note that a temporary JSON file is created as part of Jsonnet processing, which you may see referred to in error messages: this file will have been deleted before the command exits.)
 
 ## Jsonnet Installation
 
-Jsonnet is **not** installed by default when `yellowdog-python-examples` is installed, because the package has binary components that are not available on PyPI for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
+Jsonnet is **not** installed by default when `yellowdog-python-examples` because the package has binary components that are not available on PyPI for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
 
 To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
 
@@ -2551,7 +2551,7 @@ To install Jsonnet at the same time as installing or updating the Python Example
 pip install -U "yellowdog-python-examples[jsonnet]"
 ```
 
-To install Jsonnet separately from `yellowdog-python-examples`, try:
+To install Jsonnet separately from `yellowdog-python-examples`, use:
 
 ```shell
 pip install -U jsonnet
