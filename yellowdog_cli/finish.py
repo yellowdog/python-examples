@@ -114,10 +114,7 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: List[str]):
             )
         )
         if work_requirement_summary is None:
-            print_error(
-                f"Work Requirement '{name_or_id}' not found in "
-                f"namespace '{CONFIG_COMMON.namespace}'"
-            )
+            print_error(f"Work Requirement '{name_or_id}' not found")
             continue
 
         if work_requirement_summary.status not in [
