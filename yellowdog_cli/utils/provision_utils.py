@@ -10,7 +10,7 @@ from yellowdog_client import PlatformClient
 from yellowdog_cli.utils.config_types import ConfigWorkerPool
 from yellowdog_cli.utils.entity_utils import (
     find_compute_requirement_template_id_by_name,
-    find_image_family_reference_by_name,
+    find_image_family_or_group_id_by_name,
     split_namespace_and_name,
 )
 from yellowdog_cli.utils.load_config import CONFIG_FILE_DIR
@@ -115,7 +115,7 @@ def get_image_family_id(client: PlatformClient, image_family_id_or_name: str) ->
     ]:
         return image_family_id_or_name
 
-    image_family_id = find_image_family_reference_by_name(
+    image_family_id = find_image_family_or_group_id_by_name(
         client=client, image_family_name=image_family_id_or_name
     )
 

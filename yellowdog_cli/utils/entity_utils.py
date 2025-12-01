@@ -349,7 +349,7 @@ def get_worker_pools(
 
 
 @lru_cache
-def find_image_family_reference_by_name(
+def find_image_family_or_group_id_by_name(
     client: PlatformClient, image_family_name
 ) -> Optional[str]:
     """
@@ -371,8 +371,19 @@ def find_image_family_reference_by_name(
         if image_family_name.startswith("yd/")
         else image_family_name
     )
-    namespace, name = split_namespace_and_name(image_family_name)
 
+    # Handle image group names of form namespace/image-family-name/image-group-name
+    split_name = image_family_name.split("/")
+    if len(split_name) == 3:
+        try:
+            namespace, name = split_namespace_and_name(f"{split_name[0]}/{split_name[1]}")
+            return client.images_client.get_image_group_by_name(
+                namespace=namespace, family_name=name, group_name=split_name[2]
+            ).id
+        except:
+            return
+
+    namespace, name = split_namespace_and_name(image_family_name)
     if_search = MachineImageFamilySearch(
         familyName=name,
         namespaces=None if namespace in [None, ""] else [namespace],
@@ -474,7 +485,7 @@ def clear_image_family_search_cache():
     """
     Clear the cache of Image Family name searches.
     """
-    find_image_family_reference_by_name.cache_clear()
+    find_image_family_or_group_id_by_name.cache_clear()
 
 
 def remove_allowances_matching_description(

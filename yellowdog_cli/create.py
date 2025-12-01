@@ -53,7 +53,7 @@ from yellowdog_cli.utils.entity_utils import (
     clear_image_family_search_cache,
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
-    find_image_family_reference_by_name,
+    find_image_family_or_group_id_by_name,
     get_application_groups,
     get_application_id_by_name,
     get_group_id_by_name,
@@ -250,7 +250,7 @@ def create_compute_source_template(resource: Dict):
         YDIDType.IMAGE_GROUP,
         YDIDType.IMAGE,
     ]:
-        image_family_id = find_image_family_reference_by_name(
+        image_family_id = find_image_family_or_group_id_by_name(
             client=CLIENT, image_family_name=image_id
         )
         if image_family_id is not None:
@@ -334,7 +334,7 @@ def create_compute_requirement_template(resource: Dict):
             YDIDType.IMAGE_GROUP,
             YDIDType.IMAGE,
         ]:
-            image_family_id = find_image_family_reference_by_name(
+            image_family_id = find_image_family_or_group_id_by_name(
                 client=CLIENT, image_family_name=image_str
             )
             if image_family_id is not None:
