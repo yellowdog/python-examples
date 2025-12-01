@@ -2043,7 +2043,7 @@ yd-show -q ydid:cst:000000:cde265f8-0b17-4e0e-be1c-505174a620e4 --substitute-ids
 
 would generate a JSON file that can be used with `yd-create` without alteration, or which could be edited.
 
-As illustrated above, both `yd-list` and `yd-show` support the `--substitute-ids`/`-U` option. For Compute Requirement Template detailed output, this will substitute Compute Source Template IDs and Image Family IDs with their names, to make it easier to reuse the outputs. For Compute Source Templates, Image Family IDs will be substituted. (Only Image Family IDs are substituted, not Image Group or Image IDs; if these are used in CRTs/CSTs, the JSON resource output may not be reusable.)
+As illustrated above, both `yd-list` and `yd-show` support the `--substitute-ids`/`-U` option. For Compute Requirement Template detailed output, this will substitute Compute Source Template IDs and Image Family and Group IDs with their names, to make it easier to reuse the outputs. For Compute Source Templates, Image Family and Group IDs will be substituted.
 
 The `--strip-ids` option will remove any YellowDog IDs ('ydids') from the JSON output, as well as any other properties that are not required in order to use the output with `yd-create`.
 

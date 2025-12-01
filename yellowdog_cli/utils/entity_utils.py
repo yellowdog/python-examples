@@ -28,6 +28,7 @@ from yellowdog_client.model import (
     MachineImageFamily,
     MachineImageFamilySearch,
     MachineImageFamilySummary,
+    MachineImageGroup,
     NamespaceSearch,
     ObjectPath,
     ObjectPathsRequest,
@@ -590,7 +591,7 @@ def substitute_ids_for_names_in_crt(
 
     # Image family
     try:
-        crt.imagesId = _get_image_family_name_from_id(client, crt.imagesId)
+        crt.imagesId = _get_image_family_or_group_name_from_id(client, crt.imagesId)
     except:
         pass
 
@@ -600,7 +601,9 @@ def substitute_ids_for_names_in_crt(
             source.sourceTemplateId = _get_source_template_name_from_id(
                 client, source.sourceTemplateId
             )
-            source.imageId = _get_image_family_name_from_id(client, source.imageId)
+            source.imageId = _get_image_family_or_group_name_from_id(
+                client, source.imageId
+            )
     except:
         pass
 
@@ -619,14 +622,18 @@ def substitute_image_family_id_for_name_in_cst(
         return cst
 
     try:
-        cst.source.imageId = _get_image_family_name_from_id(client, cst.source.imageId)
+        cst.source.imageId = _get_image_family_or_group_name_from_id(
+            client, cst.source.imageId
+        )
         return cst
     except:
         pass
 
     try:
         # Google uses a different property name
-        cst.source.image = _get_image_family_name_from_id(client, cst.source.image)
+        cst.source.image = _get_image_family_or_group_name_from_id(
+            client, cst.source.image
+        )
         return cst
     except:
         pass
@@ -701,22 +708,40 @@ def _get_requirement_template_name_from_id(
 
 
 @lru_cache
-def _get_image_family_name_from_id(
-    client: PlatformClient, image_family_id: Optional[str]
+def _get_image_family_or_group_name_from_id(
+    client: PlatformClient, image_family_or_group_id: Optional[str]
 ) -> Optional[str]:
     """
-    Obtain the namespace/name of an image family.
+    Obtain the namespace/name of an image family or image group.
     Otherwise, return the original value.
     """
-    if get_ydid_type(image_family_id) != YDIDType.IMAGE_FAMILY:
-        return image_family_id
-    try:
-        image_family: MachineImageFamily = client.images_client.get_image_family_by_id(
-            image_family_id
-        )
-        return f"yd/{image_family.namespace}/{image_family.name}"
-    except:
-        return image_family_id
+    if get_ydid_type(image_family_or_group_id) == YDIDType.IMAGE_FAMILY:
+        try:
+            image_family: MachineImageFamily = (
+                client.images_client.get_image_family_by_id(image_family_or_group_id)
+            )
+            return f"yd/{image_family.namespace}/{image_family.name}"
+        except:
+            return image_family_or_group_id
+
+    elif get_ydid_type(image_family_or_group_id) == YDIDType.IMAGE_GROUP:
+        try:
+            image_group: MachineImageGroup = client.images_client.get_image_group_by_id(
+                image_family_or_group_id
+            )
+            image_family: MachineImageFamily = (
+                client.images_client.get_image_family_by_id(
+                    # The image family ID can be derived from the group ID
+                    image_family_or_group_id.replace("imggrp", "imgfam").rsplit(":", 1)[
+                        0
+                    ]
+                )
+            )
+            return f"yd/{image_family.namespace}/{image_family.name}/{image_group.name}"
+        except:
+            return image_family_or_group_id
+
+    return image_family_or_group_id
 
 
 @lru_cache
