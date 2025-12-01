@@ -355,6 +355,7 @@ def find_image_family_or_group_id_by_name(
     """
     Resolve image family references. Complicated logic.
     Fully qualified name is used for non-ambiguous PRIVATE image families.
+    Return None if mapping can't be done, to be handled by the caller.
     """
 
     if image_family_name.startswith("ami-") or image_family_name.startswith(
@@ -376,7 +377,9 @@ def find_image_family_or_group_id_by_name(
     split_name = image_family_name.split("/")
     if len(split_name) == 3:
         try:
-            namespace, name = split_namespace_and_name(f"{split_name[0]}/{split_name[1]}")
+            namespace, name = split_namespace_and_name(
+                f"{split_name[0]}/{split_name[1]}"
+            )
             return client.images_client.get_image_group_by_name(
                 namespace=namespace, family_name=name, group_name=split_name[2]
             ).id
