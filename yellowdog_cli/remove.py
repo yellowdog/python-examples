@@ -285,9 +285,9 @@ def remove_image_family(resource: Dict):
 
     try:
         CLIENT.images_client.delete_image_family(image_family)
-        print_log(f"Deleted Image Family '{fq_name}' ('{image_family.id}')")
+        print_log(f"Removed Image Family '{fq_name}' ({image_family.id})")
     except Exception as e:
-        print_error(f"Unable to delete Image Family '{fq_name}': {e}")
+        print_error(f"Unable to remove Image Family '{fq_name}': {e}")
 
 
 def remove_namespace_configuration(resource: Dict):

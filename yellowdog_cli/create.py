@@ -549,7 +549,7 @@ def create_image_family(resource):
             # This will create the Image Family and all of its constituent
             # Image Group/Image resources
             image_family = _create_image_family(image_family, fq_name)
-            print_log(f"Created Machine Image Family '{fq_name}' ('{image_family.id}')")
+            print_log(f"Created Machine Image Family '{fq_name}' ({image_family.id})")
             if ARGS_PARSER.quiet:
                 print(image_family.id)
         else:
