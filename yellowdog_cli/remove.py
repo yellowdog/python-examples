@@ -207,17 +207,17 @@ def remove_keyring(resource: Dict):
         print_error(f"Expected property to be defined ({e})")
         return
 
-    if not confirmed(f"Delete Keyring '{name}'?"):
+    if not confirmed(f"Remove Keyring '{name}'?"):
         return
 
     try:
         CLIENT.keyring_client.delete_keyring_by_name(name)
-        print_log(f"Deleted Keyring '{name}'")
+        print_log(f"Removed Keyring '{name}'")
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_error(f"Keyring '{name}' not found")
+            print_error(f"Cannot find Keyring '{name}'")
         else:
-            print_error(f"Unable to delete Keyring '{name}': {e}")
+            print_error(f"Unable to remove Keyring '{name}': {e}")
 
 
 def remove_credential(resource: Dict):
@@ -246,7 +246,7 @@ def remove_credential(resource: Dict):
     except HTTPError as e:
         if e.response.status_code == 404:
             print_error(
-                f"Keyring '{keyring_name}' not found (possibly already deleted,"
+                f"Cannot find Keyring '{keyring_name}'(possibly already deleted,"
                 " including its credentials?)"
             )
         else:
@@ -275,7 +275,7 @@ def remove_image_family(resource: Dict):
         )
     except HTTPError as e:
         if e.response.status_code == 404:
-            print_error(f"Machine Image Family '{fq_name}' not found")
+            print_error(f"Cannot find Machine Image Family '{fq_name}'")
             return
         else:
             raise e
@@ -304,7 +304,7 @@ def remove_namespace_configuration(resource: Dict):
         CLIENT.object_store_client.get_namespace_storage_configurations()
     )
     if namespace not in [x.namespace for x in namespaces]:
-        print_error(f"Namespace Storage Configuration '{namespace}' not found")
+        print_error(f"Cannot find Namespace Storage Configuration '{namespace}'")
         return
 
     if not confirmed(f"Remove Namespace Storage Configuration '{namespace}'?"):
@@ -428,7 +428,7 @@ def remove_resource_by_id(resource_id: str):
                         CLIENT.keyring_client.delete_keyring_by_name(keyring.name)
                         print_log(f"Removed Keyring {resource_id}")
                         return
-                raise Exception(f"Keyring {resource_id} not found")
+                raise Exception(f"Cannot find Keyring {resource_id}")
 
         elif get_ydid_type(resource_id) == YDIDType.WORKER_POOL:
             if confirmed(f"Shut down Worker Pool {resource_id}?"):
@@ -497,7 +497,7 @@ def remove_namespace_policy(resource: Dict):
             return
     except Exception:
         # Assume it's not found ... 404 from API
-        print_error(f"Namespace Policy '{namespace}' not found")
+        print_error(f"Cannot find Namespace Policy '{namespace}'")
         return
 
     if not confirmed(f"Remove Namespace Policy '{namespace}'?"):
@@ -522,7 +522,7 @@ def remove_group(resource: Dict):
 
     group_id = get_group_id_by_name(CLIENT, group_name)
     if group_id is None:
-        print_warning(f"Group '{group_name}' not found")
+        print_warning(f"Cannot find Group '{group_name}'")
         return
 
     if not confirmed(f"Remove Group '{group_name}' ({group_id})?"):
@@ -533,7 +533,7 @@ def remove_group(resource: Dict):
         print_log(f"Removed Group '{group_name}' ({group_id})")
         clear_group_caches()
     except Exception as e:
-        print_error(f"Unable to delete Group '{group_name}' ({group_id}): {e}")
+        print_error(f"Unable to remove Group '{group_name}' ({group_id}): {e}")
 
 
 def remove_application(resource: Dict):
@@ -548,7 +548,7 @@ def remove_application(resource: Dict):
 
     app_id = get_application_id_by_name(CLIENT, app_name)
     if app_id is None:
-        print_warning(f"Application '{app_name}' not found")
+        print_warning(f"Cannot find Application '{app_name}'")
         return
 
     if not confirmed(f"Remove Application '{app_name}' ({app_id})?"):
@@ -574,7 +574,7 @@ def remove_namespace(resource: Dict):
 
     namespace_id = get_namespace_id_by_name(CLIENT, name)
     if namespace_id is None:
-        print_warning(f"Namespace '{name}' not found")
+        print_warning(f"Cannot find Namespace '{name}'")
         return
 
     if not confirmed(f"Remove Namespace '{name}'?"):
