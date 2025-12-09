@@ -47,7 +47,7 @@ from yellowdog_cli.utils.property_names import (
     WORKER_TAG,
 )
 from yellowdog_cli.utils.provision_utils import (
-    get_image_family_id,
+    get_image_id,
     get_template_id,
     get_user_data_property,
 )
@@ -170,7 +170,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
 
         # Allow Image Family name to be used instead of ID
         if reqt_template_usage.get(IMAGES_ID) is not None:
-            reqt_template_usage[IMAGES_ID] = get_image_family_id(
+            reqt_template_usage[IMAGES_ID] = get_image_id(
                 CLIENT, reqt_template_usage[IMAGES_ID]
             )
 
@@ -289,8 +289,8 @@ def create_worker_pool_from_toml():
 
     # Allow the Image Family name to be used instead of ID
     if CONFIG_WP.images_id is not None:
-        CONFIG_WP.images_id = get_image_family_id(
-            client=CLIENT, image_family_id_or_name=CONFIG_WP.images_id
+        CONFIG_WP.images_id = get_image_id(
+            client=CLIENT, image_name_or_id=CONFIG_WP.images_id
         )
 
     node_boot_timeout = (

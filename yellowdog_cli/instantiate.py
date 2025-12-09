@@ -30,7 +30,7 @@ from yellowdog_cli.utils.printing import (
     print_yd_object,
 )
 from yellowdog_cli.utils.provision_utils import (
-    get_image_family_id,
+    get_image_id,
     get_template_id,
     get_user_data_property,
 )
@@ -92,8 +92,8 @@ def main():
 
     # Allow use of IF name instead of ID
     if CONFIG_WP.images_id is not None:
-        CONFIG_WP.images_id = get_image_family_id(
-            client=CLIENT, image_family_id_or_name=CONFIG_WP.images_id
+        CONFIG_WP.images_id = get_image_id(
+            client=CLIENT, image_name_or_id=CONFIG_WP.images_id
         )
 
     if not ARGS_PARSER.report:
@@ -303,8 +303,8 @@ def _create_compute_requirement_from_json(
 
     # Allow use of IF name instead of ID
     if cr_data.get("imagesId") is not None:
-        cr_data["imagesId"] = get_image_family_id(
-            client=CLIENT, image_family_id_or_name=cr_data["imagesId"]
+        cr_data["imagesId"] = get_image_id(
+            client=CLIENT, image_name_or_id=cr_data["imagesId"]
         )
 
     if ARGS_PARSER.dry_run:

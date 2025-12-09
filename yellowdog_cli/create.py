@@ -50,10 +50,10 @@ from yellowdog_cli.utils.entity_utils import (
     clear_application_caches,
     clear_compute_source_template_cache,
     clear_group_caches,
-    clear_image_family_search_cache,
+    clear_image_caches,
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
-    find_image_family_or_group_id_by_name,
+    find_image_name_or_id,
     get_application_groups,
     get_application_id_by_name,
     get_group_id_by_name,
@@ -130,7 +130,9 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 CLEAR_CST_CACHE: bool = False  # Track whether the CST cache needs to be cleared
-CLEAR_IMAGE_FAMILY_CACHE: bool = False  # Track whether the IF cache needs to be cleared
+CLEAR_IMAGE_FAMILY_CACHE: bool = (
+    False  # Track whether the image caches need to be cleared
+)
 
 
 @main_wrapper
@@ -233,7 +235,7 @@ def create_compute_source_template(resource: Dict):
     # Allow image families (etc.) to be referenced by name rather than ID
     global CLEAR_IMAGE_FAMILY_CACHE
     if CLEAR_IMAGE_FAMILY_CACHE:  # Update the IF cache if required
-        clear_image_family_search_cache()
+        clear_image_caches()
         CLEAR_IMAGE_FAMILY_CACHE = False
 
     # Google CSTs use property name 'image' instead of 'imageId'
@@ -244,17 +246,14 @@ def create_compute_source_template(resource: Dict):
         else PROP_IMAGE
     )
 
-    image_id = source.get(image_property_name)
-    if get_ydid_type(image_id) not in [
-        YDIDType.IMAGE_FAMILY,
-        YDIDType.IMAGE_GROUP,
-        YDIDType.IMAGE,
-    ]:
-        image_family_id = find_image_family_or_group_id_by_name(
-            client=CLIENT, image_family_name=image_id
-        )
-        if image_family_id is not None:
-            source[image_property_name] = image_family_id
+    image_id = find_image_name_or_id(
+        client=CLIENT,
+        image_name_or_id=source.get(image_property_name),
+        always_return_id=False,
+        report_substitutions=True,
+    )
+    if image_id is not None:
+        source[image_property_name] = image_id
 
     if ARGS_PARSER.dry_run:
         resource[PROP_SOURCE] = source
@@ -322,31 +321,26 @@ def create_compute_requirement_template(resource: Dict):
     # Allow image families to be referenced by name rather than ID
     global CLEAR_IMAGE_FAMILY_CACHE
     if CLEAR_IMAGE_FAMILY_CACHE:  # Update the IF cache if required
-        clear_compute_source_template_cache()
+        clear_image_caches()
         CLEAR_IMAGE_FAMILY_CACHE = False
 
-    def _get_images_id(image_str: str, context: Dict, key: str) -> int:
+    def _get_images_id(image_str: str, context: Dict, key: str):
         """
-        Helper function to match an image family name into an ID.
+        Helper function to resolve an image ID.
         """
-        if get_ydid_type(image_str) not in [
-            YDIDType.IMAGE_FAMILY,
-            YDIDType.IMAGE_GROUP,
-            YDIDType.IMAGE,
-        ]:
-            image_family_id = find_image_family_or_group_id_by_name(
-                client=CLIENT, image_family_name=image_str
-            )
-            if image_family_id is not None:
-                context[key] = image_family_id
-                return 1
-        return 0
+        images_id_ = find_image_name_or_id(
+            client=CLIENT,
+            image_name_or_id=image_str,
+            always_return_id=False,
+            report_substitutions=True,
+        )
+        if images_id_ is not None:
+            context[key] = images_id_
 
     # Prepend the namespace when searching for existing templates
     name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     source_template_substitutions = 0
-    source_image_id_substitutions = 0
 
     # Dynamic templates don't have 'sources'; return '[]'
     for source in resource.get(PROP_SOURCES, []):
@@ -365,16 +359,12 @@ def create_compute_requirement_template(resource: Dict):
 
         source_image_id = source.get(PROP_IMAGE_ID)
         if source_image_id is not None:
-            source_image_id_substitutions += _get_images_id(
-                source_image_id, source, PROP_IMAGE_ID
-            )
+            _get_images_id(source_image_id, source, PROP_IMAGE_ID)
 
     if source_template_substitutions > 0:
         print_log(
             f"Replaced {source_template_substitutions} Compute Source Template name(s) with ID(s)"
         )
-    if source_image_id_substitutions > 0:
-        print_log(f"Replaced {source_image_id_substitutions} Image name(s) with ID(s)")
 
     images_id = resource.get(PROP_IMAGES_ID)
     if images_id is not None:

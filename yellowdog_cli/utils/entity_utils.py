@@ -24,6 +24,7 @@ from yellowdog_client.model import (
     ExternalUser,
     GroupSearch,
     GroupSummary,
+    ImageAccess,
     InternalUser,
     MachineImageFamily,
     MachineImageFamilySearch,
@@ -53,7 +54,7 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.printing import print_log, print_warning
+from yellowdog_cli.utils.printing import print_log
 from yellowdog_cli.utils.settings import NAMESPACE_PREFIX_SEPARATOR
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -94,7 +95,6 @@ def get_filtered_work_requirements(
     Get a list of Work Requirements filtered by namespace, tag
     and status. Supply either include_filter OR exclude_filter.
     """
-
     if include_filter is None:
         wr_search = WorkRequirementSearch(namespaces=[namespace], tag=tag)
     else:
@@ -349,146 +349,160 @@ def get_worker_pools(
 
 
 @lru_cache
-def find_image_family_or_group_id_by_name(
-    client: PlatformClient, image_family_name
+def find_image_name_or_id(
+    client: PlatformClient,
+    image_name_or_id: Optional[str],
+    always_return_id: bool = True,
+    report_substitutions: bool = True,
 ) -> Optional[str]:
     """
-    Resolve image family references. Complicated logic.
-    Fully qualified name is used for non-ambiguous PRIVATE image families.
-    Return None if mapping can't be done, to be handled by the caller.
+    Attempts to resolve to a well-formed YD image name or ID, if it can.
+
+    Argument 'image_name_or_id' can take one of the following forms:
+     - Any image family or group YDID (returned unchanged)
+     - Strings prefixed or not prefixed with 'yd/' (will be added if required)
+     - Strings post-fixed or not post-fixed with '/latest' (will be removed)
+     - Any standalone image-family-name
+     - Any namespace/image-family-name combination
+     - Any image-family-name/image-group-name combination
+     - Any namespace/image-family-name/image-group-name combination
+
+     The call will attempt to resolve the image into its fully qualified
+     name if 'always_return_id' is false:
+      - yd/namespace/image-family-name or
+      - yd/namespace/image-family-name/image-group-name
+
+    If the resolved image is PUBLIC or 'always_return_id' is True,
+    the relevant YDID will always be returned; this is enforced for
+    PUBLIC images.
+
+    Finally, if nothing matches, the original ID is returned. This is
+    likely to be a provider specific string.
     """
+    if image_name_or_id is None:
+        return None
 
-    if image_family_name.startswith("ami-") or image_family_name.startswith(
-        "ocid1.image."
-    ):
-        # We can identify AWS AMIs and OCI OCIDs, and return immediately
-        return image_family_name
+    # Already a matching YDID?
+    if get_ydid_type(image_name_or_id) in [
+        YDIDType.IMAGE_FAMILY,
+        YDIDType.IMAGE_GROUP,
+        YDIDType.IMAGE,
+    ]:
+        return image_name_or_id
 
-    original_image_family_name = image_family_name
+    original_image_name_or_id = image_name_or_id
 
-    # Remove leading 'yd/' prefix if necessary
-    image_family_name = (
-        image_family_name[3:]
-        if image_family_name.startswith("yd/")
-        else image_family_name
+    # Remove a leading 'yd/' prefix; will be reinstated later if required
+    image_name_or_id = (
+        image_name_or_id[3:] if image_name_or_id.startswith("yd/") else image_name_or_id
     )
 
-    # Handle image group names of form namespace/image-family-name/image-group-name
-    split_name = image_family_name.split("/")
-    if len(split_name) == 3:
-        try:
-            namespace, name = split_namespace_and_name(
-                f"{split_name[0]}/{split_name[1]}"
-            )
-            return client.images_client.get_image_group_by_name(
-                namespace=namespace, family_name=name, group_name=split_name[2]
-            ).id
-        except:
-            return
-
-    namespace, name = split_namespace_and_name(image_family_name)
-    if_search = MachineImageFamilySearch(
-        familyName=name,
-        namespaces=None if namespace in [None, ""] else [namespace],
-        includePublic=True,
+    # Remove "/latest"; this is redundant/implied for YD image groups
+    image_name_or_id = (
+        image_name_or_id[:-7]
+        if image_name_or_id.endswith("/latest")
+        else image_name_or_id
     )
-    search_client: SearchClient = client.images_client.get_image_families(if_search)
 
-    try:
-        image_families: List[MachineImageFamilySummary] = search_client.list_all()
-    except Exception as e:
-        if "MissingPermissionException" in str(e) and "IMAGE_READ" in str(e):
-            # IMAGE_READ permission (globally, or for this namespace) is absent;
-            # abandon lookup and return the original image family name
-            print_log(
-                f"Note: failed to resolve image name '{original_image_family_name}' "
-                "due to lack of 'IMAGE_READ' permission; using original name"
-            )
-            return original_image_family_name
-        else:
-            raise
+    def _replaced(return_val: str, is_ydid: bool = False):
+        """
+        Helper function to report the replacement.
+        """
+        if report_substitutions and return_val != original_image_name_or_id:
+            msg = f"{return_val}" if is_ydid else f"'{return_val}'"
+            print_log(f"Replaced Images ID '{original_image_name_or_id}' with {msg}")
+        return return_val
 
-    # Partial names will match, so filter for exact matches only
-    image_families = [
-        img_family for img_family in image_families if img_family.name == name
-    ]
+    split_name = image_name_or_id.split("/")
+    image_family_summaries = get_image_family_summaries(client)
 
-    # No matches
-    if len(image_families) == 0:
-        return
-
-    # It's possible to have both a PRIVATE and a PUBLIC match for the same
-    # namespace/image_family_name. This is a corner case, but ...
-    if len(image_families) == 2:
-        image_families_public = [
-            img_family
-            for img_family in image_families
-            if img_family.access.name == "PUBLIC"
+    # Search for image name (only) matches
+    if len(split_name) == 1:
+        matching_image_families = [
+            ifs for ifs in image_family_summaries if ifs.name == split_name[0]
         ]
-        image_families_private = [
-            img_family
-            for img_family in image_families
-            if img_family.access.name == "PRIVATE"
-        ]
-        if len(image_families_public) == 1 and len(image_families_private) == 1:
-            # Favour the PRIVATE image
-            print_warning(
-                f"Image Family '{name}' has both PUBLIC and PRIVATE "
-                "variants; using the PRIVATE image family: "
-                f"{image_families_private[0].namespace}/{image_families_private[0].name} "
-                f"({image_families_private[0].id})"
+        if len(matching_image_families) > 1:
+            namespaces = [ifs.namespace for ifs in matching_image_families]
+            raise Exception(
+                f"Ambiguous Images ID '{original_image_name_or_id}': please "
+                f"specify a namespace from: {', '.join(namespaces)}"
             )
-            image_families = image_families_private
-
-    # Single match
-    if len(image_families) == 1:
-        substituted_image_family_name = (
-            f"yd/{image_families[0].namespace}/{image_families[0].name}"
-        )
-
-        # If this is a PRIVATE image family, we can retain the fully-qualified
-        # image family name instead of substituting the ID
-        if image_families[0].access.name == "PRIVATE":
-            if original_image_family_name != substituted_image_family_name:
-                print_log(
-                    f"Substituting Image Family name '{original_image_family_name}' "
-                    f"with fully qualified name '{substituted_image_family_name}' "
-                    f"({image_families[0].id})"
+        elif len(matching_image_families) == 1:
+            if (
+                matching_image_families[0].access == ImageAccess.PUBLIC
+                or always_return_id
+            ):
+                return _replaced(matching_image_families[0].id, True)
+            else:
+                return _replaced(
+                    f"yd/{matching_image_families[0].namespace}/"
+                    f"{matching_image_families[0].name}"
                 )
-            return substituted_image_family_name
 
-        # If PUBLIC, we need to replace with the YDID
-        else:
-            mid_msg = (
-                ""
-                if original_image_family_name == substituted_image_family_name
-                else f"('{substituted_image_family_name}') "
+    # Search for namespace/family_name matches, *or* family_name/group_name matches
+    if len(split_name) == 2:
+        # namespace/family-name match
+        matching_image_families = [
+            ifs
+            for ifs in image_family_summaries
+            if ifs.namespace == split_name[0] and ifs.name == split_name[1]
+        ]
+        if len(matching_image_families) == 1:
+            if (
+                matching_image_families[0].access == ImageAccess.PUBLIC
+                or always_return_id
+            ):
+                return _replaced(matching_image_families[0].id, True)
+            return _replaced(
+                f"yd/{matching_image_families[0].namespace}/"
+                f"{matching_image_families[0].name}"
             )
-            print_log(
-                f"Substituting Image Family name '{original_image_family_name}' {mid_msg}"
-                f"with ID {image_families[0].id}"
+
+        # family-name/group-name match
+        matching_image_families = [
+            ifs for ifs in image_family_summaries if ifs.name == split_name[0]
+        ]
+        if_group_matches: List[Tuple[MachineImageFamilySummary, MachineImageGroup]] = []
+        for ifs in matching_image_families:
+            for if_group in get_image_family_groups(client, ifs.id):
+                if if_group.name == split_name[1]:
+                    if_group_matches.append((ifs, if_group))
+                    break
+        if len(if_group_matches) == 1:
+            if if_group_matches[0][0].access == ImageAccess.PUBLIC or always_return_id:
+                return _replaced(if_group_matches[0][1].id, True)
+            else:
+                return _replaced(
+                    f"yd/{if_group_matches[0][0].namespace}/"
+                    f"{if_group_matches[0][0].name}/"
+                    f"{if_group_matches[0][1].name}"
+                )
+        if len(if_group_matches) > 1:
+            namespaces = [match[0].namespace for match in if_group_matches]
+            raise Exception(
+                f"Ambiguous image-family/image-group '{original_image_name_or_id}': "
+                f"please specify a namespace from: {', '.join(namespaces)}"
             )
-            return image_families[0].id
 
-    # Multiple matches
-    matches = [
-        f"{img_fam.namespace}/{img_fam.name} [{img_fam.access.name}] ({img_fam.id})"
-        for img_fam in image_families
-    ]
+    # Search for names of form 'namespace/image-family-name/image-group-name'
+    # (the platform prevents duplicates)
+    if len(split_name) == 3:
+        for ifs in image_family_summaries:
+            if ifs.namespace == split_name[0] and ifs.name == split_name[1]:
+                for ig in get_image_family_groups(client, ifs.id):
+                    if ig.name == split_name[2]:
+                        if ifs.access == ImageAccess.PUBLIC or always_return_id:
+                            return _replaced(ig.id, True)
+                        else:
+                            return _replaced(f"yd/{image_name_or_id}")
+                else:
+                    raise Exception(
+                        "Image family found, but no matching image "
+                        f"group for '{original_image_name_or_id}'"
+                    )
 
-    raise Exception(
-        f"Ambiguous Image Family name '{name}': "
-        f"{matches}. "
-        "Please specify a namespace. Note: PRIVATE image family is selected "
-        "over PUBLIC if namespace/name are identical."
-    )
-
-
-def clear_image_family_search_cache():
-    """
-    Clear the cache of Image Family name searches.
-    """
-    find_image_family_or_group_id_by_name.cache_clear()
+    # Finally, fall through and return the original ID string
+    return original_image_name_or_id
 
 
 def remove_allowances_matching_description(
@@ -631,7 +645,6 @@ def substitute_image_family_id_for_name_in_cst(
     Substitute Image Family IDs for namespace/name,
     if option is selected.
     """
-
     if not ARGS_PARSER.substitute_ids:
         return cst
 
@@ -664,7 +677,6 @@ def substitute_id_for_name_in_allowance(
     """
     Substitute IDs in Allowance objects.
     """
-
     if not ARGS_PARSER.substitute_ids:
         return allowance
 
@@ -679,7 +691,6 @@ def substitute_id_for_name_in_allowance(
         )
 
     # No processing for other allowance types
-
     return allowance
 
 
@@ -963,3 +974,38 @@ def get_compute_requirement_summaries(
         client.compute_client.get_compute_requirement_summaries(crs_search)
     )
     return search_client.list_all()
+
+
+@lru_cache
+def get_image_family_summaries(
+    client: PlatformClient,
+) -> List[MachineImageFamilySummary]:
+    """
+    Obtain and cache the list of image families.
+    """
+    if_search = MachineImageFamilySearch(
+        familyName=None,
+        namespaces=None,
+        includePublic=True,
+    )
+    search_client: SearchClient = client.images_client.get_image_families(if_search)
+    return search_client.list_all()
+
+
+@lru_cache
+def get_image_family_groups(
+    client: PlatformClient, image_family_id: str
+) -> List[MachineImageGroup]:
+    """
+    Obtain and cache the list of image groups for an image family.
+    """
+    return client.images_client.get_image_family_by_id(image_family_id).imageGroups
+
+
+def clear_image_caches():
+    """
+    Clear the image caches.
+    """
+    find_image_name_or_id.cache_clear()
+    get_image_family_summaries.cache_clear()
+    get_image_family_groups.cache_clear()

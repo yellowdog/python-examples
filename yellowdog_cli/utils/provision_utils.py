@@ -10,7 +10,7 @@ from yellowdog_client import PlatformClient
 from yellowdog_cli.utils.config_types import ConfigWorkerPool
 from yellowdog_cli.utils.entity_utils import (
     find_compute_requirement_template_id_by_name,
-    find_image_family_or_group_id_by_name,
+    find_image_name_or_id,
     split_namespace_and_name,
 )
 from yellowdog_cli.utils.load_config import CONFIG_FILE_DIR
@@ -103,28 +103,10 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     return template_id
 
 
-def get_image_family_id(client: PlatformClient, image_family_id_or_name: str) -> str:
+def get_image_id(client: PlatformClient, image_name_or_id: str) -> str:
     """
-    Check if 'image_id_or_name' looks like a valid IF ID; if not,
-    assume it's an IF name and perform a lookup.
+    This function was simplified, hence the pass-through call for now.
     """
-    if get_ydid_type(image_family_id_or_name) in [
-        YDIDType.IMAGE_FAMILY,
-        YDIDType.IMAGE_GROUP,
-        YDIDType.IMAGE,
-    ]:
-        return image_family_id_or_name
-
-    image_family_id = find_image_family_or_group_id_by_name(
-        client=client, image_family_name=image_family_id_or_name
+    return find_image_name_or_id(
+        client=client, image_name_or_id=image_name_or_id, always_return_id=True
     )
-
-    # If a specific image (e.g., an AMI) has been supplied, we'll get here
-    # and will return the original value. This does incur the cost of
-    # listing image families, and there's a small chance of a collision
-    # between a supplied specific image and an Image Family name.
-
-    if image_family_id is None:
-        return image_family_id_or_name  # Return the original input
-
-    return image_family_id

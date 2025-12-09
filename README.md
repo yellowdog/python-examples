@@ -1693,7 +1693,7 @@ The following properties are available:
 |:------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------|:------------------------|
 | `idleNodeTimeout`       | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.                                 | `5.0`                   |
 | `idlePoolTimeout`       | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.                          | `30.0`                  |
-| `imagesId`              | The image ID, Image Family ID, Image Family name, or Image Group name to use when booting instances.                                       |                         |
+| `imagesId`              | The Image ID, Image Family ID, Image Family name, or Image Group name to use when booting instances.                                       |                         |
 | `instanceTags`          | The dictionary of instance tags to apply to the instances. Tag names must be lower case.                                                   |                         |
 | `maintainInstanceCount` | Only used when instantiating Compute Requirements; attempt to maintain the requested number of instances.                                  | `False`                 |
 | `maxNodes`              | The maximum number of nodes to which the Worker Pool can be scaled up.                                                                     | `1`                     |
@@ -1717,7 +1717,7 @@ The following properties are available:
 
 The `templateId` property can be directly populated with the YellowDog ID (YDID), or it can be populated with the textual name of the template, in the form `namespace/template_name`.
 
-Similarly, the `imagesId` property can be populated with the YDID of an Image Family, Image Group, Image, or a string representing the native name of a cloud provider image (e.g., an AWS AMI). It can also be populated with an Image Family name in the form `namespace/image_family_name`, or an Image Group name in the form `namespace/image_family_name/image_group_name`.
+Similarly, the `imagesId` property can be populated with the YDID of an Image Family, Image Group, Image, or a string representing the native name of a cloud provider image (e.g., an AWS AMI). It can also be populated with an Image Family name in the form `namespace/image_family_name`, or an Image Group name in the form `namespace/image_family_name/image_group_name` or `image_family_name/image_group_name`. Optionally, a `yd/` prefix can be supplied. The CLI will aim to map the provided name into an Image Family or Group YDID.
 
 ## Automatic Properties
 
@@ -2171,7 +2171,7 @@ An example Compute Source resource specification is found below:
 }
 ```
 
-In the Compute Source Template `imageId` property, an Image Family name **namespace/family-name** or Image Group name **namespace/family-name/group-name** may be used instead of an ID. For example: `"imageId": "yellowdog/yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute its ID. A **`yd/`** prefix may also optionally be used.
+In the Compute Source Template `imageId` property, an Image Family name **namespace/family-name** or Image Group name **namespace/family-name/group-name** may be used instead of an ID. For example: `"imageId": "yellowdog/yd-agent-docker"`. The `yd-create` command will look up the Image Family name and substitute with a well-formed name or ID. A **`yd/`** prefix may also optionally be used.
 
 ## Compute Requirement Templates
 
@@ -2197,7 +2197,7 @@ An example Compute Requirement resource specification is found below, for a **st
 
 Note that Compute Source Template **namespace/names** in the form `namespace/compute_source_template_name` can be used instead of their IDs: the **yd-create** command will look up the IDs and make the substitutions. The Compute Source Templates must already exist.
 
-Also, In the `imagesId` property, an Image Family name **namespace/family-name** or an Image Group name **namespace/family-name/group-name** may be used instead of an ID. For example: `"imagesId": "yellowdog/yd-agent-docker/latest"`. The `yd-create` command will look up the Image Family name and substitute its ID. A **`yd/`** prefix may also optionally be used.
+Also, In the `imagesId` property, an Image Family name **namespace/family-name** or an Image Group name **namespace/family-name/group-name** may be used instead of an ID. For example: `"imagesId": "yellowdog/yd-agent-docker/latest"`. The `yd-create` command will look up the Image Family name and substitute with a well-formed name or ID. A **`yd/`** prefix may also optionally be used.
 
 A **dynamic** template example is:
 
