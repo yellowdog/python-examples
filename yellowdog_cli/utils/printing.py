@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from rich.console import Console, Theme
 from rich.highlighter import JSONHighlighter, RegexHighlighter
+from rich.markup import escape
 from tabulate import tabulate
 from yellowdog_client import PlatformClient
 from yellowdog_client.common.json import Json
@@ -192,7 +193,7 @@ def print_simple(
     if ARGS_PARSER.quiet and override_quiet is False:
         return
 
-    CONSOLE.print(log_message)
+    CONSOLE.print(escape(log_message))
 
 
 def print_log(
@@ -211,7 +212,7 @@ def print_log(
         print(print_string(log_message, no_fill=no_fill), flush=True)
         return
 
-    CONSOLE.print(print_string(log_message, no_fill=no_fill))
+    CONSOLE.print(escape(print_string(log_message, no_fill=no_fill)))
 
 
 def print_error(error_obj: Union[Exception, str]):
@@ -222,7 +223,7 @@ def print_error(error_obj: Union[Exception, str]):
         print(print_string(f"Error: {error_obj}"), flush=True)
         return
 
-    CONSOLE_ERR.print(print_string(f"Error: {error_obj}"), style=ERROR_STYLE)
+    CONSOLE_ERR.print(escape(print_string(f"Error: {error_obj}")), style=ERROR_STYLE)
 
 
 def print_warning(
@@ -241,7 +242,8 @@ def print_warning(
         return
 
     CONSOLE.print(
-        print_string(f"Warning: {warning}", no_fill=no_fill), style=WARNING_STYLE
+        escape(print_string(f"Warning: {warning}", no_fill=no_fill)),
+        style=WARNING_STYLE,
     )
 
 
@@ -280,7 +282,7 @@ def print_table_core(table: str):
     if ARGS_PARSER.no_format or table.count("\n") > MAX_LINES_COLOURED_FORMATTING:
         print(table, flush=True)
     else:
-        CONSOLE_TABLE.print(table)
+        CONSOLE_TABLE.print(escape(table))
 
 
 def get_type_name(obj: Item) -> str:
@@ -1098,9 +1100,9 @@ def print_json(
 
     else:
         if with_final_comma:
-            CONSOLE_JSON.print(json_string, end=",\n", soft_wrap=True)
+            CONSOLE_JSON.print(escape(json_string), end=",\n", soft_wrap=True)
         else:
-            CONSOLE_JSON.print(json_string, soft_wrap=True)
+            CONSOLE_JSON.print(escape(json_string), soft_wrap=True)
 
     if ARGS_PARSER.output_file is not None:  # Also output to a nominated file
         print_to_file(
