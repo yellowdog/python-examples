@@ -231,6 +231,7 @@ def _find_id_by_name(
     )
 
 
+@lru_cache
 def find_compute_source_template_id_by_name(
     client: PlatformClient, name: str
 ) -> Optional[str]:
@@ -238,7 +239,12 @@ def find_compute_source_template_id_by_name(
     Find a Compute Source Template id by name.
     Compute Source Template names are unique within a namespace.
     """
-    return _find_id_by_name(name, client, get_compute_source_templates)
+    template_id = _find_id_by_name(name, client, get_compute_source_templates)
+    if template_id is not None:
+        print_log(
+            f"Replaced Compute Source Template name '{name}' with ID {template_id}"
+        )
+    return template_id
 
 
 @lru_cache
@@ -277,8 +283,10 @@ def get_work_requirement_summaries(
 def clear_compute_source_template_cache():
     """
     Clear the cache of Compute Source Templates.
+    Clear name -> CST lookups.
     """
     get_compute_source_templates.cache_clear()
+    find_compute_source_template_id_by_name.cache_clear()
 
 
 def find_compute_requirement_template_id_by_name(
@@ -414,7 +422,7 @@ def find_image_name_or_id(
         return return_val
 
     split_name = image_name_or_id.split("/")
-    image_family_summaries = get_image_family_summaries(client)
+    image_family_summaries = get_image_family_summaries(client)  # All namespaces
 
     # Search for image name (only) matches
     if len(split_name) == 1:
@@ -442,6 +450,12 @@ def find_image_name_or_id(
     # Search for namespace/family_name matches, *or* family_name/group_name matches
     if len(split_name) == 2:
         # namespace/family-name match
+
+        # This will be tidied up when the Application can
+        # query its properties
+        if len(image_family_summaries) == 0:  # Global search didn't work
+            image_family_summaries = get_image_family_summaries(client, split_name[0])
+
         matching_image_families = [
             ifs
             for ifs in image_family_summaries
@@ -487,6 +501,12 @@ def find_image_name_or_id(
     # Search for names of form 'namespace/image-family-name/image-group-name'
     # (the platform prevents duplicates)
     if len(split_name) == 3:
+
+        # This will be tidied up when the Application can
+        # query its properties
+        if len(image_family_summaries) == 0:  # Global search didn't work
+            image_family_summaries = get_image_family_summaries(client, split_name[0])
+
         for ifs in image_family_summaries:
             if ifs.namespace == split_name[0] and ifs.name == split_name[1]:
                 for ig in get_image_family_groups(client, ifs.id):
@@ -501,7 +521,7 @@ def find_image_name_or_id(
                         f"group for '{original_image_name_or_id}'"
                     )
 
-    # Finally, fall through and return the original ID string
+    # Finally, fall through and return the unchanged, original ID string
     return original_image_name_or_id
 
 
@@ -979,17 +999,32 @@ def get_compute_requirement_summaries(
 @lru_cache
 def get_image_family_summaries(
     client: PlatformClient,
+    namespace: Optional[str] = None,
 ) -> List[MachineImageFamilySummary]:
     """
     Obtain and cache the list of image families.
     """
-    if_search = MachineImageFamilySearch(
-        familyName=None,
-        namespaces=None,
-        includePublic=True,
-    )
-    search_client: SearchClient = client.images_client.get_image_families(if_search)
-    return search_client.list_all()
+    # Temporarily suppress most permission errors: will be improved
+    # once the application can be queried for its admissible
+    # IMAGE_READ namespaces
+    try:
+        if_search = MachineImageFamilySearch(
+            familyName=None,
+            namespaces=None if namespace is None else [namespace],
+            includePublic=True,
+        )
+        search_client: SearchClient = client.images_client.get_image_families(if_search)
+        return search_client.list_all()
+    except Exception as e:
+        if namespace is not None and "MissingPermissionException" in str(e):
+            # Caching will prevent this warning appearing multiple times
+            print_log(
+                "Warning: Possible 'IMAGE_READ' permission missing if "
+                f"'{namespace}' is meant as an Image namespace?"
+            )
+        pass
+
+    return []
 
 
 @lru_cache
