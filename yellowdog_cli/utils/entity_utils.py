@@ -1022,7 +1022,6 @@ def get_image_family_summaries(
                 "Warning: Possible 'IMAGE_READ' permission missing if "
                 f"'{namespace}' is meant as an Image namespace?"
             )
-        pass
 
     return []
 
