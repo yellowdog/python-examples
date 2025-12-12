@@ -1319,8 +1319,10 @@ def create_namespace(resource: Dict):
         )
     except Exception as e:
         if "ConflictException" in str(e):
-            raise Exception(f"Namespace '{name}' already exists")
-        raise Exception(f"Failed to create namespace '{name}' ({e})")
+            print_warning(f"Namespace '{name}' already exists")
+            return
+        else:
+            raise Exception(f"Failed to create namespace '{name}' ({e})")
 
     print_log(f"Created namespace '{name}' ({namespace_id})")
 
