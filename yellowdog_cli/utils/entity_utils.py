@@ -54,7 +54,7 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.printing import print_log
+from yellowdog_cli.utils.printing import print_log, print_warning
 from yellowdog_cli.utils.settings import NAMESPACE_PREFIX_SEPARATOR
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -534,7 +534,16 @@ def remove_allowances_matching_description(
     """
     allowances = client.allowances_client.get_allowances(
         AllowanceSearch(description=description)
-    ).list_all()
+    ).list_all()  # Can return partial matches
+
+    # Ensure exact match
+    allowances = [
+        allowance for allowance in allowances if description == allowance.description
+    ]
+
+    if len(allowances) == 0:
+        print_log(f"Cannot find Allowance matching description '{description}'")
+        return 0
 
     if len(allowances) > 1:
         print_log(f"Multiple Allowances match the description '{description}'")
