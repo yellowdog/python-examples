@@ -32,8 +32,8 @@ def main():
 
     print_log(
         "Cancelling Work Requirements in namespace "
-        f"'{CONFIG_COMMON.namespace}' with "
-        f"'{CONFIG_COMMON.name_tag}' in tag"
+        f"'{CONFIG_COMMON.namespace}' with tags "
+        f"including '{CONFIG_COMMON.name_tag}'"
     )
 
     selected_work_requirement_summaries: List[WorkRequirementSummary] = (

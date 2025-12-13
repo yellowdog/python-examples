@@ -37,9 +37,9 @@ def main():
         return
 
     print_log(
-        "Finding active Work Requirements in"
-        f"namespace '{CONFIG_COMMON.namespace}' with "
-        f"'{CONFIG_COMMON.name_tag}' in tag"
+        "Finding active Work Requirements in "
+        f"namespace '{CONFIG_COMMON.namespace}' with tags "
+        f"including '{CONFIG_COMMON.name_tag}'"
     )
 
     # Abort Tasks is always interactive
