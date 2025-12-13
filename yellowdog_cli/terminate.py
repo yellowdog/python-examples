@@ -77,7 +77,7 @@ def main():
                 )
             except Exception as e:
                 print_error(
-                    f"Unable to terminate '{compute_requirement_summary.name}': {e}"
+                    f"Failed to terminate '{compute_requirement_summary.name}': {e}"
                 )
 
     if terminated_count > 0:
@@ -125,7 +125,7 @@ def terminate_cr_by_name_or_id(names_or_ids: List[str]):
             )
             print_log(f"Terminated '{compute_requirement_id}'")
         except Exception as e:
-            print_error(f"Unable to terminate '{compute_requirement_id}': ({e})")
+            print_error(f"Failed to terminate '{compute_requirement_id}': ({e})")
 
     if ARGS_PARSER.follow:
         follow_ids(compute_requirement_ids)
