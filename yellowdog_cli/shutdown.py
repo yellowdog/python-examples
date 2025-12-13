@@ -34,7 +34,7 @@ def main():
 
     print_log(
         "Shutting down Worker Pools in "
-        f"namespace '{CONFIG_COMMON.namespace}' and "
+        f"namespace '{CONFIG_COMMON.namespace}' with "
         f"names including '{CONFIG_COMMON.name_tag}'"
     )
 

@@ -40,7 +40,7 @@ def main():
 
     print_log(
         "Terminating Compute Requirements in "
-        f"namespace '{CONFIG_COMMON.namespace}' and tag "
+        f"namespace '{CONFIG_COMMON.namespace}' with tags "
         f"including '{CONFIG_COMMON.name_tag}'"
     )
 
