@@ -7,7 +7,7 @@ A script to create or update YellowDog resources.
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 import yellowdog_client.model as model
 from dateparser import parse as date_parse
@@ -446,7 +446,7 @@ def create_keyring(resource: Dict, show_secrets: bool = False):
         print_error(f"Failed to create Keyring '{name}': {e}")
 
 
-def create_keyring_via_api(name: str, description: str) -> (Keyring, str):
+def create_keyring_via_api(name: str, description: str) -> Tuple[Keyring, str]:
     """
     Temporary direct API call to create a Keyring and return the shown-once
     password. The password is not available via the SDK call.
