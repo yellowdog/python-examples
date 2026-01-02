@@ -278,7 +278,7 @@ def create_compute_source_template(resource: Dict):
         compute_source = CLIENT.compute_client.add_compute_source_template(
             compute_source_template
         )
-        print_log(f"Created Compute Source Template '{name}'" f" ({compute_source.id})")
+        print_log(f"Created Compute Source Template '{name}' ({compute_source.id})")
     else:
         if not confirmed(f"Update existing Compute Source Template '{name}'?"):
             return
@@ -405,9 +405,7 @@ def create_compute_requirement_template(resource: Dict):
     template = CLIENT.compute_client.update_compute_requirement_template(
         compute_template
     )
-    print_log(
-        f"Updated existing Compute Requirement Template '{name}'" f" ({template.id})"
-    )
+    print_log(f"Updated existing Compute Requirement Template '{name}' ({template.id})")
     if ARGS_PARSER.quiet:
         print(template.id)
 

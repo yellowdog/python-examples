@@ -59,7 +59,7 @@ def main():
         )
 
     if len(selected_work_requirement_summaries) > 0 and confirmed(
-        f"Finish {len(selected_work_requirement_summaries)} " f"Work Requirement(s)?"
+        f"Finish {len(selected_work_requirement_summaries)} Work Requirement(s)?"
     ):
         for work_summary in selected_work_requirement_summaries:
             if work_summary.status != WorkRequirementStatus.FINISHING:
