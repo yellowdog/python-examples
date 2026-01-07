@@ -309,6 +309,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             add_yd_env_vars=wr_section.get(ADD_YD_ENV_VARS, False),
             always_upload=wr_section.get(ALWAYS_UPLOAD, True),
             args=wr_section.get(ARGS, []),
+            batch_allocation=wr_section.get(BATCH_ALLOCATION, None),
             upload_taskoutput=wr_section.get(UPLOAD_TASKOUTPUT, False),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             csv_files=csv_files,

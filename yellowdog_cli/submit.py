@@ -477,6 +477,7 @@ def create_task_group(
         if providers_data is None
         else [CloudProvider(provider) for provider in providers_data]
     )
+
     task_timeout_minutes: Optional[float] = check_float_or_int(
         task_group_data.get(TASK_TIMEOUT, config_wr.task_timeout)
     )
@@ -485,6 +486,24 @@ def create_task_group(
         if task_timeout_minutes is None
         else timedelta(minutes=task_timeout_minutes)
     )
+
+    exclusive_workers = check_bool(
+        task_group_data.get(
+            EXCLUSIVE_WORKERS,
+            wr_data.get(EXCLUSIVE_WORKERS, config_wr.exclusive_workers),
+        )
+    )
+    batch_allocation = check_bool(
+        task_group_data.get(
+            BATCH_ALLOCATION,
+            wr_data.get(BATCH_ALLOCATION, config_wr.batch_allocation),
+        )
+    )
+    if batch_allocation and not exclusive_workers:
+        raise Exception(
+            f"Property '{EXCLUSIVE_WORKERS}' must be set when "
+            f"'{BATCH_ALLOCATION}' is specified"
+        )
 
     run_specification = RunSpecification(
         taskTypes=task_types,
@@ -498,12 +517,8 @@ def create_task_group(
                 WORKER_TAGS, wr_data.get(WORKER_TAGS, config_wr.worker_tags)
             )
         ),
-        exclusiveWorkers=check_bool(
-            task_group_data.get(
-                EXCLUSIVE_WORKERS,
-                wr_data.get(EXCLUSIVE_WORKERS, config_wr.exclusive_workers),
-            )
-        ),
+        exclusiveWorkers=exclusive_workers,
+        batchAllocation=batch_allocation,
         instanceTypes=check_list(
             task_group_data.get(
                 INSTANCE_TYPES, wr_data.get(INSTANCE_TYPES, config_wr.instance_types)

@@ -5,6 +5,7 @@ Property names.
 ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
 ALWAYS_UPLOAD = "alwaysUpload"  # Bool
 ARGS = "arguments"  # List
+BATCH_ALLOCATION = "batchAllocation"  # Bool
 CERTIFICATES = "certificates"
 COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
@@ -119,6 +120,7 @@ ALL_KEYS = [
     ADD_YD_ENV_VARS,
     ALWAYS_UPLOAD,
     ARGS,
+    BATCH_ALLOCATION,
     CERTIFICATES,
     COMMON_SECTION,
     COMPLETED_TASK_TTL,

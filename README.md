@@ -614,6 +614,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `addYDEnvironmentVariables` | Automatically add YellowDog environment variables to each Task's environment.                                                                                                                                                              | Yes  | Yes | Yes  | Yes  |
 | `alwaysUpload`              | Whether to attempt to upload task outputs on failure. Default: `true`.                                                                                                                                                                     | Yes  | Yes | Yes  | Yes  |
 | `arguments`                 | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `batchAllocation`           | Enables the batch allocation of tasks to nodes. Boolean, Default: `false`. Requires `exclusiveWorkers = true`.                                                                                                                             | Yes  | Yes | Yes  |      |
 | `completedTaskTtl`          | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                                                                                       | Yes  | Yes | Yes  |      |
 | `csvFile`                   | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                                                                                   | Yes  |     |      |      |
 | `csvFiles`                  | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                                                                                          | Yes  |     |      |      |
@@ -819,6 +820,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     addYDEnvironmentVariables = true
     alwaysUpload = true
     arguments = ["1", "TWO"]
+    batchAllocation = false
     completedTaskTtl = 10
     csvFile = "file1.csv"
     csvFiles = ["file1.csv", "file3.csv:3"]
@@ -894,6 +896,7 @@ Showing all possible properties at the Work Requirement level:
   "addYDEnvironmentVariables": true,
   "alwaysUpload": true,
   "arguments": [1, "TWO"],
+  "batchAllocation": false,
   "completedTaskTtl": 10,
   "dockerEnvironment": {"MY_DOCKER_VAR": 100},
   "dockerPassword": "myPassword",
@@ -973,6 +976,7 @@ Showing all possible properties at the Task Group level:
       "addYDEnvironmentVariables": true,
       "alwaysUpload": true,
       "arguments": [1, "TWO"],
+      "batchAllocation": false,
       "completedTaskTtl": 10,
       "dockerEnvironment": {"MY_DOCKER_VAR": 100},
       "dockerPassword": "myPassword",
