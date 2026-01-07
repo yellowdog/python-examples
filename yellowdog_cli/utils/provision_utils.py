@@ -11,7 +11,6 @@ from yellowdog_cli.utils.config_types import ConfigWorkerPool
 from yellowdog_cli.utils.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_image_name_or_id,
-    split_namespace_and_name,
 )
 from yellowdog_cli.utils.load_config import CONFIG_FILE_DIR
 from yellowdog_cli.utils.printing import print_log

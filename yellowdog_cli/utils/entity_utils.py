@@ -54,7 +54,7 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.printing import print_log, print_warning
+from yellowdog_cli.utils.printing import print_log
 from yellowdog_cli.utils.settings import NAMESPACE_PREFIX_SEPARATOR
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
