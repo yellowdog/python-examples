@@ -44,7 +44,7 @@ def main():
     generate_json_list = len(ARGS_PARSER.yellowdog_ids) > 1 and ARGS_PARSER.quiet
 
     if ARGS_PARSER.strip_ids:
-        print_log("Omitting YellowDog IDs (etc.) from detailed JSON objects")
+        print_log("Stripping YellowDog IDs (etc.) from detailed JSON objects")
 
     if generate_json_list:
         print("[")

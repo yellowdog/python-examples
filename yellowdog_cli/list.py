@@ -115,7 +115,7 @@ def main():
         ARGS_PARSER.details = True
 
     if ARGS_PARSER.details and ARGS_PARSER.strip_ids:
-        print_log("Omitting YellowDog IDs (etc.) from detailed JSON objects")
+        print_log("Stripping YellowDog IDs (etc.) from detailed JSON objects")
 
     if ARGS_PARSER.output_file and ARGS_PARSER.details:
         if exists(ARGS_PARSER.output_file):
