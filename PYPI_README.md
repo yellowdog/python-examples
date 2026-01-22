@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a set of Python CLI commands for interacting with the YellowDog Platform, providing examples of usage of the [YellowDog Python SDK](https://docs.yellowdog.co/api/python/index.html).
+This is a set of Python CLI commands for interacting with the YellowDog Platform, providing examples of usage of the [YellowDog Python SDK](https://docs.yellowdog.ai/sdk/python/index.html).
 
 The commands support:
 
@@ -26,4 +26,4 @@ The commands support:
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
 - **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
 
-Please see the documenation in the [GitHub repository](https://github.com/yellowdog/python-examples) for more details.
+Please see the documentation in the [GitHub repository](https://github.com/yellowdog/python-examples) for more details.

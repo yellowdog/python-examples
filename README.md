@@ -140,7 +140,7 @@
 
 # Overview
 
-This repository contains a set of command line utilities for driving the YellowDog Platform, written in Python. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.co/#/sdk)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
+This repository contains a set of command line utilities for driving the YellowDog Platform, written in Python. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.ai/sdk/python/index.html)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
 
 
 *(Note: these utilities are intended to be a helpful starting point for experimenting with the YellowDog Platform. They are not assured to be of production quality nor do they represent a standard or recommended method for using YellowDog.)*
@@ -597,7 +597,7 @@ To specify the file containing the JSON document, either populate the `workRequi
 
 ## Property Inheritance
 
-Work Requirement specification can be simplified substantially by the property inheritance features in `yd-submit`. In general, properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
+Work Requirement specifications can be simplified substantially by the property inheritance features in `yd-submit`. In general, properties that are set at a higher level in the hierarchy are inherited at lower levels, unless explicitly overridden.
 
 This means that a property set in the `workRequirement` section of the TOML file can be inherited successively by the Work Requirement, Task Groups, and Tasks in the JSON document (assuming the property is available at each level).  Hence, Tasks inherit from Task Groups, which inherit from the Work Requirement in the JSON document, which inherits from the `workRequirement` properties in the TOML file.
 
