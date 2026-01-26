@@ -48,6 +48,7 @@ from yellowdog_client.model.exceptions import InvalidRequestException
 
 from yellowdog_cli.utils.entity_utils import (
     clear_application_caches,
+    clear_compute_requirement_template_cache,
     clear_compute_source_template_cache,
     clear_group_caches,
     clear_image_caches,
@@ -130,6 +131,7 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 CLEAR_CST_CACHE: bool = False  # Track whether the CST cache needs to be cleared
+CLEAR_CRT_CACHE: bool = False  # Track whether the CRT cache needs to be cleared
 CLEAR_IMAGE_FAMILY_CACHE: bool = (
     False  # Track whether the image caches need to be cleared
 )
@@ -391,6 +393,8 @@ def create_compute_requirement_template(resource: Dict):
         template = CLIENT.compute_client.add_compute_requirement_template(
             compute_template
         )
+        global CLEAR_CRT_CACHE
+        CLEAR_CRT_CACHE = True
         print_log(f"Created Compute Requirement Template '{name}' ({template.id})")
         if ARGS_PARSER.quiet:
             print(template.id)
@@ -729,6 +733,10 @@ def create_allowance(resource: Dict):
         template_name_or_id = resource.get(PROP_SOURCE_CREATED_FROM, None)
         if template_name_or_id is not None:
             if get_ydid_type(template_name_or_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
+                global CLEAR_CST_CACHE
+                if CLEAR_CST_CACHE:  # Update the CST cache if required
+                    clear_compute_source_template_cache()
+                    CLEAR_CST_CACHE = False
                 template_id = find_compute_source_template_id_by_name(
                     client=CLIENT, name=template_name_or_id
                 )
@@ -750,6 +758,10 @@ def create_allowance(resource: Dict):
                 get_ydid_type(template_name_or_id)
                 != YDIDType.COMPUTE_REQUIREMENT_TEMPLATE
             ):
+                global CLEAR_CRT_CACHE
+                if CLEAR_CRT_CACHE:  # Update the CRT cache if required
+                    clear_compute_requirement_template_cache()
+                    CLEAR_CRT_CACHE = False
                 template_id = find_compute_requirement_template_id_by_name(
                     client=CLIENT, name=template_name_or_id
                 )
