@@ -256,7 +256,10 @@ def load_dotenv_file():
     if dotenv_file == "":
         return
 
-    print_log(f"Loading environment variables from '{dotenv_file}'")
+    print_log(
+        f"Loading environment variables from '{dotenv_file}' ("
+        f"{'' if ARGS_PARSER.env_override else 'NOT '}OVERRIDING existing variables)"
+    )
 
     dotenv_yd_substitutions = [  # Find 'YD' variables
         f"'{key}'"
