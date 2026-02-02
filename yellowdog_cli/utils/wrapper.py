@@ -5,11 +5,10 @@ for all commands.
 
 import os
 from sys import exit
-from typing import List
 
 from pypac import pac_context_for_url
 from yellowdog_client import PlatformClient
-from yellowdog_client.model import ApiKey, KeyringSummary, ServicesSchema
+from yellowdog_client.model import ApiKey, ServicesSchema
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import ConfigCommon
@@ -22,62 +21,38 @@ CLIENT = PlatformClient.create(
     ApiKey(CONFIG_COMMON.key, CONFIG_COMMON.secret),
 )
 
-from requests.exceptions import HTTPError
-
 
 def dry_run() -> bool:
     """
     Is this a dry-run?
     """
-    dry_run = ARGS_PARSER.dry_run or ARGS_PARSER.process_csv_only
-    if dry_run is None:
+    dry_run_ = ARGS_PARSER.dry_run or ARGS_PARSER.process_csv_only
+    if dry_run_ is None:
         return False
     else:
-        return dry_run
-
-
-def print_account():
-    """
-    Print the six character hexadecimal account ID. Depends on there
-    being at least one Keyring in the account. Omit if this is a dry run.
-    """
-    if not dry_run():
-        try:
-            keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
-            if len(keyrings) > 0:
-                # This is a little brittle, obviously
-                print_log(
-                    f"YellowDog Account short identifier is: '{keyrings[0].id[13:19]}'"
-                )
-        except HTTPError as e:
-            if "Unauthorized" in str(e):
-                print_error(
-                    "Unable to authorise YellowDog Application; please check"
-                    " your Application Key/Secret and its permissions"
-                )
-                exit(1)
-        except:
-            pass
+        return dry_run_
 
 
 def set_proxy():
     """
     Set the HTTPS proxy using autoconfiguration (PAC) if enabled.
     """
-    if not dry_run():
-        proxy_var = "HTTPS_PROXY"
-        if CONFIG_COMMON.use_pac:
-            print_log("Using Proxy Auto-Configuration (PAC)")
-            with pac_context_for_url(CONFIG_COMMON.url):
-                https_proxy = os.getenv(proxy_var, None)
-            if https_proxy is not None:
-                os.environ[proxy_var] = https_proxy
-            else:
-                print_log("No PAC proxy settings found")
-        else:
+    if dry_run():
+        return
+
+    proxy_var = "HTTPS_PROXY"
+    if CONFIG_COMMON.use_pac:
+        print_log("Using Proxy Auto-Configuration (PAC)")
+        with pac_context_for_url(CONFIG_COMMON.url):
             https_proxy = os.getenv(proxy_var, None)
         if https_proxy is not None:
-            print_log(f"Using {proxy_var}={https_proxy}")
+            os.environ[proxy_var] = https_proxy
+        else:
+            print_log("No PAC proxy settings found")
+    else:
+        https_proxy = os.getenv(proxy_var, None)
+    if https_proxy is not None:
+        print_log(f"Using {proxy_var}={https_proxy}")
 
 
 def main_wrapper(func):
@@ -86,7 +61,6 @@ def main_wrapper(func):
             exit_code = 0
             try:
                 set_proxy()
-                # print_account()
                 func()
             except Exception as e:
                 if "MissingPermissionException" in str(e):
@@ -95,6 +69,10 @@ def main_wrapper(func):
                         " perform the requested operation. Please check that the"
                         " Application belongs to the required group(s), e.g.,"
                         f" 'administrators', with roles in the required namespace(s): {e}"
+                    )
+                elif "Unauthorized" in str(e):
+                    print_error(
+                        f"Your Application Key ID and SECRET are not recognised: {e}"
                     )
                 else:
                     print_error(e)
@@ -110,7 +88,6 @@ def main_wrapper(func):
                 exit(exit_code)
         else:
             set_proxy()
-            # print_account()
             func()
             CLIENT.close()
             print_log("Done")

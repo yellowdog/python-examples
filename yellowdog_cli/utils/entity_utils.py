@@ -3,7 +3,7 @@ Various utility functions for finding objects, etc.
 """
 
 from functools import lru_cache
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.common import SearchClient
@@ -11,6 +11,7 @@ from yellowdog_client.model import (
     AccountAllowance,
     AllowanceSearch,
     Application,
+    ApplicationDetails,
     ApplicationSearch,
     ComputeRequirementStatus,
     ComputeRequirementSummary,
@@ -22,6 +23,7 @@ from yellowdog_client.model import (
     ComputeSourceTemplateSearch,
     ComputeSourceTemplateSummary,
     ExternalUser,
+    Group,
     GroupSearch,
     GroupSummary,
     ImageAccess,
@@ -385,7 +387,7 @@ def find_image_name_or_id(
     PUBLIC images.
 
     Finally, if nothing matches, the original ID is returned. This is
-    likely to be a provider specific string.
+    likely to be a provider-specific string.
     """
     if image_name_or_id is None:
         return None
@@ -915,19 +917,69 @@ def get_application_id_by_name(client: PlatformClient, app_name: str) -> Optiona
     return None
 
 
+@lru_cache
+def get_application_details(client: PlatformClient) -> ApplicationDetails:
+    """
+    Load and cache the Application's details
+    """
+    return client.application_client.get_application_details()
+
+
+@lru_cache
+def get_application_group_summaries(
+    client: PlatformClient, app_id: str
+) -> List[GroupSummary]:
+    """
+    Get the summaries of the groups to which an application belongs.
+    """
+    return client.account_client.get_application_groups(app_id).list_all()
+
+
+@lru_cache
+def get_application_groups(client: PlatformClient, app_id: str) -> List[Group]:
+    """
+    Get the groups to which an application belongs.
+    """
+    return [
+        client.account_client.get_group(group_summary.id)
+        for group_summary in get_application_group_summaries(client, app_id)
+    ]
+
+
+@lru_cache
+def get_all_roles_and_namespaces_for_application(
+    client: PlatformClient, application_id: str
+) -> Dict:
+    """
+    Get a list of roles and the namespaces to which they apply, for a given application.
+    Returns {role_name: [namespace, ...]}, sorted by role name.
+    """
+    # Iterate through groups, roles
+    roles_ = dict()
+    for group in get_application_groups(client, application_id):
+        for role in group.roles:
+            if roles_.get(role.role.name) is None:
+                roles_[role.role.name] = []
+                if role.scope.global_:
+                    roles_[role.role.name] += ["GLOBAL"]
+                else:
+                    roles_[role.role.name] += [
+                        namespace.namespace for namespace in role.scope.namespaces
+                    ]
+
+    return {role: namespaces for role, namespaces in sorted(roles_.items())}
+
+
 def clear_application_caches():
     """
     Clear the application caches.
     """
     get_all_applications.cache_clear()
     get_application_id_by_name.cache_clear()
-
-
-def get_application_groups(client: PlatformClient, app_id: str) -> List[GroupSummary]:
-    """
-    Get the groups to which an application belongs.
-    """
-    return client.account_client.get_application_groups(app_id).list_all()
+    get_application_details.cache_clear()
+    get_application_group_summaries.cache_clear()
+    get_application_groups.cache_clear()
+    get_all_roles_and_namespaces_for_application.cache_clear()
 
 
 def get_user_groups(client: PlatformClient, user_id: str) -> List[GroupSummary]:
@@ -1013,13 +1065,25 @@ def get_image_family_summaries(
     """
     Obtain and cache the list of image families.
     """
-    # Temporarily suppress most permission errors: will be improved
-    # once the application can be queried for its admissible
-    # IMAGE_READ namespaces
+    # Determine namespace(s) to search
+    if namespace is None:
+        # Attempt to use the namespace(s) that are 'readable' by
+        # this application; does not guarantee IMAGE_READ
+        application_details = get_application_details(client)
+        if application_details.allNamespacesReadable:
+            namespaces = None  # Search all namespaces
+        elif application_details.readableNamespaces is not None:
+            namespaces = application_details.readableNamespaces
+        else:
+            namespaces = []
+    else:
+        # Use the supplied namespace
+        namespaces = [namespace]
+
     try:
         if_search = MachineImageFamilySearch(
             familyName=None,
-            namespaces=None if namespace is None else [namespace],
+            namespaces=namespaces,
             includePublic=True,
         )
         search_client: SearchClient = client.images_client.get_image_families(if_search)

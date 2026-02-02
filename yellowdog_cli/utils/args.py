@@ -1884,6 +1884,8 @@ def lookup_module_description(module_name: str) -> Optional[str]:
             "comparing whether a work requirement or task group is matched by "
             "workers in the specified provisioned worker pools"
         )
+    elif "application" in module_name:
+        suffix = "reporting the details of the current Application"
 
     return None if suffix is None else prefix + suffix
 

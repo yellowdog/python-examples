@@ -52,7 +52,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_all_groups,
     get_all_roles,
     get_all_users,
-    get_application_groups,
+    get_application_group_summaries,
     get_compute_requirement_summaries,
     get_compute_requirement_templates,
     get_compute_source_templates,
@@ -992,7 +992,9 @@ def list_applications():
                 {
                     PROP_GROUPS: [
                         group.name
-                        for group in get_application_groups(CLIENT, application.id)
+                        for group in get_application_group_summaries(
+                            CLIENT, application.id
+                        )
                     ],
                     PROP_RESOURCE: RN_APPLICATION,
                 },

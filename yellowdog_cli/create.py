@@ -55,7 +55,7 @@ from yellowdog_cli.utils.entity_utils import (
     find_compute_requirement_template_id_by_name,
     find_compute_source_template_id_by_name,
     find_image_name_or_id,
-    get_application_groups,
+    get_application_group_summaries,
     get_application_id_by_name,
     get_group_id_by_name,
     get_group_name_by_id,
@@ -1156,7 +1156,7 @@ def create_application(resource: Dict):
         Helper function to add/remove groups from an application.
         """
         current_group_ids = {
-            group.id for group in get_application_groups(CLIENT, app.id)
+            group.id for group in get_application_group_summaries(CLIENT, app.id)
         }
 
         if current_group_ids == new_group_ids:

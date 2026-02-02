@@ -132,9 +132,10 @@
    * [yd-show](#yd-show)
    * [yd-compare](#yd-compare)
    * [yd-finish](#yd-finish)
+   * [yd-application](#yd-application)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Oct 24 12:05:26 BST 2025 -->
+<!-- Added by: pwt, at: Mon Feb  2 12:15:54 GMT 2026 -->
 
 <!--te-->
 
@@ -165,6 +166,7 @@ The commands provide the following capabilities:
 - **Provisioning** Worker Pools with the **`yd-provision`** command
 - **Resizing** Worker Pools and Compute Requirements with the **`yd-resize`** command
 - **Showing** the details of any YellowDog entity using its YellowDog ID with the **`yd-show`** command
+- **Showing** the details of the current Application with the **`yd-application`** command
 - **Shutting Down** Worker Pools and Nodes with the **`yd-shutdown`** command
 - **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
 - **Submitting** Work Requirements with the **`yd-submit`** command
@@ -3037,3 +3039,7 @@ The match status of a Worker Pool falls into one of four categories:
 ## yd-finish
 
 The `yd-finish` command moves work requirements into the `FINISHING` state, meaning the requirements will be allowed to conclude but that no new tasks can be added.
+
+## yd-application
+
+The `yd-application` command shows the details of the current Application, i.e., the Application represented by the `key` and `secret` being used.
