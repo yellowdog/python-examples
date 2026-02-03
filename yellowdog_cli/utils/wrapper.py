@@ -87,10 +87,12 @@ def main_wrapper(func):
                     print_log("Done")
                 exit(exit_code)
         else:
-            set_proxy()
-            func()
-            CLIENT.close()
-            print_log("Done")
-            exit(0)
+            try:
+                set_proxy()
+                func()
+                print_log("Done")
+                exit(0)
+            finally:
+                CLIENT.close()
 
     return wrapper
