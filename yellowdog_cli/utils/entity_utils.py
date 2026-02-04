@@ -524,6 +524,7 @@ def find_image_name_or_id(
                     )
 
     # Finally, fall through and return the unchanged, original ID string
+    print_log(f"No Images ID substitution possible for '{original_image_name_or_id}'")
     return original_image_name_or_id
 
 
