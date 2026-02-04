@@ -56,6 +56,7 @@ JSON_INDENT = 2
 HIGHLIGHTED_STATES = [
     r"(?P<active>ALLOCATED)",
     r"(?P<active>DOING_TASK)",
+    r"(?P<active>BATCH_ALLOCATION)",
     r"(?P<active>EXECUTING)",
     r"(?P<active>EXPECTED)",
     r"(?P<active>PENDING)",

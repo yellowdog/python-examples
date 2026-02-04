@@ -1410,6 +1410,7 @@ STATUS_COUNTS_INSTANCES = [
 ]
 
 STATUS_COUNTS_WORKERS = [
+    StatusCount("BATCH_ALLOCATION"),
     StatusCount("DOING_TASK", True),
     StatusCount("STOPPED", True),
     StatusCount("SLEEPING"),  # Should no longer see this state
