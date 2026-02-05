@@ -50,8 +50,8 @@ from yellowdog_cli.utils.misc_utils import format_yd_name, generate_id, link_ent
 from yellowdog_cli.utils.printing import (
     WorkRequirementSnapshot,
     print_error,
+    print_info,
     print_json,
-    print_log,
     print_numbered_strings,
     print_warning,
 )
@@ -181,7 +181,7 @@ def main():
             )
 
         wr_data_file = relpath(wr_data_file)
-        print_log(f"Loading Work Requirement data from: '{wr_data_file}'")
+        print_info(f"Loading Work Requirement data from: '{wr_data_file}'")
 
         # JSON file
         if wr_data_file.lower().endswith("json"):
@@ -303,7 +303,7 @@ def submit_work_requirement(
     )
     if task_group_count > 1:
         if len(wr_data[TASK_GROUPS]) == 1:
-            print_log(
+            print_info(
                 f"Expanding number of Task Groups to '{TASK_GROUP_COUNT}="
                 f"{task_group_count}'"
             )
@@ -341,15 +341,15 @@ def submit_work_requirement(
         work_requirement = CLIENT.work_client.add_work_requirement(work_requirement)
         if ARGS_PARSER.quiet:
             print(work_requirement.id)
-        print_log(
+        print_info(
             "Created "
             f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
             f"('{CONFIG_COMMON.namespace}/{work_requirement.name}')"
         )
-        print_log(f"YellowDog ID is '{work_requirement.id}'")
+        print_info(f"YellowDog ID is '{work_requirement.id}'")
         if ARGS_PARSER.hold:
             CLIENT.work_client.hold_work_requirement(work_requirement)
-            print_log("Work Requirement status is set to 'HELD'")
+            print_info("Work Requirement status is set to 'HELD'")
     else:
         global WR_SNAPSHOT
         WR_SNAPSHOT.set_work_requirement(work_requirement)
@@ -581,7 +581,7 @@ def create_task_group(
         tag=task_group_data.get(TASK_GROUP_TAG, None),
     )
 
-    print_log(f"Generated Task Group '{task_group_name}'")
+    print_info(f"Generated Task Group '{task_group_name}'")
     return task_group
 
 
@@ -614,7 +614,7 @@ def add_tasks_to_task_group(
     if task_group_task_count is not None:
         if num_tasks == 1 and task_group_task_count > 1:
             # Expand the number of Tasks to match the specified Task count
-            print_log(
+            print_info(
                 f"Expanding number of Tasks in Task Group '{task_group.name}' to"
                 f" '{TASK_COUNT}={task_group_task_count}' Tasks"
             )
@@ -636,7 +636,7 @@ def add_tasks_to_task_group(
     num_tasks = len(tasks) if task_count is None else task_count
     num_task_batches: int = ceil(num_tasks / TASK_BATCH_SIZE)
     if num_task_batches > 1 and not ARGS_PARSER.dry_run:
-        print_log(
+        print_info(
             f"Adding Tasks to Task Group '{task_group.name}' in "
             f"{num_task_batches} batches (batch size = {TASK_BATCH_SIZE})"
         )
@@ -666,7 +666,7 @@ def add_tasks_to_task_group(
     # Single batch or sequential batch submission
     if parallel_upload_threads == 1 or num_task_batches == 1:
         if num_task_batches > 1:
-            print_log(f"Uploading {num_task_batches} Task batches sequentially")
+            print_info(f"Uploading {num_task_batches} Task batches sequentially")
         for batch_number in range(num_task_batches):
             if ARGS_PARSER.pause_between_batches is not None and num_task_batches > 1:
                 pause_between_batches(
@@ -704,7 +704,7 @@ def add_tasks_to_task_group(
                 "Option 'pause-between-batches/-P' is ignored for parallel batch uploads"
             )
         max_workers = min(num_task_batches, parallel_upload_threads)
-        print_log(
+        print_info(
             f"Submitting Task batches using {max_workers} parallel submission threads"
         )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -744,12 +744,12 @@ def add_tasks_to_task_group(
 
     if not ARGS_PARSER.dry_run:
         if num_submitted_tasks > 0:
-            print_log(
+            print_info(
                 f"Added a total of {num_submitted_tasks:,d} Task(s) to Task Group"
                 f" '{task_group.name}'"
             )
         else:
-            print_log(f"No Tasks added to Task Group '{task_group.name}'")
+            print_info(f"No Tasks added to Task Group '{task_group.name}'")
 
 
 def generate_batch_of_tasks_for_task_group(
@@ -1126,7 +1126,7 @@ def submit_batch_of_tasks_to_task_group(
 
     def report_success():
         if num_task_batches > 1:
-            print_log(
+            print_info(
                 f"Batch {batch_number_str} :"
                 f" Added {len(tasks_list):,d} Task(s) {task_range_str}to Work Requirement Task"
                 f" Group '{task_group.name}'"
@@ -1160,7 +1160,7 @@ def submit_batch_of_tasks_to_task_group(
                 warning_already_displayed = True
 
             if attempts < MAX_BATCH_SUBMIT_ATTEMPTS - 1:
-                print_log(
+                print_info(
                     f"Retrying submission of batch {batch_number_str} "
                     f"(retry attempt {attempts + 1} of {MAX_BATCH_SUBMIT_ATTEMPTS - 1})"
                 )
@@ -1227,7 +1227,7 @@ def follow_progress_old(work_requirement: WorkRequirement) -> None:
         .result()
     )
     if work_requirement.status != WorkRequirementStatus.COMPLETED:
-        print_log(f"Work Requirement did not complete: {work_requirement.status}")
+        print_info(f"Work Requirement did not complete: {work_requirement.status}")
 
 
 def follow_progress(work_requirement: WorkRequirement) -> None:
@@ -1236,7 +1236,7 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     Replacement for the SDK version above.
     """
     if not ARGS_PARSER.dry_run:
-        print_log("Following Work Requirement event stream")
+        print_info("Following Work Requirement event stream")
         follow_events(work_requirement.id, YDIDType.WORK_REQUIREMENT)
 
 
@@ -1249,7 +1249,7 @@ def on_update(work_req: WorkRequirement):
     for task_group in work_req.taskGroups:
         completed += task_group.taskSummary.statusCounts[TaskStatus.COMPLETED]
         total += task_group.taskSummary.taskCount
-    print_log(
+    print_info(
         f"Work Requirement is {work_req.status} with {completed}/{total} "
         "completed Tasks"
     )
@@ -1285,7 +1285,7 @@ def deduplicate_inputs(task_inputs: List[TaskInput]) -> List[TaskInput]:
                 if task_input.source == TaskInputSource.TASK_NAMESPACE
                 else task_input.namespace
             )
-            print_log(
+            print_info(
                 f"Removing '{task_input.verification}' duplicate:"
                 f" '{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{task_input.objectNamePattern}'"
             )
@@ -1635,9 +1635,9 @@ def submit_json_raw(wr_file: str):
 
     if ARGS_PARSER.dry_run:
         # This will show the results of any variable substitutions
-        print_log("Dry-run: Printing JSON Work Requirement specification:")
+        print_info("Dry-run: Printing JSON Work Requirement specification:")
         print_json(wr_data)
-        print_log("Dry-run: Complete")
+        print_info("Dry-run: Complete")
         return
 
     # Extract Tasks from Task Groups
@@ -1661,7 +1661,7 @@ def submit_json_raw(wr_file: str):
 
     if response.status_code == 200:
         wr_id = jsons.loads(response.text)["id"]
-        print_log(
+        print_info(
             f"Created Work Requirement '{wr_data['namespace']}/{wr_name}' ({wr_id})"
         )
         if ARGS_PARSER.quiet:
@@ -1672,7 +1672,7 @@ def submit_json_raw(wr_file: str):
 
     if ARGS_PARSER.hold:
         CLIENT.work_client.hold_work_requirement_by_id(wr_id)
-        print_log("Work Requirement status set to 'HELD'")
+        print_info("Work Requirement status set to 'HELD'")
 
     # Submit Tasks to the Work Requirement
     # Collect 'VERIFY_AT_START' files
@@ -1694,18 +1694,18 @@ def submit_json_raw(wr_file: str):
     # Warn about VERIFY_AT_START files & halt to allow upload or
     # Work Requirement cancellation
     if ARGS_PARSER.quiet is False and len(verify_at_start_files) != 0:
-        print_log(
+        print_info(
             "The following files may be required ('VERIFY_AT_START') "
             "before Tasks are submitted, or the Tasks will fail."
         )
-        print_log(
+        print_info(
             "You now have an opportunity to upload the required files "
             "before Tasks are submitted:"
         )
         print()
         print_numbered_strings(sorted(list(verify_at_start_files)))
         if not confirmed("Proceed now (y), or Cancel Work Requirement (n)?"):
-            print_log(f"Cancelling Work Requirement '{wr_name}'")
+            print_info(f"Cancelling Work Requirement '{wr_name}'")
             CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
             return
 
@@ -1713,7 +1713,7 @@ def submit_json_raw(wr_file: str):
     for task_group_name, task_list in task_lists.items():
         num_batches = ceil(len(task_list) / TASK_BATCH_SIZE)
         max_workers = min(num_batches, ARGS_PARSER.parallel_batches)
-        print_log(
+        print_info(
             f"Submitting task batches using {max_workers} parallel submission thread(s)"
         )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -1738,7 +1738,7 @@ def submit_json_raw(wr_file: str):
 
             executor.shutdown()
             num_submitted_tasks = sum([x.result() for x in executors])
-            print_log(
+            print_info(
                 f"Added a total of {num_submitted_tasks} Task(s) to Task Group '{task_group_name}'"
             )
 
@@ -1767,7 +1767,7 @@ def submit_json_task_batch(
     )
 
     if response.status_code == 200:
-        print_log(
+        print_info(
             f"Added {len(task_batch)} Task(s) to Task Group "
             f"'{task_group_name}' (Batch {formatted_number_str(batch_number, num_batches)} "
             f"of {num_batches})"

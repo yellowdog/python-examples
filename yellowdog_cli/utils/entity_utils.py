@@ -56,7 +56,7 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.printing import print_log
+from yellowdog_cli.utils.printing import print_info
 from yellowdog_cli.utils.settings import NAMESPACE_PREFIX_SEPARATOR
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -243,7 +243,7 @@ def find_compute_source_template_id_by_name(
     """
     template_id = _find_id_by_name(name, client, get_compute_source_templates)
     if template_id is not None:
-        print_log(
+        print_info(
             f"Replaced Compute Source Template name '{name}' with ID {template_id}"
         )
     return template_id
@@ -420,7 +420,7 @@ def find_image_name_or_id(
         """
         if report_substitutions and return_val != original_image_name_or_id:
             msg = f"{return_val}" if is_ydid else f"'{return_val}'"
-            print_log(f"Replaced Images ID '{original_image_name_or_id}' with {msg}")
+            print_info(f"Replaced Images ID '{original_image_name_or_id}' with {msg}")
         return return_val
 
     split_name = image_name_or_id.split("/")
@@ -524,7 +524,7 @@ def find_image_name_or_id(
                     )
 
     # Finally, fall through and return the unchanged, original ID string
-    print_log(f"No Images ID substitution possible for '{original_image_name_or_id}'")
+    print_info(f"No Images ID substitution possible for '{original_image_name_or_id}'")
     return original_image_name_or_id
 
 
@@ -545,12 +545,12 @@ def remove_allowances_matching_description(
     ]
 
     if len(allowances) == 0:
-        print_log(f"Cannot find Allowance matching description '{description}'")
+        print_info(f"Cannot find Allowance matching description '{description}'")
         return 0
 
     if len(allowances) > 1:
-        print_log(f"Multiple Allowances match the description '{description}'")
-        print_log("Please select which Allowance(s) to remove")
+        print_info(f"Multiple Allowances match the description '{description}'")
+        print_info("Please select which Allowance(s) to remove")
         allowances = select(
             client=client,
             objects=allowances,
@@ -562,7 +562,7 @@ def remove_allowances_matching_description(
     for allowance in allowances:
         if confirmed(f"Remove Allowance with YellowDog ID {allowance.id}?"):
             client.allowances_client.delete_allowance_by_id(allowance.id)
-            print_log(f"Removed Allowance with YellowDog ID {allowance.id}")
+            print_info(f"Removed Allowance with YellowDog ID {allowance.id}")
 
     return len(allowances)
 
@@ -1092,7 +1092,7 @@ def get_image_family_summaries(
     except Exception as e:
         if namespace is not None and "MissingPermissionException" in str(e):
             # Caching will prevent this warning appearing multiple times
-            print_log(
+            print_info(
                 "Warning: Possible 'IMAGE_READ' permission missing if "
                 f"'{namespace}' is meant as an Image namespace?"
             )

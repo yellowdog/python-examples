@@ -70,8 +70,8 @@ from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import unpack_namespace_in_prefix
 from yellowdog_cli.utils.printing import (
     indent,
+    print_info,
     print_json,
-    print_log,
     print_numbered_object_list,
     print_table_core,
     print_warning,
@@ -111,11 +111,11 @@ def main():
         or ARGS_PARSER.substitute_ids
         or ARGS_PARSER.output_file
     ) and not ARGS_PARSER.details:
-        print_log("Automatically setting the '--details' option")
+        print_info("Automatically setting the '--details' option")
         ARGS_PARSER.details = True
 
     if ARGS_PARSER.details and ARGS_PARSER.strip_ids:
-        print_log("Stripping YellowDog IDs (etc.) from detailed JSON objects")
+        print_info("Stripping YellowDog IDs (etc.) from detailed JSON objects")
 
     if ARGS_PARSER.output_file and ARGS_PARSER.details:
         if exists(ARGS_PARSER.output_file):
@@ -205,12 +205,12 @@ def list_work_requirements():
     This function falls through from WRs to TGs to Tasks, depending on the
     options chosen.
     """
-    print_log(
+    print_info(
         f"Listing Work Requirements in namespace  '{CONFIG_COMMON.namespace}' "
         f"with '{CONFIG_COMMON.name_tag}' in tag",
     )
     if ARGS_PARSER.active_only:
-        print_log("Listing active Work Requirements only")
+        print_info("Listing active Work Requirements only")
 
     exclude_filter = (
         [
@@ -230,7 +230,7 @@ def list_work_requirements():
         )
     )
     if len(work_requirement_summaries) == 0:
-        print_log("No matching Work Requirements")
+        print_info("No matching Work Requirements")
         return
 
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
@@ -252,7 +252,7 @@ def list_work_requirements():
             CLIENT, work_requirement_summaries, single_result=True
         )
         for work_summary in selected_work_summaries:
-            print_log(f"Work Requirement '{work_summary.name}'")
+            print_info(f"Work Requirement '{work_summary.name}'")
             list_task_groups(work_summary)
 
 
@@ -293,17 +293,17 @@ def list_object_paths():
     namespace, tag = unpack_namespace_in_prefix(
         CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
-    print_log(
+    print_info(
         f"Listing Object Paths in namespace '{namespace}' and "
         f"names (prefixes) starting with '{tag}'"
     )
     if ARGS_PARSER.all and not ARGS_PARSER.details:
-        print_log("Listing all Objects")
+        print_info("Listing all Objects")
 
     object_paths = list_matching_object_paths(CLIENT, namespace, tag, ARGS_PARSER.all)
 
     if len(object_paths) == 0:
-        print_log("No matching Object Paths")
+        print_info("No matching Object Paths")
         return
 
     if not ARGS_PARSER.details:
@@ -313,12 +313,12 @@ def list_object_paths():
     # Print object details for selected objects
     object_paths = select(CLIENT, object_paths, override_quiet=True)
     if len(object_paths) != 0:
-        print_log(f"Showing Object details for {len(object_paths)} Object(s)")
+        print_info(f"Showing Object details for {len(object_paths)} Object(s)")
 
     object_detail_list = []
     for object_path in object_paths:
         if object_path.prefix:
-            print_log(f"Object Path '{object_path.name}' is a prefix not an object")
+            print_info(f"Object Path '{object_path.name}' is a prefix not an object")
             continue
         object_detail: ObjectDetail = CLIENT.object_store_client.get_object_detail(
             namespace=namespace, name=object_path.name
@@ -329,7 +329,7 @@ def list_object_paths():
 
 
 def list_worker_pools():
-    print_log(
+    print_info(
         f"Displaying Worker Pools in namespace '{CONFIG_COMMON.namespace}' "
         f"with '{CONFIG_COMMON.name_tag}' in name"
     )
@@ -345,7 +345,7 @@ def list_worker_pools():
     )
 
     if ARGS_PARSER.active_only:
-        print_log("Displaying active Worker Pools only")
+        print_info("Displaying active Worker Pools only")
 
     worker_pool_summaries = [
         wp_summary
@@ -355,11 +355,11 @@ def list_worker_pools():
     ]
 
     if len(worker_pool_summaries) == 0:
-        print_log("No Worker Pools to display")
+        print_info("No Worker Pools to display")
         return
 
     if ARGS_PARSER.nodes or ARGS_PARSER.workers:
-        print_log(
+        print_info(
             "Please select the Worker Pool(s) for which to list "
             f"{'Nodes' if ARGS_PARSER.nodes else 'Workers'}"
         )
@@ -390,14 +390,14 @@ def list_worker_pools():
 
 
 def list_compute_requirements():
-    print_log(
+    print_info(
         "Listing Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' with "
         f" names containing '{CONFIG_COMMON.name_tag}'"
     )
 
     if ARGS_PARSER.active_only:
-        print_log("Listing active Compute Requirements only")
+        print_info("Listing active Compute Requirements only")
         included_statuses = [
             ComputeRequirementStatus.NEW,
             ComputeRequirementStatus.STARTING,
@@ -416,7 +416,7 @@ def list_compute_requirements():
     )
 
     if len(compute_requirement_summaries) == 0:
-        print_log("No matching Compute Requirements")
+        print_info("No matching Compute Requirements")
         return
 
     compute_requirement_summaries = sorted_objects(compute_requirement_summaries)
@@ -452,11 +452,11 @@ def list_instances(compute_requirement_id: str):
     )
     instances: List[Instance] = search_client.list_all()
     if len(instances) == 0:
-        print_log("No instances to list")
+        print_info("No instances to list")
         return
 
     if ARGS_PARSER.public_ips_only:
-        print_log("Listing public IP addresses only:")
+        print_info("Listing public IP addresses only:")
         for instance in instances:
             try:
                 if instance.publicIpAddress is not None:
@@ -493,7 +493,7 @@ def list_nodes(worker_pool_summaries: List[WorkerPoolSummary]):
         nodes_all += nodes
 
     if len(nodes_all) == 0:
-        print_log("No Nodes to display")
+        print_info("No Nodes to display")
         return
 
     if ARGS_PARSER.workers:
@@ -532,7 +532,7 @@ def list_workers(nodes: List[Node]):
             workers_all.append(worker)
 
     if len(workers_all) == 0:
-        print_log("No Workers to display")
+        print_info("No Workers to display")
         return
 
     if not ARGS_PARSER.details:
@@ -553,7 +553,7 @@ def list_compute_requirement_templates():
     Print the list of Compute Requirement Templates, filtered on Namespace
     and Name. Set these both to empty strings to generate an unfiltered list.
     """
-    print_log(
+    print_info(
         "Listing Compute Requirement Templates in namespace "
         f"'{CONFIG_COMMON.namespace}' with names including "
         f"'{CONFIG_COMMON.name_tag}'"
@@ -566,7 +566,7 @@ def list_compute_requirement_templates():
     )
 
     if len(cr_templates) == 0:
-        print_log("No matching Compute Requirement Templates found")
+        print_info("No matching Compute Requirement Templates found")
         return
 
     if ARGS_PARSER.ids_only:
@@ -581,7 +581,7 @@ def list_compute_requirement_templates():
     # Show details
     cr_templates = select(CLIENT, cr_templates)
     if len(cr_templates) > 0 and ARGS_PARSER.substitute_ids:
-        print_log(
+        print_info(
             "Substituting Compute Source Template IDs and Image Family IDs with names"
         )
     cr_template_details = [
@@ -605,7 +605,7 @@ def list_compute_source_templates():
     and Name. Set these both to empty strings to generate an unfiltered list.
     """
 
-    print_log(
+    print_info(
         "Listing Compute Source Templates in namespace "
         f"'{CONFIG_COMMON.namespace}' with names including "
         f"'{CONFIG_COMMON.name_tag}'"
@@ -616,7 +616,7 @@ def list_compute_source_templates():
     )
 
     if len(cs_templates) == 0:
-        print_log("No matching Compute Source Templates found")
+        print_info("No matching Compute Source Templates found")
         return
 
     if ARGS_PARSER.ids_only:
@@ -651,7 +651,7 @@ def list_keyrings():
     """
     keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
     if len(keyrings) == 0:
-        print_log("No Keyrings found")
+        print_info("No Keyrings found")
         return
 
     if ARGS_PARSER.ids_only:
@@ -697,7 +697,7 @@ def list_image_families():
     search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)
     image_family_summaries: List[MachineImageFamilySummary] = search_client.list_all()
     if len(image_family_summaries) == 0:
-        print_log(
+        print_info(
             f"No matching Machine Image Families found in namespace "
             f"'{CONFIG_COMMON.namespace}' with tag including '{CONFIG_COMMON.name_tag}'"
         )
@@ -756,9 +756,9 @@ def list_namespace_storage_configurations():
     namespace_list += namespaces_default
 
     if len(namespace_list) == 0:
-        print_log("No Namespaces found")
+        print_info("No Namespaces found")
         return
-    print_log("Displaying all Object Store Namespaces")
+    print_info("Displaying all Object Store Namespaces")
 
     # Accumulate all available headings; keep "namespace", "type"
     # at the start
@@ -805,7 +805,7 @@ def list_allowances():
     )
     allowances: List[Allowance] = search_client.list_all()
     if len(allowances) == 0:
-        print_log("No Allowances to display")
+        print_info("No Allowances to display")
         return
 
     if ARGS_PARSER.ids_only:
@@ -819,7 +819,7 @@ def list_allowances():
 
     # Show details
     if len(allowances) > 0 and ARGS_PARSER.substitute_ids:
-        print_log(
+        print_info(
             "Substituting Compute Requirement Template IDs with names (if applicable)"
         )
     print_yd_object_list(
@@ -889,7 +889,7 @@ def list_namespaces():
     ).list_all()
 
     if len(namespaces) == 0:
-        print_log("No Namespaces found")
+        print_info("No Namespaces found")
         return
 
     if not ARGS_PARSER.details:
@@ -915,7 +915,7 @@ def list_namespace_policies():
     )
     namespace_policies: List[NamespacePolicy] = search_client.list_all()
     if len(namespace_policies) == 0:
-        print_log("No Namespace Policies to display")
+        print_info("No Namespace Policies to display")
         return
 
     if not ARGS_PARSER.details:
@@ -942,7 +942,7 @@ def list_users():
     users: List[User] = get_all_users(CLIENT)
 
     if len(users) == 0:
-        print_log("No Users to display")
+        print_info("No Users to display")
         return
 
     users.sort(key=lambda user: user.name)
@@ -975,7 +975,7 @@ def list_applications():
     applications = get_all_applications(CLIENT)
 
     if len(applications) == 0:
-        print_log("No Applications to display")
+        print_info("No Applications to display")
         return
 
     applications.sort(key=lambda app: app.name)
@@ -1011,7 +1011,7 @@ def list_groups():
     group_summaries = get_all_groups(CLIENT)
 
     if len(group_summaries) == 0:
-        print_log("No Groups to display")
+        print_info("No Groups to display")
         return
 
     group_summaries.sort(key=lambda group: group.name if group.name is not None else "")
@@ -1038,12 +1038,12 @@ def list_roles():
     role_summaries = get_all_roles(CLIENT)
 
     if len(role_summaries) == 0:
-        print_log("No Roles to display")
+        print_info("No Roles to display")
         return
 
     role_summaries.sort(key=lambda role: role.name if role.name is not None else "")
 
-    print_log("Obtaining permissions for each role ...")
+    print_info("Obtaining permissions for each role ...")
     roles: List[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
 
     # Sort permissions alphabetically (contorting the type)

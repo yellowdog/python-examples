@@ -19,7 +19,7 @@ from yellowdog_cli.utils.entity_utils import (
 from yellowdog_cli.utils.follow_utils import follow_ids
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import link_entity
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -38,7 +38,7 @@ def main():
         terminate_cr_by_name_or_id(ARGS_PARSER.compute_requirement_names)
         return
 
-    print_log(
+    print_info(
         "Terminating Compute Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' with tags "
         f"including '{CONFIG_COMMON.name_tag}'"
@@ -72,7 +72,7 @@ def main():
                     )
                 )
                 terminated_count += 1
-                print_log(
+                print_info(
                     f"Terminated {link_entity(CONFIG_COMMON.url, compute_requirement_summary)}"
                 )
             except Exception as e:
@@ -81,11 +81,11 @@ def main():
                 )
 
     if terminated_count > 0:
-        print_log(f"Terminated {terminated_count} Compute Requirement(s)")
+        print_info(f"Terminated {terminated_count} Compute Requirement(s)")
         if ARGS_PARSER.follow:
             follow_ids([cr.id for cr in selected_compute_requirement_summaries])
     else:
-        print_log("No Compute Requirements terminated")
+        print_info("No Compute Requirements terminated")
 
 
 def terminate_cr_by_name_or_id(names_or_ids: List[str]):
@@ -106,11 +106,11 @@ def terminate_cr_by_name_or_id(names_or_ids: List[str]):
                 )
                 continue
             else:
-                print_log(f"Found Compute Requirement ID: {compute_requirement_id}")
+                print_info(f"Found Compute Requirement ID: {compute_requirement_id}")
         compute_requirement_ids.append(compute_requirement_id)
 
     if len(compute_requirement_ids) == 0:
-        print_log("No Compute Requirements to terminate")
+        print_info("No Compute Requirements to terminate")
         return
 
     if not confirmed(
@@ -123,7 +123,7 @@ def terminate_cr_by_name_or_id(names_or_ids: List[str]):
             CLIENT.compute_client.terminate_compute_requirement_by_id(
                 compute_requirement_id
             )
-            print_log(f"Terminated '{compute_requirement_id}'")
+            print_info(f"Terminated '{compute_requirement_id}'")
         except Exception as e:
             print_error(f"Failed to terminate '{compute_requirement_id}': ({e})")
 

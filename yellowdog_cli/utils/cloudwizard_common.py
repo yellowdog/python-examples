@@ -20,7 +20,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_compute_source_templates,
 )
 from yellowdog_cli.utils.interactive import confirmed
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.settings import RN_KEYRING, RN_REQUIREMENT_TEMPLATE
 from yellowdog_cli.utils.variables import process_variable_substitutions_insitu
 
@@ -240,14 +240,16 @@ class CommonCloudConfig(ABC):
                 f"YellowDog resources definition file '{resources_file}' already"
                 " exists; OK to overwrite?"
             ):
-                print_log("Not overwriting YellowDog resources definition file")
+                print_info("Not overwriting YellowDog resources definition file")
                 return False
 
         try:
             with open(resources_file, "w") as f:
                 json.dump(resource_list, f, indent=2, cls=CompactJSONEncoder)
                 f.write("\n")
-                print_log(f"Saved YellowDog resource definitions to '{resources_file}'")
+                print_info(
+                    f"Saved YellowDog resource definitions to '{resources_file}'"
+                )
                 return True
         except Exception as e:
             print_error(
@@ -261,7 +263,7 @@ class CommonCloudConfig(ABC):
         if confirmed(f"Remove Keyring '{keyring_name}'?"):
             try:
                 self._client.keyring_client.delete_keyring_by_name(keyring_name)
-                print_log(f"Removed Keyring '{keyring_name}'")
+                print_info(f"Removed Keyring '{keyring_name}'")
             except Exception as e:
                 if "NotFoundException" in str(e):
                     print_warning(f"No Keyring '{keyring_name}' to remove")
@@ -272,7 +274,7 @@ class CommonCloudConfig(ABC):
         """
         Generate the Compute Requirement Templates
         """
-        print_log(
+        print_info(
             "Creating example Compute Requirement Templates with instance type"
             f" '{self._instance_type}'"
         )
@@ -320,7 +322,7 @@ class CommonCloudConfig(ABC):
             ),
         ]
 
-        print_log("Creating YellowDog Compute Requirement Templates")
+        print_info("Creating YellowDog Compute Requirement Templates")
         create_resources(
             process_variable_substitutions_insitu(
                 deepcopy(self._requirement_template_resources)
@@ -337,7 +339,7 @@ class CommonCloudConfig(ABC):
             keyring, self._keyring_password = create_keyring_via_api(
                 keyring_name, keyring_resource["description"]
             )
-            print_log(f"Created YellowDog Keyring '{keyring_name}' ({keyring.id})")
+            print_info(f"Created YellowDog Keyring '{keyring_name}' ({keyring.id})")
             self._keyring_name = keyring_name
         except Exception as e:
             if "A keyring already exists" in str(e):
@@ -350,10 +352,10 @@ class CommonCloudConfig(ABC):
         Print the details of the Keyring and Keyring password.
         """
         if self._keyring_password is not None:
-            print_log(
+            print_info(
                 "In the 'Keyrings' section of the YellowDog Portal, please claim your"
                 " Keyring using the name and password below. The password will not be"
                 " shown again."
             )
-            print_log(f"--> Keyring name     = '{self._keyring_name}'")
-            print_log(f"--> Keyring password = '{self._keyring_password}'")
+            print_info(f"--> Keyring name     = '{self._keyring_name}'")
+            print_info(f"--> Keyring password = '{self._keyring_password}'")

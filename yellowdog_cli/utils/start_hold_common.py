@@ -19,7 +19,7 @@ from yellowdog_cli.utils.entity_utils import (
 from yellowdog_cli.utils.follow_utils import follow_ids
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import link_entity
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON
 
 
@@ -51,7 +51,7 @@ def _start_or_hold_work_requirements(
             names_or_ids=ARGS_PARSER.work_requirement_names,
         )
 
-    print_log(
+    print_info(
         f"{action}ing Work Requirements in namespace "
         f"'{CONFIG_COMMON.namespace}' with "
         f"'{CONFIG_COMMON.name_tag}' in tag"
@@ -85,7 +85,7 @@ def _start_or_hold_work_requirements(
                         CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
                     )
                     count += 1
-                    print_log(
+                    print_info(
                         f"Applied {action} to "
                         f"{link_entity(CONFIG_COMMON.url, work_requirement)} "
                         f"('{work_summary.name}')"
@@ -97,12 +97,12 @@ def _start_or_hold_work_requirements(
             work_requirement_ids.append(work_summary.id)
 
         if count > 0:
-            print_log(f"{action} applied to {count} Work Requirement(s)")
+            print_info(f"{action} applied to {count} Work Requirement(s)")
         else:
-            print_log(f"No Work Requirements to {action}")
+            print_info(f"No Work Requirements to {action}")
 
     else:
-        print_log(f"No Work Requirements available to {action}")
+        print_info(f"No Work Requirements available to {action}")
 
     return work_requirement_ids
 
@@ -142,7 +142,7 @@ def _start_or_hold_work_requirements_by_name_or_id(
 
         try:
             action_function(work_requirement_summary.id)
-            print_log(f"Applied action '{action}' to Work Requirement '{name_or_id}'")
+            print_info(f"Applied action '{action}' to Work Requirement '{name_or_id}'")
             work_requirement_summaries.append(work_requirement_summary)
         except Exception as e:
             print_error(

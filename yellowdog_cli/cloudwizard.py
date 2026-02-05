@@ -8,7 +8,7 @@ from yellowdog_cli.utils.check_imports import check_cloudwizard_imports
 from yellowdog_cli.utils.cloudwizard_aws import AWSConfig
 from yellowdog_cli.utils.cloudwizard_azure import AzureConfig
 from yellowdog_cli.utils.cloudwizard_gcp import GCPConfig
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 
 
@@ -21,7 +21,7 @@ def main():
     check_cloudwizard_imports()
 
     if ARGS_PARSER.cloud_provider.lower() in ["aws", "amazon"]:
-        print_log(f"YellowDog automated cloud provider setup/teardown for 'AWS'")
+        print_info(f"YellowDog automated cloud provider setup/teardown for 'AWS'")
         cloud_provider_config = AWSConfig(
             client=CLIENT,
             region_name=ARGS_PARSER.region_name,
@@ -30,7 +30,7 @@ def main():
         )
 
     elif ARGS_PARSER.cloud_provider.lower() in ["gcp", "gce", "google"]:
-        print_log(f"YellowDog automated cloud provider setup/teardown for 'GCP'")
+        print_info(f"YellowDog automated cloud provider setup/teardown for 'GCP'")
         if ARGS_PARSER.credentials_file is None:
             print_error(
                 "Credentials file ('--credentials-file') must be supplied for GCP"
@@ -43,7 +43,7 @@ def main():
         )
 
     elif ARGS_PARSER.cloud_provider.lower() in ["azure", "microsoft"]:
-        print_log(f"YellowDog automated cloud provider setup/teardown for 'Azure'")
+        print_info(f"YellowDog automated cloud provider setup/teardown for 'Azure'")
         cloud_provider_config = AzureConfig(
             client=CLIENT,
             instance_type=ARGS_PARSER.instance_type,

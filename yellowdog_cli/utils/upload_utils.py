@@ -11,7 +11,7 @@ from yellowdog_client import PlatformClient
 from yellowdog_client.object_store.model import FileTransferStatus
 
 from yellowdog_cli.utils.misc_utils import link
-from yellowdog_cli.utils.printing import print_log
+from yellowdog_cli.utils.printing import print_info
 from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
 
 
@@ -107,7 +107,7 @@ def upload_file_core(
     if session.status != FileTransferStatus.Completed:
         raise Exception(f"Failed to upload file: {local_file}")
 
-    print_log(
+    print_info(
         f"Uploaded file '{local_file}' to"
         f" '{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{remote_file}'"
     )
@@ -116,4 +116,4 @@ def upload_file_core(
         url,
         f"#/objects/{namespace}/{remote_file}?object=true",
     )
-    print_log(f"Object URL: {link_}")
+    print_info(f"Object URL: {link_}")

@@ -13,7 +13,7 @@ from yellowdog_cli.utils.entity_utils import (
     find_image_name_or_id,
 )
 from yellowdog_cli.utils.load_config import CONFIG_FILE_DIR
-from yellowdog_cli.utils.printing import print_log
+from yellowdog_cli.utils.printing import print_info
 from yellowdog_cli.utils.property_names import USERDATA, USERDATAFILE, USERDATAFILES
 from yellowdog_cli.utils.settings import WP_VARIABLES_POSTFIX, WP_VARIABLES_PREFIX
 from yellowdog_cli.utils.variables import (
@@ -92,7 +92,7 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
             f"Compute Requirement Template '{template_id_or_name}' not found"
         )
 
-    print_log(
+    print_info(
         f"Substituting Compute Requirement Template name '{template_id_or_name}'"
         f" with ID {template_id}"
     )

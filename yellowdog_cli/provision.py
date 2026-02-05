@@ -30,7 +30,7 @@ from yellowdog_cli.utils.misc_utils import (
 )
 from yellowdog_cli.utils.printing import (
     print_error,
-    print_log,
+    print_info,
     print_worker_pool,
     print_yd_object,
 )
@@ -96,7 +96,7 @@ def main():
 
     if wp_json_file is not None:
         wp_json_file = resolve_filename(files_directory, wp_json_file)
-        print_log(f"Loading Worker Pool data from: '{wp_json_file}'")
+        print_info(f"Loading Worker Pool data from: '{wp_json_file}'")
         create_worker_pool_from_json(wp_json_file)
     elif CONFIG_WP.template_id is None:
         print_error("No template ID supplied")
@@ -149,7 +149,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             (INSTANCE_TAGS, CONFIG_WP.instance_tags),
         ]:
             if reqt_template_usage.get(key) is None and value is not None:
-                print_log(f"Setting 'requirementTemplateUsage.{key}': '{value}'")
+                print_info(f"Setting 'requirementTemplateUsage.{key}': '{value}'")
                 reqt_template_usage[key] = value
 
         if (
@@ -157,7 +157,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             and CONFIG_WP.target_instance_count is not None
             and CONFIG_WP.target_instance_count_set is True
         ):
-            print_log(
+            print_info(
                 f"Setting 'requirementTemplateUsage.{TARGET_INSTANCE_COUNT}':"
                 f" '{CONFIG_WP.target_instance_count}'"
             )
@@ -230,7 +230,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             ("metricsEnabled", CONFIG_WP.metrics_enabled),
         ]:
             if provisioned_properties.get(key) is None and value is not None:
-                print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
+                print_info(f"Setting 'provisionedProperties.{key}': '{value}'")
                 provisioned_properties[key] = value
 
         for key, value, is_set in [
@@ -242,16 +242,16 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                 and value is not None
                 and is_set is True
             ):
-                print_log(f"Setting 'provisionedProperties.{key}': '{value}'")
+                print_info(f"Setting 'provisionedProperties.{key}': '{value}'")
                 provisioned_properties[key] = value
 
     except KeyError as e:
         raise Exception(f"Key error in JSON Worker Pool definition: {e}")
 
     if ARGS_PARSER.dry_run:
-        print_log("Dry-run: Printing JSON Worker Pool specification")
+        print_info("Dry-run: Printing JSON Worker Pool specification")
         print_yd_object(wp_data)
-        print_log("Dry-run: Complete")
+        print_info("Dry-run: Complete")
         return
 
     response = requests.post(
@@ -262,13 +262,13 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     name = wp_data["requirementTemplateUsage"]["requirementName"]
     if response.status_code == 200:
         id = response.json()["id"]
-        print_log(
+        print_info(
             f"Provisioned Worker Pool '{reqt_template_usage['requirementNamespace']}/{name}' ({id})"
         )
         if ARGS_PARSER.quiet:
             print(id)
         if ARGS_PARSER.follow:
-            print_log("Following Worker Pool event stream")
+            print_info("Following Worker Pool event stream")
             follow_ids([id], auto_cr=ARGS_PARSER.auto_cr)
     else:
         print_error(f"Failed to provision Worker Pool '{name}'")
@@ -328,21 +328,21 @@ def create_worker_pool_from_toml():
         node_workers = NodeWorkerTarget.per_node(CONFIG_WP.workers_per_node)
 
     if CONFIG_WP.maintainInstanceCount is True:
-        print_log(
+        print_info(
             f"Warning: Property '{MAINTAIN_INSTANCE_COUNT}' will be set to "
             "'false' when creating a Worker Pool"
         )
 
     # Create the Worker Pool
     if node_workers.targetType == NodeWorkerTargetType.CUSTOM:
-        print_log(
+        print_info(
             f"Provisioning {CONFIG_WP.target_instance_count:,d} node(s) "
             f"with a custom number of workers per node "
             f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
             f"maxNodes: {CONFIG_WP.max_nodes:,d})"
         )
     else:
-        print_log(
+        print_info(
             f"Provisioning {CONFIG_WP.target_instance_count:,d} node(s) "
             f"with {node_workers.targetCount} worker(s) "
             f"{node_workers.targetType} "
@@ -359,7 +359,7 @@ def create_worker_pool_from_toml():
 
     worker_pool_ids: List[str] = []
     if num_batches > 1:
-        print_log(f"Batching into {num_batches} Compute Requirements")
+        print_info(f"Batching into {num_batches} Compute Requirements")
 
     for batch_number in range(num_batches):
         id = add_batch_number_postfix(
@@ -368,14 +368,14 @@ def create_worker_pool_from_toml():
             num_batches=num_batches,
         )
         if num_batches > 1:
-            print_log(
+            print_info(
                 f"Provisioning Worker Pool {batch_number + 1} '{CONFIG_COMMON.namespace}/{id}' "
                 f"with {batches[batch_number].initial_nodes:,d} nodes(s) "
                 f"(minNodes: {batches[batch_number].min_nodes:,d}, "
                 f"maxNodes: {batches[batch_number].max_nodes:,d})"
             )
         else:
-            print_log(f"Provisioning Worker Pool '{CONFIG_COMMON.namespace}/{id}'")
+            print_info(f"Provisioning Worker Pool '{CONFIG_COMMON.namespace}/{id}'")
         try:
             compute_requirement_template_usage = ComputeRequirementTemplateUsage(
                 templateId=CONFIG_WP.template_id,
@@ -407,8 +407,8 @@ def create_worker_pool_from_toml():
                     compute_requirement_template_usage,
                     provisioned_worker_pool_properties,
                 )
-                print_log(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
-                print_log(f"YellowDog ID is '{worker_pool.id}'")
+                print_info(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
+                print_info(f"YellowDog ID is '{worker_pool.id}'")
                 worker_pool_ids.append(worker_pool.id)
                 if ARGS_PARSER.quiet:
                     print(worker_pool.id)
@@ -427,7 +427,7 @@ def create_worker_pool_from_toml():
         else "is **disabled**"
     )
 
-    print_log(
+    print_info(
         "Node boot time limit is "
         f"{CONFIG_WP.node_boot_timeout} minute(s) | "
         "Node idle shutdown "
@@ -442,17 +442,17 @@ def create_worker_pool_from_toml():
         if CONFIG_WP.idle_pool_timeout != 0
         else idle_pool_shutdown_msg
     )
-    print_log(idle_pool_shutdown_msg)
+    print_info(idle_pool_shutdown_msg)
 
     if CONFIG_WP.metrics_enabled:
-        print_log("Node metrics are enabled")
+        print_info("Node metrics are enabled")
 
     if ARGS_PARSER.dry_run:
-        print_log("Dry-run: Complete")
+        print_info("Dry-run: Complete")
         return
 
     if ARGS_PARSER.follow:
-        print_log("Following Worker Pool event stream(s)")
+        print_info("Following Worker Pool event stream(s)")
         follow_ids(worker_pool_ids, auto_cr=ARGS_PARSER.auto_cr)
 
 
@@ -507,7 +507,7 @@ def _update_node_counts():
 
     # Automatically increase targetInstanceCount if required
     if CONFIG_WP.target_instance_count < 0:
-        print_log(
+        print_info(
             f"Increasing 'targetInstanceCount' from {CONFIG_WP.target_instance_count} "
             "to 0 to satisfy minimum constraint"
         )
@@ -515,7 +515,7 @@ def _update_node_counts():
 
     # Automatically increase maxNodes if required
     if CONFIG_WP.target_instance_count > CONFIG_WP.max_nodes:
-        print_log(
+        print_info(
             f"Increasing 'maxNodes' from {CONFIG_WP.max_nodes} to "
             f"{CONFIG_WP.target_instance_count} to match 'targetInstanceCount'"
         )
@@ -523,7 +523,7 @@ def _update_node_counts():
 
     # Automatically set maxNodes to 1 if required
     if CONFIG_WP.max_nodes < 1:
-        print_log(
+        print_info(
             f"Increasing 'maxNodes' from {CONFIG_WP.max_nodes} to 1 to satisfy "
             "minimum constraint"
         )
@@ -531,7 +531,7 @@ def _update_node_counts():
 
     # Automatically reduce minNodes if required
     if CONFIG_WP.target_instance_count < CONFIG_WP.min_nodes:
-        print_log(
+        print_info(
             f"Reducing 'minNodes' from {CONFIG_WP.min_nodes} to "
             f"{CONFIG_WP.target_instance_count} to match 'targetInstanceCount'"
         )
@@ -539,7 +539,7 @@ def _update_node_counts():
 
     # Automatically set minNodes to 0 if required
     if CONFIG_WP.min_nodes < 0:
-        print_log(
+        print_info(
             f"Increasing 'minNodes' from {CONFIG_WP.min_nodes} to 0 to satisfy "
             "minimum constraint"
         )

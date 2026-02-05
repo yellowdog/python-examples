@@ -21,7 +21,7 @@ from yellowdog_cli.utils.entity_utils import (
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.printing import (
     print_error,
-    print_log,
+    print_info,
     print_warning,
     sorted_objects,
 )
@@ -36,7 +36,7 @@ def main():
         _abort_tasks_by_name_or_id(ARGS_PARSER.task_id_list)
         return
 
-    print_log(
+    print_info(
         "Finding active Work Requirements in "
         f"namespace '{CONFIG_COMMON.namespace}' with tags "
         f"including '{CONFIG_COMMON.name_tag}'"
@@ -66,7 +66,7 @@ def main():
             override_quiet=True,
         )
     else:
-        print_log("No matching Work Requirements found")
+        print_info("No matching Work Requirements found")
 
     if len(selected_work_requirement_summaries) == 1:
         abort_tasks_selectively(selected_work_requirement_summaries[0])
@@ -78,7 +78,7 @@ def abort_tasks_selectively(
     """
     Abort selected Tasks in a Work Requirements
     """
-    print_log(f"Aborting Tasks in Work Requirement '{wr_summary.name}'")
+    print_info(f"Aborting Tasks in Work Requirement '{wr_summary.name}'")
 
     task_search = TaskSearch(
         workRequirementId=wr_summary.id,
@@ -91,7 +91,7 @@ def abort_tasks_selectively(
             CLIENT, sorted_objects(tasks), parent=wr_summary, override_quiet=True
         )
     else:
-        print_log(
+        print_info(
             "No currently executing Tasks in this Work Requirement",
             override_quiet=True,
         )
@@ -101,7 +101,7 @@ def abort_tasks_selectively(
         for task in tasks:
             try:
                 CLIENT.work_client.cancel_task(task, abort=True)
-                print_log(
+                print_info(
                     f"Aborted Task '{task.name}' in Task Group"
                     f" '{get_task_group_name(CLIENT, wr_summary, task)}' in Work"
                     f" Requirement '{wr_summary.name}'"
@@ -111,9 +111,9 @@ def abort_tasks_selectively(
                 print_error(f"Unable to abort Task '{task.name}': {e}")
 
     if aborted_tasks == 0:
-        print_log("No Tasks Aborted")
+        print_info("No Tasks Aborted")
     elif aborted_tasks > 1:
-        print_log(f"Aborted {aborted_tasks} Tasks")
+        print_info(f"Aborted {aborted_tasks} Tasks")
 
 
 def _abort_tasks_by_name_or_id(task_id_list: List[str]):
@@ -131,15 +131,15 @@ def _abort_tasks_by_name_or_id(task_id_list: List[str]):
 
         try:
             CLIENT.work_client.cancel_task_by_id(task_id, abort=True)
-            print_log(f"Cancelled and aborted Task '{task_id}'")
+            print_info(f"Cancelled and aborted Task '{task_id}'")
             aborted_count += 1
         except Exception as e:
             print_error(f"Unable to cancel and abort Task '{task_id}': {e}")
 
     if aborted_count > 1:
-        print_log(f"Cancelled and aborted {aborted_count} Tasks")
+        print_info(f"Cancelled and aborted {aborted_count} Tasks")
     elif aborted_count == 0:
-        print_log("No Tasks cancelled and aborted")
+        print_info("No Tasks cancelled and aborted")
 
 
 # Entry point

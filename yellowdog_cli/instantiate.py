@@ -26,7 +26,7 @@ from yellowdog_cli.utils.misc_utils import (
 from yellowdog_cli.utils.printing import (
     print_compute_template_test_result,
     print_error,
-    print_log,
+    print_info,
     print_yd_object,
 )
 from yellowdog_cli.utils.provision_utils import (
@@ -76,7 +76,7 @@ def main():
         cr_json_file = CONFIG_WP.compute_requirement_data_file
 
     if cr_json_file is not None:
-        print_log(f"Loading Compute Requirement data from: '{cr_json_file}'")
+        print_info(f"Loading Compute Requirement data from: '{cr_json_file}'")
         _create_compute_requirement_from_json(
             cr_json_file, WP_VARIABLES_PREFIX, WP_VARIABLES_POSTFIX
         )
@@ -97,7 +97,7 @@ def main():
         )
 
     if not ARGS_PARSER.report:
-        print_log(
+        print_info(
             "Provisioning Compute Requirement with "
             f"{CONFIG_WP.target_instance_count:,d} instance(s)"
         )
@@ -109,7 +109,7 @@ def main():
 
     num_batches = len(batches)
     if num_batches > 1 and not ARGS_PARSER.report:
-        print_log(f"Batching into {num_batches} Compute Requirements")
+        print_info(f"Batching into {num_batches} Compute Requirements")
 
     compute_requirement_ids: List[str] = []
     for batch_number in range(num_batches):
@@ -120,12 +120,12 @@ def main():
         )
         if not (ARGS_PARSER.dry_run or ARGS_PARSER.report):
             if num_batches > 1:
-                print_log(
+                print_info(
                     f"Provisioning Compute Requirement {batch_number + 1} '{CONFIG_COMMON.namespace}/{id}'"
                     f"with {batches[batch_number].target_instances:,d} instance(s)"
                 )
             else:
-                print_log(
+                print_info(
                     f"Provisioning Compute Requirement '{CONFIG_COMMON.namespace}/{id}'"
                 )
 
@@ -147,7 +147,7 @@ def main():
             )
 
             if ARGS_PARSER.report:
-                print_log("Generating provisioning report only")
+                print_info("Generating provisioning report only")
                 try:
                     test_result: ComputeRequirementTemplateTestResult = (
                         CLIENT.compute_client.test_compute_requirement_template(
@@ -163,7 +163,9 @@ def main():
                             )
                         )
                     if "No sources" in http_error.response.text:
-                        print_log("No Compute Sources match the Template's constraints")
+                        print_info(
+                            "No Compute Sources match the Template's constraints"
+                        )
                     else:
                         raise http_error
                 return
@@ -177,15 +179,15 @@ def main():
                 compute_requirement_ids.append(compute_requirement.id)
                 if ARGS_PARSER.quiet:
                     print(compute_requirement.id)
-                print_log(
+                print_info(
                     f"Provisioned {link_entity(CONFIG_COMMON.url, compute_requirement)}"
                 )
-                print_log(f"YellowDog ID is '{compute_requirement.id}'")
+                print_info(f"YellowDog ID is '{compute_requirement.id}'")
 
             else:
-                print_log("Dry-run: Printing JSON Compute Requirement specification")
+                print_info("Dry-run: Printing JSON Compute Requirement specification")
                 print_yd_object(compute_requirement_template_usage)
-                print_log("Dry-run: Complete")
+                print_info("Dry-run: Complete")
 
         except Exception as e:
             raise Exception(
@@ -288,7 +290,7 @@ def _create_compute_requirement_from_json(
             ("maintainInstanceCount", CONFIG_WP.maintainInstanceCount),
         ]:
             if cr_data.get(key) is None and value is not None:
-                print_log(f"Setting '{key}' to '{value}'")
+                print_info(f"Setting '{key}' to '{value}'")
                 cr_data[key] = value
 
     except KeyError as e:
@@ -308,9 +310,9 @@ def _create_compute_requirement_from_json(
         )
 
     if ARGS_PARSER.dry_run:
-        print_log("Dry-run: Printing JSON Compute Requirement specification")
+        print_info("Dry-run: Printing JSON Compute Requirement specification")
         print_yd_object(cr_data)
-        print_log("Dry-run: Complete")
+        print_info("Dry-run: Complete")
         return
 
     response = requests.post(
@@ -321,13 +323,13 @@ def _create_compute_requirement_from_json(
     name = cr_data["requirementName"]
     if response.status_code == 200:
         id = response.json()["id"]
-        print_log(
+        print_info(
             f"Provisioned Compute Requirement '{cr_data['requirementNamespace']}/{name}' ({id})"
         )
         if ARGS_PARSER.quiet:
             print(id)
         if ARGS_PARSER.follow:
-            print_log("Following Compute Requirement event stream")
+            print_info("Following Compute Requirement event stream")
             follow_events(id, YDIDType.COMPUTE_REQUIREMENT)
     else:
         print_error(f"Failed to provision Compute Requirement '{name}'")

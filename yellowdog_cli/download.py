@@ -21,7 +21,7 @@ from yellowdog_cli.utils.entity_utils import (
 )
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import unpack_namespace_in_prefix
-from yellowdog_cli.utils.printing import print_batch_download_files, print_log
+from yellowdog_cli.utils.printing import print_batch_download_files, print_info
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -30,14 +30,14 @@ def main():
 
     # Non-exact matching of namespace property
     if ARGS_PARSER.non_exact_namespace_match:
-        print_log("Using non-exact namespace matching")
+        print_info("Using non-exact namespace matching")
         matching_namespaces = get_non_exact_namespace_matches(
             CLIENT, CONFIG_COMMON.namespace
         )
         if len(matching_namespaces) == 0:
-            print_log("No matching namespaces")
+            print_info("No matching namespaces")
             return
-        print_log(f"{len(matching_namespaces)} namespace(s) to consider")
+        print_info(f"{len(matching_namespaces)} namespace(s) to consider")
         for namespace in matching_namespaces:
             _, tag = unpack_namespace_in_prefix(namespace, CONFIG_COMMON.name_tag)
             download_object_paths(
@@ -73,7 +73,7 @@ def download_object_paths(
     """
     Download Object Paths matching namespace, prefix and pattern.
     """
-    print_log(
+    print_info(
         f"Downloading Objects in namespace '{namespace}' and "
         f"prefix starting with '{prefix}'"
         + ("" if pattern is None else f", matching name pattern '{pattern}'")
@@ -84,22 +84,22 @@ def download_object_paths(
     )
 
     if len(object_paths_to_download) == 0:
-        print_log("No matching Object Paths")
+        print_info("No matching Object Paths")
         return
 
     object_paths_to_download = select(CLIENT, object_paths_to_download)
 
     if len(object_paths_to_download) == 0:
-        print_log("No Objects Paths to include")
+        print_info("No Objects Paths to include")
         return
 
-    print_log("Note: existing local objects will be overwritten without warning")
+    print_info("Note: existing local objects will be overwritten without warning")
     if not confirmed(
         f"Download matching objects in {len(object_paths_to_download)} Object Path(s)?"
     ):
         return
 
-    print_log(f"{len(object_paths_to_download)} Object Path(s) to include")
+    print_info(f"{len(object_paths_to_download)} Object Path(s) to include")
 
     download_dir: str = _create_download_directory(
         "." if ARGS_PARSER.directory == "" else ARGS_PARSER.directory
@@ -118,7 +118,7 @@ def download_object_paths(
             if pattern is None
             else f"{object_path.name}{pattern.lstrip('/')}"
         )
-        print_log(f"Finding object paths matching '{object_name_pattern}'")
+        print_info(f"Finding object paths matching '{object_name_pattern}'")
         download_batch_builder.find_source_objects(
             namespace=namespace,
             object_name_pattern=object_name_pattern,
@@ -129,14 +129,14 @@ def download_object_paths(
     )
 
     if download_batch is None:
-        print_log(f"No matching Objects found in included Object Paths")
+        print_info(f"No matching Objects found in included Object Paths")
         return
 
     object_count = print_batch_download_files(
         download_batch_builder, ARGS_PARSER.flatten_download_paths
     )
 
-    print_log("Starting batch download")
+    print_info("Starting batch download")
     download_batch.start()
     future: futures.Future = download_batch.when_status_matches(
         lambda status: status == FileTransferStatus.Completed
@@ -144,7 +144,7 @@ def download_object_paths(
     CLIENT.object_store_client.start_transfers()
     futures.wait((future,))
 
-    print_log(f"Downloaded {object_count} Object(s)")
+    print_info(f"Downloaded {object_count} Object(s)")
 
 
 def _create_download_directory(directory_name: str) -> str:
@@ -154,9 +154,9 @@ def _create_download_directory(directory_name: str) -> str:
     """
     path = Path(directory_name).resolve()
     if path.exists():
-        print_log(f"Downloading to existing directory: '{path}'")
+        print_info(f"Downloading to existing directory: '{path}'")
     else:
-        print_log(f"Creating download directory: '{path}'")
+        print_info(f"Creating download directory: '{path}'")
         path.mkdir(parents=True, exist_ok=True)
     return str(path)
 

@@ -5,7 +5,7 @@ A script to boost allowances.
 """
 
 from yellowdog_cli.utils.interactive import confirmed
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -26,7 +26,7 @@ def main():
             CLIENT.allowances_client.boost_allowance_by_id(
                 allowance, ARGS_PARSER.boost_hours
             )
-            print_log(
+            print_info(
                 f"Boosted Allowance {allowance} by {ARGS_PARSER.boost_hours} hours"
             )
             count += 1
@@ -34,7 +34,7 @@ def main():
             print_error(f"Unable to boost Allowance {allowance}: {e}")
 
     if count > 1:
-        print_log(f"Boosted {count} allowances by {ARGS_PARSER.boost_hours} hours")
+        print_info(f"Boosted {count} allowances by {ARGS_PARSER.boost_hours} hours")
 
 
 # Standalone entry point

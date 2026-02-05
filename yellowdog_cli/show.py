@@ -15,7 +15,7 @@ from yellowdog_cli.utils.entity_utils import (
 )
 from yellowdog_cli.utils.printing import (
     print_error,
-    print_log,
+    print_info,
     print_to_file,
     print_yd_object,
 )
@@ -44,7 +44,7 @@ def main():
     generate_json_list = len(ARGS_PARSER.yellowdog_ids) > 1 and ARGS_PARSER.quiet
 
     if ARGS_PARSER.strip_ids:
-        print_log("Stripping YellowDog IDs (etc.) from detailed JSON objects")
+        print_info("Stripping YellowDog IDs (etc.) from detailed JSON objects")
 
     if generate_json_list:
         print("[")
@@ -73,9 +73,9 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
     try:
         ydid_type = get_ydid_type(ydid)
         if ydid_type == YDIDType.COMPUTE_SOURCE_TEMPLATE:
-            print_log(f"Showing details of Compute Source Template ID '{ydid}'")
+            print_info(f"Showing details of Compute Source Template ID '{ydid}'")
             if ARGS_PARSER.substitute_ids:
-                print_log("Substituting Image Family ID with name")
+                print_info("Substituting Image Family ID with name")
             print_yd_object(
                 substitute_image_family_id_for_name_in_cst(
                     CLIENT, CLIENT.compute_client.get_compute_source_template(ydid)
@@ -86,9 +86,9 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             )
 
         elif ydid_type == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
-            print_log(f"Showing details of Compute Requirement Template ID '{ydid}'")
+            print_info(f"Showing details of Compute Requirement Template ID '{ydid}'")
             if ARGS_PARSER.substitute_ids:
-                print_log(
+                print_info(
                     "Substituting Compute Source Template IDs and Image Family IDs with names"
                 )
             print_yd_object(
@@ -101,11 +101,11 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             )
 
         elif ydid_type == YDIDType.COMPUTE_REQUIREMENT:
-            print_log(f"Showing details of Compute Requirement ID '{ydid}'")
+            print_info(f"Showing details of Compute Requirement ID '{ydid}'")
             print_yd_object(CLIENT.compute_client.get_compute_requirement_by_id(ydid))
 
         elif ydid_type == YDIDType.COMPUTE_SOURCE:
-            print_log(f"Showing details of Compute Source ID '{ydid}'")
+            print_info(f"Showing details of Compute Source ID '{ydid}'")
             compute_requirement = CLIENT.compute_client.get_compute_requirement_by_id(
                 ydid.rsplit(":", 1)[0].replace("compsrc", "compreq")
             )
@@ -117,7 +117,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 print_error(f"Compute Source ID '{ydid}' not found")
 
         elif ydid_type == YDIDType.WORKER_POOL:
-            print_log(f"Showing details of Worker Pool ID '{ydid}'")
+            print_info(f"Showing details of Worker Pool ID '{ydid}'")
             worker_pool = CLIENT.worker_pool_client.get_worker_pool_by_id(ydid)
             print_yd_object(
                 worker_pool,
@@ -130,7 +130,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 ),
             )
             if ARGS_PARSER.show_token and isinstance(worker_pool, ConfiguredWorkerPool):
-                print_log("Showing Configured Worker Pool token data")
+                print_info("Showing Configured Worker Pool token data")
                 print_yd_object(
                     CLIENT.worker_pool_client.get_configured_worker_pool_token_by_id(
                         ydid
@@ -138,11 +138,11 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 )
 
         elif ydid_type == YDIDType.NODE:
-            print_log(f"Showing details of Node ID '{ydid}'")
+            print_info(f"Showing details of Node ID '{ydid}'")
             print_yd_object(CLIENT.worker_pool_client.get_node_by_id(ydid))
 
         elif ydid_type == YDIDType.WORKER:
-            print_log(f"Showing details of Worker ID '{ydid}'")
+            print_info(f"Showing details of Worker ID '{ydid}'")
             node = CLIENT.worker_pool_client.get_node_by_id(
                 ydid.rsplit(":", 1)[0].replace("wrkr", "node")
             )
@@ -154,11 +154,11 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 print_error(f"Worker ID '{ydid}' not found")
 
         elif ydid_type == YDIDType.WORK_REQUIREMENT:
-            print_log(f"Showing details of Work Requirement ID '{ydid}'")
+            print_info(f"Showing details of Work Requirement ID '{ydid}'")
             print_yd_object(CLIENT.work_client.get_work_requirement_by_id(ydid))
 
         elif ydid_type == YDIDType.TASK_GROUP:
-            print_log(f"Showing details of Task Group ID '{ydid}'")
+            print_info(f"Showing details of Task Group ID '{ydid}'")
             work_requirement = CLIENT.work_client.get_work_requirement_by_id(
                 ydid.rsplit(":", 1)[0].replace("taskgrp", "workreq")
             )
@@ -170,7 +170,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 print_error(f"Task Group ID '{ydid}' not found")
 
         elif ydid_type == YDIDType.TASK:
-            print_log(f"Showing details of Task ID '{ydid}'")
+            print_info(f"Showing details of Task ID '{ydid}'")
             try:
                 print_yd_object(CLIENT.work_client.get_task_by_id(ydid))
             except Exception as e:
@@ -178,7 +178,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                     print_error(f"Task ID '{ydid}' not found")
 
         elif ydid_type == YDIDType.IMAGE_FAMILY:
-            print_log(f"Showing details of Image Family ID '{ydid}'")
+            print_info(f"Showing details of Image Family ID '{ydid}'")
             print_yd_object(
                 CLIENT.images_client.get_image_family_by_id(ydid),
                 initial_indent=initial_indent,
@@ -187,15 +187,15 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             )
 
         elif ydid_type == YDIDType.IMAGE_GROUP:
-            print_log(f"Showing details of Image Group ID '{ydid}'")
+            print_info(f"Showing details of Image Group ID '{ydid}'")
             print_yd_object(CLIENT.images_client.get_image_group_by_id(ydid))
 
         elif ydid_type == YDIDType.IMAGE:
-            print_log(f"Showing details of Image ID '{ydid}'")
+            print_info(f"Showing details of Image ID '{ydid}'")
             print_yd_object(CLIENT.images_client.get_image(ydid))
 
         elif ydid_type == YDIDType.KEYRING:
-            print_log(f"Showing details of Keyring ID '{ydid}'")
+            print_info(f"Showing details of Keyring ID '{ydid}'")
             keyrings = CLIENT.keyring_client.find_all_keyrings()
             for keyring in keyrings:
                 if keyring.id == ydid:
@@ -211,10 +211,10 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 print_error(f"Keyring ID '{ydid}' not found")
 
         elif ydid_type == YDIDType.ALLOWANCE:
-            print_log(f"Showing details of Allowance ID '{ydid}'")
+            print_info(f"Showing details of Allowance ID '{ydid}'")
             allowance = CLIENT.allowances_client.get_allowance_by_id(ydid)
             if ARGS_PARSER.substitute_ids:
-                print_log("Substituting ID with name")
+                print_info("Substituting ID with name")
                 allowance = substitute_id_for_name_in_allowance(CLIENT, allowance)
             print_yd_object(
                 allowance,
@@ -224,7 +224,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             )
 
         elif ydid_type == YDIDType.APPLICATION:
-            print_log(f"Showing details of Application ID '{ydid}'")
+            print_info(f"Showing details of Application ID '{ydid}'")
             group_names = [
                 group.name for group in get_application_group_summaries(CLIENT, ydid)
             ]
@@ -241,7 +241,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             )
 
         elif ydid_type == YDIDType.USER:
-            print_log(f"Showing details of User ID '{ydid}'")
+            print_info(f"Showing details of User ID '{ydid}'")
             user = CLIENT.account_client.get_user(ydid)
             print_yd_object(
                 user,
@@ -251,7 +251,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             )
 
         elif ydid_type == YDIDType.GROUP:
-            print_log(f"Showing details of Group ID '{ydid}'")
+            print_info(f"Showing details of Group ID '{ydid}'")
             print_yd_object(
                 CLIENT.account_client.get_group(ydid),
                 initial_indent=initial_indent,
@@ -260,7 +260,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             )
 
         elif ydid_type == YDIDType.ROLE:
-            print_log(f"Showing details of Role ID '{ydid}'")
+            print_info(f"Showing details of Role ID '{ydid}'")
             print_yd_object(
                 CLIENT.account_client.get_role(ydid),
                 initial_indent=initial_indent,

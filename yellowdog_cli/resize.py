@@ -19,7 +19,7 @@ from yellowdog_cli.utils.entity_utils import (
 )
 from yellowdog_cli.utils.follow_utils import follow_events, follow_ids
 from yellowdog_cli.utils.interactive import confirmed
-from yellowdog_cli.utils.printing import print_log, print_warning
+from yellowdog_cli.utils.printing import print_info, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -36,7 +36,7 @@ def _resize_worker_pool():
     """
     Resize a Worker Pool
     """
-    print_log(
+    print_info(
         f"Resizing Worker Pool '{ARGS_PARSER.worker_pool_name}' to"
         f" {ARGS_PARSER.worker_pool_size:,d} node(s)"
     )
@@ -62,7 +62,7 @@ def _resize_worker_pool():
     )
 
     if ARGS_PARSER.follow:
-        print_log("Following event stream(s)")
+        print_info("Following event stream(s)")
         follow_ids([worker_pool.id], auto_cr=ARGS_PARSER.auto_cr)
 
 
@@ -70,11 +70,11 @@ def _resize_compute_requirement():
     """
     Resize a Compute Requirement
     """
-    print_log(
+    print_info(
         f"Attempting to resize Compute Requirement '{ARGS_PARSER.worker_pool_name}' "
         f"to {ARGS_PARSER.worker_pool_size:,d} instance(s)"
     )
-    print_log(
+    print_info(
         f"Finding Compute Requirement in Namespace '{CONFIG_COMMON.namespace}' "
         f"with status '{ComputeRequirementStatus.RUNNING}'"
     )
@@ -90,14 +90,14 @@ def _resize_compute_requirement():
         if ARGS_PARSER.worker_pool_name not in [cr_summary.name, cr_summary.id]:
             continue
 
-        print_log(
+        print_info(
             "Current target/expected instance counts ="
             f" {cr_summary.targetInstanceCount:,d}/"
             f"{cr_summary.expectedInstanceCount:,d}"
         )
 
         if cr_summary.targetInstanceCount == ARGS_PARSER.worker_pool_size:
-            print_log("No resize attempted: target instance count would be unchanged")
+            print_info("No resize attempted: target instance count would be unchanged")
             return
 
         if not confirmed(
@@ -112,7 +112,7 @@ def _resize_compute_requirement():
         cr.targetInstanceCount = ARGS_PARSER.worker_pool_size
         CLIENT.compute_client.update_compute_requirement(cr, reprovision=False)
 
-        print_log(
+        print_info(
             "Resizing complete: new target instance count ="
             f" {cr.targetInstanceCount}"
         )
@@ -123,7 +123,7 @@ def _resize_compute_requirement():
                     "Option '--auto-follow-compute-requirements/-a' is"
                     " ignored when resizing Compute Requirements"
                 )
-            print_log("Following event stream")
+            print_info("Following event stream")
             follow_events(cr.id, YDIDType.COMPUTE_REQUIREMENT)
 
         return

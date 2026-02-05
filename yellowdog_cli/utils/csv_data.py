@@ -15,7 +15,7 @@ from toml import load as toml_load
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import ConfigWorkRequirement
 from yellowdog_cli.utils.misc_utils import format_yd_name
-from yellowdog_cli.utils.printing import print_json, print_log
+from yellowdog_cli.utils.printing import print_info, print_json
 from yellowdog_cli.utils.property_names import *
 from yellowdog_cli.utils.settings import (
     BOOL_TYPE_TAG,
@@ -178,7 +178,7 @@ def perform_csv_task_expansion(
     Expand a Work Requirement using CSV data.
     """
     if len(wr_data[TASK_GROUPS]) > len(csv_files):
-        print_log(
+        print_info(
             f"Note: Number of Task Groups ({len(wr_data[TASK_GROUPS])}) "
             "in Work Requirement is greater than number of CSV files "
             f"({len(csv_files)})"
@@ -195,7 +195,7 @@ def perform_csv_task_expansion(
         resolved_csv_file = relpath(resolve_filename(files_directory, csv_file))
 
         task_group = wr_data[TASK_GROUPS][index]
-        print_log(
+        print_info(
             f"Loading CSV Task data for Task Group {index + 1} from:"
             f" '{resolved_csv_file}'"
         )
@@ -209,7 +209,7 @@ def perform_csv_task_expansion(
         task_prototype = task_group[TASKS][0]
 
         if not substitions_present(csv_data.var_names, str(task_prototype)):
-            print_log(
+            print_info(
                 "Warning: No CSV substitutions to apply to Task Group "
                 f"{index + 1}; not expanding Task list"
             )
@@ -223,10 +223,10 @@ def perform_csv_task_expansion(
                 )
             )
         task_group[TASKS] = generated_task_list
-        print_log(f"Generated {len(generated_task_list)} Task(s) from CSV data")
+        print_info(f"Generated {len(generated_task_list)} Task(s) from CSV data")
 
     if ARGS_PARSER.process_csv_only:
-        print_log("Displaying CSV substitutions only:")
+        print_info("Displaying CSV substitutions only:")
         print_json(wr_data)
         exit(0)
 
@@ -326,7 +326,7 @@ def get_csv_file_index(
     # Invalid Task Group naming?
     split_name = csv_filename.split(":")
     if len(split_name) > 1:
-        print_log(
+        print_info(
             f"Warning: Possible invalid Task Group name/number '{split_name[-1:]}'?"
         )
 

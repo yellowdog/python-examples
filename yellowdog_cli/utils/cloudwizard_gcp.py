@@ -13,7 +13,7 @@ from yellowdog_cli.create import create_resources
 from yellowdog_cli.remove import remove_resources
 from yellowdog_cli.utils.cloudwizard_common import CommonCloudConfig
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
 
 YD_KEYRING_NAME = "cloudwizard-gcp"
@@ -82,7 +82,7 @@ class GCPConfig(CommonCloudConfig):
         """
         Set up YellowDog assets.
         """
-        print_log(
+        print_info(
             "Please select the Google Compute Engine regions for which to create"
             " YellowDog Compute Source Templates"
         )
@@ -118,7 +118,7 @@ class GCPConfig(CommonCloudConfig):
                 )
             )
             self._source_names_ondemand.append(name)
-        print_log("Creating YellowDog Compute Source Templates")
+        print_info("Creating YellowDog Compute Source Templates")
         create_resources(self._source_template_resources)
 
         # Create Compute Requirement Templates
@@ -260,7 +260,7 @@ class GCPConfig(CommonCloudConfig):
             storage_client.create_bucket(
                 bucket_or_name=bucket_name, location=GCP_BUCKET_LOCATION
             )
-            print_log(f"Created Google Storage Bucket '{bucket_name}'")
+            print_info(f"Created Google Storage Bucket '{bucket_name}'")
         except Exception as e:
             if "401" in str(e):
                 raise Exception(f"Invalid GCP credentials: {e}")
@@ -289,7 +289,7 @@ class GCPConfig(CommonCloudConfig):
                 bucket.delete(force=True)
             except Exception:
                 objects = storage_client.list_blobs(bucket_or_name=bucket_name)
-                print_log(
+                print_info(
                     "Deleting any remaining objects in Google Storage Bucket"
                     f" '{bucket_name}'"
                 )
@@ -298,16 +298,16 @@ class GCPConfig(CommonCloudConfig):
                     obj.delete()
                     counter += 1
                 if counter > 0:
-                    print_log(
+                    print_info(
                         f"Deleted {counter} object(s) from Google Storage Bucket"
                         f" '{bucket_name}'"
                     )
                 else:
-                    print_log(
+                    print_info(
                         f"No objects to delete in Google Storage Bucket '{bucket_name}'"
                     )
                 bucket.delete()
-            print_log(f"Deleted Google Storage Bucket '{bucket_name}'")
+            print_info(f"Deleted Google Storage Bucket '{bucket_name}'")
         except Exception as e:
             if "401" in str(e):
                 raise Exception(f"Invalid GCP credentials: {e}")

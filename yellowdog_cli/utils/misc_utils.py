@@ -19,7 +19,7 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.args import ARGS_PARSER
-from yellowdog_cli.utils.printing import print_log
+from yellowdog_cli.utils.printing import print_info
 from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
 
 UTCNOW = datetime.now(timezone.utc)
@@ -256,7 +256,7 @@ def load_dotenv_file():
     if dotenv_file == "":
         return
 
-    print_log(
+    print_info(
         f"Loading environment variables from '{dotenv_file}' ("
         f"{'' if ARGS_PARSER.env_override else 'NOT '}OVERRIDING existing variables)"
     )
@@ -269,7 +269,7 @@ def load_dotenv_file():
     ]
 
     if len(dotenv_yd_substitutions) > 0:
-        print_log(
+        print_info(
             "Adding 'YD' environment variable(s): "
             f"{', '.join(dotenv_yd_substitutions)}"
         )

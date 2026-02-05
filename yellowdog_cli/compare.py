@@ -27,7 +27,7 @@ from yellowdog_client.model import (
 from yellowdog_cli.utils.entity_utils import get_worker_pool_by_id
 from yellowdog_cli.utils.printing import (
     indent,
-    print_log,
+    print_info,
     print_table_core,
     print_warning,
 )
@@ -134,7 +134,7 @@ class MatchReport:
             match_str = "MAYBE MATCHING"
         else:
             match_str = "NON-MATCHING"
-        print_log(
+        print_info(
             f"Detailed comparison report for {match_str} ({self.worker_pool_status}) Worker Pool "
             f"'{self.worker_pool_name}' ({self.worker_pool_id})",
             override_quiet=True,
@@ -634,7 +634,7 @@ def _compare_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
     """
     Compare a Task Group.
     """
-    print_log(
+    print_info(
         f"Comparing Task Group '{task_group.name}' ({task_group.id})",
         override_quiet=True,
     )
@@ -645,7 +645,7 @@ def _compare_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
 
     if len(match_reports) > 1:
         # Summary report
-        print_log("Summary of Worker Pool matches:", override_quiet=True)
+        print_info("Summary of Worker Pool matches:", override_quiet=True)
         header_row = [
             "",
             "Worker Pool Name",
@@ -675,7 +675,7 @@ def _compare_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
     for match_report in match_reports:
         match_report.print_detailed_report()
 
-    print_log("Task Group comparison complete")
+    print_info("Task Group comparison complete")
 
 
 @main_wrapper
@@ -700,7 +700,7 @@ def main():
     # Work requirement
     elif get_ydid_type(ARGS_PARSER.wr_or_tg_id) == YDIDType.WORK_REQUIREMENT:
         work_requirement = _get_work_requirement_by_id(ARGS_PARSER.wr_or_tg_id)
-        print_log(
+        print_info(
             f"Comparing all Task Groups in Work Requirement '{work_requirement.name}' "
             f"({work_requirement.id})",
             override_quiet=True,

@@ -19,7 +19,7 @@ from yellowdog_cli.utils.entity_utils import (
 from yellowdog_cli.utils.follow_utils import follow_ids
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import link_entity
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -30,7 +30,7 @@ def main():
         _cancel_work_requirements_by_name_or_id(ARGS_PARSER.work_requirement_names)
         return
 
-    print_log(
+    print_info(
         "Cancelling Work Requirements in namespace "
         f"'{CONFIG_COMMON.namespace}' with tags "
         f"including '{CONFIG_COMMON.name_tag}'"
@@ -73,7 +73,7 @@ def main():
                         CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
                     )
                     cancelled_count += 1
-                    print_log(
+                    print_info(
                         f"Cancelled {link_entity(CONFIG_COMMON.url, work_requirement)} "
                         f"('{work_summary.name}')"
                         f"{'' if not ARGS_PARSER.abort else ' and aborted all allocated tasks'}"
@@ -85,22 +85,22 @@ def main():
                     )
 
             elif work_summary.status == WorkRequirementStatus.CANCELLING:
-                print_log(
+                print_info(
                     f"Work Requirement '{work_summary.name}' is already cancelling"
                 )
                 cancelling_count += 1
             work_requirement_ids.append(work_summary.id)
 
         if cancelled_count > 1:
-            print_log(f"Cancelled {cancelled_count} Work Requirement(s)")
+            print_info(f"Cancelled {cancelled_count} Work Requirement(s)")
         elif cancelled_count == 0 and cancelling_count == 0:
-            print_log("No Work Requirements to cancel")
+            print_info("No Work Requirements to cancel")
 
         if ARGS_PARSER.follow:
             follow_ids(work_requirement_ids)
 
     else:
-        print_log("No Work Requirements to cancel")
+        print_info("No Work Requirements to cancel")
 
 
 def _cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
@@ -148,7 +148,7 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
 
         work_requirement_summaries.append(work_requirement_summary)
         if work_requirement_summary.status == WorkRequirementStatus.CANCELLING:
-            print_log(f"Work Requirement '{name_or_id}' is already cancelling")
+            print_info(f"Work Requirement '{name_or_id}' is already cancelling")
         else:
             if not confirmed(
                 f"Cancel Work Requirement '{name_or_id}'"
@@ -159,7 +159,7 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: List[str]):
                 CLIENT.work_client.cancel_work_requirement_by_id(
                     work_requirement_summary.id, ARGS_PARSER.abort
                 )
-                print_log(
+                print_info(
                     f"Cancelled Work Requirement '{name_or_id}'"
                     f"{'' if not ARGS_PARSER.abort else ' and aborted all allocated tasks'}"
                 )

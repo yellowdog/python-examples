@@ -13,7 +13,7 @@ from yellowdog_client.model import ApiKey, ServicesSchema
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import ConfigCommon
 from yellowdog_cli.utils.load_config import load_config_common
-from yellowdog_cli.utils.printing import print_error, print_log
+from yellowdog_cli.utils.printing import print_error, print_info
 
 CONFIG_COMMON: ConfigCommon = load_config_common()
 CLIENT = PlatformClient.create(
@@ -42,17 +42,17 @@ def set_proxy():
 
     proxy_var = "HTTPS_PROXY"
     if CONFIG_COMMON.use_pac:
-        print_log("Using Proxy Auto-Configuration (PAC)")
+        print_info("Using Proxy Auto-Configuration (PAC)")
         with pac_context_for_url(CONFIG_COMMON.url):
             https_proxy = os.getenv(proxy_var, None)
         if https_proxy is not None:
             os.environ[proxy_var] = https_proxy
         else:
-            print_log("No PAC proxy settings found")
+            print_info("No PAC proxy settings found")
     else:
         https_proxy = os.getenv(proxy_var, None)
     if https_proxy is not None:
-        print_log(f"Using {proxy_var}={https_proxy}")
+        print_info(f"Using {proxy_var}={https_proxy}")
 
 
 def main_wrapper(func):
@@ -79,18 +79,18 @@ def main_wrapper(func):
                 exit_code = 1
             except KeyboardInterrupt:
                 print("\r", end="")  # Overwrite the display of ^C
-                print_log("Keyboard interruption ... exiting")
+                print_info("Keyboard interruption ... exiting")
                 exit_code = 1
             finally:
                 CLIENT.close()
                 if exit_code == 0:
-                    print_log("Done")
+                    print_info("Done")
                 exit(exit_code)
         else:
             try:
                 set_proxy()
                 func()
-                print_log("Done")
+                print_info("Done")
                 exit(0)
             finally:
                 CLIENT.close()

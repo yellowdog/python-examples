@@ -98,7 +98,7 @@ except OSError:
 # Set up Rich formatting for coloured output
 class PrintLogHighlighter(RegexHighlighter):
     """
-    Apply styles for print_log() lines.
+    Apply styles for print_info() lines.
     """
 
     base_style = "pyexamples."
@@ -196,7 +196,7 @@ def print_simple(
     CONSOLE.print(escape(log_message))
 
 
-def print_log(
+def print_info(
     log_message: str = "",
     override_quiet: bool = False,
     no_fill: bool = False,
@@ -930,7 +930,7 @@ def print_numbered_object_list(
     if len(objects) == 0:
         return
 
-    print_log(
+    print_info(
         "Displaying"
         f" {'all' if showing_all else 'matching'}"
         f" {(object_type_name if object_type_name is not None else get_type_name(objects[0]))}(s):",
@@ -1181,7 +1181,7 @@ def print_yd_object_list(
     """
 
     if ARGS_PARSER.output_file is not None:
-        print_log(f"Copying detailed resource list to '{ARGS_PARSER.output_file}'")
+        print_info(f"Copying detailed resource list to '{ARGS_PARSER.output_file}'")
 
     if len(objects) > 1:
         print("[")
@@ -1208,7 +1208,7 @@ def print_worker_pool(
     """
     Reconstruct and print the JSON-formatted Worker Pool specification.
     """
-    print_log("Dry-run: Printing JSON Worker Pool specification")
+    print_info("Dry-run: Printing JSON Worker Pool specification")
     wp_data = {
         "provisionedProperties": Json.dump(pwpp),
         "requirementTemplateUsage": Json.dump(crtu),
@@ -1248,9 +1248,9 @@ class WorkRequirementSnapshot:
         """
         Print the JSON representation.
         """
-        print_log("Dry-run: Printing JSON Work Requirement specification:")
+        print_info("Dry-run: Printing JSON Work Requirement specification:")
         print_json(self.wr_data)
-        print_log("Dry-run: Complete")
+        print_info("Dry-run: Complete")
 
 
 def print_compute_template_test_result(result: ComputeRequirementTemplateTestResult):
@@ -1258,7 +1258,7 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
     Print the results of a test submission of a Dynamic Compute Template.
     """
     if not isinstance(result, ComputeRequirementDynamicTemplateTestResult):
-        print_log("Reports are only available for Dynamic Templates")
+        print_info("Reports are only available for Dynamic Templates")
         return
 
     report: BestComputeSourceReport = result.report
@@ -1555,7 +1555,7 @@ def print_event(event: str, id_type: YDIDType):
     else:
         return
 
-    print_log(msg, no_fill=True)
+    print_info(msg, no_fill=True)
 
 
 FIRST_OUTPUT_TO_FILE = True  # Determine whether to 'write' or 'append'

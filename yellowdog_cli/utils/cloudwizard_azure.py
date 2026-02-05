@@ -19,7 +19,7 @@ from yellowdog_cli.create import create_resources
 from yellowdog_cli.remove import remove_resources
 from yellowdog_cli.utils.cloudwizard_common import CommonCloudConfig
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
 
 RESOURCE_PREFIX = "yellowdog-cloudwizard"
@@ -114,7 +114,7 @@ class AzureConfig(CommonCloudConfig):
         """
         # Keyring creation has to precede the generation of the Azure
         # storage account name
-        print_log(f"Creating YellowDog Keyring '{YD_KEYRING_NAME}'")
+        print_info(f"Creating YellowDog Keyring '{YD_KEYRING_NAME}'")
         self._create_keyring(keyring_name=YD_KEYRING_NAME)
         self._all_regions = self._get_regions_list()
         self._create_azure_resources()
@@ -132,12 +132,12 @@ class AzureConfig(CommonCloudConfig):
         """
         Create the required assets in the Azure account, for use with YellowDog.
         """
-        print_log("Creating YellowDog resources in the Azure account")
-        print_log(
+        print_info("Creating YellowDog resources in the Azure account")
+        print_info(
             "Please select the Azure regions in which to create resource groups and"
             " network resources"
         )
-        print_log(
+        print_info(
             "*** Note that only the following region(s) contain"
             f" YellowDog base VM images: {AZURE_YD_IMAGE_REGIONS} ***"
         )
@@ -156,7 +156,7 @@ class AzureConfig(CommonCloudConfig):
         """
         Remove the Cloud Wizard assets in the Azure account.
         """
-        print_log("Removing all YellowDog-created resources in the Azure account")
+        print_info("Removing all YellowDog-created resources in the Azure account")
         self._remove_resource_groups()
 
     def _create_resource_groups_and_network_resources(self):
@@ -199,12 +199,12 @@ class AzureConfig(CommonCloudConfig):
                 rg_result = self._resource_client.resource_groups.create_or_update(
                     rg_name, {"location": region}
                 )
-                print_log(
+                print_info(
                     f"Created (or updated) Azure resource group '{rg_result.name}' in"
                     f" region '{rg_result.location}'"
                 )
                 if region == self._storage_region and storage_region_added:
-                    print_log(
+                    print_info(
                         f"Note: Resource group '{rg_name}' is automatically created to"
                         " contain the Azure storage account"
                     )
@@ -244,7 +244,7 @@ class AzureConfig(CommonCloudConfig):
         Remove all YellowDog resource groups. Deletion of a resource group
         also deletes any contained resources.
         """
-        print_log("Removing YellowDog resource groups")
+        print_info("Removing YellowDog resource groups")
         resource_groups = self._resource_client.resource_groups.list()
         count = 0
         for resource_group in resource_groups:
@@ -257,7 +257,7 @@ class AzureConfig(CommonCloudConfig):
                         self._resource_client.resource_groups.begin_delete(
                             resource_group.name
                         )  # Deletion occurs asynchronously unless '.result()' is added
-                        print_log(
+                        print_info(
                             "Requested deletion of Azure resource group"
                             f" '{resource_group.name}' and all contained resources"
                             " (asynchronous operation)"
@@ -278,9 +278,9 @@ class AzureConfig(CommonCloudConfig):
                         continue
 
         if count == 0:
-            print_log("No Azure resource groups deleted")
+            print_info("No Azure resource groups deleted")
         else:
-            print_log(f"{count} Azure resource group(s) deleted")
+            print_info(f"{count} Azure resource group(s) deleted")
 
     def _remove_resource_group_by_name(self, rg_name: str):
         """
@@ -288,7 +288,7 @@ class AzureConfig(CommonCloudConfig):
         """
         try:
             self._resource_client.resource_groups.begin_delete(rg_name)
-            print_log(f"Requested deletion of Azure resource group '{rg_name}'")
+            print_info(f"Requested deletion of Azure resource group '{rg_name}'")
         except:
             print_warning(f"Unable to delete Azure resource group '{rg_name}'")
 
@@ -329,7 +329,7 @@ class AzureConfig(CommonCloudConfig):
                     "address_space": {"address_prefixes": address_prefixes},
                 },
             ).wait()
-            print_log(
+            print_info(
                 f"Created (or updated) Azure virtual network '{vnet_name}' with address"
                 f" prefixes {address_prefixes}"
             )
@@ -352,7 +352,7 @@ class AzureConfig(CommonCloudConfig):
                     id=security_group_name, location=region
                 ),
             ).result()
-            print_log(
+            print_info(
                 "Created (or updated) Azure network security group"
                 f" '{security_group_name}'"
             )
@@ -387,7 +387,7 @@ class AzureConfig(CommonCloudConfig):
                     }
                 },
             ).result()
-            print_log(
+            print_info(
                 "Added outbound HTTPS rule to Azure security group"
                 f" '{security_group_name}'"
             )
@@ -422,7 +422,7 @@ class AzureConfig(CommonCloudConfig):
                     },
                 },
             ).result()
-            print_log(
+            print_info(
                 f"Created (or updated) Azure subnet '{subnet_name}' with address prefix"
                 f" '{address_prefix}'"
             )
@@ -439,7 +439,7 @@ class AzureConfig(CommonCloudConfig):
         """
         Create the YellowDog resources and save the resource definition file.
         """
-        print_log("Creating Azure resources in the YellowDog account")
+        print_info("Creating Azure resources in the YellowDog account")
 
         for region in self._created_regions:
             name = f"{YD_RESOURCE_PREFIX}-{region}-ondemand"
@@ -462,7 +462,7 @@ class AzureConfig(CommonCloudConfig):
             return
 
         # Create Compute Source Templates
-        print_log("Creating YellowDog Compute Source Templates")
+        print_info("Creating YellowDog Compute Source Templates")
         create_resources(self._source_template_resources)
 
         # Create Compute Requirement Templates
@@ -489,7 +489,7 @@ class AzureConfig(CommonCloudConfig):
                 )
 
         # Create namespace configuration (Keyring/Credential creation must come first)
-        print_log(f"Creating YellowDog Namespace Configuration '{self._namespace}'")
+        print_info(f"Creating YellowDog Namespace Configuration '{self._namespace}'")
         create_resources(
             [
                 self._generate_yd_namespace_configuration(
@@ -545,7 +545,7 @@ class AzureConfig(CommonCloudConfig):
             )
         else:
             try:
-                print_log(
+                print_info(
                     f"Creating Azure storage account '{self._storage_account_name}'"
                 )
                 self._storage_client.storage_accounts.begin_create(
@@ -557,7 +557,7 @@ class AzureConfig(CommonCloudConfig):
                         "sku": {"name": "Standard_LRS"},
                     },
                 ).result()
-                print_log(
+                print_info(
                     f"Created Azure storage account '{self._storage_account_name}' in"
                     f" region '{self._storage_region}'"
                 )
@@ -593,7 +593,7 @@ class AzureConfig(CommonCloudConfig):
             self._storage_client.blob_containers.create(
                 resource_group_name, self._storage_account_name, STORAGE_BLOB_NAME, {}
             )
-            print_log(f"Created Azure storage blob '{STORAGE_BLOB_NAME}'")
+            print_info(f"Created Azure storage blob '{STORAGE_BLOB_NAME}'")
         except Exception as e:
             print_error(
                 f"Unable to create Azure storage blob '{STORAGE_BLOB_NAME}': {e}"
@@ -735,7 +735,7 @@ class AzureConfig(CommonCloudConfig):
         security_group_name = self._generate_security_group_name(selected_region)
         security_rule_name = "ssh-inbound"
         if operation == "add-ssh":
-            print_log(
+            print_info(
                 "Adding inbound SSH rule to Azure security group"
                 f" '{security_group_name}'"
             )
@@ -757,7 +757,7 @@ class AzureConfig(CommonCloudConfig):
                         }
                     },
                 ).result()
-                print_log(
+                print_info(
                     "Added inbound SSH rule to Azure security group"
                     f" '{security_group_name}'"
                 )
@@ -768,7 +768,7 @@ class AzureConfig(CommonCloudConfig):
                 )
 
         elif operation == "remove-ssh":
-            print_log(
+            print_info(
                 "Removing inbound SSH rule from Azure security group"
                 f" '{security_group_name}'"
             )
@@ -778,7 +778,7 @@ class AzureConfig(CommonCloudConfig):
                     network_security_group_name=security_group_name,
                     security_rule_name=security_rule_name,
                 ).result()
-                print_log(
+                print_info(
                     "Removed inbound SSH rule from Azure security group"
                     f" '{security_group_name}' (if present)"
                 )

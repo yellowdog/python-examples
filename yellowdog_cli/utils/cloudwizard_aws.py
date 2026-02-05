@@ -20,7 +20,7 @@ from yellowdog_cli.utils.cloudwizard_aws_types import (
 )
 from yellowdog_cli.utils.cloudwizard_common import CommonCloudConfig
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
 
 IAM_USER_NAME = "yellowdog-cloudwizard-user"
@@ -225,7 +225,7 @@ class AWSConfig(CommonCloudConfig):
         """
         Create the required assets in the AWS account, for use with YellowDog.
         """
-        print_log("Inserting YellowDog-created assets into the AWS account")
+        print_info("Inserting YellowDog-created assets into the AWS account")
         iam_client = boto3.client("iam", region_name=self.region_name)
         self._create_iam_user(iam_client)
         self._create_iam_policy(iam_client)
@@ -238,7 +238,7 @@ class AWSConfig(CommonCloudConfig):
         """
         Load the required AWS IDs that are non-constants.
         """
-        print_log("Querying AWS account for existing assets")
+        print_info("Querying AWS account for existing assets")
         iam_client = boto3.client("iam", region_name=self.region_name)
 
         # Get the IAM Policy ARN
@@ -283,7 +283,7 @@ class AWSConfig(CommonCloudConfig):
         """
         Remove the Cloud Wizard assets in the AWS account.
         """
-        print_log("Removing all YellowDog-created assets in the AWS account")
+        print_info("Removing all YellowDog-created assets in the AWS account")
         iam_client = boto3.client("iam", region_name=self.region_name)
         self._delete_s3_bucket()
         self._delete_access_keys(iam_client)
@@ -297,10 +297,10 @@ class AWSConfig(CommonCloudConfig):
         Create the YellowDog resources and save the resource definition file.
         """
 
-        print_log("Creating resources in the YellowDog account")
+        print_info("Creating resources in the YellowDog account")
 
         # Select Compute Source Templates
-        print_log(
+        print_info(
             "Please select the AWS availability zones for which to create YellowDog"
             " Compute Source Templates"
         )
@@ -334,7 +334,7 @@ class AWSConfig(CommonCloudConfig):
             return
 
         # Create Compute Source Templates
-        print_log("Creating YellowDog Compute Source Templates")
+        print_info("Creating YellowDog Compute Source Templates")
         create_resources(self._source_template_resources)
 
         # Create Compute Requirement Templates
@@ -358,7 +358,7 @@ class AWSConfig(CommonCloudConfig):
             print_error("No access keys loaded; can't create Credential")
 
         # Create namespace configuration (Keyring/Credential creation must come first)
-        print_log(
+        print_info(
             "Creating YellowDog Namespace Configuration"
             f" 'S3:{self._get_s3_bucket_name()}' -> '{self._namespace}'"
         )
@@ -407,9 +407,9 @@ class AWSConfig(CommonCloudConfig):
         """
         Collect network information about the enabled regions and AZs.
         """
-        print_log("Gathering network information for all AWS regions")
+        print_info("Gathering network information for all AWS regions")
         for region in AWS_ALL_REGIONS:
-            print_log(f"Gathering network information for region '{region}'")
+            print_info(f"Gathering network information for region '{region}'")
             ec2_client = boto3.client("ec2", region_name=region)
 
             # Collect the default security group for the region
@@ -417,7 +417,7 @@ class AWSConfig(CommonCloudConfig):
                 response = ec2_client.describe_security_groups(Filters=[])
             except ClientError as e:
                 if "AuthFailure" in str(e):
-                    print_log(
+                    print_info(
                         f"Region '{region}' is not enabled (AuthFailure when fetching"
                         " security groups)"
                     )
@@ -460,7 +460,7 @@ class AWSConfig(CommonCloudConfig):
             response = iam_client.create_user(UserName=IAM_USER_NAME)
             arn = response["User"]["Arn"]
             user_id = response["User"]["UserId"]
-            print_log(f"Created IAM user '{IAM_USER_NAME}' ({arn})")
+            print_info(f"Created IAM user '{IAM_USER_NAME}' ({arn})")
 
         except ClientError as e:
             if "EntityAlreadyExists" in str(e):
@@ -491,7 +491,7 @@ class AWSConfig(CommonCloudConfig):
 
         try:
             iam_client.delete_user(UserName=IAM_USER_NAME)
-            print_log(f"Deleted IAM user '{IAM_USER_NAME}'")
+            print_info(f"Deleted IAM user '{IAM_USER_NAME}'")
         except ClientError as e:
             if "NoSuchEntity" in str(e):
                 print_warning(f"No user '{IAM_USER_NAME}' to delete")
@@ -507,7 +507,7 @@ class AWSConfig(CommonCloudConfig):
                 PolicyName=IAM_POLICY_NAME, PolicyDocument=json.dumps(YELLOWDOG_POLICY)
             )
             self._iam_policy_arn = response["Policy"]["Arn"]
-            print_log(
+            print_info(
                 f"Created IAM Policy '{IAM_POLICY_NAME}' ({self._iam_policy_arn})"
             )
         except ClientError as e:
@@ -540,7 +540,7 @@ class AWSConfig(CommonCloudConfig):
 
         try:
             iam_client.delete_policy(PolicyArn=self._iam_policy_arn)
-            print_log(f"Deleted IAM policy '{IAM_POLICY_NAME}'")
+            print_info(f"Deleted IAM policy '{IAM_POLICY_NAME}'")
         except ClientError as e:
             if "NoSuchEntity" in str(e):
                 print_warning(
@@ -563,7 +563,7 @@ class AWSConfig(CommonCloudConfig):
             iam_client.attach_user_policy(
                 UserName=IAM_USER_NAME, PolicyArn=self._iam_policy_arn
             )
-            print_log(
+            print_info(
                 f"Attached IAM policy '{IAM_POLICY_NAME}' to user '{IAM_USER_NAME}'"
             )
         except ClientError as e:
@@ -589,7 +589,7 @@ class AWSConfig(CommonCloudConfig):
             iam_client.detach_user_policy(
                 UserName=IAM_USER_NAME, PolicyArn=self._iam_policy_arn
             )
-            print_log(
+            print_info(
                 f"Detached IAM policy '{IAM_POLICY_NAME}' from user '{IAM_USER_NAME}'"
             )
         except ClientError as e:
@@ -617,12 +617,12 @@ class AWSConfig(CommonCloudConfig):
                 response["AccessKey"]["SecretAccessKey"],
             )
             self._access_keys.append(access_key)
-            print_log(
+            print_info(
                 f"Created AWS_ACCESS_KEY_ID='{access_key.access_key_id}' for user"
                 f" '{IAM_USER_NAME}'"
             )
             if self._show_secrets:
-                print_log(
+                print_info(
                     f"        AWS_SECRET_ACCESS_KEY='{access_key.secret_access_key}'"
                 )
         except ClientError as e:
@@ -646,7 +646,7 @@ class AWSConfig(CommonCloudConfig):
                 iam_client.delete_access_key(
                     UserName=IAM_USER_NAME, AccessKeyId=access_key.access_key_id
                 )
-                print_log(f"Deleted access key '{access_key.access_key_id}'")
+                print_info(f"Deleted access key '{access_key.access_key_id}'")
             except ClientError as e:
                 if "NoSuchEntity" in str(e):
                     print_warning(
@@ -669,7 +669,7 @@ class AWSConfig(CommonCloudConfig):
                 AWSServiceName="spot.amazonaws.com",
                 Description=EC2_SPOT_SERVICE_LINKED_ROLE_NAME,
             )
-            print_log(
+            print_info(
                 f"Added service linked role '{EC2_SPOT_SERVICE_LINKED_ROLE_NAME}' to"
                 " the AWS account"
             )
@@ -700,7 +700,7 @@ class AWSConfig(CommonCloudConfig):
             iam_client.delete_service_linked_role(
                 RoleName=EC2_SPOT_SERVICE_LINKED_ROLE_NAME
             )
-            print_log(
+            print_info(
                 f"Deleted service linked role '{EC2_SPOT_SERVICE_LINKED_ROLE_NAME}'"
                 " from AWS account"
             )
@@ -738,7 +738,7 @@ class AWSConfig(CommonCloudConfig):
                 )
             else:
                 s3_client.create_bucket(Bucket=s3_bucket_name)
-            print_log(
+            print_info(
                 f"Created S3 bucket '{s3_bucket_name}' in region '{self.region_name}'"
             )
         except ClientError as e:
@@ -759,11 +759,11 @@ class AWSConfig(CommonCloudConfig):
                     Bucket=s3_bucket_name,
                     Policy=self._generate_s3_bucket_policy(),
                 )
-                print_log(f"Attached policy to S3 bucket '{s3_bucket_name}'")
+                print_info(f"Attached policy to S3 bucket '{s3_bucket_name}'")
                 return
             except ClientError as e:
                 if "MalformedPolicy" in str(e):
-                    print_log(
+                    print_info(
                         f"Waiting {retry_interval}s for S3 bucket to be ready for"
                         f" policy attachment (Attempt {index + 1} of"
                         f" {max_retries}) ..."
@@ -793,12 +793,12 @@ class AWSConfig(CommonCloudConfig):
                     s3_client.delete_objects(
                         Bucket=s3_bucket_name, Delete={"Objects": objects_to_delete}
                     )
-                    print_log(
+                    print_info(
                         f"Deleted {len(objects_to_delete)} object(s) in S3 bucket"
                         f" '{s3_bucket_name}'"
                     )
                 else:
-                    print_log(f"No objects to delete in S3 bucket '{s3_bucket_name}'")
+                    print_info(f"No objects to delete in S3 bucket '{s3_bucket_name}'")
 
         except ClientError as e:
             if "NoSuchBucket" in str(e):
@@ -829,7 +829,7 @@ class AWSConfig(CommonCloudConfig):
             return
         try:
             s3_client.delete_bucket(Bucket=s3_bucket_name)
-            print_log(f"Deleted S3 bucket '{s3_bucket_name}'")
+            print_info(f"Deleted S3 bucket '{s3_bucket_name}'")
         except ClientError as e:
             if "NoSuchBucket" in str(e):
                 print_warning(f"No S3 bucket '{s3_bucket_name}' to delete")
@@ -848,7 +848,7 @@ class AWSConfig(CommonCloudConfig):
                 GroupId=security_group.id,
                 IpPermissions=ingress_rule,
             )
-            print_log(
+            print_info(
                 f"Added {rule_name} inbound rule to security group"
                 f" '{security_group.name}' ('{security_group.id}') in region"
                 f" '{ec2_client.meta.region_name}'"
@@ -879,7 +879,7 @@ class AWSConfig(CommonCloudConfig):
                 GroupId=security_group.id,
                 IpPermissions=ingress_rule,
             )
-            print_log(
+            print_info(
                 f"Removed inbound {rule_name} rule from security group"
                 f" '{security_group.name}' ('{security_group.id}') in region"
                 f" '{ec2_client.meta.region_name}' (if present)"
@@ -1018,10 +1018,10 @@ class AWSConfig(CommonCloudConfig):
                 )
             except ClientError as e:
                 if "DryRunOperation" in str(e):
-                    print_log(f"Validated AWS access key '{access_key.access_key_id}'")
+                    print_info(f"Validated AWS access key '{access_key.access_key_id}'")
                     return True
                 elif "AuthFailure" in str(e):
-                    print_log(
+                    print_info(
                         f"Waiting {retry_interval_seconds}s for AWS access key to"
                         f" become valid for EC2 (attempt {index + 1} of"
                         f" {max_retries}) ..."

@@ -14,7 +14,7 @@ from yellowdog_cli.utils.entity_utils import (
 from yellowdog_cli.utils.printing import (
     print_error,
     print_event,
-    print_log,
+    print_info,
     print_warning,
 )
 from yellowdog_cli.utils.settings import EVENT_STREAM_RETRY_INTERVAL
@@ -42,13 +42,13 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
             if get_ydid_type(ydid) == YDIDType.WORKER_POOL:
                 cr_ydid = get_compute_requirement_id_by_worker_pool_id(CLIENT, ydid)
                 if cr_ydid is not None:
-                    print_log(
+                    print_info(
                         f"Adding event stream for Compute Requirement '{cr_ydid}'"
                     )
                     cr_ydids.add(cr_ydid)
         ydids_set = ydids_set.union(cr_ydids)
 
-    print_log(f"Following the event stream(s) for {len(ydids_set)} YellowDog ID(s)")
+    print_info(f"Following the event stream(s) for {len(ydids_set)} YellowDog ID(s)")
 
     threads: List[Thread] = []
 
@@ -77,7 +77,7 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
         thread.join()
 
     if len(threads) > 1:
-        print_log("All event streams have concluded")
+        print_info("All event streams have concluded")
 
 
 def follow_events(ydid: str, ydid_type: YDIDType):
@@ -122,7 +122,7 @@ def follow_events(ydid: str, ydid_type: YDIDType):
                 print_error(f"Event stream error: {e}")
                 break
 
-    print_log(f"Event stream concluded for '{ydid}'")
+    print_info(f"Event stream concluded for '{ydid}'")
 
 
 def get_event_url(ydid: str, ydid_type: YDIDType) -> Optional[str]:

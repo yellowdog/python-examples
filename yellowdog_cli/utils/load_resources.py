@@ -6,7 +6,7 @@ from sys import exit
 from typing import Dict, List
 
 from yellowdog_cli.utils.args import ARGS_PARSER
-from yellowdog_cli.utils.printing import print_log, print_warning
+from yellowdog_cli.utils.printing import print_info, print_warning
 from yellowdog_cli.utils.settings import (
     RN_ALLOWANCE,
     RN_APPLICATION,
@@ -72,7 +72,7 @@ def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
         for resource in resources_loaded:
             process_variable_substitutions_insitu(resource)
 
-        print_log(
+        print_info(
             f"Including {len(resources_loaded)} resource(s) from '{resource_spec}'"
         )
         resources += resources_loaded
@@ -81,7 +81,7 @@ def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
         exit(0)
 
     if len(ARGS_PARSER.resource_specifications) > 1:
-        print_log(f"Including {len(resources)} resources in total")
+        print_info(f"Including {len(resources)} resources in total")
 
     return _resequence_resources(resources, creation_or_update=creation_or_update)
 
@@ -96,7 +96,7 @@ def _resequence_resources(
     """
 
     if ARGS_PARSER.no_resequence:
-        print_log("Not re-sequencing the resource list")
+        print_info("Not re-sequencing the resource list")
         return resources
 
     if len(resources) == 1:

@@ -25,7 +25,7 @@ from yellowdog_cli.utils.misc_utils import (
 # Load additional environment variables as early as possible
 load_dotenv_file()
 
-from yellowdog_cli.utils.printing import print_error, print_log
+from yellowdog_cli.utils.printing import print_error, print_info
 from yellowdog_cli.utils.property_names import *
 from yellowdog_cli.utils.settings import (
     CR_BATCH_SIZE_DEFAULT,
@@ -69,7 +69,7 @@ CONFIG_FILE = relpath(
 
 if ARGS_PARSER.no_config:
     # Suppress use of any TOML config file
-    print_log(f"Configuration file ('{CONFIG_FILE}') ignored")
+    print_info(f"Configuration file ('{CONFIG_FILE}') ignored")
     CONFIG_TOML = {COMMON_SECTION: {}}
     CONFIG_FILE_DIR = os.getcwd()
 
@@ -82,7 +82,7 @@ else:
         VARIABLE_SUBSTITUTIONS.update(
             {"config_dir_abs": config_dir_abs, "config_dir_name": config_dir_short}
         )
-        print_log(f"Loading configuration data from: '{CONFIG_FILE}'")
+        print_info(f"Loading configuration data from: '{CONFIG_FILE}'")
         CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
         try:
             validate_properties(CONFIG_TOML, f"'{CONFIG_FILE}'")
@@ -95,7 +95,7 @@ else:
             print_error(e)
             exit(1)
         # No config file, so create a stub config dictionary
-        print_log(
+        print_info(
             "No configuration file; expecting configuration data on command line "
             "or in environment variables"
         )
@@ -140,7 +140,7 @@ def load_config_common() -> ConfigCommon:
         ]:
             if args_parser_value is not None:
                 common_section[key_name] = args_parser_value
-                print_log(
+                print_info(
                     f"Using '{key_name}' provided on command line "
                     "(or automatically set)"
                 )
@@ -149,27 +149,27 @@ def load_config_common() -> ConfigCommon:
                 and os.environ.get(env_var_name, None) is not None
             ):
                 common_section[key_name] = os.environ[env_var_name]
-                print_log(f"Using '{key_name}' provided via the environment")
+                print_info(f"Using '{key_name}' provided via the environment")
 
         # Provide default values for namespace and tag
         if common_section.get(NAMESPACE, None) is None:
             common_section[NAMESPACE] = "default"
             if ARGS_PARSER.namespace_required:
-                print_log(
+                print_info(
                     "Using default value for 'namespace': "
                     f"'{common_section[NAMESPACE]}'"
                 )
         if common_section.get(NAME_TAG, None) is None:
             common_section[NAME_TAG] = "{{username}}"
             if ARGS_PARSER.tag_required:
-                print_log(
+                print_info(
                     "Using default value for 'tag/prefix/name' = "
                     f"'{VARIABLE_SUBSTITUTIONS['username']}'"
                 )
 
         url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
         if url != DEFAULT_URL:
-            print_log(f"Using the YellowDog API at: {url}")
+            print_info(f"Using the YellowDog API at: {url}")
 
         # Exhaustive variable processing for common section variables
         # Note that add_substitutions() will perform all possible
@@ -193,7 +193,7 @@ def load_config_common() -> ConfigCommon:
         if certificates is not None:
             certificates = abspath(certificates)
             requests_ca_bundle = "REQUESTS_CA_BUNDLE"
-            print_log(
+            print_info(
                 f"Setting environment variable '{requests_ca_bundle}' to '{certificates}'"
             )
             os.environ["REQUESTS_CA_BUNDLE"] = certificates
@@ -218,7 +218,7 @@ def load_config_common() -> ConfigCommon:
 
 def import_toml(filename: str) -> Dict:
     filename = relpath(join(CONFIG_FILE_DIR, process_variable_substitutions(filename)))
-    print_log(f"Loading imported common configuration data from: '{filename}'")
+    print_info(f"Loading imported common configuration data from: '{filename}'")
     try:
         common_config: Dict = load_toml_file_with_variable_substitutions(filename)
         return common_config[COMMON_SECTION]

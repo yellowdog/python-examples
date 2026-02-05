@@ -31,7 +31,7 @@ from yellowdog_cli.utils.entity_utils import (
 )
 from yellowdog_cli.utils.interactive import confirmed
 from yellowdog_cli.utils.load_resources import load_resource_specifications
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.settings import (
     DEFAULT_NAMESPACE,
     NAMESPACE_PREFIX_SEPARATOR,
@@ -159,7 +159,7 @@ def remove_compute_source_template(resource: Dict):
 
     try:
         CLIENT.compute_client.delete_compute_source_template_by_id(source_id)
-        print_log(f"Removed Compute Source Template '{name}' ({source_id})")
+        print_info(f"Removed Compute Source Template '{name}' ({source_id})")
     except Exception as e:
         print_error(
             f"Unable to remove Compute Source Template '{name}' ({source_id}): {e}"
@@ -189,7 +189,7 @@ def remove_compute_requirement_template(resource: Dict):
 
     try:
         CLIENT.compute_client.delete_compute_requirement_template_by_id(template_id)
-        print_log(f"Removed Compute Requirement Template '{name}' ({template_id})")
+        print_info(f"Removed Compute Requirement Template '{name}' ({template_id})")
     except Exception as e:
         print_error(
             f"Unable to remove Compute Requirement Template '{name}'"
@@ -212,7 +212,7 @@ def remove_keyring(resource: Dict):
 
     try:
         CLIENT.keyring_client.delete_keyring_by_name(name)
-        print_log(f"Removed Keyring '{name}'")
+        print_info(f"Removed Keyring '{name}'")
     except HTTPError as e:
         if e.response.status_code == 404:
             print_warning(f"Cannot find Keyring '{name}'")
@@ -239,7 +239,7 @@ def remove_credential(resource: Dict):
 
     try:
         CLIENT.keyring_client.delete_credential_by_name(keyring_name, credential_name)
-        print_log(
+        print_info(
             f"Removed Credential '{credential_name}' from Keyring '{keyring_name}' (if"
             " it was present)"
         )
@@ -285,7 +285,7 @@ def remove_image_family(resource: Dict):
 
     try:
         CLIENT.images_client.delete_image_family(image_family)
-        print_log(f"Removed Image Family '{fq_name}' ({image_family.id})")
+        print_info(f"Removed Image Family '{fq_name}' ({image_family.id})")
     except Exception as e:
         print_error(f"Unable to remove Image Family '{fq_name}': {e}")
 
@@ -312,7 +312,7 @@ def remove_namespace_configuration(resource: Dict):
 
     try:
         CLIENT.object_store_client.delete_namespace_storage_configuration(namespace)
-        print_log(f"Removed Namespace Storage Configuration '{namespace}'")
+        print_info(f"Removed Namespace Storage Configuration '{namespace}'")
     except Exception as e:
         print_error(
             f"Unable to remove Namespace Storage Configuration '{namespace}': {e}"
@@ -350,7 +350,7 @@ def remove_configured_worker_pool(resource: Dict):
                     break
                 try:
                     CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
-                    print_log(
+                    print_info(
                         f"Shutting down [{worker_pool.status}] Configured Worker Pool"
                         f" '{fq_name}' ({worker_pool.id})"
                     )
@@ -358,7 +358,7 @@ def remove_configured_worker_pool(resource: Dict):
                 except Exception as e:
                     print_error(f"Failed to shut down Configured Worker Pool: {e}")
             else:
-                print_log(
+                print_info(
                     f"Not shutting down [{worker_pool.status}] Configured Worker Pool"
                     f" '{fq_name}' ({worker_pool.id})"
                 )
@@ -374,9 +374,9 @@ def remove_allowance(resource: Dict):
     """
     description = resource.get("description", None)
     if description is not None:
-        print_log(f"Removing allowance(s) matching description '{description}'")
+        print_info(f"Removing allowance(s) matching description '{description}'")
         num_removed = remove_allowances_matching_description(CLIENT, description)
-        print_log(f"Removed {num_removed} Allowance(s)")
+        print_info(f"Removed {num_removed} Allowance(s)")
 
 
 def remove_resource_by_id(resource_id: str):
@@ -387,14 +387,16 @@ def remove_resource_by_id(resource_id: str):
         if get_ydid_type(resource_id) == YDIDType.COMPUTE_SOURCE_TEMPLATE:
             if confirmed(f"Remove Compute Source Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_source_template_by_id(resource_id)
-                print_log(f"Removed Compute Source Template {resource_id} (if present)")
+                print_info(
+                    f"Removed Compute Source Template {resource_id} (if present)"
+                )
 
         elif get_ydid_type(resource_id) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
             if confirmed(f"Remove Compute Requirement Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_requirement_template_by_id(
                     resource_id
                 )
-                print_log(
+                print_info(
                     f"Removed Compute Requirement Template {resource_id} (if present)"
                 )
 
@@ -404,7 +406,7 @@ def remove_resource_by_id(resource_id: str):
                     CLIENT.images_client.get_image_family_by_id(resource_id)
                 )
                 CLIENT.images_client.delete_image_family(family)
-                print_log(f"Removed Image Family {resource_id} (if present)")
+                print_info(f"Removed Image Family {resource_id} (if present)")
 
         elif get_ydid_type(resource_id) == YDIDType.IMAGE_GROUP:
             if confirmed(f"Remove Image Group '{resource_id}'?"):
@@ -412,13 +414,13 @@ def remove_resource_by_id(resource_id: str):
                     resource_id
                 )
                 CLIENT.images_client.delete_image_group(group)
-                print_log(f"Removed Image Family {resource_id} (if present)")
+                print_info(f"Removed Image Family {resource_id} (if present)")
 
         elif get_ydid_type(resource_id) == YDIDType.IMAGE:
             if confirmed(f"Remove Image '{resource_id}'?"):
                 image: MachineImage = CLIENT.images_client.get_image(resource_id)
                 CLIENT.images_client.delete_image(image)
-                print_log(f"Removed Image {resource_id} (if present)")
+                print_info(f"Removed Image {resource_id} (if present)")
 
         elif get_ydid_type(resource_id) == YDIDType.KEYRING:
             if confirmed(f"Remove Keyring {resource_id}?"):
@@ -426,29 +428,29 @@ def remove_resource_by_id(resource_id: str):
                 for keyring in keyrings:
                     if keyring.id == resource_id:
                         CLIENT.keyring_client.delete_keyring_by_name(keyring.name)
-                        print_log(f"Removed Keyring {resource_id}")
+                        print_info(f"Removed Keyring {resource_id}")
                         return
                 print_warning(f"Cannot find Keyring {resource_id}")
 
         elif get_ydid_type(resource_id) == YDIDType.WORKER_POOL:
             if confirmed(f"Shut down Worker Pool {resource_id}?"):
                 CLIENT.worker_pool_client.shutdown_worker_pool_by_id(resource_id)
-                print_log(f"Shut down Worker Pool {resource_id}")
+                print_info(f"Shut down Worker Pool {resource_id}")
 
         elif get_ydid_type(resource_id) == YDIDType.ALLOWANCE:
             if confirmed(f"Remove Allowance {resource_id}?"):
                 CLIENT.allowances_client.delete_allowance_by_id(resource_id)
-                print_log(f"Removed Allowance {resource_id} (if present)")
+                print_info(f"Removed Allowance {resource_id} (if present)")
 
         elif get_ydid_type(resource_id) == YDIDType.GROUP:
             if confirmed(f"Remove Group {resource_id}?"):
                 CLIENT.account_client.delete_group(resource_id)
-                print_log(f"Removed Group {resource_id} (if present)")
+                print_info(f"Removed Group {resource_id} (if present)")
 
         elif get_ydid_type(resource_id) == YDIDType.APPLICATION:
             if confirmed(f"Remove Application {resource_id}?"):
                 CLIENT.account_client.delete_application(resource_id)
-                print_log(f"Removed Application {resource_id} (if present)")
+                print_info(f"Removed Application {resource_id} (if present)")
 
         else:
             print_error(f"Resource ID type is unknown/unsupported: {resource_id}")
@@ -474,7 +476,7 @@ def remove_attribute_definition(resource: Dict):
     response = delete(url=url, headers=headers)
 
     if response.status_code == 200:
-        print_log(f"Removed Attribute Definition '{name}' (if present)")
+        print_info(f"Removed Attribute Definition '{name}' (if present)")
         return
 
     raise Exception(f"HTTP {response.status_code} ({response.text})")
@@ -505,7 +507,7 @@ def remove_namespace_policy(resource: Dict):
 
     try:
         CLIENT.namespaces_client.delete_namespace_policy(namespace)
-        print_log(f"Removed Namespace Policy '{namespace}'")
+        print_info(f"Removed Namespace Policy '{namespace}'")
     except Exception as e:
         print_error(f"Unable to remove Namespace Policy '{namespace}': {e}")
 
@@ -530,7 +532,7 @@ def remove_group(resource: Dict):
 
     try:
         CLIENT.account_client.delete_group(group_id)
-        print_log(f"Removed Group '{group_name}' ({group_id})")
+        print_info(f"Removed Group '{group_name}' ({group_id})")
         clear_group_caches()
     except Exception as e:
         print_error(f"Unable to remove Group '{group_name}' ({group_id}): {e}")
@@ -556,7 +558,7 @@ def remove_application(resource: Dict):
 
     try:
         CLIENT.account_client.delete_application(app_id)
-        print_log(f"Removed Application '{app_name}' ({app_id})")
+        print_info(f"Removed Application '{app_name}' ({app_id})")
         clear_application_caches()
     except Exception as e:
         print_error(f"Unable to remove Application '{app_name}' ({app_id}): {e}")
@@ -593,7 +595,7 @@ def remove_namespace(resource: Dict):
         else:
             print_error(f"Unable to remove Namespace '{name}': {e}")
 
-    print_log(f"Removed Namespace '{name}' ({namespace_id})")
+    print_info(f"Removed Namespace '{name}' ({namespace_id})")
 
 
 # Entry point

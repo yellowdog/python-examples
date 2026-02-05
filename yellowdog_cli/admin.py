@@ -6,7 +6,7 @@ Skeleton CLI for admin commands (YellowDog only)
 
 import requests
 
-from yellowdog_cli.utils.printing import print_error, print_log
+from yellowdog_cli.utils.printing import print_error, print_info
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CONFIG_COMMON, main_wrapper
 
 
@@ -24,7 +24,7 @@ def main():
             },
         )
         if response.status_code == 200:
-            print_log(f"Refreshed Work Requirement '{wr_id}'")
+            print_info(f"Refreshed Work Requirement '{wr_id}'")
         else:
             print_error(f"Failed to refresh Work Requirement '{wr_id}'")
             raise Exception(f"{response.text}")

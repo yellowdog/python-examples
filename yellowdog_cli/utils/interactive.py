@@ -12,7 +12,7 @@ from yellowdog_cli.utils.items import Item
 from yellowdog_cli.utils.printing import (
     CONSOLE,
     print_error,
-    print_log,
+    print_info,
     print_numbered_object_list,
     print_string,
     sorted_objects,
@@ -64,7 +64,7 @@ def select(
         return objects
 
     if ARGS_PARSER.auto_select_all:
-        print_log("Automatically selecting all objects")
+        print_info("Automatically selecting all objects")
         return objects
 
     return [
@@ -148,9 +148,9 @@ def get_selected_list_items(
                 )
             else:
                 display_selections = ", ".join([str(x) for x in selected_list])
-            print_log(f"Selected item number(s): {display_selections}")
+            print_info(f"Selected item number(s): {display_selections}")
     else:
-        print_log("No items selected")
+        print_info("No items selected")
 
     return selected_list
 
@@ -161,13 +161,13 @@ def confirmed(msg: str) -> bool:
     """
     # Confirmed on the command line?
     if ARGS_PARSER is not None and ARGS_PARSER.yes:
-        print_log(f"Action proceeding without user confirmation ({msg})")
+        print_info(f"Action proceeding without user confirmation ({msg})")
         return True
 
     # Confirmed using the environment variable?
     yd_yes = getenv(YD_YES, "")
     if yd_yes != "":
-        print_log(
+        print_info(
             f"'{YD_YES}={yd_yes}': Action proceeding without user confirmation ({msg})"
         )
         return True
@@ -176,10 +176,10 @@ def confirmed(msg: str) -> bool:
     while True:
         response = _get_user_input(print_string(f"{msg} (y/N):") + " ")
         if response.lower() in ["y", "yes"]:
-            print_log("Action confirmed by user")
+            print_info("Action confirmed by user")
             return True
         elif response.lower() in ["n", "no", ""]:
-            print_log("Action cancelled by user")
+            print_info("Action cancelled by user")
             return False
 
 

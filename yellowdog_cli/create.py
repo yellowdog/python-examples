@@ -69,8 +69,8 @@ from yellowdog_cli.utils.interactive import confirmed
 from yellowdog_cli.utils.load_resources import load_resource_specifications
 from yellowdog_cli.utils.printing import (
     print_error,
+    print_info,
     print_json,
-    print_log,
     print_warning,
 )
 from yellowdog_cli.utils.settings import (
@@ -155,7 +155,7 @@ def create_resources(
         resources = deepcopy(resources)  # Avoid overwriting the input argument
 
     if ARGS_PARSER.dry_run:
-        print_log(
+        print_info(
             "Dry-run: displaying processed JSON resource specifications. Note:"
             " 'resource' property is removed."
         )
@@ -280,7 +280,7 @@ def create_compute_source_template(resource: Dict):
         compute_source = CLIENT.compute_client.add_compute_source_template(
             compute_source_template
         )
-        print_log(f"Created Compute Source Template '{name}' ({compute_source.id})")
+        print_info(f"Created Compute Source Template '{name}' ({compute_source.id})")
     else:
         if not confirmed(f"Update existing Compute Source Template '{name}'?"):
             return
@@ -288,7 +288,7 @@ def create_compute_source_template(resource: Dict):
         compute_source = CLIENT.compute_client.update_compute_source_template(
             compute_source_template
         )
-        print_log(
+        print_info(
             f"Updated existing Compute Source Template '{name}'"
             f" ({compute_source.id})"
         )
@@ -364,7 +364,7 @@ def create_compute_requirement_template(resource: Dict):
             _get_images_id(source_image_id, source, PROP_IMAGE_ID)
 
     if source_template_substitutions > 0:
-        print_log(
+        print_info(
             f"Replaced {source_template_substitutions} Compute Source Template name(s) with ID(s)"
         )
 
@@ -395,7 +395,7 @@ def create_compute_requirement_template(resource: Dict):
         )
         global CLEAR_CRT_CACHE
         CLEAR_CRT_CACHE = True
-        print_log(f"Created Compute Requirement Template '{name}' ({template.id})")
+        print_info(f"Created Compute Requirement Template '{name}' ({template.id})")
         if ARGS_PARSER.quiet:
             print(template.id)
         return
@@ -409,7 +409,9 @@ def create_compute_requirement_template(resource: Dict):
     template = CLIENT.compute_client.update_compute_requirement_template(
         compute_template
     )
-    print_log(f"Updated existing Compute Requirement Template '{name}' ({template.id})")
+    print_info(
+        f"Updated existing Compute Requirement Template '{name}' ({template.id})"
+    )
     if ARGS_PARSER.quiet:
         print(template.id)
 
@@ -430,7 +432,7 @@ def create_keyring(resource: Dict, show_secrets: bool = False):
             if not confirmed(f"Keyring '{name}' already exists: delete and recreate?"):
                 return
             CLIENT.keyring_client.delete_keyring_by_name(name)
-            print_log(f"Deleted Keyring '{name}'")
+            print_info(f"Deleted Keyring '{name}'")
 
     try:
         keyring, keyring_password = create_keyring_via_api(name, description)
@@ -439,7 +441,7 @@ def create_keyring(resource: Dict, show_secrets: bool = False):
             if ARGS_PARSER.show_keyring_passwords or show_secrets
             else "<REDACTED>"
         )
-        print_log(
+        print_info(
             f"Created Keyring '{name}' ({keyring.id}): Password = {keyring_password}"
         )
         if ARGS_PARSER.quiet:
@@ -483,7 +485,7 @@ def create_credential(resource: Dict):
     credential = _get_model_object(credential_type, credential_data)
     try:
         CLIENT.keyring_client.put_credential_by_name(keyring_name, credential)
-        print_log(f"Added Credential '{name}' to Keyring '{keyring_name}'")
+        print_info(f"Added Credential '{name}' to Keyring '{keyring_name}'")
     except HTTPError as e:
         print_error(f"Failed to add Credential '{name}' to Keyring '{keyring_name}'")
         if e.response.status_code == 400:
@@ -531,7 +533,7 @@ def create_image_family(resource):
         # This will update the Image Family but not its constituent
         # Image Group/Image resources
         CLIENT.images_client.update_image_family(image_family)
-        print_log(
+        print_info(
             f"Updated existing Machine Image Family '{fq_name}' ('{image_family.id}')"
         )
         if ARGS_PARSER.quiet:
@@ -541,7 +543,7 @@ def create_image_family(resource):
             # This will create the Image Family and all of its constituent
             # Image Group/Image resources
             image_family = _create_image_family(image_family, fq_name)
-            print_log(f"Created Machine Image Family '{fq_name}' ({image_family.id})")
+            print_info(f"Created Machine Image Family '{fq_name}' ({image_family.id})")
             if ARGS_PARSER.quiet:
                 print(image_family.id)
         else:
@@ -558,7 +560,7 @@ def create_image_family(resource):
         if existing_image_group.name not in updated_image_group_names:
             if confirmed(f"Remove existing Image Group '{existing_image_group.name}'?"):
                 CLIENT.images_client.delete_image_group(existing_image_group)
-                print_log(f"Deleted Image Group '{existing_image_group.name}'")
+                print_info(f"Deleted Image Group '{existing_image_group.name}'")
 
     # Update Image Groups
     for image_group in image_groups:
@@ -590,7 +592,7 @@ def _create_image_group(
             return
         image_group.id = existing_image_group.id
         CLIENT.images_client.update_image_group(image_group)
-        print_log(f"Updated existing Machine Image Group '{image_group.name}'")
+        print_info(f"Updated existing Machine Image Group '{image_group.name}'")
         if ARGS_PARSER.quiet:
             print(image_group.id)
     except HTTPError as e:
@@ -598,7 +600,7 @@ def _create_image_group(
             image_group = CLIENT.images_client.add_image_group(
                 image_family, image_group
             )
-            print_log(f"Created Machine Image Group '{image_group.name}'")
+            print_info(f"Created Machine Image Group '{image_group.name}'")
             if ARGS_PARSER.quiet:
                 print(image_group.id)
         else:
@@ -617,7 +619,7 @@ def _create_image_group(
         if existing_image.name not in updated_image_names:
             if confirmed(f"Remove existing Image '{existing_image.name}'?"):
                 CLIENT.images_client.delete_image(existing_image)
-                print_log(f"Deleted Image '{existing_image.name}'")
+                print_info(f"Deleted Image '{existing_image.name}'")
 
     # Update Images
     for image in images:
@@ -641,10 +643,10 @@ def _create_image(image: MachineImage, image_group: MachineImageGroup):
         if image.id is not None:  # Existing Image
             if confirmed(f"Update existing Machine Image '{image.name}'?"):
                 image = CLIENT.images_client.update_image(image)
-                print_log(f"Updated existing Machine Image '{image.name}'")
+                print_info(f"Updated existing Machine Image '{image.name}'")
         else:  # New Image
             image = CLIENT.images_client.add_image(image_group, image)
-            print_log(f"Created Machine Image '{image.name}'")
+            print_info(f"Created Machine Image '{image.name}'")
     except InvalidRequestException as e:
         print_error(f"Unable to create/update Image '{image.name}': {e}")
 
@@ -667,7 +669,7 @@ def create_namespace_configuration(resource: Dict):
     )
     for config in namespace_configurations:
         if config.namespace == namespace:
-            print_log(
+            print_info(
                 f"Updating existing Namespace Storage Configuration '{namespace}'"
             )
 
@@ -676,7 +678,7 @@ def create_namespace_configuration(resource: Dict):
         CLIENT.object_store_client.put_namespace_storage_configuration(
             namespace_configuration
         )
-        print_log(f"Created/updated Namespace Storage Configuration '{namespace}'")
+        print_info(f"Created/updated Namespace Storage Configuration '{namespace}'")
     except Exception as e:
         print_error(
             "Unable to create/update Namespace Storage Configuration"
@@ -702,13 +704,13 @@ def create_configured_worker_pool(resource: Dict):
         cwp_response: AddConfiguredWorkerPoolResponse = (
             CLIENT.worker_pool_client.add_configured_worker_pool(cwp_request)
         )
-        print_log(
+        print_info(
             f"Created Configured Worker Pool '{name}' ({cwp_response.workerPool.id})"
         )
-        print_log(
+        print_info(
             f"                   Worker Pool Token = '{cwp_response.token.secret}'"
         )
-        print_log(
+        print_info(
             "                   Worker Pool Expiry Time = "
             f"{str(cwp_response.token.expiryTime).split('.')[0]}"
         )
@@ -745,7 +747,7 @@ def create_allowance(resource: Dict):
                         f"Compute Source Template name '{template_name_or_id}' not found"
                     )
                     return
-                print_log(
+                print_info(
                     f"Replaced Source Template name '{template_name_or_id}'"
                     f" with ID {template_id}"
                 )
@@ -770,7 +772,7 @@ def create_allowance(resource: Dict):
                         f"Compute Requirement Template name '{template_name_or_id}' not found"
                     )
                     return
-                print_log(
+                print_info(
                     f"Replaced Requirement Template name '{template_name_or_id}'"
                     f" with ID {template_id}"
                 )
@@ -790,7 +792,7 @@ def create_allowance(resource: Dict):
             raise Exception(
                 f"Unable to parse '{PROP_EFFECTIVE_FROM}' date '{effective_from}'"
             )
-        print_log(
+        print_info(
             f"Property '{PROP_EFFECTIVE_FROM}' = '{effective_from}' set to "
             f"'{_display_datetime(resource[PROP_EFFECTIVE_FROM])}'"
         )
@@ -802,7 +804,7 @@ def create_allowance(resource: Dict):
             raise Exception(
                 f"Unable to parse '{PROP_EFFECTIVE_UNTIL}' date '{effective_until}'"
             )
-        print_log(
+        print_info(
             f"Property '{PROP_EFFECTIVE_UNTIL}' = '{effective_until}' set to "
             f"'{_display_datetime(resource[PROP_EFFECTIVE_UNTIL])}'"
         )
@@ -823,7 +825,7 @@ def create_allowance(resource: Dict):
     if ARGS_PARSER.match_allowances_by_description:
         # Look for existing Allowances that match the description string
         if description is not None:
-            print_log(
+            print_info(
                 "Checking for and removing existing Allowance(s) matching "
                 f"description '{description}'"
             )
@@ -834,9 +836,9 @@ def create_allowance(resource: Dict):
             _get_model_object(type, resource)
         )
         if description is None:
-            print_log(f"Created new Allowance {allowance.id}")
+            print_info(f"Created new Allowance {allowance.id}")
         else:
-            print_log(f"Created new Allowance '{description}' ({allowance.id})")
+            print_info(f"Created new Allowance '{description}' ({allowance.id})")
     except Exception as e:
         print_error(f"Unable to create Allowance: {e}")
         return
@@ -886,11 +888,11 @@ def create_attribute_definition(resource: Dict, resource_type: str):
         }
 
     # Attempt attribute creation
-    print_log(f"Attempting to create or update Attribute Definition '{name}'")
+    print_info(f"Attempting to create or update Attribute Definition '{name}'")
     response = post(url=url, headers=headers, json=payload)
 
     if response.status_code == 200:
-        print_log(f"Created new Attribute Definition '{name}'")
+        print_info(f"Created new Attribute Definition '{name}'")
         return
 
     if "Attribute already exists" in response.text:
@@ -899,7 +901,7 @@ def create_attribute_definition(resource: Dict, resource_type: str):
 
         response = put(url=url, headers=headers, json=payload)
         if response.status_code == 200:
-            print_log(f"Updated existing Attribute Definition '{name}'")
+            print_info(f"Updated existing Attribute Definition '{name}'")
             return
 
     raise Exception(f"HTTP {response.status_code} ({response.text})")
@@ -938,7 +940,7 @@ def create_namespace_policy(resource: Dict):
         )
         return
 
-    print_log(
+    print_info(
         f"Created or updated Namespace Policy '{namespace_policy.namespace}' with "
         f"'autoscalingMaxNodes={namespace_policy.autoscalingMaxNodes}'"
     )
@@ -1048,10 +1050,10 @@ def create_group(resource: Dict):
                 RoleScope(role_spec.global_, role_spec.namespaces),
             )
             if role_spec.global_:
-                print_log(f"Added/updated role '{role_spec.name}' with global scope")
+                print_info(f"Added/updated role '{role_spec.name}' with global scope")
             else:
                 ns_list_quoted = [f"'{ns}'" for ns in role_spec.namespaces]
-                print_log(
+                print_info(
                     f"Added/updated role '{role_spec.name}' scoped to "
                     f"namespace(s): {', '.join(ns_list_quoted)}"
                 )
@@ -1065,7 +1067,7 @@ def create_group(resource: Dict):
                 group_id_,
                 role_spec.id,
             )
-            print_log(f"Removed role '{role_spec.name}'")
+            print_info(f"Removed role '{role_spec.name}'")
 
     def get_roles_to_remove(
         existing_roles: List[GroupRole], new_roles: List[RoleSpecification]
@@ -1101,7 +1103,7 @@ def create_group(resource: Dict):
         group_: Group = CLIENT.account_client.add_group(
             AddGroupRequest(name=name, description=description)
         )
-        print_log(f"Created Group '{group_.name}' ({group_.id})")
+        print_info(f"Created Group '{group_.name}' ({group_.id})")
         clear_group_caches()
         return group_
 
@@ -1115,7 +1117,7 @@ def create_group(resource: Dict):
         group_: Group = CLIENT.account_client.update_group(
             group_id_, UpdateGroupRequest(name=name, description=description)
         )
-        print_log(f"Updated Group '{group_.name}' ({group_.id})")
+        print_info(f"Updated Group '{group_.name}' ({group_.id})")
         return group_
 
     # Main logic
@@ -1160,13 +1162,13 @@ def create_application(resource: Dict):
         }
 
         if current_group_ids == new_group_ids:
-            print_log("No Group additions or deletions required")
+            print_info("No Group additions or deletions required")
             return
 
         group_ids_to_remove = current_group_ids - new_group_ids
         for group_id in group_ids_to_remove:
             CLIENT.account_client.remove_application_from_group(group_id, app.id)
-            print_log(
+            print_info(
                 f"Removed Group '{get_group_name_by_id(CLIENT, group_id)}' "
                 f"from Application ({group_id})"
             )
@@ -1174,7 +1176,7 @@ def create_application(resource: Dict):
         group_ids_to_add = new_group_ids - current_group_ids
         for group_id in group_ids_to_add:
             CLIENT.account_client.add_application_to_group(group_id, app.id)
-            print_log(
+            print_info(
                 f"Added Group '{get_group_name_by_id(CLIENT, group_id)}' "
                 f"to Application ({group_id})"
             )
@@ -1183,8 +1185,8 @@ def create_application(resource: Dict):
         """
         Helper function to display the app key and secret.
         """
-        print_log(f"Application Key ID     = '{api_key.id}'", override_quiet=True)
-        print_log(f"Application Key Secret = '{api_key.secret}'", override_quiet=True)
+        print_info(f"Application Key ID     = '{api_key.id}'", override_quiet=True)
+        print_info(f"Application Key Secret = '{api_key.secret}'", override_quiet=True)
 
     def add_application():
         """
@@ -1194,7 +1196,7 @@ def create_application(resource: Dict):
             _get_model_object(RN_ADD_APPLICATION_REQUEST, resource)
         )
         app = app_response.application
-        print_log(f"Created Application '{app.name}' ({app.id})")
+        print_info(f"Created Application '{app.name}' ({app.id})")
         show_key_and_secret(app_response.apiKey)
         clear_application_caches()
         update_groups(app)
@@ -1210,11 +1212,11 @@ def create_application(resource: Dict):
         app: Application = CLIENT.account_client.update_application(
             app_id, _get_model_object(RN_UPDATE_APPLICATION_REQUEST, resource)
         )
-        print_log(f"Updated Application '{app.name}' ({app.id})")
+        print_info(f"Updated Application '{app.name}' ({app.id})")
         update_groups(app)
 
         if ARGS_PARSER.regenerate_app_keys:
-            print_log("Regenerating Application key and secret")
+            print_info("Regenerating Application key and secret")
             api_key = CLIENT.account_client.regenerate_application_api_key(app_id)
             if api_key is None:
                 print_error("New API key/secret not returned")
@@ -1268,7 +1270,7 @@ def update_user(resource: Dict, internal_user: bool):
         current_group_ids = {group.id for group in get_user_groups(CLIENT, user.id)}
 
         if current_group_ids == new_group_ids:
-            print_log("No Group additions or deletions required")
+            print_info("No Group additions or deletions required")
             return
 
         if not confirmed(f"Update Groups for User '{username}' ({user.id})?"):
@@ -1277,7 +1279,7 @@ def update_user(resource: Dict, internal_user: bool):
         group_ids_to_remove = current_group_ids - new_group_ids
         for group_id in group_ids_to_remove:
             CLIENT.account_client.remove_user_from_group(group_id, user.id)
-            print_log(
+            print_info(
                 f"Removed Group '{get_group_name_by_id(CLIENT, group_id)}' "
                 f"({group_id})"
             )
@@ -1285,7 +1287,7 @@ def update_user(resource: Dict, internal_user: bool):
         group_ids_to_add = new_group_ids - current_group_ids
         for group_id in group_ids_to_add:
             CLIENT.account_client.add_user_to_group(group_id, user.id)
-            print_log(
+            print_info(
                 f"Added Group '{get_group_name_by_id(CLIENT, group_id)}' "
                 f"({group_id})"
             )
@@ -1311,7 +1313,7 @@ def update_user(resource: Dict, internal_user: bool):
 
     username = user.username if isinstance(user, InternalUser) else user.name
     update_groups()
-    print_log(f"Actions complete for User '{username}' ({user.id})")
+    print_info(f"Actions complete for User '{username}' ({user.id})")
 
 
 def create_namespace(resource: Dict):
@@ -1334,7 +1336,7 @@ def create_namespace(resource: Dict):
         else:
             raise Exception(f"Failed to create namespace '{name}' ({e})")
 
-    print_log(f"Created namespace '{name}' ({namespace_id})")
+    print_info(f"Created namespace '{name}' ({namespace_id})")
 
     if ARGS_PARSER.quiet:
         print(namespace_id)

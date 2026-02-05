@@ -19,7 +19,7 @@ from yellowdog_cli.utils.entity_utils import (
 from yellowdog_cli.utils.follow_utils import follow_ids
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.misc_utils import link_entity
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 
 
@@ -29,7 +29,7 @@ def main():
         _finish_work_requirements_by_name_or_id(ARGS_PARSER.work_requirement_names)
         return
 
-    print_log(
+    print_info(
         "Finishing Work Requirements in namespace "
         f"'{CONFIG_COMMON.namespace}' with tags "
         f"including '{CONFIG_COMMON.name_tag}'"
@@ -69,7 +69,7 @@ def main():
                         CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
                     )
                     finished_count += 1
-                    print_log(
+                    print_info(
                         f"Finished {link_entity(CONFIG_COMMON.url, work_requirement)} "
                         f"('{work_summary.name}')"
                     )
@@ -80,22 +80,22 @@ def main():
                     )
 
             elif work_summary.status == WorkRequirementStatus.FINISHING:
-                print_log(
+                print_info(
                     f"Work Requirement '{work_summary.name}' is already finishing"
                 )
                 finishing_count += 1
             work_requirement_ids.append(work_summary.id)
 
         if finished_count > 1:
-            print_log(f"Finished {finished_count} Work Requirement(s)")
+            print_info(f"Finished {finished_count} Work Requirement(s)")
         elif finished_count == 0 and finishing_count == 0:
-            print_log("No Work Requirements to finish")
+            print_info("No Work Requirements to finish")
 
         if ARGS_PARSER.follow:
             follow_ids(work_requirement_ids)
 
     else:
-        print_log("No Work Requirements to finish")
+        print_info("No Work Requirements to finish")
 
 
 def _finish_work_requirements_by_name_or_id(names_or_ids: List[str]):
@@ -129,7 +129,7 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: List[str]):
 
         work_requirement_summaries.append(work_requirement_summary)
         if work_requirement_summary.status == WorkRequirementStatus.FINISHING:
-            print_log(f"Work Requirement '{name_or_id}' is already finishing")
+            print_info(f"Work Requirement '{name_or_id}' is already finishing")
         else:
             if not confirmed(f"Finish Work Requirement '{name_or_id}'?"):
                 continue
@@ -137,7 +137,7 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: List[str]):
                 CLIENT.work_client.finish_work_requirement_by_id(
                     work_requirement_summary.id
                 )
-                print_log(f"Finished Work Requirement '{name_or_id}'")
+                print_info(f"Finished Work Requirement '{name_or_id}'")
             except Exception as e:
                 print_error(f"Failed to finish Work Requirement '{name_or_id}': {e}")
 

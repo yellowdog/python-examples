@@ -22,7 +22,7 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.config_types import ConfigCommon, ConfigWorkRequirement
-from yellowdog_cli.utils.printing import print_error, print_log, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.property_names import (
     DEPENDENCIES,
     DEPENDENT_ON,
@@ -187,7 +187,7 @@ class UploadedFiles:
                     remote_file=uploaded_file_path,
                 )
             else:
-                print_log(
+                print_info(
                     f"Dry-run: Would upload '{upload_file}' to"
                     f" '{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{uploaded_file_path}'"
                 )
@@ -245,7 +245,7 @@ class UploadedFiles:
                 for uf in self._uploaded_files
                 if uf.upload_namespace == namespace
             ]
-            print_log(
+            print_info(
                 f"Deleting {len(object_paths)} uploaded object(s) in "
                 f"namespace '{namespace}'"
             )
@@ -288,7 +288,7 @@ def pause_between_batches(task_batch_size: int, batch_number: int, num_tasks: in
     )
 
     if ARGS_PARSER.pause_between_batches <= 0:  # Manual delay
-        print_log(
+        print_info(
             (
                 f"Submitting batch number {batch_number + 1} ({task_range_str})"
                 if first_batch
@@ -303,7 +303,7 @@ def pause_between_batches(task_batch_size: int, batch_number: int, num_tasks: in
             input()
 
     elif ARGS_PARSER.pause_between_batches > 0:  # Automatic delay
-        print_log(
+        print_info(
             f"Submitting batch number {batch_number + 1} ({task_range_str})"
             if first_batch
             else (
