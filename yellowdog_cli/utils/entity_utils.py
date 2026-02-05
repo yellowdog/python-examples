@@ -953,20 +953,20 @@ def get_all_roles_and_namespaces_for_application(
 ) -> Dict:
     """
     Get a list of roles and the namespaces to which they apply, for a given application.
-    Returns {role_name: [namespace, ...]}, sorted by role name.
+    Returns {role_name: set(namespace, ...)}, sorted by role name.
     """
-    # Iterate through groups, roles, accumulate namespaces
+    # Iterate through groups, roles, accumulate unique namespaces
     roles = dict()
     for group in get_application_groups(client, application_id):
         for role in group.roles:
             if roles.get(role.role.name) is None:
-                roles[role.role.name] = []
+                roles[role.role.name] = set()  # Set of namespaces
             if role.scope.global_:
-                roles[role.role.name] += ["GLOBAL"]
+                roles[role.role.name].update(["GLOBAL"])
             else:
-                roles[role.role.name] += [
-                    namespace.namespace for namespace in role.scope.namespaces
-                ]
+                roles[role.role.name].update(
+                    [namespace.namespace for namespace in role.scope.namespaces]
+                )
 
     return {role: namespaces for role, namespaces in sorted(roles.items())}
 
