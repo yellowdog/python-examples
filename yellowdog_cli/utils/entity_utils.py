@@ -955,20 +955,20 @@ def get_all_roles_and_namespaces_for_application(
     Get a list of roles and the namespaces to which they apply, for a given application.
     Returns {role_name: [namespace, ...]}, sorted by role name.
     """
-    # Iterate through groups, roles
-    roles_ = dict()
+    # Iterate through groups, roles, accumulate namespaces
+    roles = dict()
     for group in get_application_groups(client, application_id):
         for role in group.roles:
-            if roles_.get(role.role.name) is None:
-                roles_[role.role.name] = []
-                if role.scope.global_:
-                    roles_[role.role.name] += ["GLOBAL"]
-                else:
-                    roles_[role.role.name] += [
-                        namespace.namespace for namespace in role.scope.namespaces
-                    ]
+            if roles.get(role.role.name) is None:
+                roles[role.role.name] = []
+            if role.scope.global_:
+                roles[role.role.name] += ["GLOBAL"]
+            else:
+                roles[role.role.name] += [
+                    namespace.namespace for namespace in role.scope.namespaces
+                ]
 
-    return {role: namespaces for role, namespaces in sorted(roles_.items())}
+    return {role: namespaces for role, namespaces in sorted(roles.items())}
 
 
 def clear_application_caches():
