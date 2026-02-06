@@ -921,7 +921,7 @@ def get_application_id_by_name(client: PlatformClient, app_name: str) -> Optiona
 @lru_cache
 def get_application_details(client: PlatformClient) -> ApplicationDetails:
     """
-    Load and cache the Application's details
+    Load and cache the Application's details.
     """
     return client.application_client.get_application_details()
 
@@ -952,15 +952,18 @@ def get_all_roles_and_namespaces_for_application(
     client: PlatformClient, application_id: str
 ) -> Dict:
     """
-    Get a list of roles and the namespaces to which they apply, for a given application.
-    Returns {role_name: set(namespace, ...)}, sorted by role name.
+    Get a list of roles and the namespaces to which they apply, for a given
+    application.
+
+    Returns {role_name: [namespace, ...]}, sorted by role name.
     """
     # Iterate through groups, roles, accumulate unique namespaces
     roles = dict()
     for group in get_application_groups(client, application_id):
         for role in group.roles:
             if roles.get(role.role.name) is None:
-                roles[role.role.name] = set()  # Set of namespaces
+                # Set of namespaces to suppress duplicates
+                roles[role.role.name] = set()
             if role.scope.global_:
                 roles[role.role.name].update(["GLOBAL"])
             else:
@@ -968,7 +971,9 @@ def get_all_roles_and_namespaces_for_application(
                     [namespace.namespace for namespace in role.scope.namespaces]
                 )
 
-    return {role: namespaces for role, namespaces in sorted(roles.items())}
+    return {
+        role: sorted(list(namespaces)) for role, namespaces in sorted(roles.items())
+    }
 
 
 def clear_application_caches():
