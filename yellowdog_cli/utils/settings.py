@@ -66,6 +66,7 @@ HIGHLIGHTED_STATES = [
     r"(?P<active>ALIVE)",
     r"(?P<active>MATCHING)",
     r"(?P<active>MAYBE MATCHING)",
+    r"(?P<active>FINISHING)",
     r"(?P<cancelled>ABORTED)",
     r"(?P<cancelled>CANCELLED)",
     r"(?P<cancelled>CANCELLING)",
