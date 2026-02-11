@@ -9,7 +9,10 @@ from pathlib import Path
 from sys import exit
 from typing import Dict
 
-from toml import TomlDecodeError
+try:
+    from tomllib import TOMLDecodeError  # Available in Python 3.11+
+except ImportError:
+    from tomli import TOMLDecodeError  # Fallback for 3.9 and 3.10
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import (
@@ -102,7 +105,7 @@ else:
         CONFIG_TOML = {COMMON_SECTION: {}}
         CONFIG_FILE_DIR = os.getcwd()
 
-    except (PermissionError, TomlDecodeError) as e:
+    except (PermissionError, TOMLDecodeError) as e:
         print_error(
             f"Unable to load configuration data from '{CONFIG_FILE}': {e}",
         )
@@ -222,7 +225,7 @@ def import_toml(filename: str) -> Dict:
     try:
         common_config: Dict = load_toml_file_with_variable_substitutions(filename)
         return common_config[COMMON_SECTION]
-    except (FileNotFoundError, PermissionError, TomlDecodeError) as e:
+    except (FileNotFoundError, PermissionError, TOMLDecodeError) as e:
         print_error(f"Unable to load imported common configuration data: {e}")
         exit(1)
 

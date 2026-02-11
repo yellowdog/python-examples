@@ -10,7 +10,10 @@ from json import load as json_load
 from os.path import relpath
 from typing import Dict, List, Optional, Tuple
 
-from toml import load as toml_load
+try:
+    from tomllib import load as toml_load  # Available in Python 3.11+
+except ImportError:
+    from tomli import load as toml_load  # Fallback for 3.9 and 3.10
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import ConfigWorkRequirement
@@ -165,7 +168,7 @@ def load_toml_file_with_csv_task_expansion(
     data.
     """
 
-    with open(resolve_filename(files_directory, toml_file), "r") as f:
+    with open(resolve_filename(files_directory, toml_file), "rb") as f:
         wr_data = toml_load(f)
 
     return perform_csv_task_expansion(wr_data, csv_files, files_directory)

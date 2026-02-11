@@ -12,7 +12,10 @@ from json import loads as json_loads
 from random import randint
 from typing import Dict, List, Optional, Union
 
-from toml import load as toml_load
+try:
+    from tomllib import load as toml_load  # Available in Python 3.11+
+except ImportError:
+    from tomli import load as toml_load  # Fallback for 3.9 and 3.10
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.check_imports import check_jsonnet_import
@@ -493,7 +496,7 @@ def load_toml_file_with_variable_substitutions(
     Takes a TOML filename and returns a dictionary with its variable
     substitutions processed.
     """
-    with open(resolve_filename(files_directory, filename), "r") as f:
+    with open(resolve_filename(files_directory, filename), "rb") as f:
         config = toml_load(f)
 
     # Add any variable substitutions in the TOML file before processing the
