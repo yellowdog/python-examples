@@ -16,6 +16,7 @@ from yellowdog_cli.utils.entity_utils import (
 from yellowdog_cli.utils.printing import (
     print_error,
     print_info,
+    print_json,
     print_to_file,
     print_yd_object,
 )
@@ -32,12 +33,35 @@ from yellowdog_cli.utils.settings import (
     RN_ROLE,
     RN_SOURCE_TEMPLATE,
 )
-from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
+from yellowdog_cli.utils.variables import USERNAME
+from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 
 @main_wrapper
 def main():
+
+    if ARGS_PARSER.parse_config:
+        if ARGS_PARSER.quiet:
+            # Output properties in JSON format
+            print_json(
+                {
+                    "namespace": CONFIG_COMMON.namespace,
+                    "tag": CONFIG_COMMON.name_tag,
+                    "username": USERNAME,
+                }
+            )
+        else:
+            # Print properties inline
+            print_info("Showing configuration values:")
+            print(f"                      namespace = {CONFIG_COMMON.namespace}")
+            print(f"                      tag       = {CONFIG_COMMON.name_tag}")
+            print(f"                      username  = {USERNAME}")
+        return
+
+    if len(ARGS_PARSER.yellowdog_ids) == 0:
+        print_info("No YellowDog IDs to show")
+        return
 
     # Generate a JSON list of resources if there are multiple YDIDs
     # and the 'quiet' option is enabled

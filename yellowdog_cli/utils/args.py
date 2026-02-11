@@ -994,11 +994,19 @@ class CLIParser:
             verb = "follow" if "follow" in sys.argv[0] else "show"
             parser.add_argument(
                 "yellowdog_ids",
-                nargs="+",
+                nargs="*",
                 default=[],
                 metavar="<yellowdog-id>",
                 type=str,
                 help=f"the YellowDog ID(s) of the item(s) to {verb}",
+            )
+
+        if any(module in sys.argv[0] for module in ["show"]):
+            parser.add_argument(
+                "--parse-config",
+                action="store_true",
+                required=False,
+                help="parse the config and return namespace, tag, username, then exit",
             )
 
         if any(
@@ -1310,6 +1318,11 @@ class CLIParser:
     @allow_missing_attribute
     def print_pid(self) -> Optional[bool]:
         return self.args.print_pid
+
+    @property
+    @allow_missing_attribute
+    def parse_config(self) -> Optional[bool]:
+        return self.args.parse_config
 
     @property
     @allow_missing_attribute
