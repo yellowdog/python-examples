@@ -199,7 +199,7 @@ def load_config_common() -> ConfigCommon:
             print_info(
                 f"Setting environment variable '{requests_ca_bundle}' to '{certificates}'"
             )
-            os.environ["REQUESTS_CA_BUNDLE"] = certificates
+            os.environ[requests_ca_bundle] = certificates
 
         return ConfigCommon(
             # Required
