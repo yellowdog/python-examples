@@ -316,7 +316,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             upload_taskoutput=wr_section.get(UPLOAD_TASKOUTPUT, False),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             csv_files=csv_files,
-            disable_prealloaction=wr_section.get(DISABLE_PREALLOCTAION, None),
+            disable_prealloaction=wr_section.get(DISABLE_PREALLOCATION, None),
             docker_env=wr_section.get(DOCKER_ENV, None),
             docker_options=wr_section.get(DOCKER_OPTIONS, None),
             docker_password=wr_section.get(DOCKER_PASSWORD, None),

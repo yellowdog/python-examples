@@ -546,8 +546,8 @@ def create_task_group(
         ),
         disablePreallocation=check_bool(
             task_group_data.get(
-                DISABLE_PREALLOCTAION,
-                wr_data.get(DISABLE_PREALLOCTAION, config_wr.disable_prealloaction),
+                DISABLE_PREALLOCATION,
+                wr_data.get(DISABLE_PREALLOCATION, config_wr.disable_prealloaction),
             )
         ),
     )
