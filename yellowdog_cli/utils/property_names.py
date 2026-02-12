@@ -15,6 +15,7 @@ COMPUTE_REQUIREMENT_SECTION = "computeRequirement"  # No value
 CR_TAG = "requirementTag"  # String
 CSV_FILE = "csvFile"  # String
 CSV_FILES = "csvFiles"  # List of Strings
+DISABLE_PREALLOCTAION = "disablePreallocation"
 DEPENDENCIES = "dependencies"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String (Deprecated)
 DIRECTORY_NAME = "directoryName"  # String
@@ -130,6 +131,7 @@ ALL_KEYS = [
     CR_TAG,
     CSV_FILE,
     CSV_FILES,
+    DISABLE_PREALLOCTAION,
     DEPENDENCIES,
     DEPENDENT_ON,
     DIRECTORY_NAME,

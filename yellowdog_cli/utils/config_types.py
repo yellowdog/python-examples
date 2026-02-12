@@ -26,6 +26,7 @@ class ConfigWorkRequirement:
     batch_allocation: Optional[bool] = None
     completed_task_ttl: Optional[float] = None  # In minutes
     csv_files: Optional[List[str]] = None
+    disable_prealloaction: Optional[bool] = None
     docker_env: Optional[Dict] = None
     docker_options: Optional[List] = None
     docker_password: Optional[str] = None

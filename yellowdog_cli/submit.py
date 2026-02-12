@@ -544,6 +544,12 @@ def create_task_group(
         retryableErrors=generate_task_error_matchers_list(
             config_wr, wr_data, task_group_data
         ),
+        disablePreallocation=check_bool(
+            task_group_data.get(
+                DISABLE_PREALLOCTAION,
+                wr_data.get(DISABLE_PREALLOCTAION, config_wr.disable_prealloaction),
+            )
+        ),
     )
     ctttl_data = check_float_or_int(
         task_group_data.get(
