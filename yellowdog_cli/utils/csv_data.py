@@ -10,10 +10,7 @@ from json import load as json_load
 from os.path import relpath
 from typing import Dict, List, Optional, Tuple
 
-try:
-    from tomllib import load as toml_load  # Available in Python 3.11+
-except ImportError:
-    from tomli import load as toml_load  # Fallback for 3.9 and 3.10
+from tomli import load as toml_load
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import ConfigWorkRequirement

@@ -9,10 +9,7 @@ from pathlib import Path
 from sys import exit
 from typing import Dict
 
-try:
-    from tomllib import TOMLDecodeError  # Available in Python 3.11+
-except ImportError:
-    from tomli import TOMLDecodeError  # Fallback for 3.9 and 3.10
+from tomli import TOMLDecodeError
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import (

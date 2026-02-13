@@ -12,10 +12,7 @@ from json import loads as json_loads
 from random import randint
 from typing import Dict, List, Optional, Union
 
-try:
-    from tomllib import load as toml_load  # Available in Python 3.11+
-except ImportError:
-    from tomli import load as toml_load  # Fallback for 3.9 and 3.10
+from tomli import load as toml_load
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.check_imports import check_jsonnet_import
