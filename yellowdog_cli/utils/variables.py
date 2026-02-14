@@ -130,6 +130,13 @@ def add_or_update_substitution(key: str, value: str):
     VARIABLE_SUBSTITUTIONS[key] = str(value)
 
 
+def get_user_variable(variable_name: str) -> Optional[str]:
+    """
+    Get the value of a variable.
+    """
+    return VARIABLE_SUBSTITUTIONS.get(variable_name)
+
+
 def process_variable_substitutions_insitu(
     data: Union[Dict, List], prefix: str = "", postfix: str = ""
 ) -> Union[Dict, List]:

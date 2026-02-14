@@ -33,7 +33,7 @@ from yellowdog_cli.utils.settings import (
     RN_ROLE,
     RN_SOURCE_TEMPLATE,
 )
-from yellowdog_cli.utils.variables import USERNAME
+from yellowdog_cli.utils.variables import get_user_variable
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -42,13 +42,14 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 def main():
 
     if ARGS_PARSER.parse_config:
+        username = get_user_variable("username")
         if ARGS_PARSER.quiet:
             # Output properties in JSON format
             print_json(
                 {
                     "namespace": CONFIG_COMMON.namespace,
                     "tag": CONFIG_COMMON.name_tag,
-                    "username": USERNAME,
+                    "username": username,
                 }
             )
         else:
@@ -56,7 +57,7 @@ def main():
             print_info("Showing configuration values:")
             print(f"                      namespace = {CONFIG_COMMON.namespace}")
             print(f"                      tag       = {CONFIG_COMMON.name_tag}")
-            print(f"                      username  = {USERNAME}")
+            print(f"                      username  = {username}")
         return
 
     if len(ARGS_PARSER.yellowdog_ids) == 0:
