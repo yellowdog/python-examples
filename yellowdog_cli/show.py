@@ -41,27 +41,8 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 @main_wrapper
 def main():
 
-    if ARGS_PARSER.parse_config:
-        username = get_user_variable("username")
-        if ARGS_PARSER.quiet:
-            # Output properties in JSON format
-            print_json(
-                {
-                    "namespace": CONFIG_COMMON.namespace,
-                    "tag": CONFIG_COMMON.name_tag,
-                    "username": username,
-                }
-            )
-        else:
-            # Print properties inline
-            print_info("Showing configuration values:")
-            print(f"                      namespace = {CONFIG_COMMON.namespace}")
-            print(f"                      tag       = {CONFIG_COMMON.name_tag}")
-            print(f"                      username  = {username}")
-        return
-
-    if len(ARGS_PARSER.yellowdog_ids) == 0:
-        print_info("No YellowDog IDs to show")
+    if ARGS_PARSER.parse_config:  # Report selected variables and return
+        _report_variables()
         return
 
     # Generate a JSON list of resources if there are multiple YDIDs
@@ -298,6 +279,36 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
     except Exception as e:
         print_error(f"Unable to show details for '{ydid}': {e}")
+
+
+def _report_variables():
+    """
+    Convenience function to report the processed values of user variables.
+    """
+    data = (
+        {}
+        if ARGS_PARSER.report_variables is None
+        else {
+            variable_name: get_user_variable(variable_name)
+            for variable_name in ARGS_PARSER.report_variables
+        }
+    )
+    if ARGS_PARSER.quiet:
+        print_json(data)
+        return
+
+    if ARGS_PARSER.report_variables is None:
+        print_info("No variables selected for reporting")
+        return
+
+    print_info("Reporting selected variable values:")
+    for name, value in data.items():
+        print(
+            f"                      {name}"
+            f"{' '* (20 - len(name)) if len(name) < 20 else ''} "
+            f"= {value}"
+        )
+    return
 
 
 # Entry point

@@ -1001,14 +1001,6 @@ class CLIParser:
                 help=f"the YellowDog ID(s) of the item(s) to {verb}",
             )
 
-        if any(module in sys.argv[0] for module in ["show"]):
-            parser.add_argument(
-                "--parse-config",
-                action="store_true",
-                required=False,
-                help="parse the config and return namespace, tag, username, then exit",
-            )
-
         if any(
             module in sys.argv[0]
             for module in ["upload", "submit", "provision", "instantiate"]
@@ -1209,6 +1201,25 @@ class CLIParser:
                     "display the worker pool token when showing the details of a "
                     "configured worker pool"
                 ),
+            )
+            parser.add_argument(
+                "--parse-config",
+                action="store_true",
+                required=False,
+                help="parse the config and return namespace, tag, username, then exit",
+            )
+            parser.add_argument(
+                "--report-variable",
+                "-r",
+                type=str,
+                required=False,
+                action="append",
+                help=(
+                    "report the processed value of the specified variable, "
+                    "when used with '--parse-config; the option can be supplied "
+                    "multiple times, one per variable"
+                ),
+                metavar="<var>",
             )
 
         if any(module in sys.argv[0] for module in ["list", "show"]):
@@ -1841,6 +1852,11 @@ class CLIParser:
     @allow_missing_attribute
     def auto_select_all(self) -> Optional[bool]:
         return self.args.auto_select_all
+
+    @property
+    @allow_missing_attribute
+    def report_variables(self) -> Optional[List[str]]:
+        return self.args.report_variable
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
