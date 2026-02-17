@@ -376,7 +376,8 @@ def remove_allowance(resource: Dict):
     if description is not None:
         print_info(f"Removing allowance(s) matching description '{description}'")
         num_removed = remove_allowances_matching_description(CLIENT, description)
-        print_info(f"Removed {num_removed} Allowance(s)")
+        if num_removed > 0:
+            print_info(f"Removed {num_removed} Allowance(s)")
 
 
 def remove_resource_by_id(resource_id: str):
