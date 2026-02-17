@@ -4,7 +4,7 @@ SRC = yellowdog_cli/*.py yellowdog_cli/utils/*.py
 TESTS = tests/*.py conftest.py
 MANIFEST = LICENSE README.md requirements.txt
 BUILD_DIST = build dist yellowdog_python_examples.egg-info
-PYCACHE = __pycache__
+PYCACHE = __pycache__ yellowdog_cli/__pycache__ yellowdog_cli/utils/__pycache__
 TOC_BACKUP = README.md.* README_CLOUDWIZARD.md.*
 PYINSTALLER = yellowdog_cli/*.spec yellowdog_cli/build yellowdog_cli/dist
 
