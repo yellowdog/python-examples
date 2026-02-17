@@ -930,6 +930,9 @@ def print_numbered_object_list(
     if len(objects) == 0:
         return
 
+    if ARGS_PARSER.auto_select_all and ARGS_PARSER.details and ARGS_PARSER.quiet:
+        return
+
     print_info(
         "Displaying"
         f" {'all' if showing_all else 'matching'}"
