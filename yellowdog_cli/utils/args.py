@@ -1203,21 +1203,16 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
-                "--parse-config",
-                action="store_true",
-                required=False,
-                help="parse the config and return namespace, tag, username, then exit",
-            )
-            parser.add_argument(
                 "--report-variable",
                 "-r",
                 type=str,
                 required=False,
                 action="append",
                 help=(
-                    "report the processed value of the specified variable, "
-                    "when used with '--parse-config; the option can be supplied "
-                    "multiple times, one per variable"
+                    "report the processed value of the specified variable and exit; "
+                    "the option can be supplied multiple times, one per variable, "
+                    "or use 'all' to report all variables; use with '--quiet' for "
+                    "output in JSON"
                 ),
                 metavar="<var>",
             )
@@ -1329,11 +1324,6 @@ class CLIParser:
     @allow_missing_attribute
     def print_pid(self) -> Optional[bool]:
         return self.args.print_pid
-
-    @property
-    @allow_missing_attribute
-    def parse_config(self) -> Optional[bool]:
-        return self.args.parse_config
 
     @property
     @allow_missing_attribute

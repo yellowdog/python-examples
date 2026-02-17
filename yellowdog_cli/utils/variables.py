@@ -137,6 +137,13 @@ def get_user_variable(variable_name: str) -> Optional[str]:
     return VARIABLE_SUBSTITUTIONS.get(variable_name)
 
 
+def get_all_user_variables() -> Dict:
+    """
+    Return all the user variables.
+    """
+    return VARIABLE_SUBSTITUTIONS
+
+
 def process_variable_substitutions_insitu(
     data: Union[Dict, List], prefix: str = "", postfix: str = ""
 ) -> Union[Dict, List]:

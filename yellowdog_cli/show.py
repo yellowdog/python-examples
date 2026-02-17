@@ -4,6 +4,8 @@
 Command to show the JSON details of YellowDog entities via their IDs.
 """
 
+from typing import List
+
 from yellowdog_client.model import ConfiguredWorkerPool
 
 from yellowdog_cli.list import get_keyring
@@ -33,16 +35,16 @@ from yellowdog_cli.utils.settings import (
     RN_ROLE,
     RN_SOURCE_TEMPLATE,
 )
-from yellowdog_cli.utils.variables import get_user_variable
-from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
+from yellowdog_cli.utils.variables import get_all_user_variables, get_user_variable
+from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 
 @main_wrapper
 def main():
 
-    if ARGS_PARSER.parse_config:  # Report selected variables and return
-        _report_variables()
+    if ARGS_PARSER.report_variables is not None:  # Report selected variables and return
+        _report_variables(ARGS_PARSER.report_variables)
         return
 
     # Generate a JSON list of resources if there are multiple YDIDs
@@ -281,31 +283,29 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
         print_error(f"Unable to show details for '{ydid}': {e}")
 
 
-def _report_variables():
+def _report_variables(variable_names: List[str]):
     """
     Convenience function to report the processed values of user variables.
     """
-    data = (
-        {}
-        if ARGS_PARSER.report_variables is None
-        else {
+    if "all" in variable_names:
+        variables = get_all_user_variables()
+    else:
+        variables = {
             variable_name: get_user_variable(variable_name)
             for variable_name in ARGS_PARSER.report_variables
         }
-    )
-    if ARGS_PARSER.quiet:
-        print_json(data)
-        return
+    variables_sorted = dict(sorted(variables.items()))
 
-    if ARGS_PARSER.report_variables is None:
-        print_info("No variables selected for reporting")
+    if ARGS_PARSER.quiet:
+        print_json(variables_sorted)
         return
 
     print_info("Reporting selected variable values:")
-    for name, value in data.items():
+    max_var_name = max(len(name) for name in variables_sorted)
+    for name, value in variables_sorted.items():
         print(
             f"                      {name}"
-            f"{' '* (20 - len(name)) if len(name) < 20 else ''} "
+            f"{' '* (max_var_name - len(name))} "
             f"= {value}"
         )
     return
