@@ -7,6 +7,7 @@ import re
 import sys
 import tempfile
 from ast import literal_eval
+from copy import deepcopy
 from getpass import getuser
 from json import loads as json_loads
 from random import randint
@@ -139,9 +140,9 @@ def get_user_variable(variable_name: str) -> Optional[str]:
 
 def get_all_user_variables() -> Dict:
     """
-    Return all the user variables.
+    Return all the user variables. Copy to avoid amendment.
     """
-    return VARIABLE_SUBSTITUTIONS
+    return deepcopy(VARIABLE_SUBSTITUTIONS)
 
 
 def process_variable_substitutions_insitu(
