@@ -7,7 +7,7 @@ from glob import glob
 from os import chdir, getcwd
 from os.path import exists
 from time import sleep
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
@@ -74,7 +74,7 @@ def generate_task_input(
 
 def get_namespace_and_filepath(
     file: str, wr_name: Optional[str] = None
-) -> (Optional[str], str):
+) -> Tuple[Optional[str], str]:
     """
     Find the namespace and path, using the namespace separator.
     """
