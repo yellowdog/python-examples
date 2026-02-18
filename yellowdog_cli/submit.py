@@ -56,6 +56,7 @@ from yellowdog_cli.utils.printing import (
     print_warning,
 )
 from yellowdog_cli.utils.property_names import *
+from yellowdog_cli.utils.rclone_utils import RcloneUploadedFiles, upgrade_rclone
 from yellowdog_cli.utils.settings import (
     MAX_BATCH_SUBMIT_ATTEMPTS,
     MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
@@ -114,6 +115,7 @@ if ARGS_PARSER.dry_run:
     WR_SNAPSHOT = WorkRequirementSnapshot()
 
 UPLOADED_FILES: Optional[UploadedFiles] = None
+RCLONE_UPLOADED_FILES: Optional[RcloneUploadedFiles] = None
 
 # Names for environment variables that can be automatically added
 # to the environment for each Task
@@ -130,6 +132,10 @@ YD_TAG = "YD_TAG"
 
 @main_wrapper
 def main():
+
+    if ARGS_PARSER.upgrade_rclone:
+        upgrade_rclone()
+        return
 
     if not 1 <= TASK_BATCH_SIZE <= 10000:
         raise Exception("Task batch size must be between 1 and 10,000")
@@ -290,6 +296,8 @@ def submit_work_requirement(
     UPLOADED_FILES = UploadedFiles(
         client=CLIENT, wr_name=ID, config=CONFIG_COMMON, files_directory=files_directory
     )
+    global RCLONE_UPLOADED_FILES
+    RCLONE_UPLOADED_FILES = RcloneUploadedFiles(files_directory=files_directory)
 
     # Flatten upload paths?
     flatten_upload_paths = check_bool(
@@ -1051,6 +1059,9 @@ def generate_batch_of_tasks_for_task_group(
                 ),
             )
         )
+        # This will 'pop' any 'localFile' properties, required for the
+        # following 'generate' call
+        RCLONE_UPLOADED_FILES.upload_dataclient_input_files(task_data_inputs)
         task_data_inputs_and_outputs = generate_taskdata_object(
             task_data_inputs, task_data_outputs
         )
@@ -1172,11 +1183,10 @@ def submit_batch_of_tasks_to_task_group(
                 )
             last_exception = e
 
-    print_error(
+    raise Exception(
         f"Failed to submit batch {batch_number_str} {task_range_str}of {num_task_batches}: "
         f"{last_exception}"
     )
-    return 0  # Failed to submit task batch
 
 
 def get_task_data_property(
@@ -1273,6 +1283,7 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
 
     # Delete uploaded objects
     UPLOADED_FILES.delete()
+    RCLONE_UPLOADED_FILES.delete()
 
 
 def deduplicate_inputs(task_inputs: List[TaskInput]) -> List[TaskInput]:

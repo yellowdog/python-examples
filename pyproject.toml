@@ -6,11 +6,6 @@
     name = "yellowdog-python-examples"
     description = "Python CLI commands using the YellowDog Python SDK"
     classifiers = [
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -18,7 +13,7 @@
         "Operating System :: OS Independent",
         "Development Status :: 4 - Beta",
     ]
-    requires-python = ">=3.7"
+    requires-python = ">=3.10"
     dynamic = ["version", "dependencies"]
     license = "Apache-2.0"
 

@@ -46,7 +46,12 @@
       * [Task and Task Group Name Substitutions](#task-and-task-group-name-substitutions)
    * [Dry-Running Work Requirement Submissions](#dry-running-work-requirement-submissions)
       * [Submitting 'Raw' JSON Work Requirement Specifications](#submitting-raw-json-work-requirement-specifications)
-   * [File Storage Locations and File Usage](#file-storage-locations-and-file-usage)
+   * [Using the YellowDog Data Client](#using-the-yellowdog-data-client)
+      * [Specifying Data Client Inputs](#specifying-data-client-inputs)
+      * [Automatic Upload of Local Files](#automatic-upload-of-local-files)
+      * [Rclone Authentication](#rclone-authentication)
+      * [Specifying Data Client Outputs](#specifying-data-client-outputs)
+   * [[Deprecated] File Storage Locations and File Usage](#deprecated-file-storage-locations-and-file-usage)
       * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
          * [Files in the inputs List](#files-in-the-inputs-list)
          * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
@@ -135,7 +140,7 @@
    * [yd-application](#yd-application)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Mon Feb  2 12:15:54 GMT 2026 -->
+<!-- Added by: pwt, at: Fri Feb 20 13:13:40 GMT 2026 -->
 
 <!--te-->
 
@@ -289,13 +294,13 @@ optional arguments:
 
 # Configuration
 
-By default, the operation of all commands is configured using a **TOML** configuration file.
+By default, the operation of all commands is configured using a **TOML** configuration file. TOML v1.1.0 is supported, allowing multi-line tables, etc.
 
 The configuration file has three possible sections:
 
 1. A `common` section that contains required security properties for interacting with the YellowDog platform, sets the Namespace in which YellowDog assets and objects are created, and a Tag that is used for tagging and naming assets and objects.
 2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
-3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. 
+3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. (This can be substitued by a `computeRequirement` section if instance provisioning is all that's required.)
 
 There is a documented template TOML file provided in [config-template.toml](config-template.toml), containing the main properties that can be configured.
 
@@ -1225,7 +1230,93 @@ Note that variable substitutions **can** be used in the raw JSON file, just as i
 
 There is also no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START` in the `inputs` property) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload these files, and `yd-submit` will pause for user confirmation to allow this upload to happen.
 
-## File Storage Locations and File Usage
+## Using the YellowDog Data Client
+
+The YellowDog Data Client is described at https://docs.yellowdog.ai/#/the-platform/the-data-client.
+
+The CLI provides full support for expressing Data Client inputs and outputs as part of Task specifications. In addition, it can provide automatic upload of objects on the local filesystem to Data Client targets. It does this using a local `rclone` binary that will be downloaded to your system the first time the Data Client upload capability is used.
+
+Currently, Data Client only supports **individual files**, not directories or wildcards. If multiple, unspecified files are required, we recommend you compress/decompress them into a single file. The compression/decompression can be handled as part of the execution of the Task at its start and/or conclusion.
+
+### Specifying Data Client Inputs
+
+Data Client inputs for Tasks are specified as follows:
+
+TOML, in the `workRequirement` section:
+```toml
+taskDataInputs = [
+  {source = "in_src_path_1", destination = "dest_path_1"},
+  {source = "in_src_path_2", destination = "dest_path_2"},
+]
+```
+
+JSON:
+```json
+"taskDataInputs": [
+  {"destination": "dest_path_1", "source": "in_src_path_1"},
+  {"destination": "dest_path_2", "source": "in_src_path_2"}
+],
+```
+
+- The `source` property must be an rclone-compliant path, e.g.: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:my_bucket_name/directory_name/filename`.
+- The `destination` property must specify a local pathname and be prefixed with `local:`, e.g.: `local:my_output.txt`
+
+### Automatic Upload of Local Files
+
+The `yd-submit` command can automatically upload files in the `taskDataInputs` list. This is enabled by adding the `localFile` property to the relevant input specification, e.g.:
+
+TOML, in the `workRequirement` section:
+```toml
+taskDataInputs = [
+  {localFile = "my_local_file", source = "in_src_path_1", destination = "dest_path_1"},
+]
+```
+
+JSON:
+```json
+"taskDataInputs": [
+  {"localFile": "my_local_file", "destination": "dest_path_1", "source": "in_src_path_1"}
+],
+```
+
+The specified local file will be uploaded to the rclone target specified by the `source` property. The local file can be specified using an absolute or relative pathname; the base directory can be optionally adjusted using the `--content-path <directory>` option supplied to `yd-submit`.
+
+If `yd-submit` fails for any reason, the uploaded objects will be deleted automatically.
+
+### Rclone Authentication
+
+Use of rclone to upload to targets depends the presence of the required authentication, and this is handled outside the YellowDog CLI. As an example, if the requirement is to upload to an S3 bucket then appropriate AWS credentials must be present to perform the task, such as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` being set as environment variables. Example rclone paths could then be:
+
+1. Specify that the environment should be used for authentication: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:<bucket-name>/<pathname>`
+
+2. Explicitly use environment variables for authentication: `rclone:S3,type=s3,provider=AWS,access_key_id={{env:AWS_ACCESS_KEY_ID}},secret_access_key={{env:AWS_SECRET_ACCESS_KEY}},region=eu-west-2,location_constraint=eu-west-2:<bucket-name>/<pathname>`. Note that this will include the key ID and secret in plain text in the task specification.
+
+Whichever authentication method is specified will be used both by the local rclone upload and in the Data Client invocation by the YellowDog Agent.
+
+### Specifying Data Client Outputs
+
+Data Client outputs for Tasks are specified as follows:
+
+TOML, in the `workRequirement` section:
+```toml
+taskDataOutputs = [
+  {source = "out_src_path_1", destination = "dest_path_1"},
+  {source = "out_src_path_2", destination = "dest_path_2"},
+]
+```
+
+JSON:
+```json
+"taskDataOutputs": [
+  {"destination": "dest_path_1", "source": "out_src_path_1"},
+  {"destination": "dest_path_2", "source": "out_src_path_2"}
+],
+```
+
+- The `source` property must specify a local pathname and be prefixed with `local:`, e.g.: `local:my_output.txt`
+- The `destination` property must be an rclone-compliant path, e.g.: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:my_bucket_name/directory_name/filename`.
+
+## [Deprecated] File Storage Locations and File Usage
 
 This section discusses how to upload files from local storage to the YellowDog Object Store, how those files are transferred to Worker Nodes for Task processing, how the results of Task processing are returned by Worker Nodes, and how files are transferred back from the YellowDog Object Store to local storage.
 

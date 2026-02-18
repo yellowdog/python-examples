@@ -1269,6 +1269,14 @@ class CLIParser:
                 help="the YellowDog ID(s) of the provisioned worker pool(s) to compare",
             )
 
+        if any(module in sys.argv[0] for module in ["submit"]):
+            parser.add_argument(
+                "--upgrade-rclone",
+                action="store_true",
+                required=False,
+                help="download (if this is the first install) or upgrade the rclone binary, then exit",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -1847,6 +1855,11 @@ class CLIParser:
     @allow_missing_attribute
     def report_variables(self) -> Optional[List[str]]:
         return self.args.report_variable
+
+    @property
+    @allow_missing_attribute
+    def upgrade_rclone(self) -> Optional[bool]:
+        return self.args.upgrade_rclone
 
 
 def lookup_module_description(module_name: str) -> Optional[str]:
