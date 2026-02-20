@@ -66,6 +66,7 @@ from yellowdog_cli.utils.items import Item
 from yellowdog_cli.utils.property_names import NAME, TASK_GROUPS, TASKS
 from yellowdog_cli.utils.rich_console_input_fixed import ConsoleWithInputBackspaceFixed
 from yellowdog_cli.utils.settings import (
+    DEBUG_STYLE,
     DEFAULT_LOG_WIDTH,
     DEFAULT_THEME,
     ERROR_STYLE,
@@ -213,6 +214,26 @@ def print_info(
         return
 
     CONSOLE.print(escape(print_string(log_message, no_fill=no_fill)))
+
+
+def print_debug(
+    log_message: str = "",
+    override_quiet: bool = False,
+    no_fill: bool = False,
+):
+    """
+    Placeholder for debugging.
+    """
+    if not ARGS_PARSER.debug:
+        return
+
+    log_message = f"DEBUG: {log_message}"
+
+    if ARGS_PARSER.no_format:
+        print(print_string(log_message, no_fill=no_fill), flush=True)
+        return
+
+    CONSOLE.print(escape(print_string(log_message, no_fill=no_fill)), style=DEBUG_STYLE)
 
 
 def print_error(error_obj: Union[Exception, str]):
