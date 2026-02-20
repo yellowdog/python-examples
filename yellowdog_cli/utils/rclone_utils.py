@@ -49,6 +49,9 @@ class RcloneUploadedFiles:
         Extract files to be uploaded from a task_data_inputs objects, and
         upload them. Important: removes any 'localFile' properties.
         """
+        if task_data_inputs is None:
+            return
+
         for task_data_input in task_data_inputs:
             if (local_file := task_data_input.pop(LOCAL_PATH, None)) is not None and (
                 source := task_data_input.get(TASK_DATA_SOURCE)
