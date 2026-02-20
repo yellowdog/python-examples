@@ -212,7 +212,7 @@ To set up **Configured Worker Pools**, you'll need:
 
 # Script Installation with Pip
 
-Python version 3.7 or later is required. It's recommended that the installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
+Python version 3.10 or later is required. It's recommended that the installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
 
 Installation and subsequent update are via `pip` and PyPI using: 
 
