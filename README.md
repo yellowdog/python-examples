@@ -1285,7 +1285,9 @@ If `yd-submit` fails for any reason, the uploaded objects will be deleted automa
 
 ### Rclone Authentication
 
-Use of rclone to upload to targets depends the presence of the required authentication, and this is handled outside the YellowDog CLI. As an example, if the requirement is to upload to an S3 bucket then appropriate AWS credentials must be present to perform the task, such as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` being set as environment variables. Example rclone paths could then be:
+Use of rclone to upload to targets depends on the presence of the required authentication, and this is handled outside the YellowDog CLI.
+
+As an example, if the requirement is to upload to an S3 bucket then appropriate AWS credentials must be present to perform the task, such as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` being set as environment variables. Example rclone paths could then be:
 
 1. Specify that the environment should be used for authentication: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:<bucket-name>/<pathname>`
 
