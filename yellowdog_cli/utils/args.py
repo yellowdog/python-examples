@@ -1273,7 +1273,7 @@ class CLIParser:
                 "--upgrade-rclone",
                 action="store_true",
                 required=False,
-                help="download (if this is the first install) or upgrade the rclone binary, then exit",
+                help="download the latest rclone binary, then exit",
             )
 
         self.args = parser.parse_args()
