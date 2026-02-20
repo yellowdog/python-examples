@@ -22,7 +22,7 @@ def main():
 
         # Load contents
         try:
-            with open(filename, "r") as f:
+            with open(filename) as f:
                 contents = f.read()
                 f.seek(0)
                 data = json.load(f)

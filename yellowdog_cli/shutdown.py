@@ -4,8 +4,6 @@
 A script to shut down Worker Pools and/or Nodes.
 """
 
-from typing import List
-
 from yellowdog_client.model import (
     ProvisionedWorkerPool,
     WorkerPool,
@@ -38,13 +36,13 @@ def main():
         f"names including '{CONFIG_COMMON.name_tag}'"
     )
 
-    worker_pool_summaries: List[WorkerPoolSummary] = get_worker_pools(
+    worker_pool_summaries: list[WorkerPoolSummary] = get_worker_pools(
         CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
 
     shutdown_count = 0
 
-    selected_worker_pool_summaries: List[WorkerPoolSummary] = []
+    selected_worker_pool_summaries: list[WorkerPoolSummary] = []
     for worker_pool_summary in worker_pool_summaries:
         if worker_pool_summary.status not in [
             WorkerPoolStatus.TERMINATED,
@@ -88,12 +86,12 @@ def main():
         print_info("No Worker Pools shut down")
 
 
-def shutdown_by_names_or_ids(names_or_ids: List[str]):
+def shutdown_by_names_or_ids(names_or_ids: list[str]):
     """
     Shutdown Worker Pools and/or Nodes by their names or IDs.
     """
-    worker_pool_ids: List[str] = []
-    node_ids: List[str] = []
+    worker_pool_ids: list[str] = []
+    node_ids: list[str] = []
     for name_or_id in names_or_ids:
         if get_ydid_type(name_or_id) == YDIDType.NODE:
             node_ids.append(name_or_id)

@@ -5,7 +5,6 @@ A script to remove YellowDog resources.
 """
 
 from copy import deepcopy
-from typing import Dict, List, Optional
 
 from requests import delete
 from requests.exceptions import HTTPError
@@ -61,7 +60,7 @@ def main():
     remove_resources()
 
 
-def remove_resources(resources: Optional[List[Dict]] = None):
+def remove_resources(resources: list[dict] | None = None):
     """
     Remove a list of resources either supplied as an argument
     or loaded from files, or by ID.
@@ -134,7 +133,7 @@ def remove_resources(resources: Optional[List[Dict]] = None):
             # Allow removal to continue
 
 
-def remove_compute_source_template(resource: Dict):
+def remove_compute_source_template(resource: dict):
     """
     Remove a Compute Source Template using a resource specification.
     Should handle any Source Type.
@@ -166,7 +165,7 @@ def remove_compute_source_template(resource: Dict):
         )
 
 
-def remove_compute_requirement_template(resource: Dict):
+def remove_compute_requirement_template(resource: dict):
     """
     Remove a Compute Requirement Template.
     """
@@ -197,7 +196,7 @@ def remove_compute_requirement_template(resource: Dict):
         )
 
 
-def remove_keyring(resource: Dict):
+def remove_keyring(resource: dict):
     """
     Remove a Keyring.
     """
@@ -220,7 +219,7 @@ def remove_keyring(resource: Dict):
             print_error(f"Unable to remove Keyring '{name}': {e}")
 
 
-def remove_credential(resource: Dict):
+def remove_credential(resource: dict):
     """
     Remove a Credential from a Keyring.
     """
@@ -253,7 +252,7 @@ def remove_credential(resource: Dict):
             print_error(f"Unable to remove Keyring '{keyring_name}': {e}")
 
 
-def remove_image_family(resource: Dict):
+def remove_image_family(resource: dict):
     """
     Remove an Image Family.
     """
@@ -290,7 +289,7 @@ def remove_image_family(resource: Dict):
         print_error(f"Unable to remove Image Family '{fq_name}': {e}")
 
 
-def remove_namespace_configuration(resource: Dict):
+def remove_namespace_configuration(resource: dict):
     """
     Remove a Namespace Storage Configuration.
     """
@@ -300,7 +299,7 @@ def remove_namespace_configuration(resource: Dict):
         print_error(f"Expected property to be defined ({e})")
         return
 
-    namespaces: List[NamespaceStorageConfiguration] = (
+    namespaces: list[NamespaceStorageConfiguration] = (
         CLIENT.object_store_client.get_namespace_storage_configurations()
     )
     if namespace not in [x.namespace for x in namespaces]:
@@ -319,7 +318,7 @@ def remove_namespace_configuration(resource: Dict):
         )
 
 
-def remove_configured_worker_pool(resource: Dict):
+def remove_configured_worker_pool(resource: dict):
     """
     Shutdown a Configured Worker Pool.
     """
@@ -332,7 +331,7 @@ def remove_configured_worker_pool(resource: Dict):
 
     fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
-    worker_pools: List[WorkerPoolSummary] = get_worker_pools(
+    worker_pools: list[WorkerPoolSummary] = get_worker_pools(
         CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
 
@@ -368,7 +367,7 @@ def remove_configured_worker_pool(resource: Dict):
         print_warning(f"Cannot find Configured Worker Pool '{fq_name}'")
 
 
-def remove_allowance(resource: Dict):
+def remove_allowance(resource: dict):
     """
     Remove an allowance, matching on the 'description' property.
     """
@@ -460,7 +459,7 @@ def remove_resource_by_id(resource_id: str):
         print_error(f"Unable to remove resource with ID {resource_id}: {e}")
 
 
-def remove_attribute_definition(resource: Dict):
+def remove_attribute_definition(resource: dict):
     """
     Use the API to remove user attribute definitions.
     """
@@ -483,7 +482,7 @@ def remove_attribute_definition(resource: Dict):
     raise Exception(f"HTTP {response.status_code} ({response.text})")
 
 
-def remove_namespace_policy(resource: Dict):
+def remove_namespace_policy(resource: dict):
     """
     Remove a Namespace Policy (if it exists).
     """
@@ -513,7 +512,7 @@ def remove_namespace_policy(resource: Dict):
         print_error(f"Unable to remove Namespace Policy '{namespace}': {e}")
 
 
-def remove_group(resource: Dict):
+def remove_group(resource: dict):
     """
     Remove a group.
     """
@@ -539,7 +538,7 @@ def remove_group(resource: Dict):
         print_error(f"Unable to remove Group '{group_name}' ({group_id}): {e}")
 
 
-def remove_application(resource: Dict):
+def remove_application(resource: dict):
     """
     Remove an application.
     """
@@ -565,7 +564,7 @@ def remove_application(resource: Dict):
         print_error(f"Unable to remove Application '{app_name}' ({app_id}): {e}")
 
 
-def remove_namespace(resource: Dict):
+def remove_namespace(resource: dict):
     """
     Remove a namespace.
     """

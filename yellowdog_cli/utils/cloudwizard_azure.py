@@ -3,7 +3,6 @@ Configuration and utilities related to Azure account setup.
 """
 
 from os import environ
-from typing import Dict, List, Optional
 
 from azure.identity import EnvironmentCredential
 from azure.mgmt.network import NetworkManagementClient
@@ -60,7 +59,7 @@ class AzureConfig(CommonCloudConfig):
     def __init__(
         self,
         client: PlatformClient,
-        instance_type: Optional[str] = None,
+        instance_type: str | None = None,
     ):
         """
         Set up Azure config details.
@@ -88,9 +87,9 @@ class AzureConfig(CommonCloudConfig):
             YD_DEFAULT_INSTANCE_TYPE if instance_type is None else instance_type
         )
 
-        self._all_regions: List[str] = []
-        self._selected_regions: List[str] = []
-        self._created_regions: List[str] = []
+        self._all_regions: list[str] = []
+        self._selected_regions: list[str] = []
+        self._created_regions: list[str] = []
 
         self._subscription_id = environ[AZURE_SUBSCRIPTION_ID]
 
@@ -105,8 +104,8 @@ class AzureConfig(CommonCloudConfig):
             self._credential, self._subscription_id
         )
         self._storage_region: str = STORAGE_REGION
-        self._storage_account_name: Optional[str] = None
-        self._storage_account_key: Optional[StorageAccountKey] = None
+        self._storage_account_name: str | None = None
+        self._storage_account_key: StorageAccountKey | None = None
 
     def setup(self):
         """
@@ -602,7 +601,7 @@ class AzureConfig(CommonCloudConfig):
 
     def _generate_azure_compute_source_template(
         self, region: str, name: str, spot: bool
-    ) -> Dict:
+    ) -> dict:
         """
         Create a minimal populated YellowDog Compute Source Template resource definition.
         """
@@ -636,7 +635,7 @@ class AzureConfig(CommonCloudConfig):
 
     def _generate_yd_namespace_configuration(
         self, namespace: str, storage_blob_name: str
-    ) -> Dict:
+    ) -> dict:
         """
         Generate a Namespace configuration using an Azure storage blob.
         """
@@ -665,7 +664,7 @@ class AzureConfig(CommonCloudConfig):
         return f"{SECURITY_GROUP_PREFIX}-{region}"
 
     @staticmethod
-    def _generate_yd_azure_credential(keyring_name: str, credential_name: str) -> Dict:
+    def _generate_yd_azure_credential(keyring_name: str, credential_name: str) -> dict:
         """
         Generate an Azure Credential resource definition.
         """
@@ -690,7 +689,7 @@ class AzureConfig(CommonCloudConfig):
 
     def _generate_yd_azure_storage_credential(
         self, keyring_name: str, credential_name: str
-    ) -> Dict:
+    ) -> dict:
         """
         Generate an Azure Storage Credential resource definition.
         """
@@ -713,7 +712,7 @@ class AzureConfig(CommonCloudConfig):
 
     def _generate_azure_storage_account_name(self) -> str:
         try:
-            keyrings: List[KeyringSummary] = (
+            keyrings: list[KeyringSummary] = (
                 self._client.keyring_client.find_all_keyrings()
             )
             return f"{STORAGE_ACCOUNT_NAME_PREFIX}{keyrings[0].id[13:19]}".lower()
@@ -788,7 +787,7 @@ class AzureConfig(CommonCloudConfig):
                     f" '{security_group_name}': {e}"
                 )
 
-    def _get_regions_list(self) -> List[str]:
+    def _get_regions_list(self) -> list[str]:
         """
         Generate the list of regions supported by this subscription.
         """

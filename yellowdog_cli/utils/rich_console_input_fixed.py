@@ -10,7 +10,7 @@ The fix is extracted from the commit that introduces the bug:
   https://github.com/Textualize/rich/commit/568b9517b63282ac781a907d82b0c2965242be54
 """
 
-from typing import Optional, TextIO
+from typing import TextIO
 
 try:
     import readline
@@ -32,7 +32,7 @@ class ConsoleWithInputBackspaceFixed(Console):
         markup: bool = True,
         emoji: bool = True,
         password: bool = False,
-        stream: Optional[TextIO] = None,
+        stream: TextIO | None = None,
     ) -> str:
         prompt_str = ""
         if prompt:

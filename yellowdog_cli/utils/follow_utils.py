@@ -4,7 +4,6 @@ Utility function to follow event streams.
 
 from threading import Thread
 from time import sleep
-from typing import List, Optional
 
 import requests
 
@@ -22,7 +21,7 @@ from yellowdog_cli.utils.wrapper import CLIENT, CONFIG_COMMON
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 
-def follow_ids(ydids: List[str], auto_cr: bool = False):
+def follow_ids(ydids: list[str], auto_cr: bool = False):
     """
     Creates an event thread for each YDID passed on the command line.
     """
@@ -50,7 +49,7 @@ def follow_ids(ydids: List[str], auto_cr: bool = False):
 
     print_info(f"Following the event stream(s) for {len(ydids_set)} YellowDog ID(s)")
 
-    threads: List[Thread] = []
+    threads: list[Thread] = []
 
     for ydid in ydids_set:
         ydid_type = get_ydid_type(ydid)
@@ -125,7 +124,7 @@ def follow_events(ydid: str, ydid_type: YDIDType):
     print_info(f"Event stream concluded for '{ydid}'")
 
 
-def get_event_url(ydid: str, ydid_type: YDIDType) -> Optional[str]:
+def get_event_url(ydid: str, ydid_type: YDIDType) -> str | None:
     """
     Get the event stream URL.
     """

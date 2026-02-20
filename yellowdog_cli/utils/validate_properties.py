@@ -4,13 +4,12 @@ Validate property dictionaries.
 
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Dict, List, Union
 
 from yellowdog_cli.utils.printing import print_error
 from yellowdog_cli.utils.property_names import *
 
 
-def validate_properties(data: Dict, context: str):
+def validate_properties(data: dict, context: str):
     """
     Check that all keys in the supplied dictionary are found in the
     ALL_KEYS list. Raise an exception if not.
@@ -41,13 +40,13 @@ DEPRECATED_KEYS = [
 EXCLUDED_KEYS = [ENV, DOCKER_ENV, VARIABLES, INSTANCE_TAGS]
 
 
-def _get_keys(data: Union[Dict, List]) -> List[str]:
+def _get_keys(data: dict | list) -> list[str]:
     """
     Recursively walk a dictionary or list collecting keys.
     Exclude dictionaries with user-specified keys.
     Replace deprecated keys and issue warnings.
     """
-    keys: List[str] = []
+    keys: list[str] = []
     errors = False
 
     if isinstance(data, dict):

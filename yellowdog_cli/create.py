@@ -7,7 +7,6 @@ A script to create or update YellowDog resources.
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple
 
 import yellowdog_client.model as model
 from dateparser import parse as date_parse
@@ -142,9 +141,7 @@ def main():
     create_resources()
 
 
-def create_resources(
-    resources: Optional[List[Dict]] = None, show_secrets: bool = False
-):
+def create_resources(resources: list[dict] | None = None, show_secrets: bool = False):
     """
     Create a list of resources. Resources can be supplied as an argument, or
     loaded from one or more files.
@@ -220,7 +217,7 @@ def create_resources(
             # already caught in the creation functions
 
 
-def create_compute_source_template(resource: Dict):
+def create_compute_source_template(resource: dict):
     """
     Create or update a Compute Source Template using a resource specification.
     Handles all Source types.
@@ -300,7 +297,7 @@ def create_compute_source_template(resource: Dict):
         print(compute_source.id)
 
 
-def create_compute_requirement_template(resource: Dict):
+def create_compute_requirement_template(resource: dict):
     """
     Create or update a Compute Requirement Template. Handles all
     Compute Requirement types.
@@ -326,7 +323,7 @@ def create_compute_requirement_template(resource: Dict):
         clear_image_caches()
         CLEAR_IMAGE_FAMILY_CACHE = False
 
-    def _get_images_id(image_str: str, context: Dict, key: str):
+    def _get_images_id(image_str: str, context: dict, key: str):
         """
         Helper function to resolve an image ID.
         """
@@ -416,7 +413,7 @@ def create_compute_requirement_template(resource: Dict):
         print(template.id)
 
 
-def create_keyring(resource: Dict, show_secrets: bool = False):
+def create_keyring(resource: dict, show_secrets: bool = False):
     """
     Create or delete/recreate a Keyring.
     """
@@ -426,7 +423,7 @@ def create_keyring(resource: Dict, show_secrets: bool = False):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    keyrings: List[model.KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
+    keyrings: list[model.KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
     for keyring in keyrings:
         if keyring.name == name:
             if not confirmed(f"Keyring '{name}' already exists: delete and recreate?"):
@@ -450,7 +447,7 @@ def create_keyring(resource: Dict, show_secrets: bool = False):
         print_error(f"Failed to create Keyring '{name}': {e}")
 
 
-def create_keyring_via_api(name: str, description: str) -> Tuple[Keyring, str]:
+def create_keyring_via_api(name: str, description: str) -> tuple[Keyring, str]:
     """
     Temporary direct API call to create a Keyring and return the shown-once
     password. The password is not available via the SDK call.
@@ -468,7 +465,7 @@ def create_keyring_via_api(name: str, description: str) -> Tuple[Keyring, str]:
     return Keyring(**response.json()["keyring"]), response.json()["keyringPassword"]
 
 
-def create_credential(resource: Dict):
+def create_credential(resource: dict):
     """
     Create or update a Credential.
     """
@@ -551,7 +548,7 @@ def create_image_family(resource):
         return
 
     # This is an update, so Image Groups have been ignored
-    image_groups: List[MachineImageGroup] = image_family.imageGroups
+    image_groups: list[MachineImageGroup] = image_family.imageGroups
 
     # Delete Image Groups that have been removed from
     # the new resource specification
@@ -610,7 +607,7 @@ def _create_image_group(
         return
 
     # This is an update, so Images have been ignored
-    images: List[MachineImage] = image_group.images
+    images: list[MachineImage] = image_group.images
 
     # Delete Images that have been removed from
     # the new resource specification
@@ -654,7 +651,7 @@ def _create_image(image: MachineImage, image_group: MachineImageGroup):
         print(image.id)
 
 
-def create_namespace_configuration(resource: Dict):
+def create_namespace_configuration(resource: dict):
     """
     Create or update a Namespace Configuration.
     """
@@ -664,7 +661,7 @@ def create_namespace_configuration(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    namespace_configurations: List[NamespaceStorageConfiguration] = (
+    namespace_configurations: list[NamespaceStorageConfiguration] = (
         CLIENT.object_store_client.get_namespace_storage_configurations()
     )
     for config in namespace_configurations:
@@ -686,7 +683,7 @@ def create_namespace_configuration(resource: Dict):
         )
 
 
-def create_configured_worker_pool(resource: Dict):
+def create_configured_worker_pool(resource: dict):
     """
     Create a Configured Worker Pool. There's no API support for update.
     """
@@ -721,7 +718,7 @@ def create_configured_worker_pool(resource: Dict):
         print_error(f"Unable to created Configured Worker Pool '{name}': {e}")
 
 
-def create_allowance(resource: Dict):
+def create_allowance(resource: dict):
     """
     Create an allowance.
     """
@@ -847,7 +844,7 @@ def create_allowance(resource: Dict):
         print(allowance.id)
 
 
-def create_attribute_definition(resource: Dict, resource_type: str):
+def create_attribute_definition(resource: dict, resource_type: str):
     """
     Use the API to create/update user attribute definitions.
     """
@@ -907,7 +904,7 @@ def create_attribute_definition(resource: Dict, resource_type: str):
     raise Exception(f"HTTP {response.status_code} ({response.text})")
 
 
-def create_namespace_policy(resource: Dict):
+def create_namespace_policy(resource: dict):
     """
     Create or update a namespace policy.
     """
@@ -954,11 +951,11 @@ class RoleSpecification:
 
     id: str
     name: str
-    global_: Optional[bool]
-    namespaces: Optional[Set[str]]
+    global_: bool | None
+    namespaces: set[str] | None
 
 
-def create_group(resource: Dict):
+def create_group(resource: dict):
     """
     Create or update a group. Will also add or remove scoped
     roles specified by their names or IDs.
@@ -969,7 +966,7 @@ def create_group(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    def get_updated_role_specifications() -> List[RoleSpecification]:
+    def get_updated_role_specifications() -> list[RoleSpecification]:
         """
         Helper function to generate the list of supplied role specifications.
         """
@@ -1038,7 +1035,7 @@ def create_group(resource: Dict):
         return role_specifications
 
     def add_or_update_roles(
-        group_id_: str, role_specifications: List[RoleSpecification]
+        group_id_: str, role_specifications: list[RoleSpecification]
     ):
         """
         Helper function to add/update a list of roles.
@@ -1058,7 +1055,7 @@ def create_group(resource: Dict):
                     f"namespace(s): {', '.join(ns_list_quoted)}"
                 )
 
-    def remove_roles(group_id_: str, role_specifications: List[RoleSpecification]):
+    def remove_roles(group_id_: str, role_specifications: list[RoleSpecification]):
         """
         Helper function to remove a list of roles.
         """
@@ -1070,8 +1067,8 @@ def create_group(resource: Dict):
             print_info(f"Removed role '{role_spec.name}'")
 
     def get_roles_to_remove(
-        existing_roles: List[GroupRole], new_roles: List[RoleSpecification]
-    ) -> List[RoleSpecification]:
+        existing_roles: list[GroupRole], new_roles: list[RoleSpecification]
+    ) -> list[RoleSpecification]:
         """
         Helper function to determine the roles to be removed.
         """
@@ -1083,7 +1080,7 @@ def create_group(resource: Dict):
                 namespaces=(
                     None
                     if role.scope.namespaces is None
-                    else set([ns.namespace for ns in role.scope.namespaces])
+                    else {ns.namespace for ns in role.scope.namespaces}
                 ),
             )
             for role in existing_roles
@@ -1107,7 +1104,7 @@ def create_group(resource: Dict):
         clear_group_caches()
         return group_
 
-    def update_group(group_id_: str) -> Optional[Group]:
+    def update_group(group_id_: str) -> Group | None:
         """
         Helper function to update an existing group, including updating
         its roles.
@@ -1133,7 +1130,7 @@ def create_group(resource: Dict):
             remove_roles(group_id, get_roles_to_remove(group.roles, updated_role_specs))
 
 
-def create_application(resource: Dict):
+def create_application(resource: dict):
     """
     Create or update an application. Will also add or remove groups specified
     by their names or IDs.
@@ -1143,7 +1140,7 @@ def create_application(resource: Dict):
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
-    groups: List[str] = resource.pop(PROP_GROUPS, [])
+    groups: list[str] = resource.pop(PROP_GROUPS, [])
     # Convert group names to IDs
     new_group_ids = set()
     for group_name in groups:
@@ -1231,7 +1228,7 @@ def create_application(resource: Dict):
         update_application(app_id)
 
 
-def update_user(resource: Dict, internal_user: bool):
+def update_user(resource: dict, internal_user: bool):
     """
     Update a user specified by name, username or ID. Will also add or remove
     groups specified by their names or IDs.
@@ -1253,7 +1250,7 @@ def update_user(resource: Dict, internal_user: bool):
             f"resource '{RN_EXTERNAL_USER}' ({resource})"
         )
 
-    groups: List[str] = resource.pop(PROP_GROUPS, [])
+    groups: list[str] = resource.pop(PROP_GROUPS, [])
     new_group_ids = set()
     # Convert group names to IDs
     for group_name in groups:
@@ -1293,7 +1290,7 @@ def update_user(resource: Dict, internal_user: bool):
             )
 
     # Main logic: try name, username, then ID if present; check for ID match
-    user: Optional[User] = None
+    user: User | None = None
     if name is not None:
         user = get_user_by_name_or_id(CLIENT, name)
     if user is None and username is not None:
@@ -1316,7 +1313,7 @@ def update_user(resource: Dict, internal_user: bool):
     print_info(f"Actions complete for User '{username}' ({user.id})")
 
 
-def create_namespace(resource: Dict):
+def create_namespace(resource: dict):
     """
     Create a namespace.
     """
@@ -1342,7 +1339,7 @@ def create_namespace(resource: Dict):
         print(namespace_id)
 
 
-def _get_model_object(class_name: str, resource: Dict, **kwargs):
+def _get_model_object(class_name: str, resource: dict, **kwargs):
     """
     Return a populated YellowDog model object for the resource.
     Discard unexpected keywords.

@@ -2,8 +2,8 @@
 Various utility functions for finding objects, etc.
 """
 
+from collections.abc import Callable
 from functools import lru_cache
-from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.common import SearchClient
@@ -64,7 +64,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 @lru_cache
 def get_task_groups_from_wr_by_id(
     client: PlatformClient, wr_id: str
-) -> List[TaskGroup]:
+) -> list[TaskGroup]:
     """
     Get the list of the Work Requirement's Task Groups.
     Cache results to avoid repeatedly hitting the API for the same thing.
@@ -90,9 +90,9 @@ def get_filtered_work_requirements(
     client: PlatformClient,
     namespace: str,
     tag: str,
-    include_filter: Optional[List[WorkRequirementStatus]] = None,
-    exclude_filter: Optional[List[WorkRequirementStatus]] = None,
-) -> List[WorkRequirementSummary]:
+    include_filter: list[WorkRequirementStatus] | None = None,
+    exclude_filter: list[WorkRequirementStatus] | None = None,
+) -> list[WorkRequirementSummary]:
     """
     Get a list of Work Requirements filtered by namespace, tag
     and status. Supply either include_filter OR exclude_filter.
@@ -105,7 +105,7 @@ def get_filtered_work_requirements(
         )
 
     wr_search_client = client.work_client.get_work_requirements(wr_search)
-    work_requirement_summaries: List[WorkRequirementSummary] = (
+    work_requirement_summaries: list[WorkRequirementSummary] = (
         wr_search_client.list_all()
     )
 
@@ -131,7 +131,7 @@ def get_worker_pool_by_id(client: PlatformClient, worker_pool_id: str) -> Worker
 
 def get_worker_pool_id_by_name(
     client: PlatformClient, worker_pool_name: str
-) -> Optional[str]:
+) -> str | None:
     """
     Find a Worker Pool ID by its name.
     """
@@ -151,8 +151,8 @@ def get_worker_pool_id_by_name(
 def get_compute_requirement_id_by_name(
     client: PlatformClient,
     compute_requirement_name: str,
-    statuses: List[ComputeRequirementStatus],
-) -> Optional[str]:
+    statuses: list[ComputeRequirementStatus],
+) -> str | None:
     """
     Find a Compute Requirement ID by its name.
     Restrict search by status.
@@ -173,7 +173,7 @@ def get_work_requirement_summary_by_name_or_id(
     client: PlatformClient,
     work_requirement_name_or_id: str,
     namespace: str = None,
-) -> Optional[WorkRequirementSummary]:
+) -> WorkRequirementSummary | None:
     """
     Get a Work Requirement Summary by its name or ID.
     Scoped by namespace.
@@ -194,7 +194,7 @@ def get_work_requirement_summary_by_name_or_id(
 
 def _find_id_by_name(
     name: str, client: PlatformClient, find_function: Callable
-) -> Optional[str]:
+) -> str | None:
     """
     Generic function to find the ID of an entity by namespace and name.
     """
@@ -236,7 +236,7 @@ def _find_id_by_name(
 @lru_cache
 def find_compute_source_template_id_by_name(
     client: PlatformClient, name: str
-) -> Optional[str]:
+) -> str | None:
     """
     Find a Compute Source Template id by name.
     Compute Source Template names are unique within a namespace.
@@ -252,9 +252,9 @@ def find_compute_source_template_id_by_name(
 @lru_cache
 def get_compute_source_templates(
     client: PlatformClient,
-    namespace: Optional[str] = None,
-    name: Optional[str] = None,
-) -> List[ComputeSourceTemplateSummary]:
+    namespace: str | None = None,
+    name: str | None = None,
+) -> list[ComputeSourceTemplateSummary]:
     """
     Cache the list of Compute Source Templates, scoped by namespace and name.
     """
@@ -269,9 +269,9 @@ def get_compute_source_templates(
 
 def get_work_requirement_summaries(
     client: PlatformClient,
-    namespace: Optional[str] = None,
-    name: Optional[str] = None,
-) -> List[WorkRequirementSummary]:
+    namespace: str | None = None,
+    name: str | None = None,
+) -> list[WorkRequirementSummary]:
     """
     Get the list of Work Requirement summaries, scoped by namespace and name.
     """
@@ -293,7 +293,7 @@ def clear_compute_source_template_cache():
 
 def find_compute_requirement_template_id_by_name(
     client: PlatformClient, name: str
-) -> Optional[str]:
+) -> str | None:
     """
     Find the Compute Requirement Template ID that matches the
     provided name. Names are unique within a namespace.
@@ -304,9 +304,9 @@ def find_compute_requirement_template_id_by_name(
 @lru_cache
 def get_compute_requirement_templates(
     client: PlatformClient,
-    namespace: Optional[str] = None,
-    name: Optional[str] = None,
-) -> List[ComputeRequirementTemplateSummary]:
+    namespace: str | None = None,
+    name: str | None = None,
+) -> list[ComputeRequirementTemplateSummary]:
     """
     Cache the list of Compute Requirement Templates, scoped by namespace
     and name.
@@ -329,7 +329,7 @@ def clear_compute_requirement_template_cache():
 
 def get_compute_requirement_id_by_worker_pool_id(
     client: PlatformClient, worker_pool_id: str
-) -> Optional[str]:
+) -> str | None:
     """
     Get a Compute Requirement ID from a Provisioned Worker Pool ID.
     """
@@ -343,9 +343,9 @@ def get_compute_requirement_id_by_worker_pool_id(
 
 def get_worker_pools(
     client: PlatformClient,
-    namespace: Optional[str] = None,
-    name: Optional[str] = None,
-) -> List[WorkerPoolSummary]:
+    namespace: str | None = None,
+    name: str | None = None,
+) -> list[WorkerPoolSummary]:
     """
     Return all Worker Pool summaries for a namespace, name.
     """
@@ -361,10 +361,10 @@ def get_worker_pools(
 @lru_cache
 def find_image_name_or_id(
     client: PlatformClient,
-    image_name_or_id: Optional[str],
+    image_name_or_id: str | None,
     always_return_id: bool = True,
     report_substitutions: bool = True,
-) -> Optional[str]:
+) -> str | None:
     """
     Attempts to resolve to a well-formed YD image name or ID, if it can.
 
@@ -478,7 +478,7 @@ def find_image_name_or_id(
         matching_image_families = [
             ifs for ifs in image_family_summaries if ifs.name == split_name[0]
         ]
-        if_group_matches: List[Tuple[MachineImageFamilySummary, MachineImageGroup]] = []
+        if_group_matches: list[tuple[MachineImageFamilySummary, MachineImageGroup]] = []
         for ifs in matching_image_families:
             for if_group in get_image_family_groups(client, ifs.id):
                 if if_group.name == split_name[1]:
@@ -569,11 +569,11 @@ def remove_allowances_matching_description(
 
 def list_matching_object_paths(
     client: PlatformClient, namespace: str, prefix: str, flat: bool
-) -> List[ObjectPath]:
+) -> list[ObjectPath]:
     """
     List object paths matching the namespace and starting with the prefix.
     """
-    object_paths: List[ObjectPath] = (
+    object_paths: list[ObjectPath] = (
         client.object_store_client.get_namespace_object_paths(
             ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=flat)
         )
@@ -591,7 +591,7 @@ def list_matching_object_paths(
 
 
 @lru_cache
-def get_tasks(client: PlatformClient, wr_id: str, task_group_id: str) -> List[Task]:
+def get_tasks(client: PlatformClient, wr_id: str, task_group_id: str) -> list[Task]:
     """
     Return all the tasks in a task group, with caching.
     """
@@ -599,13 +599,13 @@ def get_tasks(client: PlatformClient, wr_id: str, task_group_id: str) -> List[Ta
         workRequirementId=wr_id,
         taskGroupId=task_group_id,
     )
-    tasks: List[Task] = client.work_client.find_tasks(task_search)
+    tasks: list[Task] = client.work_client.find_tasks(task_search)
     return tasks
 
 
 def get_non_exact_namespace_matches(
     client: PlatformClient, namespace_to_match: str
-) -> List[str]:
+) -> list[str]:
     """
     Find namespaces which contain 'namespace_to_match'.
     """
@@ -623,7 +623,7 @@ def get_non_exact_namespace_matches(
     return matching_namespaces
 
 
-def split_namespace_and_name(reference: str) -> Tuple[Optional[str], str]:
+def split_namespace_and_name(reference: str) -> tuple[str | None, str]:
     """
     Split a name into an (optional) namespace and a name.
     """
@@ -702,10 +702,10 @@ def substitute_image_family_id_for_name_in_cst(
 
 def substitute_id_for_name_in_allowance(
     client: PlatformClient,
-    allowance: Union[
-        AccountAllowance, RequirementsAllowance, SourcesAllowance, SourceAllowance
-    ],
-) -> Union[AccountAllowance, RequirementsAllowance, SourcesAllowance, SourceAllowance]:
+    allowance: (
+        AccountAllowance | RequirementsAllowance | SourcesAllowance | SourceAllowance
+    ),
+) -> AccountAllowance | RequirementsAllowance | SourcesAllowance | SourceAllowance:
     """
     Substitute IDs in Allowance objects.
     """
@@ -728,8 +728,8 @@ def substitute_id_for_name_in_allowance(
 
 @lru_cache
 def _get_source_template_name_from_id(
-    client: PlatformClient, cst_id: Optional[str]
-) -> Optional[str]:
+    client: PlatformClient, cst_id: str | None
+) -> str | None:
     """
     Obtain the namespace/name of a source template.
     Otherwise, return the original value.
@@ -747,8 +747,8 @@ def _get_source_template_name_from_id(
 
 @lru_cache
 def _get_requirement_template_name_from_id(
-    client: PlatformClient, crt_id: Optional[str]
-) -> Optional[str]:
+    client: PlatformClient, crt_id: str | None
+) -> str | None:
     """
     Obtain the namespace/name of a requirement template.
     Otherwise, return the original value.
@@ -766,8 +766,8 @@ def _get_requirement_template_name_from_id(
 
 @lru_cache
 def _get_image_family_or_group_name_from_id(
-    client: PlatformClient, image_family_or_group_id: Optional[str]
-) -> Optional[str]:
+    client: PlatformClient, image_family_or_group_id: str | None
+) -> str | None:
     """
     Obtain the namespace/name of an image family or image group.
     Otherwise, return the original value.
@@ -802,7 +802,7 @@ def _get_image_family_or_group_name_from_id(
 
 
 @lru_cache
-def get_role_id_by_name(client: PlatformClient, role_name: str) -> Optional[str]:
+def get_role_id_by_name(client: PlatformClient, role_name: str) -> str | None:
     """
     Find the ID of a role by its name. Accept IDs and return unchanged.
     """
@@ -820,7 +820,7 @@ def get_role_id_by_name(client: PlatformClient, role_name: str) -> Optional[str]
 
 
 @lru_cache
-def get_role_name_by_id(client: PlatformClient, role_id: str) -> Optional[str]:
+def get_role_name_by_id(client: PlatformClient, role_id: str) -> str | None:
     """
     Get the name of a role by its ID.
     """
@@ -832,7 +832,7 @@ def get_role_name_by_id(client: PlatformClient, role_id: str) -> Optional[str]:
 
 
 @lru_cache
-def get_all_roles(client: PlatformClient) -> List[RoleSummary]:
+def get_all_roles(client: PlatformClient) -> list[RoleSummary]:
     """
     Cache all roles.
     """
@@ -842,7 +842,7 @@ def get_all_roles(client: PlatformClient) -> List[RoleSummary]:
 
 
 @lru_cache
-def get_group_id_by_name(client: PlatformClient, group_name: str) -> Optional[str]:
+def get_group_id_by_name(client: PlatformClient, group_name: str) -> str | None:
     """
     Get a group's ID by its name. Accept IDs and return unchanged.
     """
@@ -851,7 +851,7 @@ def get_group_id_by_name(client: PlatformClient, group_name: str) -> Optional[st
 
     group_search = GroupSearch(name=group_name)
     search_client: SearchClient = client.account_client.get_groups(group_search)
-    group_summaries: List[GroupSummary] = search_client.list_all()
+    group_summaries: list[GroupSummary] = search_client.list_all()
 
     for group_summary in group_summaries:
         if group_summary.name == group_name:
@@ -861,7 +861,7 @@ def get_group_id_by_name(client: PlatformClient, group_name: str) -> Optional[st
 
 
 @lru_cache
-def get_group_name_by_id(client: PlatformClient, group_id: str) -> Optional[str]:
+def get_group_name_by_id(client: PlatformClient, group_id: str) -> str | None:
     """
     Get a group's name by its ID.
     """
@@ -873,7 +873,7 @@ def get_group_name_by_id(client: PlatformClient, group_id: str) -> Optional[str]
 
 
 @lru_cache
-def get_all_groups(client: PlatformClient) -> List[GroupSummary]:
+def get_all_groups(client: PlatformClient) -> list[GroupSummary]:
     """
     Return a list of all the groups.
     """
@@ -892,7 +892,7 @@ def clear_group_caches():
 
 
 @lru_cache
-def get_all_applications(client: PlatformClient) -> List[Application]:
+def get_all_applications(client: PlatformClient) -> list[Application]:
     """
     Return a list of all the applications.
     """
@@ -904,7 +904,7 @@ def get_all_applications(client: PlatformClient) -> List[Application]:
 
 
 @lru_cache
-def get_application_id_by_name(client: PlatformClient, app_name: str) -> Optional[str]:
+def get_application_id_by_name(client: PlatformClient, app_name: str) -> str | None:
     """
     Get an application ID by its name. Accept IDs and return unchanged.
     """
@@ -929,7 +929,7 @@ def get_application_details(client: PlatformClient) -> ApplicationDetails:
 @lru_cache
 def get_application_group_summaries(
     client: PlatformClient, app_id: str
-) -> List[GroupSummary]:
+) -> list[GroupSummary]:
     """
     Get the summaries of the groups to which an application belongs.
     """
@@ -937,7 +937,7 @@ def get_application_group_summaries(
 
 
 @lru_cache
-def get_application_groups(client: PlatformClient, app_id: str) -> List[Group]:
+def get_application_groups(client: PlatformClient, app_id: str) -> list[Group]:
     """
     Get the groups to which an application belongs.
     """
@@ -950,7 +950,7 @@ def get_application_groups(client: PlatformClient, app_id: str) -> List[Group]:
 @lru_cache
 def get_all_roles_and_namespaces_for_application(
     client: PlatformClient, application_id: str
-) -> Dict:
+) -> dict:
     """
     Get a list of roles and the namespaces to which they apply, for a given
     application.
@@ -988,7 +988,7 @@ def clear_application_caches():
     get_all_roles_and_namespaces_for_application.cache_clear()
 
 
-def get_user_groups(client: PlatformClient, user_id: str) -> List[GroupSummary]:
+def get_user_groups(client: PlatformClient, user_id: str) -> list[GroupSummary]:
     """
     Get the groups to which a user belongs.
     """
@@ -996,9 +996,7 @@ def get_user_groups(client: PlatformClient, user_id: str) -> List[GroupSummary]:
 
 
 @lru_cache
-def get_user_by_name_or_id(
-    client: PlatformClient, user_name_or_id: str
-) -> Optional[User]:
+def get_user_by_name_or_id(client: PlatformClient, user_name_or_id: str) -> User | None:
     """
     Get a user ID by name, username or ID.
     """
@@ -1017,7 +1015,7 @@ def get_user_by_name_or_id(
 
 
 @lru_cache
-def get_all_users(client: PlatformClient) -> List[User]:
+def get_all_users(client: PlatformClient) -> list[User]:
     """
     Return a list of all users.
     """
@@ -1026,9 +1024,7 @@ def get_all_users(client: PlatformClient) -> List[User]:
     return search_client.list_all()
 
 
-def get_namespace_id_by_name(
-    client: PlatformClient, namespace_name: str
-) -> Optional[str]:
+def get_namespace_id_by_name(client: PlatformClient, namespace_name: str) -> str | None:
     """
     Get a namespace's ID by its name.
     """
@@ -1044,10 +1040,10 @@ def get_namespace_id_by_name(
 
 def get_compute_requirement_summaries(
     client: PlatformClient,
-    namespace: Optional[str] = None,
-    tag: Optional[str] = None,
-    statuses: Optional[List[ComputeRequirementStatus]] = None,
-) -> List[ComputeRequirementSummary]:
+    namespace: str | None = None,
+    tag: str | None = None,
+    statuses: list[ComputeRequirementStatus] | None = None,
+) -> list[ComputeRequirementSummary]:
     """
     Get compute requirement summaries for a namespace, tag.
     Optionally filter on statuses.
@@ -1066,8 +1062,8 @@ def get_compute_requirement_summaries(
 @lru_cache
 def get_image_family_summaries(
     client: PlatformClient,
-    namespace: Optional[str] = None,
-) -> List[MachineImageFamilySummary]:
+    namespace: str | None = None,
+) -> list[MachineImageFamilySummary]:
     """
     Obtain and cache the list of image families.
     """
@@ -1108,7 +1104,7 @@ def get_image_family_summaries(
 @lru_cache
 def get_image_family_groups(
     client: PlatformClient, image_family_id: str
-) -> List[MachineImageGroup]:
+) -> list[MachineImageGroup]:
     """
     Obtain and cache the list of image groups for an image family.
     """

@@ -9,7 +9,6 @@ from copy import deepcopy
 from datetime import timedelta
 from math import ceil
 from os.path import basename, dirname, relpath
-from typing import Dict, List, Optional
 
 import jsons
 import requests
@@ -114,8 +113,8 @@ INPUTS_FOLDER_NAME = None
 if ARGS_PARSER.dry_run:
     WR_SNAPSHOT = WorkRequirementSnapshot()
 
-UPLOADED_FILES: Optional[UploadedFiles] = None
-RCLONE_UPLOADED_FILES: Optional[RcloneUploadedFiles] = None
+UPLOADED_FILES: UploadedFiles | None = None
+RCLONE_UPLOADED_FILES: RcloneUploadedFiles | None = None
 
 # Names for environment variables that can be automatically added
 # to the environment for each Task
@@ -258,8 +257,8 @@ def main():
 
 def submit_work_requirement(
     files_directory: str,
-    wr_data: Optional[Dict] = None,
-    task_count: Optional[int] = None,
+    wr_data: dict | None = None,
+    task_count: int | None = None,
 ):
     """
     Submit a Work Requirement defined in a tasks_data dictionary.
@@ -326,7 +325,7 @@ def submit_work_requirement(
             )
 
     # Create the list of TaskGroup objects
-    task_groups: List[TaskGroup] = []
+    task_groups: list[TaskGroup] = []
     for tg_number, task_group_data in enumerate(wr_data[TASK_GROUPS]):
         task_groups.append(create_task_group(tg_number, wr_data, task_group_data))
 
@@ -385,8 +384,8 @@ def submit_work_requirement(
 
 def create_task_group(
     tg_number: int,
-    wr_data: Dict,
-    task_group_data: Dict,
+    wr_data: dict,
+    task_group_data: dict,
 ) -> TaskGroup:
     """
     Create a TaskGroup object.
@@ -445,7 +444,7 @@ def create_task_group(
     # Assemble the RunSpecification values for the Task Group;
     # 'task_types' can automatically be added to by the task_types
     # specified in the Tasks.
-    task_types: List = list(
+    task_types: list = list(
         set(
             check_list(task_group_data.get(TASK_TYPES, wr_data.get(TASK_TYPES, [])))
         ).union(task_types_from_tasks)
@@ -459,7 +458,7 @@ def create_task_group(
             "is a valid Work Requirement defined?"
         )
 
-    vcpus_data: Optional[List[float]] = check_list(
+    vcpus_data: list[float] | None = check_list(
         task_group_data.get(VCPUS, wr_data.get(VCPUS, config_wr.vcpus))
     )
     vcpus = (
@@ -468,7 +467,7 @@ def create_task_group(
         else DoubleRange(float(vcpus_data[0]), float(vcpus_data[1]))
     )
 
-    ram_data: Optional[List[float]] = check_list(
+    ram_data: list[float] | None = check_list(
         task_group_data.get(RAM, wr_data.get(RAM, config_wr.ram))
     )
     ram = (
@@ -477,19 +476,19 @@ def create_task_group(
         else DoubleRange(float(ram_data[0]), float(ram_data[1]))
     )
 
-    providers_data: Optional[List[str]] = check_list(
+    providers_data: list[str] | None = check_list(
         task_group_data.get(PROVIDERS, wr_data.get(PROVIDERS, config_wr.providers))
     )
-    providers: Optional[List[CloudProvider]] = (
+    providers: list[CloudProvider] | None = (
         None
         if providers_data is None
         else [CloudProvider(provider) for provider in providers_data]
     )
 
-    task_timeout_minutes: Optional[float] = check_float_or_int(
+    task_timeout_minutes: float | None = check_float_or_int(
         task_group_data.get(TASK_TIMEOUT, config_wr.task_timeout)
     )
-    task_timeout: Optional[timedelta] = (
+    task_timeout: timedelta | None = (
         None
         if task_timeout_minutes is None
         else timedelta(minutes=task_timeout_minutes)
@@ -602,8 +601,8 @@ def create_task_group(
 def add_tasks_to_task_group(
     tg_number: int,
     task_group: TaskGroup,
-    wr_data: Dict,
-    task_count: Optional[int],
+    wr_data: dict,
+    task_count: int | None,
     work_requirement: WorkRequirement,
     flatten_upload_paths: bool = False,
     files_directory: str = "",
@@ -722,8 +721,8 @@ def add_tasks_to_task_group(
             f"Submitting Task batches using {max_workers} parallel submission threads"
         )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            executors: List[Future] = []
-            tasks_lists: List[List[Task]] = []
+            executors: list[Future] = []
+            tasks_lists: list[list[Task]] = []
             for batch_number in range(num_task_batches):
                 tasks_lists.append(
                     generate_batch_of_tasks_for_task_group(
@@ -769,20 +768,20 @@ def add_tasks_to_task_group(
 def generate_batch_of_tasks_for_task_group(
     start_task_number: int,
     end_task_number: int,
-    wr_data: Dict,
+    wr_data: dict,
     files_directory: str,
     task_group: TaskGroup,
     tg_number: int,
-    tasks: List,
+    tasks: list,
     task_count: int,
     num_tasks: int,
     num_task_groups: int,
     flatten_upload_paths: bool,
-) -> List[Task]:
+) -> list[Task]:
     """
     Generate a batch of tasks for subsequent addition to a task group.
     """
-    tasks_list: List[Task] = []
+    tasks_list: list[Task] = []
     for task_number in range(start_task_number, end_task_number):
         task_group_data = wr_data[TASK_GROUPS][tg_number]
         task = tasks[task_number] if task_count is None else tasks[0]
@@ -847,7 +846,7 @@ def generate_batch_of_tasks_for_task_group(
             )
         )
 
-        flatten_input_paths: Optional[FlattenPath] = None
+        flatten_input_paths: FlattenPath | None = None
         if check_bool(
             task.get(
                 FLATTEN_PATHS,
@@ -916,7 +915,7 @@ def generate_batch_of_tasks_for_task_group(
 
         # Upload files in the 'inputs' list, applying wildcard expansion.
         # (Duplicates won't be re-added)
-        expanded_files_list: List[str] = []
+        expanded_files_list: list[str] = []
         for file in input_files_list:
             expanded_files = UPLOADED_FILES.add_input_file(
                 filename=file, flatten_upload_paths=flatten_upload_paths
@@ -1113,7 +1112,7 @@ def generate_batch_of_tasks_for_task_group(
 
 
 def submit_batch_of_tasks_to_task_group(
-    tasks_list: List[Task],
+    tasks_list: list[Task],
     work_requirement: WorkRequirement,
     task_group: TaskGroup,
     num_task_batches: int,
@@ -1191,12 +1190,12 @@ def submit_batch_of_tasks_to_task_group(
 
 def get_task_data_property(
     config_wr: ConfigWorkRequirement,
-    wr_data: Dict,
-    task_group_data: Dict,
-    task: Dict,
+    wr_data: dict,
+    task_group_data: dict,
+    task: dict,
     task_name: str,
     files_directory: str = "",
-) -> Optional[str]:
+) -> str | None:
     """
     Get the 'taskData' property, either using the contents of the file
     specified in 'taskDataFile' or using the string specified in 'taskData'.
@@ -1222,9 +1221,7 @@ def get_task_data_property(
             return task_data_property
 
         if task_data_file_property:
-            with open(
-                resolve_filename(files_directory, task_data_file_property), "r"
-            ) as f:
+            with open(resolve_filename(files_directory, task_data_file_property)) as f:
                 return f.read()
 
     return None
@@ -1286,13 +1283,13 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     RCLONE_UPLOADED_FILES.delete()
 
 
-def deduplicate_inputs(task_inputs: List[TaskInput]) -> List[TaskInput]:
+def deduplicate_inputs(task_inputs: list[TaskInput]) -> list[TaskInput]:
     """
     Deduplicate a list of TaskInputs. This is useful when wildcards
     are used. Note that TaskInputs which differ only in their verification
     type will be caught by 'check_for_duplicates_in_file_lists()'.
     """
-    deduplicated_task_inputs: List[TaskInput] = []
+    deduplicated_task_inputs: list[TaskInput] = []
     for task_input in task_inputs:
         if task_input not in deduplicated_task_inputs:
             deduplicated_task_inputs.append(task_input)
@@ -1310,7 +1307,7 @@ def deduplicate_inputs(task_inputs: List[TaskInput]) -> List[TaskInput]:
     return deduplicated_task_inputs
 
 
-def check_for_duplicates_in_file_lists(*args: List[str]):
+def check_for_duplicates_in_file_lists(*args: list[str]):
     """
     Tests for duplicates in file lists. If duplicates found, print an error
     and raise an Exception.
@@ -1338,14 +1335,14 @@ def formatted_number_str(
 
 
 def get_task_name(
-    name: Optional[str],
+    name: str | None,
     set_task_names: bool,
     task_number: int,
     num_tasks: int,
     task_group_number: int,
     num_task_groups: int,
     task_group_name: str,
-) -> Optional[str]:
+) -> str | None:
     """
     Create the name of a Task.
     Supports lazy substitution.
@@ -1383,7 +1380,7 @@ def get_task_name(
 
 
 def get_task_group_name(
-    name: Optional[str],
+    name: str | None,
     task_group_number: int,
     num_task_groups: int,
     task_count: int,
@@ -1415,25 +1412,25 @@ def get_task_group_name(
 
 def create_task(
     config_wr: ConfigWorkRequirement,
-    wr_data: Dict,
-    task_group_data: Dict,
-    task_data: Dict,
-    task_name: Optional[str],
+    wr_data: dict,
+    task_group_data: dict,
+    task_data: dict,
+    task_name: str | None,
     task_number: int,
     tg_name: str,
     tg_number: int,
     task_type: str,
     executable: str,
-    args: List[str],
-    task_data_property: Optional[str],
-    env: Dict[str, str],
-    inputs: Optional[List[TaskInput]],
-    outputs: Optional[List[TaskOutput]],
-    task_timeout: Optional[timedelta],
+    args: list[str],
+    task_data_property: str | None,
+    env: dict[str, str],
+    inputs: list[TaskInput] | None,
+    outputs: list[TaskOutput] | None,
+    task_timeout: timedelta | None,
     flatten_upload_paths: bool = False,
-    flatten_input_paths: Optional[FlattenPath] = None,
+    flatten_input_paths: FlattenPath | None = None,
     add_yd_env_vars: bool = False,
-    task_data_inputs_and_outputs: Optional[TaskData] = None,
+    task_data_inputs_and_outputs: TaskData | None = None,
 ) -> Task:
     """
     Create a Task object, handling special processing for specific Task Types.
@@ -1734,7 +1731,7 @@ def submit_json_raw(wr_file: str):
             f"Submitting task batches using {max_workers} parallel submission thread(s)"
         )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            executors: List[Future] = []
+            executors: list[Future] = []
             for batch_number in range(num_batches):
                 task_batch = task_list[
                     batch_number
@@ -1764,7 +1761,7 @@ def submit_json_raw(wr_file: str):
 
 
 def submit_json_task_batch(
-    task_batch: Dict,
+    task_batch: dict,
     batch_number: int,
     num_batches: int,
     task_group_name: str,

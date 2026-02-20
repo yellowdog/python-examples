@@ -4,7 +4,6 @@ Copied from:
 """
 
 import json
-from typing import Union
 
 
 class CompactJSONEncoder(json.JSONEncoder):
@@ -78,7 +77,7 @@ class CompactJSONEncoder(json.JSONEncoder):
             and len(str(o)) - 2 <= self.MAX_WIDTH
         )
 
-    def _primitives_only(self, o: Union[list, tuple, dict]):
+    def _primitives_only(self, o: list | tuple | dict):
         if isinstance(o, (list, tuple)):
             return not any(isinstance(el, self.CONTAINER_TYPES) for el in o)
         elif isinstance(o, dict):

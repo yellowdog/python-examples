@@ -4,7 +4,6 @@ Class to parse command line arguments for all commands.
 
 import argparse
 import sys
-from typing import List, Optional
 
 from yellowdog_cli.__init__ import __version__
 from yellowdog_cli.utils.settings import (
@@ -36,7 +35,7 @@ def allow_missing_attribute(func):
 
 
 class CLIParser:
-    def __init__(self, description: Optional[str] = None):
+    def __init__(self, description: str | None = None):
         """
         Create the argument parser, and parse the command
         line arguments. Argument availability depends on module.
@@ -1285,92 +1284,92 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def config_file(self) -> Optional[str]:
+    def config_file(self) -> str | None:
         return self.args.config
 
     @property
     @allow_missing_attribute
-    def key(self) -> Optional[str]:
+    def key(self) -> str | None:
         return self.args.key
 
     @property
     @allow_missing_attribute
-    def secret(self) -> Optional[str]:
+    def secret(self) -> str | None:
         return self.args.secret
 
     @property
     @allow_missing_attribute
-    def namespace(self) -> Optional[str]:
+    def namespace(self) -> str | None:
         return self.args.namespace
 
     @property
     @allow_missing_attribute
-    def tag(self) -> Optional[str]:
+    def tag(self) -> str | None:
         return self.args.tag
 
     @property
     @allow_missing_attribute
-    def url(self) -> Optional[str]:
+    def url(self) -> str | None:
         return self.args.url
 
     @property
     @allow_missing_attribute
-    def variables(self) -> Optional[List[str]]:
+    def variables(self) -> list[str] | None:
         return self.args.variable
 
     @property
     @allow_missing_attribute
-    def quiet(self) -> Optional[bool]:
+    def quiet(self) -> bool | None:
         return self.args.quiet
 
     @property
     @allow_missing_attribute
-    def env_override(self) -> Optional[bool]:
+    def env_override(self) -> bool | None:
         return self.args.env_override
 
     @property
     @allow_missing_attribute
-    def print_pid(self) -> Optional[bool]:
+    def print_pid(self) -> bool | None:
         return self.args.print_pid
 
     @property
     @allow_missing_attribute
-    def no_config(self) -> Optional[bool]:
+    def no_config(self) -> bool | None:
         return self.args.no_config
 
     @property
     @allow_missing_attribute
-    def work_req_file(self) -> Optional[str]:
+    def work_req_file(self) -> str | None:
         return self.args.work_requirement
 
     @property
     @allow_missing_attribute
-    def executable(self) -> Optional[str]:
+    def executable(self) -> str | None:
         return self.args.executable
 
     @property
     @allow_missing_attribute
-    def task_type(self) -> Optional[str]:
+    def task_type(self) -> str | None:
         return self.args.task_type
 
     @property
     @allow_missing_attribute
-    def worker_pool_file(self) -> Optional[str]:
+    def worker_pool_file(self) -> str | None:
         return self.args.worker_pool
 
     @property
     @allow_missing_attribute
-    def follow(self) -> Optional[bool]:
+    def follow(self) -> bool | None:
         return self.args.follow
 
     @property
     @allow_missing_attribute
-    def abort(self) -> Optional[bool]:
+    def abort(self) -> bool | None:
         return self.args.abort
 
     @property
     @allow_missing_attribute
-    def interactive(self) -> Optional[bool]:
+    def interactive(self) -> bool | None:
         return self.args.interactive
 
     @interactive.setter
@@ -1379,57 +1378,57 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def yes(self) -> Optional[bool]:
+    def yes(self) -> bool | None:
         return self.args.yes
 
     @property
     @allow_missing_attribute
-    def object_paths(self) -> Optional[bool]:
+    def object_paths(self) -> bool | None:
         return self.args.object_paths
 
     @property
     @allow_missing_attribute
-    def work_requirements(self) -> Optional[bool]:
+    def work_requirements(self) -> bool | None:
         return self.args.work_requirements
 
     @property
     @allow_missing_attribute
-    def task_groups(self) -> Optional[bool]:
+    def task_groups(self) -> bool | None:
         return self.args.task_groups
 
     @property
     @allow_missing_attribute
-    def tasks(self) -> Optional[bool]:
+    def tasks(self) -> bool | None:
         return self.args.tasks
 
     @property
     @allow_missing_attribute
-    def worker_pools(self) -> Optional[bool]:
+    def worker_pools(self) -> bool | None:
         return self.args.worker_pools
 
     @property
     @allow_missing_attribute
-    def compute_requirements(self) -> Optional[bool]:
+    def compute_requirements(self) -> bool | None:
         return self.args.compute_requirements
 
     @property
     @allow_missing_attribute
-    def active_only(self) -> Optional[bool]:
+    def active_only(self) -> bool | None:
         return self.args.active_only
 
     @property
     @allow_missing_attribute
-    def all(self) -> Optional[bool]:
+    def all(self) -> bool | None:
         return self.args.all
 
     @property
     @allow_missing_attribute
-    def non_exact_namespace_match(self) -> Optional[bool]:
+    def non_exact_namespace_match(self) -> bool | None:
         return self.args.non_exact_namespace_match
 
     @property
     @allow_missing_attribute
-    def details(self) -> Optional[bool]:
+    def details(self) -> bool | None:
         return self.args.details
 
     @details.setter
@@ -1438,347 +1437,347 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def debug(self) -> Optional[bool]:
+    def debug(self) -> bool | None:
         return self.args.debug
 
     @property
     @allow_missing_attribute
-    def use_pac(self) -> Optional[bool]:
+    def use_pac(self) -> bool | None:
         return self.args.pac
 
     @property
     @allow_missing_attribute
-    def no_format(self) -> Optional[bool]:
+    def no_format(self) -> bool | None:
         return self.args.no_format
 
     @property
     @allow_missing_attribute
-    def directory(self) -> Optional[str]:
+    def directory(self) -> str | None:
         return self.args.directory
 
     @property
     @allow_missing_attribute
-    def files(self) -> List[str]:
+    def files(self) -> list[str]:
         return self.args.filenames
 
     @property
     @allow_missing_attribute
-    def flatten(self) -> Optional[bool]:
+    def flatten(self) -> bool | None:
         return self.args.flatten_upload_paths
 
     @property
     @allow_missing_attribute
-    def recursive(self) -> Optional[bool]:
+    def recursive(self) -> bool | None:
         return self.args.recursive
 
     @property
     @allow_missing_attribute
-    def batch(self) -> Optional[bool]:
+    def batch(self) -> bool | None:
         return self.args.batch
 
     @property
     @allow_missing_attribute
-    def dry_run(self) -> Optional[bool]:
+    def dry_run(self) -> bool | None:
         return self.args.dry_run
 
     @property
     @allow_missing_attribute
-    def json_raw(self) -> Optional[str]:
+    def json_raw(self) -> str | None:
         return self.args.json_raw
 
     @property
     @allow_missing_attribute
-    def compute_requirement(self) -> Optional[str]:
+    def compute_requirement(self) -> str | None:
         return self.args.compute_requirement
 
     @property
     @allow_missing_attribute
-    def task_count(self) -> Optional[int]:
+    def task_count(self) -> int | None:
         return self.args.task_count
 
     @property
     @allow_missing_attribute
-    def task_group_count(self) -> Optional[int]:
+    def task_group_count(self) -> int | None:
         return self.args.task_group_count
 
     @property
     @allow_missing_attribute
-    def csv_files(self) -> Optional[List[str]]:
+    def csv_files(self) -> list[str] | None:
         return self.args.csv_file
 
     @property
     @allow_missing_attribute
-    def process_csv_only(self) -> Optional[bool]:
+    def process_csv_only(self) -> bool | None:
         return self.args.process_csv_only
 
     @property
     @allow_missing_attribute
-    def wr_ids(self) -> Optional[List[str]]:
+    def wr_ids(self) -> list[str] | None:
         return self.args.work_requirement_id
 
     @property
     @allow_missing_attribute
-    def task_batch_size(self) -> Optional[int]:
+    def task_batch_size(self) -> int | None:
         return self.args.task_batch_size
 
     @property
     @allow_missing_attribute
-    def content_path(self) -> Optional[str]:
+    def content_path(self) -> str | None:
         return self.args.content_path
 
     @property
     @allow_missing_attribute
-    def report(self) -> Optional[bool]:
+    def report(self) -> bool | None:
         return self.args.report
 
     @property
     @allow_missing_attribute
-    def jsonnet_dry_run(self) -> Optional[bool]:
+    def jsonnet_dry_run(self) -> bool | None:
         return self.args.jsonnet_dry_run
 
     @property
     @allow_missing_attribute
-    def pause_between_batches(self) -> Optional[int]:
+    def pause_between_batches(self) -> int | None:
         return self.args.pause_between_batches
 
     @property
     @allow_missing_attribute
-    def parallel_batches(self) -> Optional[int]:
+    def parallel_batches(self) -> int | None:
         return self.args.parallel_batches
 
     @property
     @allow_missing_attribute
-    def worker_pool_name(self) -> Optional[str]:
+    def worker_pool_name(self) -> str | None:
         return self.args.worker_pool
 
     @property
     @allow_missing_attribute
-    def worker_pool_nodes_list(self) -> Optional[List[str]]:
+    def worker_pool_nodes_list(self) -> list[str] | None:
         return self.args.worker_pool_nodes_list
 
     @property
     @allow_missing_attribute
-    def compute_requirement_names(self) -> Optional[str]:
+    def compute_requirement_names(self) -> str | None:
         return self.args.compute_reqs
 
     @property
     @allow_missing_attribute
-    def work_requirement_names(self) -> Optional[str]:
+    def work_requirement_names(self) -> str | None:
         return self.args.work_requirements
 
     @property
     @allow_missing_attribute
-    def object_paths_to_delete(self) -> Optional[List[str]]:
+    def object_paths_to_delete(self) -> list[str] | None:
         return self.args.object_paths_to_delete
 
     @property
     @allow_missing_attribute
-    def object_paths_to_download(self) -> Optional[List[str]]:
+    def object_paths_to_download(self) -> list[str] | None:
         return self.args.object_paths_to_download
 
     @property
     @allow_missing_attribute
-    def worker_pool_size(self) -> Optional[int]:
+    def worker_pool_size(self) -> int | None:
         return self.args.worker_pool_size
 
     @property
     @allow_missing_attribute
-    def compute_req_resize(self) -> Optional[bool]:
+    def compute_req_resize(self) -> bool | None:
         return self.args.compute_requirement
 
     @property
     @allow_missing_attribute
-    def flatten_download_paths(self) -> Optional[bool]:
+    def flatten_download_paths(self) -> bool | None:
         return self.args.flatten
 
     @property
     @allow_missing_attribute
-    def compute_requirement_templates(self) -> Optional[bool]:
+    def compute_requirement_templates(self) -> bool | None:
         return self.args.compute_requirement_templates
 
     @property
     @allow_missing_attribute
-    def compute_source_templates(self) -> Optional[bool]:
+    def compute_source_templates(self) -> bool | None:
         return self.args.compute_source_templates
 
     @property
     @allow_missing_attribute
-    def keyrings(self) -> Optional[bool]:
+    def keyrings(self) -> bool | None:
         return self.args.keyrings
 
     @property
     @allow_missing_attribute
-    def image_families(self) -> Optional[bool]:
+    def image_families(self) -> bool | None:
         return self.args.image_families
 
     @property
     @allow_missing_attribute
-    def namespace_storage_configurations(self) -> Optional[bool]:
+    def namespace_storage_configurations(self) -> bool | None:
         return self.args.namespace_storage_configurations
 
     @property
     @allow_missing_attribute
-    def instances(self) -> Optional[bool]:
+    def instances(self) -> bool | None:
         return self.args.instances
 
     @property
     @allow_missing_attribute
-    def nodes(self) -> Optional[bool]:
+    def nodes(self) -> bool | None:
         return self.args.nodes
 
     @property
     @allow_missing_attribute
-    def workers(self) -> Optional[bool]:
+    def workers(self) -> bool | None:
         return self.args.workers
 
     @property
     @allow_missing_attribute
-    def allowances(self) -> Optional[bool]:
+    def allowances(self) -> bool | None:
         return self.args.allowances
 
     @property
     @allow_missing_attribute
-    def attribute_definitions(self) -> Optional[bool]:
+    def attribute_definitions(self) -> bool | None:
         return self.args.attribute_definitions
 
     @property
     @allow_missing_attribute
-    def namespaces(self) -> Optional[bool]:
+    def namespaces(self) -> bool | None:
         return self.args.namespaces
 
     @property
     @allow_missing_attribute
-    def namespace_policies(self) -> Optional[bool]:
+    def namespace_policies(self) -> bool | None:
         return self.args.namespace_policies
 
     @property
     @allow_missing_attribute
-    def users(self) -> Optional[bool]:
+    def users(self) -> bool | None:
         return self.args.users
 
     @property
     @allow_missing_attribute
-    def applications(self) -> Optional[bool]:
+    def applications(self) -> bool | None:
         return self.args.applications
 
     @property
     @allow_missing_attribute
-    def groups(self) -> Optional[bool]:
+    def groups(self) -> bool | None:
         return self.args.groups
 
     @property
     @allow_missing_attribute
-    def roles(self) -> Optional[bool]:
+    def roles(self) -> bool | None:
         return self.args.roles
 
     @property
     @allow_missing_attribute
-    def permissions(self) -> Optional[bool]:
+    def permissions(self) -> bool | None:
         return self.args.permissions
 
     @property
     @allow_missing_attribute
-    def show_keyring_passwords(self) -> Optional[bool]:
+    def show_keyring_passwords(self) -> bool | None:
         return self.args.show_keyring_passwords
 
     @property
     @allow_missing_attribute
-    def regenerate_app_keys(self) -> Optional[bool]:
+    def regenerate_app_keys(self) -> bool | None:
         return self.args.regenerate_app_keys
 
     @property
     @allow_missing_attribute
-    def ids(self) -> Optional[bool]:
+    def ids(self) -> bool | None:
         return self.args.ids
 
     @property
     @allow_missing_attribute
-    def resource_specifications(self) -> Optional[List[str]]:
+    def resource_specifications(self) -> list[str] | None:
         return self.args.resource_specifications
 
     @property
     @allow_missing_attribute
-    def yellowdog_ids(self) -> Optional[List[str]]:
+    def yellowdog_ids(self) -> list[str] | None:
         return self.args.yellowdog_ids
 
     @property
     @allow_missing_attribute
-    def auto_cr(self) -> Optional[bool]:
+    def auto_cr(self) -> bool | None:
         return self.args.auto_follow_compute_requirements
 
     @property
     @allow_missing_attribute
-    def raw_events(self) -> Optional[bool]:
+    def raw_events(self) -> bool | None:
         return self.args.raw_events
 
     @property
     @allow_missing_attribute
-    def reverse(self) -> Optional[bool]:
+    def reverse(self) -> bool | None:
         return self.args.reverse
 
     @property
     @allow_missing_attribute
-    def operation(self) -> Optional[str]:
+    def operation(self) -> str | None:
         return self.args.operation
 
     @property
     @allow_missing_attribute
-    def cloud_provider(self) -> Optional[str]:
+    def cloud_provider(self) -> str | None:
         return self.args.cloud_provider
 
     @property
     @allow_missing_attribute
-    def credentials_file(self) -> Optional[str]:
+    def credentials_file(self) -> str | None:
         return self.args.credentials_file
 
     @property
     @allow_missing_attribute
-    def region_name(self) -> Optional[str]:
+    def region_name(self) -> str | None:
         return self.args.region_name
 
     @property
     @allow_missing_attribute
-    def instance_type(self) -> Optional[str]:
+    def instance_type(self) -> str | None:
         return self.args.instance_type
 
     @property
     @allow_missing_attribute
-    def show_secrets(self) -> Optional[bool]:
+    def show_secrets(self) -> bool | None:
         return self.args.show_secrets
 
     @property
     @allow_missing_attribute
-    def hold(self) -> Optional[bool]:
+    def hold(self) -> bool | None:
         return self.args.hold
 
     @property
     @allow_missing_attribute
-    def task_id_list(self) -> Optional[List[str]]:
+    def task_id_list(self) -> list[str] | None:
         return self.args.task_id_list
 
     @property
     @allow_missing_attribute
-    def work_requirement_file_positional(self) -> Optional[str]:
+    def work_requirement_file_positional(self) -> str | None:
         return self.args.work_requirement_file_positional
 
     @property
     @allow_missing_attribute
-    def worker_pool_file_positional(self) -> Optional[str]:
+    def worker_pool_file_positional(self) -> str | None:
         return self.args.worker_pool_file_positional
 
     @property
     @allow_missing_attribute
-    def compute_requirement_file_positional(self) -> Optional[str]:
+    def compute_requirement_file_positional(self) -> str | None:
         return self.args.compute_requirement_file_positional
 
     @property
     @allow_missing_attribute
-    def object_path_pattern(self) -> Optional[str]:
+    def object_path_pattern(self) -> str | None:
         return self.args.pattern
 
     @property
     @allow_missing_attribute
-    def allowance_list(self) -> List[str]:
+    def allowance_list(self) -> list[str]:
         return self.args.allowances
 
     @property
@@ -1788,81 +1787,81 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def no_resequence(self) -> Optional[bool]:
+    def no_resequence(self) -> bool | None:
         return self.args.no_resequence
 
     @property
     @allow_missing_attribute
-    def match_allowances_by_description(self) -> Optional[bool]:
+    def match_allowances_by_description(self) -> bool | None:
         return self.args.match_allowances_by_description
 
     @property
     @allow_missing_attribute
-    def public_ips_only(self) -> Optional[bool]:
+    def public_ips_only(self) -> bool | None:
         return self.args.public_ips_only
 
     @property
     @allow_missing_attribute
-    def show_token(self) -> Optional[bool]:
+    def show_token(self) -> bool | None:
         return self.args.show_token
 
     @property
     @allow_missing_attribute
-    def output_file(self) -> Optional[str]:
+    def output_file(self) -> str | None:
         return self.args.output_file
 
     @property
     @allow_missing_attribute
-    def substitute_ids(self) -> Optional[bool]:
+    def substitute_ids(self) -> bool | None:
         return self.args.substitute_ids
 
     @property
     @allow_missing_attribute
-    def wr_or_tg_id(self) -> Optional[str]:
+    def wr_or_tg_id(self) -> str | None:
         return self.args.wr_or_tg_id
 
     @property
     @allow_missing_attribute
-    def worker_pool_ids(self) -> Optional[List[str]]:
+    def worker_pool_ids(self) -> list[str] | None:
         return self.args.worker_pool_ids
 
     @property
     @allow_missing_attribute
-    def ids_only(self) -> Optional[bool]:
+    def ids_only(self) -> bool | None:
         return self.args.ids_only
 
     @property
     @allow_missing_attribute
-    def terminate(self) -> Optional[bool]:
+    def terminate(self) -> bool | None:
         return self.args.terminate
 
     @property
     @allow_missing_attribute
-    def running_nodes_only(self) -> Optional[bool]:
+    def running_nodes_only(self) -> bool | None:
         return self.args.running_nodes_only
 
     @property
     @allow_missing_attribute
-    def strip_ids(self) -> Optional[bool]:
+    def strip_ids(self) -> bool | None:
         return self.args.strip_ids
 
     @property
     @allow_missing_attribute
-    def auto_select_all(self) -> Optional[bool]:
+    def auto_select_all(self) -> bool | None:
         return self.args.auto_select_all
 
     @property
     @allow_missing_attribute
-    def report_variables(self) -> Optional[List[str]]:
+    def report_variables(self) -> list[str] | None:
         return self.args.report_variable
 
     @property
     @allow_missing_attribute
-    def upgrade_rclone(self) -> Optional[bool]:
+    def upgrade_rclone(self) -> bool | None:
         return self.args.upgrade_rclone
 
 
-def lookup_module_description(module_name: str) -> Optional[str]:
+def lookup_module_description(module_name: str) -> str | None:
     """
     Descriptive string for the module's purpose.
     """

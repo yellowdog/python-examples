@@ -4,8 +4,6 @@
 A script to abort Tasks without cancelling their Work Requirements.
 """
 
-from typing import List
-
 from yellowdog_client.model import (
     Task,
     TaskSearch,
@@ -45,7 +43,7 @@ def main():
     # Abort Tasks is always interactive
     ARGS_PARSER.interactive = True
 
-    selected_work_requirement_summaries: List[WorkRequirementSummary] = (
+    selected_work_requirement_summaries: list[WorkRequirementSummary] = (
         get_filtered_work_requirements(
             CLIENT,
             namespace=CONFIG_COMMON.namespace,
@@ -84,7 +82,7 @@ def abort_tasks_selectively(
         workRequirementId=wr_summary.id,
         statuses=[TaskStatus.EXECUTING],
     )
-    tasks: List[Task] = CLIENT.work_client.find_tasks(task_search)
+    tasks: list[Task] = CLIENT.work_client.find_tasks(task_search)
 
     if len(tasks) > 0:
         tasks = select(
@@ -116,7 +114,7 @@ def abort_tasks_selectively(
         print_info(f"Aborted {aborted_tasks} Tasks")
 
 
-def _abort_tasks_by_name_or_id(task_id_list: List[str]):
+def _abort_tasks_by_name_or_id(task_id_list: list[str]):
     """
     Abort Tasks by their YDIDs.
     """

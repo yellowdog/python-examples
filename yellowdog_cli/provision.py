@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from datetime import timedelta
 from math import ceil, floor
 from os.path import dirname
-from typing import Dict, List
 
 import requests
 from yellowdog_client.common.iso_datetime import iso_timedelta_format
@@ -127,7 +126,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
     # values in the JSON file override values in the TOML file
     try:
         # requirementTemplateUsage insertions
-        reqt_template_usage: Dict = wp_data["requirementTemplateUsage"]
+        reqt_template_usage: dict = wp_data["requirementTemplateUsage"]
         for key, value in [
             # Generate a default name
             (
@@ -349,7 +348,7 @@ def create_worker_pool_from_toml():
             f"(minNodes: {CONFIG_WP.min_nodes:,d}, "
             f"maxNodes: {CONFIG_WP.max_nodes:,d})"
         )
-    batches: List[WPBatch] = _allocate_nodes_to_batches(
+    batches: list[WPBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
         CONFIG_WP.target_instance_count,
         CONFIG_WP.min_nodes,
@@ -357,7 +356,7 @@ def create_worker_pool_from_toml():
     )
     num_batches = len(batches)
 
-    worker_pool_ids: List[str] = []
+    worker_pool_ids: list[str] = []
     if num_batches > 1:
         print_info(f"Batching into {num_batches} Compute Requirements")
 
@@ -458,7 +457,7 @@ def create_worker_pool_from_toml():
 
 def _allocate_nodes_to_batches(
     max_batch_size: int, initial_nodes: int, min_nodes: int, max_nodes: int
-) -> List[WPBatch]:
+) -> list[WPBatch]:
     """
     Helper function to distribute the number of requested instances
     as evenly as possible over Compute Requirements when batches are required.

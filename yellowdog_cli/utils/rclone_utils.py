@@ -8,7 +8,6 @@ from functools import cache
 from os import chdir, getcwd
 from os.path import exists
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from rclone_api import Config, Rclone
 
@@ -41,11 +40,11 @@ class RcloneUploadedFiles:
         self,
         files_directory: str = "",
     ):
-        self._rcloned_files: List[RcloneUploadedFile] = []
+        self._rcloned_files: list[RcloneUploadedFile] = []
         self._files_directory = files_directory
         self._working_directory = getcwd()
 
-    def upload_dataclient_input_files(self, task_data_inputs: Optional[List[Dict]]):
+    def upload_dataclient_input_files(self, task_data_inputs: list[dict] | None):
         """
         Extract files to be uploaded from a task_data_inputs objects, and
         upload them. Important: removes any 'localFile' properties.

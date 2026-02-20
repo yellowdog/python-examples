@@ -6,7 +6,6 @@ import json
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from os.path import exists
-from typing import Dict, List, Optional
 
 from yellowdog_client import PlatformClient
 
@@ -37,14 +36,14 @@ class CommonCloudConfig(ABC):
         self._namespace = f"{CLOUDWIZARD_NAMESPACE_PREFIX}-{cloud_provider.lower()}"
         self._client = client
 
-        self._instance_type: Optional[str] = None
-        self._source_names_spot: List[str] = []
-        self._source_names_ondemand: List[str] = []
-        self._source_template_resources: List[Dict] = []
-        self._requirement_template_resources: List[Dict] = []
+        self._instance_type: str | None = None
+        self._source_names_spot: list[str] = []
+        self._source_names_ondemand: list[str] = []
+        self._source_template_resources: list[dict] = []
+        self._requirement_template_resources: list[dict] = []
 
-        self._keyring_name: Optional[str] = None
-        self._keyring_password: Optional[str] = None
+        self._keyring_name: str | None = None
+        self._keyring_password: str | None = None
 
     @abstractmethod
     def setup(self):
@@ -108,12 +107,12 @@ class CommonCloudConfig(ABC):
 
     def _generate_static_compute_requirement_template(
         self,
-        source_names: List[str],
+        source_names: list[str],
         spot_or_ondemand: str,
         strategy: str,
         instance_type: str,
         name_prefix: str,
-    ) -> Dict:
+    ) -> dict:
         """
         Generate a static compute requirement resource definition
         from a list of source names. Strategy can be one of:
@@ -143,11 +142,11 @@ class CommonCloudConfig(ABC):
 
     def _generate_static_compute_requirement_template_spot_ondemand_waterfall(
         self,
-        source_names_spot: List[str],
-        source_names_on_demand: List[str],
+        source_names_spot: list[str],
+        source_names_on_demand: list[str],
         instance_type: str,
         name_prefix: str,
-    ) -> Dict:
+    ) -> dict:
         """
         Generate a static Waterfall compute requirement resource definition from
         lists of spot and on-demand source names.
@@ -176,7 +175,7 @@ class CommonCloudConfig(ABC):
         self,
         strategy: str,
         name_prefix: str,
-    ) -> Dict:
+    ) -> dict:
         """
         Generate a dynamic compute requirement resource definition.
         Strategy can be one of:
@@ -220,7 +219,7 @@ class CommonCloudConfig(ABC):
         }
 
     @staticmethod
-    def _generate_yd_keyring(keyring_name: str) -> Dict:
+    def _generate_yd_keyring(keyring_name: str) -> dict:
         """
         Generate a YellowDog keyring resource definition.
         """
@@ -231,7 +230,7 @@ class CommonCloudConfig(ABC):
         }
 
     @staticmethod
-    def _save_resource_list(resource_list: List[Dict], resources_file: str) -> bool:
+    def _save_resource_list(resource_list: list[dict], resources_file: str) -> bool:
         """
         Save the list of generated resources. Returns True for success.
         """
@@ -279,7 +278,7 @@ class CommonCloudConfig(ABC):
             f" '{self._instance_type}'"
         )
         clear_compute_source_template_cache()
-        self._requirement_template_resources: List[Dict] = [
+        self._requirement_template_resources: list[dict] = [
             self._generate_static_compute_requirement_template(
                 source_names=self._source_names_ondemand,
                 spot_or_ondemand="ondemand",

@@ -26,7 +26,7 @@ black: $(SRC) $(TESTS)
 isort: $(SRC)
 	isort --profile black $(SRC) $(TESTS)
 
-format: isort black
+format: pyupgrade isort black
 
 #mypy: $(SRC) $(TESTS)
 #	mypy $(SRC) $(TESTS)
@@ -41,6 +41,9 @@ pypi_test_upload: clean build
 
 pypi_check: build
 	twine check dist/*
+
+pyupgrade: $(SRC)
+	pyupgrade --exit-zero-even-if-changed --py310-plus $(SRC) $(TESTS)
 
 toc_all: toc toc_cloudwizard
 

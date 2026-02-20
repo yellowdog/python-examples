@@ -8,7 +8,6 @@ and to check for matches.
 from dataclasses import dataclass
 from enum import Enum
 from functools import cache
-from typing import List, Optional, Set
 
 from tabulate import tabulate
 from yellowdog_client.model import (
@@ -57,8 +56,8 @@ class PropertyMatch:
     task_group_values: str
     worker_pool_values: str
     match: MatchType
-    match_count: Optional[int] = None
-    total_nodes: Optional[int] = None
+    match_count: int | None = None
+    total_nodes: int | None = None
 
 
 class MatchReport:
@@ -179,13 +178,13 @@ class WorkerPools:
     Populates once for each run of the script.
     """
 
-    def __init__(self, worker_pools: List[ProvisionedWorkerPool]):
+    def __init__(self, worker_pools: list[ProvisionedWorkerPool]):
         self._populated = False
         self._worker_pools = worker_pools
 
     def check_task_group_for_matching_worker_pools(
         self, task_group: TaskGroup
-    ) -> List[MatchReport]:
+    ) -> list[MatchReport]:
         """
         Check a task group for matches with the selected worker pools.
         """
@@ -215,19 +214,19 @@ class WorkerPools:
             vcpus=self._match_vcpus(task_group, worker_pool),
         )
 
-    def _get_providers(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
+    def _get_providers(self, worker_pool: ProvisionedWorkerPool) -> set[str]:
         return {
             self._get_provider_from_source(source)
             for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources
         }
 
-    def _get_regions(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
+    def _get_regions(self, worker_pool: ProvisionedWorkerPool) -> set[str]:
         return {
             source.region
             for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources
         }
 
-    def _get_instance_types(self, worker_pool: ProvisionedWorkerPool) -> Set[str]:
+    def _get_instance_types(self, worker_pool: ProvisionedWorkerPool) -> set[str]:
         instance_types = set()
         for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources:
             provider = self._get_provider_from_source(source)
@@ -254,7 +253,7 @@ class WorkerPools:
         )
 
     @staticmethod
-    def _get_provider_from_source(source: ComputeSource) -> Optional[str]:
+    def _get_provider_from_source(source: ComputeSource) -> str | None:
         if AWS.lower() in source.type.lower():
             return AWS
         elif AZURE.lower() in source.type.lower():
@@ -557,7 +556,7 @@ class WorkerPools:
         else:
             return f"{dr.min} to {dr.max}"
 
-    def _get_all_nodes_in_worker_pool(self, worker_pool: WorkerPool) -> List[Node]:
+    def _get_all_nodes_in_worker_pool(self, worker_pool: WorkerPool) -> list[Node]:
         """
         Return all nodes in the worker pool. Optionally restrict to running nodes only.
         """
@@ -570,7 +569,7 @@ class WorkerPools:
 
     @staticmethod
     @cache
-    def _get_all_nodes_in_worker_pool_cached(worker_pool_id: str) -> List[Node]:
+    def _get_all_nodes_in_worker_pool_cached(worker_pool_id: str) -> list[Node]:
         """
         Cached version of the above with hashable argument.
         """
@@ -639,7 +638,7 @@ def _compare_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
         override_quiet=True,
     )
 
-    match_reports: List[MatchReport] = (
+    match_reports: list[MatchReport] = (
         worker_pools.check_task_group_for_matching_worker_pools(task_group=task_group)
     )
 
@@ -682,7 +681,7 @@ def _compare_task_group(task_group: TaskGroup, worker_pools: WorkerPools):
 def main():
 
     # Worker pools
-    wp_list: List[ProvisionedWorkerPool] = []
+    wp_list: list[ProvisionedWorkerPool] = []
     for wp_id in ARGS_PARSER.worker_pool_ids:
         if get_ydid_type(wp_id) != YDIDType.WORKER_POOL:
             raise Exception(

@@ -4,8 +4,6 @@
 A script to resize Worker Pools and Compute Requirements.
 """
 
-from typing import List
-
 from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementStatus,
@@ -79,7 +77,7 @@ def _resize_compute_requirement():
         f"with status '{ComputeRequirementStatus.RUNNING}'"
     )
 
-    cr_summaries: List[ComputeRequirementSummary] = get_compute_requirement_summaries(
+    cr_summaries: list[ComputeRequirementSummary] = get_compute_requirement_summaries(
         CLIENT,
         namespace=CONFIG_COMMON.namespace,
         tag=None,

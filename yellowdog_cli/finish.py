@@ -4,8 +4,6 @@
 A script to finish Work Requirements.
 """
 
-from typing import List
-
 from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementStatus,
@@ -35,7 +33,7 @@ def main():
         f"including '{CONFIG_COMMON.name_tag}'"
     )
 
-    selected_work_requirement_summaries: List[WorkRequirementSummary] = (
+    selected_work_requirement_summaries: list[WorkRequirementSummary] = (
         get_filtered_work_requirements(
             client=CLIENT,
             namespace=CONFIG_COMMON.namespace,
@@ -51,7 +49,7 @@ def main():
 
     finished_count = 0
     finishing_count = 0
-    work_requirement_ids: List[str] = []
+    work_requirement_ids: list[str] = []
 
     if len(selected_work_requirement_summaries) > 0:
         selected_work_requirement_summaries = select(
@@ -98,11 +96,11 @@ def main():
         print_info("No Work Requirements to finish")
 
 
-def _finish_work_requirements_by_name_or_id(names_or_ids: List[str]):
+def _finish_work_requirements_by_name_or_id(names_or_ids: list[str]):
     """
     Finish Work Requirements by their names or IDs.
     """
-    work_requirement_summaries: List[WorkRequirementSummary] = []
+    work_requirement_summaries: list[WorkRequirementSummary] = []
 
     for name_or_id in names_or_ids:
 

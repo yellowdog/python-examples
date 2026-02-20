@@ -3,7 +3,6 @@ User interaction processing utilities.
 """
 
 from os import getenv
-from typing import Dict, List, Optional, Set, Union
 
 from yellowdog_client import PlatformClient
 
@@ -30,15 +29,15 @@ YD_YES = "YD_YES"
 
 def select(
     client: PlatformClient,
-    objects: List[Union[Item, str, Dict]],
-    object_type_name: Optional[str] = None,
+    objects: list[Item | str | dict],
+    object_type_name: str | None = None,
     override_quiet: bool = False,
     single_result: bool = False,
     showing_all: bool = False,
     force_interactive: bool = False,
     result_required: bool = False,
     sort_objects: bool = True,
-) -> List[Item]:
+) -> list[Item]:
     """
     Print a numbered list of objects.
     Manually select objects from a list if --interactive is set.
@@ -77,7 +76,7 @@ def select(
 
 def get_selected_list_items(
     num_items, result_required: bool = False, single_result: bool = False
-) -> List[int]:
+) -> list[int]:
     """
     Get a numbered selection list.
     """
@@ -100,7 +99,7 @@ def get_selected_list_items(
         if selector_string.strip() == "*":
             selector_string = f"1-{num_items}"
         selector_list = selector_string.split(",")
-        selector_set: Set[int] = set()
+        selector_set: set[int] = set()
         error_flag = False
         for selector in selector_list:
             try:

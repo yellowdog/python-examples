@@ -4,8 +4,6 @@
 Command to show the JSON details of YellowDog entities via their IDs.
 """
 
-from typing import List
-
 from yellowdog_client.model import ConfiguredWorkerPool
 
 from yellowdog_cli.list import get_keyring
@@ -283,7 +281,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
         print_error(f"Unable to show details for '{ydid}': {e}")
 
 
-def _report_variables(variable_names: List[str]):
+def _report_variables(variable_names: list[str]):
     """
     Convenience function to report the processed values of user variables.
     """

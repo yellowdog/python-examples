@@ -7,7 +7,6 @@ A script to provision a Compute Requirement.
 from dataclasses import dataclass
 from json import loads as json_loads
 from math import ceil, floor
-from typing import List
 
 import requests
 from yellowdog_client.model import (
@@ -102,7 +101,7 @@ def main():
             f"{CONFIG_WP.target_instance_count:,d} instance(s)"
         )
 
-    batches: List[CRBatch] = _allocate_nodes_to_batches(
+    batches: list[CRBatch] = _allocate_nodes_to_batches(
         CONFIG_WP.compute_requirement_batch_size,
         CONFIG_WP.target_instance_count,
     )
@@ -111,7 +110,7 @@ def main():
     if num_batches > 1 and not ARGS_PARSER.report:
         print_info(f"Batching into {num_batches} Compute Requirements")
 
-    compute_requirement_ids: List[str] = []
+    compute_requirement_ids: list[str] = []
     for batch_number in range(num_batches):
         id = add_batch_number_postfix(
             name=CONFIG_WP.name if CONFIG_WP.name is not None else GENERATED_ID,
@@ -202,7 +201,7 @@ def main():
 
 def _allocate_nodes_to_batches(
     max_batch_size: int, initial_nodes: int
-) -> List[CRBatch]:
+) -> list[CRBatch]:
     """
     Helper function to distribute the number of requested instances
     as evenly as possible over Compute Requirements when batches are required.

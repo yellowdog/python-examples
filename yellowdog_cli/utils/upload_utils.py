@@ -5,7 +5,6 @@ Utility functions for uploading objects.
 from os import name as os_name
 from os.path import basename
 from pathlib import Path
-from typing import Optional
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.object_store.model import FileTransferStatus
@@ -21,7 +20,7 @@ def upload_file(
     id: str,
     namespace: str,
     url: str,
-    inputs_folder_name: Optional[str] = None,
+    inputs_folder_name: str | None = None,
     flatten_upload_paths: bool = False,
 ) -> bool:
     """
@@ -49,7 +48,7 @@ def upload_file(
 def unique_upload_pathname(
     filename: str,
     id: str,
-    inputs_folder_name: Optional[str],
+    inputs_folder_name: str | None,
     urlencode_forward_slash: bool = False,
     flatten_upload_paths: bool = False,
 ) -> str:

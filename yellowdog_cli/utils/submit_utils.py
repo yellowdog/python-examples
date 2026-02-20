@@ -7,7 +7,6 @@ from glob import glob
 from os import chdir, getcwd
 from os.path import exists
 from time import sleep
-from typing import Dict, List, Optional, Tuple
 
 from yellowdog_client import PlatformClient
 from yellowdog_client.model import (
@@ -39,21 +38,21 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER
 
 
 def generate_task_input_list(
-    files: List[str],
-    verification: Optional[TaskInputVerification],
-    wr_name: Optional[str],
-) -> List[TaskInput]:
+    files: list[str],
+    verification: TaskInputVerification | None,
+    wr_name: str | None,
+) -> list[TaskInput]:
     """
     Generate a TaskInput list.
     """
-    task_input_list: List[TaskInput] = []
+    task_input_list: list[TaskInput] = []
     for file in files:
         task_input_list.append(generate_task_input(file, verification, wr_name))
     return task_input_list
 
 
 def generate_task_input(
-    file: str, verification: Optional[TaskInputVerification], wr_name: str
+    file: str, verification: TaskInputVerification | None, wr_name: str
 ) -> TaskInput:
     """
     Generate a TaskInput, accommodating files located relative to the root of
@@ -73,8 +72,8 @@ def generate_task_input(
 
 
 def get_namespace_and_filepath(
-    file: str, wr_name: Optional[str] = None
-) -> Tuple[Optional[str], str]:
+    file: str, wr_name: str | None = None
+) -> tuple[str | None, str]:
     """
     Find the namespace and path, using the namespace separator.
     """
@@ -127,7 +126,7 @@ class UploadedFiles:
         self._client = client
         self._wr_name = wr_name
         self._config = config
-        self._uploaded_files: List[UploadedFile] = []
+        self._uploaded_files: list[UploadedFile] = []
         self.files_directory = files_directory
         self.working_directory = getcwd()
 
@@ -202,7 +201,7 @@ class UploadedFiles:
 
         chdir(self.working_directory)
 
-    def add_input_file(self, filename: str, flatten_upload_paths: bool) -> List[str]:
+    def add_input_file(self, filename: str, flatten_upload_paths: bool) -> list[str]:
         """
         Add a filename from the inputs list, processing wildcards if present.
         Return the expanded list of filenames.
@@ -317,8 +316,8 @@ def pause_between_batches(task_batch_size: int, batch_number: int, num_tasks: in
 
 
 def generate_taskdata_object(
-    task_data_inputs: Optional[List[Dict]], task_data_outputs: Optional[List[Dict]]
-) -> Optional[TaskData]:
+    task_data_inputs: list[dict] | None, task_data_outputs: list[dict] | None
+) -> TaskData | None:
     """
     Generate a TaskData object based on task data inputs/outputs.
     """
@@ -346,11 +345,11 @@ def generate_taskdata_object(
 
 def generate_task_error_matchers_list(
     config_wr: ConfigWorkRequirement, wr_data: dict, tg_data: dict
-) -> Optional[List[TaskErrorMatcher]]:
+) -> list[TaskErrorMatcher] | None:
     """
     Generate a list of TaskErrorMatcher objects.
     """
-    error_matchers: Optional[List[Dict]] = check_list(
+    error_matchers: list[dict] | None = check_list(
         tg_data.get(
             RETRYABLE_ERRORS,
             wr_data.get(RETRYABLE_ERRORS, config_wr.retryable_errors),
@@ -367,7 +366,7 @@ def generate_task_error_matchers_list(
     )
 
 
-def generate_dependencies(task_group_data: Dict) -> Optional[List[str]]:
+def generate_dependencies(task_group_data: dict) -> list[str] | None:
     """
     Generate the contents of the 'dependencies' property of the TaskGroup.
     """
@@ -394,13 +393,13 @@ def generate_dependencies(task_group_data: Dict) -> Optional[List[str]]:
         return [dependent_on]
 
 
-def _generate_task_error_matcher(task_error_matcher_data: Dict) -> TaskErrorMatcher:
+def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatcher:
     """
     Generate a TaskErrorMatcher object.
     """
     try:
 
-        exit_codes_str: Optional[List[int]] = check_list(
+        exit_codes_str: list[int] | None = check_list(
             task_error_matcher_data.get(PROCESS_EXIT_CODES, None)
         )
         try:
@@ -413,7 +412,7 @@ def _generate_task_error_matcher(task_error_matcher_data: Dict) -> TaskErrorMatc
         except Exception as e:
             raise Exception(f"Unable to process error exit codes: {e}")
 
-        statuses_str: Optional[List[str]] = check_list(
+        statuses_str: list[str] | None = check_list(
             task_error_matcher_data.get(STATUSES_AT_FAILURE, None)
         )
         try:
@@ -425,7 +424,7 @@ def _generate_task_error_matcher(task_error_matcher_data: Dict) -> TaskErrorMatc
         except Exception as e:
             raise Exception(f"Unable to process error status: {e}")
 
-        error_types: Optional[List[str]] = check_list(
+        error_types: list[str] | None = check_list(
             task_error_matcher_data.get(ERROR_TYPES, None)
         )
 

@@ -3,7 +3,6 @@ Helper utilities for YDIDs.
 """
 
 from enum import Enum
-from typing import Optional
 
 
 class YDIDType(Enum):
@@ -28,7 +27,7 @@ class YDIDType(Enum):
     WORK_REQUIREMENT = "Work Requirement"
 
 
-def get_ydid_type(ydid: Optional[str]) -> Optional[YDIDType]:
+def get_ydid_type(ydid: str | None) -> YDIDType | None:
     """
     Find the type of YellowDog ID.
     """

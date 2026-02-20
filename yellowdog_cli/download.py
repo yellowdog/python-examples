@@ -6,7 +6,6 @@ A script to download YellowDog Object Store objects.
 
 from concurrent import futures
 from pathlib import Path
-from typing import Optional
 
 from yellowdog_client.object_store.download.download_batch_builder import (
     AbstractTransferBatch,
@@ -67,9 +66,7 @@ def main():
     return
 
 
-def download_object_paths(
-    namespace: str, prefix: str, pattern: Optional[str], flat: bool
-):
+def download_object_paths(namespace: str, prefix: str, pattern: str | None, flat: bool):
     """
     Download Object Paths matching namespace, prefix and pattern.
     """

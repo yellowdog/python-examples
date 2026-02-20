@@ -7,7 +7,6 @@ Command to list YellowDog entities.
 from dataclasses import asdict, fields
 from json import loads as json_loads
 from os.path import exists
-from typing import Dict, List
 
 from requests import get
 from tabulate import tabulate
@@ -221,7 +220,7 @@ def list_work_requirements():
         if ARGS_PARSER.active_only
         else []
     )
-    work_requirement_summaries: List[WorkRequirementSummary] = (
+    work_requirement_summaries: list[WorkRequirementSummary] = (
         get_filtered_work_requirements(
             CLIENT,
             namespace=CONFIG_COMMON.namespace,
@@ -257,7 +256,7 @@ def list_work_requirements():
 
 
 def list_task_groups(work_summary: WorkRequirementSummary):
-    task_groups: List[TaskGroup] = get_task_groups_from_wr_by_id(
+    task_groups: list[TaskGroup] = get_task_groups_from_wr_by_id(
         CLIENT, work_summary.id
     )
     task_groups = sorted_objects(task_groups)
@@ -278,7 +277,7 @@ def list_task_groups(work_summary: WorkRequirementSummary):
 
 
 def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
-    tasks: List[Task] = get_tasks(CLIENT, work_summary.id, task_group.id)
+    tasks: list[Task] = get_tasks(CLIENT, work_summary.id, task_group.id)
     tasks = sorted_objects(tasks)
     if ARGS_PARSER.details:
         print_yd_object_list([(task, None) for task in select(CLIENT, tasks)])
@@ -334,7 +333,7 @@ def list_worker_pools():
         f"with '{CONFIG_COMMON.name_tag}' in name"
     )
 
-    worker_pool_summaries: List[WorkerPoolSummary] = get_worker_pools(
+    worker_pool_summaries: list[WorkerPoolSummary] = get_worker_pools(
         CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
     )
 
@@ -409,7 +408,7 @@ def list_compute_requirements():
     else:
         included_statuses = None
 
-    compute_requirement_summaries: List[ComputeRequirementSummary] = (
+    compute_requirement_summaries: list[ComputeRequirementSummary] = (
         get_compute_requirement_summaries(
             CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag, included_statuses
         )
@@ -450,7 +449,7 @@ def list_instances(compute_requirement_id: str):
     search_client: SearchClient = CLIENT.compute_client.get_instances(
         instance_search=instance_search
     )
-    instances: List[Instance] = search_client.list_all()
+    instances: list[Instance] = search_client.list_all()
     if len(instances) == 0:
         print_info("No instances to list")
         return
@@ -476,18 +475,18 @@ def list_instances(compute_requirement_id: str):
         print_numbered_object_list(CLIENT, instances)
 
 
-def list_nodes(worker_pool_summaries: List[WorkerPoolSummary]):
+def list_nodes(worker_pool_summaries: list[WorkerPoolSummary]):
     """
     List the Nodes in a list of Worker Pools.
     """
-    nodes_all: List[Node] = []
+    nodes_all: list[Node] = []
     for worker_pool_summary in worker_pool_summaries:
         nodes_search = NodeSearch(
             worker_pool_summary.id,
             statuses=[NodeStatus.RUNNING] if ARGS_PARSER.active_only else None,
         )
         search_client = CLIENT.worker_pool_client.get_nodes(search=nodes_search)
-        nodes: List[Node] = search_client.list_all()
+        nodes: list[Node] = search_client.list_all()
         for node in nodes:
             node.workerPoolName = worker_pool_summary.name
         nodes_all += nodes
@@ -509,11 +508,11 @@ def list_nodes(worker_pool_summaries: List[WorkerPoolSummary]):
         print_numbered_object_list(CLIENT, nodes_all)
 
 
-def list_workers(nodes: List[Node]):
+def list_workers(nodes: list[Node]):
     """
     Display a list of workers across all nodes in a worker pool.
     """
-    workers_all: List[Worker] = []
+    workers_all: list[Worker] = []
     for node in nodes:
         for worker in node.workers:
             if ARGS_PARSER.active_only:
@@ -559,7 +558,7 @@ def list_compute_requirement_templates():
         f"'{CONFIG_COMMON.name_tag}'"
     )
 
-    cr_templates: List[ComputeRequirementTemplateSummary] = (
+    cr_templates: list[ComputeRequirementTemplateSummary] = (
         get_compute_requirement_templates(
             CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
         )
@@ -649,7 +648,7 @@ def list_keyrings():
     """
     Print the list of Keyrings
     """
-    keyrings: List[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
+    keyrings: list[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
     if len(keyrings) == 0:
         print_info("No Keyrings found")
         return
@@ -695,7 +694,7 @@ def list_image_families():
         familyName=CONFIG_COMMON.name_tag,  # Supports partial match
     )
     search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)
-    image_family_summaries: List[MachineImageFamilySummary] = search_client.list_all()
+    image_family_summaries: list[MachineImageFamilySummary] = search_client.list_all()
     if len(image_family_summaries) == 0:
         print_info(
             f"No matching Machine Image Families found in namespace "
@@ -733,7 +732,7 @@ def list_namespace_storage_configurations():
     """
 
     # Get the configured namespaces
-    namespaces_config: List[NamespaceStorageConfiguration] = (
+    namespaces_config: list[NamespaceStorageConfiguration] = (
         CLIENT.object_store_client.get_namespace_storage_configurations()
     )
     namespace_config_names = [namespace.namespace for namespace in namespaces_config]
@@ -748,7 +747,7 @@ def list_namespace_storage_configurations():
 
     # Convert NamespaceStorageConfiguration objects to dicts, and simplify
     # the type names
-    namespace_list: List[Dict] = [asdict(x) for x in namespaces_config]
+    namespace_list: list[dict] = [asdict(x) for x in namespaces_config]
     for namespace in namespace_list:
         namespace["type"] = namespace["type"].split(".")[-1]
 
@@ -803,7 +802,7 @@ def list_allowances():
     search_client: SearchClient = CLIENT.allowances_client.get_allowances(
         allowances_search
     )
-    allowances: List[Allowance] = search_client.list_all()
+    allowances: list[Allowance] = search_client.list_all()
     if len(allowances) == 0:
         print_info("No Allowances to display")
         return
@@ -884,7 +883,7 @@ def list_namespaces():
     List namespaces.
     """
 
-    namespaces: List[Namespace] = CLIENT.namespaces_client.get_namespaces(
+    namespaces: list[Namespace] = CLIENT.namespaces_client.get_namespaces(
         NamespaceSearch()
     ).list_all()
 
@@ -913,7 +912,7 @@ def list_namespace_policies():
     search_client: SearchClient = CLIENT.namespaces_client.get_namespace_policies(
         np_search
     )
-    namespace_policies: List[NamespacePolicy] = search_client.list_all()
+    namespace_policies: list[NamespacePolicy] = search_client.list_all()
     if len(namespace_policies) == 0:
         print_info("No Namespace Policies to display")
         return
@@ -939,7 +938,7 @@ def list_users():
     """
     List all users in the account.
     """
-    users: List[User] = get_all_users(CLIENT)
+    users: list[User] = get_all_users(CLIENT)
 
     if len(users) == 0:
         print_info("No Users to display")
@@ -1016,7 +1015,7 @@ def list_groups():
 
     group_summaries.sort(key=lambda group: group.name if group.name is not None else "")
 
-    groups: List[Group] = [
+    groups: list[Group] = [
         CLIENT.account_client.get_group(group.id) for group in group_summaries
     ]
 
@@ -1044,7 +1043,7 @@ def list_roles():
     role_summaries.sort(key=lambda role: role.name if role.name is not None else "")
 
     print_info("Obtaining permissions for each role ...")
-    roles: List[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
+    roles: list[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
 
     # Sort permissions alphabetically (contorting the type)
     for role in roles:
@@ -1064,7 +1063,7 @@ def list_permissions():
     """
     List all permissions in the account.
     """
-    permissions: List[PermissionDetail] = CLIENT.account_client.list_permissions()
+    permissions: list[PermissionDetail] = CLIENT.account_client.list_permissions()
     permissions.sort(key=lambda permission: permission.name)
 
     if not ARGS_PARSER.details:
@@ -1075,7 +1074,7 @@ def list_permissions():
         print_yd_object(permission)
 
 
-def get_autoscaling_capacity(namespace: str) -> Dict:
+def get_autoscaling_capacity(namespace: str) -> dict:
     """
     Get the current autoscaling values for a namespace.
     """

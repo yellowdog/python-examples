@@ -3,7 +3,6 @@ Types for AWS things.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(order=True)
@@ -17,13 +16,13 @@ class AWSAvailabilityZone:
     region: str
     az: str
     default_subnet_id: str
-    default_sec_grp: Optional[AWSSecurityGroup]
+    default_sec_grp: AWSSecurityGroup | None
 
 
 @dataclass
 class AWSAccessKey:
     access_key_id: str
-    secret_access_key: Optional[str] = None
+    secret_access_key: str | None = None
 
 
 @dataclass

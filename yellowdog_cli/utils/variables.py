@@ -11,7 +11,6 @@ from copy import deepcopy
 from getpass import getuser
 from json import loads as json_loads
 from random import randint
-from typing import Dict, List, Optional, Union
 
 from tomli import load as toml_load
 
@@ -90,7 +89,7 @@ if len(subs_list) > 0:
 subs_list = []
 if ARGS_PARSER.variables is not None:
     for variable in ARGS_PARSER.variables:
-        key_value: List = variable.split("=")
+        key_value: list = variable.split("=")
         if len(key_value) == 2:
             VARIABLE_SUBSTITUTIONS[key_value[0]] = key_value[1]
             subs_list.append(f"'{key_value[0]}'")
@@ -109,7 +108,7 @@ if len(subs_list) > 0:
 del subs_list
 
 
-def add_substitutions_without_overwriting(subs: Dict):
+def add_substitutions_without_overwriting(subs: dict):
     """
     Add a dictionary of substitutions. Do not overwrite existing values, but
     resolve remaining variables if possible.
@@ -131,14 +130,14 @@ def add_or_update_substitution(key: str, value: str):
     VARIABLE_SUBSTITUTIONS[key] = str(value)
 
 
-def get_user_variable(variable_name: str) -> Optional[str]:
+def get_user_variable(variable_name: str) -> str | None:
     """
     Get the value of a variable.
     """
     return VARIABLE_SUBSTITUTIONS.get(variable_name)
 
 
-def get_all_user_variables() -> Dict:
+def get_all_user_variables() -> dict:
     """
     Return all the user variables. Copy to avoid amendment.
     """
@@ -146,8 +145,8 @@ def get_all_user_variables() -> Dict:
 
 
 def process_variable_substitutions_insitu(
-    data: Union[Dict, List], prefix: str = "", postfix: str = ""
-) -> Union[Dict, List]:
+    data: dict | list, prefix: str = "", postfix: str = ""
+) -> dict | list:
     """
     Process a dictionary or list representing JSON or TOML data.
     Updates the dictionary in-situ.
@@ -157,7 +156,7 @@ def process_variable_substitutions_insitu(
     through for server-side processing.
     """
 
-    def _walk_data(data: Union[Dict, List]):
+    def _walk_data(data: dict | list):
         """
         Helper function to walk the data structure performing
         variable substitutions.
@@ -192,8 +191,8 @@ def process_variable_substitutions_insitu(
 
 
 def process_variable_substitutions(
-    input_string: Optional[str], prefix: str = "", postfix: str = ""
-) -> Optional[Union[str, int, bool, float, List, Dict]]:
+    input_string: str | None, prefix: str = "", postfix: str = ""
+) -> str | int | bool | float | list | dict | None:
     """
     Process type-tagged and non-type-tagged variables, returning the required
     type if there's a type-tagged variable at the start of the input string.
@@ -267,10 +266,10 @@ def process_variable_substitutions(
 
 
 def process_untyped_variable_substitutions(
-    input_string: Optional[str],
+    input_string: str | None,
     opening_delimiter: str,
     closing_delimiter: str,
-) -> Optional[str]:
+) -> str | None:
     """
     Apply untyped variable substitutions to a supplied input string,
     including applying default values if present and required.
@@ -383,7 +382,7 @@ def process_untyped_variable_substitutions(
 
 def process_typed_variable_substitution(
     type_string: str, input_string: str
-) -> Optional[Union[str, int, bool, float, List, Dict]]:
+) -> str | int | bool | float | list | dict | None:
     """
     Process a single typed substitution, returning the appropriate type.
     Assumes there is a substitution present.
@@ -414,7 +413,7 @@ def process_typed_variable_substitution(
     if type_string == ARRAY_TYPE_TAG:
         try:
             return_value = literal_eval(input_string)
-            if not isinstance(return_value, List):
+            if not isinstance(return_value, list):
                 raise Exception("Not an array/list")
             return return_value
         except Exception as e:
@@ -425,7 +424,7 @@ def process_typed_variable_substitution(
     if type_string == TABLE_TYPE_TAG:
         try:
             return_value = literal_eval(input_string)
-            if not isinstance(return_value, Dict):
+            if not isinstance(return_value, dict):
                 raise Exception("Not a table/dict")
             return return_value
         except Exception as e:
@@ -450,12 +449,12 @@ def resolve_filename(files_directory: str, filename: str) -> str:
 
 def load_json_file_with_variable_substitutions(
     filename: str, prefix: str = "", postfix: str = "", files_directory: str = ""
-) -> Dict:
+) -> dict:
     """
     Takes a JSON filename and returns a dictionary with its variable
     substitutions processed.
     """
-    with open(resolve_filename(files_directory, filename), "r") as f:
+    with open(resolve_filename(files_directory, filename)) as f:
         file_contents = f.read()
     file_contents = process_variable_substitutions_in_file_contents(
         file_contents, prefix=prefix, postfix=postfix
@@ -469,7 +468,7 @@ def load_jsonnet_file_with_variable_substitutions(
     postfix: str = "",
     files_directory: str = "",
     exit_on_dry_run=True,
-) -> Dict:
+) -> dict:
     """
     Takes a Jsonnet filename and returns a dictionary with its variable
     substitutions processed.
@@ -503,7 +502,7 @@ def load_jsonnet_file_with_variable_substitutions(
 
 def load_toml_file_with_variable_substitutions(
     filename: str, prefix: str = "", postfix: str = "", files_directory: str = ""
-) -> Dict:
+) -> dict:
     """
     Takes a TOML filename and returns a dictionary with its variable
     substitutions processed.
@@ -583,7 +582,7 @@ class VariableSubstitutedJsonnetFile:
         Return the filename of the temporary variable-processed
         jsonnet file.
         """
-        with open(self.filename, "r") as file:
+        with open(self.filename) as file:
             file_contents = file.read()
         processed_file_contents: str = process_variable_substitutions_in_file_contents(
             file_contents, self.prefix, self.postfix

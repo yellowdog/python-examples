@@ -7,7 +7,6 @@ from os import getenv
 from os.path import abspath, dirname, join, relpath
 from pathlib import Path
 from sys import exit
-from typing import Dict
 
 from tomli import TOMLDecodeError
 
@@ -83,7 +82,7 @@ else:
             {"config_dir_abs": config_dir_abs, "config_dir_name": config_dir_short}
         )
         print_info(f"Loading configuration data from: '{CONFIG_FILE}'")
-        CONFIG_TOML: Dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
+        CONFIG_TOML: dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
         try:
             validate_properties(CONFIG_TOML, f"'{CONFIG_FILE}'")
         except Exception as e:
@@ -216,11 +215,11 @@ def load_config_common() -> ConfigCommon:
         exit(1)
 
 
-def import_toml(filename: str) -> Dict:
+def import_toml(filename: str) -> dict:
     filename = relpath(join(CONFIG_FILE_DIR, process_variable_substitutions(filename)))
     print_info(f"Loading imported common configuration data from: '{filename}'")
     try:
-        common_config: Dict = load_toml_file_with_variable_substitutions(filename)
+        common_config: dict = load_toml_file_with_variable_substitutions(filename)
         return common_config[COMMON_SECTION]
     except (FileNotFoundError, PermissionError, TOMLDecodeError) as e:
         print_error(f"Unable to load imported common configuration data: {e}")

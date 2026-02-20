@@ -4,7 +4,6 @@ Configuration and utilities related to AWS account setup.
 
 import json
 from time import sleep
-from typing import Dict, List, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -129,9 +128,9 @@ class AWSConfig(CommonCloudConfig):
     def __init__(
         self,
         client: PlatformClient,
-        region_name: Optional[str],
+        region_name: str | None,
         show_secrets: bool = False,
-        instance_type: Optional[str] = None,
+        instance_type: str | None = None,
     ):
         """
         Set up AWS config details.
@@ -157,10 +156,10 @@ class AWSConfig(CommonCloudConfig):
         self._instance_type = (
             YD_DEFAULT_INSTANCE_TYPE if instance_type is None else instance_type
         )
-        self._availability_zones: List[AWSAvailabilityZone] = []
-        self._iam_policy_arn: Optional[str] = None
-        self._access_keys: List[AWSAccessKey] = []
-        self._aws_user: Optional[AWSUser] = None
+        self._availability_zones: list[AWSAvailabilityZone] = []
+        self._iam_policy_arn: str | None = None
+        self._access_keys: list[AWSAccessKey] = []
+        self._aws_user: AWSUser | None = None
 
     def setup(self):
         """
@@ -838,7 +837,7 @@ class AWSConfig(CommonCloudConfig):
 
     @staticmethod
     def _add_security_group_ingress_rule(
-        ec2_client, security_group: AWSSecurityGroup, ingress_rule: List, rule_name: str
+        ec2_client, security_group: AWSSecurityGroup, ingress_rule: list, rule_name: str
     ):
         """
         Add an ingress rule to a security group.
@@ -869,7 +868,7 @@ class AWSConfig(CommonCloudConfig):
 
     @staticmethod
     def _remove_security_group_ingress_rule(
-        ec2_client, security_group: AWSSecurityGroup, ingress_rule: List, rule_name: str
+        ec2_client, security_group: AWSSecurityGroup, ingress_rule: list, rule_name: str
     ):
         """
         Remove an ingress rule from a security group.
@@ -893,7 +892,7 @@ class AWSConfig(CommonCloudConfig):
 
     def _generate_aws_compute_source_template(
         self, az: AWSAvailabilityZone, name: str, spot: bool
-    ) -> Dict:
+    ) -> dict:
         """
         Create a minimal populated YellowDog Compute Source Template resource definition.
         """
@@ -926,7 +925,7 @@ class AWSConfig(CommonCloudConfig):
     @staticmethod
     def _generate_yd_aws_credential(
         keyring_name: str, credential_name: str, access_key: AWSAccessKey
-    ) -> Dict:
+    ) -> dict:
         """
         Generate an AWS Credential resource definition.
         """
@@ -946,7 +945,7 @@ class AWSConfig(CommonCloudConfig):
 
     def _generate_yd_namespace_configuration(
         self, namespace: str, s3_bucket_name: str
-    ) -> Dict:
+    ) -> dict:
         """
         Generate a Namespace configuration using an S3 bucket.
         """

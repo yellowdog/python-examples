@@ -4,7 +4,7 @@
 Core functionality for starting and holding Work Requirements.
 """
 
-from typing import Callable, List
+from collections.abc import Callable
 
 from yellowdog_client.model import (
     WorkRequirement,
@@ -41,7 +41,7 @@ def hold_work_requirements():
 
 def _start_or_hold_work_requirements(
     action: str, required_state: WorkRequirementStatus, action_function: Callable
-) -> List[str]:
+) -> list[str]:
 
     if len(ARGS_PARSER.work_requirement_names) > 0:
         return _start_or_hold_work_requirements_by_name_or_id(
@@ -57,7 +57,7 @@ def _start_or_hold_work_requirements(
         f"'{CONFIG_COMMON.name_tag}' in tag"
     )
 
-    selected_work_requirement_summaries: List[WorkRequirementSummary] = (
+    selected_work_requirement_summaries: list[WorkRequirementSummary] = (
         get_filtered_work_requirements(
             client=CLIENT,
             namespace=CONFIG_COMMON.namespace,
@@ -67,7 +67,7 @@ def _start_or_hold_work_requirements(
     )
 
     count = 0
-    work_requirement_ids: List[str] = []
+    work_requirement_ids: list[str] = []
 
     if len(selected_work_requirement_summaries) > 0:
         selected_work_requirement_summaries = select(
@@ -111,13 +111,13 @@ def _start_or_hold_work_requirements_by_name_or_id(
     action: str,
     required_state: WorkRequirementStatus,
     action_function: Callable,
-    names_or_ids: List[str],
-) -> List[str]:
+    names_or_ids: list[str],
+) -> list[str]:
     """
     Start or hold Work Requirements by their names or IDs.
     Return the list actioned of YDIDs.
     """
-    work_requirement_summaries: List[WorkRequirementSummary] = []
+    work_requirement_summaries: list[WorkRequirementSummary] = []
 
     for name_or_id in names_or_ids:
         work_requirement_summary: WorkRequirementSummary = (

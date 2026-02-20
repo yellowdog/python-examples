@@ -4,8 +4,6 @@
 A script to terminate Compute Requirements.
 """
 
-from typing import List
-
 from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementStatus,
@@ -44,7 +42,7 @@ def main():
         f"including '{CONFIG_COMMON.name_tag}'"
     )
 
-    compute_requirement_summaries: List[ComputeRequirementSummary] = (
+    compute_requirement_summaries: list[ComputeRequirementSummary] = (
         get_compute_requirement_summaries(
             CLIENT,
             CONFIG_COMMON.namespace,
@@ -54,7 +52,7 @@ def main():
     )
 
     terminated_count = 0
-    selected_compute_requirement_summaries: List[ComputeRequirementSummary] = select(
+    selected_compute_requirement_summaries: list[ComputeRequirementSummary] = select(
         CLIENT, compute_requirement_summaries
     )
 
@@ -88,11 +86,11 @@ def main():
         print_info("No Compute Requirements terminated")
 
 
-def terminate_cr_by_name_or_id(names_or_ids: List[str]):
+def terminate_cr_by_name_or_id(names_or_ids: list[str]):
     """
     Terminate Compute Requirements by their names or IDs.
     """
-    compute_requirement_ids: List[str] = []
+    compute_requirement_ids: list[str] = []
     for name_or_id in names_or_ids:
         if get_ydid_type(name_or_id) == YDIDType.COMPUTE_REQUIREMENT:
             compute_requirement_id = name_or_id

@@ -12,7 +12,7 @@ from os import name as os_name
 from os.path import relpath
 from textwrap import fill
 from textwrap import indent as text_indent
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from rich.console import Console, Theme
 from rich.highlighter import JSONHighlighter, RegexHighlighter
@@ -236,7 +236,7 @@ def print_debug(
     CONSOLE.print(escape(print_string(log_message, no_fill=no_fill)), style=DEBUG_STYLE)
 
 
-def print_error(error_obj: Union[Exception, str]):
+def print_error(error_obj: Exception | str):
     """
     Print an error message to stderr.
     """
@@ -326,8 +326,8 @@ def get_type_name(obj: Item) -> str:
 
 
 def compute_requirement_table(
-    cr_list: List[ComputeRequirementSummary],
-) -> Tuple[List[str], List[List]]:
+    cr_list: list[ComputeRequirementSummary],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Compute Requirement Name",
@@ -353,8 +353,8 @@ def compute_requirement_table(
 
 
 def work_requirement_table(
-    wr_summary_list: List[WorkRequirementSummary],
-) -> Tuple[List[str], List[List]]:
+    wr_summary_list: list[WorkRequirementSummary],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Work Requirement Name",
@@ -385,8 +385,8 @@ def work_requirement_table(
 
 
 def task_group_table(
-    task_group_list: List[TaskGroup],
-) -> Tuple[List[str], List[List]]:
+    task_group_list: list[TaskGroup],
+) -> tuple[list[str], list[list]]:
     headers = ["#", "Task Group Name", "Status", "Task Group ID"]
     table = []
     for index, task_group in enumerate(task_group_list):
@@ -406,7 +406,7 @@ def task_group_table(
     return headers, table
 
 
-def task_table(task_list: List[Task]) -> Tuple[List[str], List[List]]:
+def task_table(task_list: list[Task]) -> tuple[list[str], list[list]]:
     headers = ["#", "Task Name", "Status", "Task ID"]
     table = []
     for index, task in enumerate(task_list):
@@ -422,8 +422,8 @@ def task_table(task_list: List[Task]) -> Tuple[List[str], List[List]]:
 
 
 def worker_pool_table(
-    client: PlatformClient, worker_pool_summaries: List[WorkerPoolSummary]
-) -> Tuple[List[str], List[List]]:
+    client: PlatformClient, worker_pool_summaries: list[WorkerPoolSummary]
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Worker Pool Name",
@@ -448,8 +448,8 @@ def worker_pool_table(
 
 
 def compute_requirement_template_table(
-    crt_summaries: List[ComputeRequirementTemplateSummary],
-) -> Tuple[List[str], List[List]]:
+    crt_summaries: list[ComputeRequirementTemplateSummary],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Name",
@@ -486,8 +486,8 @@ def compute_requirement_template_table(
 
 
 def compute_source_template_table(
-    cst_summaries: List[ComputeSourceTemplateSummary],
-) -> Tuple[List[str], List[List]]:
+    cst_summaries: list[ComputeSourceTemplateSummary],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Name",
@@ -522,8 +522,8 @@ def compute_source_template_table(
 
 
 def keyring_table(
-    keyring_summaries: List[KeyringSummary],
-) -> Tuple[List[str], List[List]]:
+    keyring_summaries: list[KeyringSummary],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Name",
@@ -544,8 +544,8 @@ def keyring_table(
 
 
 def image_family_table(
-    image_family_summaries: List[MachineImageFamilySummary],
-) -> Tuple[List[str], List[str]]:
+    image_family_summaries: list[MachineImageFamilySummary],
+) -> tuple[list[str], list[str]]:
     headers = [
         "#",
         "Name",
@@ -570,8 +570,8 @@ def image_family_table(
 
 
 def object_path_table(
-    object_paths: List[ObjectPath],
-) -> Tuple[List[str], List[str]]:
+    object_paths: list[ObjectPath],
+) -> tuple[list[str], list[str]]:
     headers = ["#", "Name"]
     table = []
     for index, object_path in enumerate(object_paths):
@@ -580,8 +580,8 @@ def object_path_table(
 
 
 def instances_table(
-    instances: List[Instance],
-) -> Tuple[List[str], List[str]]:
+    instances: list[Instance],
+) -> tuple[list[str], list[str]]:
     headers = [
         "#",
         "Provider",
@@ -614,8 +614,8 @@ def instances_table(
 
 
 def nodes_table(
-    nodes: List[Node],
-) -> Tuple[List[str], List[str]]:
+    nodes: list[Node],
+) -> tuple[list[str], list[str]]:
     headers = [
         "#",
         "Worker Pool Name",
@@ -652,8 +652,8 @@ def nodes_table(
 
 
 def workers_table(
-    workers: List[Worker],
-) -> Tuple[List[str], List[str]]:
+    workers: list[Worker],
+) -> tuple[list[str], list[str]]:
     headers = [
         "#",
         "Worker Pool Name",
@@ -682,8 +682,8 @@ def workers_table(
 
 
 def allowances_table(
-    allowances: List[Allowance],
-) -> Tuple[List[str], List[str]]:
+    allowances: list[Allowance],
+) -> tuple[list[str], list[str]]:
     headers = [
         "#",
         "Type",
@@ -716,8 +716,8 @@ def allowances_table(
 
 
 def attribute_definitions_table(
-    attribute_definitions: List[Dict],
-) -> Tuple[List[str], List[str]]:
+    attribute_definitions: list[dict],
+) -> tuple[list[str], list[str]]:
     headers = [
         "#",
         "Name",
@@ -740,8 +740,8 @@ def attribute_definitions_table(
 
 
 def aws_availability_zone_table(
-    aws_azs: List[AWSAvailabilityZone],
-) -> Tuple[List[str], List[str]]:
+    aws_azs: list[AWSAvailabilityZone],
+) -> tuple[list[str], list[str]]:
     headers = [
         "#",
         "Availability Zone",
@@ -762,8 +762,8 @@ def aws_availability_zone_table(
 
 
 def namespaces_table(
-    ns_policies: List[Namespace],
-) -> Tuple[List[str], List[List]]:
+    ns_policies: list[Namespace],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Namespace Name",
@@ -784,8 +784,8 @@ def namespaces_table(
 
 
 def namespace_policies_table(
-    ns_policies: List[NamespacePolicy],
-) -> Tuple[List[str], List[List]]:
+    ns_policies: list[NamespacePolicy],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Namespace",
@@ -804,8 +804,8 @@ def namespace_policies_table(
 
 
 def users_table(
-    users: List[User],
-) -> Tuple[List[str], List[List]]:
+    users: list[User],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Name",
@@ -842,8 +842,8 @@ def users_table(
 
 
 def applications_table(
-    applications: List[Application],
-) -> Tuple[List[str], List[List]]:
+    applications: list[Application],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Name",
@@ -864,8 +864,8 @@ def applications_table(
 
 
 def groups_table(
-    groups: List[Group],
-) -> Tuple[List[str], List[List]]:
+    groups: list[Group],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Name",
@@ -890,8 +890,8 @@ def groups_table(
 
 
 def roles_table(
-    roles: List[Role],
-) -> Tuple[List[str], List[List]]:
+    roles: list[Role],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Name",
@@ -913,8 +913,8 @@ def roles_table(
 
 
 def permissions_table(
-    permissions: List[PermissionDetail],
-) -> Tuple[List[str], List[List]]:
+    permissions: list[PermissionDetail],
+) -> tuple[list[str], list[list]]:
     headers = [
         "#",
         "Name",
@@ -939,8 +939,8 @@ def permissions_table(
 
 def print_numbered_object_list(
     client: PlatformClient,
-    objects: List[Union[Item, str, Dict]],
-    object_type_name: Optional[str] = None,
+    objects: list[Item | str | dict],
+    object_type_name: str | None = None,
     override_quiet: bool = False,
     showing_all: bool = False,
 ) -> None:
@@ -1031,7 +1031,7 @@ def print_numbered_object_list(
     print(flush=True)
 
 
-def print_numbered_strings(objects: List[str], override_quiet: bool = False):
+def print_numbered_strings(objects: list[str], override_quiet: bool = False):
     """
     Print a simple list of strings with numbering.
     """
@@ -1046,9 +1046,7 @@ def print_numbered_strings(objects: List[str], override_quiet: bool = False):
     print(flush=True)
 
 
-def sorted_objects(
-    objects: List[Union[Item, str]], reverse: bool = False
-) -> List[Item]:
+def sorted_objects(objects: list[Item | str], reverse: bool = False) -> list[Item]:
     """
     Sort objects by their 'name' property, or 'namespace' in the case of
     Namespace Storage Configurations, or 'instanceType' in the case of
@@ -1141,7 +1139,7 @@ def print_yd_object(
     initial_indent: int = 0,
     drop_first_line: bool = False,
     with_final_comma: bool = False,
-    add_fields: Optional[Dict] = None,
+    add_fields: dict | None = None,
 ):
     """
     Print a YellowDog object as a JSON data structure,
@@ -1198,7 +1196,7 @@ def print_yd_object(
 
 
 def print_yd_object_list(
-    objects: List[Tuple[Any, Optional[Dict]]],
+    objects: list[tuple[Any, dict | None]],
 ):
     """
     Print a JSON list of objects.
@@ -1248,7 +1246,7 @@ class WorkRequirementSnapshot:
     """
 
     def __init__(self):
-        self.wr_data: Dict = {}
+        self.wr_data: dict = {}
 
     def set_work_requirement(self, wr: WorkRequirement):
         """
@@ -1257,7 +1255,7 @@ class WorkRequirementSnapshot:
         """
         self.wr_data = Json.dump(wr)  # Dictionary holding the complete WR
 
-    def add_tasks(self, task_group_name: str, tasks: List[Task]):
+    def add_tasks(self, task_group_name: str, tasks: list[Task]):
         """
         Add the list of Tasks to a named Task Group within the
         Work Requirement. Cumulative.
@@ -1286,7 +1284,7 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
         return
 
     report: BestComputeSourceReport = result.report
-    sources: List[BestComputeSourceReportSource] = report.sources
+    sources: list[BestComputeSourceReportSource] = report.sources
     source_table = [
         [
             "#",
@@ -1473,8 +1471,8 @@ STATUS_COUNTS_COMPUTE_REQ = [
 
 
 def status_counts_msg(
-    status_counts: List[StatusCount],
-    counts_data: Dict,
+    status_counts: list[StatusCount],
+    counts_data: dict,
     empty_msg_if_zero_total: bool = False,
 ) -> str:
     """
@@ -1508,7 +1506,7 @@ def print_event(event: str, id_type: YDIDType):
     if not event.startswith(data_prefix):
         return
 
-    event_data: Dict = json_loads(event.replace(data_prefix, ""))
+    event_data: dict = json_loads(event.replace(data_prefix, ""))
 
     if ARGS_PARSER.raw_events:
         print_json(event_data)
@@ -1604,7 +1602,7 @@ def print_to_file(json_string: str, output_file: str, with_final_comma: bool = F
     FIRST_OUTPUT_TO_FILE = False
 
 
-def _truncate_text(description: Union[str, None]):
+def _truncate_text(description: str | None):
     """
     Truncate a description to fit within MAX_TABLE_DESCRIPTION.
     """

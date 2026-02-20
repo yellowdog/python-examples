@@ -8,7 +8,6 @@ from ast import literal_eval
 from collections import OrderedDict
 from json import load as json_load
 from os.path import relpath
-from typing import Dict, List, Optional, Tuple
 
 from tomli import load as toml_load
 
@@ -63,7 +62,7 @@ class CSVTaskData:
         return self
 
     @property
-    def var_names(self) -> List[str]:
+    def var_names(self) -> list[str]:
         """
         Return the list of headings (variable names)
         """
@@ -98,13 +97,13 @@ class CSVDataCache:
     Caches CSV data to prevent multiple loads of the same CSV file
     """
 
-    def __init__(self, max_entries: Optional[int] = None):
+    def __init__(self, max_entries: int | None = None):
         """
         'max_entries' limits the size of the cache.
         - Use default 'None' for unlimited caching
         - Set to zero to disable caching
         """
-        self._max_entries: Optional[int] = max_entries
+        self._max_entries: int | None = max_entries
         self._csv_task_data_objects: OrderedDict[str, CSVTaskData] = OrderedDict()
 
     def get_csv_task_data(self, csv_filename: str) -> CSVTaskData:
@@ -129,22 +128,22 @@ CSV_DATA_CACHE = CSVDataCache(max_entries=2)
 
 
 def load_json_file_with_csv_task_expansion(
-    json_file: str, csv_files: List[str], files_directory: str = ""
-) -> Dict:
+    json_file: str, csv_files: list[str], files_directory: str = ""
+) -> dict:
     """
     Load a JSON file, expanding its Task lists using data from CSV
     files. Return the expanded and variables-processed Work Requirement data.
     """
 
-    with open(resolve_filename(files_directory, json_file), "r") as f:
+    with open(resolve_filename(files_directory, json_file)) as f:
         wr_data = json_load(f)
 
     return perform_csv_task_expansion(wr_data, csv_files, files_directory)
 
 
 def load_jsonnet_file_with_csv_task_expansion(
-    jsonnet_file: str, csv_files: List[str], files_directory: str = ""
-) -> Dict:
+    jsonnet_file: str, csv_files: list[str], files_directory: str = ""
+) -> dict:
     """
     Load a Jsonnet file, expanding its Task lists using data from CSV
     files. Return the expanded and variables-processed Work Requirement data.
@@ -157,8 +156,8 @@ def load_jsonnet_file_with_csv_task_expansion(
 
 
 def load_toml_file_with_csv_task_expansion(
-    toml_file: str, csv_files: List[str], files_directory: str = ""
-) -> Dict:
+    toml_file: str, csv_files: list[str], files_directory: str = ""
+) -> dict:
     """
     Load a TOML file Work Requirement, expanding its Task lists using data
     from CSV files. Return the expanded and variables-processed Work Requirement
@@ -172,8 +171,8 @@ def load_toml_file_with_csv_task_expansion(
 
 
 def perform_csv_task_expansion(
-    wr_data: Dict, csv_files: List[str], files_directory: str = ""
-) -> Dict:
+    wr_data: dict, csv_files: list[str], files_directory: str = ""
+) -> dict:
     """
     Expand a Work Requirement using CSV data.
     """
@@ -236,8 +235,8 @@ def perform_csv_task_expansion(
 
 
 def csv_variables_substitution(
-    task_prototype: Dict, csv_var_names: List, task_data: List
-) -> Dict:
+    task_prototype: dict, csv_var_names: list, task_data: list
+) -> dict:
     """
     Helper function to substitute using CSV data only. Leave all other
     substitutions unchanged.
@@ -289,8 +288,8 @@ USED_FILE_INDEXES = []
 
 
 def get_csv_file_index(
-    csv_filename: str, task_groups: List[Dict]
-) -> Tuple[str, Optional[int]]:
+    csv_filename: str, task_groups: list[dict]
+) -> tuple[str, int | None]:
     """
     Check if the CSV filename ends in an integer index (':<integer>'),
     or in a Task Group name (':<task_group_name>').
@@ -333,7 +332,7 @@ def get_csv_file_index(
     return csv_filename, None
 
 
-def substitions_present(var_names: List[str], task_prototype: str) -> bool:
+def substitions_present(var_names: list[str], task_prototype: str) -> bool:
     """
     Check if there are any CSV substitutions present in the Task prototype.
     """
@@ -363,7 +362,7 @@ def substitions_present(var_names: List[str], task_prototype: str) -> bool:
 
 def csv_expand_toml_tasks(
     config_wr: ConfigWorkRequirement, csv_file: str, files_directory=""
-) -> Dict:
+) -> dict:
     """
     When there's a CSV file specified, but no JSON file, create the expanded
     list of Tasks using the CSV data.

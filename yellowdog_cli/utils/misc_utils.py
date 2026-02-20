@@ -7,7 +7,6 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from os.path import join, normpath, relpath
-from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 from dotenv import dotenv_values, find_dotenv, load_dotenv
@@ -25,7 +24,7 @@ from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
 UTCNOW = datetime.now(timezone.utc)
 
 
-def unpack_namespace_in_prefix(namespace: str, prefix: str) -> Tuple[str, str]:
+def unpack_namespace_in_prefix(namespace: str, prefix: str) -> tuple[str, str]:
     """
     Allow the prefix to include the namespace, which can override the supplied
     namespace. Return the unpacked (namespace, prefix) tuple.
@@ -67,12 +66,12 @@ def link_entity(base_url: str, entity: object) -> str:
     entity_type = type(entity)
     return link(
         base_url,
-        "#/%s/%s" % ((entities.get(entity_type)), entity.id),
+        f"#/{(entities.get(entity_type))}/{entity.id}",
         camel_case_split(entity_type.__name__).upper(),
     )
 
 
-def link(base_url: str, url_suffix: str = "", text: Optional[str] = None) -> str:
+def link(base_url: str, url_suffix: str = "", text: str | None = None) -> str:
     url_parts = urlparse(base_url)
     base_url = url_parts.scheme + "://" + url_parts.netloc
     url = base_url + "/" + url_suffix
@@ -81,7 +80,7 @@ def link(base_url: str, url_suffix: str = "", text: Optional[str] = None) -> str
     if text == url:
         return url
     else:
-        return "%s (%s)" % (text, url)
+        return f"{text} ({url})"
 
 
 def camel_case_split(value: str) -> str:
@@ -118,7 +117,7 @@ def get_delimited_string_boundaries(
     input_string: str,
     opening_delimiter: str,
     closing_delimiter: str,
-) -> List[Substring]:
+) -> list[Substring]:
     """
     Given an input string and a pair of opening and closing delimiter strings,
     find the list of start and end indices for the top-level strings enclosed
@@ -145,7 +144,7 @@ def get_delimited_string_boundaries(
 
     slate = 0
     start = None
-    substrings: List[Substring] = []
+    substrings: list[Substring] = []
 
     for boundary in sorted(openings + closings):
         slate += boundary[1]
@@ -167,7 +166,7 @@ def get_delimited_string_boundaries(
 
 def split_delimited_string(
     s: str, opening_delimiter: str, closing_delimiter: str
-) -> List[str]:
+) -> list[str]:
     """
     This function takes a string containing delimited sections and breaks it
     into a list of strings, including the non-delimited sections.
@@ -179,7 +178,7 @@ def split_delimited_string(
     """
 
     # Get delimited boundaries
-    delimited_boundaries: List[Substring] = get_delimited_string_boundaries(
+    delimited_boundaries: list[Substring] = get_delimited_string_boundaries(
         s, opening_delimiter, closing_delimiter
     )
 
@@ -187,7 +186,7 @@ def split_delimited_string(
         return [s]
 
     # Get non-delimited boundaries (i.e., the gaps)
-    non_delimited_boundaries: List[Substring] = []
+    non_delimited_boundaries: list[Substring] = []
     if delimited_boundaries[0].start > 0:  # Non-variable text at start?
         non_delimited_boundaries.insert(
             0, Substring(start=0, end=delimited_boundaries[0].start)

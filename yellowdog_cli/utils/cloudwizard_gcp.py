@@ -2,8 +2,6 @@
 Configuration and utilities related to GCP account setup.
 """
 
-from typing import Dict, List
-
 from google.cloud import compute_v1, storage
 from google.oauth2 import service_account
 from google.oauth2.service_account import Credentials
@@ -46,8 +44,8 @@ class GCPConfig(CommonCloudConfig):
         except FileNotFoundError:
             raise Exception(f"GCP credentials file '{service_account_file}' not found")
 
-        self._regions_with_default_subnets: List[str] = []
-        self._selected_regions: List[str] = []
+        self._regions_with_default_subnets: list[str] = []
+        self._selected_regions: list[str] = []
         self._instance_type = (
             YD_DEFAULT_INSTANCE_TYPE if instance_type is None else instance_type
         )
@@ -199,7 +197,7 @@ class GCPConfig(CommonCloudConfig):
 
     def _generate_gcp_compute_source_template(
         self, region: str, name: str, spot: bool
-    ) -> Dict:
+    ) -> dict:
         """
         Generate a GCP Compute Source Template resource definition.
         """
@@ -229,11 +227,11 @@ class GCPConfig(CommonCloudConfig):
         self,
         keyring_name: str,
         credential_name: str,
-    ) -> Dict:
+    ) -> dict:
         """
         Generate an AWS Credential resource definition.
         """
-        with open(self._service_account_file, "r") as f:
+        with open(self._service_account_file) as f:
             service_account_file_contents = f.read()
         return {
             "resource": "Credential",
@@ -321,7 +319,7 @@ class GCPConfig(CommonCloudConfig):
 
     def _generate_namespace_configuration(
         self, namespace: str, gcp_bucket_name: str, credential_name: str
-    ) -> Dict:
+    ) -> dict:
         """
         Generate a Namespace configuration using an S3 bucket.
         """

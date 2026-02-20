@@ -3,7 +3,6 @@ Utility functions for provisioning and instantiating.
 """
 
 from os import chdir
-from typing import Optional
 
 from yellowdog_client import PlatformClient
 
@@ -24,7 +23,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 def get_user_data_property(
     config: ConfigWorkerPool, content_path: str = None
-) -> Optional[str]:
+) -> str | None:
     """
     Get the 'userData' property, either using the string specified in
     'userData', the file specified in 'userDataFile', or a concatenation
@@ -57,13 +56,13 @@ def get_user_data_property(
         user_data = config.user_data
 
     elif config.user_data_file:
-        with open(config.user_data_file, "r") as f:
+        with open(config.user_data_file) as f:
             user_data = f.read()
 
     elif config.user_data_files:
         user_data = ""
         for user_data_file in config.user_data_files:
-            with open(user_data_file, "r") as f:
+            with open(user_data_file) as f:
                 user_data += f.read()
                 user_data += "\n"
 

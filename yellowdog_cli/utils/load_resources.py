@@ -3,7 +3,6 @@ Load data for resource creation/update/removal requests.
 """
 
 from sys import exit
-from typing import Dict, List
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.printing import print_info, print_warning
@@ -34,7 +33,7 @@ from yellowdog_cli.utils.variables import (
 from yellowdog_cli.utils.ydid_utils import get_ydid_type
 
 
-def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
+def load_resource_specifications(creation_or_update: bool = True) -> list[dict]:
     """
     Load and return a list of resource specifications assembled from the
     resources described in a set of resource description files.
@@ -87,8 +86,8 @@ def load_resource_specifications(creation_or_update: bool = True) -> List[Dict]:
 
 
 def _resequence_resources(
-    resources: List[Dict], creation_or_update: bool = True
-) -> List[Dict]:
+    resources: list[dict], creation_or_update: bool = True
+) -> list[dict]:
     """
     Re-sequence resources so that possible dependencies are evaluated in the
     correct order. If 'creation_or_update' is True this is a creation/update
