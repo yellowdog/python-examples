@@ -75,7 +75,8 @@ class RcloneUploadedFiles:
         if rclone_uploaded_file in self._rcloned_files:
             if rclone_uploaded_file not in self._reported_duplicates:
                 print_info(
-                    f"Ignoring duplicate file upload '{local_file}' -> '{rclone_source}'"
+                    f"Ignoring duplicate file upload '{local_file}' -> "
+                    f"'{self._bucket_and_prefix(rclone_uploaded_file)}'"
                 )
                 self._reported_duplicates.append(rclone_uploaded_file)
             return
@@ -89,7 +90,10 @@ class RcloneUploadedFiles:
                 )
                 return
         else:
-            print_info(f"Dry-run: Would upload '{local_file}' -> '{rclone_source}'")
+            print_info(
+                f"Dry-run: Would upload '{local_file}' -> "
+                f"'{self._bucket_and_prefix(rclone_uploaded_file)}'"
+            )
 
         self._rcloned_files.append(rclone_uploaded_file)
 
@@ -110,7 +114,8 @@ class RcloneUploadedFiles:
 
         local_file = Path(rclone_upload_file.local_file_path).resolve()
         print_info(
-            f"Uploading '{rclone_upload_file.local_file_path}' → '{remote_name}:{remote_path}'"
+            f"Uploading '{rclone_upload_file.local_file_path}' → "
+            f"'{self._bucket_and_prefix(rclone_upload_file)}'"
         )
 
         result = rclone.copy_to(
@@ -148,6 +153,7 @@ class RcloneUploadedFiles:
             conn_str
         )
 
+        # Auto-downloads rclone binary if missing (~20-40 MB, only once)
         rclone = Rclone(Config(config_section))
 
         rcloned_file = f"{remote_name}:{remote_path}"
@@ -224,10 +230,23 @@ class RcloneUploadedFiles:
 
         return remote_name, config_section
 
+    @staticmethod
+    def _bucket_and_prefix(rclone_uploaded_file: RcloneUploadedFile):
+        """
+        Remove everything except the service, bucket name and object name.
+        """
+        try:
+            service, rclone_details, bucket_name_and_object = (
+                rclone_uploaded_file.rclone_source.split(":")
+            )
+            return bucket_name_and_object
+        except:
+            return rclone_uploaded_file.rclone_source
+
 
 def upgrade_rclone():
     """
     Upgrade the rclone binary.
     """
-    print_info("Downloading or upgrading the rclone binary")
+    print_info("Downloading / upgrading the rclone binary")
     Rclone.upgrade_rclone()
