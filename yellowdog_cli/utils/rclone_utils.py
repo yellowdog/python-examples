@@ -165,7 +165,9 @@ class RcloneUploadedFiles:
         result = rclone.delete_files([rcloned_file])
 
         if result.returncode != 0:
-            print_error(f"Failed to delete rcloned file '{remote_path}: {e}'")
+            print_error(
+                f"Failed to delete rcloned file '{remote_path}' ({result.stderr})"
+            )
 
     def _parse_rclone_connection_string(
         self, connection_str: str
