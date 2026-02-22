@@ -1163,6 +1163,11 @@ def submit_batch_of_tasks_to_task_group(
             return len(tasks_list)
 
         except Exception as e:
+            if "InvalidRequestException" in str(e):
+                # Permanent failure; don't retry
+                last_exception = e
+                break
+
             if "Task names must be unique within task group" in str(e):
                 # Interpret this as success ... it implies that a previous
                 # errored (500?) submission of this batch must have succeeded
