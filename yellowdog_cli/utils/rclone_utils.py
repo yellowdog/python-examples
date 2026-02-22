@@ -85,10 +85,9 @@ class RcloneUploadedFiles:
             try:
                 self._upload_rclone_file_core(rclone_uploaded_file)
             except Exception as e:
-                print_error(
+                raise Exception(
                     f"Unable to upload '{local_file}' -> '{rclone_source}': {e}"
                 )
-                return
         else:
             print_info(
                 f"Dry-run: Would upload '{local_file}' -> "
@@ -125,7 +124,7 @@ class RcloneUploadedFiles:
         )
 
         if result.returncode != 0:
-            print_error(f"Upload failed: {result.stderr}")
+            raise Exception(f"Upload failed: {result.stderr}")
 
     def delete(self):
         """
