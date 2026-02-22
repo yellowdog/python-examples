@@ -68,8 +68,9 @@ class RcloneUploadedFiles:
             chdir(self._files_directory)
 
         if not exists(local_file):
-            print_error(f"File '{local_file}' does not exist and cannot be uploaded")
-            return
+            raise Exception(
+                f"File '{local_file}' does not exist and cannot be uploaded"
+            )
 
         rclone_uploaded_file = RcloneUploadedFile(local_file, rclone_source)
         if rclone_uploaded_file in self._rcloned_files:
