@@ -177,11 +177,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
         elif ydid_type == YDIDType.TASK:
             print_info(f"Showing details of Task ID '{ydid}'")
-            try:
-                print_yd_object(CLIENT.work_client.get_task_by_id(ydid))
-            except Exception as e:
-                if "404" in str(e):
-                    print_error(f"Task ID '{ydid}' not found")
+            print_yd_object(CLIENT.work_client.get_task_by_id(ydid))
 
         elif ydid_type == YDIDType.IMAGE_FAMILY:
             print_info(f"Showing details of Image Family ID '{ydid}'")
@@ -276,9 +272,13 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
         else:
             print_error(f"Unknown (or unsupported) YellowDog ID type for '{ydid}'")
+            return
 
     except Exception as e:
-        print_error(f"Unable to show details for '{ydid}': {e}")
+        if "404" in str(e):
+            print_error(f"{ydid_type.value} ID '{ydid}' not found")
+        else:
+            print_error(f"Unable to show details for '{ydid}': {e}")
 
 
 def _report_variables(variable_names: list[str]):
