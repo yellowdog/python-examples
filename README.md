@@ -1279,7 +1279,7 @@ JSON:
 ],
 ```
 
-The specified local file will be uploaded to the rclone target specified by the `source` property. The local file can be specified using an absolute or relative pathname; the base directory can be optionally adjusted using the `--content-path <directory>` option supplied to `yd-submit`.
+The specified local file will be uploaded to the rclone target specified by the `source` property. The local file can be specified using an absolute or relative pathname, and the base files directory can be adjusted using the `--content-path <directory>`/`-F` option supplied to `yd-submit`.
 
 If `yd-submit` fails for any reason, the uploaded objects will be deleted automatically.
 
