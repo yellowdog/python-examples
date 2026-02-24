@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from functools import cache
 from os import chdir, getcwd
-from os.path import exists
+from os.path import abspath, exists
 from pathlib import Path
 
 from rclone_api import Config, Rclone
@@ -38,10 +38,10 @@ class RcloneUploadedFiles:
 
     def __init__(
         self,
-        files_directory: str = "",
+        files_directory: str = ".",
     ):
         self._rcloned_files: list[RcloneUploadedFile] = []
-        self._files_directory = files_directory
+        self._files_directory = abspath(files_directory)
         self._working_directory = getcwd()
         self._reported_duplicates: list[RcloneUploadedFile] = []
 
@@ -64,12 +64,12 @@ class RcloneUploadedFiles:
         Rclone a DataClient inputs file if it hasn't already been uploaded to
         the same location.
         """
-        if self._files_directory != "":
-            chdir(self._files_directory)
+        chdir(self._files_directory)
 
         if not exists(local_file):
             raise Exception(
-                f"File '{local_file}' does not exist and cannot be uploaded"
+                f"File '{Path(self._files_directory)/local_file}' does not exist "
+                "and cannot be uploaded"
             )
 
         rclone_uploaded_file = RcloneUploadedFile(local_file, rclone_source)
@@ -97,8 +97,7 @@ class RcloneUploadedFiles:
 
         self._rcloned_files.append(rclone_uploaded_file)
 
-        if self._files_directory != "":
-            chdir(self._working_directory)
+        chdir(self._working_directory)
 
     def _upload_rclone_file_core(self, rclone_upload_file: RcloneUploadedFile):
         """
