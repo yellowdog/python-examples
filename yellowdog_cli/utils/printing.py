@@ -85,7 +85,9 @@ from yellowdog_cli.utils.settings import (
     PROP_DELETABLE,
     PROP_ID,
     PROP_INSTANCE_PRICING,
+    PROP_PROVIDER,
     PROP_REMAINING_HOURS,
+    PROP_SOURCE,
     PROP_SUPPORTING_RESOURCE_CREATED,
     PROP_TRAITS,
     WARNING_STYLE,
@@ -1185,6 +1187,12 @@ def print_yd_object(
 
     if ARGS_PARSER.strip_ids:
         object_data = remove_unused_props(object_data)
+        # Remove the 'provider' property from CST/source data only
+        # 'object_data' is always a dict in practice
+        try:
+            object_data.get(PROP_SOURCE).pop(PROP_PROVIDER)
+        except (AttributeError, KeyError):
+            pass
 
     if add_fields is not None:
         # Requires a copy of the 'object' datatype to be made,
