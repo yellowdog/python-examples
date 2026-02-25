@@ -243,9 +243,7 @@ def find_compute_source_template_id_by_name(
     """
     template_id = _find_id_by_name(name, client, get_compute_source_templates)
     if template_id is not None:
-        print_info(
-            f"Replaced Compute Source Template name '{name}' with ID {template_id}"
-        )
+        print_info(f"Compute Source Template name '{name}' -> ID {template_id}")
     return template_id
 
 
@@ -420,7 +418,7 @@ def find_image_name_or_id(
         """
         if report_substitutions and return_val != original_image_name_or_id:
             msg = f"{return_val}" if is_ydid else f"'{return_val}'"
-            print_info(f"Replaced Images ID '{original_image_name_or_id}' with {msg}")
+            print_info(f"Images ID '{original_image_name_or_id}' -> {msg}")
         return return_val
 
     split_name = image_name_or_id.split("/")
