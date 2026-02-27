@@ -852,12 +852,15 @@ class CLIParser:
 
         if "terminate" in sys.argv[0]:
             parser.add_argument(
-                "compute_reqs",
+                "compute_reqs_instances_or_nodes",
                 nargs="*",
                 default="",
-                metavar="<compute-requirement-name-or-ID>",
+                metavar="<name-or-ID>",
                 type=str,
-                help="the name(s) or YellowDog ID(s) of the compute requirement(s)",
+                help=(
+                    "the name(s) or YellowDog ID(s) of the compute requirement(s), "
+                    "ID(s) of nodes, or instances in 'cr_id.instance_id' format"
+                ),
             )
             parser.add_argument(
                 "--follow",
@@ -1557,8 +1560,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def compute_requirement_names(self) -> str | None:
-        return self.args.compute_reqs
+    def compute_requirements_instances_or_nodes(self) -> str | None:
+        return self.args.compute_reqs_instances_or_nodes
 
     @property
     @allow_missing_attribute
@@ -1885,7 +1888,7 @@ def lookup_module_description(module_name: str) -> str | None:
     elif "shutdown" in module_name:
         suffix = "shutting down Worker Pools and Nodes"
     elif "terminate" in module_name:
-        suffix = "terminating Compute Requirements"
+        suffix = "terminating Compute Requirements, Instances or Nodes"
     elif "list" in module_name:
         suffix = "listing all kinds of YellowDog items"
     elif "instantiate" in module_name:

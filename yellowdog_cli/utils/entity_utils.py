@@ -27,6 +27,9 @@ from yellowdog_client.model import (
     GroupSearch,
     GroupSummary,
     ImageAccess,
+    Instance,
+    InstanceId,
+    InstanceSearch,
     InternalUser,
     MachineImageFamily,
     MachineImageFamilySearch,
@@ -1116,3 +1119,27 @@ def clear_image_caches():
     find_image_name_or_id.cache_clear()
     get_image_family_summaries.cache_clear()
     get_image_family_groups.cache_clear()
+
+
+@lru_cache
+def get_instance_id_by_id(
+    client: PlatformClient, cr_id: str, instance_id: str
+) -> Instance | None:
+    """
+    Given a compute requirement ID and an instance ID string,
+    find the Instance ID object.
+    """
+    for instance in _get_instances(client, cr_id):
+        if instance.id.instanceId == instance_id:
+            return instance
+
+    return None
+
+
+@lru_cache
+def _get_instances(client: PlatformClient, cr_id: str) -> list[Instance]:
+    """
+    Get and cache all the instances in a compute requirement.
+    """
+    instance_search = InstanceSearch(computeRequirementId=cr_id)
+    return client.compute_client.get_instances(instance_search).list_all()
