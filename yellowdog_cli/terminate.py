@@ -97,19 +97,43 @@ def terminate_by_name_or_id(names_or_ids: list[str]):
     """
     compute_requirement_ids: list[str] = []
     node_or_instance_cr_ids: list[str] = []
-    for name_or_id in names_or_ids:
+
+    for name_or_id in set(names_or_ids):  # Remove duplicates
+
         # Is this a cr_id.instance_id specification?
         if len(cr_id_instance_id := name_or_id.split(".")) == 2:
             if (
                 cr_id := _terminate_instance(cr_id_instance_id[0], cr_id_instance_id[1])
             ) is not None:
                 node_or_instance_cr_ids.append(cr_id)
+
+        # Compute requirement ID?
         elif (ydid_type := get_ydid_type(name_or_id)) == YDIDType.COMPUTE_REQUIREMENT:
+            try:
+                compute_requirement = (
+                    CLIENT.compute_client.get_compute_requirement_by_id(name_or_id)
+                )
+            except Exception as e:
+                if "404" in str(e):
+                    print_error(f"Cannot find Compute Requirement ID {name_or_id}")
+                else:
+                    print_error(f"Cannot find Compute Requirement ID {name_or_id}: {e}")
+                continue
+            if compute_requirement.status not in VALID_TERMINATION_STATUSES:
+                print_error(
+                    f"Compute Requirement status {compute_requirement.status} "
+                    "is not a valid state for termination"
+                )
+                continue
             compute_requirement_ids.append(name_or_id)
+
+        # Node ID?
         elif ydid_type == YDIDType.NODE:
             if (cr_id := _terminate_node_instance_by_id(name_or_id)) is not None:
                 node_or_instance_cr_ids.append(cr_id)
-        else:  # Let's see if it's a compute requirement name
+
+        # Compute requirement name?
+        else:
             compute_requirement_id = get_compute_requirement_id_by_name(
                 CLIENT, name_or_id, VALID_TERMINATION_STATUSES, CONFIG_COMMON.namespace
             )
@@ -122,9 +146,11 @@ def terminate_by_name_or_id(names_or_ids: list[str]):
                 print_info(f"Found Compute Requirement ID: {compute_requirement_id}")
                 compute_requirement_ids.append(compute_requirement_id)
 
+    # Handle termination of accumulated compute requirement IDs
     if len(compute_requirement_ids) > 0:
         if not confirmed(
             f"Terminate {len(compute_requirement_ids)} Compute Requirement(s)?"
+            f": ({', '.join(compute_requirement_ids)})"
         ):
             return
         for compute_requirement_id in compute_requirement_ids:
@@ -136,6 +162,7 @@ def terminate_by_name_or_id(names_or_ids: list[str]):
             except Exception as e:
                 print_error(f"Failed to terminate '{compute_requirement_id}': ({e})")
 
+    # Follow all the CR IDs from CR terminations and node, instance terminations
     if ARGS_PARSER.follow:
         follow_ids(compute_requirement_ids + node_or_instance_cr_ids)
 
