@@ -111,7 +111,7 @@ def terminate_by_name_or_id(names_or_ids: list[str]):
                 node_or_instance_cr_ids.append(cr_id)
         else:  # Let's see if it's a compute requirement name
             compute_requirement_id = get_compute_requirement_id_by_name(
-                CLIENT, name_or_id, VALID_TERMINATION_STATUSES
+                CLIENT, name_or_id, VALID_TERMINATION_STATUSES, CONFIG_COMMON.namespace
             )
             if compute_requirement_id is None:
                 print_warning(

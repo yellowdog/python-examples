@@ -155,13 +155,14 @@ def get_compute_requirement_id_by_name(
     client: PlatformClient,
     compute_requirement_name: str,
     statuses: list[ComputeRequirementStatus],
+    namespace: str,
 ) -> str | None:
     """
-    Find a Compute Requirement ID by its name.
+    Find a Compute Requirement ID by its name and namespace.
     Restrict search by status.
     """
     crs_search = ComputeRequirementSummarySearch(
-        name=compute_requirement_name, statuses=statuses
+        name=compute_requirement_name, statuses=statuses, namespaces=[namespace]
     )
     search_client: SearchClient = (
         client.compute_client.get_compute_requirement_summaries(crs_search)
