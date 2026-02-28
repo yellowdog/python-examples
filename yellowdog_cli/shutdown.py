@@ -92,7 +92,8 @@ def shutdown_by_names_or_ids(names_or_ids: list[str]):
     """
     worker_pool_ids: list[str] = []
     node_ids: list[str] = []
-    for name_or_id in names_or_ids:
+
+    for name_or_id in set(names_or_ids):  # Remove duplicates
         if get_ydid_type(name_or_id) == YDIDType.NODE:
             node_ids.append(name_or_id)
             continue
@@ -111,6 +112,7 @@ def shutdown_by_names_or_ids(names_or_ids: list[str]):
 
     if not confirmed(
         f"Shut down {len(worker_pool_ids) + len(node_ids)} Worker Pool(s) and/or Node(s)?"
+        f": ({', '.join(worker_pool_ids + node_ids)})"
     ):
         return
 
