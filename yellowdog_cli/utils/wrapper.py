@@ -83,14 +83,15 @@ def main_wrapper(func):
                 exit_code = 1
             finally:
                 CLIENT.close()
-                if exit_code == 0:
+                if exit_code == 0 and not ARGS_PARSER.print_pid:
                     print_info("Done")
                 exit(exit_code)
         else:
             try:
                 set_proxy()
                 func()
-                print_info("Done")
+                if not ARGS_PARSER.print_pid:
+                    print_info("Done")
                 exit(0)
             finally:
                 CLIENT.close()

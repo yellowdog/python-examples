@@ -7,6 +7,7 @@ from time import sleep
 
 import requests
 
+from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.entity_utils import (
     get_compute_requirement_id_by_worker_pool_id,
 )
@@ -75,7 +76,7 @@ def follow_ids(ydids: list[str], auto_cr: bool = False):
     for thread in threads:
         thread.join()
 
-    if len(threads) > 1:
+    if len(threads) > 1 and not ARGS_PARSER.print_pid:
         print_info("All event streams have concluded")
 
 
