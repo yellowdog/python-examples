@@ -164,7 +164,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
     # Optionally add the PID to the prefix to disambiguate interleaved
     # log messages
     if ARGS_PARSER.print_pid:
-        prefix += f" ({getpid()}) : "
+        prefix += f" ({getpid():06d}) : "
     else:
         prefix += " : "
 
