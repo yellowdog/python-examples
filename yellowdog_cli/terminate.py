@@ -9,7 +9,9 @@ from yellowdog_client.model import (
     ComputeRequirementStatus,
     ComputeRequirementSummary,
     Instance,
+    InstanceStatus,
     Node,
+    NodeStatus,
 )
 
 from yellowdog_cli.utils.entity_utils import (
@@ -182,6 +184,10 @@ def _terminate_node_instance_by_id(node_id: str) -> str | None:
             print_error(f"Error for Node ID {node_id}: {e}")
             return None
 
+    if node.status == NodeStatus.TERMINATED:
+        print_info(f"Node {node_id} is already {node.status}")
+        return None
+
     cr_id: str = get_compute_requirement_id_by_worker_pool_id(CLIENT, node.workerPoolId)
     instance: Instance = get_instance_id_by_id(CLIENT, cr_id, node.details.instanceId)
 
@@ -218,6 +224,10 @@ def _terminate_instance(
         print_error(
             f"Cannot find Instance ID '{instance_id}' in Compute Requirement {cr_id}"
         )
+        return None
+
+    if instance.status in [InstanceStatus.TERMINATING, InstanceStatus.TERMINATED]:
+        print_info(f"Instance ID '{cr_id}.{instance_id}' is already {instance.status}")
         return None
 
     node_id_msg = "" if node_id is None else f" (Node ID {node_id})"
