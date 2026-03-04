@@ -42,7 +42,7 @@ def _resize_worker_pool():
         worker_pool_id = ARGS_PARSER.worker_pool_name
     else:
         worker_pool_id = get_worker_pool_id_by_name(
-            CLIENT, ARGS_PARSER.worker_pool_name
+            CLIENT, ARGS_PARSER.worker_pool_name, namespace=CONFIG_COMMON.namespace
         )
         if worker_pool_id is None:
             raise Exception(f"Worker Pool '{ARGS_PARSER.worker_pool_name}' not found")

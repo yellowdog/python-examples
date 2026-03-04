@@ -135,7 +135,7 @@ def terminate_by_name_or_id(names_or_ids: list[str]):
         # Compute requirement name?
         else:
             compute_requirement_id = get_compute_requirement_id_by_name(
-                CLIENT, name_or_id, VALID_TERMINATION_STATUSES, CONFIG_COMMON.namespace
+                CLIENT, name_or_id, CONFIG_COMMON.namespace, VALID_TERMINATION_STATUSES
             )
             if compute_requirement_id is None:
                 print_warning(

@@ -153,7 +153,6 @@ class CLIParser:
             module in sys.argv[0]
             for module in [
                 "boost",
-                "resize",
                 "cloudwizard",
                 "follow",
                 "list",

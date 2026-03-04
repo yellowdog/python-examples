@@ -100,7 +100,9 @@ def shutdown_by_names_or_ids(names_or_ids: list[str]):
         if get_ydid_type(name_or_id) == YDIDType.WORKER_POOL:
             worker_pool_id = name_or_id
         else:
-            worker_pool_id = get_worker_pool_id_by_name(CLIENT, name_or_id)
+            worker_pool_id = get_worker_pool_id_by_name(
+                CLIENT, name_or_id, CONFIG_COMMON.namespace
+            )
             if worker_pool_id is None:
                 print_warning(f"Worker Pool '{name_or_id}' not found")
                 continue

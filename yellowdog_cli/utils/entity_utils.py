@@ -2,7 +2,6 @@
 Various utility functions for finding objects, etc.
 """
 
-from collections.abc import Callable
 from functools import lru_cache
 
 from yellowdog_client import PlatformClient
@@ -28,7 +27,6 @@ from yellowdog_client.model import (
     GroupSummary,
     ImageAccess,
     Instance,
-    InstanceId,
     InstanceSearch,
     InternalUser,
     MachineImageFamily,
@@ -70,7 +68,7 @@ def get_task_groups_from_wr_by_id(
 ) -> list[TaskGroup]:
     """
     Get the list of the Work Requirement's Task Groups.
-    Cache results to avoid repeatedly hitting the API for the same thing.
+    Cache results.
     """
     work_requirement = client.work_client.get_work_requirement_by_id(wr_id)
     return work_requirement.taskGroups
@@ -86,39 +84,44 @@ def get_task_group_name(
     for task_group in get_task_groups_from_wr_by_id(client, wr_summary.id):
         if task.taskGroupId == task_group.id:
             return task_group.name
-    return ""  # Shouldn't get here
+
+    # Shouldn't get here
+    raise Exception(f"Task group name not found for Task ID {Task.id}")
 
 
-def get_filtered_work_requirements(
+def get_filtered_work_requirement_summaries(
     client: PlatformClient,
-    namespace: str,
-    tag: str,
+    name: str | None = None,
+    namespace: str | None = None,
+    tag: str | None = None,
     include_filter: list[WorkRequirementStatus] | None = None,
     exclude_filter: list[WorkRequirementStatus] | None = None,
 ) -> list[WorkRequirementSummary]:
     """
-    Get a list of Work Requirements filtered by namespace, tag
-    and status. Supply either include_filter OR exclude_filter.
+    Get a list of Work Requirements optionally filtered by name,
+    namespace, tag and statuses. Also support an exclusion
+    filter.
     """
-    if include_filter is None:
-        wr_search = WorkRequirementSearch(namespaces=[namespace], tag=tag)
-    else:
-        wr_search = WorkRequirementSearch(
-            namespaces=[namespace], tag=tag, statuses=include_filter
-        )
+    wr_search = WorkRequirementSearch(
+        name=name,
+        namespaces=None if namespace is None else [namespace],
+        tag=tag,
+        statuses=include_filter,
+    )
 
+    # Note: partial matches on 'name'
     wr_search_client = client.work_client.get_work_requirements(wr_search)
     work_requirement_summaries: list[WorkRequirementSummary] = (
         wr_search_client.list_all()
     )
 
-    if include_filter is not None or exclude_filter is None:
+    if exclude_filter is None:
         return work_requirement_summaries
 
     return [
-        work_summary
-        for work_summary in work_requirement_summaries
-        if work_summary.status not in exclude_filter
+        work_requirement_summary
+        for work_requirement_summary in work_requirement_summaries
+        if work_requirement_summary.status not in exclude_filter
     ]
 
 
@@ -133,42 +136,58 @@ def get_worker_pool_by_id(client: PlatformClient, worker_pool_id: str) -> Worker
 
 
 def get_worker_pool_id_by_name(
-    client: PlatformClient, worker_pool_name: str
+    client: PlatformClient, worker_pool_name: str, namespace: str | None = None
 ) -> str | None:
     """
-    Find a Worker Pool ID by its name.
+    Find a Worker Pool ID by its name. A 'namespace' in the worker pool name
+    overrides the 'namespace' argument.
     """
-    namespace, name = split_namespace_and_name(worker_pool_name)
-    if namespace is not None:  # Direct lookup for fully-qualified names
-        try:
-            worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_name(
-                namespace, name
-            )
-            return worker_pool.id
-        except:
-            return
+    namespace_, name = split_namespace_and_name(worker_pool_name)
+    namespace_ = namespace if namespace_ is None else namespace_
 
-    return _find_id_by_name(worker_pool_name, client, get_worker_pools)
+    if namespace_ is None:
+        return None
+
+    try:
+        if (fq_name := f"{namespace_}/{name}") != worker_pool_name:
+            print_info(f"Finding Worker Pool ID for '{fq_name}'")
+        worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_name(
+            namespace_, name
+        )
+        return worker_pool.id
+    except:  # Not found (404)
+        return None
 
 
 def get_compute_requirement_id_by_name(
     client: PlatformClient,
     compute_requirement_name: str,
-    statuses: list[ComputeRequirementStatus],
     namespace: str,
+    statuses: list[ComputeRequirementStatus],
 ) -> str | None:
     """
     Find a Compute Requirement ID by its name and namespace.
-    Restrict search by status.
+    Restrict search by status. A 'namespace' prefix for the
+    name will override the 'namespace' argument.
     """
+    namespace_, name = split_namespace_and_name(compute_requirement_name)
+    namespace_ = namespace if namespace_ is None else namespace_
+
+    if namespace_ is None:
+        return None
+
     crs_search = ComputeRequirementSummarySearch(
         name=compute_requirement_name, statuses=statuses, namespaces=[namespace]
     )
     search_client: SearchClient = (
         client.compute_client.get_compute_requirement_summaries(crs_search)
     )
+    if (fq_name := f"{namespace_}/{name}") != compute_requirement_name:
+        print_info(f"Finding Compute Requirement ID for '{fq_name}'")
     try:
-        return search_client.list_all()[0].id
+        # The CR must be unique for any given namespace/name
+        # Ensure exact name match
+        return [cr for cr in search_client.list_all() if cr.name == name][0].id
     except IndexError:
         return None
 
@@ -182,13 +201,17 @@ def get_work_requirement_summary_by_name_or_id(
     Get a Work Requirement Summary by its name or ID.
     Scoped by namespace.
     """
+    namespace_, name = split_namespace_and_name(work_requirement_name_or_id)
+    namespace_ = namespace if namespace_ is None else namespace_
+
+    # Don't include name in the search, to allow for name or ID
     work_requirement_summaries = get_work_requirement_summaries(
-        client, namespace=namespace
+        client, namespace=namespace_
     )
 
     for work_requirement_summary in work_requirement_summaries:
         if (
-            work_requirement_summary.name == work_requirement_name_or_id
+            work_requirement_summary.name == name
             or work_requirement_summary.id == work_requirement_name_or_id
         ):
             return work_requirement_summary
@@ -196,59 +219,31 @@ def get_work_requirement_summary_by_name_or_id(
     return None
 
 
-def _find_id_by_name(
-    name: str, client: PlatformClient, find_function: Callable
-) -> str | None:
-    """
-    Generic function to find the ID of an entity by namespace and name.
-    """
-    namespace, name = split_namespace_and_name(name)
-
-    entities = find_function(client, namespace)
-
-    exact_matching_entities = []
-    inexact_matching_entities = []
-
-    # Exact match: namespace and name (including matching namespace = None)
-    # Inexact match: if name matches but namespace is None
-    for entity in entities:
-        if entity.name == name:
-            if entity.namespace == namespace:
-                exact_matching_entities.append(entity)
-            elif namespace is None:
-                inexact_matching_entities.append(entity)
-
-    if len(exact_matching_entities) == 0 and len(inexact_matching_entities) == 0:
-        return
-
-    if len(exact_matching_entities) == 1:
-        return exact_matching_entities[0].id
-
-    if len(inexact_matching_entities) == 1:
-        return inexact_matching_entities[0].id
-
-    matches = [
-        f"{entity.namespace}/{entity.name} ({entity.id})"
-        for entity in exact_matching_entities + inexact_matching_entities
-    ]
-    raise Exception(
-        f"'{name}' has multiple matches: {matches}. "
-        f"Please specify the required namespace."
-    )
-
-
 @lru_cache
-def find_compute_source_template_id_by_name(
-    client: PlatformClient, name: str
+def get_compute_source_template_id_by_name(
+    client: PlatformClient, name: str, namespace: str | None = None
 ) -> str | None:
     """
     Find a Compute Source Template id by name.
     Compute Source Template names are unique within a namespace.
+    Namespace included as part of a name overrides argument.
     """
-    template_id = _find_id_by_name(name, client, get_compute_source_templates)
-    if template_id is not None:
-        print_info(f"Compute Source Template name '{name}' -> ID {template_id}")
-    return template_id
+    namespace_, name = split_namespace_and_name(name)
+    namespace_ = namespace if namespace_ is None else namespace_
+
+    # Ensure exact name match
+    csts = [
+        cst
+        for cst in get_compute_source_templates(client, namespace_, name)
+        if cst.name == name
+    ]
+
+    if len(csts) == 0:
+        return None
+
+    # Names are unique within namespaces
+    print_info(f"Compute Source Template name '{name}' -> ID {(cst_id := csts[0].id)}")
+    return cst_id
 
 
 @lru_cache
@@ -261,7 +256,7 @@ def get_compute_source_templates(
     Cache the list of Compute Source Templates, scoped by namespace and name.
     """
     cst_search = ComputeSourceTemplateSearch(
-        name=name, namespaces=None if namespace in [None, ""] else [namespace]
+        name=name, namespaces=None if namespace is None else [namespace]
     )
     cst_search_client: SearchClient = (
         client.compute_client.get_compute_source_templates(cst_search)
@@ -269,19 +264,22 @@ def get_compute_source_templates(
     return cst_search_client.list_all()
 
 
+@lru_cache
 def get_work_requirement_summaries(
     client: PlatformClient,
     namespace: str | None = None,
     name: str | None = None,
 ) -> list[WorkRequirementSummary]:
     """
-    Get the list of Work Requirement summaries, scoped by namespace and name.
+    Get the list of Work Requirement summaries, optionally
+    scoped by namespace and name.
     """
     wr_search = WorkRequirementSearch(
-        name=name, namespaces=None if namespace in [None, ""] else [namespace]
+        name=name, namespaces=None if namespace is None else [namespace]
     )
     wr_search_client: SearchClient = client.work_client.get_work_requirements(wr_search)
-    return wr_search_client.list_all()
+    # Ensure exact name match
+    return [wr for wr in wr_search_client.list_all() if wr.name == name or name is None]
 
 
 def clear_compute_source_template_cache():
@@ -290,17 +288,25 @@ def clear_compute_source_template_cache():
     Clear name -> CST lookups.
     """
     get_compute_source_templates.cache_clear()
-    find_compute_source_template_id_by_name.cache_clear()
+    get_compute_source_template_id_by_name.cache_clear()
 
 
-def find_compute_requirement_template_id_by_name(
-    client: PlatformClient, name: str
+def get_compute_requirement_template_id_by_name(
+    client: PlatformClient, name: str, namespace: str | None = None
 ) -> str | None:
     """
     Find the Compute Requirement Template ID that matches the
-    provided name. Names are unique within a namespace.
+    provided name and namespace. Namespace as a name prefix
+    overrides namespace arg.
     """
-    return _find_id_by_name(name, client, get_compute_requirement_templates)
+    namespace_, name = split_namespace_and_name(name)
+    namespace_ = namespace if namespace_ is None else namespace_
+
+    if len(crts := get_compute_requirement_templates(client, namespace_, name)) == 0:
+        return None
+
+    # Ensure exact name match; names are unique within a namespace
+    return [crt for crt in crts if crt.name == name][0].id
 
 
 @lru_cache
@@ -314,11 +320,12 @@ def get_compute_requirement_templates(
     and name.
     """
     crt_search = ComputeRequirementTemplateSearch(
-        name=name, namespaces=None if namespace in [None, ""] else [namespace]
+        name=name, namespaces=None if namespace is None else [namespace]
     )
     crt_search_client: SearchClient = (
         client.compute_client.get_compute_requirement_templates(crt_search)
     )
+    # Note: partial matches on 'name'
     return crt_search_client.list_all()
 
 
@@ -352,19 +359,20 @@ def get_worker_pools(
     Return all Worker Pool summaries for a namespace, name.
     """
     wp_search = WorkerPoolSearch(
-        name=name, namespaces=None if namespace in [None, ""] else [namespace]
+        name=name, namespaces=None if namespace is None else [namespace]
     )
     wp_search_client: SearchClient = client.worker_pool_client.get_worker_pools(
         wp_search
     )
+    # Note: partial matches on 'name'
     return wp_search_client.list_all()
 
 
 @lru_cache
-def find_image_name_or_id(
+def get_image_name_or_id(
     client: PlatformClient,
     image_name_or_id: str | None,
-    always_return_id: bool = True,
+    always_return_ydid: bool = True,
     report_substitutions: bool = True,
 ) -> str | None:
     """
@@ -384,7 +392,7 @@ def find_image_name_or_id(
       - yd/namespace/image-family-name or
       - yd/namespace/image-family-name/image-group-name
 
-    If the resolved image is PUBLIC or 'always_return_id' is True,
+    If the resolved image is PUBLIC or 'always_return_ydid' is True,
     the relevant YDID will always be returned; this is enforced for
     PUBLIC images.
 
@@ -442,7 +450,7 @@ def find_image_name_or_id(
         elif len(matching_image_families) == 1:
             if (
                 matching_image_families[0].access == ImageAccess.PUBLIC
-                or always_return_id
+                or always_return_ydid
             ):
                 return _replaced(matching_image_families[0].id, True)
             else:
@@ -468,7 +476,7 @@ def find_image_name_or_id(
         if len(matching_image_families) == 1:
             if (
                 matching_image_families[0].access == ImageAccess.PUBLIC
-                or always_return_id
+                or always_return_ydid
             ):
                 return _replaced(matching_image_families[0].id, True)
             return _replaced(
@@ -487,7 +495,10 @@ def find_image_name_or_id(
                     if_group_matches.append((ifs, if_group))
                     break
         if len(if_group_matches) == 1:
-            if if_group_matches[0][0].access == ImageAccess.PUBLIC or always_return_id:
+            if (
+                if_group_matches[0][0].access == ImageAccess.PUBLIC
+                or always_return_ydid
+            ):
                 return _replaced(if_group_matches[0][1].id, True)
             else:
                 return _replaced(
@@ -515,7 +526,7 @@ def find_image_name_or_id(
             if ifs.namespace == split_name[0] and ifs.name == split_name[1]:
                 for ig in get_image_family_groups(client, ifs.id):
                     if ig.name == split_name[2]:
-                        if ifs.access == ImageAccess.PUBLIC or always_return_id:
+                        if ifs.access == ImageAccess.PUBLIC or always_return_ydid:
                             return _replaced(ig.id, True)
                         else:
                             return _replaced(f"yd/{image_name_or_id}")
@@ -539,7 +550,7 @@ def remove_allowances_matching_description(
     """
     allowances = client.allowances_client.get_allowances(
         AllowanceSearch(description=description)
-    ).list_all()  # Can return partial matches
+    ).list_all()  # Note: partial matches on 'name'
 
     # Ensure exact match
     allowances = [
@@ -593,16 +604,17 @@ def list_matching_object_paths(
 
 
 @lru_cache
-def get_tasks(client: PlatformClient, wr_id: str, task_group_id: str) -> list[Task]:
+def get_all_tasks_in_task_group(
+    client: PlatformClient, task_group_id: str
+) -> list[Task]:
     """
     Return all the tasks in a task group, with caching.
     """
-    task_search = TaskSearch(
-        workRequirementId=wr_id,
-        taskGroupId=task_group_id,
+    return client.work_client.find_tasks(
+        TaskSearch(
+            taskGroupId=task_group_id,
+        )
     )
-    tasks: list[Task] = client.work_client.find_tasks(task_search)
-    return tasks
 
 
 def get_non_exact_namespace_matches(
@@ -625,20 +637,20 @@ def get_non_exact_namespace_matches(
     return matching_namespaces
 
 
-def split_namespace_and_name(reference: str) -> tuple[str | None, str]:
+def split_namespace_and_name(namespace_and_name: str) -> tuple[str | None, str]:
     """
     Split a name into an (optional) namespace and a name.
     """
-    parts = reference.strip().split(NAMESPACE_PREFIX_SEPARATOR)
+    parts = namespace_and_name.strip().split(NAMESPACE_PREFIX_SEPARATOR)
     if len(parts) == 1:
-        return None, reference
+        return None, namespace_and_name
     if len(parts) == 2:
         if parts[0] == "":  # Handle the case of a leading slash
             return None, parts[1]
         else:
             return parts[0], parts[1]
 
-    raise Exception(f"Malformed name '{reference}'")
+    raise Exception(f"Malformed name or namespace/name '{namespace_and_name}'")
 
 
 def substitute_ids_for_names_in_crt(
@@ -814,7 +826,7 @@ def get_role_id_by_name(client: PlatformClient, role_name: str) -> str | None:
     role_search = RoleSearch(name=role_name)
     search_client: SearchClient = client.account_client.get_roles(role_search)
 
-    for role in search_client.list_all():
+    for role in search_client.list_all():  # Note: partial matches on 'name'
         if role.name == role_name:
             return role.id
 
@@ -838,8 +850,7 @@ def get_all_roles(client: PlatformClient) -> list[RoleSummary]:
     """
     Cache all roles.
     """
-    role_search = RoleSearch()
-    search_client: SearchClient = client.account_client.get_roles(role_search)
+    search_client: SearchClient = client.account_client.get_roles(RoleSearch())
     return search_client.list_all()
 
 
@@ -851,8 +862,10 @@ def get_group_id_by_name(client: PlatformClient, group_name: str) -> str | None:
     if get_ydid_type(group_name) == YDIDType.GROUP:
         return group_name
 
-    group_search = GroupSearch(name=group_name)
-    search_client: SearchClient = client.account_client.get_groups(group_search)
+    search_client: SearchClient = client.account_client.get_groups(
+        GroupSearch(name=group_name)
+    )
+    # Note: partial matches on 'name'
     group_summaries: list[GroupSummary] = search_client.list_all()
 
     for group_summary in group_summaries:
@@ -867,11 +880,10 @@ def get_group_name_by_id(client: PlatformClient, group_id: str) -> str | None:
     """
     Get a group's name by its ID.
     """
-    for group in get_all_groups(client):
-        if group.id == group_id:
-            return group.name
-
-    return None
+    try:
+        return client.account_client.get_group(group_id).name
+    except:
+        return None
 
 
 @lru_cache
@@ -879,8 +891,7 @@ def get_all_groups(client: PlatformClient) -> list[GroupSummary]:
     """
     Return a list of all the groups.
     """
-    group_search = GroupSearch()
-    search_client: SearchClient = client.account_client.get_groups(group_search)
+    search_client: SearchClient = client.account_client.get_groups(GroupSearch())
     return search_client.list_all()
 
 
@@ -1058,6 +1069,7 @@ def get_compute_requirement_summaries(
     search_client: SearchClient = (
         client.compute_client.get_compute_requirement_summaries(crs_search)
     )
+    # Note: partial matches on 'tag'
     return search_client.list_all()
 
 
@@ -1117,7 +1129,7 @@ def clear_image_caches():
     """
     Clear the image caches.
     """
-    find_image_name_or_id.cache_clear()
+    get_image_name_or_id.cache_clear()
     get_image_family_summaries.cache_clear()
     get_image_family_groups.cache_clear()
 

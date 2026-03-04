@@ -50,14 +50,14 @@ from yellowdog_cli.utils.entity_utils import (
     get_all_applications,
     get_all_groups,
     get_all_roles,
+    get_all_tasks_in_task_group,
     get_all_users,
     get_application_group_summaries,
     get_compute_requirement_summaries,
     get_compute_requirement_templates,
     get_compute_source_templates,
-    get_filtered_work_requirements,
+    get_filtered_work_requirement_summaries,
     get_task_groups_from_wr_by_id,
-    get_tasks,
     get_user_groups,
     get_worker_pools,
     list_matching_object_paths,
@@ -221,7 +221,7 @@ def list_work_requirements():
         else []
     )
     work_requirement_summaries: list[WorkRequirementSummary] = (
-        get_filtered_work_requirements(
+        get_filtered_work_requirement_summaries(
             CLIENT,
             namespace=CONFIG_COMMON.namespace,
             tag=CONFIG_COMMON.name_tag,
@@ -277,7 +277,7 @@ def list_task_groups(work_summary: WorkRequirementSummary):
 
 
 def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
-    tasks: list[Task] = get_tasks(CLIENT, work_summary.id, task_group.id)
+    tasks: list[Task] = get_all_tasks_in_task_group(CLIENT, task_group.id)
     tasks = sorted_objects(tasks)
     if ARGS_PARSER.details:
         print_yd_object_list([(task, None) for task in select(CLIENT, tasks)])

@@ -189,4 +189,6 @@ def _get_user_input(input_prompt: str) -> str:
     if ARGS_PARSER.no_format:
         return input(input_prompt)
     else:
-        return CONSOLE.input(input_prompt)
+        # Prevents broken wrapping
+        CONSOLE.print(input_prompt, end="")
+        return CONSOLE.input("")

@@ -20,9 +20,9 @@ from yellowdog_client.model import (
 from yellowdog_cli.utils.entity_utils import (
     clear_application_caches,
     clear_group_caches,
-    find_compute_requirement_template_id_by_name,
-    find_compute_source_template_id_by_name,
     get_application_id_by_name,
+    get_compute_requirement_template_id_by_name,
+    get_compute_source_template_id_by_name,
     get_group_id_by_name,
     get_namespace_id_by_name,
     get_worker_pools,
@@ -148,7 +148,7 @@ def remove_compute_source_template(resource: dict):
 
     name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
-    source_id = find_compute_source_template_id_by_name(CLIENT, name)
+    source_id = get_compute_source_template_id_by_name(CLIENT, name)
     if source_id is None:
         print_warning(f"Cannot find Compute Source Template '{name}'")
         return
@@ -178,7 +178,7 @@ def remove_compute_requirement_template(resource: dict):
 
     name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
-    template_id = find_compute_requirement_template_id_by_name(CLIENT, name)
+    template_id = get_compute_requirement_template_id_by_name(CLIENT, name)
     if template_id is None:
         print_warning(f"Cannot find Compute Requirement Template '{name}'")
         return

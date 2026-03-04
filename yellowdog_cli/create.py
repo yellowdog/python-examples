@@ -51,13 +51,13 @@ from yellowdog_cli.utils.entity_utils import (
     clear_compute_source_template_cache,
     clear_group_caches,
     clear_image_caches,
-    find_compute_requirement_template_id_by_name,
-    find_compute_source_template_id_by_name,
-    find_image_name_or_id,
     get_application_group_summaries,
     get_application_id_by_name,
+    get_compute_requirement_template_id_by_name,
+    get_compute_source_template_id_by_name,
     get_group_id_by_name,
     get_group_name_by_id,
+    get_image_name_or_id,
     get_role_id_by_name,
     get_role_name_by_id,
     get_user_by_name_or_id,
@@ -245,10 +245,10 @@ def create_compute_source_template(resource: dict):
         else PROP_IMAGE
     )
 
-    image_id = find_image_name_or_id(
+    image_id = get_image_name_or_id(
         client=CLIENT,
         image_name_or_id=source.get(image_property_name),
-        always_return_id=False,
+        always_return_ydid=False,
         report_substitutions=True,
     )
     if image_id is not None:
@@ -272,7 +272,7 @@ def create_compute_source_template(resource: dict):
     name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
     # Check for an existing ID
-    source_id = find_compute_source_template_id_by_name(CLIENT, name)
+    source_id = get_compute_source_template_id_by_name(CLIENT, name, namespace)
     if source_id is None:
         compute_source = CLIENT.compute_client.add_compute_source_template(
             compute_source_template
@@ -327,10 +327,10 @@ def create_compute_requirement_template(resource: dict):
         """
         Helper function to resolve an image ID.
         """
-        images_id_ = find_image_name_or_id(
+        images_id_ = get_image_name_or_id(
             client=CLIENT,
             image_name_or_id=image_str,
-            always_return_id=False,
+            always_return_ydid=False,
             report_substitutions=True,
         )
         if images_id_ is not None:
@@ -345,8 +345,8 @@ def create_compute_requirement_template(resource: dict):
     for source in resource.get(PROP_SOURCES, []):
         template_name_or_id = source[PROP_CST_ID]
         if get_ydid_type(template_name_or_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
-            template_id = find_compute_source_template_id_by_name(
-                client=CLIENT, name=template_name_or_id
+            template_id = get_compute_source_template_id_by_name(
+                client=CLIENT, name=template_name_or_id, namespace=namespace
             )
             if template_id is None:
                 print_error(
@@ -384,7 +384,7 @@ def create_compute_requirement_template(resource: dict):
     compute_template = _get_model_object(type, resource)
 
     # Check for an existing ID
-    template_id = find_compute_requirement_template_id_by_name(CLIENT, name)
+    template_id = get_compute_requirement_template_id_by_name(CLIENT, name)
 
     if template_id is None:  # Creation
         template = CLIENT.compute_client.add_compute_requirement_template(
@@ -736,8 +736,10 @@ def create_allowance(resource: dict):
                 if CLEAR_CST_CACHE:  # Update the CST cache if required
                     clear_compute_source_template_cache()
                     CLEAR_CST_CACHE = False
-                template_id = find_compute_source_template_id_by_name(
-                    client=CLIENT, name=template_name_or_id
+                template_id = get_compute_source_template_id_by_name(
+                    client=CLIENT,
+                    name=template_name_or_id,
+                    namespace=CONFIG_COMMON.namespace,
                 )
                 if template_id is None:
                     print_error(
@@ -761,7 +763,7 @@ def create_allowance(resource: dict):
                 if CLEAR_CRT_CACHE:  # Update the CRT cache if required
                     clear_compute_requirement_template_cache()
                     CLEAR_CRT_CACHE = False
-                template_id = find_compute_requirement_template_id_by_name(
+                template_id = get_compute_requirement_template_id_by_name(
                     client=CLIENT, name=template_name_or_id
                 )
                 if template_id is None:

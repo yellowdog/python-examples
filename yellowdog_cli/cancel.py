@@ -11,7 +11,7 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.entity_utils import (
-    get_filtered_work_requirements,
+    get_filtered_work_requirement_summaries,
     get_work_requirement_summary_by_name_or_id,
 )
 from yellowdog_cli.utils.follow_utils import follow_ids
@@ -35,7 +35,7 @@ def main():
     )
 
     selected_work_requirement_summaries: list[WorkRequirementSummary] = (
-        get_filtered_work_requirements(
+        get_filtered_work_requirement_summaries(
             client=CLIENT,
             namespace=CONFIG_COMMON.namespace,
             tag=CONFIG_COMMON.name_tag,
@@ -145,11 +145,17 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: list[str]):
             continue
 
         work_requirement_summaries.append(work_requirement_summary)
+        fq_name = (
+            f"{work_requirement_summary.namespace}/{work_requirement_summary.name}"
+        )
         if work_requirement_summary.status == WorkRequirementStatus.CANCELLING:
-            print_info(f"Work Requirement '{name_or_id}' is already cancelling")
+            print_info(
+                f"Work Requirement '{fq_name}' ({work_requirement_summary.id}) "
+                "is already cancelling"
+            )
         else:
             if not confirmed(
-                f"Cancel Work Requirement '{name_or_id}'"
+                f"Cancel Work Requirement '{fq_name}' ({work_requirement_summary.id})"
                 f"{'' if not ARGS_PARSER.abort else ' and abort all allocated tasks'}?"
             ):
                 continue
@@ -158,11 +164,14 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: list[str]):
                     work_requirement_summary.id, ARGS_PARSER.abort
                 )
                 print_info(
-                    f"Cancelled Work Requirement '{name_or_id}'"
+                    f"Cancelled Work Requirement '{fq_name}' ({work_requirement_summary.id})"
                     f"{'' if not ARGS_PARSER.abort else ' and aborted all allocated tasks'}"
                 )
             except Exception as e:
-                print_error(f"Failed to cancel Work Requirement '{name_or_id}': {e}")
+                print_error(
+                    f"Failed to cancel Work Requirement '{fq_name}' "
+                    f"({work_requirement_summary.id}): {e}"
+                )
 
     if ARGS_PARSER.follow:
         follow_ids([wrs.id for wrs in work_requirement_summaries])

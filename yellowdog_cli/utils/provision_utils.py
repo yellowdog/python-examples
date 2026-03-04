@@ -8,8 +8,8 @@ from yellowdog_client import PlatformClient
 
 from yellowdog_cli.utils.config_types import ConfigWorkerPool
 from yellowdog_cli.utils.entity_utils import (
-    find_compute_requirement_template_id_by_name,
-    find_image_name_or_id,
+    get_compute_requirement_template_id_by_name,
+    get_image_name_or_id,
 )
 from yellowdog_cli.utils.load_config import CONFIG_FILE_DIR
 from yellowdog_cli.utils.printing import print_info
@@ -83,7 +83,7 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     if get_ydid_type(template_id_or_name) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
         return template_id_or_name
 
-    template_id = find_compute_requirement_template_id_by_name(
+    template_id = get_compute_requirement_template_id_by_name(
         client=client, name=template_id_or_name
     )
     if template_id is None:
@@ -102,6 +102,6 @@ def get_image_id(client: PlatformClient, image_name_or_id: str) -> str:
     """
     This function was simplified, hence the pass-through call for now.
     """
-    return find_image_name_or_id(
-        client=client, image_name_or_id=image_name_or_id, always_return_id=True
+    return get_image_name_or_id(
+        client=client, image_name_or_id=image_name_or_id, always_return_ydid=True
     )

@@ -13,7 +13,7 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.entity_utils import (
-    get_filtered_work_requirements,
+    get_filtered_work_requirement_summaries,
     get_task_group_name,
 )
 from yellowdog_cli.utils.interactive import confirmed, select
@@ -44,7 +44,7 @@ def main():
     ARGS_PARSER.interactive = True
 
     selected_work_requirement_summaries: list[WorkRequirementSummary] = (
-        get_filtered_work_requirements(
+        get_filtered_work_requirement_summaries(
             CLIENT,
             namespace=CONFIG_COMMON.namespace,
             tag=CONFIG_COMMON.name_tag,

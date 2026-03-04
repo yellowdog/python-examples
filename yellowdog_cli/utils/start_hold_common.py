@@ -13,7 +13,7 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.entity_utils import (
-    get_filtered_work_requirements,
+    get_filtered_work_requirement_summaries,
     get_work_requirement_summary_by_name_or_id,
 )
 from yellowdog_cli.utils.follow_utils import follow_ids
@@ -58,7 +58,7 @@ def _start_or_hold_work_requirements(
     )
 
     selected_work_requirement_summaries: list[WorkRequirementSummary] = (
-        get_filtered_work_requirements(
+        get_filtered_work_requirement_summaries(
             client=CLIENT,
             namespace=CONFIG_COMMON.namespace,
             tag=CONFIG_COMMON.name_tag,
@@ -127,26 +127,33 @@ def _start_or_hold_work_requirements_by_name_or_id(
         )
 
         if work_requirement_summary is None:
-            print_error(
-                f"Work Requirement '{name_or_id}' not found in "
-                f"namespace '{CONFIG_COMMON.namespace}'"
-            )
+            print_error(f"Work Requirement '{name_or_id}' not found")
             continue
+
+        fq_name_and_id = (
+            f"'{work_requirement_summary.namespace}/{work_requirement_summary.name}' "
+            f"({work_requirement_summary.id})"
+        )
 
         if work_requirement_summary.status != required_state:
             print_warning(
-                f"Work Requirement '{name_or_id}' is not in the required '{required_state}'"
+                f"Work Requirement {fq_name_and_id} is not in the required '{required_state}'"
                 f" state for action '{action}'"
             )
             continue
 
+        if not confirmed(f"{action} Work Requirement {fq_name_and_id}?"):
+            continue
+
         try:
             action_function(work_requirement_summary.id)
-            print_info(f"Applied action '{action}' to Work Requirement '{name_or_id}'")
+            print_info(
+                f"Applied action '{action}' to Work Requirement {fq_name_and_id}"
+            )
             work_requirement_summaries.append(work_requirement_summary)
         except Exception as e:
             print_error(
-                f"Failed to apply action '{action}' to Work Requirement '{name_or_id}': {e}"
+                f"Failed to apply action '{action}' to Work Requirement {fq_name_and_id}: {e}"
             )
 
     return [wr.id for wr in work_requirement_summaries]
