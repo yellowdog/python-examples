@@ -9,7 +9,7 @@ from os.path import exists
 
 from yellowdog_client import PlatformClient
 
-from yellowdog_cli.create import create_keyring_via_api, create_resources
+from yellowdog_cli.create import create_resources
 from yellowdog_cli.remove import remove_resource_by_id
 from yellowdog_cli.utils.compact_json import CompactJSONEncoder
 from yellowdog_cli.utils.entity_utils import (
@@ -335,9 +335,11 @@ class CommonCloudConfig(ABC):
         # Create Keyring and remember the Keyring password
         keyring_resource = self._generate_yd_keyring(keyring_name)
         try:
-            keyring, self._keyring_password = create_keyring_via_api(
+            keyring_response = self._client.keyring_client.add_keyring(
                 keyring_name, keyring_resource["description"]
             )
+            keyring = keyring_response.keyring
+            self._keyring_password = keyring_response.keyringPassword
             print_info(f"Created YellowDog Keyring '{keyring_name}' ({keyring.id})")
             self._keyring_name = keyring_name
         except Exception as e:

@@ -432,7 +432,9 @@ def create_keyring(resource: dict, show_secrets: bool = False):
             print_info(f"Deleted Keyring '{name}'")
 
     try:
-        keyring, keyring_password = create_keyring_via_api(name, description)
+        keyring_response = CLIENT.keyring_client.add_keyring(name, description)
+        keyring = keyring_response.keyring
+        keyring_password = keyring_response.keyringPassword
         keyring_password = (
             keyring_password
             if ARGS_PARSER.show_keyring_passwords or show_secrets
@@ -445,24 +447,6 @@ def create_keyring(resource: dict, show_secrets: bool = False):
             print(f"{keyring.id} {keyring_password}")
     except Exception as e:
         print_error(f"Failed to create Keyring '{name}': {e}")
-
-
-def create_keyring_via_api(name: str, description: str) -> tuple[Keyring, str]:
-    """
-    Temporary direct API call to create a Keyring and return the shown-once
-    password. The password is not available via the SDK call.
-    """
-    response = post(
-        url=f"{CONFIG_COMMON.url}/keyrings",
-        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
-        json={
-            PROP_NAME: name,
-            PROP_DESCRIPTION: description,
-        },
-    )
-    if response.status_code != 200:
-        raise Exception(f"HTTP {response.status_code} ({response.text})")
-    return Keyring(**response.json()["keyring"]), response.json()["keyringPassword"]
 
 
 def create_credential(resource: dict):
