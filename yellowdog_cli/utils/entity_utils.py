@@ -268,18 +268,23 @@ def get_work_requirement_summaries(
     client: PlatformClient,
     namespace: str | None = None,
     name: str | None = None,
+    partial_name_matches: bool = False,
 ) -> list[WorkRequirementSummary]:
     """
     Get the list of Work Requirement summaries, optionally
-    scoped by namespace and name. Return exact name matches
-    only.
+    scoped by namespace and name. Optionally allow partial
+    name matches.
     """
     wr_search = WorkRequirementSearch(
         name=name, namespaces=None if namespace is None else [namespace]
     )
     wr_search_client: SearchClient = client.work_client.get_work_requirements(wr_search)
-    # Ensure exact name match if name is supplied
-    return [wr for wr in wr_search_client.list_all() if wr.name == name or name is None]
+    wr_summaries = wr_search_client.list_all()
+
+    if partial_name_matches or name is None:
+        return wr_summaries
+
+    return [wr for wr in wr_summaries if wr.name == name]
 
 
 def clear_compute_source_template_cache():
@@ -306,7 +311,11 @@ def get_compute_requirement_template_id_by_name(
         return None
 
     # Ensure exact name match; names are unique within a namespace
-    return [crt for crt in crts if crt.name == name][0].id
+    crts = [crt for crt in crts if crt.name == name]
+    try:
+        return crts[0].id
+    except IndexError:
+        return None
 
 
 @lru_cache
