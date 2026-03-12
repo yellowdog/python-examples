@@ -163,7 +163,7 @@ def get_compute_requirement_id_by_name(
     client: PlatformClient,
     compute_requirement_name: str,
     namespace: str,
-    statuses: list[ComputeRequirementStatus],
+    statuses: list[ComputeRequirementStatus] | None = None,
 ) -> str | None:
     """
     Find a Compute Requirement ID by its name and namespace.
@@ -173,11 +173,10 @@ def get_compute_requirement_id_by_name(
     namespace_, name = split_namespace_and_name(compute_requirement_name)
     namespace_ = namespace if namespace_ is None else namespace_
 
-    if namespace_ is None:
-        return None
-
     crs_search = ComputeRequirementSummarySearch(
-        name=compute_requirement_name, statuses=statuses, namespaces=[namespace]
+        name=name,
+        statuses=statuses,
+        namespaces=None if namespace_ is None else [namespace_],
     )
     search_client: SearchClient = (
         client.compute_client.get_compute_requirement_summaries(crs_search)
@@ -272,13 +271,14 @@ def get_work_requirement_summaries(
 ) -> list[WorkRequirementSummary]:
     """
     Get the list of Work Requirement summaries, optionally
-    scoped by namespace and name.
+    scoped by namespace and name. Return exact name matches
+    only.
     """
     wr_search = WorkRequirementSearch(
         name=name, namespaces=None if namespace is None else [namespace]
     )
     wr_search_client: SearchClient = client.work_client.get_work_requirements(wr_search)
-    # Ensure exact name match
+    # Ensure exact name match if name is supplied
     return [wr for wr in wr_search_client.list_all() if wr.name == name or name is None]
 
 

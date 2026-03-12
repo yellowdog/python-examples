@@ -723,7 +723,7 @@ def create_allowance(resource: dict):
                 template_id = get_compute_source_template_id_by_name(
                     client=CLIENT,
                     name=template_name_or_id,
-                    namespace=CONFIG_COMMON.namespace,
+                    namespace=CONFIG_COMMON.namespace,  # Worth a try if namespace not included in name
                 )
                 if template_id is None:
                     print_error(
