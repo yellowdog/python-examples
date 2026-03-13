@@ -465,13 +465,13 @@ def compute_requirement_template_table(
     for index, crt_summary in enumerate(crt_summaries):
         try:
             type = crt_summary.type.split(".")[-1].replace("ComputeRequirement", "")
-        except:
+        except Exception:
             type = None
         try:
             strategy_type = crt_summary.strategyType.split(".")[-1].replace(
                 "ProvisionStrategy", ""
             )
-        except:
+        except Exception:
             strategy_type = None
         table.append(
             [
@@ -503,11 +503,11 @@ def compute_source_template_table(
     for index, cst_summary in enumerate(cst_summaries):
         try:
             type = cst_summary.sourceType.split(".")[-1]
-        except:
+        except Exception:
             type = None
         try:
             provider = cst_summary.provider
-        except:
+        except Exception:
             provider = None
         table.append(
             [
@@ -1019,7 +1019,7 @@ def print_numbered_object_list(
         for index, obj in enumerate(objects):
             try:
                 table.append([index + 1, ":", obj.name])
-            except:  # Handle the Namespace Storage Configuration case
+            except Exception:  # Handle the Namespace Storage Configuration case
                 table.append([index + 1, ":", obj.namespace])
     if headers is None:
         print_table_core(indent(tabulate(table, tablefmt="plain"), indent_width=4))
@@ -1088,7 +1088,7 @@ def sorted_objects(objects: list[Item | str], reverse: bool = False) -> list[Ite
 
     try:
         return sorted(objects, key=lambda x: x.name, reverse=reverse)
-    except:
+    except Exception:
         return sorted(objects, key=lambda x: x.namespace, reverse=reverse)
 
 

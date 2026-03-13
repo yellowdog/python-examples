@@ -288,7 +288,7 @@ class AzureConfig(CommonCloudConfig):
         try:
             self._resource_client.resource_groups.begin_delete(rg_name)
             print_info(f"Requested deletion of Azure resource group '{rg_name}'")
-        except:
+        except Exception:
             print_warning(f"Unable to delete Azure resource group '{rg_name}'")
 
     def _create_network_resources(self, resource_group_name: str, region: str):
@@ -719,7 +719,7 @@ class AzureConfig(CommonCloudConfig):
         except Exception as e:
             raise Exception(f"Unable to generate Azure storage account name: {e}")
 
-    def set_ssh_ingress_rule(self, operation: str, selected_region: str = None):
+    def set_ssh_ingress_rule(self, operation: str, selected_region: str | None = None):
         """
         Add or remove an SSH ingress rule for the specified region.
         The 'operation' must be 'add-ssh' or 'remove-ssh'.

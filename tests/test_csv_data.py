@@ -13,7 +13,7 @@ from yellowdog_cli.utils.csv_data import (
     CSVDataCache,
     CSVTaskData,
     make_string_substitutions,
-    substitions_present,
+    substitutions_present,
 )
 
 # ---------------------------------------------------------------------------
@@ -98,37 +98,37 @@ class TestMakeStringsubstitutions:
 
 
 # ---------------------------------------------------------------------------
-# substitions_present
+# substitutions_present
 # ---------------------------------------------------------------------------
 
 
 class TestSubstitionsPresent:
     def test_plain_var_present(self):
-        assert substitions_present(["myvar"], "some {{myvar}} text") is True
+        assert substitutions_present(["myvar"], "some {{myvar}} text") is True
 
     def test_plain_var_absent(self):
-        assert substitions_present(["myvar"], "no substitutions here") is False
+        assert substitutions_present(["myvar"], "no substitutions here") is False
 
     def test_num_type_tag_present(self):
-        assert substitions_present(["count"], "'{{num:count}}'") is True
+        assert substitutions_present(["count"], "'{{num:count}}'") is True
 
     def test_bool_type_tag_present(self):
-        assert substitions_present(["flag"], "'{{bool:flag}}'") is True
+        assert substitutions_present(["flag"], "'{{bool:flag}}'") is True
 
     def test_format_name_type_tag_present(self):
-        assert substitions_present(["label"], "{{format_name:label}}") is True
+        assert substitutions_present(["label"], "{{format_name:label}}") is True
 
     def test_multiple_var_names_one_present(self):
-        assert substitions_present(["a", "b", "c"], "only {{b}} here") is True
+        assert substitutions_present(["a", "b", "c"], "only {{b}} here") is True
 
     def test_none_of_the_vars_present(self):
-        assert substitions_present(["x", "y"], "{{z}} is not in the list") is False
+        assert substitutions_present(["x", "y"], "{{z}} is not in the list") is False
 
     def test_empty_var_names(self):
-        assert substitions_present([], "{{anything}}") is False
+        assert substitutions_present([], "{{anything}}") is False
 
     def test_empty_prototype(self):
-        assert substitions_present(["myvar"], "") is False
+        assert substitutions_present(["myvar"], "") is False
 
 
 # ---------------------------------------------------------------------------

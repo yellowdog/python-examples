@@ -219,7 +219,7 @@ def _terminate_instance(
 
     try:
         compute_requirement = CLIENT.compute_client.get_compute_requirement_by_id(cr_id)
-    except:
+    except Exception:
         print_error(f"Cannot find Compute Requirement {cr_id}")
         return None
 

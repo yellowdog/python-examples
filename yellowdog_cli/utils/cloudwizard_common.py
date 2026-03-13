@@ -53,7 +53,7 @@ class CommonCloudConfig(ABC):
     def teardown(self):
         pass
 
-    def set_ssh_ingress_rule(self, operation: str, selected_region: str = None):
+    def set_ssh_ingress_rule(self, operation: str, selected_region: str | None = None):
         print_warning(
             f"Operation '{operation}' not supported for cloud provider"
             f" '{self._cloud_provider}'"
@@ -160,7 +160,7 @@ class CommonCloudConfig(ABC):
                 "Compute Requirement Template automatically created by YellowDog"
                 " Cloud Wizard"
             ),
-            "strategyType": f"co.yellowdog.platform.model.WaterfallProvisionStrategy",
+            "strategyType": "co.yellowdog.platform.model.WaterfallProvisionStrategy",
             "type": "co.yellowdog.platform.model.ComputeRequirementStaticTemplate",
             "sources": [
                 {
@@ -254,6 +254,7 @@ class CommonCloudConfig(ABC):
             print_error(
                 f"Unable to save YellowDog resources definition file '{resources_file}'"
             )
+            return False
 
     def _remove_keyring(self, keyring_name: str):
         """

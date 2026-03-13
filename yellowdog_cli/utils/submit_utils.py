@@ -99,7 +99,7 @@ def get_namespace_and_filepath(
 
         raise Exception
 
-    except:
+    except Exception:
         raise Exception(f"Malformed file specification: '{file}'")
 
 
@@ -250,7 +250,7 @@ class UploadedFiles:
             )
             try:
                 self._client.object_store_client.delete_objects(namespace, object_paths)
-            except:
+            except Exception:
                 print_error(
                     "Failed to delete one or more objects "
                     "(may already have been deleted)"

@@ -207,7 +207,7 @@ def perform_csv_task_expansion(
         csv_data = CSV_DATA_CACHE.get_csv_task_data(resolved_csv_file)
         task_prototype = task_group[TASKS][0]
 
-        if not substitions_present(csv_data.var_names, str(task_prototype)):
+        if not substitutions_present(csv_data.var_names, str(task_prototype)):
             print_info(
                 "Warning: No CSV substitutions to apply to Task Group "
                 f"{index + 1}; not expanding Task list"
@@ -332,7 +332,7 @@ def get_csv_file_index(
     return csv_filename, None
 
 
-def substitions_present(var_names: list[str], task_prototype: str) -> bool:
+def substitutions_present(var_names: list[str], task_prototype: str) -> bool:
     """
     Check if there are any CSV substitutions present in the Task prototype.
     """
@@ -406,7 +406,7 @@ def csv_expand_toml_tasks(
         (config_wr.verify_wait, VERIFY_WAIT),
         # Note: not TASK_COUNT; count determined by CSV data
     ]:
-        if config_value is not None and substitions_present(
+        if config_value is not None and substitutions_present(
             csv_data.var_names, str(config_value)
         ):
             task_proto[config_name] = config_value

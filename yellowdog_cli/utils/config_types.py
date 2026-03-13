@@ -25,7 +25,7 @@ class ConfigWorkRequirement:
     batch_allocation: bool | None = None
     completed_task_ttl: float | None = None  # In minutes
     csv_files: list[str] | None = None
-    disable_prealloaction: bool | None = None
+    disable_preallocation: bool | None = None
     docker_env: dict | None = None
     docker_options: list | None = None
     docker_password: str | None = None

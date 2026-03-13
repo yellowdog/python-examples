@@ -52,10 +52,10 @@ def check_float_or_int(thing):
         return thing
     try:
         return _check(thing, float)
-    except:
+    except Exception:
         try:
             return _check(thing, int)
-        except:
+        except Exception:
             raise Exception(
                 f"Property value '{thing}' should be of type 'Float' or 'Integer'"
             )

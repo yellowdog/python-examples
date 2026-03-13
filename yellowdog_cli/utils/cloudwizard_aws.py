@@ -46,7 +46,6 @@ AWS_ALL_REGIONS = [
     "ap-southeast-1",
     "ap-southeast-2",
     "ap-southeast-3",
-    "ap-southeast-3",
     "ap-southeast-4",
     "ca-central-1",
     "eu-central-1",
@@ -178,7 +177,7 @@ class AWSConfig(CommonCloudConfig):
         self._remove_yellowdog_resources()
         self._remove_aws_resources()
 
-    def set_ssh_ingress_rule(self, operation: str, selected_region: str = None):
+    def set_ssh_ingress_rule(self, operation: str, selected_region: str | None = None):
         """
         Add or remove SSH ingress for all relevant security groups.
         A list of regions can be supplied as an argument.
@@ -189,7 +188,7 @@ class AWSConfig(CommonCloudConfig):
                 "IpProtocol": "tcp",
                 "FromPort": 22,
                 "ToPort": 22,
-                "IpRanges": [{"CidrIp": f"0.0.0.0/0"}],
+                "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
             }
         ]
         for region in AWS_ALL_REGIONS if selected_region is None else [selected_region]:

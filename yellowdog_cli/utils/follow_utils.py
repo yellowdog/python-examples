@@ -96,7 +96,7 @@ def follow_events(ydid: str, ydid_type: YDIDType):
         if response.status_code != 200:
             try:
                 error_text = response.json()["message"]
-            except:
+            except Exception:
                 error_text = "(JSON error cannot be decoded)"
             print_error(f"'{ydid}': {error_text}")
             break
@@ -113,7 +113,7 @@ def follow_events(ydid: str, ydid_type: YDIDType):
         except Exception as e:
             if "Connection broken" in str(e):
                 print_warning(
-                    f"Event stream interruption for '{ydid}'"
+                    f"Event stream interruption for '{ydid}' "
                     f"(retrying in {EVENT_STREAM_RETRY_INTERVAL}s)"
                 )
                 sleep(EVENT_STREAM_RETRY_INTERVAL)

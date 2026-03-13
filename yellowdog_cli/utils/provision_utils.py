@@ -2,7 +2,7 @@
 Utility functions for provisioning and instantiating.
 """
 
-from os import chdir
+from os import chdir, getcwd
 
 from yellowdog_client import PlatformClient
 
@@ -22,7 +22,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 
 def get_user_data_property(
-    config: ConfigWorkerPool, content_path: str = None
+    config: ConfigWorkerPool, content_path: str | None = None
 ) -> str | None:
     """
     Get the 'userData' property, either using the string specified in
@@ -42,29 +42,33 @@ def get_user_data_property(
     source_directory = (
         CONFIG_FILE_DIR if content_path is None or content_path == "" else content_path
     )
+    original_directory = getcwd()
     try:
         if source_directory != "":
-            chdir(source_directory)
-    except Exception as e:
-        raise Exception(
-            f"Unable to switch to content directory '{source_directory}': {e}"
-        )
+            try:
+                chdir(source_directory)
+            except Exception as e:
+                raise Exception(
+                    f"Unable to switch to content directory '{source_directory}': {e}"
+                )
 
-    user_data = None
+        user_data = None
 
-    if config.user_data:
-        user_data = config.user_data
+        if config.user_data:
+            user_data = config.user_data
 
-    elif config.user_data_file:
-        with open(config.user_data_file) as f:
-            user_data = f.read()
+        elif config.user_data_file:
+            with open(config.user_data_file) as f:
+                user_data = f.read()
 
-    elif config.user_data_files:
-        user_data = ""
-        for user_data_file in config.user_data_files:
-            with open(user_data_file) as f:
-                user_data += f.read()
-                user_data += "\n"
+        elif config.user_data_files:
+            user_data = ""
+            for user_data_file in config.user_data_files:
+                with open(user_data_file) as f:
+                    user_data += f.read()
+                    user_data += "\n"
+    finally:
+        chdir(original_directory)
 
     if user_data is not None:
         try:
@@ -98,7 +102,7 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     return template_id
 
 
-def get_image_id(client: PlatformClient, image_name_or_id: str) -> str:
+def get_image_id(client: PlatformClient, image_name_or_id: str) -> str | None:
     """
     This function was simplified, hence the pass-through call for now.
     """

@@ -23,7 +23,11 @@ from yellowdog_cli.utils.misc_utils import (
     split_delimited_string,
 )
 from yellowdog_cli.utils.printing import print_error, print_info, print_json
-from yellowdog_cli.utils.property_names import *
+from yellowdog_cli.utils.property_names import (
+    COMMON_SECTION,
+    USERDATA,
+    VARIABLES,
+)
 from yellowdog_cli.utils.settings import (
     ARRAY_TYPE_TAG,
     BOOL_TYPE_TAG,
@@ -45,7 +49,7 @@ from yellowdog_cli.utils.settings import (
 # Set up default variable substitutions
 try:
     USERNAME = getuser().replace(" ", "_").lower()
-except:
+except Exception:
     USERNAME = "default-yd-user"
 
 VARIABLE_SUBSTITUTIONS = {
@@ -220,19 +224,13 @@ def process_variable_substitutions(
             return_str += element
             continue
 
-        try:  # Find the type tag in the element, if present
-            type_tag = (
-                re.match(
-                    f"^{opening_delimiter}({NUMBER_TYPE_TAG}|{BOOL_TYPE_TAG}"
-                    f"|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG}|{FORMAT_NAME_TYPE_TAG})"
-                    f"(?!{TAG_DEFAULT_DIFF})",
-                    element,
-                )
-                .group(0)
-                .replace(opening_delimiter, "")
-            )
-        except AttributeError:  # No type-tag matches
-            type_tag = ""
+        m = re.match(
+            f"^{opening_delimiter}({NUMBER_TYPE_TAG}|{BOOL_TYPE_TAG}"
+            f"|{TABLE_TYPE_TAG}|{ARRAY_TYPE_TAG}|{FORMAT_NAME_TYPE_TAG})"
+            f"(?!{TAG_DEFAULT_DIFF})",
+            element,
+        )
+        type_tag = m.group(0).replace(opening_delimiter, "") if m is not None else ""
 
         element_minus_type_tag = (
             element.replace(opening_delimiter + type_tag, opening_delimiter)
@@ -243,6 +241,7 @@ def process_variable_substitutions(
         element_processed = process_untyped_variable_substitutions(
             element_minus_type_tag, opening_delimiter, closing_delimiter
         )
+        assert element_processed is not None  # element_minus_type_tag is always str
 
         if element_processed == element_minus_type_tag:  # No variable processing
             return_str += element
@@ -291,8 +290,11 @@ def process_untyped_variable_substitutions(
         for element in split_delimited_string(
             undelimited_input_string, opening_delimiter, closing_delimiter
         ):
-            processed_string += process_untyped_variable_substitutions(
-                element, opening_delimiter, closing_delimiter
+            processed_string += (
+                process_untyped_variable_substitutions(
+                    element, opening_delimiter, closing_delimiter
+                )
+                or ""
             )
         input_string = opening_delimiter + processed_string + closing_delimiter
 

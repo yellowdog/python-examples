@@ -14,7 +14,6 @@ from yellowdog_client.model import (
     MachineImageGroup,
     NamespaceStorageConfiguration,
     WorkerPoolStatus,
-    WorkerPoolSummary,
 )
 
 from yellowdog_cli.utils.entity_utils import (
@@ -500,8 +499,6 @@ def remove_namespace_policy(resource: dict):
     # Test for existing policy
     try:
         CLIENT.namespaces_client.get_namespace_policy(namespace=namespace)
-        if not confirmed(f"Remove Namespace Policy '{namespace}'?"):
-            return
     except Exception:
         # Assume it's not found ... 404 from API
         print_warning(f"Cannot find Namespace Policy '{namespace}'")
@@ -591,6 +588,7 @@ def remove_namespace(resource: dict):
         CLIENT.namespaces_client.delete_namespace(
             get_namespace_id_by_name(CLIENT, name)
         )
+        print_info(f"Removed Namespace '{name}' ({namespace_id})")
     except Exception as e:
         if "ConflictException" in str(e):
             print_error(
@@ -599,8 +597,6 @@ def remove_namespace(resource: dict):
             )
         else:
             print_error(f"Unable to remove Namespace '{name}': {e}")
-
-    print_info(f"Removed Namespace '{name}' ({namespace_id})")
 
 
 # Entry point
