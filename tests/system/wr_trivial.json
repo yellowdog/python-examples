@@ -1,0 +1,11 @@
+{
+  "taskGroups": [
+    {
+      "tasks": [
+        {
+          "arguments": ["-c", "echo hello from pytest-system"]
+        }
+      ]
+    }
+  ]
+}
