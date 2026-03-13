@@ -1,6 +1,9 @@
+import atexit
 import sys
+import time
 
 import pytest
+from cli_test_helpers import shell
 
 # Strip pytest's own arguments before any yellowdog_cli modules are imported.
 # CLIParser calls parse_args() at module level; without this, pytest's argv
@@ -53,6 +56,51 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "system_compute" in item.keywords:
                 item.add_marker(skipper)
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def system_tag() -> str:
+    """
+    Session-unique tag for compute tests (e.g. 'pytest-1741880400').
+
+    Belt-and-braces: registers an atexit handler that cancels any outstanding
+    Work Requirements and terminates any Worker Pools carrying the tag, so
+    cloud resources are cleaned up even if a test crashes without teardown.
+    """
+    tag = f"pytest-{int(time.time())}"
+
+    def _cleanup() -> None:
+        shell(f"yd-cancel -y -t={tag} -n=pytest-system")
+        shell(f"yd-terminate -y -t={tag} -n=pytest-system")
+
+    atexit.register(_cleanup)
+    return tag
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def yd_list_row_matches(stdout: str, name: str, status: str) -> bool:
+    """
+    Return True if any line of ``yd-list`` tabular output contains both
+    ``name`` and ``status`` on the same row.
+
+    Useful for asserting that a named resource is in a particular state,
+    e.g. ``yd_list_row_matches(result.stdout, "my-pool", "RUNNING")``.
+    """
+    return any(name in line and status in line for line in stdout.splitlines())
+
+
+# ---------------------------------------------------------------------------
+# pytest configuration
+# ---------------------------------------------------------------------------
 
 
 def pytest_configure(config):

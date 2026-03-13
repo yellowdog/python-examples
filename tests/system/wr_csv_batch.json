@@ -1,0 +1,11 @@
+{
+  "taskGroups": [
+    {
+      "tasks": [
+        {
+          "arguments": ["echo", "task {{row_number}} value={{value}}"]
+        }
+      ]
+    }
+  ]
+}
