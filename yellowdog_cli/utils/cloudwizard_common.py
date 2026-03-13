@@ -73,7 +73,7 @@ class CommonCloudConfig(ABC):
         clear_compute_requirement_template_cache()
         counter = 0
         for compute_requirement_template_summary in get_compute_requirement_templates(
-            client, self._namespace
+            client, self._namespace, partial_name_matches=True
         ):
             if (
                 compute_requirement_template_summary.name.startswith(name_prefix)

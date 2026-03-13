@@ -14,7 +14,7 @@ from yellowdog_client.model import (
 from yellowdog_cli.utils.entity_utils import (
     get_worker_pool_by_id,
     get_worker_pool_id_by_name,
-    get_worker_pools,
+    get_worker_pool_summaries,
 )
 from yellowdog_cli.utils.follow_utils import follow_ids
 from yellowdog_cli.utils.interactive import confirmed, select
@@ -36,8 +36,11 @@ def main():
         f"names including '{CONFIG_COMMON.name_tag}'"
     )
 
-    worker_pool_summaries: list[WorkerPoolSummary] = get_worker_pools(
-        CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
+    worker_pool_summaries: list[WorkerPoolSummary] = get_worker_pool_summaries(
+        CLIENT,
+        CONFIG_COMMON.namespace,
+        CONFIG_COMMON.name_tag,
+        partial_name_matches=True,
     )
 
     shutdown_count = 0

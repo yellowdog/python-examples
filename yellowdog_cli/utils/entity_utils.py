@@ -205,7 +205,7 @@ def get_work_requirement_summary_by_name_or_id(
 
     # Don't include name in the search, to allow for name or ID
     work_requirement_summaries = get_work_requirement_summaries(
-        client, namespace=namespace_
+        client, namespace=namespace_, partial_name_matches=True
     )
 
     for work_requirement_summary in work_requirement_summaries:
@@ -231,16 +231,18 @@ def get_compute_source_template_id_by_name(
     namespace_ = namespace if namespace_ is None else namespace_
 
     # Ensure exact name match
-    csts = [
-        cst
-        for cst in get_compute_source_templates(client, namespace_, name)
-        if cst.name == name
-    ]
-
-    if len(csts) == 0:
+    if (
+        len(
+            csts := get_compute_source_templates(
+                client, namespace_, name, partial_name_matches=False
+            )
+        )
+        == 0
+    ):
         return None
 
     # Names are unique within namespaces
+    # This will be printed only once per name, due to caching
     print_info(f"Compute Source Template name '{name}' -> ID {(cst_id := csts[0].id)}")
     return cst_id
 
@@ -250,17 +252,26 @@ def get_compute_source_templates(
     client: PlatformClient,
     namespace: str | None = None,
     name: str | None = None,
+    partial_name_matches: bool = True,
 ) -> list[ComputeSourceTemplateSummary]:
     """
     Cache the list of Compute Source Templates, scoped by namespace and name.
     """
+    namespace_, name = split_namespace_and_name(name)
+    namespace_ = namespace if namespace_ is None else namespace_
+
     cst_search = ComputeSourceTemplateSearch(
-        name=name, namespaces=None if namespace is None else [namespace]
+        name=name, namespaces=None if namespace_ is None else [namespace_]
     )
     cst_search_client: SearchClient = (
         client.compute_client.get_compute_source_templates(cst_search)
     )
-    return cst_search_client.list_all()
+
+    csts = cst_search_client.list_all()
+    if partial_name_matches or name is None:
+        return csts
+
+    return [cst for cst in csts if cst.name == name]
 
 
 @lru_cache
@@ -268,7 +279,7 @@ def get_work_requirement_summaries(
     client: PlatformClient,
     namespace: str | None = None,
     name: str | None = None,
-    partial_name_matches: bool = False,
+    partial_name_matches: bool = True,
 ) -> list[WorkRequirementSummary]:
     """
     Get the list of Work Requirement summaries, optionally
@@ -307,15 +318,17 @@ def get_compute_requirement_template_id_by_name(
     namespace_, name = split_namespace_and_name(name)
     namespace_ = namespace if namespace_ is None else namespace_
 
-    if len(crts := get_compute_requirement_templates(client, namespace_, name)) == 0:
+    if (
+        len(
+            crts := get_compute_requirement_templates(
+                client, namespace_, name, partial_name_matches=False
+            )
+        )
+        == 0
+    ):
         return None
 
-    # Ensure exact name match; names are unique within a namespace
-    crts = [crt for crt in crts if crt.name == name]
-    try:
-        return crts[0].id
-    except IndexError:
-        return None
+    return crts[0].id
 
 
 @lru_cache
@@ -323,6 +336,7 @@ def get_compute_requirement_templates(
     client: PlatformClient,
     namespace: str | None = None,
     name: str | None = None,
+    partial_name_matches: bool = True,
 ) -> list[ComputeRequirementTemplateSummary]:
     """
     Cache the list of Compute Requirement Templates, scoped by namespace
@@ -334,8 +348,12 @@ def get_compute_requirement_templates(
     crt_search_client: SearchClient = (
         client.compute_client.get_compute_requirement_templates(crt_search)
     )
-    # Note: partial matches on 'name'
-    return crt_search_client.list_all()
+    crts = crt_search_client.list_all()
+
+    if partial_name_matches or name is None:
+        return crts
+
+    return [crt for crt in crts if crt.name == name]
 
 
 def clear_compute_requirement_template_cache():
@@ -351,18 +369,24 @@ def get_compute_requirement_id_by_worker_pool_id(
     """
     Get a Compute Requirement ID from a Provisioned Worker Pool ID.
     """
-    worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_id(
-        worker_pool_id
-    )
+    try:
+        worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_id(
+            worker_pool_id
+        )
+    except:
+        return None
+
     if isinstance(worker_pool, ProvisionedWorkerPool):
         return worker_pool.computeRequirementId
+
     return None
 
 
-def get_worker_pools(
+def get_worker_pool_summaries(
     client: PlatformClient,
     namespace: str | None = None,
     name: str | None = None,
+    partial_name_matches: bool = True,
 ) -> list[WorkerPoolSummary]:
     """
     Return all Worker Pool summaries for a namespace, name.
@@ -373,8 +397,12 @@ def get_worker_pools(
     wp_search_client: SearchClient = client.worker_pool_client.get_worker_pools(
         wp_search
     )
-    # Note: partial matches on 'name'
-    return wp_search_client.list_all()
+    wps = wp_search_client.list_all()
+
+    if partial_name_matches or name is None:
+        return wps
+
+    return [wp for wp in wps if wp.name == name]
 
 
 @lru_cache

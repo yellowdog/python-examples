@@ -25,7 +25,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_compute_source_template_id_by_name,
     get_group_id_by_name,
     get_namespace_id_by_name,
-    get_worker_pools,
+    get_worker_pool_summaries,
     remove_allowances_matching_description,
 )
 from yellowdog_cli.utils.interactive import confirmed
@@ -331,40 +331,45 @@ def remove_configured_worker_pool(resource: dict):
 
     fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
-    worker_pools: list[WorkerPoolSummary] = get_worker_pools(
-        CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
-    )
-
-    # Shut down a matching Configured Worker Pool if in an appropriate state
-    for worker_pool in worker_pools:
-        if worker_pool.type.split(".")[-1] == "ConfiguredWorkerPool":
-            if worker_pool.status not in [
-                WorkerPoolStatus.SHUTDOWN,
-                WorkerPoolStatus.TERMINATED,
-            ]:
-                if not confirmed(
-                    f"Shut down Configured Worker Pool '{fq_name}'"
-                    f" ({worker_pool.id})?"
-                ):
-                    break
-                try:
-                    CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
-                    print_info(
-                        f"Shutting down [{worker_pool.status}] Configured Worker Pool"
-                        f" '{fq_name}' ({worker_pool.id})"
-                    )
-                    return
-                except Exception as e:
-                    print_error(f"Failed to shut down Configured Worker Pool: {e}")
-            else:
-                print_info(
-                    f"Not shutting down [{worker_pool.status}] Configured Worker Pool"
-                    f" '{fq_name}' ({worker_pool.id})"
-                )
-                return
-
-    else:
+    try:
+        worker_pool = get_worker_pool_summaries(
+            CLIENT, namespace, name, partial_name_matches=False
+        )[0]
+    except IndexError:
         print_warning(f"Cannot find Configured Worker Pool '{fq_name}'")
+        return
+
+    # Shut down if a configured worker pool, in an appropriate state
+    if worker_pool.type.split(".")[-1] != "ConfiguredWorkerPool":
+        print_warning(
+            f"Worker Pool '{fq_name}' is not a Configured Pool ({worker_pool.id})"
+        )
+        return
+
+    if worker_pool.status in [
+        WorkerPoolStatus.SHUTDOWN,
+        WorkerPoolStatus.TERMINATED,
+    ]:
+        print_info(
+            f"Not shutting down already {worker_pool.status} Configured "
+            f"Worker Pool '{fq_name}' ({worker_pool.id})"
+        )
+        return
+
+    if not confirmed(
+        f"Shut down Configured Worker Pool '{fq_name}'" f" ({worker_pool.id})?"
+    ):
+        return
+
+    try:
+        CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
+        print_info(
+            f"Shut down {worker_pool.status} Configured Worker Pool"
+            f" '{fq_name}' ({worker_pool.id})"
+        )
+        return
+    except Exception as e:
+        print_error(f"Failed to shut down Configured Worker Pool: {e}")
 
 
 def remove_allowance(resource: dict):
