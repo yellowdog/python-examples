@@ -134,7 +134,9 @@ class CLIParser:
             help="ignore the contents of any TOML configuration file (even if specified on the command line)",
         )
 
-        # Module-specific argument sets
+        # Module-specific arguments
+
+        # yd-* (all except yd-compare)
         if not any(module in sys.argv[0] for module in ["compare"]):
             parser.add_argument(
                 "--variable",
@@ -149,6 +151,7 @@ class CLIParser:
                 metavar="<var1=v1>",
             )
 
+        # yd-* (all except yd-boost, yd-cloudwizard, yd-follow, yd-list, yd-compare)
         if not any(
             module in sys.argv[0]
             for module in [
@@ -190,6 +193,7 @@ class CLIParser:
                 metavar="<tag>",
             )
 
+        # yd-list
         if any(module in sys.argv[0] for module in ["list"]):
             parser.add_argument(
                 "--namespace",
@@ -223,6 +227,7 @@ class CLIParser:
                 help="list the YellowDog IDs only",
             )
 
+        # yd-submit
         if any(module in sys.argv[0] for module in ["submit"]):
             parser.add_argument(
                 "--work-requirement",
@@ -343,6 +348,7 @@ class CLIParser:
                 metavar="<max_number_of_parallel_batches>",
             )
 
+        # yd-provision / yd-instantiate
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
             parser.add_argument(
                 "--worker-pool",
@@ -356,6 +362,7 @@ class CLIParser:
                 metavar="<worker_pool.json>",
             )
 
+        # yd-cancel
         if any(module in sys.argv[0] for module in ["cancel"]):
             parser.add_argument(
                 "--abort",
@@ -372,6 +379,7 @@ class CLIParser:
                 help="follow progress after cancelling the work requirement(s)",
             )
 
+        # yd-start / yd-hold / yd-finish
         if any(
             module in sys.argv[0]
             for module in [
@@ -388,6 +396,8 @@ class CLIParser:
                 help="follow work requirement events after applying action",
             )
 
+        # yd-cancel / yd-delete / yd-download / yd-shutdown / yd-terminate /
+        # yd-start / yd-hold / yd-finish
         if any(
             module in sys.argv[0]
             for module in [
@@ -409,6 +419,9 @@ class CLIParser:
                 help="list, and interactively select, the items to act on",
             )
 
+        # yd-abort / yd-cancel / yd-delete / yd-shutdown / yd-terminate /
+        # yd-resize / yd-cloudwizard / yd-boost / yd-hold / yd-start / yd-list /
+        # yd-finish
         if any(
             module in sys.argv[0]
             for module in [
@@ -437,6 +450,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-delete / yd-download
         if any(module in sys.argv[0] for module in ["delete", "download"]):
             parser.add_argument(
                 "--all",
@@ -453,6 +467,7 @@ class CLIParser:
                 help="match all namespaces that contain the value of 'namespace'",
             )
 
+        # yd-download
         if "download" in sys.argv[0]:
             parser.add_argument(
                 "--yes",
@@ -495,6 +510,7 @@ class CLIParser:
                 metavar="<pattern-string>",
             )
 
+        # yd-list
         if "list" in sys.argv[0]:
             parser.add_argument(
                 "--reverse",
@@ -697,6 +713,7 @@ class CLIParser:
                 help="automatically select all listed objects (implies '--details')",
             )
 
+        # yd-upload
         if any(module in sys.argv[0] for module in ["upload"]):
             parser.add_argument(
                 "filenames",
@@ -733,6 +750,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-submit / yd-provision / yd-instantiate / yd-create
         if any(
             module in sys.argv[0]
             for module in ["submit", "provision", "instantiate", "create"]
@@ -745,6 +763,7 @@ class CLIParser:
                 help="dry-run the action and print the JSON that would be submitted",
             )
 
+        # yd-instantiate
         if any(module in sys.argv[0] for module in ["instantiate"]):
             parser.add_argument(
                 "--compute-requirement",
@@ -765,6 +784,7 @@ class CLIParser:
                 help="report on a dynamic template test run",
             )
 
+        # yd-admin
         if "admin" in sys.argv[0]:
             parser.add_argument(
                 "work_requirement_id",
@@ -774,6 +794,7 @@ class CLIParser:
                 help="work requirement to be refreshed",
             )
 
+        # yd-submit / yd-provision / yd-instantiate / yd-create / yd-remove
         if any(
             module in sys.argv[0]
             for module in ["submit", "provision", "instantiate", "create", "remove"]
@@ -786,6 +807,7 @@ class CLIParser:
                 help="dry-run Jsonnet processing into JSON",
             )
 
+        # yd-resize
         if "resize" in sys.argv[0]:
             parser.add_argument(
                 "worker_pool",
@@ -810,6 +832,7 @@ class CLIParser:
                 help="resize a compute requirement instead of a worker pool",
             )
 
+        # yd-boost
         if "boost" in sys.argv[0]:
             parser.add_argument(
                 "boost_hours",
@@ -825,6 +848,7 @@ class CLIParser:
                 help="the YellowDog ID(s) of the allowance(s) to boost",
             )
 
+        # yd-shutdown
         if "shutdown" in sys.argv[0]:
             parser.add_argument(
                 "worker_pool_nodes_list",
@@ -849,6 +873,7 @@ class CLIParser:
                 help="also immediately terminate associated compute requirement(s)",
             )
 
+        # yd-terminate
         if "terminate" in sys.argv[0]:
             parser.add_argument(
                 "compute_reqs_instances_or_nodes",
@@ -869,6 +894,7 @@ class CLIParser:
                 help="follow termination to completion",
             )
 
+        # yd-cancel
         if "cancel" in sys.argv[0]:
             parser.add_argument(
                 "work_requirements",
@@ -882,6 +908,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-start
         if "start" in sys.argv[0]:
             parser.add_argument(
                 "work_requirements",
@@ -895,6 +922,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-hold
         if "hold" in sys.argv[0]:
             parser.add_argument(
                 "work_requirements",
@@ -908,6 +936,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-finish
         if "finish" in sys.argv[0]:
             parser.add_argument(
                 "work_requirements",
@@ -921,6 +950,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-delete
         if "delete" in sys.argv[0]:
             parser.add_argument(
                 "object_paths_to_delete",
@@ -931,6 +961,7 @@ class CLIParser:
                 help="the object paths to delete; optional, overrides --tag/prefix",
             )
 
+        # yd-download
         if "download" in sys.argv[0]:
             parser.add_argument(
                 "object_paths_to_download",
@@ -940,6 +971,8 @@ class CLIParser:
                 type=str,
                 help="the object paths to download; optional, overrides --tag/prefix",
             )
+
+        # yd-create / yd-remove
         if any(module in sys.argv[0] for module in ["create", "remove"]):
             parser.add_argument(
                 "resource_specifications",
@@ -969,6 +1002,8 @@ class CLIParser:
                     "(using yd-create) or removing allowances"
                 ),
             )
+
+        # yd-create
         if "create" in sys.argv[0]:
             parser.add_argument(
                 "--show-keyring-passwords",
@@ -983,6 +1018,7 @@ class CLIParser:
                 help="regenerate the application key & secret when updating an application",
             )
 
+        # yd-remove
         if "remove" in sys.argv[0]:
             parser.add_argument(
                 "--ids",
@@ -991,6 +1027,7 @@ class CLIParser:
                 help="remove resources using their YellowDog IDs (YDIDs)",
             )
 
+        # yd-follow / yd-show
         if any(module in sys.argv[0] for module in ["follow", "show"]):
             verb = "follow" if "follow" in sys.argv[0] else "show"
             parser.add_argument(
@@ -1002,6 +1039,7 @@ class CLIParser:
                 help=f"the YellowDog ID(s) of the item(s) to {verb}",
             )
 
+        # yd-upload / yd-submit / yd-provision / yd-instantiate
         if any(
             module in sys.argv[0]
             for module in ["upload", "submit", "provision", "instantiate"]
@@ -1018,6 +1056,7 @@ class CLIParser:
                 metavar="<directory>",
             )
 
+        # yd-provision / yd-instantiate
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
             parser.add_argument(
                 "--follow",
@@ -1027,6 +1066,7 @@ class CLIParser:
                 help="follow progress after provisioning",
             )
 
+        # yd-resize
         if any(module in sys.argv[0] for module in ["resize"]):
             parser.add_argument(
                 "--follow",
@@ -1036,6 +1076,7 @@ class CLIParser:
                 help="follow progress after resizing",
             )
 
+        # yd-follow / yd-shutdown / yd-provision / yd-resize
         if any(
             module in sys.argv[0]
             for module in ["follow", "shutdown", "provision", "resize"]
@@ -1050,6 +1091,9 @@ class CLIParser:
                     " following worker pools"
                 ),
             )
+
+        # yd-follow / yd-provision / yd-instantiate / yd-resize / yd-shutdown /
+        # yd-terminate / yd-submit / yd-cancel / yd-start / yd-hold / yd-finish
         if any(
             module in sys.argv[0]
             for module in [
@@ -1073,6 +1117,7 @@ class CLIParser:
                 help="print the raw JSON event stream when following events",
             )
 
+        # yd-cloudwizard
         if "cloudwizard" in sys.argv[0]:
             parser.add_argument(
                 "operation",
@@ -1130,6 +1175,7 @@ class CLIParser:
                 help="print AWS secret key during setup",
             )
 
+        # yd-abort
         if "abort" in sys.argv[0]:
             parser.add_argument(
                 "task_id_list",
@@ -1140,6 +1186,7 @@ class CLIParser:
                 help="the YellowDog ID(s) of the task(s) to abort",
             )
 
+        # yd-submit (positional arg)
         if any(module in sys.argv[0] for module in ["submit"]):
             # Note: removes the need for the '-r' option
             parser.add_argument(
@@ -1154,6 +1201,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-provision (positional arg)
         if any(module in sys.argv[0] for module in ["provision"]):
             # Note: removes the need for the '-p' option
             parser.add_argument(
@@ -1168,6 +1216,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-instantiate (positional arg)
         if any(module in sys.argv[0] for module in ["instantiate"]):
             # Note: removes the need for the '-C' option
             parser.add_argument(
@@ -1182,6 +1231,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-create
         if any(module in sys.argv[0] for module in ["create"]):
             parser.add_argument(
                 "--no-resequence",
@@ -1193,6 +1243,7 @@ class CLIParser:
                 ),
             )
 
+        # yd-show
         if any(module in sys.argv[0] for module in ["show"]):
             parser.add_argument(
                 "--show-token",
@@ -1218,6 +1269,7 @@ class CLIParser:
                 metavar="<var>",
             )
 
+        # yd-list / yd-show
         if any(module in sys.argv[0] for module in ["list", "show"]):
             parser.add_argument(
                 "--substitute-ids",
@@ -1253,6 +1305,7 @@ class CLIParser:
                 metavar="<output-file>",
             )
 
+        # yd-compare
         if "compare" in sys.argv[0]:
             parser.add_argument(
                 "wr_or_tg_id",
@@ -1270,6 +1323,7 @@ class CLIParser:
                 help="the YellowDog ID(s) of the provisioned worker pool(s) to compare",
             )
 
+        # yd-submit
         if any(module in sys.argv[0] for module in ["submit"]):
             parser.add_argument(
                 "--upgrade-rclone",
@@ -1283,6 +1337,10 @@ class CLIParser:
         if self.args.docs:
             docs()
             exit(0)
+
+    # -----------------------------------------------------------------------
+    # Common args
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
@@ -1301,23 +1359,23 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def namespace(self) -> str | None:
-        return self.args.namespace
-
-    @property
-    @allow_missing_attribute
-    def tag(self) -> str | None:
-        return self.args.tag
-
-    @property
-    @allow_missing_attribute
     def url(self) -> str | None:
         return self.args.url
 
     @property
     @allow_missing_attribute
-    def variables(self) -> list[str] | None:
-        return self.args.variable
+    def debug(self) -> bool | None:
+        return self.args.debug
+
+    @property
+    @allow_missing_attribute
+    def use_pac(self) -> bool | None:
+        return self.args.pac
+
+    @property
+    @allow_missing_attribute
+    def no_format(self) -> bool | None:
+        return self.args.no_format
 
     @property
     @allow_missing_attribute
@@ -1339,10 +1397,58 @@ class CLIParser:
     def no_config(self) -> bool | None:
         return self.args.no_config
 
+    # -----------------------------------------------------------------------
+    # yd-* (all except yd-compare)
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def variables(self) -> list[str] | None:
+        return self.args.variable
+
+    # -----------------------------------------------------------------------
+    # yd-* (all except yd-boost, yd-cloudwizard, yd-follow, yd-list, yd-compare)
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def namespace(self) -> str | None:
+        return self.args.namespace
+
+    @property
+    @allow_missing_attribute
+    def tag(self) -> str | None:
+        return self.args.tag
+
+    # -----------------------------------------------------------------------
+    # yd-list
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def ids_only(self) -> bool | None:
+        return self.args.ids_only
+
+    # -----------------------------------------------------------------------
+    # yd-submit
+    # -----------------------------------------------------------------------
+
     @property
     @allow_missing_attribute
     def work_req_file(self) -> str | None:
         return self.args.work_requirement
+
+    @property
+    @allow_missing_attribute
+    def json_raw(self) -> str | None:
+        return self.args.json_raw
+
+    # Also used by yd-cancel, yd-provision, yd-instantiate, yd-start, yd-hold,
+    # yd-finish, yd-shutdown, yd-terminate, yd-resize
+    @property
+    @allow_missing_attribute
+    def follow(self) -> bool | None:
+        return self.args.follow
 
     @property
     @allow_missing_attribute
@@ -1356,18 +1462,66 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def worker_pool_file(self) -> str | None:
-        return self.args.worker_pool
+    def task_count(self) -> int | None:
+        return self.args.task_count
 
     @property
     @allow_missing_attribute
-    def follow(self) -> bool | None:
-        return self.args.follow
+    def task_group_count(self) -> int | None:
+        return self.args.task_group_count
+
+    @property
+    @allow_missing_attribute
+    def task_batch_size(self) -> int | None:
+        return self.args.task_batch_size
+
+    @property
+    @allow_missing_attribute
+    def pause_between_batches(self) -> int | None:
+        return self.args.pause_between_batches
+
+    @property
+    @allow_missing_attribute
+    def csv_files(self) -> list[str] | None:
+        return self.args.csv_file
+
+    @property
+    @allow_missing_attribute
+    def process_csv_only(self) -> bool | None:
+        return self.args.process_csv_only
+
+    @property
+    @allow_missing_attribute
+    def hold(self) -> bool | None:
+        return self.args.hold
+
+    @property
+    @allow_missing_attribute
+    def parallel_batches(self) -> int | None:
+        return self.args.parallel_batches
+
+    # -----------------------------------------------------------------------
+    # yd-provision / yd-instantiate
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def worker_pool_file(self) -> str | None:
+        return self.args.worker_pool
+
+    # -----------------------------------------------------------------------
+    # yd-cancel
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
     def abort(self) -> bool | None:
         return self.args.abort
+
+    # -----------------------------------------------------------------------
+    # yd-cancel / yd-delete / yd-download / yd-shutdown / yd-terminate /
+    # yd-start / yd-hold / yd-finish
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
@@ -1378,10 +1532,58 @@ class CLIParser:
     def interactive(self, interactive: bool):
         self.args.interactive = interactive
 
+    # -----------------------------------------------------------------------
+    # yd-abort / yd-cancel / yd-delete / yd-shutdown / yd-terminate /
+    # yd-resize / yd-cloudwizard / yd-boost / yd-hold / yd-start / yd-list /
+    # yd-finish  (also yd-create / yd-remove)
+    # -----------------------------------------------------------------------
+
     @property
     @allow_missing_attribute
     def yes(self) -> bool | None:
         return self.args.yes
+
+    # -----------------------------------------------------------------------
+    # yd-delete / yd-download
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def all(self) -> bool | None:
+        return self.args.all
+
+    @property
+    @allow_missing_attribute
+    def non_exact_namespace_match(self) -> bool | None:
+        return self.args.non_exact_namespace_match
+
+    # -----------------------------------------------------------------------
+    # yd-download
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def directory(self) -> str | None:
+        return self.args.directory
+
+    @property
+    @allow_missing_attribute
+    def flatten_download_paths(self) -> bool | None:
+        return self.args.flatten
+
+    @property
+    @allow_missing_attribute
+    def object_path_pattern(self) -> str | None:
+        return self.args.pattern
+
+    # -----------------------------------------------------------------------
+    # yd-list
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def reverse(self) -> bool | None:
+        return self.args.reverse
 
     @property
     @allow_missing_attribute
@@ -1417,180 +1619,6 @@ class CLIParser:
     @allow_missing_attribute
     def active_only(self) -> bool | None:
         return self.args.active_only
-
-    @property
-    @allow_missing_attribute
-    def all(self) -> bool | None:
-        return self.args.all
-
-    @property
-    @allow_missing_attribute
-    def non_exact_namespace_match(self) -> bool | None:
-        return self.args.non_exact_namespace_match
-
-    @property
-    @allow_missing_attribute
-    def details(self) -> bool | None:
-        return self.args.details
-
-    @details.setter
-    def details(self, interactive: bool):
-        self.args.details = interactive
-
-    @property
-    @allow_missing_attribute
-    def debug(self) -> bool | None:
-        return self.args.debug
-
-    @property
-    @allow_missing_attribute
-    def use_pac(self) -> bool | None:
-        return self.args.pac
-
-    @property
-    @allow_missing_attribute
-    def no_format(self) -> bool | None:
-        return self.args.no_format
-
-    @property
-    @allow_missing_attribute
-    def directory(self) -> str | None:
-        return self.args.directory
-
-    @property
-    @allow_missing_attribute
-    def files(self) -> list[str]:
-        return self.args.filenames
-
-    @property
-    @allow_missing_attribute
-    def flatten(self) -> bool | None:
-        return self.args.flatten_upload_paths
-
-    @property
-    @allow_missing_attribute
-    def recursive(self) -> bool | None:
-        return self.args.recursive
-
-    @property
-    @allow_missing_attribute
-    def batch(self) -> bool | None:
-        return self.args.batch
-
-    @property
-    @allow_missing_attribute
-    def dry_run(self) -> bool | None:
-        return self.args.dry_run
-
-    @property
-    @allow_missing_attribute
-    def json_raw(self) -> str | None:
-        return self.args.json_raw
-
-    @property
-    @allow_missing_attribute
-    def compute_requirement(self) -> str | None:
-        return self.args.compute_requirement
-
-    @property
-    @allow_missing_attribute
-    def task_count(self) -> int | None:
-        return self.args.task_count
-
-    @property
-    @allow_missing_attribute
-    def task_group_count(self) -> int | None:
-        return self.args.task_group_count
-
-    @property
-    @allow_missing_attribute
-    def csv_files(self) -> list[str] | None:
-        return self.args.csv_file
-
-    @property
-    @allow_missing_attribute
-    def process_csv_only(self) -> bool | None:
-        return self.args.process_csv_only
-
-    @property
-    @allow_missing_attribute
-    def wr_ids(self) -> list[str] | None:
-        return self.args.work_requirement_id
-
-    @property
-    @allow_missing_attribute
-    def task_batch_size(self) -> int | None:
-        return self.args.task_batch_size
-
-    @property
-    @allow_missing_attribute
-    def content_path(self) -> str | None:
-        return self.args.content_path
-
-    @property
-    @allow_missing_attribute
-    def report(self) -> bool | None:
-        return self.args.report
-
-    @property
-    @allow_missing_attribute
-    def jsonnet_dry_run(self) -> bool | None:
-        return self.args.jsonnet_dry_run
-
-    @property
-    @allow_missing_attribute
-    def pause_between_batches(self) -> int | None:
-        return self.args.pause_between_batches
-
-    @property
-    @allow_missing_attribute
-    def parallel_batches(self) -> int | None:
-        return self.args.parallel_batches
-
-    @property
-    @allow_missing_attribute
-    def worker_pool_name(self) -> str | None:
-        return self.args.worker_pool
-
-    @property
-    @allow_missing_attribute
-    def worker_pool_nodes_list(self) -> list[str] | None:
-        return self.args.worker_pool_nodes_list
-
-    @property
-    @allow_missing_attribute
-    def compute_requirements_instances_or_nodes(self) -> str | None:
-        return self.args.compute_reqs_instances_or_nodes
-
-    @property
-    @allow_missing_attribute
-    def work_requirement_names(self) -> str | None:
-        return self.args.work_requirements
-
-    @property
-    @allow_missing_attribute
-    def object_paths_to_delete(self) -> list[str] | None:
-        return self.args.object_paths_to_delete
-
-    @property
-    @allow_missing_attribute
-    def object_paths_to_download(self) -> list[str] | None:
-        return self.args.object_paths_to_download
-
-    @property
-    @allow_missing_attribute
-    def worker_pool_size(self) -> int | None:
-        return self.args.worker_pool_size
-
-    @property
-    @allow_missing_attribute
-    def compute_req_resize(self) -> bool | None:
-        return self.args.compute_requirement
-
-    @property
-    @allow_missing_attribute
-    def flatten_download_paths(self) -> bool | None:
-        return self.args.flatten
 
     @property
     @allow_missing_attribute
@@ -1631,6 +1659,11 @@ class CLIParser:
     @allow_missing_attribute
     def workers(self) -> bool | None:
         return self.args.workers
+
+    @property
+    @allow_missing_attribute
+    def public_ips_only(self) -> bool | None:
+        return self.args.public_ips_only
 
     @property
     @allow_missing_attribute
@@ -1679,18 +1712,169 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def show_keyring_passwords(self) -> bool | None:
-        return self.args.show_keyring_passwords
+    def details(self) -> bool | None:
+        return self.args.details
+
+    @details.setter
+    def details(self, interactive: bool):
+        self.args.details = interactive
 
     @property
     @allow_missing_attribute
-    def regenerate_app_keys(self) -> bool | None:
-        return self.args.regenerate_app_keys
+    def auto_select_all(self) -> bool | None:
+        return self.args.auto_select_all
+
+    # -----------------------------------------------------------------------
+    # yd-upload
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
-    def ids(self) -> bool | None:
-        return self.args.ids
+    def files(self) -> list[str]:
+        return self.args.filenames
+
+    @property
+    @allow_missing_attribute
+    def flatten(self) -> bool | None:
+        return self.args.flatten_upload_paths
+
+    @property
+    @allow_missing_attribute
+    def recursive(self) -> bool | None:
+        return self.args.recursive
+
+    @property
+    @allow_missing_attribute
+    def batch(self) -> bool | None:
+        return self.args.batch
+
+    # -----------------------------------------------------------------------
+    # yd-submit / yd-provision / yd-instantiate / yd-create
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def dry_run(self) -> bool | None:
+        return self.args.dry_run
+
+    # -----------------------------------------------------------------------
+    # yd-instantiate
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def compute_requirement(self) -> str | None:
+        return self.args.compute_requirement
+
+    @property
+    @allow_missing_attribute
+    def report(self) -> bool | None:
+        return self.args.report
+
+    # -----------------------------------------------------------------------
+    # yd-admin
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def wr_ids(self) -> list[str] | None:
+        return self.args.work_requirement_id
+
+    # -----------------------------------------------------------------------
+    # yd-submit / yd-provision / yd-instantiate / yd-create / yd-remove
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def jsonnet_dry_run(self) -> bool | None:
+        return self.args.jsonnet_dry_run
+
+    # -----------------------------------------------------------------------
+    # yd-resize
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def worker_pool_name(self) -> str | None:
+        return self.args.worker_pool
+
+    @property
+    @allow_missing_attribute
+    def worker_pool_size(self) -> int | None:
+        return self.args.worker_pool_size
+
+    @property
+    @allow_missing_attribute
+    def compute_req_resize(self) -> bool | None:
+        return self.args.compute_requirement
+
+    # -----------------------------------------------------------------------
+    # yd-boost
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def boost_hours(self) -> int:
+        return self.args.boost_hours
+
+    @property
+    @allow_missing_attribute
+    def allowance_list(self) -> list[str]:
+        return self.args.allowances
+
+    # -----------------------------------------------------------------------
+    # yd-shutdown
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def worker_pool_nodes_list(self) -> list[str] | None:
+        return self.args.worker_pool_nodes_list
+
+    @property
+    @allow_missing_attribute
+    def terminate(self) -> bool | None:
+        return self.args.terminate
+
+    # -----------------------------------------------------------------------
+    # yd-terminate
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def compute_requirements_instances_or_nodes(self) -> str | None:
+        return self.args.compute_reqs_instances_or_nodes
+
+    # -----------------------------------------------------------------------
+    # yd-cancel / yd-start / yd-hold / yd-finish  (positional args)
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def work_requirement_names(self) -> str | None:
+        return self.args.work_requirements
+
+    # -----------------------------------------------------------------------
+    # yd-delete
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def object_paths_to_delete(self) -> list[str] | None:
+        return self.args.object_paths_to_delete
+
+    # -----------------------------------------------------------------------
+    # yd-download
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def object_paths_to_download(self) -> list[str] | None:
+        return self.args.object_paths_to_download
+
+    # -----------------------------------------------------------------------
+    # yd-create / yd-remove
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
@@ -1699,23 +1883,72 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
+    def match_allowances_by_description(self) -> bool | None:
+        return self.args.match_allowances_by_description
+
+    # -----------------------------------------------------------------------
+    # yd-create
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def show_keyring_passwords(self) -> bool | None:
+        return self.args.show_keyring_passwords
+
+    @property
+    @allow_missing_attribute
+    def regenerate_app_keys(self) -> bool | None:
+        return self.args.regenerate_app_keys
+
+    # -----------------------------------------------------------------------
+    # yd-remove
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def ids(self) -> bool | None:
+        return self.args.ids
+
+    # -----------------------------------------------------------------------
+    # yd-follow / yd-show
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
     def yellowdog_ids(self) -> list[str] | None:
         return self.args.yellowdog_ids
+
+    # -----------------------------------------------------------------------
+    # yd-upload / yd-submit / yd-provision / yd-instantiate
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def content_path(self) -> str | None:
+        return self.args.content_path
+
+    # -----------------------------------------------------------------------
+    # yd-follow / yd-shutdown / yd-provision / yd-resize
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
     def auto_cr(self) -> bool | None:
         return self.args.auto_follow_compute_requirements
 
+    # -----------------------------------------------------------------------
+    # yd-follow / yd-provision / yd-instantiate / yd-resize / yd-shutdown /
+    # yd-terminate / yd-submit / yd-cancel / yd-start / yd-hold / yd-finish
+    # -----------------------------------------------------------------------
+
     @property
     @allow_missing_attribute
     def raw_events(self) -> bool | None:
         return self.args.raw_events
 
-    @property
-    @allow_missing_attribute
-    def reverse(self) -> bool | None:
-        return self.args.reverse
+    # -----------------------------------------------------------------------
+    # yd-cloudwizard
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
@@ -1747,15 +1980,18 @@ class CLIParser:
     def show_secrets(self) -> bool | None:
         return self.args.show_secrets
 
-    @property
-    @allow_missing_attribute
-    def hold(self) -> bool | None:
-        return self.args.hold
+    # -----------------------------------------------------------------------
+    # yd-abort
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
     def task_id_list(self) -> list[str] | None:
         return self.args.task_id_list
+
+    # -----------------------------------------------------------------------
+    # yd-submit / yd-provision / yd-instantiate  (positional args)
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
@@ -1772,35 +2008,18 @@ class CLIParser:
     def compute_requirement_file_positional(self) -> str | None:
         return self.args.compute_requirement_file_positional
 
-    @property
-    @allow_missing_attribute
-    def object_path_pattern(self) -> str | None:
-        return self.args.pattern
-
-    @property
-    @allow_missing_attribute
-    def allowance_list(self) -> list[str]:
-        return self.args.allowances
-
-    @property
-    @allow_missing_attribute
-    def boost_hours(self) -> int:
-        return self.args.boost_hours
+    # -----------------------------------------------------------------------
+    # yd-create
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
     def no_resequence(self) -> bool | None:
         return self.args.no_resequence
 
-    @property
-    @allow_missing_attribute
-    def match_allowances_by_description(self) -> bool | None:
-        return self.args.match_allowances_by_description
-
-    @property
-    @allow_missing_attribute
-    def public_ips_only(self) -> bool | None:
-        return self.args.public_ips_only
+    # -----------------------------------------------------------------------
+    # yd-show
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
@@ -1809,13 +2028,31 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def output_file(self) -> str | None:
-        return self.args.output_file
+    def report_variables(self) -> list[str] | None:
+        return self.args.report_variable
+
+    # -----------------------------------------------------------------------
+    # yd-list / yd-show
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
     def substitute_ids(self) -> bool | None:
         return self.args.substitute_ids
+
+    @property
+    @allow_missing_attribute
+    def strip_ids(self) -> bool | None:
+        return self.args.strip_ids
+
+    @property
+    @allow_missing_attribute
+    def output_file(self) -> str | None:
+        return self.args.output_file
+
+    # -----------------------------------------------------------------------
+    # yd-compare
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
@@ -1829,33 +2066,12 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def ids_only(self) -> bool | None:
-        return self.args.ids_only
-
-    @property
-    @allow_missing_attribute
-    def terminate(self) -> bool | None:
-        return self.args.terminate
-
-    @property
-    @allow_missing_attribute
     def running_nodes_only(self) -> bool | None:
         return self.args.running_nodes_only
 
-    @property
-    @allow_missing_attribute
-    def strip_ids(self) -> bool | None:
-        return self.args.strip_ids
-
-    @property
-    @allow_missing_attribute
-    def auto_select_all(self) -> bool | None:
-        return self.args.auto_select_all
-
-    @property
-    @allow_missing_attribute
-    def report_variables(self) -> list[str] | None:
-        return self.args.report_variable
+    # -----------------------------------------------------------------------
+    # yd-submit
+    # -----------------------------------------------------------------------
 
     @property
     @allow_missing_attribute
@@ -1870,55 +2086,55 @@ def lookup_module_description(module_name: str) -> str | None:
     prefix = "YellowDog command line utility for "
     suffix = None
 
-    if "submit" in module_name:
-        suffix = "submitting a Work Requirement"
-    elif "provision" in module_name:
-        suffix = "provisioning a Worker Pool"
-    elif "abort" in module_name:
+    if "abort" in module_name:
         suffix = "aborting Tasks"
-    elif "cancel" in module_name:
-        suffix = "cancelling Work Requirements"
-    elif "create" in module_name:
-        suffix = "creating and updating resources"
-    elif "download" in module_name:
-        suffix = "downloading objects from the Object Store"
-    elif "delete" in module_name:
-        suffix = "deleting objects in the Object Store"
-    elif "shutdown" in module_name:
-        suffix = "shutting down Worker Pools and Nodes"
-    elif "terminate" in module_name:
-        suffix = "terminating Compute Requirements, Instances or Nodes"
-    elif "list" in module_name:
-        suffix = "listing all kinds of YellowDog items"
-    elif "instantiate" in module_name:
-        suffix = "instantiating a Compute Requirement"
-    elif "upload" in module_name:
-        suffix = "uploading objects to the Object Store"
-    elif "remove" in module_name:
-        suffix = "removing resources"
-    elif "resize" in module_name:
-        suffix = "resizing Worker Pools and Compute Requirements"
-    elif "follow" in module_name:
-        suffix = "following event streams"
-    elif "cloudwizard" in module_name:
-        suffix = "setting up cloud accounts and YellowDog resources"
-    elif "start" in module_name:
-        suffix = "starting held (paused) Work Requirements"
-    elif "hold" in module_name:
-        suffix = "holding (pausing) running Work Requirements"
+    elif "application" in module_name:
+        suffix = "reporting the details of the current Application"
     elif "boost" in module_name:
         suffix = "boosting Allowances"
-    elif "show" in module_name:
-        suffix = "showing the JSON details of entities referenced by their YDIDs"
-    elif "finish" in module_name:
-        suffix = "finishing Work Requirements"
+    elif "cancel" in module_name:
+        suffix = "cancelling Work Requirements"
+    elif "cloudwizard" in module_name:
+        suffix = "setting up cloud accounts and YellowDog resources"
     elif "compare" in module_name:
         suffix = (
             "comparing whether a work requirement or task group is matched by "
             "workers in the specified provisioned worker pools"
         )
-    elif "application" in module_name:
-        suffix = "reporting the details of the current Application"
+    elif "create" in module_name:
+        suffix = "creating and updating resources"
+    elif "delete" in module_name:
+        suffix = "deleting objects in the Object Store"
+    elif "download" in module_name:
+        suffix = "downloading objects from the Object Store"
+    elif "finish" in module_name:
+        suffix = "finishing Work Requirements"
+    elif "follow" in module_name:
+        suffix = "following event streams"
+    elif "hold" in module_name:
+        suffix = "holding (pausing) running Work Requirements"
+    elif "instantiate" in module_name:
+        suffix = "instantiating a Compute Requirement"
+    elif "list" in module_name:
+        suffix = "listing all kinds of YellowDog items"
+    elif "provision" in module_name:
+        suffix = "provisioning a Worker Pool"
+    elif "remove" in module_name:
+        suffix = "removing resources"
+    elif "resize" in module_name:
+        suffix = "resizing Worker Pools and Compute Requirements"
+    elif "show" in module_name:
+        suffix = "showing the JSON details of entities referenced by their YDIDs"
+    elif "shutdown" in module_name:
+        suffix = "shutting down Worker Pools and Nodes"
+    elif "start" in module_name:
+        suffix = "starting held (paused) Work Requirements"
+    elif "submit" in module_name:
+        suffix = "submitting a Work Requirement"
+    elif "terminate" in module_name:
+        suffix = "terminating Compute Requirements, Instances or Nodes"
+    elif "upload" in module_name:
+        suffix = "uploading objects to the Object Store"
 
     return None if suffix is None else prefix + suffix
 
