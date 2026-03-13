@@ -22,7 +22,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 
 def get_user_data_property(
-    config: ConfigWorkerPool, content_path: str = None
+    config: ConfigWorkerPool, content_path: str | None = None
 ) -> str | None:
     """
     Get the 'userData' property, either using the string specified in
@@ -98,7 +98,7 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     return template_id
 
 
-def get_image_id(client: PlatformClient, image_name_or_id: str) -> str:
+def get_image_id(client: PlatformClient, image_name_or_id: str) -> str | None:
     """
     This function was simplified, hence the pass-through call for now.
     """
