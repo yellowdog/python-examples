@@ -63,6 +63,19 @@ def pytest_collection_modifyitems(config, items):
 # ---------------------------------------------------------------------------
 
 
+@pytest.fixture
+def cleanup():
+    """
+    Safety-net teardown fixture. Tests register cleanup commands by calling
+    the yielded function; all are executed in reverse order after the test,
+    regardless of whether it passed or failed.
+    """
+    cmds: list[str] = []
+    yield cmds.append
+    for cmd in reversed(cmds):
+        shell(cmd)
+
+
 @pytest.fixture(scope="session")
 def system_tag() -> str:
     """
