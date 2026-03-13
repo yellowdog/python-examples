@@ -1,4 +1,11 @@
+import sys
+
 import pytest
+
+# Strip pytest's own arguments before any yellowdog_cli modules are imported.
+# CLIParser calls parse_args() at module level; without this, pytest's argv
+# (e.g. file paths, -v) would be misinterpreted or cause parse errors.
+sys.argv = sys.argv[:1]
 
 
 def pytest_addoption(parser):
