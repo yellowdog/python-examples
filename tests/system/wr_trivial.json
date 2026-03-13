@@ -3,7 +3,7 @@
     {
       "tasks": [
         {
-          "arguments": ["echo", "hello from pytest-system"]
+          "arguments": ["-c", "echo hello from pytest-system"]
         }
       ]
     }

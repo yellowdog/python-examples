@@ -3,7 +3,7 @@
     {
       "tasks": [
         {
-          "arguments": ["echo", "task {{row_number}} value={{value}}"]
+          "arguments": ["-c", "echo task {{row_number}} value={{value}}"]
         }
       ]
     }
