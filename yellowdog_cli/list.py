@@ -59,7 +59,7 @@ from yellowdog_cli.utils.entity_utils import (
     get_filtered_work_requirement_summaries,
     get_task_groups_from_wr_by_id,
     get_user_groups,
-    get_worker_pools,
+    get_worker_pool_summaries,
     list_matching_object_paths,
     substitute_id_for_name_in_allowance,
     substitute_ids_for_names_in_crt,
@@ -333,8 +333,11 @@ def list_worker_pools():
         f"with '{CONFIG_COMMON.name_tag}' in name"
     )
 
-    worker_pool_summaries: list[WorkerPoolSummary] = get_worker_pools(
-        CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
+    worker_pool_summaries: list[WorkerPoolSummary] = get_worker_pool_summaries(
+        CLIENT,
+        CONFIG_COMMON.namespace,
+        CONFIG_COMMON.name_tag,
+        partial_name_matches=True,
     )
 
     excluded_states = (
@@ -560,7 +563,10 @@ def list_compute_requirement_templates():
 
     cr_templates: list[ComputeRequirementTemplateSummary] = (
         get_compute_requirement_templates(
-            CLIENT, CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
+            CLIENT,
+            CONFIG_COMMON.namespace,
+            CONFIG_COMMON.name_tag,
+            partial_name_matches=True,
         )
     )
 

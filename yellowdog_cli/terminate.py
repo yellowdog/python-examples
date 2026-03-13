@@ -188,7 +188,11 @@ def _terminate_node_instance_by_id(node_id: str) -> str | None:
         print_info(f"Node {node_id} is already {node.status}")
         return None
 
-    cr_id: str = get_compute_requirement_id_by_worker_pool_id(CLIENT, node.workerPoolId)
+    if (
+        cr_id := get_compute_requirement_id_by_worker_pool_id(CLIENT, node.workerPoolId)
+    ) is None:
+        return None
+
     instance: Instance = get_instance_id_by_id(CLIENT, cr_id, node.details.instanceId)
 
     if instance is None:
