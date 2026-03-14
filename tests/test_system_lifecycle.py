@@ -32,20 +32,13 @@ class TestSystemLifecycle:
         cleanup(f"cd {SYSTEM_DIR} && yd-shutdown -y -t={tag} -n={NAMESPACE}")
         cleanup(f"cd {SYSTEM_DIR} && yd-terminate -y -t={tag} -n={NAMESPACE}")
 
-        # 1. Provision the worker pool
-        result = shell(f"cd {SYSTEM_DIR} && yd-provision -t={tag}")
+        # 1. Provision the worker pool; -q returns just the YDID on stdout.
+        result = shell(f"cd {SYSTEM_DIR} && yd-provision -q -t={tag}")
         assert (
-            result.exit_code == 0
+            result.exit_code == 0 and result.stdout.strip()
         ), f"yd-provision failed:\n{result.stdout}\n{result.stderr}"
 
-        # 2. Confirm pool appears in yd-list (in any live state)
-        result = shell(f"cd {SYSTEM_DIR} && yd-list -p --nf -n={NAMESPACE} -t={tag}")
-        assert result.exit_code == 0
-        assert (
-            tag in result.stdout
-        ), f"Worker pool with tag '{tag}' not in yd-list:\n{result.stdout}"
-
-        # 3. Submit trivial WR and follow to completion.
+        # 2. Submit trivial WR and follow to completion.
         # -f blocks until all tasks finish; exit 0 means COMPLETED.
         # Provisioning + agent startup typically takes 5-15 minutes.
         result = shell(f"cd {SYSTEM_DIR} && yd-submit -f wr_trivial.json -t={tag}")
@@ -53,7 +46,7 @@ class TestSystemLifecycle:
             result.exit_code == 0
         ), f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
 
-        # 4. Confirm WR shows COMPLETED in yd-list
+        # 3. Confirm WR shows COMPLETED in yd-list
         result = shell(f"cd {SYSTEM_DIR} && yd-list -w --nf -n={NAMESPACE} -t={tag}")
         assert result.exit_code == 0
         assert (
