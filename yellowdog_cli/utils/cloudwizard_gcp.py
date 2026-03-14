@@ -229,7 +229,7 @@ class GCPConfig(CommonCloudConfig):
         credential_name: str,
     ) -> dict:
         """
-        Generate an AWS Credential resource definition.
+        Generate a GCP Credential resource definition.
         """
         with open(self._service_account_file) as f:
             service_account_file_contents = f.read()
@@ -321,7 +321,7 @@ class GCPConfig(CommonCloudConfig):
         self, namespace: str, gcp_bucket_name: str, credential_name: str
     ) -> dict:
         """
-        Generate a Namespace configuration using an S3 bucket.
+        Generate a Namespace configuration using a GCS bucket.
         """
         return {
             "resource": RN_STORAGE_CONFIGURATION,

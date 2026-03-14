@@ -23,7 +23,11 @@ from yellowdog_cli.utils.misc_utils import (
     split_delimited_string,
 )
 from yellowdog_cli.utils.printing import print_error, print_info, print_json
-from yellowdog_cli.utils.property_names import *
+from yellowdog_cli.utils.property_names import (
+    COMMON_SECTION,
+    USERDATA,
+    VARIABLES,
+)
 from yellowdog_cli.utils.settings import (
     ARRAY_TYPE_TAG,
     BOOL_TYPE_TAG,
@@ -45,7 +49,7 @@ from yellowdog_cli.utils.settings import (
 # Set up default variable substitutions
 try:
     USERNAME = getuser().replace(" ", "_").lower()
-except:
+except Exception:
     USERNAME = "default-yd-user"
 
 VARIABLE_SUBSTITUTIONS = {

@@ -86,7 +86,7 @@ def get_task_group_name(
             return task_group.name
 
     # Shouldn't get here
-    raise Exception(f"Task group name not found for Task ID {Task.id}")
+    raise Exception(f"Task group name not found for Task ID {task.id}")
 
 
 def get_filtered_work_requirement_summaries(
@@ -155,7 +155,7 @@ def get_worker_pool_id_by_name(
             namespace_, name
         )
         return worker_pool.id
-    except:  # Not found (404)
+    except Exception:  # Not found (404)
         return None
 
 
@@ -194,7 +194,7 @@ def get_compute_requirement_id_by_name(
 def get_work_requirement_summary_by_name_or_id(
     client: PlatformClient,
     work_requirement_name_or_id: str,
-    namespace: str = None,
+    namespace: str | None = None,
 ) -> WorkRequirementSummary | None:
     """
     Get a Work Requirement Summary by its name or ID.
@@ -373,7 +373,7 @@ def get_compute_requirement_id_by_worker_pool_id(
         worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_id(
             worker_pool_id
         )
-    except:
+    except Exception:
         return None
 
     if isinstance(worker_pool, ProvisionedWorkerPool):
@@ -703,7 +703,7 @@ def substitute_ids_for_names_in_crt(
     # Image family
     try:
         crt.imagesId = _get_image_family_or_group_name_from_id(client, crt.imagesId)
-    except:
+    except Exception:
         pass
 
     # Source templates
@@ -715,7 +715,7 @@ def substitute_ids_for_names_in_crt(
             source.imageId = _get_image_family_or_group_name_from_id(
                 client, source.imageId
             )
-    except:
+    except Exception:
         pass
 
     return crt
@@ -736,7 +736,7 @@ def substitute_image_family_id_for_name_in_cst(
             client, cst.source.imageId
         )
         return cst
-    except:
+    except Exception:
         pass
 
     try:
@@ -745,7 +745,7 @@ def substitute_image_family_id_for_name_in_cst(
             client, cst.source.image
         )
         return cst
-    except:
+    except Exception:
         pass
 
     return cst
@@ -792,7 +792,7 @@ def _get_source_template_name_from_id(
             cst_id
         )
         return f"{cst.namespace}/{cst.source.name}"
-    except:
+    except Exception:
         return cst_id
 
 
@@ -811,7 +811,7 @@ def _get_requirement_template_name_from_id(
             client.compute_client.get_compute_requirement_template(crt_id)
         )
         return f"{crt.namespace}/{crt.name}"
-    except:
+    except Exception:
         return crt_id
 
 
@@ -829,7 +829,7 @@ def _get_image_family_or_group_name_from_id(
                 client.images_client.get_image_family_by_id(image_family_or_group_id)
             )
             return f"yd/{image_family.namespace}/{image_family.name}"
-        except:
+        except Exception:
             return image_family_or_group_id
 
     elif get_ydid_type(image_family_or_group_id) == YDIDType.IMAGE_GROUP:
@@ -846,7 +846,7 @@ def _get_image_family_or_group_name_from_id(
                 )
             )
             return f"yd/{image_family.namespace}/{image_family.name}/{image_group.name}"
-        except:
+        except Exception:
             return image_family_or_group_id
 
     return image_family_or_group_id
@@ -919,7 +919,7 @@ def get_group_name_by_id(client: PlatformClient, group_id: str) -> str | None:
     """
     try:
         return client.account_client.get_group(group_id).name
-    except:
+    except Exception:
         return None
 
 

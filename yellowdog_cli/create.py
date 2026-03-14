@@ -30,7 +30,6 @@ from yellowdog_client.model import (
     ImageOsType,
     InstanceStatus,
     InternalUser,
-    Keyring,
     MachineImage,
     MachineImageFamily,
     MachineImageGroup,

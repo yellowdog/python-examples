@@ -463,7 +463,7 @@ def list_instances(compute_requirement_id: str):
             try:
                 if instance.publicIpAddress is not None:
                     print(instance.publicIpAddress)
-            except:
+            except Exception:
                 pass
         return
 

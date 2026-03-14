@@ -235,7 +235,7 @@ class WorkerPools:
                 try:  # Only for Fleet sources
                     for override in source.instanceOverrides:
                         instance_types.add(override.instanceType)
-                except:
+                except Exception:
                     pass
             # ToDo: Add similar checks for the fleet equivalents
             elif provider == AZURE:
@@ -581,20 +581,22 @@ class WorkerPools:
             raise Exception(f"Unable to get details of nodes: {e}")
 
 
-def _get_task_group_by_id(task_group_id) -> TaskGroup:
-    work_requirement_id = task_group_id[:-2].replace("taskgrp", "workreq")
+def _get_task_group_by_id(task_group_id: str) -> TaskGroup:
+    work_requirement_id = task_group_id.rsplit(":", 1)[0].replace("taskgrp", "workreq")
     try:
         work_requirement: WorkRequirement = (
             CLIENT.work_client.get_work_requirement_by_id(work_requirement_id)
         )
-        return work_requirement.taskGroups[int(task_group_id[-1:]) - 1]
     except Exception as e:
         if "404" in str(e):
             raise Exception(f"Task Group ID '{task_group_id}' not found")
-        else:
-            raise Exception(
-                f"Unable to obtain Task Group details for '{task_group_id}': {e}"
-            )
+        raise Exception(
+            f"Unable to obtain Task Group details for '{task_group_id}': {e}"
+        )
+    for task_group in work_requirement.taskGroups:
+        if task_group.id == task_group_id:
+            return task_group
+    raise Exception(f"Task Group ID '{task_group_id}' not found")
 
 
 def _get_work_requirement_by_id(work_requirement_id) -> WorkRequirement:

@@ -241,7 +241,7 @@ class RcloneUploadedFiles:
                 rclone_uploaded_file.rclone_source.split(":")
             )
             return bucket_name_and_object
-        except:
+        except Exception:
             return rclone_uploaded_file.rclone_source
 
 
