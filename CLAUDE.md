@@ -43,20 +43,36 @@ make update           # pip install -U pip -r requirements.txt -r requirements-d
 
 ```
 yellowdog_cli/
-├── __init__.py           # Version only
-├── *.py                  # ~28 command modules (one per yd-* command)
+├── __init__.py                  # Version only
+├── *.py                         # ~28 command modules (one per yd-* command)
 └── utils/
-    ├── wrapper.py        # Global CLIENT + CONFIG_COMMON; @main_wrapper decorator
-    ├── args.py           # CLIParser class (single shared instance: ARGS_PARSER)
-    ├── config_types.py   # Configuration dataclasses
-    ├── load_config.py    # Config loading from TOML/env vars
-    ├── settings.py       # Constants, env var names, Rich theme
-    ├── entity_utils.py   # API entity lookups (LRU-cached search functions)
-    ├── printing.py       # Rich-based output formatting
-    ├── variables.py      # Variable substitution engine ({{ }})
-    ├── submit_utils.py   # Work requirement construction helpers
-    ├── csv_data.py       # CSV batch task processing
-    └── cloudwizard_*.py  # AWS/Azure/GCP provider integration
+    ├── wrapper.py               # Global CLIENT + CONFIG_COMMON; @main_wrapper decorator
+    ├── args.py                  # CLIParser class (single shared instance: ARGS_PARSER)
+    ├── config_types.py          # Configuration dataclasses
+    ├── load_config.py           # Config loading from TOML/env vars
+    ├── settings.py              # Constants, env var names, Rich theme
+    ├── entity_utils.py          # API entity lookups (LRU-cached search functions)
+    ├── printing.py              # Rich-based output formatting
+    ├── variables.py             # Variable substitution engine ({{ }})
+    ├── submit_utils.py          # Work requirement construction helpers
+    ├── csv_data.py              # CSV batch task processing
+    ├── property_names.py        # All TOML/JSON spec property name constants + ALL_KEYS list
+    ├── ydid_utils.py            # YDIDType enum + get_ydid_type() prefix parser
+    ├── items.py                 # Item TypeVar — union of all SDK model types used as a generic
+    ├── type_check.py            # check_int/float/bool/str/list/dict — raise on type mismatch
+    ├── validate_properties.py   # validate_properties(): checks dict keys against ALL_KEYS; warns on deprecated names
+    ├── misc_utils.py            # generate_id(), format_yd_name(), load_dotenv_file(), link_entity(); delimiter-parsing helpers used by variables.py
+    ├── load_resources.py        # load_resource_specifications(): loads TOML/JSON/Jsonnet files, applies substitutions, re-sequences in dependency order
+    ├── provision_utils.py       # get_user_data_property() (reads/concatenates userdata scripts), get_template_id() (name→ID), get_image_id()
+    ├── upload_utils.py          # upload_file() / upload_file_core(): uploads to YD Object Store with unique path naming
+    ├── rclone_utils.py          # RcloneUploadedFiles: uploads task data input files via rclone; parses rclone connection strings; deduplicates
+    ├── follow_utils.py          # follow_ids(): subscribes to SSE event streams for WRs/WPs/CRs in daemon threads; auto-reconnects on drop
+    ├── interactive.py           # confirmed() (respects --yes/YD_YES), select() (numbered list selection with range syntax e.g. 1,2,4-7)
+    ├── start_hold_common.py     # Shared logic for yd-start and yd-hold: filter by status, confirm, apply action
+    ├── compact_json.py          # CompactJSONEncoder: small containers on one line, larger ones indented
+    ├── check_imports.py         # Guards for optional imports (jsonnet, cloudwizard) with install hints
+    ├── rich_console_input_fixed.py  # ConsoleWithInputBackspaceFixed: workaround for Rich backspace-deletes-prompt bug
+    └── cloudwizard_*.py         # AWS/Azure/GCP provider integration (cloudwizard_common, _aws, _aws_types, _azure, _gcp)
 ```
 
 ### Command Pattern
