@@ -4,32 +4,62 @@ Unit tests for yellowdog_cli.utils.ydid_utils
 
 import pytest
 
-from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
+from yellowdog_cli.utils.ydid_utils import (
+    TYPE_ALLOW,
+    TYPE_APP,
+    TYPE_COMPREQ,
+    TYPE_COMPSRC,
+    TYPE_CRT,
+    TYPE_CST,
+    TYPE_GROUP,
+    TYPE_IMAGE,
+    TYPE_IMGFAM,
+    TYPE_IMGGRP,
+    TYPE_KEYRING,
+    TYPE_NODE,
+    TYPE_ROLE,
+    TYPE_TASK,
+    TYPE_TASKGRP,
+    TYPE_USER,
+    TYPE_WORKREQ,
+    TYPE_WRKR,
+    TYPE_WRKRPOOL,
+    YDID,
+    YDIDType,
+    get_ydid_type,
+)
+
+_UUID = "00000000-0000-0000-0000-000000000000"
+_HEX = "abc123"
+
+
+def _ydid(type_token: str) -> str:
+    return f"{YDID}:{type_token}:{_HEX}:{_UUID}"
 
 
 class TestGetYdidType:
     @pytest.mark.parametrize(
         "ydid, expected",
         [
-            ("ydid:workreq:abc123", YDIDType.WORK_REQUIREMENT),
-            ("ydid:taskgrp:abc123", YDIDType.TASK_GROUP),
-            ("ydid:task:abc123", YDIDType.TASK),
-            ("ydid:wrkrpool:abc123", YDIDType.WORKER_POOL),
-            ("ydid:wrkr:abc123", YDIDType.WORKER),
-            ("ydid:compreq:abc123", YDIDType.COMPUTE_REQUIREMENT),
-            ("ydid:compsrc:abc123", YDIDType.COMPUTE_SOURCE),
-            ("ydid:node:abc123", YDIDType.NODE),
-            ("ydid:crt:abc123", YDIDType.COMPUTE_REQUIREMENT_TEMPLATE),
-            ("ydid:cst:abc123", YDIDType.COMPUTE_SOURCE_TEMPLATE),
-            ("ydid:imgfam:abc123", YDIDType.IMAGE_FAMILY),
-            ("ydid:imggrp:abc123", YDIDType.IMAGE_GROUP),
-            ("ydid:image:abc123", YDIDType.IMAGE),
-            ("ydid:keyring:abc123", YDIDType.KEYRING),
-            ("ydid:allow:abc123", YDIDType.ALLOWANCE),
-            ("ydid:app:abc123", YDIDType.APPLICATION),
-            ("ydid:user:abc123", YDIDType.USER),
-            ("ydid:group:abc123", YDIDType.GROUP),
-            ("ydid:role:abc123", YDIDType.ROLE),
+            (_ydid(TYPE_WORKREQ), YDIDType.WORK_REQUIREMENT),
+            (_ydid(TYPE_TASKGRP), YDIDType.TASK_GROUP),
+            (_ydid(TYPE_TASK), YDIDType.TASK),
+            (_ydid(TYPE_WRKRPOOL), YDIDType.WORKER_POOL),
+            (_ydid(TYPE_WRKR), YDIDType.WORKER),
+            (_ydid(TYPE_COMPREQ), YDIDType.COMPUTE_REQUIREMENT),
+            (_ydid(TYPE_COMPSRC), YDIDType.COMPUTE_SOURCE),
+            (_ydid(TYPE_NODE), YDIDType.NODE),
+            (_ydid(TYPE_CRT), YDIDType.COMPUTE_REQUIREMENT_TEMPLATE),
+            (_ydid(TYPE_CST), YDIDType.COMPUTE_SOURCE_TEMPLATE),
+            (_ydid(TYPE_IMGFAM), YDIDType.IMAGE_FAMILY),
+            (_ydid(TYPE_IMGGRP), YDIDType.IMAGE_GROUP),
+            (_ydid(TYPE_IMAGE), YDIDType.IMAGE),
+            (_ydid(TYPE_KEYRING), YDIDType.KEYRING),
+            (_ydid(TYPE_ALLOW), YDIDType.ALLOWANCE),
+            (_ydid(TYPE_APP), YDIDType.APPLICATION),
+            (_ydid(TYPE_USER), YDIDType.USER),
+            (_ydid(TYPE_GROUP), YDIDType.GROUP),
+            (_ydid(TYPE_ROLE), YDIDType.ROLE),
         ],
     )
     def test_known_prefix_returns_correct_type(self, ydid, expected):
@@ -45,15 +75,15 @@ class TestGetYdidType:
         assert get_ydid_type("not-a-ydid") is None
 
     def test_ydid_prefix_only_unknown_type_returns_none(self):
-        assert get_ydid_type("ydid:unknown:abc123") is None
+        assert get_ydid_type(f"{YDID}:unknown:{_HEX}:{_UUID}") is None
 
     def test_ydid_prefix_with_no_type_returns_none(self):
-        assert get_ydid_type("ydid:") is None
+        assert get_ydid_type(f"{YDID}:") is None
 
     def test_partial_prefix_not_matching_returns_none(self):
-        # "ydid:task" is a prefix of "ydid:taskgrp" — ensure no false match
-        assert get_ydid_type("ydid:taskgrp:xyz") == YDIDType.TASK_GROUP
-        assert get_ydid_type("ydid:task:xyz") == YDIDType.TASK
+        # TYPE_TASK is a prefix of TYPE_TASKGRP — ensure no false match
+        assert get_ydid_type(_ydid(TYPE_TASKGRP)) == YDIDType.TASK_GROUP
+        assert get_ydid_type(_ydid(TYPE_TASK)) == YDIDType.TASK
 
     def test_enum_values_are_human_readable_strings(self):
         assert YDIDType.WORK_REQUIREMENT.value == "Work Requirement"

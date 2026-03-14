@@ -59,7 +59,12 @@ from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.printing import print_info
 from yellowdog_cli.utils.settings import NAMESPACE_PREFIX_SEPARATOR
-from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
+from yellowdog_cli.utils.ydid_utils import (
+    TYPE_IMGFAM,
+    TYPE_IMGGRP,
+    YDIDType,
+    get_ydid_type,
+)
 
 
 @lru_cache
@@ -840,9 +845,9 @@ def _get_image_family_or_group_name_from_id(
             image_family: MachineImageFamily = (
                 client.images_client.get_image_family_by_id(
                     # The image family ID can be derived from the group ID
-                    image_family_or_group_id.replace("imggrp", "imgfam").rsplit(":", 1)[
-                        0
-                    ]
+                    image_family_or_group_id.replace(TYPE_IMGGRP, TYPE_IMGFAM).rsplit(
+                        ":", 1
+                    )[0]
                 )
             )
             return f"yd/{image_family.namespace}/{image_family.name}/{image_group.name}"

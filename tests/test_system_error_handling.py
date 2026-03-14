@@ -23,6 +23,8 @@ Run with: pytest --run-system tests/test_system_error_handling.py
 import pytest
 from cli_test_helpers import shell
 
+from yellowdog_cli.utils.ydid_utils import TYPE_KEYRING, YDID
+
 
 def _output(result) -> str:
     """Combined stdout + stderr — the CLI writes 'Error:' lines to stderr."""
@@ -100,7 +102,7 @@ class TestSoftFailures:
 
     def test_show_nonexistent_ydid(self):
         # Needs platform — resource lookup returns 404
-        fake = "ydid:keyring:000000:00000000-0000-0000-0000-000000000000"
+        fake = f"{YDID}:{TYPE_KEYRING}:000000:00000000-0000-0000-0000-000000000000"
         result = shell(f"yd-show {fake}")
         assert result.exit_code == 0
         assert _has_error(result)
@@ -108,7 +110,7 @@ class TestSoftFailures:
 
     def test_show_mixed_valid_and_invalid_ydids(self):
         # Needs platform — verifies that one bad YDID doesn't abort the rest
-        fake = "ydid:keyring:000000:00000000-0000-0000-0000-000000000000"
+        fake = f"{YDID}:{TYPE_KEYRING}:000000:00000000-0000-0000-0000-000000000000"
         bad_format = "not-a-ydid"
         result = shell(f"yd-show {fake} {bad_format}")
         assert result.exit_code == 0

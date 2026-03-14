@@ -5,6 +5,29 @@ Helper utilities for YDIDs.
 import re
 from enum import Enum
 
+# YDID scheme and type-token constants
+YDID = "ydid"
+
+TYPE_ALLOW = "allow"
+TYPE_APP = "app"
+TYPE_COMPREQ = "compreq"
+TYPE_COMPSRC = "compsrc"
+TYPE_CRT = "crt"
+TYPE_CST = "cst"
+TYPE_GROUP = "group"
+TYPE_IMAGE = "image"
+TYPE_IMGFAM = "imgfam"
+TYPE_IMGGRP = "imggrp"
+TYPE_KEYRING = "keyring"
+TYPE_NODE = "node"
+TYPE_ROLE = "role"
+TYPE_TASK = "task"
+TYPE_TASKGRP = "taskgrp"
+TYPE_USER = "user"
+TYPE_WORKREQ = "workreq"
+TYPE_WRKR = "wrkr"
+TYPE_WRKRPOOL = "wrkrpool"
+
 
 class YDIDType(Enum):
     ALLOWANCE = "Allowance"
@@ -30,48 +53,48 @@ class YDIDType(Enum):
 
 def get_ydid_type(ydid: str | None) -> YDIDType | None:
     """
-    Find the type of YellowDog ID.
+    Validate and find the type of a YellowDog ID.
     """
     if not is_valid_ydid(ydid):
         return None
 
-    if ydid.startswith("ydid:workreq:"):
+    if ydid.startswith(f"{YDID}:{TYPE_WORKREQ}:"):
         return YDIDType.WORK_REQUIREMENT
-    if ydid.startswith("ydid:taskgrp:"):
+    if ydid.startswith(f"{YDID}:{TYPE_TASKGRP}:"):
         return YDIDType.TASK_GROUP
-    if ydid.startswith("ydid:task:"):
+    if ydid.startswith(f"{YDID}:{TYPE_TASK}:"):
         return YDIDType.TASK
-    if ydid.startswith("ydid:wrkrpool:"):
+    if ydid.startswith(f"{YDID}:{TYPE_WRKRPOOL}:"):
         return YDIDType.WORKER_POOL
-    if ydid.startswith("ydid:wrkr:"):
+    if ydid.startswith(f"{YDID}:{TYPE_WRKR}:"):
         return YDIDType.WORKER
-    if ydid.startswith("ydid:compreq:"):
+    if ydid.startswith(f"{YDID}:{TYPE_COMPREQ}:"):
         return YDIDType.COMPUTE_REQUIREMENT
-    if ydid.startswith("ydid:compsrc:"):
+    if ydid.startswith(f"{YDID}:{TYPE_COMPSRC}:"):
         return YDIDType.COMPUTE_SOURCE
-    if ydid.startswith("ydid:node:"):
+    if ydid.startswith(f"{YDID}:{TYPE_NODE}:"):
         return YDIDType.NODE
-    if ydid.startswith("ydid:crt:"):
+    if ydid.startswith(f"{YDID}:{TYPE_CRT}:"):
         return YDIDType.COMPUTE_REQUIREMENT_TEMPLATE
-    if ydid.startswith("ydid:cst:"):
+    if ydid.startswith(f"{YDID}:{TYPE_CST}:"):
         return YDIDType.COMPUTE_SOURCE_TEMPLATE
-    if ydid.startswith("ydid:imgfam:"):
+    if ydid.startswith(f"{YDID}:{TYPE_IMGFAM}:"):
         return YDIDType.IMAGE_FAMILY
-    if ydid.startswith("ydid:imggrp:"):
+    if ydid.startswith(f"{YDID}:{TYPE_IMGGRP}:"):
         return YDIDType.IMAGE_GROUP
-    if ydid.startswith("ydid:image:"):
+    if ydid.startswith(f"{YDID}:{TYPE_IMAGE}:"):
         return YDIDType.IMAGE
-    if ydid.startswith("ydid:keyring:"):
+    if ydid.startswith(f"{YDID}:{TYPE_KEYRING}:"):
         return YDIDType.KEYRING
-    if ydid.startswith("ydid:allow:"):
+    if ydid.startswith(f"{YDID}:{TYPE_ALLOW}:"):
         return YDIDType.ALLOWANCE
-    if ydid.startswith("ydid:app:"):
+    if ydid.startswith(f"{YDID}:{TYPE_APP}:"):
         return YDIDType.APPLICATION
-    if ydid.startswith("ydid:user:"):
+    if ydid.startswith(f"{YDID}:{TYPE_USER}:"):
         return YDIDType.USER
-    if ydid.startswith("ydid:group:"):
+    if ydid.startswith(f"{YDID}:{TYPE_GROUP}:"):
         return YDIDType.GROUP
-    if ydid.startswith("ydid:role:"):
+    if ydid.startswith(f"{YDID}:{TYPE_ROLE}:"):
         return YDIDType.ROLE
 
     return None
@@ -80,12 +103,28 @@ def get_ydid_type(ydid: str | None) -> YDIDType | None:
 _UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 _HEX = r"[0-9a-fA-F]+"
 _TYPES = (
-    "workreq", "taskgrp", "task", "wrkrpool", "wrkr", "compreq", "compsrc",
-    "node", "crt", "cst", "imgfam", "imggrp", "image", "keyring", "allow",
-    "app", "user", "group", "role",
+    TYPE_WORKREQ,
+    TYPE_TASKGRP,
+    TYPE_TASK,
+    TYPE_WRKRPOOL,
+    TYPE_WRKR,
+    TYPE_COMPREQ,
+    TYPE_COMPSRC,
+    TYPE_NODE,
+    TYPE_CRT,
+    TYPE_CST,
+    TYPE_IMGFAM,
+    TYPE_IMGGRP,
+    TYPE_IMAGE,
+    TYPE_KEYRING,
+    TYPE_ALLOW,
+    TYPE_APP,
+    TYPE_USER,
+    TYPE_GROUP,
+    TYPE_ROLE,
 )
 _YDID_RE = re.compile(
-    rf"^ydid:(?:{'|'.join(_TYPES)}):{_HEX}(?::{_HEX})?:{_UUID}(?::\d+)*$"
+    rf"^{YDID}:(?:{'|'.join(_TYPES)}):{_HEX}(?::{_HEX})?:{_UUID}(?::\d+)*$"
 )
 
 

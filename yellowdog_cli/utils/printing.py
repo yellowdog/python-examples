@@ -90,7 +90,7 @@ from yellowdog_cli.utils.settings import (
     PROP_TRAITS,
     WARNING_STYLE,
 )
-from yellowdog_cli.utils.ydid_utils import YDIDType
+from yellowdog_cli.utils.ydid_utils import YDID, YDIDType
 
 try:
     LOG_WIDTH = get_terminal_size().columns
@@ -109,13 +109,13 @@ class PrintLogHighlighter(RegexHighlighter):
         r"(?P<date_time>[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
         r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])",
         r"(?P<quoted>'[a-zA-Z0-9-._=;,:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')",
-        r"(?P<ydid>ydid:[a-z]*:[0-9abcdef-]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9abcdef-]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
         r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)",
     ] + HIGHLIGHTED_STATES
 
@@ -130,13 +130,13 @@ class PrintTableHighlighter(RegexHighlighter):
     highlights = [
         rf"(?P<table_outline>[{table_outline_chars}]*)",
         rf"(?P<table_content>[^{table_outline_chars}]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9abcdef-]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
-        r"(?P<ydid>ydid:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9abcdef-]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
+        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
     ] + HIGHLIGHTED_STATES
 
 
