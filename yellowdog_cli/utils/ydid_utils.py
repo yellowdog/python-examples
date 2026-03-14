@@ -2,6 +2,7 @@
 Helper utilities for YDIDs.
 """
 
+import re
 from enum import Enum
 
 
@@ -31,7 +32,7 @@ def get_ydid_type(ydid: str | None) -> YDIDType | None:
     """
     Find the type of YellowDog ID.
     """
-    if ydid is None or not ydid.startswith("ydid:"):
+    if not is_valid_ydid(ydid):
         return None
 
     if ydid.startswith("ydid:workreq:"):
@@ -74,3 +75,24 @@ def get_ydid_type(ydid: str | None) -> YDIDType | None:
         return YDIDType.ROLE
 
     return None
+
+
+_UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+_HEX = r"[0-9a-fA-F]+"
+_TYPES = (
+    "workreq", "taskgrp", "task", "wrkrpool", "wrkr", "compreq", "compsrc",
+    "node", "crt", "cst", "imgfam", "imggrp", "image", "keyring", "allow",
+    "app", "user", "group", "role",
+)
+_YDID_RE = re.compile(
+    rf"^ydid:(?:{'|'.join(_TYPES)}):{_HEX}(?::{_HEX})?:{_UUID}(?::\d+)*$"
+)
+
+
+def is_valid_ydid(ydid: str | None) -> bool:
+    """
+    Return True if the YDID is well-formed.
+    """
+    if ydid is None:
+        return False
+    return bool(_YDID_RE.match(ydid))
