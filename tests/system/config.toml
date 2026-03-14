@@ -21,7 +21,7 @@
 
     minNodes = "{{num:min_nodes:=0}}"
     targetInstanceCount = "{{num:instances:=1}}"
-    maxNodes = "{{num:max_nodes:=1}}"
+    maxNodes = "{{num:max_nodes:=2}}"
 
     idleNodeTimeout = "{{num:node_timeout:={{timeout}}}}"
     idlePoolTimeout = "{{num:pool_timeout:={{timeout}}}}"
