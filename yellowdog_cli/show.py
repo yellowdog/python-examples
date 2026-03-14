@@ -35,7 +35,16 @@ from yellowdog_cli.utils.settings import (
 )
 from yellowdog_cli.utils.variables import get_all_user_variables, get_user_variable
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
-from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
+from yellowdog_cli.utils.ydid_utils import (
+    TYPE_COMPREQ,
+    TYPE_COMPSRC,
+    TYPE_NODE,
+    TYPE_TASKGRP,
+    TYPE_WORKREQ,
+    TYPE_WRKR,
+    YDIDType,
+    get_ydid_type,
+)
 
 
 @main_wrapper
@@ -113,7 +122,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
         elif ydid_type == YDIDType.COMPUTE_SOURCE:
             print_info(f"Showing details of Compute Source ID '{ydid}'")
             compute_requirement = CLIENT.compute_client.get_compute_requirement_by_id(
-                ydid.rsplit(":", 1)[0].replace("compsrc", "compreq")
+                ydid.rsplit(":", 1)[0].replace(TYPE_COMPSRC, TYPE_COMPREQ)
             )
             for source in compute_requirement.provisionStrategy.sources:
                 if source.id == ydid:
@@ -150,7 +159,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
         elif ydid_type == YDIDType.WORKER:
             print_info(f"Showing details of Worker ID '{ydid}'")
             node = CLIENT.worker_pool_client.get_node_by_id(
-                ydid.rsplit(":", 1)[0].replace("wrkr", "node")
+                ydid.rsplit(":", 1)[0].replace(TYPE_WRKR, TYPE_NODE)
             )
             for worker in node.workers:
                 if worker.id == ydid:
@@ -166,7 +175,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
         elif ydid_type == YDIDType.TASK_GROUP:
             print_info(f"Showing details of Task Group ID '{ydid}'")
             work_requirement = CLIENT.work_client.get_work_requirement_by_id(
-                ydid.rsplit(":", 1)[0].replace("taskgrp", "workreq")
+                ydid.rsplit(":", 1)[0].replace(TYPE_TASKGRP, TYPE_WORKREQ)
             )
             for task_group in work_requirement.taskGroups:
                 if task_group.id == ydid:

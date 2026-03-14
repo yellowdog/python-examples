@@ -31,7 +31,12 @@ from yellowdog_cli.utils.printing import (
     print_warning,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
-from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
+from yellowdog_cli.utils.ydid_utils import (
+    TYPE_TASKGRP,
+    TYPE_WORKREQ,
+    YDIDType,
+    get_ydid_type,
+)
 
 NONE_STRING = "NONE"
 EMPTY_STRING = ""
@@ -582,7 +587,9 @@ class WorkerPools:
 
 
 def _get_task_group_by_id(task_group_id: str) -> TaskGroup:
-    work_requirement_id = task_group_id.rsplit(":", 1)[0].replace("taskgrp", "workreq")
+    work_requirement_id = task_group_id.rsplit(":", 1)[0].replace(
+        TYPE_TASKGRP, TYPE_WORKREQ
+    )
     try:
         work_requirement: WorkRequirement = (
             CLIENT.work_client.get_work_requirement_by_id(work_requirement_id)

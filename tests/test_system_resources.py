@@ -16,6 +16,8 @@ import json
 import pytest
 from cli_test_helpers import shell
 
+from yellowdog_cli.utils.ydid_utils import YDID
+
 RESOURCE_DIR = "tests/resource-examples"
 
 
@@ -30,7 +32,7 @@ def _ydids(list_cmd: str) -> set[str]:
     return {
         line.strip()
         for line in result.stdout.splitlines()
-        if line.strip().startswith("ydid:")
+        if line.strip().startswith(f"{YDID}:")
     }
 
 
