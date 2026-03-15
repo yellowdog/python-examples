@@ -2,6 +2,7 @@
 Functions focused on print outputs.
 """
 
+import re
 from contextlib import redirect_stdout
 from dataclasses import dataclass
 from datetime import datetime
@@ -106,17 +107,25 @@ class PrintLogHighlighter(RegexHighlighter):
 
     base_style = "pyexamples."
     highlights = [
-        r"(?P<date_time>[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
-        r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])",
-        r"(?P<quoted>'[a-zA-Z0-9-._=;,:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9abcdef-]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
-        r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)",
+        re.compile(
+            r"(?P<date_time>[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+            r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])"
+        ),
+        re.compile(r"(?P<quoted>'[a-zA-Z0-9-._=;,:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')"),
+        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9abcdef-]*)"),
+        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)"),
+        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)"),
+        re.compile(
+            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)"
+        ),
+        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)"),
+        re.compile(
+            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)"
+        ),
+        re.compile(
+            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)"
+        ),
+        re.compile(r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)"),
     ] + HIGHLIGHTED_STATES
 
 
@@ -128,15 +137,21 @@ class PrintTableHighlighter(RegexHighlighter):
     base_style = "pyexamples."
     table_outline_chars = "┌─┬│┼┐┤└┴┘├"
     highlights = [
-        rf"(?P<table_outline>[{table_outline_chars}]*)",
-        rf"(?P<table_content>[^{table_outline_chars}]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9abcdef-]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)",
-        rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)",
+        re.compile(rf"(?P<table_outline>[{table_outline_chars}]*)"),
+        re.compile(rf"(?P<table_content>[^{table_outline_chars}]*)"),
+        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)"),
+        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9abcdef-]*)"),
+        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)"),
+        re.compile(
+            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)"
+        ),
+        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)"),
+        re.compile(
+            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)"
+        ),
+        re.compile(
+            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)"
+        ),
     ] + HIGHLIGHTED_STATES
 
 
