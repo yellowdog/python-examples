@@ -62,6 +62,8 @@ from yellowdog_cli.utils.settings import NAMESPACE_PREFIX_SEPARATOR
 from yellowdog_cli.utils.ydid_utils import (
     TYPE_IMGFAM,
     TYPE_IMGGRP,
+    TYPE_TASKGRP,
+    TYPE_WORKREQ,
     YDIDType,
     get_ydid_type,
 )
@@ -90,7 +92,6 @@ def get_task_group_name(
         if task.taskGroupId == task_group.id:
             return task_group.name
 
-    # Shouldn't get here
     raise Exception(f"Task group name not found for Task ID {task.id}")
 
 
@@ -1198,3 +1199,27 @@ def _get_instances(client: PlatformClient, cr_id: str) -> list[Instance]:
     """
     instance_search = InstanceSearch(computeRequirementId=cr_id)
     return client.compute_client.get_instances(instance_search).list_all()
+
+
+def get_task_group_by_id(client: PlatformClient, task_group_id: str) -> TaskGroup:
+    """
+    Get a task group by its ID.
+    """
+    work_requirement_id = task_group_id.rsplit(":", 1)[0].replace(
+        TYPE_TASKGRP, TYPE_WORKREQ
+    )
+
+    try:
+        task_groups = get_task_groups_from_wr_by_id(client, work_requirement_id)
+    except Exception as e:
+        if "404" in str(e):
+            raise Exception(f"Task Group ID '{task_group_id}' not found")
+        raise Exception(
+            f"Unable to obtain Task Group details for '{task_group_id}': {e}"
+        )
+
+    for task_group in task_groups:
+        if task_group.id == task_group_id:
+            return task_group
+
+    raise Exception(f"Task Group ID '{task_group_id}' not found")

@@ -23,7 +23,7 @@ from yellowdog_client.model import (
     WorkRequirement,
 )
 
-from yellowdog_cli.utils.entity_utils import get_worker_pool_by_id
+from yellowdog_cli.utils.entity_utils import get_task_group_by_id, get_worker_pool_by_id
 from yellowdog_cli.utils.printing import (
     indent,
     print_info,
@@ -32,8 +32,6 @@ from yellowdog_cli.utils.printing import (
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yellowdog_cli.utils.ydid_utils import (
-    TYPE_TASKGRP,
-    TYPE_WORKREQ,
     YDIDType,
     get_ydid_type,
 )
@@ -586,26 +584,6 @@ class WorkerPools:
             raise Exception(f"Unable to get details of nodes: {e}")
 
 
-def _get_task_group_by_id(task_group_id: str) -> TaskGroup:
-    work_requirement_id = task_group_id.rsplit(":", 1)[0].replace(
-        TYPE_TASKGRP, TYPE_WORKREQ
-    )
-    try:
-        work_requirement: WorkRequirement = (
-            CLIENT.work_client.get_work_requirement_by_id(work_requirement_id)
-        )
-    except Exception as e:
-        if "404" in str(e):
-            raise Exception(f"Task Group ID '{task_group_id}' not found")
-        raise Exception(
-            f"Unable to obtain Task Group details for '{task_group_id}': {e}"
-        )
-    for task_group in work_requirement.taskGroups:
-        if task_group.id == task_group_id:
-            return task_group
-    raise Exception(f"Task Group ID '{task_group_id}' not found")
-
-
 def _get_work_requirement_by_id(work_requirement_id) -> WorkRequirement:
     try:
         return CLIENT.work_client.get_work_requirement_by_id(work_requirement_id)
@@ -702,7 +680,7 @@ def main():
     # Task group
     if get_ydid_type(ARGS_PARSER.wr_or_tg_id) == YDIDType.TASK_GROUP:
         _compare_task_group(
-            _get_task_group_by_id(ARGS_PARSER.wr_or_tg_id), worker_pools
+            get_task_group_by_id(CLIENT, ARGS_PARSER.wr_or_tg_id), worker_pools
         )
 
     # Work requirement
