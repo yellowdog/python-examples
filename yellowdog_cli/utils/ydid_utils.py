@@ -102,6 +102,12 @@ def get_ydid_type(ydid: str | None) -> YDIDType | None:
 
 _UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 _HEX = r"[0-9a-fA-F]+"
+
+# Pre-compiled pattern for highlighting YDIDs embedded in output text.
+YDID_HIGHLIGHT_RE = re.compile(
+    rf"(?P<ydid>{YDID}:[a-z]+:{_HEX}(?::{_HEX})?:{_UUID}(?::\d+)*)"
+)
+
 _TYPES = (
     TYPE_WORKREQ,
     TYPE_TASKGRP,

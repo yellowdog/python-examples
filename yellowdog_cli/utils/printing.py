@@ -91,7 +91,7 @@ from yellowdog_cli.utils.settings import (
     PROP_TRAITS,
     WARNING_STYLE,
 )
-from yellowdog_cli.utils.ydid_utils import YDID, YDIDType
+from yellowdog_cli.utils.ydid_utils import YDID_HIGHLIGHT_RE, YDIDType
 
 try:
     LOG_WIDTH = get_terminal_size().columns
@@ -112,19 +112,7 @@ class PrintLogHighlighter(RegexHighlighter):
             r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])"
         ),
         re.compile(r"(?P<quoted>'[a-zA-Z0-9-._=;,:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')"),
-        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9abcdef-]*)"),
-        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)"),
-        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)"),
-        re.compile(
-            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)"
-        ),
-        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)"),
-        re.compile(
-            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)"
-        ),
-        re.compile(
-            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)"
-        ),
+        YDID_HIGHLIGHT_RE,
         re.compile(r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)"),
     ] + HIGHLIGHTED_STATES
 
@@ -139,19 +127,7 @@ class PrintTableHighlighter(RegexHighlighter):
     highlights = [
         re.compile(rf"(?P<table_outline>[{table_outline_chars}]*)"),
         re.compile(rf"(?P<table_content>[^{table_outline_chars}]*)"),
-        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*)"),
-        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9abcdef-]*)"),
-        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)"),
-        re.compile(
-            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)"
-        ),
-        re.compile(rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*)"),
-        re.compile(
-            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*)"
-        ),
-        re.compile(
-            rf"(?P<ydid>{YDID}:[a-z]*:[0-9ABCDEF]*:[0-9ABCDEF]*:[0-9abcdef-]*:[0-9]*:[0-9]*)"
-        ),
+        YDID_HIGHLIGHT_RE,
     ] + HIGHLIGHTED_STATES
 
 
