@@ -31,8 +31,14 @@ from yellowdog_cli.utils.interactive import confirmed
 from yellowdog_cli.utils.load_resources import load_resource_specifications
 from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.settings import (
-    DEFAULT_NAMESPACE,
     NAMESPACE_PREFIX_SEPARATOR,
+    PROP_CREDENTIAL,
+    PROP_DESCRIPTION,
+    PROP_KEYRING_NAME,
+    PROP_NAME,
+    PROP_NAMESPACE,
+    PROP_RESOURCE,
+    PROP_SOURCE,
     RN_ALLOWANCE,
     RN_APPLICATION,
     RN_CONFIGURED_POOL,
@@ -76,7 +82,7 @@ def remove_resources(resources: list[dict] | None = None):
 
     for resource in resources:
         try:
-            resource_type = resource.pop("resource")
+            resource_type = resource.pop(PROP_RESOURCE)
         except KeyError:
             print_error(
                 "Missing required 'resource' property in the following resource"
@@ -138,9 +144,9 @@ def remove_compute_source_template(resource: dict):
     Should handle any Source Type.
     """
     try:
-        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
-        source = resource.pop("source")  # Extract the Source properties
-        name = source["name"]
+        namespace = resource[PROP_NAMESPACE]
+        source = resource.pop(PROP_SOURCE)  # Extract the Source properties
+        name = source[PROP_NAME]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -169,8 +175,8 @@ def remove_compute_requirement_template(resource: dict):
     Remove a Compute Requirement Template.
     """
     try:
-        name = resource["name"]
-        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
+        name = resource[PROP_NAME]
+        namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -200,7 +206,7 @@ def remove_keyring(resource: dict):
     Remove a Keyring.
     """
     try:
-        name = resource["name"]
+        name = resource[PROP_NAME]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -223,9 +229,9 @@ def remove_credential(resource: dict):
     Remove a Credential from a Keyring.
     """
     try:
-        keyring_name = resource["keyringName"]
-        credential_data = resource["credential"]
-        credential_name = credential_data["name"]
+        keyring_name = resource[PROP_KEYRING_NAME]
+        credential_data = resource[PROP_CREDENTIAL]
+        credential_name = credential_data[PROP_NAME]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -256,8 +262,8 @@ def remove_image_family(resource: dict):
     Remove an Image Family.
     """
     try:
-        name = resource["name"]
-        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
+        name = resource[PROP_NAME]
+        namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -293,7 +299,7 @@ def remove_namespace_configuration(resource: dict):
     Remove a Namespace Storage Configuration.
     """
     try:
-        namespace = resource["namespace"]
+        namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -322,8 +328,8 @@ def remove_configured_worker_pool(resource: dict):
     Shutdown a Configured Worker Pool.
     """
     try:
-        name = resource["name"]
-        namespace = resource.get("namespace", DEFAULT_NAMESPACE)
+        name = resource[PROP_NAME]
+        namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -375,7 +381,7 @@ def remove_allowance(resource: dict):
     """
     Remove an allowance, matching on the 'description' property.
     """
-    description = resource.get("description", None)
+    description = resource.get(PROP_DESCRIPTION, None)
     if description is not None:
         print_info(f"Removing allowance(s) matching description '{description}'")
         num_removed = remove_allowances_matching_description(CLIENT, description)
@@ -468,7 +474,7 @@ def remove_attribute_definition(resource: dict):
     Use the API to remove user attribute definitions.
     """
     try:
-        name = resource["name"]
+        name = resource[PROP_NAME]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -491,7 +497,7 @@ def remove_namespace_policy(resource: dict):
     Remove a Namespace Policy (if it exists).
     """
     try:
-        namespace = resource["namespace"]
+        namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -519,7 +525,7 @@ def remove_group(resource: dict):
     Remove a group.
     """
     try:
-        group_name = resource["name"]
+        group_name = resource[PROP_NAME]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -545,7 +551,7 @@ def remove_application(resource: dict):
     Remove an application.
     """
     try:
-        app_name = resource["name"]
+        app_name = resource[PROP_NAME]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return
@@ -571,7 +577,7 @@ def remove_namespace(resource: dict):
     Remove a namespace.
     """
     try:
-        name = resource["name"]
+        name = resource[PROP_NAME]
     except KeyError as e:
         print_error(f"Expected property to be defined ({e})")
         return

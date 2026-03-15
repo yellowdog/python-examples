@@ -72,7 +72,6 @@ from yellowdog_cli.utils.printing import (
     print_warning,
 )
 from yellowdog_cli.utils.settings import (
-    DEFAULT_NAMESPACE,
     NAMESPACE_PREFIX_SEPARATOR,
     PROP_AUTOSCALING_MAX_NODES,
     PROP_CREDENTIAL,
@@ -222,8 +221,7 @@ def create_compute_source_template(resource: dict):
     Handles all Source types.
     """
     try:
-        namespace = resource.get(PROP_NAMESPACE, DEFAULT_NAMESPACE)
-        resource[PROP_NAMESPACE] = namespace
+        namespace = resource[PROP_NAMESPACE]
         source = resource.pop(PROP_SOURCE)  # Extract the Source properties
         source_type = source.pop(PROP_TYPE).split(".")[-1]  # Extract Source type
         name = source[PROP_NAME]
@@ -304,8 +302,7 @@ def create_compute_requirement_template(resource: dict):
     try:
         type = resource.pop(PROP_TYPE).split(".")[-1]  # Extract type
         name = resource[PROP_NAME]
-        namespace = resource.get(PROP_NAMESPACE, DEFAULT_NAMESPACE)
-        resource[PROP_NAMESPACE] = namespace
+        namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
@@ -672,8 +669,7 @@ def create_configured_worker_pool(resource: dict):
     """
     try:
         name = resource[PROP_NAME]
-        namespace = resource.get(PROP_NAMESPACE, DEFAULT_NAMESPACE)
-        resource[PROP_NAMESPACE] = namespace
+        namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
         raise Exception(f"Expected property to be defined ({e})")
 
