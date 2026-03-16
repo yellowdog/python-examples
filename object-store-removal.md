@@ -271,6 +271,12 @@ Remove:
 - Remove `upload_utils.py` entry from the module descriptions table
 - Update descriptions for `cloudwizard_aws.py`, `cloudwizard_azure.py`, `cloudwizard_gcp.py` entries
 
+**`PYPI_README.md`**
+- Remove `yd-delete`, `yd-download`, `yd-upload` from the commands table
+
+- **`README_CLOUDWIZARD.md`**
+- Remove all mentions of storage buckets and namespace storage configurations
+
 ---
 
 ## Suggested execution order
