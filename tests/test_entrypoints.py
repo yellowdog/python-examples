@@ -10,10 +10,6 @@ def test_entrypoints():
     assert result.exit_code == 0
     result = shell("yd-create --help")
     assert result.exit_code == 0
-    result = shell("yd-delete --help")
-    assert result.exit_code == 0
-    result = shell("yd-download --help")
-    assert result.exit_code == 0
     result = shell("yd-format-json")
     assert result.exit_code == 0
     result = shell("yd-follow --help")
@@ -35,8 +31,6 @@ def test_entrypoints():
     result = shell("yd-submit --help")
     assert result.exit_code == 0
     result = shell("yd-terminate --help")
-    assert result.exit_code == 0
-    result = shell("yd-upload --help")
     assert result.exit_code == 0
     result = shell("yd-version")
     assert result.exit_code == 0

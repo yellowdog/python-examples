@@ -21,7 +21,6 @@ from yellowdog_cli.utils.settings import (
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
-    RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
 )
 from yellowdog_cli.utils.variables import (
@@ -112,7 +111,6 @@ def _resequence_resources(
         RN_REQUIREMENT_TEMPLATE,
         RN_ALLOWANCE,
         RN_NAMESPACE_POLICY,
-        RN_STORAGE_CONFIGURATION,
         RN_CONFIGURED_POOL,
         RN_GROUP,
         RN_APPLICATION,

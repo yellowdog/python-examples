@@ -9,8 +9,6 @@ from datetime import datetime
 from json import dumps as json_dumps
 from json import loads as json_loads
 from os import get_terminal_size, getpid
-from os import name as os_name
-from os.path import relpath
 from textwrap import fill
 from textwrap import indent as text_indent
 from typing import Any

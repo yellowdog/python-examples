@@ -4,12 +4,10 @@
 Command to list YellowDog entities.
 """
 
-from dataclasses import asdict, fields
 from json import loads as json_loads
 from os.path import exists
 
 from requests import get
-from tabulate import tabulate
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     Allowance,
@@ -28,11 +26,9 @@ from yellowdog_client.model import (
     NamespacePolicy,
     NamespacePolicySearch,
     NamespaceSearch,
-    NamespaceStorageConfiguration,
     Node,
     NodeSearch,
     NodeStatus,
-    ObjectDetail,
     PermissionDetail,
     Role,
     Task,
@@ -60,19 +56,15 @@ from yellowdog_cli.utils.entity_utils import (
     get_task_groups_from_wr_by_id,
     get_user_groups,
     get_worker_pool_summaries,
-    list_matching_object_paths,
     substitute_id_for_name_in_allowance,
     substitute_ids_for_names_in_crt,
     substitute_image_family_id_for_name_in_cst,
 )
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.misc_utils import unpack_namespace_in_prefix
 from yellowdog_cli.utils.printing import (
-    indent,
     print_info,
     print_json,
     print_numbered_object_list,
-    print_table_core,
     print_warning,
     print_yd_object,
     print_yd_object_list,
@@ -124,9 +116,7 @@ def main():
             ):
                 return
 
-    if ARGS_PARSER.object_paths:
-        list_object_paths()
-    elif ARGS_PARSER.work_requirements or ARGS_PARSER.task_groups or ARGS_PARSER.tasks:
+    if ARGS_PARSER.work_requirements or ARGS_PARSER.task_groups or ARGS_PARSER.tasks:
         list_work_requirements()
     elif ARGS_PARSER.worker_pools or ARGS_PARSER.nodes or ARGS_PARSER.workers:
         list_worker_pools()
@@ -140,8 +130,6 @@ def main():
         list_keyrings()
     elif ARGS_PARSER.image_families:
         list_image_families()
-    elif ARGS_PARSER.namespace_storage_configurations:
-        list_namespace_storage_configurations()
     elif ARGS_PARSER.allowances:
         list_allowances()
     elif ARGS_PARSER.attribute_definitions:
@@ -178,9 +166,7 @@ def check_for_valid_option() -> bool:
         ARGS_PARSER.keyrings,
         ARGS_PARSER.namespaces,
         ARGS_PARSER.namespace_policies,
-        ARGS_PARSER.namespace_storage_configurations,
         ARGS_PARSER.nodes,
-        ARGS_PARSER.object_paths,
         ARGS_PARSER.permissions,
         ARGS_PARSER.roles,
         ARGS_PARSER.compute_source_templates,
@@ -286,45 +272,6 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
             print(task.id)
     else:
         print_numbered_object_list(CLIENT, tasks)
-
-
-def list_object_paths():
-    namespace, tag = unpack_namespace_in_prefix(
-        CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
-    )
-    print_info(
-        f"Listing Object Paths in namespace '{namespace}' and "
-        f"names (prefixes) starting with '{tag}'"
-    )
-    if ARGS_PARSER.all and not ARGS_PARSER.details:
-        print_info("Listing all Objects")
-
-    object_paths = list_matching_object_paths(CLIENT, namespace, tag, ARGS_PARSER.all)
-
-    if len(object_paths) == 0:
-        print_info("No matching Object Paths")
-        return
-
-    if not ARGS_PARSER.details:
-        print_numbered_object_list(CLIENT, sorted_objects(object_paths))
-        return
-
-    # Print object details for selected objects
-    object_paths = select(CLIENT, object_paths, override_quiet=True)
-    if len(object_paths) != 0:
-        print_info(f"Showing Object details for {len(object_paths)} Object(s)")
-
-    object_detail_list = []
-    for object_path in object_paths:
-        if object_path.prefix:
-            print_info(f"Object Path '{object_path.name}' is a prefix not an object")
-            continue
-        object_detail: ObjectDetail = CLIENT.object_store_client.get_object_detail(
-            namespace=namespace, name=object_path.name
-        )
-        object_detail_list.append((object_detail, None))
-        # print_object_detail(object_detail)  # Retired for now
-    print_yd_object_list(object_detail_list)
 
 
 def list_worker_pools():
@@ -729,75 +676,6 @@ def list_image_families():
     print_yd_object_list(
         image_families,
     )
-
-
-def list_namespace_storage_configurations():
-    """
-    List Storage Namespaces. For now, prints a table directly rather than
-    calling the printing module, due to it being a bit fiddly.
-    """
-
-    # Get the configured namespaces
-    namespaces_config: list[NamespaceStorageConfiguration] = (
-        CLIENT.object_store_client.get_namespace_storage_configurations()
-    )
-    namespace_config_names = [namespace.namespace for namespace in namespaces_config]
-
-    # Create dicts for the default object store namespaces, and give them
-    # a type name. Exclude configured namespaces.
-    namespaces_default = [
-        {"namespace": namespace, "type": "Default Storage Configuration"}
-        for namespace in sorted(CLIENT.object_store_client.get_namespaces())
-        if namespace not in namespace_config_names
-    ]
-
-    # Convert NamespaceStorageConfiguration objects to dicts, and simplify
-    # the type names
-    namespace_list: list[dict] = [asdict(x) for x in namespaces_config]
-    for namespace in namespace_list:
-        namespace["type"] = namespace["type"].split(".")[-1]
-
-    # Combine configured and default Namespaces
-    namespace_list += namespaces_default
-
-    if len(namespace_list) == 0:
-        print_info("No Namespaces found")
-        return
-    print_info("Displaying all Object Store Namespaces")
-
-    # Accumulate all available headings; keep "namespace", "type"
-    # at the start
-    all_fields = set()
-    for config in namespaces_config:
-        for field in fields(config):
-            if not (field.name == "namespace" or field.name == "type"):
-                all_fields.add(field.name)
-    all_fields = sorted(list(all_fields))
-    all_fields.insert(0, "type")
-    all_fields.insert(0, "namespace")
-
-    # Assemble and print the table
-    headings = [field.capitalize() for field in all_fields]
-    headings.insert(0, "#")
-    rows = sorted(
-        [
-            [index + 1] + [namespace.get(field, "") for field in all_fields]
-            for index, namespace in enumerate(namespace_list)
-        ]
-    )
-    print(flush=True)
-    print_table_core(
-        indent(tabulate(rows, headings, tablefmt="simple_outline")),
-    )
-    print(flush=True)
-
-    if ARGS_PARSER.details:  # Print the details for non-default only
-        print_yd_object_list(
-            [
-                (namespace, None)
-                for namespace in select(CLIENT, namespaces_config, showing_all=True)
-            ]
-        )
 
 
 def list_allowances():

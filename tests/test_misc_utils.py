@@ -19,45 +19,7 @@ from yellowdog_cli.utils.misc_utils import (
     link,
     pathname_relative_to_config_file,
     split_delimited_string,
-    unpack_namespace_in_prefix,
 )
-
-
-class TestUnpackNamespaceInPrefix:
-    def test_no_separator_returns_unchanged(self):
-        assert unpack_namespace_in_prefix("my-ns", "my-prefix") == (
-            "my-ns",
-            "my-prefix",
-        )
-
-    def test_separator_with_explicit_ns_overrides(self):
-        assert unpack_namespace_in_prefix("my-ns", "other-ns::my-prefix") == (
-            "other-ns",
-            "my-prefix",
-        )
-
-    def test_separator_with_empty_ns_uses_supplied_ns(self):
-        assert unpack_namespace_in_prefix("my-ns", "::my-prefix") == (
-            "my-ns",
-            "my-prefix",
-        )
-
-    def test_leading_slash_stripped_from_prefix(self):
-        ns, prefix = unpack_namespace_in_prefix("ns", "/path/to/prefix")
-        assert prefix == "path/to/prefix"
-        assert ns == "ns"
-
-    def test_leading_slash_stripped_after_separator(self):
-        ns, prefix = unpack_namespace_in_prefix("ns", "other-ns::/path/to")
-        assert ns == "other-ns"
-        assert prefix == "path/to"
-
-    def test_too_many_separators_raises(self):
-        with pytest.raises(Exception):
-            unpack_namespace_in_prefix("ns", "a::b::c")
-
-    def test_empty_prefix(self):
-        assert unpack_namespace_in_prefix("ns", "") == ("ns", "")
 
 
 class TestAddBatchNumberPostfix:

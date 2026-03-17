@@ -34,8 +34,6 @@ from yellowdog_client.model import (
     MachineImageFamilySummary,
     MachineImageGroup,
     NamespaceSearch,
-    ObjectPath,
-    ObjectPathsRequest,
     ProvisionedWorkerPool,
     RequirementsAllowance,
     RoleSearch,
@@ -623,29 +621,6 @@ def remove_allowances_matching_description(
     return len(allowances)
 
 
-def list_matching_object_paths(
-    client: PlatformClient, namespace: str, prefix: str, flat: bool
-) -> list[ObjectPath]:
-    """
-    List object paths matching the namespace and starting with the prefix.
-    """
-    object_paths: list[ObjectPath] = (
-        client.object_store_client.get_namespace_object_paths(
-            ObjectPathsRequest(namespace=namespace, prefix=prefix, flat=flat)
-        )
-    )
-
-    if object_paths is None:
-        return []
-
-    # Check the prefix actually matches!
-    return [
-        object_path
-        for object_path in object_paths
-        if object_path.name.startswith(prefix)
-    ]
-
-
 @lru_cache
 def get_all_tasks_in_task_group(
     client: PlatformClient, task_group_id: str
@@ -658,26 +633,6 @@ def get_all_tasks_in_task_group(
             taskGroupId=task_group_id,
         )
     )
-
-
-def get_non_exact_namespace_matches(
-    client: PlatformClient, namespace_to_match: str
-) -> list[str]:
-    """
-    Find namespaces which contain 'namespace_to_match'.
-    """
-    all_namespaces = client.object_store_client.get_namespaces() + [
-        nssc.namespace
-        for nssc in client.object_store_client.get_namespace_storage_configurations()
-    ]
-    matching_namespaces = sorted(
-        list(
-            {  # Note: use set because duplicate namespaces can be returned
-                ns for ns in all_namespaces if namespace_to_match in ns
-            }
-        )
-    )
-    return matching_namespaces
 
 
 def split_namespace_and_name(namespace_and_name: str) -> tuple[str | None, str]:

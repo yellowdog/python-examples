@@ -34,7 +34,6 @@ from yellowdog_client.model import (
     MachineImageFamily,
     MachineImageGroup,
     NamespacePolicy,
-    NamespaceStorageConfiguration,
     RequirementsAllowance,
     RoleScope,
     SourceAllowance,
@@ -120,7 +119,6 @@ from yellowdog_cli.utils.settings import (
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
-    RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
     RN_UPDATE_APPLICATION_REQUEST,
 )
@@ -184,8 +182,6 @@ def create_resources(resources: list[dict] | None = None, show_secrets: bool = F
                 create_credential(resource)
             elif resource_type == RN_IMAGE_FAMILY:
                 create_image_family(resource)
-            elif resource_type == RN_STORAGE_CONFIGURATION:
-                create_namespace_configuration(resource)
             elif resource_type == RN_CONFIGURED_POOL:
                 create_configured_worker_pool(resource)
             elif resource_type == RN_ALLOWANCE:
@@ -629,38 +625,6 @@ def _create_image(image: MachineImage, image_group: MachineImageGroup):
 
     if ARGS_PARSER.quiet:
         print(image.id)
-
-
-def create_namespace_configuration(resource: dict):
-    """
-    Create or update a Namespace Configuration.
-    """
-    try:
-        namespace_type = resource.pop(PROP_TYPE).split(".")[-1]  # Extract Source type
-        namespace = resource[PROP_NAMESPACE]
-    except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
-
-    namespace_configurations: list[NamespaceStorageConfiguration] = (
-        CLIENT.object_store_client.get_namespace_storage_configurations()
-    )
-    for config in namespace_configurations:
-        if config.namespace == namespace:
-            print_info(
-                f"Updating existing Namespace Storage Configuration '{namespace}'"
-            )
-
-    namespace_configuration = _get_model_object(namespace_type, resource)
-    try:
-        CLIENT.object_store_client.put_namespace_storage_configuration(
-            namespace_configuration
-        )
-        print_info(f"Created/updated Namespace Storage Configuration '{namespace}'")
-    except Exception as e:
-        print_error(
-            "Unable to create/update Namespace Storage Configuration"
-            f" '{namespace}': {e}"
-        )
 
 
 def create_configured_worker_pool(resource: dict):
