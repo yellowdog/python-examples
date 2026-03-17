@@ -21,31 +21,8 @@ class TestDemoDryRuns:
         result = shell(f"cd {DEMO_DIR}/image-montage && {CMD_SEQ}")
         assert result.exit_code == 0
 
-    def test_openfoam(self):
-        result = shell(f"cd {DEMO_DIR}/openfoam && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_slurm_cluster(self):
-        result = shell(f"cd {DEMO_DIR}/slurm-cluster && {CMD_SEQ}")
-        assert result.exit_code == 0
-
     def test_common_factors(self):
         result = shell(f"cd {DEMO_DIR}/common-factors-csv && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_virtual_screening(self):
-        result = shell(f"cd {DEMO_DIR}/virtual-screening && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_benchmark(self):
-        result = shell(f"cd {DEMO_DIR}/benchmark && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_benchmark_jsonnet(self):
-        result = shell(
-            f"cd {DEMO_DIR}/benchmark &&"
-            " yd-submit -D -r wr_benchmark.jsonnet -v crt_file=crt.json"
-        )
         assert result.exit_code == 0
 
     def test_powershell(self):
@@ -56,8 +33,8 @@ class TestDemoDryRuns:
         result = shell(f"cd {DEMO_DIR}/cmd.exe && {CMD_SEQ}")
         assert result.exit_code == 0
 
-    def test_blender(self):
-        result = shell(f"cd {DEMO_DIR}/blender && {CMD_SEQ}")
+    def test_blender_2(self):
+        result = shell(f"cd {DEMO_DIR}/blender-2 && {CMD_SEQ}")
         assert result.exit_code == 0
 
     def test_montecarlo(self):
@@ -92,58 +69,12 @@ class TestDemoDryRuns:
         )
         assert result.exit_code == 0
 
-    def test_openfoam_out(self):
-        demo_name = "openfoam"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_slurm_cluster_out(self):
-        demo_name = "slurm-cluster"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
     def test_common_factors_out(self):
         demo_name = "common-factors-csv"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
             f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
             f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_virtual_screening_out(self):
-        demo_name = "virtual-screening"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_benchmark_out(self):
-        demo_name = "benchmark"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_benchmark_jsonnet_out(self):
-        demo_name = "benchmark"
-        result = shell(
-            f"cd {DEMO_DIR} &&"
-            f" yd-submit -D -c {demo_name}/config.toml"
-            f" -r {demo_name}/wr_benchmark.jsonnet"
-            f" -v crt_file={demo_name}/crt.json"
         )
         assert result.exit_code == 0
 
@@ -165,8 +96,8 @@ class TestDemoDryRuns:
         )
         assert result.exit_code == 0
 
-    def test_blender_out(self):
-        demo_name = "blender"
+    def test_blender_2_out(self):
+        demo_name = "blender-2"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
             f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"

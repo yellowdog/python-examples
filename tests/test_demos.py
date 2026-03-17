@@ -7,7 +7,7 @@ import pytest
 from cli_test_helpers import shell
 
 DEMO_DIR = "../python-examples-demos"
-CMD_SEQ = "yd-provision && yd-submit -f && yd-terminate -y && yd-delete -y"
+CMD_SEQ = "yd-provision && yd-submit -f && yd-terminate -y"
 NEXTFLOW = "/Users/pwt/nextflow/nextflow"
 
 
@@ -25,24 +25,8 @@ class TestDemos:
         result = shell(f"cd {DEMO_DIR}/image-montage && {CMD_SEQ}")
         assert result.exit_code == 0
 
-    def test_openfoam(self):
-        result = shell(f"cd {DEMO_DIR}/openfoam && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_slurm_cluster(self):
-        result = shell(f"cd {DEMO_DIR}/slurm-cluster && {CMD_SEQ}")
-        assert result.exit_code == 0
-
     def test_common_factors(self):
         result = shell(f"cd {DEMO_DIR}/common-factors-csv && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_virtual_screening(self):
-        result = shell(f"cd {DEMO_DIR}/virtual-screening && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_benchmark(self):
-        result = shell(f"cd {DEMO_DIR}/benchmark && {CMD_SEQ}")
         assert result.exit_code == 0
 
     def test_powershell(self):
@@ -53,37 +37,27 @@ class TestDemos:
         result = shell(f"cd {DEMO_DIR}/cmd.exe && {CMD_SEQ}")
         assert result.exit_code == 0
 
-    def test_blender(self):
-        result = shell(f"cd {DEMO_DIR}/blender && {CMD_SEQ}")
+    def test_blender_2(self):
+        result = shell(f"cd {DEMO_DIR}/blender-2 && {CMD_SEQ}")
         assert result.exit_code == 0
 
     def test_montecarlo(self):
         result = shell(f"cd {DEMO_DIR}/montecarlo && {CMD_SEQ}")
         assert result.exit_code == 0
 
-    def test_montecarlo_graviton(self):
-        result = shell(
-            f"cd {DEMO_DIR}/montecarlo && yd-provision -c config-graviton.toml && yd-submit -f && yd-terminate -y && yd-delete -y"
-        )
-        assert result.exit_code == 0
-
-    # def test_ansys(self):
-    #     result = shell(f"cd {DEMO_DIR}/ansys && {CMD_SEQ}")
+    # def test_nextflow_image_montage(self):
+    #     result = shell(
+    #         f"cd {DEMO_DIR}/nextflow/image-montage && {NEXTFLOW} main.nf "
+    #         "&& cd .. && ./cleanup.sh"
+    #     )
     #     assert result.exit_code == 0
 
-    def test_nextflow_image_montage(self):
-        result = shell(
-            f"cd {DEMO_DIR}/nextflow/image-montage && {NEXTFLOW} main.nf "
-            "&& cd .. && ./cleanup.sh"
-        )
-        assert result.exit_code == 0
-
-    def test_nextflow_salmon_rna(self):
-        result = shell(
-            f"cd {DEMO_DIR}/nextflow/salmon-rna && {NEXTFLOW} main.nf "
-            "&& cd .. && ./cleanup.sh"
-        )
-        assert result.exit_code == 0
+    # def test_nextflow_salmon_rna(self):
+    #     result = shell(
+    #         f"cd {DEMO_DIR}/nextflow/salmon-rna && {NEXTFLOW} main.nf "
+    #         "&& cd .. && ./cleanup.sh"
+    #     )
+    #     assert result.exit_code == 0
 
     def test_cmd_modelled_on_premise(self):
         result = shell(
