@@ -28,35 +28,11 @@
 
 [workRequirement]  ############################################################
 
-    # The task type of the task to be performed
-    # Task types 'bash' and 'docker' are processed specially. All other task
-    # types are passed through without processing.
-    # Required
-    # --------------------------------------------------------------------------
-    # taskType = "bash"
-
-    # In the case of the 'bash' task type, this is the locally-stored Bash
-    # script to be executed
-    # In the case of the 'docker' task type, this is the container image
-    # Required for the 'bash' and 'docker' task types.
-    # --------------------------------------------------------------------------        
-    # executable = "test_bash_script.sh"
-
-    # The Docker Hub username and password, for private Docker Hub repositories
-    # Only applicable to the 'docker' task type
-    # Optional
-    # --------------------------------------------------------------------------
-    # dockerUsername = ""
-    # dockerPassword = ""
-
     # Arguments and environment to pass to the Task.
-    # Note: use 'dockerEnvironment' for environment settings to be passed to the
-    # Docker container.
     # Optional
     # --------------------------------------------------------------------------
     # arguments = [] # List of strings
     # environment = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
-    # dockerEnvironment = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
 
     # Worker tags: list of tags (strings) to match the tags associated
     # with Workers
@@ -64,20 +40,6 @@
     # Optional
     # --------------------------------------------------------------------------
     # workerTags = []
-
-    # List of local input files required for the task
-    # These will be uploaded to the YellowDog Object Store
-    # A list of strings
-    # Optional
-    # --------------------------------------------------------------------------
-    # inputs = []
-
-    # List of output files to be uploaded back to the YellowDog Object Store
-    # after Task execution
-    # A list of strings
-    # Optional
-    # --------------------------------------------------------------------------
-    # outputs = []
 
     # The number of times a Task is retried if it fails
     # Optional
@@ -94,12 +56,6 @@
     # Optional
     # --------------------------------------------------------------------------
     # workRequirementData = "my_tasks.json"
-
-    # Whether to upload the process output of Task execution when the Task
-    # finishes
-    # Optional
-    # --------------------------------------------------------------------------
-    # uploadTaskProcessOutput = true
 
 [workerPool]  #################################################################
 
