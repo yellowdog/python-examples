@@ -256,14 +256,6 @@ class CLIParser:
                 help="follow the work requirement's progress to completion",
             )
             parser.add_argument(
-                "--executable",
-                "-X",
-                type=str,
-                required=False,
-                help="the 'executable' to use in the case of certain task types",
-                metavar="<executable>",
-            )
-            parser.add_argument(
                 "--task-type",
                 "-T",
                 type=str,
@@ -396,14 +388,11 @@ class CLIParser:
                 help="follow work requirement events after applying action",
             )
 
-        # yd-cancel / yd-delete / yd-download / yd-shutdown / yd-terminate /
-        # yd-start / yd-hold / yd-finish
+        # yd-cancel / yd-shutdown / yd-terminate / yd-start / yd-hold / yd-finish
         if any(
             module in sys.argv[0]
             for module in [
                 "cancel",
-                "delete",
-                "download",
                 "shutdown",
                 "terminate",
                 "start",
@@ -419,7 +408,7 @@ class CLIParser:
                 help="list, and interactively select, the items to act on",
             )
 
-        # yd-abort / yd-cancel / yd-delete / yd-shutdown / yd-terminate /
+        # yd-abort / yd-cancel / yd-shutdown / yd-terminate /
         # yd-resize / yd-cloudwizard / yd-boost / yd-hold / yd-start / yd-list /
         # yd-finish
         if any(
@@ -427,7 +416,6 @@ class CLIParser:
             for module in [
                 "abort",
                 "cancel",
-                "delete",
                 "shutdown",
                 "terminate",
                 "resize",
@@ -450,66 +438,6 @@ class CLIParser:
                 ),
             )
 
-        # yd-delete / yd-download
-        if any(module in sys.argv[0] for module in ["delete", "download"]):
-            parser.add_argument(
-                "--all",
-                "-a",
-                action="store_true",
-                required=False,
-                help="list all objects, at all levels in the prefix hierarchy",
-            )
-            parser.add_argument(
-                "--non-exact-namespace-match",
-                "-N",
-                action="store_true",
-                required=False,
-                help="match all namespaces that contain the value of 'namespace'",
-            )
-
-        # yd-download
-        if "download" in sys.argv[0]:
-            parser.add_argument(
-                "--yes",
-                "-y",
-                action="store_true",
-                required=False,
-                help="download without requiring user confirmation",
-            )
-            parser.add_argument(
-                "--directory",
-                "-d",
-                type=str,
-                default="",
-                required=False,
-                help=(
-                    "the directory to use for downloaded objects (defaults to the"
-                    " current directory)"
-                ),
-                metavar="<directory>",
-            )
-            parser.add_argument(
-                "--flatten",
-                "-f",
-                action="store_true",
-                required=False,
-                help=(
-                    "flatten download paths (warning: objects with the same filenames"
-                    " will be overwritten)"
-                ),
-            )
-            parser.add_argument(
-                "--pattern",
-                "-p",
-                type=str,
-                required=False,
-                help=(
-                    "the pattern to use to match objects to be downloaded, "
-                    " e.g.: 'work_dir/results_*/results.txt'"
-                ),
-                metavar="<pattern-string>",
-            )
-
         # yd-list
         if "list" in sys.argv[0]:
             parser.add_argument(
@@ -517,24 +445,6 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="list items in reverse-sorted name order",
-            )
-            parser.add_argument(
-                "--object-paths",
-                "--objects",
-                "-o",
-                action="store_true",
-                required=False,
-                help="list object store object paths",
-            )
-            parser.add_argument(
-                "--all",
-                "-a",
-                action="store_true",
-                required=False,
-                help=(
-                    "when used with '--objects', list all objects, not just the top"
-                    " level prefixes"
-                ),
             )
             parser.add_argument(
                 "--work-requirements",
@@ -608,13 +518,6 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="list machine image families",
-            )
-            parser.add_argument(
-                "--namespace-storage-configurations",
-                "-N",
-                action="store_true",
-                required=False,
-                help="list namespace storage configurations",
             )
             parser.add_argument(
                 "--instances",
@@ -711,43 +614,6 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="automatically select all listed objects (implies '--details')",
-            )
-
-        # yd-upload
-        if any(module in sys.argv[0] for module in ["upload"]):
-            parser.add_argument(
-                "filenames",
-                metavar="<filename>",
-                type=str,
-                nargs="+",
-                help="files and/or directories to upload to the object store",
-            )
-            parser.add_argument(
-                "--flatten-upload-paths",
-                "-f",
-                action="store_true",
-                required=False,
-                help=(
-                    "don't mirror local directory structure when uploading files (files"
-                    " may be overwritten)"
-                ),
-            )
-            parser.add_argument(
-                "--recursive",
-                "-r",
-                action="store_true",
-                required=False,
-                help="recursively upload files from directories",
-            )
-            parser.add_argument(
-                "--batch",
-                "-b",
-                action="store_true",
-                required=False,
-                help=(
-                    "use batch upload; file_patterns must contain wildcards and "
-                    "be quoted to prevent shell expansion"
-                ),
             )
 
         # yd-submit / yd-provision / yd-instantiate / yd-create
@@ -950,28 +816,6 @@ class CLIParser:
                 ),
             )
 
-        # yd-delete
-        if "delete" in sys.argv[0]:
-            parser.add_argument(
-                "object_paths_to_delete",
-                nargs="*",
-                default=[],
-                metavar="<object_path>",
-                type=str,
-                help="the object paths to delete; optional, overrides --tag/prefix",
-            )
-
-        # yd-download
-        if "download" in sys.argv[0]:
-            parser.add_argument(
-                "object_paths_to_download",
-                nargs="*",
-                default=[],
-                metavar="<object_path>",
-                type=str,
-                help="the object paths to download; optional, overrides --tag/prefix",
-            )
-
         # yd-create / yd-remove
         if any(module in sys.argv[0] for module in ["create", "remove"]):
             parser.add_argument(
@@ -1039,10 +883,9 @@ class CLIParser:
                 help=f"the YellowDog ID(s) of the item(s) to {verb}",
             )
 
-        # yd-upload / yd-submit / yd-provision / yd-instantiate
+        # yd-submit / yd-provision / yd-instantiate
         if any(
-            module in sys.argv[0]
-            for module in ["upload", "submit", "provision", "instantiate"]
+            module in sys.argv[0] for module in ["submit", "provision", "instantiate"]
         ):
             parser.add_argument(
                 "--content-path",
@@ -1452,11 +1295,6 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def executable(self) -> str | None:
-        return self.args.executable
-
-    @property
-    @allow_missing_attribute
     def task_type(self) -> str | None:
         return self.args.task_type
 
@@ -1519,8 +1357,7 @@ class CLIParser:
         return self.args.abort
 
     # -----------------------------------------------------------------------
-    # yd-cancel / yd-delete / yd-download / yd-shutdown / yd-terminate /
-    # yd-start / yd-hold / yd-finish
+    # yd-cancel / yd-shutdown / yd-terminate / yd-start / yd-hold / yd-finish
     # -----------------------------------------------------------------------
 
     @property
@@ -1533,7 +1370,7 @@ class CLIParser:
         self.args.interactive = interactive
 
     # -----------------------------------------------------------------------
-    # yd-abort / yd-cancel / yd-delete / yd-shutdown / yd-terminate /
+    # yd-abort / yd-cancel / yd-shutdown / yd-terminate /
     # yd-resize / yd-cloudwizard / yd-boost / yd-hold / yd-start / yd-list /
     # yd-finish  (also yd-create / yd-remove)
     # -----------------------------------------------------------------------
@@ -1544,39 +1381,6 @@ class CLIParser:
         return self.args.yes
 
     # -----------------------------------------------------------------------
-    # yd-delete / yd-download
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def all(self) -> bool | None:
-        return self.args.all
-
-    @property
-    @allow_missing_attribute
-    def non_exact_namespace_match(self) -> bool | None:
-        return self.args.non_exact_namespace_match
-
-    # -----------------------------------------------------------------------
-    # yd-download
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def directory(self) -> str | None:
-        return self.args.directory
-
-    @property
-    @allow_missing_attribute
-    def flatten_download_paths(self) -> bool | None:
-        return self.args.flatten
-
-    @property
-    @allow_missing_attribute
-    def object_path_pattern(self) -> str | None:
-        return self.args.pattern
-
-    # -----------------------------------------------------------------------
     # yd-list
     # -----------------------------------------------------------------------
 
@@ -1584,11 +1388,6 @@ class CLIParser:
     @allow_missing_attribute
     def reverse(self) -> bool | None:
         return self.args.reverse
-
-    @property
-    @allow_missing_attribute
-    def object_paths(self) -> bool | None:
-        return self.args.object_paths
 
     @property
     @allow_missing_attribute
@@ -1639,11 +1438,6 @@ class CLIParser:
     @allow_missing_attribute
     def image_families(self) -> bool | None:
         return self.args.image_families
-
-    @property
-    @allow_missing_attribute
-    def namespace_storage_configurations(self) -> bool | None:
-        return self.args.namespace_storage_configurations
 
     @property
     @allow_missing_attribute
@@ -1723,30 +1517,6 @@ class CLIParser:
     @allow_missing_attribute
     def auto_select_all(self) -> bool | None:
         return self.args.auto_select_all
-
-    # -----------------------------------------------------------------------
-    # yd-upload
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def files(self) -> list[str]:
-        return self.args.filenames
-
-    @property
-    @allow_missing_attribute
-    def flatten(self) -> bool | None:
-        return self.args.flatten_upload_paths
-
-    @property
-    @allow_missing_attribute
-    def recursive(self) -> bool | None:
-        return self.args.recursive
-
-    @property
-    @allow_missing_attribute
-    def batch(self) -> bool | None:
-        return self.args.batch
 
     # -----------------------------------------------------------------------
     # yd-submit / yd-provision / yd-instantiate / yd-create
@@ -1855,24 +1625,6 @@ class CLIParser:
         return self.args.work_requirements
 
     # -----------------------------------------------------------------------
-    # yd-delete
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def object_paths_to_delete(self) -> list[str] | None:
-        return self.args.object_paths_to_delete
-
-    # -----------------------------------------------------------------------
-    # yd-download
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def object_paths_to_download(self) -> list[str] | None:
-        return self.args.object_paths_to_download
-
-    # -----------------------------------------------------------------------
     # yd-create / yd-remove
     # -----------------------------------------------------------------------
 
@@ -1919,7 +1671,7 @@ class CLIParser:
         return self.args.yellowdog_ids
 
     # -----------------------------------------------------------------------
-    # yd-upload / yd-submit / yd-provision / yd-instantiate
+    # yd-submit / yd-provision / yd-instantiate
     # -----------------------------------------------------------------------
 
     @property
@@ -2103,10 +1855,6 @@ def lookup_module_description(module_name: str) -> str | None:
         )
     elif "create" in module_name:
         suffix = "creating and updating resources"
-    elif "delete" in module_name:
-        suffix = "deleting objects in the Object Store"
-    elif "download" in module_name:
-        suffix = "downloading objects from the Object Store"
     elif "finish" in module_name:
         suffix = "finishing Work Requirements"
     elif "follow" in module_name:
@@ -2133,8 +1881,6 @@ def lookup_module_description(module_name: str) -> str | None:
         suffix = "submitting a Work Requirement"
     elif "terminate" in module_name:
         suffix = "terminating Compute Requirements, Instances or Nodes"
-    elif "upload" in module_name:
-        suffix = "uploading objects to the Object Store"
 
     return None if suffix is None else prefix + suffix
 

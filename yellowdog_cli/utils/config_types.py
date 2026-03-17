@@ -20,34 +20,20 @@ class ConfigCommon:
 @dataclass
 class ConfigWorkRequirement:
     add_yd_env_vars: bool = False
-    always_upload: bool = True
     args: list[str] = field(default_factory=list)
     batch_allocation: bool | None = None
     completed_task_ttl: float | None = None  # In minutes
     csv_files: list[str] | None = None
     disable_preallocation: bool | None = None
-    docker_env: dict | None = None
-    docker_options: list | None = None
-    docker_password: str | None = None
-    docker_registry: str | None = None
-    docker_username: str | None = None
     env: dict = field(default_factory=dict)
     exclusive_workers: bool | None = None
-    executable: str | None = None
     finish_if_all_tasks_finished: bool = True
     finish_if_any_task_failed: bool = False
-    flatten_input_paths: bool | None = None
-    flatten_upload_paths: bool | None = None
-    inputs_optional: list[str] = field(default_factory=list)
-    inputs_required: list[str] = field(default_factory=list)
     instance_types: list[str] | None = None
     max_retries: int = 0
     max_workers: int | None = None
     min_workers: int | None = None
     namespaces: list[str] | None = None
-    outputs_optional: list[str] = field(default_factory=list)
-    outputs_other: list[dict] = field(default_factory=list)
-    outputs_required: list[str] = field(default_factory=list)
     parallel_batches: int | None = None
     priority: float = 0.0
     providers: list[str] | None = None
@@ -68,11 +54,7 @@ class ConfigWorkRequirement:
     task_timeout: float | None = None
     task_type: str | None = None
     tasks_per_worker: int | None = None
-    upload_files: list[dict] = field(default_factory=list)
-    upload_taskoutput: bool = False
     vcpus: list[float] | None = None
-    verify_at_start: list[str] = field(default_factory=list)
-    verify_wait: list[str] = field(default_factory=list)
     worker_tags: list[str] | None = None
     wr_data_file: str | None = None
     wr_name: str | None = None

@@ -43,8 +43,6 @@ from yellowdog_client.model import (
     Namespace,
     NamespacePolicy,
     Node,
-    ObjectDetail,
-    ObjectPath,
     PermissionDetail,
     ProvisionedWorkerPool,
     ProvisionedWorkerPoolProperties,
@@ -57,8 +55,6 @@ from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementSummary,
 )
-from yellowdog_client.object_store.download import DownloadBatchBuilder
-from yellowdog_client.object_store.upload import UploadBatchBuilder
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.cloudwizard_aws_types import AWSAvailabilityZone
@@ -75,7 +71,6 @@ from yellowdog_cli.utils.settings import (
     JSON_INDENT,
     MAX_LINES_COLOURED_FORMATTING,
     MAX_TABLE_DESCRIPTION,
-    NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     PROP_ACCESS_DELEGATES,
     PROP_ADMIN_GROUP,
     PROP_CREATED_BY_ID,
@@ -276,7 +271,6 @@ TYPE_MAP = {
     Namespace: "Namespace",
     NamespacePolicy: "Namespace Policy",
     Node: "Node",
-    ObjectPath: "Object Path",
     PermissionDetail: "Permission",
     ProvisionedWorkerPool: "Provisioned Worker Pool",
     Role: "Role",
@@ -559,16 +553,6 @@ def image_family_table(
                 image_family.id,
             ]
         )
-    return headers, table
-
-
-def object_path_table(
-    object_paths: list[ObjectPath],
-) -> tuple[list[str], list[str]]:
-    headers = ["#", "Name"]
-    table = []
-    for index, object_path in enumerate(object_paths):
-        table.append([index + 1, object_path.name])
     return headers, table
 
 
@@ -977,8 +961,6 @@ def print_numbered_object_list(
         headers, table = keyring_table(objects)
     elif isinstance(objects[0], MachineImageFamilySummary):
         headers, table = image_family_table(objects)
-    elif isinstance(objects[0], ObjectPath):
-        headers, table = object_path_table(objects)
     elif isinstance(objects[0], Instance):
         headers, table = instances_table(objects)
     elif isinstance(objects[0], Allowance):
@@ -1312,92 +1294,6 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
         indent(tabulate(source_table, headers="firstrow", tablefmt="simple_outline"))
     )
     print(flush=True)
-
-
-def print_object_detail(object_detail: ObjectDetail):
-    """
-    Pretty print an Object Detail.
-    Not currently used.
-    """
-    indent: str = 4 * " "
-    print(f"{indent}Namespace:         {object_detail.namespace}")
-    print(f"{indent}Object Name:       {object_detail.objectName}")
-    print(f"{indent}Object Size:       {object_detail.objectSize:,d} byte(s)")
-    print(f"{indent}Last Modified At:  {object_detail.lastModified}")
-
-
-def print_batch_upload_files(upload_batch_builder: UploadBatchBuilder):
-    """
-    Print the list of files that will be batch uploaded.
-    """
-    if ARGS_PARSER.quiet:
-        return
-
-    headers = ["#", "Source Object", "Target Object"]
-    table = []
-    # Yes, I know I shouldn't be accessing '_source_file_entries'
-    for index, file_entry in enumerate(upload_batch_builder._source_file_entries):
-        table.append(
-            [
-                index + 1,
-                file_entry.source_file_path,
-                f"{upload_batch_builder.namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{file_entry.default_object_name}",
-            ]
-        )
-    print(flush=True)
-    print_table_core(
-        indent(
-            tabulate(table, headers=headers, tablefmt="simple_outline"),
-            indent_width=4,
-        )
-    )
-    print(flush=True)
-
-
-def print_batch_download_files(
-    download_batch_builder: DownloadBatchBuilder, flatten_downloads: bool = False
-) -> int:
-    """
-    Print the list of files that will be batch downloaded.
-    Returns the number of files printed.
-    """
-    if ARGS_PARSER.quiet:
-        return 0
-
-    headers = ["#", "Source Object", "Target Object"]
-    directory_separator = "\\" if os_name == "nt" else "/"
-    table = []
-    counter = 0
-    # Yes, I know I shouldn't be accessing '_source_object_entries'
-    for index, object_entry in enumerate(download_batch_builder._source_object_entries):
-        object_source = f"{object_entry.namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{object_entry.object_name}"
-        object_target = (
-            f"{object_entry.object_name.replace('/', directory_separator)}"
-            if flatten_downloads is False
-            else f"{object_entry.object_name.split('/')[-1:][0]}"
-        )
-        table.append(
-            [
-                index + 1,
-                object_source,
-                relpath(
-                    f"{download_batch_builder.destination_folder}"
-                    f"{directory_separator}"
-                    f"{object_target}"
-                ),
-            ]
-        )
-        counter += 1
-
-    print(flush=True)
-    print_table_core(
-        indent(
-            tabulate(table, headers=headers, tablefmt="simple_outline"),
-            indent_width=4,
-        )
-    )
-    print(flush=True)
-    return counter
 
 
 @dataclass
