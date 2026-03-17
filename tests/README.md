@@ -88,7 +88,6 @@ pytest -v -n 4 --run-demos
 |---|---|
 | `test_create_remove.py` | `yd-create` / `yd-remove` round-trips for all resource types |
 | `test_list.py` | `yd-list` with various resource-type filters |
-| `test_objects.py` | Object store upload and delete via `yd-upload` / `yd-delete` |
 
 ## Prerequisites for Platform Tests
 

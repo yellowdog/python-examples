@@ -32,7 +32,6 @@ IMPORT_COMMON = "importCommon"  # String
 INSTANCE_TAGS = "instanceTags"  # Dictionary
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
-LOCAL_PATH = "localPath"  # String
 MAINTAIN_INSTANCE_COUNT = "maintainInstanceCount"  # Bool
 MAX_NODES = "maxNodes"  # Integer
 MAX_RETRIES = "maximumTaskRetries"  # Integer
@@ -130,7 +129,6 @@ ALL_KEYS = [
     INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
-    LOCAL_PATH,
     MAINTAIN_INSTANCE_COUNT,
     MAX_NODES,
     MAX_RETRIES,

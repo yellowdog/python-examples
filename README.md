@@ -31,10 +31,6 @@
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
          * [Obtaining Names/Context from Environment Variables at Task Run Time](#obtaining-namescontext-from-environment-variables-at-task-run-time)
-      * [Task Types](#task-types)
-         * [Bash, Python, PowerShell and cmd/bat Tasks](#bash-python-powershell-and-cmdbat-tasks)
-         * [Docker Tasks](#docker-tasks)
-         * [Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing](#bash-python-powershell-cmdexebatch-and-docker-without-automatic-processing)
       * [Task and Task Group Counts](#task-and-task-group-counts)
    * [Examples](#examples)
       * [TOML Properties in the workRequirement Section](#toml-properties-in-the-workrequirement-section)
@@ -51,16 +47,6 @@
       * [Automatic Upload of Local Files](#automatic-upload-of-local-files)
       * [Rclone Authentication](#rclone-authentication)
       * [Specifying Data Client Outputs](#specifying-data-client-outputs)
-   * [[Deprecated] File Storage Locations and File Usage](#deprecated-file-storage-locations-and-file-usage)
-      * [Files Uploaded to the Object Store from Local Storage](#files-uploaded-to-the-object-store-from-local-storage)
-         * [Files in the inputs List](#files-in-the-inputs-list)
-         * [Files in the uploadFiles List](#files-in-the-uploadfiles-list)
-         * [Using Wildcards in the uploadFiles List](#using-wildcards-in-the-uploadfiles-list)
-      * [File Dependencies Using verifyAtStart and verifyWait](#file-dependencies-using-verifyatstart-and-verifywait)
-      * [Files Uploaded to the Object Store Using inputsOptional](#files-uploaded-to-the-object-store-using-inputsoptional)
-      * [Files Downloaded to a Node for use in Task Execution](#files-downloaded-to-a-node-for-use-in-task-execution)
-      * [Files Uploaded from a Node to the Object Store after Task Execution](#files-uploaded-from-a-node-to-the-object-store-after-task-execution)
-      * [Files Downloaded from the Object Store to Local Storage](#files-downloaded-from-the-object-store-to-local-storage)
    * [Task Execution Context](#task-execution-context)
       * [Task Execution Steps](#task-execution-steps)
       * [The User and Group used for Tasks](#the-user-and-group-used-for-tasks)
@@ -119,9 +105,6 @@
    * [yd-provision](#yd-provision)
    * [yd-cancel](#yd-cancel)
    * [yd-abort](#yd-abort)
-   * [yd-download](#yd-download)
-   * [yd-delete](#yd-delete)
-   * [yd-upload](#yd-upload)
    * [yd-shutdown](#yd-shutdown)
    * [yd-instantiate](#yd-instantiate)
       * [Test-Running a Dynamic Template](#test-running-a-dynamic-template)
@@ -140,7 +123,7 @@
    * [yd-application](#yd-application)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Feb 20 13:13:40 GMT 2026 -->
+<!-- Added by: pwt, at: Wed Mar 18 12:17:58 GMT 2026 -->
 
 <!--te-->
 
@@ -161,9 +144,7 @@ The commands provide the following capabilities:
 - **Boosting** Allowances with the **`yd-boost`** command
 - **Cancelling** Work Requirements with the **`yd-cancel`** command
 - **Comparing** whether worker pools are a match for task groups with the **`yd-compare`** command
-- **Creating, Updating and Removing** Compute Source Templates, Compute Requirement Templates, Keyrings, Credentials, Storage Configurations, Image Families, Allowances, Configured Worker Pools, User Attributes, Namespace Policies, Groups, and Applications with the **`yd-create`** and **`yd-remove`** commands
-- **Deleting** objects in the YellowDog Object Store with the **`yd-delete`** command
-- **Downloading** Results from the YellowDog Object Store with the **`yd-download`** command
+- **Creating, Updating and Removing** Compute Source Templates, Compute Requirement Templates, Keyrings, Credentials, Image Families, Allowances, Configured Worker Pools, User Attributes, Namespace Policies, Groups, and Applications with the **`yd-create`** and **`yd-remove`** commands
 - **Finishing** Work Requirements with the **`yd-finish`** command
 - **Following Event Streams** for Work Requirements, Worker Pools and Compute Requirements with the **`yd-follow`** command
 - **Instantiating** Compute Requirements with the **`yd-instantiate`** command
@@ -176,7 +157,6 @@ The commands provide the following capabilities:
 - **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
 - **Submitting** Work Requirements with the **`yd-submit`** command
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
-- **Uploading** files to the YellowDog Object Store with the **`yd-upload`** command
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -614,7 +594,6 @@ Overridden properties are also inherited at lower levels in the hierarchy. E.g.,
 
 The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and property `dependentOn` can only be set at the Task Group level.
 
-All properties are optional except for **`taskType`** (or **`taskTypes`**).
 
 | Property Name               | Description                                                                                                                                                                                                                                | TOML | WR  | TGrp | Task |
 |:----------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
@@ -628,29 +607,16 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `dependencies`              | The names of other Task Groups within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `["task_group_1", "task_group_2"]`.                                                             |      |     | Yes  |      |
 | `dependentOn`               | [Deprecated in favour of `dependencies`] The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.                                      |      |     | Yes  |      |
 | `disablePreallocation`      | If `true`, tasks are only allocated to nodes as workers become idle and are not queued on the node. Default: `false`.                                                                                                                      | Yes  | Yes | Yes  |      |
-| `dockerEnvironment`         | The environment to be passed to a Docker container. Only used by the `docker` Task Type. E.g., JSON: `{"VAR_1": "abc"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                           | Yes  | Yes | Yes  | Yes  |
-| `dockerOptions`             | Additional options to be passed to the docker run command. Only used by the `docker` Task Type. E.g.,`["--runtime nvidia, "--gpus all"]`.                                                                                                  | Yes  | Yes | Yes  | Yes  |
-| `dockerPassword`            | The password for the Docker container registry; only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                                                                | Yes  | Yes | Yes  | Yes  |
-| `dockerRegistry`            | The Docker container registry against which to run `docker login`. This can be omitted if using the DockerHub registry. E.g., `"my.registry.io"`.                                                                                          | Yes  | Yes | Yes  | Yes  |
-| `dockerUsername`            | The username for the Docker container registry; only used by the `docker` Task Type. E,g., `"my_password"`.                                                                                                                                | Yes  | Yes | Yes  | Yes  |
 | `environment`               | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                                    | Yes  | Yes | Yes  | Yes  |
 | `exclusiveWorkers`          | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                                                                                         | Yes  | Yes | Yes  |      |
-| `executable`                | The 'executable' to run when using one of the task types `bash`, `cmd`, `powershell`, or `docker`. This is the filename of the script to run, or the container image for Docker. Optional: omit to suppress automatic processing.          | Yes  | Yes | Yes  | Yes  |
 | `finishIfAllTasksFinished`  | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                           | Yes  | Yes | Yes  |      |
 | `finishIfAnyTaskFailed`     | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                                         | Yes  | Yes | Yes  |      |
-| `flattenInputPaths`         | Determines whether input object paths should be flattened (i.e., directory structure removed) when downloaded to a node. Default: `false`.                                                                                                 | Yes  | Yes | Yes  | Yes  |
-| `flattenUploadPaths`        | Ignore local directory paths when uploading files to the Object Store; place in `<namespace>:<work-req-name>/`. Default: `false`.                                                                                                          | Yes  | Yes |      |      |
-| `inputs`                    | The list of input files to be uploaded to the YellowDog Object Store, and required by the Task (implies `verifyAtStart`). E.g. `["a.sh", "b.sh"]` or `["*.sh"]`.                                                                           | Yes  | Yes | Yes  | Yes  |
-| `inputsOptional`            | A list of input files required by a Task, but which are not subject to verification. Can contain wildcards. E.g.: `["task_group_1/**/results.txt"]`.                                                                                       | Yes  | Yes | Yes  | Yes  |
 | `instanceTypes`             | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                                                                                           | Yes  | Yes | Yes  |      |
 | `maximumTaskRetries`        | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                                                                                          | Yes  | Yes | Yes  |      |
 | `maxWorkers`                | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                                                                                               | Yes  | Yes | Yes  |      |
 | `minWorkers`                | The minimum number of Workers that the associated Task Group will retain even if this exceeds the current number of Tasks. E.g., `1`.                                                                                                      | Yes  | Yes | Yes  |      |
 | `name`                      | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                                                                                   | Yes  | Yes | Yes  | Yes  |
 | `namespaces`                | Only Workers whose Worker Pools match one of the namespaces in this list can be claimed by the Task Group. E.g., `["namespace_1", "namespace_2"]. Defaults to `None`.                                                                      | Yes  | Yes | Yes  |      |
-| `outputs`                   | The files to be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. E.g., `["results_1.txt", "results_2.txt"]`.                                                                                             | Yes  | Yes | Yes  | Yes  |
-| `outputsOther`              | Files to be uploaded to the YellowDog Object Store from outside the Tasks's Working Directory by a Worker node on completion of a Task. E.g., `outputsOther = [{"directoryName" = "tmp", "filePattern" = "out.txt", "required" = false}]`. | Yes  | Yes | Yes  | Yes  |
-| `outputsRequired`           | The files that *must* be uploaded to the YellowDog Object Store by a Worker node on completion of the Task. The Task will fail if any outputs are unavailable.                                                                             | Yes  | Yes | Yes  | Yes  |
 | `parallelBatches`           | The number of parallel threads to use when uploading batches of Tasks.                                                                                                                                                                     | Yes  |     |      |      |
 | `priority`                  | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. E.g., `0.0`.                                                                                                                  | Yes  | Yes | Yes  |      |
 | `providers`                 | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                                                                                             | Yes  | Yes | Yes  |      |
@@ -673,11 +639,7 @@ All properties are optional except for **`taskType`** (or **`taskTypes`**).
 | `taskType`                  | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                                                 | Yes  |     |      | Yes  |
 | `taskTypes`                 | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                                                                                          |      | Yes | Yes  |      |
 | `tasksPerWorker`            | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                                                                                        | Yes  | Yes | Yes  |      |
-| `uploadFiles`               | The list of files to be uploaded to the YellowDog Object Store. E.g., (JSON): `[{"localPath": file_1.txt", "uploadPath": "file_1.txt"}]`.                                                                                                  | Yes  | Yes | Yes  | Yes  |
-| `uploadTaskProcessOutput`   | Whether the console output of a Task's process (in file 'taskoutput.txt') should be uploaded to the YellowDog Object Store on Task completion. Default: `false`.                                                                           | Yes  | Yes | Yes  | Yes  |
 | `vcpus`                     | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                                                                                                 | Yes  | Yes | Yes  |      |
-| `verifyAtStart`             | A list of files required by a Task. Must be present when the Task is ready to start or the Task will fail. E.g.: `["task_group_1/task_1/results.txt"]`.                                                                                    | Yes  | Yes | Yes  | Yes  |
-| `verifyWait`                | A list of files required by a Task. The Task will wait until the files are available before starting. E.g.: `["task_group_1/task_1/results.txt"]`.                                                                                         | Yes  | Yes | Yes  | Yes  |
 | `workerTags`                | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                                               | Yes  | Yes | Yes  |      |
 | `workRequirementData`       | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                                                                                   | Yes  |     |      |      |
 
@@ -707,8 +669,6 @@ When a Task executes, its Task name and number, Task Group name and number, Work
 
 This applies whether the names were set automatically by `yd-submit` or explicitly by the user.
 
-For Tasks of type `docker` **and** where the `executable` property has been set, the variables above are instead available **within** the container environment.
-
 In addition to the environment variables above, when a Task is executed by a Worker, the YellowDog Agent will set the following variables for use by the Task, based on the instance details and Task identification:
 
 - `YD_PROVIDER`
@@ -720,96 +680,6 @@ In addition to the environment variables above, when a Task is executed by a Wor
 - `YD_AGENT_DATA`
 - `YD_AGENT_HOME`
 - `YD_WORKER_SLOT`
-
-### Task Types
-
-- If `taskType` is set only at the TOML file level, then `taskTypes` is automatically populated for Task Groups, unless overridden.
-- If `taskTypes` is set at the Task Group Level, and has only one Task Type entry, then `taskType` is automatically set at the Task Level using the single Task Type, unless overridden.
-- If `taskType` is set at the Task level, then `taskTypes` is automatically populated for the Task Groups level using the accumulated Task Types from the Tasks included in each Task Group, unless already specified.
-
-For the **`bash`**, **`powershell`**, **`cmd`**/**`bat`** and **`docker`** task types, some automatic processing will be performed if the **`executable`** property is set.
-
-#### Bash, Python, PowerShell and cmd/bat Tasks
-
-As a convenience, for the **`bash`**, **`python`**, **`powershell`**, and **`cmd`** (or **`bat`**) Task Types, the script nominated in the **`executable`** property is automatically added to the `inputs` file list if not already present in that list. This means the nominated 'executable' script file will be uploaded to the Object Store, and made a requirement of the Task when it runs.
-
-Using a Bash Task as an example (in TOML form):
-
-```toml
-taskType = "bash"
-executable = "my_bash_script.sh"
-arguments = ["1", "2", "3"]
-```
-is equivalent to:
-
-```toml
-taskType = "bash"
-inputs = ["my_bash_script.sh"]
-arguments = ["{{wr_name}}/my_bash_script.sh", "1", "2", "3"]
-```
-
-In the case of Windows batch (`.bat`) files, a `/c` flag is prepended to the `cmd.exe` argument list to ensure correct execution behaviour. For example:
-
-```toml
-taskType = "cmd"  # or "bat"
-executable = "my_script.bat"
-arguments = ["1", "2", "3"]
-```
-
-is equivalent to:
-
-```toml
-taskType = "cmd"  # or "bat"
-inputs = ["my_script.bat"]
-arguments = ["/c", "{{wr_name}}\\my_script.bat", "1", "2", "3"]
-```
-
-Note the `\\` requirement for directory separators when defining Tasks on Windows hosts. Note also that the `/c` is required when running commands or batch scripts using `cmd.exe`, otherwise the `cmd.exe` process created to execute the Task will not terminate.
-
-#### Docker Tasks
-
-For the **`docker`** Task Type, the variables supplied in the `dockerEnvironment` property are unpacked into the argument list as `--env` entries, the Docker container name supplied in the `executable` property is then added to the arguments list, followed by the arguments supplied in the `arguments` property.
-
-The `dockerUsername`, `dockerPassword`, and `dockerRegistry` properties, if supplied, are added to the `environment` property for processing by the script invoked by the Agent, which launches the Docker container. The `dockerRegistry` property is supplied when using a container repository other than DockerHub.
-
-For example:
-```toml
-taskType = "docker"
-executable = "my_dockerhub_repo/my_container_image"
-dockerEnvironment = {E1 = "EeeOne"}
-dockerUsername = "my_user"
-dockerPassword = "my_password"
-dockerRegistry = "my_registry.io"
-arguments = ["1", "2", "3"]
-```
-
-is equivalent to the following being sent for processing by the `docker` Task Type, the YellowDog version of which will log in to the Docker repo (if required) then issue a `docker run` command with the arguments supplied:
-
-```toml
-taskType = "docker"
-arguments = ["--env", "E1=EeeOne", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
-environment = {DOCKER_USERNAME = "my_user", DOCKER_PASSWORD = "my_password", DOCKER_REGISTRY = "my_registry.io"}
-```
-
-In addition, the `dockerOptions` property can be used to supply a list of arguments to the `docker run` command. For example:
-
-```toml
-taskType = "docker"
-executable = "my_dockerhub_repo/my_container_image"
-dockerOptions = ["--runtime=nvidia", "--gpus=all"]
-arguments = ["1", "2", "3"]
-```
-
-is equivalent to the following being sent for processing by the `docker` Task Type:
-
-```toml
-taskType = "docker"
-arguments = ["--runtime=nvidia", "--gpus=all", "my_dockerhubrepo/my_container_image", "1", "2", "3"]
-```
-
-#### Bash, Python, PowerShell, cmd.exe/batch, and Docker without Automatic Processing
-
-If the `executable` property is not supplied, none of the automatic processing described above for `bash`, `python`, `powershell`, `cmd` (or `bat`) and `docker` task types is applied.
 
 ### Task and Task Group Counts
 
@@ -832,32 +702,17 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     completedTaskTtl = 10
     csvFile = "file1.csv"
     csvFiles = ["file1.csv", "file3.csv:3"]
-    dockerEnvironment = {MY_DOCKER_VAR = 100}
-    dockerPassword = "myPassword"
-    dockerRegistry = "my.registry.io"
-    dockerUsername = "myUsername"
     environment = {MY_VAR = 100}
     exclusiveWorkers = false
-    executable = "my-container"
     finishIfAllTasksFinished = true
     finishIfAnyTaskFailed = false
-    flattenInputPaths = false
-    flattenUploadPaths = false
     fulfilOnSubmit = false
-    inputs = [
-        "../app/main.py",
-        "../app/requirements.txt"
-    ]
-    inputsOptional = ["optional.txt"]
     instanceTypes = ["t3a.micro", "t3.micro"]
     namespaces = ["namespace_1", "namespace_2"]
     maxWorkers = 1
     maximumTaskRetries = 0
     minWorkers = 1
     name = "my-work-requirement"
-    outputs = ["results.txt"]
-    outputsOther = [{"directoryName" = "my_output_dir", "filePattern" = "out.txt", "required" = true}]
-    outputsRequired = ["results_required.txt"]
     parallelBatches = 5
     priority = 0.0
     providers = ["AWS"]
@@ -886,11 +741,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskTimeout = 120.0
     taskType = "docker"
     tasksPerWorker = 1
-    uploadFiles = [{localPath = "file_1.txt", uploadPath = "file_1.txt"}]
-    uploadTaskProcessOutput = true
     vcpus = [1, 4]
-    verifyAtStart = ["ready_results.txt"]
-    verifyWait = ["wait_for_results.txt"]
     workerTags = ["tag-{{username}}"]
     workRequirementData = "work_requirement.json"
 ```
@@ -906,28 +757,16 @@ Showing all possible properties at the Work Requirement level:
   "arguments": [1, "TWO"],
   "batchAllocation": false,
   "completedTaskTtl": 10,
-  "dockerEnvironment": {"MY_DOCKER_VAR": 100},
-  "dockerPassword": "myPassword",
-  "dockerRegistry": "my.registry.io",
-  "dockerUsername": "myUsername",
   "environment": {"MY_VAR": 100},
   "exclusiveWorkers": false,
-  "executable": "my-container",
   "finishIfAllTasksFinished": true,
   "finishIfAnyTaskFailed": false,
-  "flattenInputPaths": false,
-  "flattenUploadPaths": false,
-  "inputs": ["app/main.py", "app/requirements.txt"],
-  "inputsOptional": ["optional.txt"],
   "instanceTypes": ["t3a.micro", "t3.micro"],
   "maxWorkers": 1,
   "maximumTaskRetries": 0,
   "minWorkers": 1,
   "name": "my-work-requirement",
   "namespaces": ["namespace_1", "namespace_2"],
-  "outputs": ["results.txt"],
-  "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
-  "outputsRequired": ["results_required.txt"],
   "priority": 0.0,
   "providers": ["AWS"],
   "ram": [0.5, 2],
@@ -956,11 +795,7 @@ Showing all possible properties at the Work Requirement level:
   "taskTimeout": 120.0,
   "taskTypes": ["docker"],
   "tasksPerWorker": 1,
-  "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
-  "uploadTaskProcessOutput": true,
   "vcpus": [1, 4],
-  "verifyAtStart": ["ready_results.txt"],
-  "verifyWait": ["wait_for_results.txt"],
   "workerTags": [],
   "taskGroups": [
     {
@@ -986,27 +821,16 @@ Showing all possible properties at the Task Group level:
       "arguments": [1, "TWO"],
       "batchAllocation": false,
       "completedTaskTtl": 10,
-      "dockerEnvironment": {"MY_DOCKER_VAR": 100},
-      "dockerPassword": "myPassword",
-      "dockerRegistry": "my.registry.io",
-      "dockerUsername": "myUsername",
       "environment": {"MY_VAR": 100},
       "exclusiveWorkers": false,
-      "executable": "my-container",
       "finishIfAllTasksFinished": true,
       "finishIfAnyTaskFailed": false,
-      "flattenInputPaths": false,
-      "inputs": ["app/main.py", "app/requirements.txt"],
-      "inputsOptional": ["optional.txt"],
       "instanceTypes": ["t3a.micro", "t3.micro"],
       "maximumTaskRetries": 0,
       "maxWorkers": 1,
       "minWorkers": 1,
       "name": "first-task-group",
       "namespaces": ["namespace_1", "namespace_2"],
-      "outputs": ["results.txt"],
-      "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
-      "outputsRequired": ["results_required.txt"],
       "priority": 0.0,
       "providers": ["AWS"],
       "ram": [0.5, 2],
@@ -1034,11 +858,7 @@ Showing all possible properties at the Task Group level:
       "taskTimeout": 120.0,
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,
-      "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
-      "uploadTaskProcessOutput": true,
       "vcpus": [1, 4],
-      "verifyAtStart": ["ready_results.txt"],
-      "verifyWait": ["wait_for_results.txt"],
       "workerTags": [],
       "tasks": [
         {}
@@ -1068,19 +888,8 @@ Showing all possible properties at the Task level:
           "addYDEnvironmentVariables": true,
           "alwaysUpload": true,
           "arguments": [1, 2],
-          "dockerEnvironment": {"MY_DOCKER_VAR": 100},
-          "dockerPassword": "myPassword",
-          "dockerRegistry": "my.registry.io",
-          "dockerUsername": "myUsername",
           "environment": {"MY_VAR": 100},
-          "executable": "my-container",
-          "flattenInputPaths": false,
-          "inputs": ["app/main.py", "app/requirements.txt"],
-          "inputsOptional": ["optional.txt"],
           "name": "my-task",
-          "outputs": ["results.txt"],
-          "outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}],
-          "outputsRequired": ["results_required.txt"],
           "setTaskNames": false,
           "tag": "my_tag",
           "taskData": "my_task_data_string",
@@ -1094,11 +903,7 @@ Showing all possible properties at the Task level:
             {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
           ],
           "timeout": 120.0,
-          "taskType": "docker",
-          "uploadFiles": [{"localPath": "file_1.txt", "uploadPath": "file_1.txt"}],
-          "uploadTaskProcessOutput": true,
-          "verifyAtStart": ["ready_results.txt"],
-          "verifyWait": ["wait_for_results.txt"]
+          "taskType": "docker"
         }
       ]
     }
@@ -1134,7 +939,6 @@ As an example, the following JSON Work Requirement:
   "taskGroups": [
     {
       "name": "my_task_group_{{task_group_number}}_a1",
-      "executable": "ex1.sh",
       "taskCount": 2,
       "tasks": [
         {
@@ -1144,7 +948,6 @@ As an example, the following JSON Work Requirement:
     },
     {
       "name": "my_task_group_{{task_group_number}}_b1",
-      "executable": "ex2.sh",
       "taskCount": 2,
       "tasks": [
         {
@@ -1171,10 +974,10 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
 `% yd-submit --dry-run --quiet`
 ```json
 {
-  "name": "pyex-bash-pwt2_240424-12051160",
-  "namespace": "pyexamples-pwt2",
+  "name": "pyex-docker-pwt_240424-12051160",
+  "namespace": "pyexamples-pwt",
   "priority": 0,
-  "tag": "pyex-bash-pwt2",
+  "tag": "pyex-docker-pwt",
   "taskGroups": [
     {
       "finishIfAllTasksFinished": true,
@@ -1182,37 +985,25 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
       "name": "task_group_1",
       "priority": 0,
       "runSpecification": {
-        "maximumTaskRetries": 5,
-        "taskTypes": ["bash"],
-        "workerTags": ["pyex-bash-pwt2-worker", "onpremise-pwt2"]
+        "maximumTaskRetries": 0,
+        "taskTypes": ["docker"],
+        "workerTags": ["pyex-docker-pwt-worker"]
       },
       "starved": false,
       "waitingOnDependency": false,
       "tasks": [
         {
-          "arguments": ["pyex-bash-pwt2_240424-12051160/sleep_script.sh", 1, 2, 3],
+          "arguments": ["my_dockerhub_repo/my_container_image", "1", "2", "3"],
           "environment": {
-            "TEST_ENV_1": "100",
-            "TEST_ENV_2": "200",
             "YD_TASK_NAME": "task_1",
             "YD_TASK_NUMBER": "1",
             "YD_TASK_GROUP_NAME": "task_group_1",
             "YD_TASK_GROUP_NUMBER": "1",
-            "YD_WORK_REQUIREMENT_NAME": "pyex-bash-pwt2_240424-12051160",
-            "YD_NAMESPACE": "pyexamples-pwt2"
+            "YD_WORK_REQUIREMENT_NAME": "pyex-docker-pwt_240424-12051160",
+            "YD_NAMESPACE": "pyexamples-pwt"
           },
-          "inputs": [
-            {
-              "objectNamePattern": "pyex-bash-pwt2_240424-12051160/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
           "name": "task_1",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
+          "taskType": "docker"
         }
       ]
     }
@@ -1227,8 +1018,6 @@ It's possible to use the JSON output of `yd-submit --dry-run` (such as the examp
 This will submit the Work Requirement, then add all the specified Tasks.
 
 Note that variable substitutions **can** be used in the raw JSON file, just as in the other Work Requirement JSON examples, but there is no property inheritance, including from the `[workRequirement]` section of the TOML configuration or from Work Requirement properties supplied on the command line.
-
-There is also no automatic file upload when using this option, so any files required at the start of the task (specified using `VERIFY_AT_START` in the `inputs` property) must be present before the Tasks are uploaded, or the Tasks will fail immediately. The `yd-upload` command can be used to upload these files, and `yd-submit` will pause for user confirmation to allow this upload to happen.
 
 ## Using the YellowDog Data Client
 
@@ -1323,257 +1112,6 @@ JSON:
 - The `source` property must specify a local pathname and be prefixed with `local:`, e.g.: `local:my_output.txt`
 - The `destination` property must be an rclone-compliant path, e.g.: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:my_bucket_name/directory_name/filename`.
 
-## [Deprecated] File Storage Locations and File Usage
-
-This section discusses how to upload files from local storage to the YellowDog Object Store, how those files are transferred to Worker Nodes for Task processing, how the results of Task processing are returned by Worker Nodes, and how files are transferred back from the YellowDog Object Store to local storage.
-
-### Files Uploaded to the Object Store from Local Storage
-
-#### Files in the `inputs` List
-
-When a Work Requirement is submitted using `yd-submit`, files are uploaded to the YellowDog Object Store if they're included in the list of files in the `inputs` property. (For the **`bash`**, **`python`**, **`powershell`**, and **`cmd`** (or **`bat`**) Task Types, the file specified in the `executable` property is also automatically uploaded, as a convenience, even if not included in the `inputs` list.)
-
-The `inputs` property accepts wildcard filenames, e.g.: `["*.sh", "*.txt"]`. This can be used to add the contents of directories, e.g.: `["my_dir/*", "data*/*"]`.
-
-Files are uploaded to the Namespace specified in the configuration. Within the Namespace, each Work Requirement has a separate folder that shares the name of the Work Requirement, and in which all files related to the Work Requirement are stored.
-
-1. Files to be uploaded that are in the **same directory as the Work Requirement specification** (the TOML or JSON file) are uploaded to the root of the Work Requirement folder.
-
-
-2. Files to be uploaded that are in **subdirectories below the Work Requirement specification, or where absolute pathnames are supplied** are placed in the Object Store in directories that mirror their local storage locations.
-
-
-3. Files to be uploaded that are in **directories relative to the Work Requirement specification, using `..` relative paths** are placed in Object Store directories in which the `..` parts of the pathname are replaced with an integer count of the number of `..` entries (because we can't use the `..` relative form in the Object Store).
-
-Assuming a Namespace called `development` and a Work Requirement named `testrun_221108-120404-7d2`, the following locations are used when uploading files following the patterns above:
-
-```shell
-"inputs" : ["file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["dev/file_1.txt"] -> development::testrun_221108-120404-7d2/dev/file_1.txt
-"inputs" : ["/home/dev/file_1.txt"] -> development::testrun_221108-120404-7d2/home/dev/file_1.txt
-"inputs" : ["../dev/file_1.txt"] -> development::testrun_221108-120404-7d2/1/dev/file_1.txt
-"inputs" : ["../../dev/file_1.txt"] -> development::testrun_221108-120404-7d2/2/dev/file_1.txt
-```
-
-**Using `flattenUploadPaths`**
-
-The `flattenUploadPaths` property can be used to suppress the mirroring of any local directory structure when uploading files to the Object Store. If set to `true`, all files will be uploaded to the root of the Work Requirement folder. For example:
-
-```shell
-"inputs" : ["file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["dev/file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["/home/dev/file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["../dev/file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
-"inputs" : ["../../dev/file_1.txt"] -> development::testrun_221108-120404-7d2/file_1.txt
-```
-
-The property default is `false`. This property **can only be set at the Work Requirement level** and will therefore apply to all Task Groups and Tasks within a Work Requirement.
-
-When files appear in the `inputs` list, they are also automatically added to the list of files required by the relevant Task(s) as `VerifyAtStart` dependencies.
-
-#### Files in the `uploadFiles` List
-
-The `uploadFiles` property allows more flexible control over the files to be uploaded from local storage to the Object Store when `yd-submit` is run. The property can be used at all Work Requirement levels, from the TOML file through to individual Task specifications.
-
-The property is supplied as a list of dictionary items, each of which must include the properties `localPath` and `uploadPath`. 
-
-- `localPath` specifies the pathname of the file on local storage
-- `uploadPath` specifies the name and location of the file's destination in the Object Store
-
-For example, in TOML:
-```toml
-uploadFiles = [
-    {localPath = "file_1.txt", uploadPath = "file_1.txt"},
-    {localPath = "dir_2/file_2.txt", uploadPath = "::file_2.txt"},
-    {localPath = "file_3.txt", uploadPath = "other_namespace::file_3.txt"}
-]
-```
-And in JSON, with the property set at the Task level, the same specification would be:
-```json
-{
-  "taskGroups": [
-    {
-      "tasks": [
-        {
-          "uploadFiles": [
-            {"localPath": "file_1.txt", "uploadPath": "file_1.txt"},
-            {"localPath": "dir_2/file_2.txt", "uploadPath": "::file_2.txt"},
-            {"localPath": "file_3.txt", "uploadPath": "other_namespace::file_3.txt"}
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-When running the Python Examples commands on **Windows** hosts, note that either Windows or Unix directory separators can be used for the `localPath` pathnames (or the pathnames in `inputs`), but the Unix convention must be used for the `uploadPath` names, e.g.:
-
-```toml
-uploadFiles = [
-    {localPath = "dir_2\\file_2.txt", uploadPath = "::my_directory/file_2.txt"},
-]
-```
-
-The `uploadFiles` property can also be set at the Work Requirement and Task Group levels, and property inheritance operates as normal.
-
-For `uploadPath`, the same `::` naming convention is available as is used in the `verifyAtStart`, `verifyWait` and `inputsOptional` properties discussed below:
-
-- If `::` is not used, then the file is uploaded relative to the current namespace in a directory named after the name of the Work Requirement
-- If `::` is used at the start of the `uploadPath`, the file is uploaded relative to the root of the current namespace
-- If `<namespace>::` is used at the start of `uploadPath`, the file is uploaded relative to the root of `<namespace>`
-
-Each file specified in the `uploadFiles` lists will only be uploaded once to each unique upload location for any given invocation of `yd-submit`.
-
-If a file in the `uploadFiles` list is required by a Task, it must separately be added to the `verifyAtStart` or `verifyWait` lists discussed below. This is not done automatically. Note also that the `flattenUploadPaths` property is ignored for files in the `uploadFiles` list.
-
-#### Using Wildcards in the `uploadFiles` List
-
-File and directory name wildcards can be used in `localPath` properties. If wildcards are used, then the `uploadPath` property must end with a `*`, which will be replaced with the name of each file that matches the wildcard, e.g.:
-
-```toml
-uploadFiles = [
-    {localPath = "*.sh", uploadPath = "scripts/*"},
-    {localPath = "text/*.txt", uploadPath = "::top-level/*"},
-    {localPath = "src/*.py", uploadPath = "other-namespace::*"},
-]
-```
-
-The `--dry-run` (`-D`) option can be used with `yd-submit` to print out the files that would be uploaded, along with their upload locations. 
-
-### File Dependencies Using `verifyAtStart` and `verifyWait`
-
-It's possible to make Tasks dependent on the presence of files in the Object Store by using the `verifyAtStart` and `verifyWait` lists. These files are not automatically uploaded when using `yd-submit` so are uploaded manually (e.g., by using `yd-upload`), uploaded using the `uploadFiles` property, or are created as outputs from the execution of other Tasks.
-
-Note that a given file can only appear in *one* of the `inputs`, `verifyAtStart` or `verifyWait` lists.
-
-Tasks with `verifyAtStart` dependencies will fail immediately if the required files are not present when the Task is submitted. Tasks with `verifyWait` dependencies will not become `READY` to be allocated to Workers until their dependencies are satisfied.
-
-When specifying files in the `verifyAtStart` and `verifyWait` lists, as with the `uploadPath` property discussed above, the file locations can be (1) relative to the Work Requirement name in the current namespace (the default), (2) relative to the root of the current namespace, or (3) relative to the root of a different namespace in the user's Account.
-
-1. For files relative to the Work Requirement name in the current namespace, just use the file path, e.g.
-```shell
-"verifyWait": ["file_1.txt"] -> development:testrun_221108-120404-7d2/file_1.txt
-```
-
-2. For files relative to the root of the current namespace, prefix the file path with `::`, e.g.
-```shell
-"verifyWait": ["::file_1.txt"] -> development::file_1.txt
-```
-
-3. For files relative to the root of a different namespace, prefix the file path with the namespace name and `::`, e.g.
-```shell
-"verifyWait": ["other_namespace::file_1.txt"] -> other_namespace::file_1.txt
-```
-
-The use of the three different forms can be mixed within a single list, e.g.:
-```shell
-"verifyAtStart": ["file_1.txt", "::dir_2/file_2.txt", "other_namespace::dir_3/file_3.txt"]
-```
-
-### Files Uploaded to the Object Store Using `inputsOptional`
-
-The `inputsOptional` property works in a similar fashion to the `verify*` properties above, but the files specified in this list are optional. This property also allows for the use of wildcards `*` and `**` to collect files using wildcard paths. The **ant** conventions are used for these wildcards.
-
-### Files Downloaded to a Node for use in Task Execution
-
-When a Task is executed by a Worker on a Node, its required files are downloaded from the Object Store prior to Task execution. Any file listed in the `inputs` for a Task is assumed to be required, along with any additional files specified in the `verifyAtStart` and `verifyWait` lists. Files specified using the `inputsOptional` property are optionally downloaded from the Object Store. (Note that a file should only appear in one of these four lists, otherwise `yd-submit` will return an error.)
-
-When a Task is started by the Agent, its working directory has a pattern like:
-
-`/var/opt/yellowdog/agent/data/workers/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1`
-
-Where `ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1` is an ephemeral directory that is removed after the Task finishes (or fails) and any nominated Task outputs have been uploaded to the Object Store.
-
-Files that are downloaded by the Agent prior to Task execution are located as follows:
-
-1. If the `flattenInputPaths` property is set to the default of `false` for the Task, the downloaded objects are placed in subdirectories that mirror those in the Object Store, including the Work Requirement name, situated beneath the working directory.
-
-
-2. If the `flattenInputPaths` property is set to `true` for the Task, the downloaded objects are all placed directly in root of the Task's working directory.
-
-For example:
-
-```shell
-If the required object is: development::testrun_221108-120404-7d2/dev/file_1.txt
-
-then, if flattenInputPaths is false, the file will be found at:
- -> <working_directory>/testrun_221108-120404-7d2/dev/file_1.txt
- 
-else, if flattenInputPaths is true, the file will be found at:
- -> <working_directory>/file_1.txt 
- 
-where <working_directory> is:
-  /var/opt/yellowdog/agent/data/workers/ydid_task_D0D0D0_68f5e5be-dc93-49eb-a824-1fcdb52f9195_1_1/
-```
-
-Note that the Work Requirement name is automatically made available to the Task via the environment variable `YD_WORK_REQUIREMENT_NAME`, by `yd-submit`, if the `addYDEnvironmentVariables` property is set to `true`. It's also available for client-side variable substitution in Work Requirements using the variable `{{wr_name}}`.
-
-### Files Uploaded from a Node to the Object Store after Task Execution
-
-After Task completion, the Agent will upload the specified output files to the Object Store. The files to be uploaded are those listed in the `outputs`, `outputsRequired`, and `outputsOther` properties for the Task.
-
-In addition, the console output of the Task is captured in a file called `taskoutput.txt` in the root of the Task's working directory. Whether the `taskoutput.txt` file is uploaded to the Object Store is determined by the `uploadTaskProcessOutput` property for the Task, and this is set to 'false' by default.
-
-If Task outputs are created in subdirectories below the Task's working directory, include the directories for files in the `outputs` property. E.g., if a Task creates files `results/openfoam.tar.gz` and `results/openfoam.log`, then specify these for upload in the `outputs` property as follows:
-
-`"outputs": ["results/openfoam.tar.gz", "results/openfoam.log"]`
-
-When output files are uploaded to the Object Store, they are placed in a Task Group and Task specific directory. So, if the Namespace is `development`, the Work Requirement is `testrun_221108-120404-7d2`, the Task Group is `task_group_1` and the Task is `task_1`, then the files above would be uploaded to the Object Store as follows:
-
-```shell
-development::testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.tar.gz
-development::testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.log
-development::testrun_221108-120404-7d2/task_group_1/task_1/taskoutput.txt
-```
-
-The **`outputsRequired`** property can be used instead of (or in addition to) the `outputs` property, if the output file(s) **must** be available for upload to the Object Store at the conclusion of the Task or the Task will be marked as `Failed`, e.g.:
-
-`"outputsRequired": ["results/process_output.txt"]`
-
-The **`outputsOther`** property is used to collect outputs from directories that are not contained under the Task's working directory. In this case, the YellowDog Agent must be explicitly configured to allow upload from these directories by establishing this in the `application.yaml` file. For example:
-
-```yaml
-yda.outputSources:
-  - name: "my_output_dir"
-    path: "/tmp/outputs"
-```
-
-Then, in the list of entries in the `outputsOther` property, the `directoryName` property is set to be the **`name`** specified in the `application.yaml`. For example:
-
-```json
-"outputsOther": [{"directoryName": "my_output_dir", "filePattern": "out.txt", "required": true}]
-```
-
-### Files Downloaded from the Object Store to Local Storage
-
-The `yd-download` command can download all objects from the Object Store to a local directory, on a per Work Requirement basis (including any files that have been uploaded). A local directory is created with the same name as the Namespace and containing the Work Requirement directories.
-
-Use the `--interactive` option with `yd-download` to select which Work Requirement(s) to download.
-
-For the example above, `yd-download` would create a directory called `testrun_221108-120404-7d2` in the current working directory, containing something like:
-
-```shell
-current_directory
-└── testrun_221108-120404-7d2
-    ├── bash_script.sh
-    ├── file_1.txt
-    └── task_group_1
-        └── task_1
-            ├── results
-            │   ├── openfoam.log
-            │   └── openfoam.tar.gz
-            └── taskoutput.txt
-```
-
-Note that everything within the `namespace::work-requirement` directory in the Object Store is downloaded, including any files that were specified in `inputs` and uploaded as part of the Work Requirement submission. Multiple Task Groups, and multiple Tasks will all appear in the directory structure.
-
-Finer-grained downloads are also possible: please consult the output of `yd-download --help` to see the available options. For example to download only the `openfoam.tar.gz` file, to a local directory `results`:
-
-```shell
-yd-download testrun_221108-120404-7d2/task_group_1/task_1/results/openfoam.tar.gz --directory ./results
-```
-
 ## Task Execution Context
 
 This section discusses the context within which a Task operates when it's executed by a Worker on a node. It applies specifically to the YellowDog Agent running on a Linux node, and configured using the default username, directories, etc. Configurations can vary.
@@ -1582,12 +1120,10 @@ This section discusses the context within which a Task operates when it's execut
 
 When a Task is allocated to a Worker on a node by the YellowDog Scheduler, the following steps are followed:
 
-1. The Agent running on the node downloads the Task's properties: its `taskType`,  `arguments`, `environment`, `taskdata`, and (from the Object Store) any files in the `inputs` list and any available files in the `inputsOptional` list. A number of `YD_` environment variables are also automatically set by a combination (optionally) of `yd_submit`, and the Agent itself -- see above for details.
-2. The downloaded files are placed in an ephemeral directory created for this Task's execution, and into which any output files are also written by default.
+1. The Agent running on the node downloads the Task's properties: its `taskType`, `arguments`, `environment`, `taskdata`, and any Data Client inputs specified in `taskDataInputs`. A number of `YD_` environment variables are also automatically set by a combination (optionally) of `yd_submit`, and the Agent itself -- see above for details.
 2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess to run the Task.
 3. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
-4. The Agent then gathers any files in the `outputs` and `outputsRequired` lists and uploads them to the Object Store. If a file in the `outputsRequired` list is not found, the Task will be reported as failed. The Agent will also optionally upload the console output (including both `stdout` and `stderr`) of the Task, contained in the `taskoutput.txt` file.
-5. The ephemeral Task directory is then deleted.
+4. The Agent uploads any Data Client outputs specified in `taskDataOutputs`. The ephemeral Task directory is then deleted.
 
 Note that if a Task is aborted during execution, the Task's subprocess is sent a `SIGTERM`, allowing the Task an opportunity to terminate any child processes or other resources (e.g., containers) that may have been started as part of Task execution. In addition, there is the option to set an `abort` clause as part of the Task Type specification in the Agent's `application.yaml` file, in which case the script specified in the `abort` clause takes over responsibility for any abort handling.
 
@@ -2112,7 +1648,6 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 - `"ComputeSourceTemplate"`
 - `"ComputeRequirementTemplate"`
 - `"MachineImageFamily"`
-- `"NamespaceStorageConfiguration"`
 - `"ConfiguredWorkerPool"`
 - `"Allowance"`
 - `"StringAttributeDefinition"`
@@ -2400,23 +1935,6 @@ An example specification, illustrating a containment hierarchy of Image Family -
 ```
 
 Note that if the name of an Image Group or an Image is changed in the resource specification, the existing resource with the previous name will be removed from the Platform because it's no longer present in the resource specification. To prevent this, retain the previous resource in your specification, and add resources as required.
-
-## Namespace Storage Configurations
-
-The Namespace Storage Configuration models can be found in the Object Store API at: https://docs.yellowdog.ai/api?spec=Object%20Store%20API.
-
-Example:
-
-```json
-{
-  "resource": "NamespaceStorageConfiguration",
-  "type": "co.yellowdog.platform.model.S3NamespaceStorageConfiguration",
-  "namespace": "my-s3-namespace",
-  "bucketName": "com.my-company.test.my-yd-objects",
-  "region": "eu-west-2",
-  "credential": "my-keyring/my-aws-credential"
-}
-```
 
 ## Configured Worker Pools
 
@@ -2755,7 +2273,7 @@ When this is inspected using the `dry-run` option (`yd-submit -D my_work_req.jso
   "name": "workreq_230114-140645",
   "namespace": "pyexamples",
   "priority": 0,
-  "tag": "pyex-bash",
+  "tag": "pyex-docker",
   "taskGroups": [
     {
       "finishIfAllTasksFinished": true,
@@ -2764,73 +2282,33 @@ When this is inspected using the `dry-run` option (`yd-submit -D my_work_req.jso
       "priority": 0,
       "runSpecification": {
         "maximumTaskRetries": 0,
-        "taskTypes": ["bash"],
-        "workerTags": ["pyex-bash-docker"]
+        "taskTypes": ["docker"],
+        "workerTags": ["pyex-docker"]
       },
       "tasks": [
         {
-          "arguments": ["workreq_230114-140645/sleep_script.sh", "1"],
+          "arguments": ["1"],
           "environment": {"A": "A_1"},
-          "inputs": [
-            {
-              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
           "name": "my_task_1",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
+          "taskType": "docker"
         },
         {
-          "arguments": ["workreq_230114-140645/sleep_script.sh", "2", "3"],
+          "arguments": ["2", "3"],
           "environment": {},
-          "inputs": [
-            {
-              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
           "name": "my_task_2",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
+          "taskType": "docker"
         },
         {
-          "arguments": ["workreq_230114-140645/sleep_script.sh", "4"],
+          "arguments": ["4"],
           "environment": {},
-          "inputs": [
-            {
-              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
           "name": "my_task_3",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
+          "taskType": "docker"
         },
         {
-          "arguments": ["workreq_230114-140645/sleep_script.sh"],
+          "arguments": [],
           "environment": {},
-          "inputs": [
-            {
-              "objectNamePattern": "workreq_230114-140645/sleep_script.sh",
-              "source": "TASK_NAMESPACE",
-              "verification": "VERIFY_AT_START"
-            }
-          ],
           "name": "my_task_4",
-          "outputs": [
-            {"alwaysUpload": true, "required": false, "source": "PROCESS_OUTPUT"}
-          ],
-          "taskType": "bash"
+          "taskType": "docker"
         }
       ]
     }
@@ -2846,7 +2324,7 @@ All destructive commands require user confirmation before taking effect. This ca
 
 Some commands support the `--interactive` or `-i` option, allowing user selections to be made. E.g., this can be used to select which object paths to delete.
 
-The `--quiet` or `-q` option reduces the command output down to essential messages only. So, for example, `yd-delete -yq` would delete all matching object paths silently.
+The `--quiet` or `-q` option reduces the command output down to essential messages only.
 
 If you encounter an error it can be useful for support purposes to see the full Python stack trace. This can be enabled by running the command using the `--debug` option.
 
@@ -2883,64 +2361,6 @@ By default, any Tasks that are currently running on Workers will continue to run
 The `yd-abort` command is used to abort Tasks that are currently running. The user interactively selects the Work Requirements to target, and then which Tasks within those Work Requirements to abort. The Work Requirements are not cancelled as part of this process.
 
 The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to list for selection.
-
-## yd-download
-
-The `yd-download` command downloads objects from the YellowDog Object Store.
-
-The `namespace` and `tag` values are used to determine which objects to download. To download a specific object or directory, specify it using the `--tag` option, e.g.:
-
-```shell
-yd-download --tag "path/to/my/object"
-```
-
-Use the `--all` (`-a`) option to list the full directory/object structure and all objects.
-
-Objects will be downloaded to a directory with the same name as `namespace`. Alternatively, a local download directory can be specified with the `--directory` option. Directories will be created if they don't already exist. Files that are downloaded will overwrite existing local files **without warning**.
-
-## yd-delete
-
-The `yd-delete` command deletes any objects created in the YellowDog Object Store.
-
-The `namespace` and `tag` values in the `config.toml` file are used to identify which objects to delete. Note that it's easy to use `yd-delete` to clear the contents of a namespace by using an empty `tag`, as follows:
-
-```shell
-yd-delete -t ""
-```
-
-This can be extended to any other namespace by using the `--namespace`/`-n` option.
-
-To delete a specific directory or object, supply the directory or object name using the `--tag` option, e.g.:
-
-```shell
-yd-delete --tag "path/to/my/directory"
-yd-delete -t "path/to/my/directory/object"
-```
-
-Use the `--all` (`-a`) option to see the list directory/object structure and all objects.
-
-## yd-upload
-
-The `yd-upload` command uploads files from the local filesystem to the YellowDog Object store. Files are placed in the configured `namespace` within a directory matching the `tag` property or using the value of the `--prefix` (`--tag`, `-t`) option, e.g.:
-
-```shell
-yd-upload --prefix my_work_requirement file_1 file_2 morefiles/file3
-```
-To suppress the mirroring of the local directory structure within the object store, use the `--flatten-upload-paths` or `-f` option. Note that if this creates multiple uploaded files with the same path in the Object Store folder, files will be overwritten.
-
-Files in directories may be recursively uploaded using the `--recursive` or `-r` option, e.g.:
-
-```shell
-yd-upload --prefix my_work_requirement -r mydir myotherdir myfile
-```
-
-To upload to other namespaces, use the `--namespace`/`-n` option.
-
-To use the **batch** uploader, use the `--batch`/`-b` option. Note that the `--prefix`, `--recursive`, and `--flatten-upload-paths` options are ignored when using batch uploads. Batch uploading only accepts file patterns with wildcards, and these should be quoted to prevent shell expansion. E.g.:
-
-```shell
-yd-upload --batch '*.sh' '*.json'
-```
 
 ## yd-shutdown
 

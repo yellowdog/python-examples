@@ -64,7 +64,6 @@ yellowdog_cli/
     ├── misc_utils.py            # generate_id(), format_yd_name(), load_dotenv_file(), link_entity(); delimiter-parsing helpers used by variables.py
     ├── load_resources.py        # load_resource_specifications(): loads TOML/JSON/Jsonnet files, applies substitutions, re-sequences in dependency order
     ├── provision_utils.py       # get_user_data_property() (reads/concatenates userdata scripts), get_template_id() (name→ID), get_image_id()
-    ├── upload_utils.py          # upload_file() / upload_file_core(): uploads to YD Object Store with unique path naming
     ├── rclone_utils.py          # RcloneUploadedFiles: uploads task data input files via rclone; parses rclone connection strings; deduplicates
     ├── follow_utils.py          # follow_ids(): subscribes to SSE event streams for WRs/WPs/CRs in daemon threads; auto-reconnects on drop
     ├── interactive.py           # confirmed() (respects --yes/YD_YES), select() (numbered list selection with range syntax e.g. 1,2,4-7)
@@ -72,7 +71,7 @@ yellowdog_cli/
     ├── compact_json.py          # CompactJSONEncoder: small containers on one line, larger ones indented
     ├── check_imports.py         # Guards for optional imports (jsonnet, cloudwizard) with install hints
     ├── rich_console_input_fixed.py  # ConsoleWithInputBackspaceFixed: workaround for Rich backspace-deletes-prompt bug
-    └── cloudwizard_*.py         # AWS/Azure/GCP provider integration (cloudwizard_common, _aws, _aws_types, _azure, _gcp)
+    └── cloudwizard_*.py         # AWS/Azure/GCP provider integration (cloudwizard_common, _aws, _aws_types, _azure, _gcp); sets up compute source/requirement templates and credentials; no longer creates cloud storage buckets or namespace storage configurations
 ```
 
 ### Command Pattern
