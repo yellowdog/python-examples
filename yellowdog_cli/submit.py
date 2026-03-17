@@ -8,7 +8,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from copy import deepcopy
 from datetime import timedelta
 from math import ceil
-from os.path import basename, dirname, relpath
+from os.path import dirname, relpath
 
 import jsons
 import requests
@@ -18,15 +18,10 @@ from yellowdog_client.common.server_sent_events import (
 from yellowdog_client.model import (
     CloudProvider,
     DoubleRange,
-    FlattenPath,
     RunSpecification,
     Task,
     TaskData,
     TaskGroup,
-    TaskInput,
-    TaskInputSource,
-    TaskInputVerification,
-    TaskOutput,
     TaskStatus,
     WorkRequirement,
     WorkRequirementStatus,
@@ -40,7 +35,6 @@ from yellowdog_cli.utils.csv_data import (
     load_toml_file_with_csv_task_expansion,
 )
 from yellowdog_cli.utils.follow_utils import follow_events
-from yellowdog_cli.utils.interactive import confirmed
 from yellowdog_cli.utils.load_config import (
     CONFIG_FILE_DIR,
     load_config_work_requirement,
@@ -51,47 +45,28 @@ from yellowdog_cli.utils.printing import (
     print_error,
     print_info,
     print_json,
-    print_numbered_strings,
     print_warning,
 )
 from yellowdog_cli.utils.property_names import (
     ADD_YD_ENV_VARS,
-    ALWAYS_UPLOAD,
     ARGS,
     BATCH_ALLOCATION,
     COMPLETED_TASK_TTL,
-    DIRECTORY_NAME,
     DISABLE_PREALLOCATION,
-    DOCKER_ENV,
-    DOCKER_OPTIONS,
-    DOCKER_PASSWORD,
-    DOCKER_REGISTRY,
-    DOCKER_USERNAME,
     ENV,
     EXCLUSIVE_WORKERS,
-    EXECUTABLE,
-    FILE_PATTERN,
     FINISH_IF_ALL_TASKS_FINISHED,
     FINISH_IF_ANY_TASK_FAILED,
-    FLATTEN_PATHS,
-    FLATTEN_UPLOAD_PATHS,
-    INPUTS_OPTIONAL,
-    INPUTS_REQUIRED,
     INSTANCE_TYPES,
-    LOCAL_PATH,
     MAX_RETRIES,
     MAX_WORKERS,
     MIN_WORKERS,
     NAME,
     NAMESPACES,
-    OUTPUTS_OPTIONAL,
-    OUTPUTS_OTHER,
-    OUTPUTS_REQUIRED,
     PRIORITY,
     PROVIDERS,
     RAM,
     REGIONS,
-    REQUIRED,
     SET_TASK_NAMES,
     TASK_BATCH_SIZE,
     TASK_COUNT,
@@ -111,12 +86,7 @@ from yellowdog_cli.utils.property_names import (
     TASK_TYPES,
     TASKS,
     TASKS_PER_WORKER,
-    UPLOAD_FILES,
-    UPLOAD_PATH,
-    UPLOAD_TASKOUTPUT,
     VCPUS,
-    VERIFY_AT_START,
-    VERIFY_WAIT,
     WORKER_TAGS,
     WR_TAG,
 )
@@ -124,16 +94,13 @@ from yellowdog_cli.utils.rclone_utils import RcloneUploadedFiles, upgrade_rclone
 from yellowdog_cli.utils.settings import (
     MAX_BATCH_SUBMIT_ATTEMPTS,
     MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
-    NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
     VAR_CLOSING_DELIMITER,
     VAR_NAME_OF_UNNAMED_TASK,
     VAR_OPENING_DELIMITER,
 )
 from yellowdog_cli.utils.submit_utils import (
-    UploadedFiles,
     generate_dependencies,
     generate_task_error_matchers_list,
-    generate_task_input_list,
     generate_taskdata_object,
     pause_between_batches,
     update_config_work_requirement_object,
@@ -146,7 +113,6 @@ from yellowdog_cli.utils.type_check import (
     check_list,
     check_str,
 )
-from yellowdog_cli.utils.upload_utils import unique_upload_pathname
 from yellowdog_cli.utils.validate_properties import validate_properties
 from yellowdog_cli.utils.variables import (
     L_TASK_COUNT,
@@ -173,12 +139,10 @@ CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 
 ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = CONFIG_WR.task_batch_size
-INPUTS_FOLDER_NAME = None
 
 if ARGS_PARSER.dry_run:
     WR_SNAPSHOT = WorkRequirementSnapshot()
 
-UPLOADED_FILES: UploadedFiles | None = None
 RCLONE_UPLOADED_FILES: RcloneUploadedFiles | None = None
 
 # Names for environment variables that can be automatically added
@@ -356,17 +320,8 @@ def submit_work_requirement(
     process_variable_substitutions_insitu(wr_data)
 
     # Handle any files that need to be uploaded
-    global UPLOADED_FILES
-    UPLOADED_FILES = UploadedFiles(
-        client=CLIENT, wr_name=ID, config=CONFIG_COMMON, files_directory=files_directory
-    )
     global RCLONE_UPLOADED_FILES
     RCLONE_UPLOADED_FILES = RcloneUploadedFiles(files_directory=files_directory)
-
-    # Flatten upload paths?
-    flatten_upload_paths = check_bool(
-        wr_data.get(FLATTEN_UPLOAD_PATHS, CONFIG_WR.flatten_upload_paths)
-    )
 
     # Expand number of task groups if there's a single task group
     # and taskGroupCount is set
@@ -435,7 +390,6 @@ def submit_work_requirement(
                 wr_data,
                 task_count,
                 work_requirement,
-                flatten_upload_paths=flatten_upload_paths,
                 files_directory=files_directory,
             )
 
@@ -669,7 +623,6 @@ def add_tasks_to_task_group(
     wr_data: dict,
     task_count: int | None,
     work_requirement: WorkRequirement,
-    flatten_upload_paths: bool = False,
     files_directory: str = "",
 ) -> None:
     """
@@ -763,7 +716,6 @@ def add_tasks_to_task_group(
                 task_count,
                 num_tasks,
                 num_task_groups,
-                flatten_upload_paths,
             )
             num_submitted_tasks += submit_batch_of_tasks_to_task_group(
                 tasks_list,
@@ -801,7 +753,6 @@ def add_tasks_to_task_group(
                         task_count,
                         num_tasks,
                         num_task_groups,
-                        flatten_upload_paths,
                     )
                 )
                 executors.append(
@@ -841,7 +792,6 @@ def generate_batch_of_tasks_for_task_group(
     task_count: int,
     num_tasks: int,
     num_task_groups: int,
-    flatten_upload_paths: bool,
 ) -> list[Task]:
     """
     Generate a batch of tasks for subsequent addition to a task group.
@@ -883,14 +833,6 @@ def generate_batch_of_tasks_for_task_group(
         process_variable_substitutions_insitu(task)
         config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
 
-        executable = check_str(
-            task.get(
-                EXECUTABLE,
-                task_group_data.get(
-                    EXECUTABLE, wr_data.get(EXECUTABLE, config_wr.executable)
-                ),
-            )
-        )
         arguments_list = check_list(
             task.get(
                 ARGS,
@@ -911,18 +853,6 @@ def generate_batch_of_tasks_for_task_group(
             )
         )
 
-        flatten_input_paths: FlattenPath | None = None
-        if check_bool(
-            task.get(
-                FLATTEN_PATHS,
-                task_group_data.get(
-                    FLATTEN_PATHS,
-                    wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
-                ),
-            )
-        ):
-            flatten_input_paths = FlattenPath.FILE_NAME_ONLY
-
         # Task timeout is automatically inherited from the Task Group level
         # unless overridden by the Task
         task_timeout_minutes = check_float_or_int(
@@ -933,176 +863,6 @@ def generate_batch_of_tasks_for_task_group(
             if task_timeout_minutes is None
             else timedelta(minutes=task_timeout_minutes)
         )
-
-        # Set up lists of files to input, verify
-        input_files_list = check_list(
-            task.get(
-                INPUTS_REQUIRED,
-                task_group_data.get(
-                    INPUTS_REQUIRED,
-                    wr_data.get(INPUTS_REQUIRED, config_wr.inputs_required),
-                ),
-            )
-        )
-        verify_at_start_files_list = check_list(
-            task.get(
-                VERIFY_AT_START,
-                task_group_data.get(
-                    VERIFY_AT_START,
-                    wr_data.get(VERIFY_AT_START, config_wr.verify_at_start),
-                ),
-            )
-        )
-        verify_wait_files_list = check_list(
-            task.get(
-                VERIFY_WAIT,
-                task_group_data.get(
-                    VERIFY_WAIT, wr_data.get(VERIFY_WAIT, config_wr.verify_wait)
-                ),
-            )
-        )
-        optional_inputs_list = check_list(
-            task.get(
-                INPUTS_OPTIONAL,
-                task_group_data.get(
-                    INPUTS_OPTIONAL,
-                    wr_data.get(INPUTS_OPTIONAL, config_wr.inputs_optional),
-                ),
-            )
-        )
-
-        check_for_duplicates_in_file_lists(
-            input_files_list,
-            verify_at_start_files_list,
-            verify_wait_files_list,
-            optional_inputs_list,
-        )
-
-        # Upload files in the 'inputs' list, applying wildcard expansion.
-        # (Duplicates won't be re-added)
-        expanded_files_list: list[str] = []
-        for file in input_files_list:
-            expanded_files = UPLOADED_FILES.add_input_file(
-                filename=file, flatten_upload_paths=flatten_upload_paths
-            )
-            expanded_files_list += expanded_files
-        input_files_list = expanded_files_list
-
-        # Upload files in the 'uploadFiles' list
-        upload_files = check_list(
-            task.get(
-                UPLOAD_FILES,
-                task_group_data.get(
-                    UPLOAD_FILES,
-                    wr_data.get(UPLOAD_FILES, config_wr.upload_files),
-                ),
-            )
-        )
-        for file in upload_files:
-            try:
-                UPLOADED_FILES.add_upload_file(file[LOCAL_PATH], file[UPLOAD_PATH])
-            except KeyError:
-                raise Exception(
-                    f"Property '{UPLOAD_FILES}' must have entries with "
-                    f"properties '{LOCAL_PATH}' and '{UPLOAD_PATH}'"
-                )
-
-        # Set up the 'inputs' property
-        inputs = generate_task_input_list(
-            files=[
-                unique_upload_pathname(
-                    input_file, ID, INPUTS_FOLDER_NAME, False, flatten_upload_paths
-                )
-                for input_file in input_files_list
-            ],
-            verification=TaskInputVerification.VERIFY_AT_START,
-            wr_name=None,
-        )
-        inputs += generate_task_input_list(
-            verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START, ID
-        )
-        inputs += generate_task_input_list(
-            verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
-        )
-        inputs += generate_task_input_list(
-            files=optional_inputs_list, verification=None, wr_name=ID
-        )
-
-        inputs = deduplicate_inputs(inputs)
-
-        # Set up the 'outputs' property
-        outputs = [
-            TaskOutput.from_worker_directory(file_pattern=file, required=False)
-            for file in check_list(
-                task.get(
-                    OUTPUTS_OPTIONAL,
-                    task_group_data.get(
-                        OUTPUTS_OPTIONAL,
-                        wr_data.get(OUTPUTS_OPTIONAL, config_wr.outputs_optional),
-                    ),
-                )
-            )
-        ]
-
-        # Add the contents of the 'outputsRequired' property
-        outputs += [
-            TaskOutput.from_worker_directory(file_pattern=file, required=True)
-            for file in check_list(
-                task.get(
-                    OUTPUTS_REQUIRED,
-                    task_group_data.get(
-                        OUTPUTS_REQUIRED,
-                        wr_data.get(OUTPUTS_REQUIRED, config_wr.outputs_required),
-                    ),
-                )
-            )
-        ]
-
-        # Add the contents of the 'outputsOther' property
-        for output_other in check_list(
-            task.get(
-                OUTPUTS_OTHER,
-                task_group_data.get(
-                    OUTPUTS_OTHER,
-                    wr_data.get(OUTPUTS_OTHER, config_wr.outputs_other),
-                ),
-            )
-        ):
-            check_dict(output_other)
-            try:
-                outputs.append(
-                    TaskOutput.from_directory(
-                        directory_name=output_other[DIRECTORY_NAME],
-                        file_pattern=output_other[FILE_PATTERN],
-                        required=output_other[REQUIRED],
-                    )
-                )
-            except KeyError as e:
-                raise Exception(f"Missing field in property '{OUTPUTS_OTHER}' ({e})")
-
-        # Add TaskOutput to 'outputs'?
-        if check_bool(
-            task.get(
-                UPLOAD_TASKOUTPUT,
-                task_group_data.get(
-                    UPLOAD_TASKOUTPUT,
-                    wr_data.get(UPLOAD_TASKOUTPUT, config_wr.upload_taskoutput),
-                ),
-            )
-        ):
-            outputs.append(TaskOutput.from_task_process())
-
-        always_upload = task.get(
-            ALWAYS_UPLOAD,
-            task_group_data.get(
-                ALWAYS_UPLOAD,
-                wr_data.get(ALWAYS_UPLOAD, config_wr.always_upload),
-            ),
-        )
-
-        # Set 'alwaysUpload' for all object store outputs
-        for task_output in outputs:
-            task_output.alwaysUpload = always_upload
 
         # Data client inputs and outputs
         task_data_inputs = check_list(
@@ -1143,7 +903,6 @@ def generate_batch_of_tasks_for_task_group(
 
         tasks_list.append(
             create_task(
-                config_wr=config_wr,
                 wr_data=wr_data,
                 task_group_data=task_group_data,
                 task_data=task,
@@ -1152,7 +911,6 @@ def generate_batch_of_tasks_for_task_group(
                 tg_name=task_group.name,
                 tg_number=tg_number + 1,
                 task_type=task_type,
-                executable=executable,
                 args=arguments_list,
                 task_data_property=get_task_data_property(
                     config_wr,
@@ -1163,11 +921,7 @@ def generate_batch_of_tasks_for_task_group(
                     files_directory,
                 ),
                 env=env,
-                inputs=inputs,
-                outputs=outputs,
                 task_timeout=task_timeout,
-                flatten_upload_paths=flatten_upload_paths,
-                flatten_input_paths=flatten_input_paths,
                 add_yd_env_vars=add_yd_env_vars,
                 task_data_inputs_and_outputs=task_data_inputs_and_outputs,
             )
@@ -1348,48 +1102,7 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     CLIENT.work_client.cancel_work_requirement(work_requirement)
     print_warning(f"Cancelled Work Requirement '{work_requirement.name}'")
 
-    # Delete uploaded objects
-    UPLOADED_FILES.delete()
     RCLONE_UPLOADED_FILES.delete()
-
-
-def deduplicate_inputs(task_inputs: list[TaskInput]) -> list[TaskInput]:
-    """
-    Deduplicate a list of TaskInputs. This is useful when wildcards
-    are used. Note that TaskInputs which differ only in their verification
-    type will be caught by 'check_for_duplicates_in_file_lists()'.
-    """
-    deduplicated_task_inputs: list[TaskInput] = []
-    for task_input in task_inputs:
-        if task_input not in deduplicated_task_inputs:
-            deduplicated_task_inputs.append(task_input)
-        else:
-            namespace = (
-                CONFIG_COMMON.namespace
-                if task_input.source == TaskInputSource.TASK_NAMESPACE
-                else task_input.namespace
-            )
-            print_info(
-                f"Removing '{task_input.verification}' duplicate:"
-                f" '{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{task_input.objectNamePattern}'"
-            )
-
-    return deduplicated_task_inputs
-
-
-def check_for_duplicates_in_file_lists(*args: list[str]):
-    """
-    Tests for duplicates in file lists. If duplicates found, print an error
-    and raise an Exception.
-    """
-    files_list = []
-    for file_list in args:
-        files_list += file_list
-    files_list_unique = list(set(files_list))
-    for file in files_list_unique:
-        files_list.remove(file)
-    if len(files_list) != 0:
-        raise Exception(f"Duplicate file(s) in file lists: {files_list}")
 
 
 def formatted_number_str(
@@ -1481,7 +1194,6 @@ def get_task_group_name(
 
 
 def create_task(
-    config_wr: ConfigWorkRequirement,
     wr_data: dict,
     task_group_data: dict,
     task_data: dict,
@@ -1490,53 +1202,22 @@ def create_task(
     tg_name: str,
     tg_number: int,
     task_type: str,
-    executable: str,
     args: list[str],
     task_data_property: str | None,
     env: dict[str, str],
-    inputs: list[TaskInput] | None,
-    outputs: list[TaskOutput] | None,
     task_timeout: timedelta | None,
-    flatten_upload_paths: bool = False,
-    flatten_input_paths: FlattenPath | None = None,
     add_yd_env_vars: bool = False,
     task_data_inputs_and_outputs: TaskData | None = None,
 ) -> Task:
     """
-    Create a Task object, handling special processing for specific Task Types.
+    Create a Task object.
     """
 
     env_copy = deepcopy(env)  # Copy the environment property to prevent overwriting
-
-    def _make_task(flatten_input_paths: FlattenPath) -> Task:
-        """
-        Helper function to create the Task object.
-        """
-        # Cannot use flatten_input_paths if there are no inputs
-        if inputs is None or len(inputs) == 0:
-            flatten_input_paths = None
-
-        if task_name is None and len(outputs) > 0:
-            raise Exception(f"Tasks must be named if outputs are specified")
-
-        return Task(
-            name=task_name,
-            taskType=task_type,
-            arguments=None if len(args) == 0 else args,
-            inputs=None if len(inputs) == 0 else inputs,
-            environment=None if len(env_copy) == 0 else env_copy,
-            outputs=None if len(outputs) == 0 else outputs,
-            flattenInputPaths=flatten_input_paths,
-            taskData=task_data_property,
-            timeout=task_timeout,
-            tag=task_tag,
-            data=task_data_inputs_and_outputs,
-        )
-
     task_tag = task_data.get(TASK_TAG, None)
 
     # Optionally add Task details to the environment as a convenience
-    if add_yd_env_vars and (task_type != "docker" or executable is None):
+    if add_yd_env_vars:
         num_task_groups = len(wr_data[TASK_GROUPS])
         num_tasks = len(task_group_data[TASKS])
         env_copy[YD_TASK_NAME] = task_name
@@ -1550,155 +1231,22 @@ def create_task(
         if task_tag is not None:
             env_copy[YD_TAG] = task_tag
 
-    # Special processing for Bash, Python & PowerShell tasks if the 'executable'
-    # property is set. The script is uploaded if this hasn't already been done,
-    # and added to the list of required files.
-    if task_type in ["bash", "powershell", "python", "cmd", "bat"]:
-        if executable is None:
-            return _make_task(flatten_input_paths)
-
-        UPLOADED_FILES.add_input_file(
-            filename=executable,
-            flatten_upload_paths=flatten_upload_paths,
-        )
-        task_input = TaskInput.from_task_namespace(
-            unique_upload_pathname(
-                filename=executable,
-                id=ID,
-                inputs_folder_name=INPUTS_FOLDER_NAME,
-                flatten_upload_paths=flatten_upload_paths,
-            ),
-            verification=TaskInputVerification.VERIFY_AT_START,
-        )
-        # Avoid duplicate TaskInputs
-        if task_input.objectNamePattern not in [x.objectNamePattern for x in inputs]:
-            inputs.append(task_input)
-        executable_pathname = unique_upload_pathname(
-            filename=executable,
-            id=ID,
-            inputs_folder_name=INPUTS_FOLDER_NAME,
-            flatten_upload_paths=flatten_upload_paths,
-        )
-        if task_type in ["powershell", "cmd", "bat"]:
-            executable_pathname = executable_pathname.replace("/", "\\")
-        args = [
-            executable_pathname if flatten_input_paths is None else basename(executable)
-        ] + args
-        if task_type in ["cmd", "bat"]:
-            args.insert(0, "/c")
-        return _make_task(flatten_input_paths)
-
-    # Special processing for Docker tasks if the 'executable' property is set.
-    # Sets up the '--env' environment strings and the DockerHub username and
-    # password if specified.
-    elif task_type == "docker":
-        if executable is None:
-            return _make_task(flatten_input_paths)
-
-        # Set up the environment variables to be sent to the Docker container
-        docker_env = check_dict(
-            task_data.get(
-                DOCKER_ENV,
-                task_group_data.get(
-                    DOCKER_ENV,
-                    wr_data.get(DOCKER_ENV, config_wr.docker_env),
-                ),
-            )
-        )
-        # Optionally Task details to the container environment as a convenience
-        docker_env_list = []
-        if add_yd_env_vars:
-            num_task_groups = len(wr_data[TASK_GROUPS])
-            num_tasks = len(task_group_data[TASKS])
-            docker_env_list += ["--env", f"{YD_TASK_NAME}={task_name}"]
-            docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]
-            docker_env_list += ["--env", f"{YD_NUM_TASKS}={num_tasks}"]
-            docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
-            docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
-            docker_env_list += ["--env", f"{YD_NUM_TASK_GROUPS}={num_task_groups}"]
-            docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
-            docker_env_list += ["--env", f"{YD_NAMESPACE}={CONFIG_COMMON.namespace}"]
-            if task_tag is not None:
-                docker_env_list += ["--env", f"{YD_TAG}={task_tag}"]
-
-        if docker_env is not None:
-            for key, value in docker_env.items():
-                docker_env_list += ["--env", f"{key}={value}"]
-
-        # Check for any Docker options
-        docker_options = check_list(
-            task_data.get(
-                DOCKER_OPTIONS,
-                task_group_data.get(
-                    DOCKER_OPTIONS,
-                    wr_data.get(DOCKER_OPTIONS, config_wr.docker_options),
-                ),
-            )
-        )
-        docker_options = [] if docker_options is None else docker_options
-
-        args = docker_env_list + docker_options + [executable] + args
-
-        # Set up the environment used by the script to run Docker
-        # Add the username and password, if present, and the registry
-        docker_username = task_data.get(
-            DOCKER_USERNAME,
-            task_group_data.get(
-                DOCKER_USERNAME,
-                wr_data.get(DOCKER_USERNAME, config_wr.docker_username),
-            ),
-        )
-        docker_password = task_data.get(
-            DOCKER_PASSWORD,
-            task_group_data.get(
-                DOCKER_PASSWORD,
-                wr_data.get(DOCKER_PASSWORD, config_wr.docker_password),
-            ),
-        )
-        env_copy.update(
-            {
-                "DOCKER_USERNAME": docker_username,
-                "DOCKER_PASSWORD": docker_password,
-            }
-            if docker_username is not None and docker_password is not None
-            else {}
-        )
-        docker_registry = task_data.get(
-            DOCKER_REGISTRY,
-            task_group_data.get(
-                DOCKER_REGISTRY,
-                wr_data.get(DOCKER_REGISTRY, config_wr.docker_registry),
-            ),
-        )
-        env_copy.update(
-            {
-                "DOCKER_REGISTRY": docker_registry,
-            }
-            if docker_registry is not None
-            else {}
-        )
-        env_copy.update(
-            {
-                "DOCKER_IMAGE": executable,
-            }
-            if executable is not None
-            else {}
-        )
-        return _make_task(flatten_input_paths)
-
-    else:
-        # All other Task Types are sent through without additional processing
-        # of the uploaded files, arguments or environment.
-        return _make_task(flatten_input_paths)
+    return Task(
+        name=task_name,
+        taskType=task_type,
+        arguments=None if len(args) == 0 else args,
+        environment=None if len(env_copy) == 0 else env_copy,
+        taskData=task_data_property,
+        timeout=task_timeout,
+        tag=task_tag,
+        data=task_data_inputs_and_outputs,
+    )
 
 
 def submit_json_raw(wr_file: str):
     """
     Submit a 'raw' JSON Work Requirement, consisting of a combined Work
     Requirement definition and the constituent Tasks.
-
-    Note that there is no automatic upload of required ('VERIFY_AT_START')
-    input files. These can be pre-uploaded using yd-upload.
     """
 
     # Load file contents, with variable substitutions
@@ -1757,41 +1305,6 @@ def submit_json_raw(wr_file: str):
     if ARGS_PARSER.hold:
         CLIENT.work_client.hold_work_requirement_by_id(wr_id)
         print_info("Work Requirement status set to 'HELD'")
-
-    # Submit Tasks to the Work Requirement
-    # Collect 'VERIFY_AT_START' files
-    verify_at_start_files = set()
-    for task_group_name, task_list in task_lists.items():
-        # Collect set of VERIFY_AT_START files
-        for task in task_list:
-            for input in task.get("inputs", []):
-                if input.get("verification", None) == "VERIFY_AT_START":
-                    namespace = (
-                        CONFIG_COMMON.namespace
-                        if input["source"] == "TASK_NAMESPACE"
-                        else input["namespace"]
-                    )
-                    verify_at_start_files.add(
-                        f"{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{input['objectNamePattern']}"
-                    )
-
-    # Warn about VERIFY_AT_START files & halt to allow upload or
-    # Work Requirement cancellation
-    if ARGS_PARSER.quiet is False and len(verify_at_start_files) != 0:
-        print_info(
-            "The following files may be required ('VERIFY_AT_START') "
-            "before Tasks are submitted, or the Tasks will fail."
-        )
-        print_info(
-            "You now have an opportunity to upload the required files "
-            "before Tasks are submitted:"
-        )
-        print()
-        print_numbered_strings(sorted(list(verify_at_start_files)))
-        if not confirmed("Proceed now (y), or Cancel Work Requirement (n)?"):
-            print_info(f"Cancelling Work Requirement '{wr_name}'")
-            CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
-            return
 
     # Submit Tasks in batches
     for task_group_name, task_list in task_lists.items():

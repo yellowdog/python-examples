@@ -12,7 +12,6 @@ from yellowdog_client.model import (
     MachineImage,
     MachineImageFamily,
     MachineImageGroup,
-    NamespaceStorageConfiguration,
     WorkerPoolStatus,
 )
 
@@ -53,7 +52,6 @@ from yellowdog_cli.utils.settings import (
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
-    RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -100,8 +98,6 @@ def remove_resources(resources: list[dict] | None = None):
                 remove_credential(resource)
             elif resource_type == RN_IMAGE_FAMILY:
                 remove_image_family(resource)
-            elif resource_type == RN_STORAGE_CONFIGURATION:
-                remove_namespace_configuration(resource)
             elif resource_type == RN_CONFIGURED_POOL:
                 remove_configured_worker_pool(resource)
             elif resource_type == RN_ALLOWANCE:
@@ -292,35 +288,6 @@ def remove_image_family(resource: dict):
         print_info(f"Removed Image Family '{fq_name}' ({image_family.id})")
     except Exception as e:
         print_error(f"Unable to remove Image Family '{fq_name}': {e}")
-
-
-def remove_namespace_configuration(resource: dict):
-    """
-    Remove a Namespace Storage Configuration.
-    """
-    try:
-        namespace = resource[PROP_NAMESPACE]
-    except KeyError as e:
-        print_error(f"Expected property to be defined ({e})")
-        return
-
-    namespaces: list[NamespaceStorageConfiguration] = (
-        CLIENT.object_store_client.get_namespace_storage_configurations()
-    )
-    if namespace not in [x.namespace for x in namespaces]:
-        print_warning(f"Cannot find Namespace Storage Configuration '{namespace}'")
-        return
-
-    if not confirmed(f"Remove Namespace Storage Configuration '{namespace}'?"):
-        return
-
-    try:
-        CLIENT.object_store_client.delete_namespace_storage_configuration(namespace)
-        print_info(f"Removed Namespace Storage Configuration '{namespace}'")
-    except Exception as e:
-        print_error(
-            f"Unable to remove Namespace Storage Configuration '{namespace}': {e}"
-        )
 
 
 def remove_configured_worker_pool(resource: dict):

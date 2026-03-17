@@ -10,7 +10,6 @@ from botocore.exceptions import ClientError
 from yellowdog_client import PlatformClient
 
 from yellowdog_cli.create import create_resources
-from yellowdog_cli.remove import remove_resources
 from yellowdog_cli.utils.cloudwizard_aws_types import (
     AWSAccessKey,
     AWSAvailabilityZone,
@@ -20,11 +19,10 @@ from yellowdog_cli.utils.cloudwizard_aws_types import (
 from yellowdog_cli.utils.cloudwizard_common import CommonCloudConfig
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.printing import print_error, print_info, print_warning
-from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
+from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE
 
 IAM_USER_NAME = "yellowdog-cloudwizard-user"
 IAM_POLICY_NAME = "yellowdog-cloudwizard-policy"
-S3_BUCKET_NAME_PREFIX = "yellowdog-cloudwizard"
 EC2_SPOT_SERVICE_LINKED_ROLE_NAME = "AWSServiceRoleForEC2Spot"
 MAX_ITEMS = 1000  # Maximum number of items to return from an AWS API call
 
@@ -102,16 +100,6 @@ YELLOWDOG_POLICY = {
                 "EC2:StartInstances",
                 "EC2:StopInstances",
                 "EC2:TerminateInstances",
-                "S3:AbortMultipartUpload",
-                "S3:CreateBucket",
-                "S3:DeleteBucket",
-                "S3:DeleteObject",
-                "S3:GetObject",
-                "S3:ListBucketMultipartUploads",
-                "S3:ListMultipartUploadParts",
-                "S3:ListObjects",
-                "S3:PutBucketPolicy",
-                "S3:PutObject",
             ],
             "Resource": "*",
         }
@@ -143,9 +131,9 @@ class AWSConfig(CommonCloudConfig):
                 f" the AWS account credentials?"
             )
 
-        # Establish the region to use (for the S3 bucket, primarily)
+        # Establish the region to use
         if region_name is None:  # Use the default region from the SDK
-            self.region_name = boto3.client("s3").meta.region_name
+            self.region_name = boto3.Session().region_name
         elif region_name.lower() in AWS_ALL_REGIONS:
             self.region_name = region_name.lower()
         else:
@@ -230,7 +218,6 @@ class AWSConfig(CommonCloudConfig):
         self._attach_iam_policy(iam_client)
         self._create_access_key(iam_client)
         self._add_service_linked_role_for_ec2_spot(iam_client)
-        self._create_s3_bucket()
 
     def _load_aws_resources(self):
         """
@@ -283,7 +270,6 @@ class AWSConfig(CommonCloudConfig):
         """
         print_info("Removing all YellowDog-created assets in the AWS account")
         iam_client = boto3.client("iam", region_name=self.region_name)
-        self._delete_s3_bucket()
         self._delete_access_keys(iam_client)
         self._detach_iam_policy(iam_client)
         self._delete_iam_policy(iam_client)
@@ -355,19 +341,6 @@ class AWSConfig(CommonCloudConfig):
         except IndexError:
             print_error("No access keys loaded; can't create Credential")
 
-        # Create namespace configuration (Keyring/Credential creation must come first)
-        print_info(
-            "Creating YellowDog Namespace Configuration"
-            f" 'S3:{self._get_s3_bucket_name()}' -> '{self._namespace}'"
-        )
-        create_resources(
-            [
-                self._generate_yd_namespace_configuration(
-                    namespace=self._namespace, s3_bucket_name=self._get_s3_bucket_name()
-                )
-            ]
-        )
-
         # Sequence the Compute Requirement Templates before the Compute Source
         # Templates for subsequent removals.
         # - Omit the Keyring to prevent overwrites if using 'yd-create' with the
@@ -391,15 +364,6 @@ class AWSConfig(CommonCloudConfig):
 
         # Keyring is removed separately.
         self._remove_keyring(keyring_name=YD_KEYRING_NAME)
-
-        # Remove the Namespace Configuration
-        remove_resources(
-            [
-                self._generate_yd_namespace_configuration(
-                    self._namespace, self._get_s3_bucket_name()
-                )
-            ]
-        )
 
     def _gather_aws_network_information(self):
         """
@@ -714,126 +678,6 @@ class AWSConfig(CommonCloudConfig):
                     f" '{EC2_SPOT_SERVICE_LINKED_ROLE_NAME}' from AWS account: {e}"
                 )
 
-    def _create_s3_bucket(self):
-        """
-        Create an S3 bucket for use in namespace to object store mapping.
-        """
-        s3_client = boto3.client(
-            "s3",
-            region_name=self.region_name,
-        )
-
-        s3_bucket_name = self._get_s3_bucket_name()
-
-        # Create bucket
-        try:
-            # Strange quirk of AWS; can't use the default region 'us-east-1'
-            # as the location constraint ...
-            if self.region_name != "us-east-1":
-                s3_client.create_bucket(
-                    Bucket=s3_bucket_name,
-                    CreateBucketConfiguration={"LocationConstraint": self.region_name},
-                )
-            else:
-                s3_client.create_bucket(Bucket=s3_bucket_name)
-            print_info(
-                f"Created S3 bucket '{s3_bucket_name}' in region '{self.region_name}'"
-            )
-        except ClientError as e:
-            if "BucketAlreadyOwnedByYou" in str(e):
-                print_warning("Bucket already exists and is owned by this account")
-            else:
-                print_error(
-                    f"Unable to create S3 bucket '{s3_bucket_name}' in region"
-                    f" '{self.region_name}': {e}"
-                )
-
-        # Attach policy
-        retry_interval = 5
-        max_retries = 10
-        for index in range(max_retries):
-            try:
-                s3_client.put_bucket_policy(
-                    Bucket=s3_bucket_name,
-                    Policy=self._generate_s3_bucket_policy(),
-                )
-                print_info(f"Attached policy to S3 bucket '{s3_bucket_name}'")
-                return
-            except ClientError as e:
-                if "MalformedPolicy" in str(e):
-                    print_info(
-                        f"Waiting {retry_interval}s for S3 bucket to be ready for"
-                        f" policy attachment (Attempt {index + 1} of"
-                        f" {max_retries}) ..."
-                    )
-                    sleep(retry_interval)
-                else:
-                    print_error(f"Unable to attach policy to '{s3_bucket_name}': {e}")
-                    return
-
-    @staticmethod
-    def _delete_all_s3_objects(s3_client, s3_bucket_name: str):
-        """
-        Delete all objects in the S3 bucket.
-        """
-        if not confirmed(f"Delete all objects in S3 bucket '{s3_bucket_name}'?"):
-            return
-
-        try:
-            paginator = s3_client.get_paginator("list_objects")
-            for page in paginator.paginate(
-                Bucket=s3_bucket_name, PaginationConfig={"MaxItems": MAX_ITEMS}
-            ):
-                objects_to_delete = [
-                    {"Key": obj["Key"]} for obj in page.get("Contents", [])
-                ]
-                if len(objects_to_delete) > 0:
-                    s3_client.delete_objects(
-                        Bucket=s3_bucket_name, Delete={"Objects": objects_to_delete}
-                    )
-                    print_info(
-                        f"Deleted {len(objects_to_delete)} object(s) in S3 bucket"
-                        f" '{s3_bucket_name}'"
-                    )
-                else:
-                    print_info(f"No objects to delete in S3 bucket '{s3_bucket_name}'")
-
-        except ClientError as e:
-            if "NoSuchBucket" in str(e):
-                print_warning(
-                    f"No S3 bucket '{s3_bucket_name}' from which to delete objects"
-                )
-            else:
-                print_error(
-                    "Unable to list/delete objects in S3 bucket"
-                    f" '{s3_bucket_name}': {e}"
-                )
-
-    def _delete_s3_bucket(self):
-        """
-        Delete the S3 bucket.
-        """
-        s3_client = boto3.client("s3", region_name=self.region_name)
-        s3_bucket_name = self._get_s3_bucket_name()
-
-        if s3_bucket_name == "":
-            print_warning("No S3 bucket to remove")
-            return
-
-        # The bucket must first be empty
-        AWSConfig._delete_all_s3_objects(s3_client, s3_bucket_name)
-
-        if not confirmed(f"Delete S3 bucket '{s3_bucket_name}'?"):
-            return
-        try:
-            s3_client.delete_bucket(Bucket=s3_bucket_name)
-            print_info(f"Deleted S3 bucket '{s3_bucket_name}'")
-        except ClientError as e:
-            if "NoSuchBucket" in str(e):
-                print_warning(f"No S3 bucket '{s3_bucket_name}' to delete")
-            else:
-                print_error(f"Unable to delete S3 bucket '{s3_bucket_name}': {e}")
-
     @staticmethod
     def _add_security_group_ingress_rule(
         ec2_client, security_group: AWSSecurityGroup, ingress_rule: list, rule_name: str
@@ -941,57 +785,6 @@ class AWSConfig(CommonCloudConfig):
                 "type": "co.yellowdog.platform.account.credentials.AwsCredential",
             },
         }
-
-    def _generate_yd_namespace_configuration(
-        self, namespace: str, s3_bucket_name: str
-    ) -> dict:
-        """
-        Generate a Namespace configuration using an S3 bucket.
-        """
-        return {
-            "resource": RN_STORAGE_CONFIGURATION,
-            "type": "co.yellowdog.platform.model.S3NamespaceStorageConfiguration",
-            "namespace": namespace,
-            "bucketName": s3_bucket_name,
-            "region": self.region_name,
-            "credential": f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
-        }
-
-    def _generate_s3_bucket_policy(self) -> str:
-        """
-        Generate the required policy statement to be attached to the S3 bucket.
-        """
-        assert self._aws_user is not None
-        s3_bucket_name = self._get_s3_bucket_name()
-        return json.dumps(
-            {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"AWS": self._aws_user.arn},
-                        "Action": "s3:*",
-                        "Resource": f"arn:aws:s3:::{s3_bucket_name}/*",
-                    },
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"AWS": self._aws_user.arn},
-                        "Action": "s3:ListBucket",
-                        "Resource": f"arn:aws:s3:::{s3_bucket_name}",
-                    },
-                ],
-            }
-        )
-
-    def _get_s3_bucket_name(self) -> str:
-        """
-        Get the unique name of the S3 bucket.
-        """
-        return (
-            f"{S3_BUCKET_NAME_PREFIX}-{self._aws_user.user_id.lower()}"
-            if self._aws_user is not None
-            else ""
-        )
 
     def _wait_until_access_key_is_valid_for_ec2(
         self,

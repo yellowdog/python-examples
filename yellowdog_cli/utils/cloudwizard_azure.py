@@ -8,32 +8,24 @@ from azure.identity import EnvironmentCredential
 from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.network.models import NetworkSecurityGroup
 from azure.mgmt.resource import ResourceManagementClient
-from azure.mgmt.storage import StorageManagementClient
-from azure.mgmt.storage.models import StorageAccountKey, StorageAccountListKeysResult
 from azure.mgmt.subscription import SubscriptionClient
 from yellowdog_client import PlatformClient
-from yellowdog_client.model import KeyringSummary
 
 from yellowdog_cli.create import create_resources
-from yellowdog_cli.remove import remove_resources
 from yellowdog_cli.utils.cloudwizard_common import CommonCloudConfig
 from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.printing import print_error, print_info, print_warning
-from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
+from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE
 
 RESOURCE_PREFIX = "yellowdog-cloudwizard"
 RESOURCE_GROUP_PREFIX = f"{RESOURCE_PREFIX}-rg"
 VNET_PREFIX = f"{RESOURCE_PREFIX}-vnet"
 SUBNET_PREFIX = f"{RESOURCE_PREFIX}-subnet"
 SECURITY_GROUP_PREFIX = f"{RESOURCE_PREFIX}-secgrp"
-STORAGE_ACCOUNT_NAME_PREFIX = "yellowdogcw"
-STORAGE_BLOB_NAME = f"{RESOURCE_PREFIX}-namespace-storage-config"
-STORAGE_REGION = "northeurope"
 ADDRESS_PREFIX = "10.0.0.0/18"
 
 YD_KEYRING_NAME = "cloudwizard-azure"
 YD_CREDENTIAL_NAME = "cloudwizard-azure"
-YD_CREDENTIAL_NAME_STORAGE = f"{YD_CREDENTIAL_NAME}-storage"
 YD_RESOURCE_PREFIX = "cloudwizard-azure"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
@@ -100,19 +92,11 @@ class AzureConfig(CommonCloudConfig):
         self._network_client = NetworkManagementClient(
             self._credential, self._subscription_id
         )
-        self._storage_client = StorageManagementClient(
-            self._credential, self._subscription_id
-        )
-        self._storage_region: str = STORAGE_REGION
-        self._storage_account_name: str | None = None
-        self._storage_account_key: StorageAccountKey | None = None
 
     def setup(self):
         """
         Set up all Azure and YellowDog assets
         """
-        # Keyring creation has to precede the generation of the Azure
-        # storage account name
         print_info(f"Creating YellowDog Keyring '{YD_KEYRING_NAME}'")
         self._create_keyring(keyring_name=YD_KEYRING_NAME)
         self._all_regions = self._get_regions_list()
@@ -149,7 +133,6 @@ class AzureConfig(CommonCloudConfig):
             result_required=True,
         )
         self._create_resource_groups_and_network_resources()
-        self._create_storage_account_and_blob()
 
     def _remove_azure_resources(self):
         """
@@ -162,22 +145,12 @@ class AzureConfig(CommonCloudConfig):
         """
         Create YellowDog Resource Groups in each selected region.
         """
-        regions = self._selected_regions[:]
-
-        if self._storage_region not in regions:
-            regions.append(self._storage_region)
-            storage_region_added = True
-        else:
-            storage_region_added = False
-
-        for region in regions:
+        for region in self._selected_regions:
             rg_name = self._generate_resource_group_name(region)
 
             # Does the resource group already exist?
             try:
                 if self._resource_client.resource_groups.check_existence(rg_name):
-                    if region == self._storage_region and storage_region_added:
-                        continue
                     print_warning(f"Azure resource group '{rg_name}' already exists")
                     if self._create_network_resources(
                         resource_group_name=rg_name, region=region
@@ -202,12 +175,6 @@ class AzureConfig(CommonCloudConfig):
                     f"Created (or updated) Azure resource group '{rg_result.name}' in"
                     f" region '{rg_result.location}'"
                 )
-                if region == self._storage_region and storage_region_added:
-                    print_info(
-                        f"Note: Resource group '{rg_name}' is automatically created to"
-                        " contain the Azure storage account"
-                    )
-                    continue
                 if self._create_network_resources(
                     resource_group_name=rg_name, region=region
                 ):
@@ -476,27 +443,6 @@ class AzureConfig(CommonCloudConfig):
         except Exception as e:
             print_error(f"Unable to add credential '{YD_CREDENTIAL_NAME}': {e}")
 
-        if self._storage_account_key is not None:
-            try:
-                credential_resource = self._generate_yd_azure_storage_credential(
-                    YD_KEYRING_NAME, YD_CREDENTIAL_NAME_STORAGE
-                )
-                create_resources([credential_resource])
-            except Exception as e:
-                print_error(
-                    f"Unable to add credential '{YD_CREDENTIAL_NAME_STORAGE}': {e}"
-                )
-
-        # Create namespace configuration (Keyring/Credential creation must come first)
-        print_info(f"Creating YellowDog Namespace Configuration '{self._namespace}'")
-        create_resources(
-            [
-                self._generate_yd_namespace_configuration(
-                    namespace=self._namespace, storage_blob_name=STORAGE_BLOB_NAME
-                )
-            ]
-        )
-
         # Save the list of resources
         # Sequence the Compute Requirement Templates before the Compute Source
         # Templates for subsequent removals.
@@ -518,86 +464,6 @@ class AzureConfig(CommonCloudConfig):
 
         # Keyring is removed separately.
         self._remove_keyring(keyring_name=YD_KEYRING_NAME)
-
-        # Remove the Namespace Configuration
-        remove_resources(
-            [
-                self._generate_yd_namespace_configuration(
-                    self._namespace, STORAGE_BLOB_NAME
-                )
-            ]
-        )
-
-    def _create_storage_account_and_blob(self):
-        """
-        Create a storage account and blob for use in namespace to object store mapping.
-        """
-        self._storage_account_name = self._generate_azure_storage_account_name()
-        resource_group_name = self._generate_resource_group_name(self._storage_region)
-
-        availability = self._storage_client.storage_accounts.check_name_availability(
-            {"name": self._storage_account_name}
-        )
-        if not availability.name_available:
-            print_warning(
-                f"Azure storage account '{self._storage_account_name}' already exists"
-            )
-        else:
-            try:
-                print_info(
-                    f"Creating Azure storage account '{self._storage_account_name}'"
-                )
-                self._storage_client.storage_accounts.begin_create(
-                    resource_group_name,
-                    self._storage_account_name,
-                    {
-                        "location": self._storage_region,
-                        "kind": "StorageV2",
-                        "sku": {"name": "Standard_LRS"},
-                    },
-                ).result()
-                print_info(
-                    f"Created Azure storage account '{self._storage_account_name}' in"
-                    f" region '{self._storage_region}'"
-                )
-            except Exception as e:
-                print_error(
-                    "Unable to create Azure storage account"
-                    f" '{self._storage_account_name}' in region"
-                    f" '{self._storage_region}': {e}"
-                )
-
-        try:
-            keys: StorageAccountListKeysResult = (
-                self._storage_client.storage_accounts.list_keys(
-                    resource_group_name, self._storage_account_name
-                )
-            )
-            self._storage_account_key = keys.keys[0]
-        except Exception as e:
-            print_error(f"Unable to obtain Azure storage account key: {e}")
-            return
-
-        blob_containers = self._storage_client.blob_containers.list(
-            resource_group_name, self._storage_account_name
-        )
-        for blob in blob_containers:
-            if blob.name == STORAGE_BLOB_NAME:
-                print_warning(
-                    f"Azure storage blob '{STORAGE_BLOB_NAME}' already exists"
-                )
-                return
-
-        try:
-            self._storage_client.blob_containers.create(
-                resource_group_name, self._storage_account_name, STORAGE_BLOB_NAME, {}
-            )
-            print_info(f"Created Azure storage blob '{STORAGE_BLOB_NAME}'")
-        except Exception as e:
-            print_error(
-                f"Unable to create Azure storage blob '{STORAGE_BLOB_NAME}': {e}"
-            )
-            return
 
     def _generate_azure_compute_source_template(
         self, region: str, name: str, spot: bool
@@ -631,20 +497,6 @@ class AzureConfig(CommonCloudConfig):
                 " created by YellowDog Cloud Wizard"
             ),
             "source": source,
-        }
-
-    def _generate_yd_namespace_configuration(
-        self, namespace: str, storage_blob_name: str
-    ) -> dict:
-        """
-        Generate a Namespace configuration using an Azure storage blob.
-        """
-        return {
-            "resource": RN_STORAGE_CONFIGURATION,
-            "type": "co.yellowdog.platform.model.AzureNamespaceStorageConfiguration",
-            "namespace": namespace,
-            "containerName": storage_blob_name,
-            "credential": f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME_STORAGE}",
         }
 
     @staticmethod
@@ -686,38 +538,6 @@ class AzureConfig(CommonCloudConfig):
                 ),
             },
         }
-
-    def _generate_yd_azure_storage_credential(
-        self, keyring_name: str, credential_name: str
-    ) -> dict:
-        """
-        Generate an Azure Storage Credential resource definition.
-        """
-        return {
-            "resource": "Credential",
-            "keyringName": keyring_name,
-            "credential": {
-                "name": credential_name,
-                "description": (
-                    "Azure storage credential automatically created by YellowDog Cloud"
-                    " Wizard"
-                ),
-                "accountName": self._storage_account_name,
-                "accountKey": self._storage_account_key.value,
-                "type": (
-                    "co.yellowdog.platform.account.credentials.AzureStorageCredential"
-                ),
-            },
-        }
-
-    def _generate_azure_storage_account_name(self) -> str:
-        try:
-            keyrings: list[KeyringSummary] = (
-                self._client.keyring_client.find_all_keyrings()
-            )
-            return f"{STORAGE_ACCOUNT_NAME_PREFIX}{keyrings[0].id[13:19]}".lower()
-        except Exception as e:
-            raise Exception(f"Unable to generate Azure storage account name: {e}")
 
     def set_ssh_ingress_rule(self, operation: str, selected_region: str | None = None):
         """

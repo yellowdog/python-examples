@@ -14,14 +14,6 @@ class TestList:
         result = shell("yd-list -r -n='' -t=''")
         assert result.exit_code == 0
 
-    def test_objects(self):
-        result = shell("yd-list -o -t=''")
-        assert result.exit_code == 0
-
-    def test_objects_all(self):
-        result = shell("yd-list -oa -t=''")
-        assert result.exit_code == 0
-
     def test_work_reqs(self):
         result = shell("yd-list -w -n='' -t=''")
         assert result.exit_code == 0
@@ -48,10 +40,6 @@ class TestList:
 
     def test_image_families(self):
         result = shell("yd-list -I -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_namespaces(self):
-        result = shell("yd-list -N -n='' -t=''")
         assert result.exit_code == 0
 
     def test_allowances(self):
