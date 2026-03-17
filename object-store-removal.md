@@ -70,7 +70,6 @@ Keep: `task_data_inputs`, `task_data_outputs`, `task_data_file` (data client).
 Remove:
 - `NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR = "::"`
 - `RN_STORAGE_CONFIGURATION = "NamespaceStorageConfiguration"`
-- `MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS` (if `--parallel-batches` is also removed)
 
 ---
 
