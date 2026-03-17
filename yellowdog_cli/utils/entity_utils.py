@@ -829,7 +829,7 @@ def _get_image_family_or_group_name_from_id(
     Obtain the namespace/name of an image family or image group.
     Otherwise, return the original value.
     """
-    if get_ydid_type(image_family_or_group_id) == YDIDType.IMAGE_FAMILY:
+    if (ydid_type := get_ydid_type(image_family_or_group_id)) == YDIDType.IMAGE_FAMILY:
         try:
             image_family: MachineImageFamily = (
                 client.images_client.get_image_family_by_id(image_family_or_group_id)
@@ -838,7 +838,7 @@ def _get_image_family_or_group_name_from_id(
         except Exception:
             return image_family_or_group_id
 
-    elif get_ydid_type(image_family_or_group_id) == YDIDType.IMAGE_GROUP:
+    elif ydid_type == YDIDType.IMAGE_GROUP:
         try:
             image_group: MachineImageGroup = client.images_client.get_image_group_by_id(
                 image_family_or_group_id

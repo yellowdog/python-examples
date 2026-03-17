@@ -5,7 +5,7 @@ A script to boost allowances.
 """
 
 from yellowdog_cli.utils.interactive import confirmed
-from yellowdog_cli.utils.printing import print_error, print_info, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
@@ -16,7 +16,7 @@ def main():
     count = 0
     for allowance in ARGS_PARSER.allowance_list:
         if get_ydid_type(allowance) != YDIDType.ALLOWANCE:
-            print_warning(f"Not a valid Allowance ID: '{allowance}'")
+            print_error(f"Not a valid Allowance ID: '{allowance}'")
             continue
         if not confirmed(
             f"Boost Allowance {allowance} by {ARGS_PARSER.boost_hours} hours?"

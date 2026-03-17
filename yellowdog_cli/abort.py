@@ -20,7 +20,6 @@ from yellowdog_cli.utils.interactive import confirmed, select
 from yellowdog_cli.utils.printing import (
     print_error,
     print_info,
-    print_warning,
     sorted_objects,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -121,7 +120,7 @@ def _abort_tasks_by_name_or_id(task_id_list: list[str]):
     aborted_count = 0
     for task_id in task_id_list:
         if get_ydid_type(task_id) != YDIDType.TASK:
-            print_warning(f"ID '{task_id}' is not a valid Task YDID")
+            print_error(f"ID '{task_id}' is not a valid Task YDID")
             continue
 
         if not confirmed(f"Cancel and abort Task '{task_id}'?"):

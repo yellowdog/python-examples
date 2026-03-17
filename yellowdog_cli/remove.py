@@ -394,14 +394,17 @@ def remove_resource_by_id(resource_id: str):
     Remove a resource by its YDID.
     """
     try:
-        if get_ydid_type(resource_id) == YDIDType.COMPUTE_SOURCE_TEMPLATE:
+        if (ydid_type := get_ydid_type(resource_id)) is None:
+            print_error(f"Invalid YellowDog ID '{resource_id}'")
+            return
+        if ydid_type == YDIDType.COMPUTE_SOURCE_TEMPLATE:
             if confirmed(f"Remove Compute Source Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_source_template_by_id(resource_id)
                 print_info(
                     f"Removed Compute Source Template {resource_id} (if present)"
                 )
 
-        elif get_ydid_type(resource_id) == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
+        elif ydid_type == YDIDType.COMPUTE_REQUIREMENT_TEMPLATE:
             if confirmed(f"Remove Compute Requirement Template {resource_id}?"):
                 CLIENT.compute_client.delete_compute_requirement_template_by_id(
                     resource_id
@@ -410,7 +413,7 @@ def remove_resource_by_id(resource_id: str):
                     f"Removed Compute Requirement Template {resource_id} (if present)"
                 )
 
-        elif get_ydid_type(resource_id) == YDIDType.IMAGE_FAMILY:
+        elif ydid_type == YDIDType.IMAGE_FAMILY:
             if confirmed(f"Remove Image Family '{resource_id}'?"):
                 family: MachineImageFamily = (
                     CLIENT.images_client.get_image_family_by_id(resource_id)
@@ -418,7 +421,7 @@ def remove_resource_by_id(resource_id: str):
                 CLIENT.images_client.delete_image_family(family)
                 print_info(f"Removed Image Family {resource_id} (if present)")
 
-        elif get_ydid_type(resource_id) == YDIDType.IMAGE_GROUP:
+        elif ydid_type == YDIDType.IMAGE_GROUP:
             if confirmed(f"Remove Image Group '{resource_id}'?"):
                 group: MachineImageGroup = CLIENT.images_client.get_image_group_by_id(
                     resource_id
@@ -426,13 +429,13 @@ def remove_resource_by_id(resource_id: str):
                 CLIENT.images_client.delete_image_group(group)
                 print_info(f"Removed Image Family {resource_id} (if present)")
 
-        elif get_ydid_type(resource_id) == YDIDType.IMAGE:
+        elif ydid_type == YDIDType.IMAGE:
             if confirmed(f"Remove Image '{resource_id}'?"):
                 image: MachineImage = CLIENT.images_client.get_image(resource_id)
                 CLIENT.images_client.delete_image(image)
                 print_info(f"Removed Image {resource_id} (if present)")
 
-        elif get_ydid_type(resource_id) == YDIDType.KEYRING:
+        elif ydid_type == YDIDType.KEYRING:
             if confirmed(f"Remove Keyring {resource_id}?"):
                 keyrings = CLIENT.keyring_client.find_all_keyrings()
                 for keyring in keyrings:
@@ -442,22 +445,22 @@ def remove_resource_by_id(resource_id: str):
                         return
                 print_warning(f"Cannot find Keyring {resource_id}")
 
-        elif get_ydid_type(resource_id) == YDIDType.WORKER_POOL:
+        elif ydid_type == YDIDType.WORKER_POOL:
             if confirmed(f"Shut down Worker Pool {resource_id}?"):
                 CLIENT.worker_pool_client.shutdown_worker_pool_by_id(resource_id)
                 print_info(f"Shut down Worker Pool {resource_id}")
 
-        elif get_ydid_type(resource_id) == YDIDType.ALLOWANCE:
+        elif ydid_type == YDIDType.ALLOWANCE:
             if confirmed(f"Remove Allowance {resource_id}?"):
                 CLIENT.allowances_client.delete_allowance_by_id(resource_id)
                 print_info(f"Removed Allowance {resource_id} (if present)")
 
-        elif get_ydid_type(resource_id) == YDIDType.GROUP:
+        elif ydid_type == YDIDType.GROUP:
             if confirmed(f"Remove Group {resource_id}?"):
                 CLIENT.account_client.delete_group(resource_id)
                 print_info(f"Removed Group {resource_id} (if present)")
 
-        elif get_ydid_type(resource_id) == YDIDType.APPLICATION:
+        elif ydid_type == YDIDType.APPLICATION:
             if confirmed(f"Remove Application {resource_id}?"):
                 CLIENT.account_client.delete_application(resource_id)
                 print_info(f"Removed Application {resource_id} (if present)")

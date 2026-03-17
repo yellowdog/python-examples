@@ -678,13 +678,13 @@ def main():
     worker_pools = WorkerPools(wp_list)
 
     # Task group
-    if get_ydid_type(ARGS_PARSER.wr_or_tg_id) == YDIDType.TASK_GROUP:
+    if (ydid_type := get_ydid_type(ARGS_PARSER.wr_or_tg_id)) == YDIDType.TASK_GROUP:
         _compare_task_group(
             get_task_group_by_id(CLIENT, ARGS_PARSER.wr_or_tg_id), worker_pools
         )
 
     # Work requirement
-    elif get_ydid_type(ARGS_PARSER.wr_or_tg_id) == YDIDType.WORK_REQUIREMENT:
+    elif ydid_type == YDIDType.WORK_REQUIREMENT:
         work_requirement = _get_work_requirement_by_id(ARGS_PARSER.wr_or_tg_id)
         print_info(
             f"Comparing all Task Groups in Work Requirement '{work_requirement.name}' "

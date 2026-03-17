@@ -86,7 +86,9 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
     Show the details for a given YDID.
     """
     try:
-        ydid_type = get_ydid_type(ydid)
+        if (ydid_type := get_ydid_type(ydid)) is None:
+            print_error(f"Invalid YellowDog ID '{ydid}'")
+            return
         if ydid_type == YDIDType.COMPUTE_SOURCE_TEMPLATE:
             print_info(f"Showing details of Compute Source Template ID '{ydid}'")
             if ARGS_PARSER.substitute_ids:

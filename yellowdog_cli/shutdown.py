@@ -97,10 +97,11 @@ def shutdown_by_names_or_ids(names_or_ids: list[str]):
     node_ids: list[str] = []
 
     for name_or_id in set(names_or_ids):  # Remove duplicates
-        if get_ydid_type(name_or_id) == YDIDType.NODE:
+        ydid_type = get_ydid_type(name_or_id)
+        if ydid_type == YDIDType.NODE:
             node_ids.append(name_or_id)
             continue
-        if get_ydid_type(name_or_id) == YDIDType.WORKER_POOL:
+        if ydid_type == YDIDType.WORKER_POOL:
             worker_pool_id = name_or_id
         else:
             worker_pool_id = get_worker_pool_id_by_name(
