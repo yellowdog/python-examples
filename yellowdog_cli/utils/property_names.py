@@ -3,7 +3,6 @@ Property names.
 """
 
 ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
-ALWAYS_UPLOAD = "alwaysUpload"  # Bool
 ARGS = "arguments"  # List
 BATCH_ALLOCATION = "batchAllocation"  # Bool
 CERTIFICATES = "certificates"
@@ -21,26 +20,15 @@ DISABLE_PREALLOCATION = "disablePreallocation"
 DEPENDENCIES = "dependencies"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String (Deprecated)
 DIRECTORY_NAME = "directoryName"  # String
-DOCKER_ENV = "dockerEnvironment"  # Dictionary
-DOCKER_OPTIONS = "dockerOptions"  # List
-DOCKER_PASSWORD = "dockerPassword"  # String
-DOCKER_REGISTRY = "dockerRegistry"  # String
-DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
 ERROR_TYPES = "errorTypes"  # List of Strings
 EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
-EXECUTABLE = "executable"  # String
-FILE_PATTERN = "filePattern"  # String
 FINISH_IF_ALL_TASKS_FINISHED = "finishIfAllTasksFinished"  # Boolean
 FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
-FLATTEN_PATHS = "flattenInputPaths"  # Boolean
-FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
 IDLE_NODE_TIMEOUT = "idleNodeTimeout"  # Float
 IDLE_POOL_TIMEOUT = "idlePoolTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
 IMPORT_COMMON = "importCommon"  # String
-INPUTS_OPTIONAL = "inputsOptional"  # List of Strings
-INPUTS_REQUIRED = "inputs"  # List of Strings
 INSTANCE_TAGS = "instanceTags"  # Dictionary
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
@@ -57,9 +45,6 @@ NAMESPACE = "namespace"  # String
 NAMESPACES = "namespaces"  # List of Strings
 NAME_TAG = "tag"  # String
 NODE_BOOT_TIMEOUT = "nodeBootTimeout"  # Float
-OUTPUTS_OPTIONAL = "outputs"  # List of Strings
-OUTPUTS_OTHER = "outputsOther"  # List of Dicts
-OUTPUTS_REQUIRED = "outputsRequired"  # List of Strings
 PARALLEL_BATCHES = "parallelBatches"  # Integer
 PRIORITY = "priority"  # Float
 PROCESS_EXIT_CODES = "processExitCodes"  # List of Ints
@@ -93,9 +78,6 @@ TASK_TIMEOUT = "taskTimeout"  # Float
 TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
-UPLOAD_FILES = "uploadFiles"  # List of Dicts
-UPLOAD_PATH = "uploadPath"  # String
-UPLOAD_TASKOUTPUT = "uploadTaskProcessOutput"  # Bool
 URL = "url"  # String
 USERDATA = "userData"  # String
 USERDATAFILE = "userDataFile"  # String
@@ -103,8 +85,6 @@ USERDATAFILES = "userDataFiles"  # List of Strings
 USE_PAC = "usePAC"  # Boolean
 VARIABLES = "variables"  # Dictionary
 VCPUS = "vcpus"  # List of two Floats
-VERIFY_AT_START = "verifyAtStart"  # List of Strings
-VERIFY_WAIT = "verifyWait"  # List of Strings
 WORKERS_CUSTOM_COMMAND = "workersCustomCommand"  # String
 WORKERS_PER_NODE = "workersPerNode"  # Integer
 WORKERS_PER_VCPU = "workersPerVCPU"  # Integer
@@ -121,7 +101,6 @@ WR_TAG = "tag"  # String
 
 ALL_KEYS = [
     ADD_YD_ENV_VARS,
-    ALWAYS_UPLOAD,
     ARGS,
     BATCH_ALLOCATION,
     CERTIFICATES,
@@ -139,26 +118,15 @@ ALL_KEYS = [
     DEPENDENCIES,
     DEPENDENT_ON,
     DIRECTORY_NAME,
-    DOCKER_ENV,
-    DOCKER_OPTIONS,
-    DOCKER_PASSWORD,
-    DOCKER_REGISTRY,
-    DOCKER_USERNAME,
     ENV,
     ERROR_TYPES,
     EXCLUSIVE_WORKERS,
-    EXECUTABLE,
-    FILE_PATTERN,
     FINISH_IF_ALL_TASKS_FINISHED,
     FINISH_IF_ANY_TASK_FAILED,
-    FLATTEN_PATHS,
-    FLATTEN_UPLOAD_PATHS,
     IDLE_NODE_TIMEOUT,
     IDLE_POOL_TIMEOUT,
     IMAGES_ID,
     IMPORT_COMMON,
-    INPUTS_OPTIONAL,
-    INPUTS_REQUIRED,
     INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
@@ -174,9 +142,6 @@ ALL_KEYS = [
     NAMESPACES,
     NAME_TAG,
     NODE_BOOT_TIMEOUT,
-    OUTPUTS_OPTIONAL,
-    OUTPUTS_OTHER,
-    OUTPUTS_REQUIRED,
     PARALLEL_BATCHES,
     PRIORITY,
     PROCESS_EXIT_CODES,
@@ -210,9 +175,6 @@ ALL_KEYS = [
     TASK_TYPE,
     TASK_TYPES,
     TEMPLATE_ID,
-    UPLOAD_FILES,
-    UPLOAD_PATH,
-    UPLOAD_TASKOUTPUT,
     URL,
     USERDATA,
     USERDATAFILE,
@@ -220,8 +182,6 @@ ALL_KEYS = [
     USE_PAC,
     VARIABLES,
     VCPUS,
-    VERIFY_AT_START,
-    VERIFY_WAIT,
     WORKERS_CUSTOM_COMMAND,
     WORKERS_PER_NODE,
     WORKERS_PER_VCPU,

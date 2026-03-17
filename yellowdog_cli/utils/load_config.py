@@ -262,13 +262,6 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             )
 
         # Check for properties set on the command line
-        executable = (
-            check_str(wr_section.get(EXECUTABLE, wr_section.get(EXECUTABLE, None)))
-            if ARGS_PARSER.executable is None
-            else ARGS_PARSER.executable
-        )
-        executable = process_variable_substitutions(executable)
-
         task_type = (
             wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, None))
             if ARGS_PARSER.task_type is None
@@ -306,37 +299,22 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
 
         return ConfigWorkRequirement(
             add_yd_env_vars=wr_section.get(ADD_YD_ENV_VARS, False),
-            always_upload=wr_section.get(ALWAYS_UPLOAD, True),
             args=wr_section.get(ARGS, []),
             batch_allocation=wr_section.get(BATCH_ALLOCATION, None),
-            upload_taskoutput=wr_section.get(UPLOAD_TASKOUTPUT, False),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             csv_files=csv_files,
             disable_preallocation=wr_section.get(DISABLE_PREALLOCATION, None),
-            docker_env=wr_section.get(DOCKER_ENV, None),
-            docker_options=wr_section.get(DOCKER_OPTIONS, None),
-            docker_password=wr_section.get(DOCKER_PASSWORD, None),
-            docker_registry=wr_section.get(DOCKER_REGISTRY, None),
-            docker_username=wr_section.get(DOCKER_USERNAME, None),
             env=wr_section.get(ENV, {}),
             exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
-            executable=executable,
             finish_if_all_tasks_finished=wr_section.get(
                 FINISH_IF_ALL_TASKS_FINISHED, True
             ),
             finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, False),
-            flatten_input_paths=wr_section.get(FLATTEN_PATHS, None),
-            flatten_upload_paths=wr_section.get(FLATTEN_UPLOAD_PATHS, None),
-            inputs_optional=wr_section.get(INPUTS_OPTIONAL, []),
-            inputs_required=wr_section.get(INPUTS_REQUIRED, []),
             instance_types=wr_section.get(INSTANCE_TYPES, None),
             max_retries=wr_section.get(MAX_RETRIES, 0),
             max_workers=wr_section.get(MAX_WORKERS, None),
             min_workers=wr_section.get(MIN_WORKERS, None),
             namespaces=wr_section.get(NAMESPACES, None),
-            outputs_optional=wr_section.get(OUTPUTS_OPTIONAL, []),
-            outputs_other=wr_section.get(OUTPUTS_OTHER, []),
-            outputs_required=wr_section.get(OUTPUTS_REQUIRED, []),
             parallel_batches=wr_section.get(PARALLEL_BATCHES, None),
             priority=wr_section.get(PRIORITY, 0.0),
             providers=wr_section.get(PROVIDERS, None),
@@ -357,10 +335,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             task_type=task_type,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
             task_level_timeout=wr_section.get(TASK_LEVEL_TIMEOUT, None),
-            upload_files=wr_section.get(UPLOAD_FILES, []),
             vcpus=wr_section.get(VCPUS, None),
-            verify_at_start=wr_section.get(VERIFY_AT_START, []),
-            verify_wait=wr_section.get(VERIFY_WAIT, []),
             worker_tags=worker_tags,
             wr_data_file=wr_data_file,
             wr_name=wr_section.get(WR_NAME, None),

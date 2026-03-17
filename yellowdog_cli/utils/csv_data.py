@@ -375,21 +375,8 @@ def csv_expand_toml_tasks(
     # Populate properties that can be set at Task level only
     for config_value, config_name in [
         (config_wr.add_yd_env_vars, ADD_YD_ENV_VARS),
-        (config_wr.always_upload, ALWAYS_UPLOAD),
         (config_wr.args, ARGS),
-        (config_wr.docker_env, DOCKER_ENV),
-        (config_wr.docker_options, DOCKER_OPTIONS),
-        (config_wr.docker_password, DOCKER_PASSWORD),
-        (config_wr.docker_registry, DOCKER_REGISTRY),
-        (config_wr.docker_username, DOCKER_USERNAME),
         (config_wr.env, ENV),
-        (config_wr.executable, EXECUTABLE),
-        (config_wr.flatten_input_paths, FLATTEN_PATHS),
-        (config_wr.inputs_optional, INPUTS_OPTIONAL),
-        (config_wr.inputs_required, INPUTS_REQUIRED),
-        (config_wr.outputs_optional, OUTPUTS_OPTIONAL),
-        (config_wr.outputs_other, OUTPUTS_OTHER),
-        (config_wr.outputs_required, OUTPUTS_REQUIRED),
         (config_wr.set_task_names, SET_TASK_NAMES),
         (config_wr.task_data, TASK_DATA),
         (config_wr.task_data_file, TASK_DATA_FILE),
@@ -400,10 +387,6 @@ def csv_expand_toml_tasks(
         (config_wr.task_name, TASK_NAME),
         (config_wr.task_timeout, TASK_TIMEOUT),
         (config_wr.task_type, TASK_TYPE),
-        (config_wr.upload_files, UPLOAD_FILES),
-        (config_wr.upload_taskoutput, UPLOAD_TASKOUTPUT),
-        (config_wr.verify_at_start, VERIFY_AT_START),
-        (config_wr.verify_wait, VERIFY_WAIT),
         # Note: not TASK_COUNT; count determined by CSV data
     ]:
         if config_value is not None and substitutions_present(
