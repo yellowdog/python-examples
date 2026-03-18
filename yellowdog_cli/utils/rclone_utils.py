@@ -13,7 +13,8 @@ from rclone_api import Config, Rclone
 
 from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.property_names import (
-    LOCAL_PATH,
+    DATA_CLIENT_LOCAL_PATH,
+    DATA_CLIENT_UPLOAD_PATH,
     TASK_DATA_SOURCE,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
@@ -23,12 +24,10 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER
 class RcloneUploadedFile:
     """
     Capture the local and destination state of an rcloned file.
-    (The destination is actually the 'source' in the
-    'taskData.input', hence 'rclone_source'.)
     """
 
     local_file_path: str
-    rclone_source: str
+    upload_file_path: str
 
 
 class RcloneUploadedFiles:
@@ -48,18 +47,25 @@ class RcloneUploadedFiles:
     def upload_dataclient_input_files(self, task_data_inputs: list[dict] | None):
         """
         Extract files to be uploaded from a task_data_inputs objects, and
-        upload them. Important: removes any 'localFile' properties.
+        upload them. Important: removes any 'localFile' and 'uploadPath'
+        properties.
         """
         if task_data_inputs is None:
             return
 
         for task_data_input in task_data_inputs:
-            if (local_file := task_data_input.pop(LOCAL_PATH, None)) is not None and (
-                source := task_data_input.get(TASK_DATA_SOURCE)
-            ) is not None:
-                self._upload_rclone_file(local_file, source)
+            if (
+                local_file := task_data_input.pop(DATA_CLIENT_LOCAL_PATH, None)
+            ) is None:
+                continue
+            if (
+                upload_path := task_data_input.pop(DATA_CLIENT_UPLOAD_PATH, None)
+            ) is None:
+                if (upload_path := task_data_input.get(TASK_DATA_SOURCE, None)) is None:
+                    continue
+            self._upload_rclone_file(local_file, upload_path)
 
-    def _upload_rclone_file(self, local_file: str, rclone_source: str):
+    def _upload_rclone_file(self, local_file: str, rclone_upload_path: str):
         """
         Rclone a DataClient inputs file if it hasn't already been uploaded to
         the same location.
@@ -72,7 +78,7 @@ class RcloneUploadedFiles:
                 "and cannot be uploaded"
             )
 
-        rclone_uploaded_file = RcloneUploadedFile(local_file, rclone_source)
+        rclone_uploaded_file = RcloneUploadedFile(local_file, rclone_upload_path)
         if rclone_uploaded_file in self._rcloned_files:
             if rclone_uploaded_file not in self._reported_duplicates:
                 print_info(
@@ -87,7 +93,7 @@ class RcloneUploadedFiles:
                 self._upload_rclone_file_core(rclone_uploaded_file)
             except Exception as e:
                 raise Exception(
-                    f"Unable to upload '{local_file}' -> '{rclone_source}': {e}"
+                    f"Unable to upload '{local_file}' -> '{rclone_upload_path}': {e}"
                 )
         else:
             print_info(
@@ -105,7 +111,7 @@ class RcloneUploadedFiles:
         """
 
         remote_name, config, remote_path = self._parse_rclone_connection_string(
-            rclone_upload_file.rclone_source
+            rclone_upload_file.upload_file_path
         )
 
         # Auto-downloads rclone binary if missing (~20-40 MB, only once)
@@ -134,7 +140,7 @@ class RcloneUploadedFiles:
         grouping into batches of files with the same connection info.
         """
         for rcloned_file in self._rcloned_files:
-            self._delete_rcloned_file(rcloned_file.rclone_source)
+            self._delete_rcloned_file(rcloned_file.upload_file_path)
 
         self._rcloned_files = []
 
@@ -238,11 +244,11 @@ class RcloneUploadedFiles:
         """
         try:
             service, rclone_details, bucket_name_and_object = (
-                rclone_uploaded_file.rclone_source.split(":")
+                rclone_uploaded_file.upload_file_path.split(":")
             )
             return bucket_name_and_object
         except Exception:
-            return rclone_uploaded_file.rclone_source
+            return rclone_uploaded_file.upload_file_path
 
 
 def upgrade_rclone():

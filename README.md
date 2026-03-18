@@ -1263,23 +1263,28 @@ JSON:
 
 ### Automatic Upload of Local Files
 
-The `yd-submit` command can automatically upload files in the `taskDataInputs` list. This is enabled by adding the `localFile` property to the relevant input specification, e.g.:
+The `yd-submit` command can automatically upload files in the `taskDataInputs` list. This is enabled by adding the `localFile` property, and optionally the `uploadPath` property, to the relevant input specification,  e.g.:
 
 TOML, in the `workRequirement` section:
 ```toml
 taskDataInputs = [
-  {localFile = "my_local_file", source = "in_src_path_1", destination = "dest_path_1"},
+  {localFile = "my_local_file", uploadPath = "in_upload_path_1", source = "in_src_path_1", destination = "dest_path_1"},
 ]
 ```
 
 JSON:
 ```json
 "taskDataInputs": [
-  {"localFile": "my_local_file", "destination": "dest_path_1", "source": "in_src_path_1"}
-],
+  {
+    "localFile": "my_local_file",
+    "uploadPath": "in_upload_path_1",
+    "source": "in_src_path_1",
+    "destination": "dest_path_1"
+  }
+]
 ```
 
-The specified local file will be uploaded to the rclone target specified by the `source` property. The local file can be specified using an absolute or relative pathname, and the base files directory can be adjusted using the `--content-path <directory>`/`-F` option supplied to `yd-submit`.
+If `uploadPath` is not specified, the local file will be uploaded to the rclone target specified by the `source` property. The local file can be specified using an absolute or relative pathname, and the base files directory can be adjusted using the `--content-path <directory>`/`-F` option supplied to `yd-submit`.
 
 If `yd-submit` fails for any reason, the uploaded objects will be deleted automatically.
 

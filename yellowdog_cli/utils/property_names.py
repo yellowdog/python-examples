@@ -15,6 +15,8 @@ COMPUTE_REQUIREMENT_SECTION = "computeRequirement"  # No value
 CR_TAG = "requirementTag"  # String
 CSV_FILE = "csvFile"  # String
 CSV_FILES = "csvFiles"  # List of Strings
+DATA_CLIENT_LOCAL_PATH = "localPath"  # String
+DATA_CLIENT_UPLOAD_PATH = "uploadPath"  # String
 DISABLE_PREALLOCATION = "disablePreallocation"
 DEPENDENCIES = "dependencies"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String (Deprecated)
@@ -131,6 +133,8 @@ ALL_KEYS = [
     CR_TAG,
     CSV_FILE,
     CSV_FILES,
+    DATA_CLIENT_LOCAL_PATH,
+    DATA_CLIENT_UPLOAD_PATH,
     DISABLE_PREALLOCATION,
     DEPENDENCIES,
     DEPENDENT_ON,
