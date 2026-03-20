@@ -651,7 +651,7 @@ In addition to the property inheritance mechanism, some properties are set autom
 
 - The **Work Requirement** name is automatically set using a concatenation of the `tag` property, and a UTC timestamp: e.g.: `mytag_221024-15552480`.
 - **Task Group** names are automatically created for any Task Group that is not explicitly named, using names of the form `task_group_1` (or `task_group_01`, etc., for larger numbers of Task Groups). Task Group numbers can also be included in user-defined Task Group names using the `{{task_group_number}}` variable substitution discussed below.
-- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below. Automatic Task name generation can be suppressed by setting the `setTaskNames` property to `false`, in which case the `task_name` variable will be set to `none`. Note that Task names must be set for any tasks that specify outputs.
+- **Task** names are automatically created for any Task that is not explicitly named, using names of the form `task_1` (or `task_01`, etc., for larger numbers of Tasks). The Task counter resets for each different Task Group. Task numbers can also be included in user-defined Task names using the `{{task_number}}` variable substitution discussed below. Automatic Task name generation can be suppressed by setting the `setTaskNames` property to `false`, in which case the `task_name` variable will be set to `none`.
 
 #### Obtaining Names/Context from Environment Variables at Task Run Time
 
@@ -669,7 +669,7 @@ When a Task executes, its Task name and number, Task Group name and number, Work
 
 This applies whether the names were set automatically by `yd-submit` or explicitly by the user.
 
-In addition to the environment variables above, when a Task is executed by a Worker, the YellowDog Agent will set the following variables for use by the Task, based on the instance details and Task identification:
+In addition to the environment variables above, when a Task is executed by a Worker, the YellowDog Agent will set the following for use by the Task, based on the instance details and Task identification:
 
 - `YD_PROVIDER`
 - `YD_REGION`
@@ -729,7 +729,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskDataFile = "my_data_file.txt"
     taskDataInputs = [
       {source = "in_src_path_1", destination = "dest_path_1"},
-      {source = "in_src_path_2", destination = "dest_path_2"},
+      {localPath = "local_file", uploadPath = "in_src_path_2", source = "in_src_path_2", destination = "dest_path_2"},
     ]
     taskDataOutputs = [
         {source = "out_src_path_1", destination = "dest_path_1", alwaysUpload = true},
@@ -785,7 +785,7 @@ Showing all possible properties at the Work Requirement level:
   "taskDataFile": "my_data_file.txt",
   "taskDataInputs": [
     {"destination": "dest_path_1", "source": "in_src_path_1"},
-    {"destination": "dest_path_2", "source": "in_src_path_2"}
+    {"localPath": "local_file", "uploadPath": "in_src_path_2", "destination": "dest_path_2", "source": "in_src_path_2"}
   ],
   "taskDataOutputs": [
     {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
@@ -849,7 +849,7 @@ Showing all possible properties at the Task Group level:
       "taskDataFile": "my_data_file.txt",
       "taskDataInputs": [
         {"destination": "dest_path_1", "source": "in_src_path_1"},
-        {"destination": "dest_path_2", "source": "in_src_path_2"}
+        {"localPath": "local_file", "uploadPath": "in_src_path_2", "destination": "dest_path_2", "source": "in_src_path_2"}
       ],
       "taskDataOutputs": [
         {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
@@ -896,7 +896,7 @@ Showing all possible properties at the Task level:
           "taskDataFile": "my_data_file.txt",
           "taskDataInputs": [
             {"destination": "dest_path_1", "source": "in_src_path_1"},
-            {"destination": "dest_path_2", "source": "in_src_path_2"}
+            {"localPath": "local_file", "uploadPath": "in_src_path_2", "destination": "dest_path_2", "source": "in_src_path_2"}
           ],
           "taskDataOutputs": [
             {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
@@ -913,7 +913,7 @@ Showing all possible properties at the Task level:
 
 ## Variable Substitutions in Work Requirement Properties
 
-Variable substitutions can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables or via the TOML file.
+Variable substitutions can be used within any property value in TOML configuration files or Work Requirement JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Work Requirements to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
 ### Work Requirement Name Substitution
 
@@ -967,7 +967,7 @@ To examine the JSON that will actually be sent to the YellowDog API after all pr
 
 A dry-run is useful for inspecting the results of all the processing that's been performed. To suppress all output except for the JSON itself, add the `--quiet` (`-q`) command line option.
 
-Note that the generated JSON is a consolidated form of what would be submitted to the YellowDog API, and Tasks are presented directly within their Task Groups for ease of comprehension. In actual API submissions, the Work Requirement with zero or more Task Groups is submitted first, and Tasks are then added to their Task Groups separately, in subsequent API calls. Task Groups and Tasks can also later be added to the Work Requirement.
+Note that the generated JSON is a **consolidated form** of what would be submitted to the YellowDog API, and Tasks are incorporated directly within their Task Group data structures for ease of comprehension. In actual API submissions, the Work Requirement with zero or more Task Groups is submitted first, and Tasks are then added to their Task Groups separately, in subsequent API calls. Task Groups and Tasks can also later be added to the Work Requirement.
 
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
@@ -1023,7 +1023,7 @@ Note that variable substitutions **can** be used in the raw JSON file, just as i
 
 The YellowDog Data Client is described at https://docs.yellowdog.ai/#/the-platform/the-data-client.
 
-The CLI provides full support for expressing Data Client inputs and outputs as part of Task specifications. In addition, it can provide automatic upload of objects on the local filesystem to Data Client targets. It does this using a local `rclone` binary that will be downloaded to your system the first time the Data Client upload capability is used.
+The CLI provides full support for expressing Data Client inputs and outputs as part of Task specifications. In addition, it can provide automatic upload of objects on the local filesystem to Data Client targets. It does this using a local `rclone` binary that will be downloaded to your system the first time the Data Client upload capability is used, if `rclone` is not already present.
 
 Currently, Data Client only supports **individual files**, not directories or wildcards. If multiple, unspecified files are required, we recommend you compress/decompress them into a single file. The compression/decompression can be handled as part of the execution of the Task at its start and/or conclusion.
 
@@ -1032,6 +1032,7 @@ Currently, Data Client only supports **individual files**, not directories or wi
 Data Client inputs for Tasks are specified as follows:
 
 TOML, in the `workRequirement` section:
+
 ```toml
 taskDataInputs = [
   {source = "in_src_path_1", destination = "dest_path_1"},
@@ -1040,6 +1041,7 @@ taskDataInputs = [
 ```
 
 JSON:
+
 ```json
 "taskDataInputs": [
   {"destination": "dest_path_1", "source": "in_src_path_1"},
@@ -1047,7 +1049,7 @@ JSON:
 ],
 ```
 
-- The `source` property must be an rclone-compliant path, e.g.: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:my_bucket_name/directory_name/filename`.
+- The `source` property must be an rclone-compliant path starting with `rclone:`, e.g.: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:my_bucket_name/directory_name/filename`.
 - The `destination` property must specify a local pathname and be prefixed with `local:`, e.g.: `local:my_output.txt`
 
 ### Automatic Upload of Local Files
@@ -1055,6 +1057,7 @@ JSON:
 The `yd-submit` command can automatically upload files in the `taskDataInputs` list. This is enabled by adding the `localFile` property, and optionally the `uploadPath` property, to the relevant input specification,  e.g.:
 
 TOML, in the `workRequirement` section:
+
 ```toml
 taskDataInputs = [
   {localFile = "my_local_file", uploadPath = "in_upload_path_1", source = "in_src_path_1", destination = "dest_path_1"},
@@ -1062,6 +1065,7 @@ taskDataInputs = [
 ```
 
 JSON:
+
 ```json
 "taskDataInputs": [
   {
@@ -1083,11 +1087,11 @@ Use of rclone to upload to targets depends on the presence of the required authe
 
 As an example, if the requirement is to upload to an S3 bucket then appropriate AWS credentials must be present to perform the task, such as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` being set as environment variables. Example rclone paths could then be:
 
-1. Specify that the environment should be used for authentication: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:<bucket-name>/<pathname>`
+1. Specifying that the environment should be used for authentication: `rclone:S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2,location_constraint=eu-west-2:<bucket-name>/<pathname>`
 
-2. Explicitly use environment variables for authentication: `rclone:S3,type=s3,provider=AWS,access_key_id={{env:AWS_ACCESS_KEY_ID}},secret_access_key={{env:AWS_SECRET_ACCESS_KEY}},region=eu-west-2,location_constraint=eu-west-2:<bucket-name>/<pathname>`. Note that this will include the key ID and secret in plain text in the task specification.
+2. Explicitly using environment variables for authentication: `rclone:S3,type=s3,provider=AWS,access_key_id={{env:AWS_ACCESS_KEY_ID}},secret_access_key={{env:AWS_SECRET_ACCESS_KEY}},region=eu-west-2,location_constraint=eu-west-2:<bucket-name>/<pathname>`. Note that this will include the key ID and secret in plain text in the task specification.
 
-Whichever authentication method is specified will be used both by the local rclone upload and in the Data Client invocation by the YellowDog Agent.
+3. Using an rclone configuration file, e.g., referencing a `[mys3]` section in `rclone.conf`: `rclone:mys3:<bucket-name>/<pathname>`.
 
 ### Specifying Data Client Outputs
 
@@ -1120,14 +1124,15 @@ This section discusses the context within which a Task operates when it's execut
 
 When a Task is allocated to a Worker on a node by the YellowDog Scheduler, the following steps are followed:
 
-1. The Agent running on the node downloads the Task's properties: its `taskType`, `arguments`, `environment`, `taskdata`, and any Data Client inputs specified in `taskDataInputs`. A number of `YD_` environment variables are also automatically set by a combination (optionally) of `yd_submit`, and the Agent itself -- see above for details.
-2. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess to run the Task.
-3. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
-4. The Agent uploads any Data Client outputs specified in `taskDataOutputs`. The ephemeral Task directory is then deleted.
+1. The Agent running on the node gets the Task's properties: its `taskType`, `arguments`, `environment`, `taskdata`. A number of `YD_` environment variables are also automatically set by a combination (optionally) of `yd_submit`, and the Agent itself -- see above for details.
+2. An ephemeral working directory is created. Data Client input objects are downloaded to this directory, and the contents of the `taskData` property (if set) are written to the file `taskdata.txt`.
+3. The Agent runs the command specified for the `taskType` in the Agent's `application.yaml` configuration file. This done as a simple `exec` of a subprocess to run the Task.
+4. When the Task concludes, the Agent uses the exit code of the subprocess to report success (zero) or failure (non-zero).
+5. The Agent uploads any Data Client outputs specified in `taskDataOutputs` to their destinations. The ephemeral Task directory is then deleted.
 
-Note that if a Task is aborted during execution, the Task's subprocess is sent a `SIGTERM`, allowing the Task an opportunity to terminate any child processes or other resources (e.g., containers) that may have been started as part of Task execution. In addition, there is the option to set an `abort` clause as part of the Task Type specification in the Agent's `application.yaml` file, in which case the script specified in the `abort` clause takes over responsibility for any abort handling.
+Note that if a Task is aborted during execution, the Task's subprocess is sent a `SIGTERM`, allowing the Task an opportunity to terminate any child processes or other resources (e.g., containers) that may have been started as part of Task execution. In addition, there is the option to set an `abort` clause as part of the Task Type specification in the Agent's `application.yaml` file, in which case the script specified in the `abort` clause takes over complete responsibility for any abort handling.
 
-Once the steps above have been completed, the Worker is ready to accept its next Task from the YellowDog scheduler.
+Once the steps above have been completed, the Worker is ready to process its next Task.
 
 Note that if the Agent on a node advertises multiple Workers, then Tasks are executed in parallel on the node and can start and stop independently.
 
@@ -1135,7 +1140,7 @@ Note that if the Agent on a node advertises multiple Workers, then Tasks are exe
 
 By default, in the standard YellowDog Agent VM images and in images/instances created using the [YellowDog Agent Installer Script](https://github.com/yellowdog/resources/blob/main/agent-install/linux/README.md), the Agent runs as user and group `yd-agent`, and hence Tasks also execute under this user.
 
-`yd-agent` does not have `sudo` privileges as standard, but this can be added if required at instance boot time via the `userData` property of a provisioning request. E.g. (for Ubuntu):
+`yd-agent` does not have `sudo` privileges as standard, but this can be added if required (e.g.) at instance boot time via the `userData` property of a provisioning request. E.g. (for Ubuntu):
 
 ```shell
 usermod -aG wheel yd-agent
@@ -1165,15 +1170,11 @@ Ephemeral Task working directories are by default created under `/var/opt/yellow
 
 (On Windows hosts, the Task directories are found under `%AppData%\yellowdog\agent\data\workers`.)
 
-When a Task is allocated to a node, an ephemeral directory is created, e.g.:
+When a Task is started by a worker, an ephemeral directory is created, e.g.:
 
 `/var/opt/yellowdog/agent/data/workers/ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1`
 
-This is the directory into which downloaded objects are placed, and in which output files are created by default. The console output file, `taskoutput.txt`, containing stderr and stdout output will also be created in this directory.
-
-See the [Files Downloaded to a Node](#files-downloaded-to-a-node-for-use-in-task-execution) section above for more details on how files in this directory are handled.
-
-At the conclusion of the Task, after any files requested for upload have been uploaded to the Object Store (see the [Files Uploaded from a Node](#files-uploaded-from-a-node-to-the-object-store-after-task-execution) section for more information), the `ydid_task_559EBE_74949336-ac2b-4811-a7d5-f3ecd9739908_1_1` will be removed.
+This is the directory into which downloaded objects are placed, and in which output files are created by default. The console output file, `taskoutput.txt`, containing combined `stderr` and `stdout` output will also be created in this directory.
 
 ## Specifying Work Requirements using CSV Data
 
@@ -1387,9 +1388,10 @@ Here's an example of the `workerPool` section of a TOML configuration file, show
     # userDataFile = "myuserdata.txt"
     # userDataFiles = ["myuserdata1.txt", "myuserdata2.txt"]
     workerTag = "tag-{{username}}"
-    # Specify either workersPerNode or workersPerVCPU
+    # Specify either workersPerNode, workersPerVCPU, or workersCustomCommand
     workersPerNode = 1
     # workersPerVCPU = 1
+    # workersCustomCommand = "calc-my-worker-count.sh"
     # workerPoolData = "worker_pool.json"  # Optionally specify worker pool JSON specification
 ```
 
@@ -1430,7 +1432,7 @@ The example below is of a simple JSON specification of a Worker Pool with one in
 }
 ```
 
-The next example is of a relatively rich JSON specification of an Advanced Worker Pool, from one of the YellowDog demos. It includes node specialisation, and action groups that respond to the `STARTUP_NODES_ADDED` and `NODES_ADDED` events to drive **Node Actions**.
+The next example is of a more complex JSON specification of an Advanced Worker Pool, from one of the YellowDog demos. It includes node specialisation, and action groups that respond to the `STARTUP_NODES_ADDED` and `NODES_ADDED` events to drive **Node Actions**.
 
 ```json
 {
@@ -1525,9 +1527,9 @@ When a JSON Worker Pool specification is used, the following properties from the
 
 - `imagesId`
 - `instanceTags`
-- `requirementName`: derived from the `name` property in the `TOML` configuration. (The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
-- `requirementNamespace`: derived from the `namespace` property in the `TOML` configuration
-- `requirementTag`: : derived from the `requirementTag` property at the `workerPool` level, or the `tag` in the `common` configuration
+- `requirementName`: obtained from the `name` property in the `TOML` configuration. (The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
+- `requirementNamespace`: obtained from the `namespace` property in the `TOML` configuration
+- `requirementTag`: : obtained from the `requirementTag` property at the `workerPool` level, or the `tag` in the `common` configuration
 - `targetInstanceCount`
 - `templateId`
 - `userData`
@@ -1545,13 +1547,13 @@ Note that the `templateId` property can use either the YellowDog ID ('YDID') for
 - `minNodes`
 - `nodeBootTimeout`
 - `workerTag`
-- `workersPerNode` or `workersPerVCPU` (Note that the default value for `workersPerNode` is `1`; override this with `workersPerNode = 0` if required)
+- `workersPerNode`, `workersPerVCPU`, or `workersCustomCommand` (Note that the default value for `workersPerNode` is `1`; override this with `workersPerNode = 0` if required)
 
 ## Variable Substitutions in Worker Pool Properties
 
 Variable substitutions can be used within any property value in TOML configuration files or Worker Pool JSON files. See the description [above](#variable-substitutions) for more details on variable substitutions. This is a powerful feature that allows Worker Pools to be parameterised by supplying values on the command line, via environment variables, or via the TOML file.
 
-An important distinction when using variable substitutions within Worker Pool (or Compute Requirement) JSON (or Jsonnet) documents is that each variable directive **must be prefixed and postfixed by a `__` (double underscore)** to disambiguate it from variable substitutions that are to be passed directly to the API. For example, use: `__{{username}}__` to apply a substitution for the `username` default variable substitution.
+An important distinction when using variable substitutions within Worker Pool (or Compute Requirement) JSON/Jsonnet documents is that each variable directive **must be prefixed and postfixed by a `__` (double underscore)** to disambiguate it from Mustache variable substitutions that must be passed directly to the API without client processing. For example, use: `__{{username}}__` to apply a substitution for the `username` default variable substitution.
 
 In general, double underscores are **not** required in variable substitutions within the `workerPool` and/or `computeRequirement` sections of a TOML file. The exception to this is if the `userData` property is supplied, in which case double underscores **are** required. They are also required within any files referenced by the `userDataFile` or `userDataFiles` properties.
 
@@ -2444,9 +2446,7 @@ The `yd-list` command is used to list various YellowDog items, using the `namesp
 - Keyrings
 - Namespaces
 - Namespace Policies
-- Namespace Storage Configurations
 - Nodes
-- Objects in the Object Store
 - Roles
 - Task Groups
 - Tasks
