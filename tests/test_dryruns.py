@@ -13,6 +13,10 @@ class TestDemoDryRuns:
         result = shell(f"cd {DEMO_DIR}/bash && {CMD_SEQ}")
         assert result.exit_code == 0
 
+    def test_gce_instance_groups(self):
+        result = shell(f"cd {DEMO_DIR}/bash/gce-instance-groups && {CMD_SEQ}")
+        assert result.exit_code == 0
+
     def test_primes(self):
         result = shell(f"cd {DEMO_DIR}/primes && {CMD_SEQ}")
         assert result.exit_code == 0
@@ -44,6 +48,15 @@ class TestDemoDryRuns:
     # Tests run from outside the demo directories
     def test_bash_out(self):
         demo_name = "bash"
+        result = shell(
+            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
+        )
+        assert result.exit_code == 0
+
+    def test_gce_instance_groups_out(self):
+        demo_name = "bash/gce-instance-groups"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
             f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
