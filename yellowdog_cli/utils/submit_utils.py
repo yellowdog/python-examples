@@ -154,12 +154,11 @@ def generate_dependencies(task_group_data: dict) -> list[str] | None:
     if dependencies is not None:
         return dependencies
 
-    if dependent_on is not None:
-        print_warning(
-            "The 'dependentOn' task group property is deprecated; "
-            "please use 'dependencies' instead"
-        )
-        return [dependent_on]
+    print_warning(
+        "The 'dependentOn' task group property is deprecated; "
+        "please use 'dependencies' instead"
+    )
+    return [dependent_on]
 
 
 def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatcher:

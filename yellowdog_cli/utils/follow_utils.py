@@ -135,3 +135,4 @@ def get_event_url(ydid: str, ydid_type: YDIDType) -> str | None:
         return f"{CONFIG_COMMON.url}/workerPools/{ydid}/updates"
     if ydid_type == YDIDType.COMPUTE_REQUIREMENT:
         return f"{CONFIG_COMMON.url}/compute/requirements/{ydid}/updates"
+    return None
