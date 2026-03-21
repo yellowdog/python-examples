@@ -127,8 +127,8 @@ class AWSConfig(CommonCloudConfig):
             boto3.client("iam").list_users(MaxItems=1)
         except ClientError as e:
             raise Exception(
-                f"Invalid or missing AWS credentials. Did you remember to set/export"
-                f" the AWS account credentials?"
+                "Invalid or missing AWS credentials. Did you remember to set/export"
+                " the AWS account credentials?"
             )
 
         # Establish the region to use

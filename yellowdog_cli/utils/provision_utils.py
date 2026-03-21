@@ -78,6 +78,8 @@ def get_user_data_property(
         except Exception as e:
             raise Exception(f"Error processing variable substitutions: {e}")
 
+    return None
+
 
 def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
     """
