@@ -96,8 +96,7 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
         )
 
     print_info(
-        f"Substituting Compute Requirement Template name '{template_id_or_name}'"
-        f" with ID {template_id}"
+        f"Compute Requirement Template '{template_id_or_name}' --> " f"{template_id}"
     )
     return template_id
 
