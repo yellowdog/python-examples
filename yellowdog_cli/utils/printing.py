@@ -180,7 +180,10 @@ def print_simple(
     if ARGS_PARSER.quiet and override_quiet is False:
         return
 
-    CONSOLE.print(escape(log_message))
+    if ARGS_PARSER.no_format:
+        print(log_message)
+    else:
+        CONSOLE.print(escape(log_message))
 
 
 def print_info(
