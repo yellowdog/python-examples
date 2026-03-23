@@ -7,8 +7,8 @@ import sys
 
 from yellowdog_cli.__init__ import __version__
 from yellowdog_cli.utils.settings import (
+    DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
     DEFAULT_URL,
-    MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
 )
 from yellowdog_cli.version import DOCS_URL
 
@@ -334,7 +334,7 @@ class CLIParser:
                 required=False,
                 help=(
                     "the maximum number of parallel task batch "
-                    f"uploads (default={MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS})"
+                    f"uploads (default={DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS})"
                     "; set this to '1' for sequential batch upload"
                 ),
                 metavar="<max_number_of_parallel_batches>",

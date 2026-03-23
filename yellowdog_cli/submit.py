@@ -94,8 +94,8 @@ from yellowdog_cli.utils.property_names import (
 )
 from yellowdog_cli.utils.rclone_utils import RcloneUploadedFiles, upgrade_rclone
 from yellowdog_cli.utils.settings import (
+    DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
     MAX_BATCH_SUBMIT_ATTEMPTS,
-    MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
     VAR_CLOSING_DELIMITER,
     VAR_NAME_OF_UNNAMED_TASK,
     VAR_OPENING_DELIMITER,
@@ -691,7 +691,7 @@ def add_tasks_to_task_group(
         else ARGS_PARSER.parallel_batches
     )
     parallel_upload_threads = (
-        MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS
+        DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS
         if parallel_upload_threads is None
         else parallel_upload_threads
     )
@@ -1311,7 +1311,14 @@ def submit_json_raw(wr_file: str):
     # Submit Tasks in batches
     for task_group_name, task_list in task_lists.items():
         num_batches = ceil(len(task_list) / TASK_BATCH_SIZE)
-        max_workers = min(num_batches, ARGS_PARSER.parallel_batches)
+        max_workers = min(
+            num_batches,
+            (
+                DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS
+                if ARGS_PARSER.parallel_batches is None
+                else ARGS_PARSER.parallel_batches
+            ),
+        )
         print_info(
             f"Submitting task batches using {max_workers} parallel submission thread(s)"
         )
