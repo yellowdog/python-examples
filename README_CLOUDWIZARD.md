@@ -53,7 +53,7 @@
 
 YellowDog Cloud Wizard is an **experimental** utility that automates the process of configuring a cloud provider account for use with YellowDog, and for creating YellowDog resources that work with the account. The goal is to make it quick and easy to get from opening a new cloud provider account to using it productively with YellowDog. 
 
-Cloud Wizard currently supports Amazon AWS, Google GCP and Microsoft Azure, but support for other cloud providers is under development.
+Cloud Wizard currently supports Amazon AWS, Google GCP and Microsoft Azure.
 
 # YellowDog Prerequisites
 
@@ -76,13 +76,13 @@ Environment variables can be set up as follows, inserting your Application key a
 
 **Linux and macOS**
 ```commandline
-export YD_KEY=<Insert your Application Key ID here>
-export YD_SECRET=<Insert your Application Key Secret here>
+export YD_API_KEY_ID=<Insert your Application Key ID here>
+export YD_API_KEY_SECRET=<Insert your Application Key Secret here>
 ```
 **Windows Command Prompt**
 ```commandline
-set YD_KEY <Insert your Application Key ID here>
-set YD_SECRET <Insert your Application Key Secret here>
+set YD_API_KEY_ID <Insert your Application Key ID here>
+set YD_API_KEY_SECRET <Insert your Application Key Secret here>
 ```
 
 # Cloud Wizard for AWS
@@ -373,7 +373,7 @@ Please see the article [Create a Microsoft Entra application and service princip
 
 #### Adding Custom Role
 
-> **&#9432;** You can also add a custom role to provide more fine-tuned permissions to your **yellowdog-app Service Principal**.
+You can also add a **custom role** to provide fine-tuned permissions to your **yellowdog-app Service Principal**.
 Here is a complete list of the permissions your custom role will need:
 ```
 Microsoft.Resources/subscriptions/read
@@ -441,8 +441,6 @@ The command will present a list of Azure regions, allowing you to choose which r
 
 2024-01-16 11:34:24 : Please select items (e.g.: 1,2,4-7 / *):
 ```
-
-Enter the numbers of the regions you'd like to enable and hit return. Note that only the **northeurope** region is supplied with YellowDog base VM images.
 
 Cloud Wizard will then proceed to create various resources for each selected Azure region, in the Azure account. Then, it will create a YellowDog Keyring and Credentials, and two YellowDog Compute Source templates for each selected Availability Zone, one for on-demand VMs, one for spot VMs. The command will also create a small selection of Compute Requirement Templates that make use of the Source Templates. All templates created have the prefix `cloudwizard-azure`.
 
