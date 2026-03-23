@@ -6,18 +6,25 @@ Console class is overridden.
 Bug:
   https://github.com/Textualize/rich/issues/2293
 
-The fix is extracted from the commit that introduces the bug:
-  https://github.com/Textualize/rich/commit/568b9517b63282ac781a907d82b0c2965242be54
+Root cause: Rich 13.x prints the prompt directly then calls input() with no
+arguments. readline doesn't know about the pre-printed prompt, so when it
+redraws the line on any editing keystroke (backspace, cursor movement), it
+erases the prompt.
+
+Fix: capture the rendered prompt string, write it to the console's output
+file directly, then read from sys.stdin. This bypasses readline entirely and
+relies on the terminal's own cooked-mode line editing, which correctly handles
+backspace without any knowledge of the prompt width.
+
+The \001/\002 (RL_PROMPT_START_IGNORE/END_IGNORE) approach used to signal
+non-printing characters to readline is not used here because macOS Python uses
+libedit rather than GNU readline, and libedit does not reliably support those
+markers.
 """
 
-from typing import TextIO
-
-try:
-    import readline
-except ImportError:
-    pass
-
+import sys
 from getpass import getpass
+from typing import TextIO
 
 from rich.console import Console
 from rich.text import TextType
@@ -49,5 +56,7 @@ class ConsoleWithInputBackspaceFixed(Console):
                 self.file.write(prompt_str)
                 result = stream.readline()
             else:
-                result = input(prompt_str)
+                self.file.write(prompt_str)
+                self.file.flush()
+                result = sys.stdin.readline().rstrip("\n")
         return result
