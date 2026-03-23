@@ -33,35 +33,15 @@ YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 YD_DEFAULT_INSTANCE_TYPE = "{{instance_type:=t3a.micro}}"
 
-AWS_ALL_REGIONS = [
-    "af-south-1",
-    "ap-east-1",
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-south-1",
-    "ap-south-2",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-southeast-3",
-    "ap-southeast-4",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-central-2",
-    "eu-north-1",
-    "eu-south-1",
-    "eu-south-2",
-    "eu-west-1",
-    "eu-west-2",
-    "eu-west-3",
-    "il-central-1",
-    "me-central-1",
-    "me-south-1",
-    "sa-east-1",
-    "us-east-1",
-    "us-east-2",
-    "us-west-2",
-]
+
+def _get_opted_in_regions() -> list[str]:
+    """
+    Return the list of AWS regions opted into by the account.
+    """
+    ec2_client = boto3.client("ec2", region_name="us-east-1")
+    response = ec2_client.describe_regions()
+    return sorted(r["RegionName"] for r in response["Regions"])
+
 
 YELLOWDOG_POLICY = {
     "Version": "2012-10-17",
@@ -125,10 +105,14 @@ class AWSConfig(CommonCloudConfig):
         # Establish the region to use
         if region_name is None:  # Use the default region from the SDK
             self.region_name = boto3.Session().region_name
-        elif region_name.lower() in AWS_ALL_REGIONS:
-            self.region_name = region_name.lower()
         else:
-            raise Exception(f"Invalid AWS region name '{region_name}'")
+            opted_in_regions = _get_opted_in_regions()
+            if region_name.lower() in opted_in_regions:
+                self.region_name = region_name.lower()
+            else:
+                raise Exception(
+                    f"Invalid or not opted-in AWS region name '{region_name}'"
+                )
 
         self._show_secrets = show_secrets
         self._instance_type = (
@@ -170,7 +154,9 @@ class AWSConfig(CommonCloudConfig):
                 "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
             }
         ]
-        for region in AWS_ALL_REGIONS if selected_region is None else [selected_region]:
+        for region in (
+            _get_opted_in_regions() if selected_region is None else [selected_region]
+        ):
             ec2_client = boto3.client("ec2", region_name=region)
             # Collect the default security group for the region
             try:
@@ -361,7 +347,7 @@ class AWSConfig(CommonCloudConfig):
         Collect network information about the enabled regions and AZs.
         """
         print_info("Gathering network information for all AWS regions")
-        for region in AWS_ALL_REGIONS:
+        for region in _get_opted_in_regions():
             print_info(f"Gathering network information for region '{region}'")
             ec2_client = boto3.client("ec2", region_name=region)
 
