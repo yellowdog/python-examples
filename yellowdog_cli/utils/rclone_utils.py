@@ -2,7 +2,11 @@
 Utility functions for use with the submit command.
 """
 
+import logging
+import os
 import re
+import sys
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from functools import cache
 from os import chdir, getcwd
@@ -18,6 +22,40 @@ from yellowdog_cli.utils.property_names import (
     TASK_DATA_SOURCE,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
+
+
+@contextmanager
+def _suppress_rclone_download_output():
+    """
+    Silence rclone-api's binary-download output.
+
+    rclone_api/install.py calls logging.basicConfig(level=DEBUG) and writes
+    to the root logger, and the 'download' package it uses emits a tqdm
+    progress bar to stderr. Neither can be quieted via the Rclone() API, so
+    we suppress them here by temporarily replacing the root logger's handlers
+    with a NullHandler and redirecting sys.stdout/sys.stderr to /dev/null.
+    """
+    root = logging.getLogger()
+    old_handlers = root.handlers[:]
+    root.handlers = [logging.NullHandler()]
+    old_stdout, old_stderr = sys.stdout, sys.stderr
+    devnull = open(os.devnull, "w")
+    sys.stdout = sys.stderr = devnull
+    try:
+        yield
+    finally:
+        sys.stdout, sys.stderr = old_stdout, old_stderr
+        devnull.close()
+        root.handlers = old_handlers
+
+
+def _make_rclone(config: Config) -> Rclone:
+    """
+    Instantiate Rclone, suppressing download output when --quiet is active.
+    """
+    ctx = _suppress_rclone_download_output() if ARGS_PARSER.quiet else nullcontext()
+    with ctx:
+        return Rclone(config)
 
 
 @dataclass
@@ -115,7 +153,7 @@ class RcloneUploadedFiles:
         )
 
         # Auto-downloads rclone binary if missing (~20-40 MB, only once)
-        rclone = Rclone(Config(config))
+        rclone = _make_rclone(Config(config))
 
         local_file = Path(rclone_upload_file.local_file_path).resolve()
         print_info(
@@ -159,7 +197,7 @@ class RcloneUploadedFiles:
         )
 
         # Auto-downloads rclone binary if missing (~20-40 MB, only once)
-        rclone = Rclone(Config(config_section))
+        rclone = _make_rclone(Config(config_section))
 
         rcloned_file = f"{remote_name}:{remote_path}"
         print_info(f"Deleting rcloned file '{rcloned_file}'")
