@@ -7,6 +7,8 @@ A script to submit a Work Requirement.
 from concurrent.futures import Future, ThreadPoolExecutor
 from copy import deepcopy
 from datetime import timedelta
+from gzip import compress
+from json import dumps as json_dumps
 from math import ceil
 from os.path import dirname, relpath
 
@@ -1353,14 +1355,19 @@ def submit_json_task_batch(
     """
     Submit a batch of tasks using the REST API. Return the number of tasks submitted.
     """
+    task_batch_compressed = compress(json_dumps(task_batch).encode("utf-8"))
+
     response = requests.post(
         url=(
-            f"{CONFIG_COMMON.url}/work/namespaces/"
-            f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
-            f"taskGroups/{task_group_name}/tasks"
+            f"{CONFIG_COMMON.url}/work/namespaces/{CONFIG_COMMON.namespace}"
+            f"/requirements/{wr_name}/taskGroups/{task_group_name}/tasks"
         ),
-        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
-        json=task_batch,
+        headers={
+            "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}",
+            "Content-Encoding": "gzip",
+            "Content-Type": "application/json",
+        },
+        data=task_batch_compressed,
     )
 
     if response.status_code == 200:
