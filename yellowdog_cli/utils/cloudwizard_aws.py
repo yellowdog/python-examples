@@ -63,15 +63,6 @@ AWS_ALL_REGIONS = [
     "us-west-2",
 ]
 
-AWS_YD_IMAGE_REGIONS = [
-    "eu-west-1",
-    "eu-west-2",
-    "us-east-1",
-    "us-east-2",
-    "us-west-1",
-    "us-west-2",
-]
-
 YELLOWDOG_POLICY = {
     "Version": "2012-10-17",
     "Statement": [
