@@ -4,6 +4,7 @@ Utility functions for use with the submit command.
 
 import logging
 import os
+import platform
 import re
 import sys
 from contextlib import contextmanager, nullcontext
@@ -49,13 +50,43 @@ def _suppress_rclone_download_output():
         root.handlers = old_handlers
 
 
-def _make_rclone(config: Config) -> Rclone:
+def _find_rclone_conf() -> Path:
+    """
+    Locate the system rclone configuration file.
+
+    Respects the RCLONE_CONFIG environment variable; otherwise falls back to
+    the platform-default location (~/.config/rclone/rclone.conf on Linux/macOS,
+    %APPDATA%\\rclone\\rclone.conf on Windows).
+
+    Raises an exception if no config file is found.
+    """
+    if env_path := os.environ.get("RCLONE_CONFIG"):
+        p = Path(env_path)
+        if p.exists():
+            return p
+        raise Exception(f"RCLONE_CONFIG points to missing file: '{env_path}'")
+
+    if platform.system() == "Windows":
+        appdata = os.environ.get("APPDATA", "")
+        p = Path(appdata) / "rclone" / "rclone.conf"
+    else:
+        p = Path.home() / ".config" / "rclone" / "rclone.conf"
+
+    if p.exists():
+        return p
+    raise Exception(f"No rclone config file found at '{p}'")
+
+
+def _make_rclone(config: Config | None) -> Rclone:
     """
     Instantiate Rclone, suppressing download output when --quiet is active.
+    Passing None causes rclone to use the system rclone.conf (for locally
+    configured remotes).
     """
+    rclone_conf: Config | Path = _find_rclone_conf() if config is None else config
     ctx = _suppress_rclone_download_output() if ARGS_PARSER.quiet else nullcontext()
     with ctx:
-        return Rclone(config)
+        return Rclone(rclone_conf)
 
 
 @dataclass
@@ -148,12 +179,14 @@ class RcloneUploadedFiles:
         Core upload method for a single file.
         """
 
-        remote_name, config, remote_path = self._parse_rclone_connection_string(
+        remote_name, config_section, remote_path = self._parse_rclone_connection_string(
             rclone_upload_file.upload_file_path
         )
 
         # Auto-downloads rclone binary if missing (~20-40 MB, only once)
-        rclone = _make_rclone(Config(config))
+        rclone = _make_rclone(
+            Config(config_section) if config_section is not None else None
+        )
 
         local_file = Path(rclone_upload_file.local_file_path).resolve()
         print_info(
@@ -197,7 +230,9 @@ class RcloneUploadedFiles:
         )
 
         # Auto-downloads rclone binary if missing (~20-40 MB, only once)
-        rclone = _make_rclone(Config(config_section))
+        rclone = _make_rclone(
+            Config(config_section) if config_section is not None else None
+        )
 
         rcloned_file = f"{remote_name}:{remote_path}"
         print_info(f"Deleting rcloned file '{rcloned_file}'")
@@ -214,14 +249,22 @@ class RcloneUploadedFiles:
 
     def _parse_rclone_connection_string(
         self, connection_str: str
-    ) -> tuple[str, str, str]:
+    ) -> tuple[str, str | None, str]:
         """
-        Parses rclone connection strings like:
-        'rclone:NAME,type=...,key=val...:bucket/path/to/file.txt'
-        with or without 'rclone:'
+        Parses rclone connection strings in two forms:
+
+        Inline config (all parameters embedded in the string):
+          'rclone:NAME,type=...,key=val...:bucket/path/to/file.txt'
+
+        Local rclone.conf remote (remote name only, no inline parameters):
+          'rclone:yds3:/path/to/file.txt'
+
+        The leading 'rclone:' is optional in both forms.
 
         Returns:
-            (remote_name, config_ini_section_str, bucket_and_path_prefix)
+            (remote_name, config_ini_section_str_or_None, bucket_and_path_prefix)
+            config_ini_section_str is None for locally configured remotes,
+            indicating that the system rclone.conf should be used.
         """
         # Remove optional leading 'rclone:'
         if connection_str.startswith("rclone:"):
@@ -239,33 +282,33 @@ class RcloneUploadedFiles:
 
     @staticmethod
     @cache  # Break into a separate method to facilitate caching
-    def _parse_rclone_config(config_str: str) -> tuple[str, str]:
+    def _parse_rclone_config(config_str: str) -> tuple[str, str | None]:
         """
-        Parses rclone connection strings like:
-        'rclone:NAME,type=...,key=val...' with or without 'rclone:'
+        Parses the config portion of an rclone connection string.
 
         Returns:
-            (remote_name, config_ini_section_str)
+            (remote_name, config_ini_section_str_or_None)
+            Returns None for the config when there are no inline parameters,
+            indicating that the remote should be looked up in the system
+            rclone.conf rather than using an inline config.
         """
         if "," not in config_str:
-            remote_name = config_str.strip()
-            params_str = ""
-        else:
-            remote_name, params_str = config_str.split(",", 1)
-            remote_name = remote_name.strip()
+            # No inline params: remote is defined in the system rclone.conf
+            remote_name = config_str.strip() or "remote"
+            return remote_name, None
 
-        remote_name = remote_name or "remote"  # fallback
+        remote_name, params_str = config_str.split(",", 1)
+        remote_name = remote_name.strip() or "remote"
 
         # Parse params (simple comma split - assumes no commas inside values)
         params = {}
-        if params_str:
-            # Split on comma only when followed by key=
-            param_list = re.split(r",(?=[a-zA-Z_0-9]+=)", params_str)
-            for param in param_list:
-                param = param.strip()
-                if "=" in param:
-                    key, value = param.split("=", 1)
-                    params[key.strip()] = value.strip().strip("'\"")
+        # Split on comma only when followed by key=
+        param_list = re.split(r",(?=[a-zA-Z_0-9]+=)", params_str)
+        for param in param_list:
+            param = param.strip()
+            if "=" in param:
+                key, value = param.split("=", 1)
+                params[key.strip()] = value.strip().strip("'\"")
 
         # Build valid rclone INI section
         lines = [f"[{remote_name}]"]
