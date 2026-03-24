@@ -111,7 +111,6 @@ class RcloneUploadedFiles:
         self._rcloned_files: list[RcloneUploadedFile] = []
         self._files_directory = abspath(files_directory)
         self._working_directory = getcwd()
-        self._reported_duplicates: list[RcloneUploadedFile] = []
 
     def upload_dataclient_input_files(self, task_data_inputs: list[dict] | None):
         """
@@ -149,12 +148,7 @@ class RcloneUploadedFiles:
 
         rclone_uploaded_file = RcloneUploadedFile(local_file, rclone_upload_path)
         if rclone_uploaded_file in self._rcloned_files:
-            if rclone_uploaded_file not in self._reported_duplicates:
-                print_info(
-                    f"Ignoring duplicate file upload '{local_file}' -> "
-                    f"'{self._bucket_and_prefix(rclone_uploaded_file)}'"
-                )
-                self._reported_duplicates.append(rclone_uploaded_file)
+            # Duplicate
             return
 
         if not ARGS_PARSER.dry_run:
