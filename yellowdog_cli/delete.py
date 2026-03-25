@@ -6,11 +6,16 @@ Delete files or directories from a remote data client.
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import ConfigDataClient
-from yellowdog_cli.utils.dataclient_utils import delete_remote, resolve_remote_path
+from yellowdog_cli.utils.dataclient_utils import (
+    delete_remote,
+    is_glob,
+    list_remote_glob,
+    resolve_remote_path,
+)
 from yellowdog_cli.utils.dataclient_wrapper import dataclient_wrapper
 from yellowdog_cli.utils.interactive import confirmed
 from yellowdog_cli.utils.load_config import load_config_data_client
-from yellowdog_cli.utils.printing import print_info
+from yellowdog_cli.utils.printing import print_info, print_warning
 
 CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
 
@@ -46,6 +51,19 @@ def _delete_one(remote_path: str, recursive: bool, dry_run: bool) -> None:
         action = "recursively delete" if recursive else "delete"
         print_info(f"Dry-run: Would {action} '{remote_path}'")
         return
+
+    if is_glob(remote_path):
+        _, matches = list_remote_glob(CONFIG_DATA_CLIENT, remote_path)
+        if not matches:
+            print_warning(f"No matches for wildcard '{remote_path}'")
+            return
+        names = [f"'{e['Name'] + ('/' if e['IsDir'] else '')}'" for e in matches]
+        print_info(f"Wildcard '{remote_path}' matches: {', '.join(names)}")
+        action = "Recursively delete" if recursive else "Delete"
+        if confirmed(f"{action} {len(matches)} matched item(s)?"):
+            delete_remote(CONFIG_DATA_CLIENT, remote_path, recursive=recursive)
+        return
+
     action = "Recursively delete" if recursive else "Delete"
     if confirmed(f"{action} '{remote_path}'?"):
         delete_remote(CONFIG_DATA_CLIENT, remote_path, recursive=recursive)

@@ -8,12 +8,59 @@ from collections import defaultdict
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import ConfigDataClient
-from yellowdog_cli.utils.dataclient_utils import list_remote, resolve_remote_path
+from yellowdog_cli.utils.dataclient_utils import (
+    is_glob,
+    list_remote,
+    list_remote_glob,
+    resolve_remote_path,
+)
 from yellowdog_cli.utils.dataclient_wrapper import dataclient_wrapper
 from yellowdog_cli.utils.load_config import load_config_data_client
 from yellowdog_cli.utils.printing import print_info, print_simple
 
 CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
+
+
+def _ls_glob(config: ConfigDataClient, remote_path: str, recursive: bool) -> None:
+    """
+    List remote entries whose names match a glob pattern.
+
+    Non-recursive: show matching files and directories as a flat table.
+    Recursive: show matching files inline; show matching directories as trees.
+    """
+    remote_dir, matches = list_remote_glob(config, remote_path)
+    if not matches:
+        print_simple("  (no wildcard matches)")
+        return
+
+    base = remote_dir.rstrip("/")
+
+    if not recursive:
+        entries = []
+        for e in matches:
+            if e["IsDir"]:
+                entries.append(("DIR", e["Name"] + "/", ""))
+            else:
+                size = f"{e['Size']:,}" if e.get("Size") is not None else ""
+                entries.append((size, e["Name"], e.get("ModTime", "")))
+        max_size_w = max(len(e[0]) for e in entries)
+        max_name_w = max(len(e[1]) for e in entries)
+        for size, name, mod_time in entries:
+            line = f"  {size:>{max_size_w}}  {name:<{max_name_w}}  {mod_time}".rstrip()
+            print_simple(line, override_quiet=True)
+    else:
+        for e in matches:
+            entry_path = f"{base}/{e['Name']}"
+            if e["IsDir"]:
+                print_simple(f"{e['Name']}/", override_quiet=True)
+                sub_listing = list_remote(config, entry_path, recursive=True)
+                if sub_listing.dirs or sub_listing.files:
+                    _print_tree(sub_listing)
+            else:
+                size_str = f"{e['Size']:,}" if e.get("Size") is not None else ""
+                mod_time = e.get("ModTime", "")
+                line = f"{e['Name']}  {size_str}  {mod_time}".rstrip()
+                print_simple(line, override_quiet=True)
 
 
 @dataclient_wrapper
@@ -31,8 +78,11 @@ def main():
             CONFIG_DATA_CLIENT, relative_path=remote_path_str
         )
         print_info(f"Listing '{remote_path}'")
-        listing = list_remote(CONFIG_DATA_CLIENT, remote_path, recursive=recursive)
-        _print_listing(listing, recursive=recursive)
+        if is_glob(remote_path):
+            _ls_glob(CONFIG_DATA_CLIENT, remote_path, recursive=recursive)
+        else:
+            listing = list_remote(CONFIG_DATA_CLIENT, remote_path, recursive=recursive)
+            _print_listing(listing, recursive=recursive)
 
 
 def _print_listing(listing, recursive: bool = False) -> None:

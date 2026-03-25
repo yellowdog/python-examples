@@ -29,6 +29,10 @@ def main():
         )
         if explicit_destination:
             destination = Path(explicit_destination)
+        elif any(c in remote_path_str for c in "*?["):
+            # Glob pattern: download into the current directory so the matched
+            # items land here rather than inside a dir literally named 'pyex*'
+            destination = Path(".")
         else:
             # Mirror the remote directory name locally so that downloading
             # 'mydir' creates './mydir/' rather than spilling contents into './'

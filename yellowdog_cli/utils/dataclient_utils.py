@@ -3,7 +3,11 @@ Utility functions for rclone-backed data client commands:
 yd-upload, yd-download, yd-delete, yd-ls.
 """
 
+import fnmatch
+import json
 from pathlib import Path
+
+_GLOB_CHARS = frozenset("*?[")
 
 from rclone_api import Config
 from rclone_api.dir_listing import DirListing
@@ -169,6 +173,97 @@ def _upload_directory_flat(
         upload_file(config, local_file, dest, dry_run=dry_run)
 
 
+def is_glob(path: str) -> bool:
+    """
+    Return True if path contains glob wildcard characters (*  ?  [).
+    Only the path component after the remote: prefix is checked.
+    """
+    path_part = path.split(":", 1)[-1] if ":" in path else path
+    return bool(_GLOB_CHARS.intersection(path_part))
+
+
+def _split_glob_remote_path(remote_path: str) -> tuple[str, str]:
+    """
+    Split a glob remote path into (parent_dir, pattern).
+
+    'S3:bucket/prefix/xxx*' → ('S3:bucket/prefix/', 'xxx*')
+    'S3:bucket/xxx*'        → ('S3:bucket/', 'xxx*')
+    """
+    colon_idx = remote_path.find(":")
+    remote_prefix = remote_path[: colon_idx + 1] if colon_idx >= 0 else ""
+    path_part = remote_path[colon_idx + 1 :] if colon_idx >= 0 else remote_path
+
+    if "/" in path_part:
+        dir_part, pattern = path_part.rsplit("/", 1)
+        return f"{remote_prefix}{dir_part}/", pattern
+    return f"{remote_prefix}", path_part
+
+
+def _format_glob_matches(remote_path: str, matches: list[dict]) -> str:
+    """
+    Format a one-line summary of the entries matched by a glob pattern.
+    Directory names are suffixed with '/'.
+    """
+    names = [f"'{e['Name'] + ('/' if e['IsDir'] else '')}'" for e in matches]
+    return f"Wildcard '{remote_path}' matches: {', '.join(names)}"
+
+
+def _download_with_glob(
+    config: ConfigDataClient,
+    remote_path: str,
+    local_destination: Path,
+    sync: bool = False,
+) -> None:
+    """
+    Download files whose names match a glob pattern.
+
+    remote_path must contain wildcard characters in its final component, e.g.
+    'S3:bucket/prefix/data_*.csv'.  Directory structure is preserved relative
+    to the parent directory of the pattern.  With sync=True, local files not
+    present in the remote (among the matched set) are deleted.
+    """
+    remote_dir, pattern = _split_glob_remote_path(remote_path)
+    _, rclone = _rclone_for_config(config)
+
+    # Preflight: list the parent directory and check whether any entry
+    # (file or directory) matches the glob pattern.
+    check = rclone.impl._run(["lsjson", remote_dir], capture=True)
+    if check.returncode != 0:
+        print_warning(f"Cannot access '{remote_dir}'")
+        return
+    entries = json.loads(check.stdout or "[]")
+    matches = [e for e in entries if fnmatch.fnmatch(e["Name"], pattern)]
+    if not matches:
+        print_warning(f"No matches for wildcard '{remote_path}'")
+        return
+    print_info(_format_glob_matches(remote_path, matches))
+
+    action = "Syncing" if sync else "Downloading"
+    print_info(f"{action} '{remote_path}' → '{local_destination}'")
+    local_destination.mkdir(parents=True, exist_ok=True)
+    cmd = "sync" if sync else "copy"
+    result = rclone.impl._run(
+        [
+            cmd,
+            remote_dir,
+            str(local_destination),
+            "--include",
+            pattern,
+            "--include",
+            f"{pattern}/**",
+            "--checkers",
+            "1000",
+            "--transfers",
+            "32",
+            "--low-level-retries",
+            "10",
+        ],
+        capture=False,
+    )
+    if result.returncode != 0:
+        raise Exception(f"Download failed: {result.stderr}")
+
+
 def download_files(
     config: ConfigDataClient,
     remote_path: str,
@@ -192,6 +287,10 @@ def download_files(
     if dry_run:
         action = "sync" if sync else "download"
         print_info(f"Dry-run: Would {action} '{remote_path}' → '{local_destination}'")
+        return
+
+    if is_glob(remote_path):
+        _download_with_glob(config, remote_path, local_destination, sync=sync)
         return
 
     listing = list_remote(config, remote_path)
@@ -227,6 +326,49 @@ def download_files(
             raise Exception(f"Download failed: {result.stderr}")
 
 
+def _delete_with_glob(
+    config: ConfigDataClient,
+    remote_path: str,
+    recursive: bool = False,
+) -> None:
+    """
+    Delete remote entries whose names match a glob pattern.
+
+    Files are deleted directly; directories require recursive=True (matching
+    the behaviour of non-glob delete).
+    """
+    remote_dir, pattern = _split_glob_remote_path(remote_path)
+    _, rclone = _rclone_for_config(config)
+
+    check = rclone.impl._run(["lsjson", remote_dir], capture=True)
+    if check.returncode != 0:
+        print_warning(f"Cannot access '{remote_dir}'")
+        return
+    entries = json.loads(check.stdout or "[]")
+    matches = [e for e in entries if fnmatch.fnmatch(e["Name"], pattern)]
+    if not matches:
+        print_warning(f"No matches for wildcard '{remote_path}'")
+        return
+
+    base = remote_dir.rstrip("/")
+    for entry in matches:
+        entry_path = f"{base}/{entry['Name']}"
+        if entry["IsDir"]:
+            if recursive:
+                print_info(f"Deleting directory '{entry_path}'")
+                result = rclone.purge(entry_path)
+            else:
+                print_warning(
+                    f"'{entry_path}' is a directory; use --recursive to delete it"
+                )
+                continue
+        else:
+            print_info(f"Deleting '{entry_path}'")
+            result = rclone.delete_files(entry_path)
+        if result.returncode != 0:
+            raise Exception(f"Delete failed: {result.stderr}")
+
+
 def delete_remote(
     config: ConfigDataClient,
     remote_path: str,
@@ -239,6 +381,10 @@ def delete_remote(
     if dry_run:
         action = "recursively delete" if recursive else "delete"
         print_info(f"Dry-run: Would {action} '{remote_path}'")
+        return
+
+    if is_glob(remote_path):
+        _delete_with_glob(config, remote_path, recursive=recursive)
         return
 
     _, rclone = _rclone_for_config(config)
@@ -270,6 +416,25 @@ def delete_remote(
 
     if result.returncode != 0:
         raise Exception(f"Delete failed: {result.stderr}")
+
+
+def list_remote_glob(
+    config: ConfigDataClient,
+    remote_path: str,
+) -> tuple[str, list[dict]]:
+    """
+    List entries in the parent directory whose names match the glob in remote_path.
+
+    Returns (remote_dir, matching_entries) where each entry is an rclone lsjson
+    dict with keys including Name, IsDir, Size, ModTime.
+    """
+    remote_dir, pattern = _split_glob_remote_path(remote_path)
+    _, rclone = _rclone_for_config(config)
+    check = rclone.impl._run(["lsjson", remote_dir], capture=True)
+    if check.returncode != 0:
+        return remote_dir, []
+    entries = json.loads(check.stdout or "[]")
+    return remote_dir, [e for e in entries if fnmatch.fnmatch(e["Name"], pattern)]
 
 
 def list_remote(
