@@ -1,98 +1,437 @@
 #
-# A template for creating TOML configuration files for the YellowDog Python
-# script examples. TOML key names are case-sensitive.
+# Template for YellowDog CLI configuration files.
+# TOML key names are case-sensitive.
 #
-# Note that this is only a subset of the available properties. Please consult
-# The README file for a complete list.
+# Some properties can be overridden by a command-line flag or an environment
+# variable; see the README for details.  Others are only settable here or via
+# {{variable}} substitution backed by a YD_VAR_<NAME> environment variable.
+#
+# Variable substitution is supported throughout using {{variable_name}}.
+# Built-in variables include: namespace, tag, username, date, time,
+# config_dir_abs, config_dir_name.  User-defined variables are set in the
+# [common.variables] table or via YD_VAR_<NAME> environment variables.
 #
 
 [common]  ######################################################################
 
-    # YellowDog Application key and secret
+    # YellowDog Application key and secret.
+    # Can be set via YD_KEY / YD_SECRET (or YD_API_KEY_ID / YD_API_KEY_SECRET).
     # Required
-    # --------------------------------------------------------------------------
-    key = "<INSERT-KEY-HERE>"
+    key    = "<INSERT-KEY-HERE>"
     secret = "<INSERT-SECRET-HERE>"
 
-    # A namespace for grouping YellowDog objects, e.g., the name of an
-    # overall project for which YellowDog is being used
+    # Namespace groups YellowDog objects (e.g. the name of a project).
+    # Can be set via YD_NAMESPACE.  Defaults to "default" if not supplied.
     # Required
-    # --------------------------------------------------------------------------
     namespace = "my_namespace"
 
-    # A name tag to subdivide objects within the namespace, e.g., to
-    # tag a given set of tasks, nodes and data objects
+    # Tag subdivides objects within a namespace (e.g. a feature or run label).
+    # Can be set via YD_TAG.  Defaults to {{username}} if not supplied.
     # Required
-    # --------------------------------------------------------------------------
-    tag = "my_tag"
+    tag = "{{username}}"
+
+    # YellowDog API endpoint.
+    # Can be set via YD_URL (or YD_API_URL).
+    # Optional — default: "https://api.yellowdog.ai"
+    # url = "https://api.yellowdog.ai"
+
+    # Enable Proxy Auto-Configuration (PAC) for HTTPS connections.
+    # Optional — default: false
+    # usePAC = false
+
+    # Path to a custom CA certificates bundle (sets REQUESTS_CA_BUNDLE).
+    # Optional
+    # certificates = "/path/to/ca-bundle.crt"
+
+    # Import a shared [common] section from another TOML file.
+    # Properties in this file take precedence over the imported file.
+    # Optional
+    # importCommon = "common.toml"
+
+    # User-defined variables available for {{variable_name}} substitution
+    # throughout this file and in resource specifications.
+    # Optional
+    # [common.variables]
+    #     my_var   = "some_value"
+    #     my_count = "{{num:42}}"   # type tags: num:, bool:, array:, table:
+
+
+[dataClient]  #################################################################
+#
+# Settings for the rclone-backed data client commands:
+# yd-upload, yd-download, yd-delete, yd-ls.
+#
+# 'remote' can be a plain rclone remote name (looked up in rclone.conf),
+# an optional 'rclone:' prefix followed by a plain name, or a full inline
+# connection string: 'NAME,type=s3,provider=AWS,env_auth=true,...'
+#
+# For non-S3 targets the 'bucket' property serves as the top-level container
+# (Azure Blob container, GCS bucket, local root path, etc.).
+#
+# Can be set via YD_DATA_CLIENT_REMOTE / YD_DATA_CLIENT_BUCKET /
+# YD_DATA_CLIENT_PREFIX or with --remote / --bucket / --prefix flags.
+#
+
+    # rclone remote to use.
+    # Required for data-client commands
+    # remote = "my-s3-remote"
+
+    # Bucket (or container / root) within the remote.
+    # Optional
+    # bucket = "my-bucket"
+
+    # Path prefix within the bucket; prepended to every remote path.
+    # Defaults to "{{namespace}}/{{tag}}" if not set (and --no-prefix not used).
+    # Optional
+    # prefix = "{{namespace}}/{{tag}}"
+
 
 [workRequirement]  ############################################################
+#
+# Default settings for yd-submit.  All properties may also be set (or
+# overridden) in the JSON/TOML/Jsonnet work-requirement specification file.
+#
 
-    # Arguments and environment to pass to the Task.
-    # Optional
     # --------------------------------------------------------------------------
-    # arguments = [] # List of strings
-    # environment = {}  # Dictionary, e.g.: {A = "ONE", B = "TWO"}
+    # Task type and execution
+    # --------------------------------------------------------------------------
 
-    # Worker tags: list of tags (strings) to match the tags associated
-    # with Workers
-    # A list of strings
+    # Task type name.
     # Optional
-    # --------------------------------------------------------------------------
-    # workerTags = []
+    # taskType = "docker"
 
-    # The number of times a Task is retried if it fails
-    # Optional
-    # --------------------------------------------------------------------------
-    # maximumTaskRetries = 0
+    # Command-line arguments passed to the task.
+    # Optional — default: []
+    # arguments = ["--input", "data.csv"]
 
-    # Number of times to submit the task
-    # Optional
+    # Environment variables passed to the task.
+    # Optional — default: {}
+    # environment = {MY_VAR = "value", ANOTHER = "42"}
+
+    # Inject YellowDog environment variables into the task (YDA_*, etc.).
+    # Optional — default: false
+    # addYDEnvironmentVariables = false
+
     # --------------------------------------------------------------------------
+    # Counts
+    # --------------------------------------------------------------------------
+
+    # Number of tasks to submit.
+    # Optional — default: 1
     # taskCount = 1
 
-    # The name of a JSON file containing the description of a Work
-    # Requirement
-    # Optional
+    # Number of task groups to create.
+    # Optional — default: 1
+    # taskGroupCount = 1
+
     # --------------------------------------------------------------------------
-    # workRequirementData = "my_tasks.json"
+    # Naming
+    # --------------------------------------------------------------------------
+
+    # Work requirement name.  Supports {{variable}} substitution.
+    # Optional — default: auto-generated
+    # name = "my-work-req-{{date}}T{{time}}"
+
+    # Work requirement tag (additional label, separate from the common tag).
+    # Optional
+    # tag = "experiment-1"
+
+    # Task group name.
+    # Optional
+    # taskGroupName = "my-task-group"
+
+    # Task name prefix.
+    # Optional
+    # taskName = "my-task"
+
+    # Set to false to disable automatic task naming.
+    # Optional — default: true
+    # setTaskNames = true
+
+    # --------------------------------------------------------------------------
+    # Retries and timeouts
+    # --------------------------------------------------------------------------
+
+    # Number of times a failed task is retried.
+    # Optional — default: 0
+    # maximumTaskRetries = 0
+
+    # Work-requirement-level task timeout in minutes (applies to all tasks).
+    # Optional
+    # taskTimeout = 60.0
+
+    # Task-group-level timeout in minutes (overrides taskTimeout for the group).
+    # Optional
+    # timeout = 30.0
+
+    # How long (minutes) to retain completed tasks before pruning.
+    # Optional
+    # completedTaskTtl = 60.0
+
+    # Errors that trigger an automatic retry (list of {errorTypes, ...} dicts).
+    # Optional
+    # retryableErrors = [
+    #     {errorTypes = ["TIMEOUT"], required = true}
+    # ]
+
+    # --------------------------------------------------------------------------
+    # Scheduling and priority
+    # --------------------------------------------------------------------------
+
+    # Scheduling priority (higher value = higher priority).
+    # Optional — default: 0.0
+    # priority = 0.0
+
+    # Finish the work requirement when all tasks have finished.
+    # Optional — default: true
+    # finishIfAllTasksFinished = true
+
+    # Finish the work requirement as soon as any task fails.
+    # Optional — default: false
+    # finishIfAnyTaskFailed = false
+
+    # --------------------------------------------------------------------------
+    # Worker targeting
+    # --------------------------------------------------------------------------
+
+    # Worker tags the task group will match against.
+    # Optional
+    # workerTags = ["my-worker-tag"]
+
+    # Require workers that are not shared with other task groups.
+    # Optional
+    # exclusiveWorkers = false
+
+    # Maximum number of workers that can execute tasks from this group.
+    # Optional
+    # maxWorkers = 10
+
+    # Minimum number of workers required before tasks are dispatched.
+    # Optional
+    # minWorkers = 1
+
+    # Maximum tasks dispatched to a single worker at a time.
+    # Optional
+    # tasksPerWorker = 1
+
+    # --------------------------------------------------------------------------
+    # Instance / resource matching
+    # --------------------------------------------------------------------------
+
+    # vCPU range [min, max] required for matching instances.
+    # Optional
+    # vcpus = [2.0, 8.0]
+
+    # RAM range [min, max] in GB required for matching instances.
+    # Optional
+    # ram = [4.0, 32.0]
+
+    # Accepted cloud providers.
+    # Optional
+    # providers = ["AWS", "GCP"]
+
+    # Accepted cloud regions.
+    # Optional
+    # regions = ["eu-west-2", "us-east-1"]
+
+    # Accepted instance types.
+    # Optional
+    # instanceTypes = ["t3.medium", "t3.large"]
+
+    # Accepted source namespaces.
+    # Optional
+    # namespaces = ["my_namespace"]
+
+    # --------------------------------------------------------------------------
+    # Batch submission
+    # --------------------------------------------------------------------------
+
+    # Number of tasks submitted per API call.
+    # Optional — default: 1000
+    # taskBatchSize = 1000
+
+    # Use batch allocation for task dispatch.
+    # Optional
+    # batchAllocation = false
+
+    # Disable task pre-allocation.
+    # Optional
+    # disablePreallocation = false
+
+    # Number of parallel batch-upload threads.
+    # Optional
+    # parallelBatches = 1
+
+    # --------------------------------------------------------------------------
+    # Data
+    # --------------------------------------------------------------------------
+
+    # CSV file for batch task submission (one task per row).
+    # Optional
+    # csvFile = "tasks.csv"
+
+    # Multiple CSV files for batch task submission.
+    # Optional
+    # csvFiles = ["tasks1.csv", "tasks2.csv"]
+
+    # Inline task data string.
+    # Optional
+    # taskData = "some input data"
+
+    # File containing task data.
+    # Optional
+    # taskDataFile = "input.txt"
+
+    # Data client inputs: files to upload before task execution.
+    # Optional
+    # taskDataInputs = [
+    #     {source = "rclone:remote:bucket/path/input.txt", localPath = "input.txt"}
+    # ]
+
+    # Data client outputs: remote paths to retrieve after task execution.
+    # Optional
+    # taskDataOutputs = [
+    #     {source = "rclone:remote:bucket/path/output.txt", destination = "output/"}
+    # ]
+
+    # --------------------------------------------------------------------------
+    # Full specification file
+    # --------------------------------------------------------------------------
+
+    # Path to a JSON/TOML/Jsonnet work-requirement specification file.
+    # Properties in that file override the values above.
+    # Optional
+    # workRequirementData = "my_work_requirement.json"
+
 
 [workerPool]  #################################################################
+#
+# Settings for yd-provision (and yd-instantiate).
+# 'computeRequirement' is accepted as a synonym for this section.
+#
 
-    # The Compute Requirement Template to use
-    # Required
     # --------------------------------------------------------------------------
-    templateId = ""
+    # Template / full specification
+    # --------------------------------------------------------------------------
 
-    # The initial number of nodes to provision in the Worker Pool
+    # Compute Requirement Template ID (name or YDID).
+    # Required unless workerPoolData or computeRequirementData is set
+    # templateId = "my-template"
+
+    # Path to a JSON/TOML/Jsonnet worker-pool specification file.
+    # When set, it takes precedence over most individual properties below.
     # Optional
+    # workerPoolData = "my_worker_pool.json"
+
+    # Path to a JSON/TOML/Jsonnet compute-requirement specification file.
+    # Mutually exclusive with workerPoolData.
+    # Optional
+    # computeRequirementData = "my_compute_requirement.json"
+
     # --------------------------------------------------------------------------
+    # Node counts
+    # --------------------------------------------------------------------------
+
+    # Initial (target) number of nodes to provision.
+    # Optional — default: 1
     # targetInstanceCount = 1
 
-    # The minimum number of nodes down to which the Worker Pool can be
-    # auto-scaled
-    # Optional
-    # --------------------------------------------------------------------------
+    # Minimum nodes for auto-scaling (scale-in floor).
+    # Optional — default: 0
     # minNodes = 0
 
-    # The maximum number of nodes up to which the Worker Pool can be
-    # auto-scaled
-    # Optional: Is set to the greater of targetInstanceCount and 1 by default
-    # maxNodes = 1
+    # Maximum nodes for auto-scaling (scale-out ceiling).
+    # Optional — default: max(1, targetInstanceCount)
+    # maxNodes = 10
 
-    # The number of Workers to create on each node
-    # Optional
     # --------------------------------------------------------------------------
+    # Workers
+    # --------------------------------------------------------------------------
+
+    # Number of workers to create on each node.
+    # Optional — default: 1
     # workersPerNode = 1
 
-    # The Worker Tag to associate with the Worker(s)
+    # Number of workers per vCPU (overrides workersPerNode when set).
     # Optional
-    # --------------------------------------------------------------------------
-    # workerTag = "My_Worker_Tag"
+    # workersPerVCPU = 1
 
-    # name of a JSON file containing the full description of a Worker Pool
-    # The specification will overwrite all values in this file except for
-    # the namespace and tag.
+    # Worker tag associated with the workers on this pool.
     # Optional
+    # workerTag = "my-worker-tag"
+
+    # Custom startup command for worker processes.
+    # Optional
+    # workersCustomCommand = "/opt/my-agent/start.sh"
+
     # --------------------------------------------------------------------------
-    # workerPoolData = "my_worker_pool.json"
+    # Timeouts (all in minutes)
+    # --------------------------------------------------------------------------
+
+    # How long a node may be idle before it is shut down.
+    # Optional — default: 5.0
+    # idleNodeTimeout = 5.0
+
+    # How long the pool may be fully idle before it is shut down.
+    # Optional — default: 30.0
+    # idlePoolTimeout = 30.0
+
+    # Maximum time allowed for a node to boot and register.
+    # Optional — default: 10.0
+    # nodeBootTimeout = 10.0
+
+    # --------------------------------------------------------------------------
+    # Images and instance configuration
+    # --------------------------------------------------------------------------
+
+    # Images family ID to use for instances.
+    # Optional
+    # imagesId = "my-images-id"
+
+    # Cloud-provider instance tags (key-value pairs).
+    # Optional
+    # instanceTags = {Project = "my-project", Owner = "{{username}}"}
+
+    # --------------------------------------------------------------------------
+    # User data (node bootstrap scripts)
+    # --------------------------------------------------------------------------
+
+    # Inline user-data script.
+    # Optional
+    # userData = "#!/bin/bash\necho hello"
+
+    # Path to a single user-data script file.
+    # Optional
+    # userDataFile = "bootstrap.sh"
+
+    # List of user-data script files (concatenated in order).
+    # Optional
+    # userDataFiles = ["common.sh", "bootstrap.sh"]
+
+    # --------------------------------------------------------------------------
+    # Naming and tagging
+    # --------------------------------------------------------------------------
+
+    # Worker pool name.  Supports {{variable}} substitution.
+    # Optional — default: auto-generated
+    # name = "my-pool-{{date}}T{{time}}"
+
+    # Compute requirement tag.
+    # Optional
+    # requirementTag = "my-cr-tag"
+
+    # --------------------------------------------------------------------------
+    # Miscellaneous
+    # --------------------------------------------------------------------------
+
+    # Enable platform metrics collection for the worker pool.
+    # Optional — default: false
+    # metricsEnabled = false
+
+    # Number of compute requirements submitted per API call (yd-provision -R).
+    # Optional — default: 10000
+    # computeRequirementBatchSize = 10000
+
+    # Keep pool at targetInstanceCount rather than allowing scale-to-zero.
+    # Optional — applies to yd-instantiate only; default: false
+    # maintainInstanceCount = false
