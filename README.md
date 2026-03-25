@@ -2381,6 +2381,10 @@ Key options:
 - `--destination`/`-d <local_path>` — local destination directory (default: mirrors the remote directory name)
 - `--dry-run`/`-D` — show what would be downloaded without actually downloading
 
+Remote paths may contain wildcard characters (`*`, `?`, `[…]`). A wildcard path is expanded against the configured prefix and all matching files and directories are downloaded. The matched names are displayed before the download begins. When a wildcard is used, files are downloaded into the current directory (preserving the names of the matched items) unless `--destination` is specified. `--sync` is supported with wildcards.
+
+Example: `yd-download 'results_*'` downloads everything whose name starts with `results_`.
+
 ## yd-delete
 
 The `yd-delete` command deletes files or directories from a remote data store.
@@ -2396,6 +2400,10 @@ Key options:
 - `--dry-run`/`-D` — show what would be deleted without actually deleting
 - `--yes`/`-y` — skip confirmation prompts
 
+Remote paths may contain wildcard characters (`*`, `?`, `[…]`). The wildcard is expanded first and the matched names are displayed; confirmation is then requested before any deletions take place. Matching directories require `--recursive` to be deleted.
+
+Example: `yd-delete 'results_*'` deletes all items whose name starts with `results_`.
+
 ## yd-ls
 
 The `yd-ls` command lists files and directories in a remote data store.
@@ -2407,7 +2415,11 @@ yd-ls [options] [<remote_path> ...]
 If no remote paths are specified, the configured prefix is listed.
 
 Key options:
-- `--recursive`/`-R` — list recursively
+- `--recursive`/`-R` — list recursively; output is displayed as a directory tree
+
+Remote paths may contain wildcard characters (`*`, `?`, `[…]`). Only entries in the configured prefix whose names match the pattern are listed. With `--recursive`, matching directories are expanded into full trees.
+
+Example: `yd-ls -R 'results_*'` lists all items matching `results_*`, showing directory contents as trees.
 
 # Command List
 
