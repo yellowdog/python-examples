@@ -21,7 +21,7 @@ uninstall:
 	pip uninstall -y yellowdog-python-examples
 
 black: $(SRC) $(TESTS)
-	black --preview $(SRC) $(TESTS)
+	black --preview --target-version py310 $(SRC) $(TESTS)
 
 isort: $(SRC)
 	isort --profile black $(SRC) $(TESTS)

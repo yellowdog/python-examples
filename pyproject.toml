@@ -50,6 +50,8 @@
     yd-cloudwizard = "yellowdog_cli.cloudwizard:main"
     yd-compare = "yellowdog_cli.compare:main"
     yd-create = "yellowdog_cli.create:main"
+    yd-delete = "yellowdog_cli.delete:main"
+    yd-download = "yellowdog_cli.download:main"
     yd-finish = "yellowdog_cli.finish:main"
     yd-follow = "yellowdog_cli.follow:main"
     yd-format-json = "yellowdog_cli.format_json:main"
@@ -57,6 +59,7 @@
     yd-instantiate = "yellowdog_cli.instantiate:main"
     yd-jsonnet2json = "yellowdog_cli.jsonnet2json:main"
     yd-list = "yellowdog_cli.list:main"
+    yd-ls = "yellowdog_cli.ls:main"
     yd-provision = "yellowdog_cli.provision:main"
     yd-remove = "yellowdog_cli.remove:main"
     yd-resize = "yellowdog_cli.resize:main"
@@ -65,6 +68,7 @@
     yd-start = "yellowdog_cli.start:main"
     yd-submit = "yellowdog_cli.submit:main"
     yd-terminate = "yellowdog_cli.terminate:main"
+    yd-upload = "yellowdog_cli.upload:main"
     yd-version = "yellowdog_cli.version:main"
 
 [tool.setuptools]

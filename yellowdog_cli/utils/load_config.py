@@ -13,6 +13,7 @@ from tomli import TOMLDecodeError
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import (
     ConfigCommon,
+    ConfigDataClient,
     ConfigWorkerPool,
     ConfigWorkRequirement,
 )
@@ -31,6 +32,9 @@ from yellowdog_cli.utils.settings import (
     DEFAULT_URL,
     TASK_BATCH_SIZE_DEFAULT,
     TOML_VAR_NESTED_DEPTH,
+    YD_DATA_CLIENT_BUCKET,
+    YD_DATA_CLIENT_PREFIX,
+    YD_DATA_CLIENT_REMOTE,
     YD_KEY,
     YD_KEY_ALT,
     YD_NAMESPACE,
@@ -224,6 +228,105 @@ def import_toml(filename: str) -> dict:
     except (FileNotFoundError, PermissionError, TOMLDecodeError) as e:
         print_error(f"Unable to load imported common configuration data: {e}")
         exit(1)
+
+
+def _load_namespace_and_tag() -> None:
+    """
+    Populate VARIABLE_SUBSTITUTIONS with 'namespace' and 'tag' without
+    requiring a full common config load (no key/secret needed).
+    Priority: CLI flags > environment variables > [common] section in config.toml > defaults.
+    Safe to call before load_config_common(); won't overwrite values it sets.
+    """
+    common_section = dict(CONFIG_TOML.get(COMMON_SECTION, {}))
+
+    # Handle importCommon: merge namespace/tag from the imported file.
+    # Use .get() (not .pop()) so CONFIG_TOML is left intact for load_config_common().
+    import_file = common_section.get(IMPORT_COMMON)
+    if import_file is not None:
+        imported = import_toml(import_file)
+        # Imported values are baseline; local section takes precedence
+        common_section = {**imported, **common_section}
+
+    if ARGS_PARSER.namespace is not None:
+        namespace = ARGS_PARSER.namespace
+    elif common_section.get(NAMESPACE) is not None:
+        namespace = str(common_section[NAMESPACE])
+    elif os.environ.get(YD_NAMESPACE) is not None:
+        namespace = os.environ[YD_NAMESPACE]
+    else:
+        namespace = "default"
+    namespace = process_variable_substitutions(namespace)
+
+    if ARGS_PARSER.tag is not None:
+        name_tag = ARGS_PARSER.tag
+    elif common_section.get(NAME_TAG) is not None:
+        name_tag = str(common_section[NAME_TAG])
+    elif os.environ.get(YD_TAG) is not None:
+        name_tag = os.environ[YD_TAG]
+    else:
+        name_tag = "{{username}}"
+    name_tag = process_variable_substitutions(name_tag)
+
+    add_substitutions_without_overwriting(
+        subs={NAMESPACE: namespace, NAME_TAG: name_tag}
+    )
+
+
+def load_config_data_client() -> ConfigDataClient:
+    """
+    Load the configuration data for the data client (rclone-backed commands).
+    Priority: CLI flags > environment variables > [dataClient] section in config.toml.
+    Resolved values are registered in VARIABLE_SUBSTITUTIONS for use in specs.
+    """
+    _load_namespace_and_tag()
+    dc_section = CONFIG_TOML.get(DATA_CLIENT_SECTION, {})
+
+    for _ in range(TOML_VAR_NESTED_DEPTH):
+        process_variable_substitutions_insitu(dc_section)
+
+    def _resolve(cli_value: str | None, env_var: str, toml_key: str) -> str | None:
+        if cli_value is not None:
+            return process_variable_substitutions(cli_value)
+        env_value = os.environ.get(env_var)
+        if env_value is not None:
+            return process_variable_substitutions(env_value)
+        toml_value = dc_section.get(toml_key)
+        if toml_value is not None:
+            return process_variable_substitutions(str(toml_value))
+        return None
+
+    remote = _resolve(
+        getattr(ARGS_PARSER, "remote", None), YD_DATA_CLIENT_REMOTE, DATA_CLIENT_REMOTE
+    )
+    bucket = _resolve(
+        getattr(ARGS_PARSER, "bucket", None), YD_DATA_CLIENT_BUCKET, DATA_CLIENT_BUCKET
+    )
+
+    if getattr(ARGS_PARSER, "no_prefix", False):
+        prefix = None
+    else:
+        prefix = _resolve(
+            getattr(ARGS_PARSER, "prefix", None),
+            YD_DATA_CLIENT_PREFIX,
+            DATA_CLIENT_PREFIX,
+        )
+        if prefix is None:
+            prefix = process_variable_substitutions("{{namespace}}/{{tag}}")
+
+    # Register resolved values for use in task specs
+    add_substitutions_without_overwriting(
+        subs={
+            k: v
+            for k, v in {
+                DATA_CLIENT_REMOTE: remote,
+                DATA_CLIENT_BUCKET: bucket,
+                DATA_CLIENT_PREFIX: prefix,
+            }.items()
+            if v is not None
+        }
+    )
+
+    return ConfigDataClient(remote=remote, bucket=bucket, prefix=prefix)
 
 
 def load_config_work_requirement() -> ConfigWorkRequirement:

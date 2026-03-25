@@ -83,7 +83,6 @@
    * [Compute Source Templates](#compute-source-templates)
    * [Compute Requirement Templates](#compute-requirement-templates)
    * [Image Families](#image-families)
-   * [Namespace Storage Configurations](#namespace-storage-configurations)
    * [Configured Worker Pools](#configured-worker-pools)
    * [Allowances](#allowances)
    * [Attribute Definitions](#attribute-definitions)
@@ -100,6 +99,11 @@
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
    * [Checking Jsonnet Processing](#checking-jsonnet-processing)
    * [Jsonnet Example](#jsonnet-example)
+* [Data Client Commands](#data-client-commands)
+   * [yd-upload](#yd-upload)
+   * [yd-download](#yd-download)
+   * [yd-delete](#yd-delete)
+   * [yd-ls](#yd-ls)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -121,9 +125,13 @@
    * [yd-compare](#yd-compare)
    * [yd-finish](#yd-finish)
    * [yd-application](#yd-application)
+   * [yd-delete](#yd-delete-1)
+   * [yd-download](#yd-download-1)
+   * [yd-ls](#yd-ls-1)
+   * [yd-upload](#yd-upload-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed Mar 18 12:17:58 GMT 2026 -->
+<!-- Added by: pwt, at: Wed Mar 25 12:56:58 GMT 2026 -->
 
 <!--te-->
 
@@ -157,6 +165,7 @@ The commands provide the following capabilities:
 - **Starting** HELD Work Requirements and **Holding** (or pausing) RUNNING Work Requirements with the **`yd-start`** and **`yd-hold`** commands
 - **Submitting** Work Requirements with the **`yd-submit`** command
 - **Terminating** Compute Requirements with the **`yd-terminate`** command
+- **Uploading**, **Downloading**, **Deleting** and **Listing** files in remote data stores with the **`yd-upload`**, **`yd-download`**, **`yd-delete`** and **`yd-ls`** commands
 
 The operation of the commands is controlled using TOML configuration files and/or environment variables and command line arguments. In addition, Work Requirements and Worker Pools can be defined using JSON files providing extensive configurability.
 
@@ -262,9 +271,9 @@ optional arguments:
   --namespace [<namespace>], -n [<namespace>]
                         the namespace to use when specifying entities; this is set to '' if the option is provided
                         without a value
-  --tag [<tag>], -t [<tag>], --prefix [<tag>]
-                        the tag to use when naming, tagging, or selecting entities, or the prefix (directory) when
-                        used with the object store; this is set to '' if the option is provided without a value
+  --tag [<tag>], -t [<tag>]
+                        the tag to use when naming, tagging, or selecting entities; this is set to '' if the option
+                        is provided without a value
   --abort, -a           abort running tasks with immediate effect
   --follow, -f          follow progress after cancelling the work requirement(s)
   --interactive, -i     list, and interactively select, the items to act on
@@ -276,11 +285,12 @@ optional arguments:
 
 By default, the operation of all commands is configured using a **TOML** configuration file. TOML v1.1.0 is supported, allowing multi-line tables, etc.
 
-The configuration file has three possible sections:
+The configuration file has four possible sections:
 
 1. A `common` section that contains required security properties for interacting with the YellowDog platform, sets the Namespace in which YellowDog assets and objects are created, and a Tag that is used for tagging and naming assets and objects.
 2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
 3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. (This can be substitued by a `computeRequirement` section if instance provisioning is all that's required.)
+4. A `dataClient` section that configures the remote data store used by the `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` commands.
 
 There is a documented template TOML file provided in [config-template.toml](config-template.toml), containing the main properties that can be configured.
 
@@ -2318,6 +2328,87 @@ When this is inspected using the `dry-run` option (`yd-submit -D my_work_req.jso
 }
 ```
 
+# Data Client Commands
+
+The `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` commands provide direct access to remote data stores (object storage buckets) via **[rclone](https://rclone.org)**. They do **not** require a YellowDog Application key or secret — only the data store connection details.
+
+These commands share a common `[dataClient]` TOML configuration section:
+
+```toml
+[dataClient]
+    remote = "myremote"               # rclone remote name (from rclone.conf) or inline connection string
+    bucket = "my-bucket"              # bucket / container / root path (see note below)
+    prefix = "{{namespace}}/{{tag}}"  # path prefix within the bucket (default: namespace/tag)
+```
+
+The `remote`, `bucket`, and `prefix` values can also be supplied via command line options (`--remote`/`-r`, `--bucket`/`-b`, `--prefix`/`-p`) or environment variables (`YD_DATA_CLIENT_REMOTE`, `YD_DATA_CLIENT_BUCKET`, `YD_DATA_CLIENT_PREFIX`). The `--no-prefix` flag disables the prefix entirely.
+
+The `remote` field accepts either:
+- A plain remote name defined in the system `rclone.conf` (e.g., `"yds3"`)
+- An inline rclone connection string (e.g., `"S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2"`)
+- An `rclone:` prefix can optionally be included
+
+The default prefix is `{{namespace}}/{{tag}}`, using the `namespace` and `tag` values from the `[common]` section (or their environment variable / command line equivalents). Variable substitutions (`{{...}}`) are supported in all `[dataClient]` values.
+
+> **Note on `bucket`:** The `bucket` property is named after S3/GCS terminology but applies equally to other rclone storage backends — use it to specify the container name (Azure Blob Storage), the root directory (SFTP, local, Google Drive), or the equivalent top-level path component for your storage target.
+
+## yd-upload
+
+The `yd-upload` command uploads local files or directories to a remote data store.
+
+```
+yd-upload [options] <local_path> [<local_path> ...]
+```
+
+Key options:
+- `--recursive`/`-R` — upload directories recursively, preserving the directory structure
+- `--flatten` — upload all files in a directory tree to a flat (single-level) remote destination
+- `--sync` — synchronise the remote destination to match the local source (implies `--recursive`); files present at the destination but absent locally are deleted
+- `--destination`/`-d <remote_path>` — override the destination path
+- `--dry-run`/`-D` — show what would be uploaded without actually uploading
+
+## yd-download
+
+The `yd-download` command downloads files from a remote data store to a local directory.
+
+```
+yd-download [options] <remote_path> [<remote_path> ...]
+```
+
+Key options:
+- `--sync` — mirror the remote source to the local destination, deleting local files not present remotely (not compatible with `--flatten`)
+- `--flatten` — download all files in a remote directory tree to a flat (single-level) local destination
+- `--destination`/`-d <local_path>` — local destination directory (default: mirrors the remote directory name)
+- `--dry-run`/`-D` — show what would be downloaded without actually downloading
+
+## yd-delete
+
+The `yd-delete` command deletes files or directories from a remote data store.
+
+```
+yd-delete [options] [<remote_path> ...]
+```
+
+If no remote paths are specified, the command operates on the entire configured prefix. Use `--recursive` to delete a directory tree.
+
+Key options:
+- `--recursive`/`-R` — recursively delete a remote directory tree
+- `--dry-run`/`-D` — show what would be deleted without actually deleting
+- `--yes`/`-y` — skip confirmation prompts
+
+## yd-ls
+
+The `yd-ls` command lists files and directories in a remote data store.
+
+```
+yd-ls [options] [<remote_path> ...]
+```
+
+If no remote paths are specified, the configured prefix is listed.
+
+Key options:
+- `--recursive`/`-R` — list recursively
+
 # Command List
 
 Help is available for all commands by invoking a command with the `--help` or `-h` option. Some command line parameters are common to all commands, while others are command-specific.
@@ -2562,3 +2653,19 @@ The `yd-finish` command moves work requirements into the `FINISHING` state, mean
 ## yd-application
 
 The `yd-application` command shows the details of the current Application, i.e., the Application represented by the `key` and `secret` being used.
+
+## yd-delete
+
+The `yd-delete` command deletes files or directories from a remote data store. See [Data Client Commands](#data-client-commands) for full documentation.
+
+## yd-download
+
+The `yd-download` command downloads files from a remote data store to the local filesystem. See [Data Client Commands](#data-client-commands) for full documentation.
+
+## yd-ls
+
+The `yd-ls` command lists files and directories in a remote data store. See [Data Client Commands](#data-client-commands) for full documentation.
+
+## yd-upload
+
+The `yd-upload` command uploads local files or directories to a remote data store. See [Data Client Commands](#data-client-commands) for full documentation.

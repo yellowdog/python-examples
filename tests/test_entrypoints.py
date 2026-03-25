@@ -46,3 +46,11 @@ def test_entrypoints():
     assert result.exit_code == 0
     result = shell("yd-finish --help")
     assert result.exit_code == 0
+    result = shell("yd-delete --help")
+    assert result.exit_code == 0
+    result = shell("yd-download --help")
+    assert result.exit_code == 0
+    result = shell("yd-ls --help")
+    assert result.exit_code == 0
+    result = shell("yd-upload --help")
+    assert result.exit_code == 0

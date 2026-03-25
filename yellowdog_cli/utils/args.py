@@ -180,14 +180,12 @@ class CLIParser:
             parser.add_argument(
                 "--tag",
                 "-t",
-                "--prefix",
                 type=str,
                 required=False,
                 nargs="?",
                 const="",
                 help=(
-                    "the tag to use when naming, tagging, or selecting entities,"
-                    " or the prefix (directory) when used with the object store;"
+                    "the tag to use when naming, tagging, or selecting entities;"
                     " this is set to '' if the option is provided without a value"
                 ),
                 metavar="<tag>",
@@ -210,7 +208,6 @@ class CLIParser:
             parser.add_argument(
                 "--tag",
                 "-t",
-                "--prefix",
                 type=str,
                 required=False,
                 nargs="?",
@@ -410,12 +407,13 @@ class CLIParser:
 
         # yd-abort / yd-cancel / yd-shutdown / yd-terminate /
         # yd-resize / yd-cloudwizard / yd-boost / yd-hold / yd-start / yd-list /
-        # yd-finish
+        # yd-finish / yd-delete (data client)
         if any(
             module in sys.argv[0]
             for module in [
                 "abort",
                 "cancel",
+                "delete",
                 "shutdown",
                 "terminate",
                 "resize",
@@ -1175,6 +1173,162 @@ class CLIParser:
                 help="download the latest rclone binary, then exit",
             )
 
+        # yd-upload / yd-download / yd-delete / yd-ls (data client commands)
+        if any(
+            module in sys.argv[0] for module in ["upload", "download", "delete", "ls"]
+        ):
+            parser.add_argument(
+                "--remote",
+                "-r",
+                type=str,
+                required=False,
+                help="rclone remote name or inline config string; overrides [dataClient] config",
+                metavar="<remote>",
+            )
+            parser.add_argument(
+                "--bucket",
+                "-b",
+                type=str,
+                required=False,
+                help="bucket or container name; overrides [dataClient] config",
+                metavar="<bucket>",
+            )
+            parser.add_argument(
+                "--prefix",
+                "-p",
+                type=str,
+                required=False,
+                help=(
+                    "remote path prefix; supports {{variable}} substitution; "
+                    "overrides [dataClient] config"
+                ),
+                metavar="<prefix>",
+            )
+            parser.add_argument(
+                "--no-prefix",
+                action="store_true",
+                required=False,
+                help="suppress the default path prefix; place files at the bucket root",
+            )
+            parser.add_argument(
+                "--dry-run",
+                "-D",
+                action="store_true",
+                required=False,
+                help="show what would happen without performing any transfers",
+            )
+
+        # yd-upload
+        if "upload" in sys.argv[0]:
+            parser.add_argument(
+                "local_paths",
+                metavar="<local-path>",
+                type=str,
+                nargs="+",
+                help="local file(s) or directory(ies) to upload",
+            )
+            parser.add_argument(
+                "--destination",
+                "-d",
+                type=str,
+                required=False,
+                help="explicit remote destination path, overriding the assembled default",
+                metavar="<remote-path>",
+            )
+            parser.add_argument(
+                "--recursive",
+                "-R",
+                action="store_true",
+                required=False,
+                help="upload directories recursively",
+            )
+            parser.add_argument(
+                "--flatten",
+                action="store_true",
+                required=False,
+                help="strip directory structure; upload all files flat under the destination",
+            )
+            parser.add_argument(
+                "--sync",
+                action="store_true",
+                required=False,
+                help=(
+                    "mirror the local source to the remote destination, deleting remote "
+                    "files not present locally; implies --recursive"
+                ),
+            )
+
+        # yd-download
+        if "download" in sys.argv[0]:
+            parser.add_argument(
+                "remote_paths",
+                metavar="<remote-path>",
+                type=str,
+                nargs="+",
+                help="remote file(s) or pattern(s) to download",
+            )
+            parser.add_argument(
+                "--destination",
+                "-d",
+                type=str,
+                required=False,
+                default=None,
+                help="local directory or file path to write to (default: mirrors remote name)",
+                metavar="<local-path>",
+            )
+            parser.add_argument(
+                "--sync",
+                action="store_true",
+                required=False,
+                help=(
+                    "mirror the remote source to the local destination, deleting local "
+                    "files not present remotely"
+                ),
+            )
+            parser.add_argument(
+                "--flatten",
+                action="store_true",
+                required=False,
+                help="strip remote directory structure; download all files flat",
+            )
+
+        # yd-delete (data client)
+        if "delete" in sys.argv[0]:
+            parser.add_argument(
+                "remote_paths",
+                metavar="<remote-path>",
+                type=str,
+                nargs="*",
+                help=(
+                    "remote file(s) or directory(ies) to delete; "
+                    "if omitted with --recursive, deletes the entire default prefix"
+                ),
+            )
+            parser.add_argument(
+                "--recursive",
+                "-R",
+                action="store_true",
+                required=False,
+                help="delete directories recursively",
+            )
+
+        # yd-ls
+        if "ls" in sys.argv[0]:
+            parser.add_argument(
+                "remote_paths",
+                metavar="<remote-path>",
+                type=str,
+                nargs="*",
+                help="remote path(s) to list; defaults to the configured prefix if omitted",
+            )
+            parser.add_argument(
+                "--recursive",
+                "-R",
+                action="store_true",
+                required=False,
+                help="list directories recursively",
+            )
+
         self.args = parser.parse_args()
 
         if self.args.docs:
@@ -1830,6 +1984,68 @@ class CLIParser:
     def upgrade_rclone(self) -> bool | None:
         return self.args.upgrade_rclone
 
+    # -----------------------------------------------------------------------
+    # yd-upload / yd-download / yd-delete / yd-ls (data client commands)
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def remote(self) -> str | None:
+        return self.args.remote
+
+    @property
+    @allow_missing_attribute
+    def bucket(self) -> str | None:
+        return self.args.bucket
+
+    @property
+    @allow_missing_attribute
+    def prefix(self) -> str | None:
+        return self.args.prefix
+
+    @property
+    @allow_missing_attribute
+    def no_prefix(self) -> bool | None:
+        return self.args.no_prefix
+
+    # -----------------------------------------------------------------------
+    # yd-upload
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def local_paths(self) -> list[str] | None:
+        return self.args.local_paths
+
+    @property
+    @allow_missing_attribute
+    def destination(self) -> str | None:
+        return self.args.destination
+
+    @property
+    @allow_missing_attribute
+    def recursive(self) -> bool | None:
+        return self.args.recursive
+
+    @property
+    @allow_missing_attribute
+    def flatten(self) -> bool | None:
+        return self.args.flatten
+
+    @property
+    @allow_missing_attribute
+    def sync(self) -> bool | None:
+        return self.args.sync
+
+    # -----------------------------------------------------------------------
+    # yd-download / yd-delete / yd-ls
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def remote_paths(self) -> list[str] | None:
+        return self.args.remote_paths
+
 
 def lookup_module_description(module_name: str) -> str | None:
     """
@@ -1840,6 +2056,10 @@ def lookup_module_description(module_name: str) -> str | None:
 
     if "abort" in module_name:
         suffix = "aborting Tasks"
+    elif "delete" in module_name:
+        suffix = "deleting remote data client files and directories"
+    elif "download" in module_name:
+        suffix = "downloading files from a remote data client"
     elif "application" in module_name:
         suffix = "reporting the details of the current Application"
     elif "boost" in module_name:
@@ -1863,6 +2083,8 @@ def lookup_module_description(module_name: str) -> str | None:
         suffix = "holding (pausing) running Work Requirements"
     elif "instantiate" in module_name:
         suffix = "instantiating a Compute Requirement"
+    elif "ls" in module_name:
+        suffix = "listing remote data client files and directories"
     elif "list" in module_name:
         suffix = "listing all kinds of YellowDog items"
     elif "provision" in module_name:
@@ -1881,6 +2103,8 @@ def lookup_module_description(module_name: str) -> str | None:
         suffix = "submitting a Work Requirement"
     elif "terminate" in module_name:
         suffix = "terminating Compute Requirements, Instances or Nodes"
+    elif "upload" in module_name:
+        suffix = "uploading files to a remote data client"
 
     return None if suffix is None else prefix + suffix
 

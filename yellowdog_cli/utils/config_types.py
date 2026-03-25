@@ -8,6 +8,13 @@ from yellowdog_cli.utils.settings import CR_BATCH_SIZE_DEFAULT, TASK_BATCH_SIZE_
 
 
 @dataclass
+class ConfigDataClient:
+    remote: str | None = None  # rclone remote name or inline connection string
+    bucket: str | None = None  # bucket / container name
+    prefix: str | None = None  # path prefix; supports {{variable}} substitution
+
+
+@dataclass
 class ConfigCommon:
     url: str
     key: str
