@@ -635,10 +635,15 @@ def get_all_tasks_in_task_group(
     )
 
 
-def split_namespace_and_name(namespace_and_name: str) -> tuple[str | None, str]:
+def split_namespace_and_name(
+    namespace_and_name: str | None,
+) -> tuple[str | None, str | None]:
     """
     Split a name into an (optional) namespace and a name.
     """
+    if namespace_and_name is None:
+        return None, None
+
     parts = namespace_and_name.strip().split(NAMESPACE_PREFIX_SEPARATOR)
     if len(parts) == 1:
         return None, namespace_and_name
