@@ -15,7 +15,7 @@ clean:
 	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP) $(PYINSTALLER)
 
 install: build
-	pip install -U -e .
+	pip install -U -e ".[jsonnet,cloudwizard]"
 
 uninstall:
 	pip uninstall -y yellowdog-python-examples
