@@ -463,12 +463,10 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         return ConfigWorkRequirement(
             add_yd_env_vars=wr_section.get(ADD_YD_ENV_VARS, False),
             args=wr_section.get(ARGS, []),
-            batch_allocation=wr_section.get(BATCH_ALLOCATION, None),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             csv_files=csv_files,
             disable_preallocation=wr_section.get(DISABLE_PREALLOCATION, None),
             env=wr_section.get(ENV, {}),
-            exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
             finish_if_all_tasks_finished=wr_section.get(
                 FINISH_IF_ALL_TASKS_FINISHED, True
             ),

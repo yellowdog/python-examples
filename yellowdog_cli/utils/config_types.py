@@ -28,12 +28,10 @@ class ConfigCommon:
 class ConfigWorkRequirement:
     add_yd_env_vars: bool = False
     args: list[str] = field(default_factory=list)
-    batch_allocation: bool | None = None
     completed_task_ttl: float | None = None  # In minutes
     csv_files: list[str] | None = None
     disable_preallocation: bool | None = None
     env: dict = field(default_factory=dict)
-    exclusive_workers: bool | None = None
     finish_if_all_tasks_finished: bool = True
     finish_if_any_task_failed: bool = False
     instance_types: list[str] | None = None

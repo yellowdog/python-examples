@@ -61,11 +61,9 @@ from yellowdog_cli.utils.printing import (
 from yellowdog_cli.utils.property_names import (
     ADD_YD_ENV_VARS,
     ARGS,
-    BATCH_ALLOCATION,
     COMPLETED_TASK_TTL,
     DISABLE_PREALLOCATION,
     ENV,
-    EXCLUSIVE_WORKERS,
     FINISH_IF_ALL_TASKS_FINISHED,
     FINISH_IF_ANY_TASK_FAILED,
     INSTANCE_TYPES,
@@ -526,24 +524,6 @@ def create_task_group(
         else timedelta(minutes=task_timeout_minutes)
     )
 
-    exclusive_workers = check_bool(
-        task_group_data.get(
-            EXCLUSIVE_WORKERS,
-            wr_data.get(EXCLUSIVE_WORKERS, config_wr.exclusive_workers),
-        )
-    )
-    batch_allocation = check_bool(
-        task_group_data.get(
-            BATCH_ALLOCATION,
-            wr_data.get(BATCH_ALLOCATION, config_wr.batch_allocation),
-        )
-    )
-    if batch_allocation and not exclusive_workers:
-        raise Exception(
-            f"Property '{EXCLUSIVE_WORKERS}' must be set when "
-            f"'{BATCH_ALLOCATION}' is specified"
-        )
-
     run_specification = RunSpecification(
         taskTypes=task_types,
         maximumTaskRetries=check_int(
@@ -556,8 +536,6 @@ def create_task_group(
                 WORKER_TAGS, wr_data.get(WORKER_TAGS, config_wr.worker_tags)
             )
         ),
-        exclusiveWorkers=exclusive_workers,
-        batchAllocation=batch_allocation,
         instanceTypes=check_list(
             task_group_data.get(
                 INSTANCE_TYPES, wr_data.get(INSTANCE_TYPES, config_wr.instance_types)

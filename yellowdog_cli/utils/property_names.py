@@ -4,7 +4,6 @@ Property names.
 
 ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
 ARGS = "arguments"  # List
-BATCH_ALLOCATION = "batchAllocation"  # Bool
 CERTIFICATES = "certificates"
 COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
@@ -26,7 +25,6 @@ DEPENDENT_ON = "dependentOn"  # String (Deprecated)
 DIRECTORY_NAME = "directoryName"  # String
 ENV = "environment"  # Dictionary
 ERROR_TYPES = "errorTypes"  # List of Strings
-EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
 FINISH_IF_ALL_TASKS_FINISHED = "finishIfAllTasksFinished"  # Boolean
 FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
 IDLE_NODE_TIMEOUT = "idleNodeTimeout"  # Float
@@ -105,7 +103,6 @@ WR_TAG = "tag"  # String
 ALL_KEYS = [
     ADD_YD_ENV_VARS,
     ARGS,
-    BATCH_ALLOCATION,
     CERTIFICATES,
     COMMON_SECTION,
     COMPLETED_TASK_TTL,
@@ -127,7 +124,6 @@ ALL_KEYS = [
     DIRECTORY_NAME,
     ENV,
     ERROR_TYPES,
-    EXCLUSIVE_WORKERS,
     FINISH_IF_ALL_TASKS_FINISHED,
     FINISH_IF_ANY_TASK_FAILED,
     IDLE_NODE_TIMEOUT,

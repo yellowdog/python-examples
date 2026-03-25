@@ -198,10 +198,6 @@
     # Optional
     # workerTags = ["my-worker-tag"]
 
-    # Require workers that are not shared with other task groups.
-    # Optional
-    # exclusiveWorkers = false
-
     # Maximum number of workers that can execute tasks from this group.
     # Optional
     # maxWorkers = 10
@@ -249,10 +245,6 @@
     # Number of tasks submitted per API call.
     # Optional — default: 1000
     # taskBatchSize = 1000
-
-    # Use batch allocation for task dispatch.
-    # Optional
-    # batchAllocation = false
 
     # Disable task pre-allocation.
     # Optional

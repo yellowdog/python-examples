@@ -643,7 +643,6 @@ The following table outlines all the properties available for defining Work Requ
 | `addYDEnvironmentVariables` | Automatically add YellowDog environment variables to each Task's environment.                                                                                                                                                              | Yes  | Yes | Yes  | Yes  |
 | `alwaysUpload`              | Whether to attempt to upload task outputs on failure. Default: `true`.                                                                                                                                                                     | Yes  | Yes | Yes  | Yes  |
 | `arguments`                 | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
-| `batchAllocation`           | Enables the batch allocation of tasks to nodes. Boolean, Default: `false`. Requires `exclusiveWorkers = true`.                                                                                                                             | Yes  | Yes | Yes  |      |
 | `completedTaskTtl`          | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                                                                                       | Yes  | Yes | Yes  |      |
 | `csvFile`                   | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                                                                                   | Yes  |     |      |      |
 | `csvFiles`                  | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                                                                                          | Yes  |     |      |      |
@@ -651,7 +650,6 @@ The following table outlines all the properties available for defining Work Requ
 | `dependentOn`               | [Deprecated in favour of `dependencies`] The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.                                      |      |     | Yes  |      |
 | `disablePreallocation`      | If `true`, tasks are only allocated to nodes as workers become idle and are not queued on the node. Default: `false`.                                                                                                                      | Yes  | Yes | Yes  |      |
 | `environment`               | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                                    | Yes  | Yes | Yes  | Yes  |
-| `exclusiveWorkers`          | If true, then do not allow claimed Workers to be shared with other Task Groups; otherwise, Workers can be shared. Default:`false`.                                                                                                         | Yes  | Yes | Yes  |      |
 | `finishIfAllTasksFinished`  | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                           | Yes  | Yes | Yes  |      |
 | `finishIfAnyTaskFailed`     | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                                         | Yes  | Yes | Yes  |      |
 | `instanceTypes`             | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                                                                                           | Yes  | Yes | Yes  |      |
@@ -741,12 +739,10 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     addYDEnvironmentVariables = true
     alwaysUpload = true
     arguments = ["1", "TWO"]
-    batchAllocation = false
     completedTaskTtl = 10
     csvFile = "file1.csv"
     csvFiles = ["file1.csv", "file3.csv:3"]
     environment = {MY_VAR = 100}
-    exclusiveWorkers = false
     finishIfAllTasksFinished = true
     finishIfAnyTaskFailed = false
     fulfilOnSubmit = false
@@ -798,10 +794,8 @@ Showing all possible properties at the Work Requirement level:
   "addYDEnvironmentVariables": true,
   "alwaysUpload": true,
   "arguments": [1, "TWO"],
-  "batchAllocation": false,
   "completedTaskTtl": 10,
   "environment": {"MY_VAR": 100},
-  "exclusiveWorkers": false,
   "finishIfAllTasksFinished": true,
   "finishIfAnyTaskFailed": false,
   "instanceTypes": ["t3a.micro", "t3.micro"],
@@ -862,10 +856,8 @@ Showing all possible properties at the Task Group level:
       "addYDEnvironmentVariables": true,
       "alwaysUpload": true,
       "arguments": [1, "TWO"],
-      "batchAllocation": false,
       "completedTaskTtl": 10,
       "environment": {"MY_VAR": 100},
-      "exclusiveWorkers": false,
       "finishIfAllTasksFinished": true,
       "finishIfAnyTaskFailed": false,
       "instanceTypes": ["t3a.micro", "t3.micro"],

@@ -30,6 +30,5 @@
 
     taskType = "bash"
     workerTags = ["{{worker_tag}}"]
-    exclusiveWorkers = true
 
 ################################################################################
