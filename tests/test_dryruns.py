@@ -45,6 +45,10 @@ class TestDemoDryRuns:
         result = shell(f"cd {DEMO_DIR}/montecarlo && {CMD_SEQ}")
         assert result.exit_code == 0
 
+    def test_video_demo(self):
+        result = shell(f"cd {DEMO_DIR}/video-demo && {CMD_SEQ}")
+        assert result.exit_code == 0
+
     # Tests run from outside the demo directories
     def test_bash_out(self):
         demo_name = "bash"
@@ -120,6 +124,15 @@ class TestDemoDryRuns:
 
     def test_montecarlo_out(self):
         demo_name = "montecarlo"
+        result = shell(
+            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
+            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
+            f" {demo_name}/config.toml"
+        )
+        assert result.exit_code == 0
+
+    def test_video_demo_out(self):
+        demo_name = "video-demo"
         result = shell(
             f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
             f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
