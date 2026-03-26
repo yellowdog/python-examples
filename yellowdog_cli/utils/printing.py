@@ -135,6 +135,7 @@ CONSOLE_ERR = Console(stderr=True, highlighter=PrintLogHighlighter())
 CONSOLE_JSON = Console(highlighter=JSONHighlighter())
 
 PREFIX_LEN = 0
+SUBSEQUENT_INDENT = ""
 
 
 def print_string(msg: str = "", no_fill: bool = False) -> str:
@@ -142,7 +143,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
     Message output format, with tidy line-wrapping calibrated
     for the terminal width.
     """
-    global PREFIX_LEN
+    global PREFIX_LEN, SUBSEQUENT_INDENT
 
     prefix = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     # Optionally add the PID to the prefix to disambiguate interleaved
@@ -154,6 +155,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
 
     if PREFIX_LEN == 0:
         PREFIX_LEN = len(prefix)
+        SUBSEQUENT_INDENT = " " * PREFIX_LEN
 
     if no_fill or msg == "" or msg.isspace() or ARGS_PARSER.no_format:
         return prefix + msg
@@ -162,7 +164,7 @@ def print_string(msg: str = "", no_fill: bool = False) -> str:
         msg,
         width=LOG_WIDTH,
         initial_indent=prefix,
-        subsequent_indent=" " * len(prefix),
+        subsequent_indent=SUBSEQUENT_INDENT,
         drop_whitespace=True,
         break_long_words=False,  # Preserve URLs
         break_on_hyphens=False,  # Preserve names
