@@ -17,6 +17,10 @@ class TestDemos:
         result = shell(f"cd {DEMO_DIR}/bash && {CMD_SEQ}")
         assert result.exit_code == 0
 
+    def test_batch_allocation(self):
+        result = shell(f"cd {DEMO_DIR}/batch-allocation && {CMD_SEQ}")
+        assert result.exit_code == 0
+
     def test_gce_instance_groups(self):
         result = shell(f"cd {DEMO_DIR}/bash/gce-instance-groups && {CMD_SEQ}")
         assert result.exit_code == 0
