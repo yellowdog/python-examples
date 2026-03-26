@@ -117,9 +117,13 @@ def add_substitutions_without_overwriting(subs: dict):
     Add a dictionary of substitutions. Do not overwrite existing values, but
     resolve remaining variables if possible.
     """
-    global VARIABLE_SUBSTITUTIONS
-    subs.update(VARIABLE_SUBSTITUTIONS)
-    VARIABLE_SUBSTITUTIONS = subs
+    # Merge: existing entries take priority over incoming ones, then update
+    # the dict in-place so that all callers holding a reference to it see the
+    # change (rebinding the name would silently break imported references).
+    for key, value in VARIABLE_SUBSTITUTIONS.items():
+        subs.setdefault(key, value)
+    VARIABLE_SUBSTITUTIONS.clear()
+    VARIABLE_SUBSTITUTIONS.update(subs)
 
     # Populate variables that can now be substituted
     # Ensure that the value is stored as a string
