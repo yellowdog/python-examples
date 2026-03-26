@@ -11,7 +11,6 @@ from yellowdog_cli.utils.printing import print_error, print_info
 
 
 def dataclient_wrapper(func):
-    """ """
 
     def wrapper():
         if not ARGS_PARSER.debug:

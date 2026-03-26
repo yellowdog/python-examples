@@ -51,7 +51,7 @@ def resolve_remote_path(
     path or filename.
 
     If relative_path already starts with '<remote_name>:', it is returned
-    verbatim (absolute rclone path).  Otherwise the path is assembled as:
+    verbatim (absolute rclone path).  Otherwise, the path is assembled as:
         <remote_name>:<bucket>/<prefix>/<relative_path_or_filename>
     """
     remote_str = _require_remote(config)

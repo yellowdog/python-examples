@@ -23,6 +23,7 @@ from yellowdog_cli.utils.property_names import (
     DATA_CLIENT_UPLOAD_PATH,
     TASK_DATA_SOURCE,
 )
+from yellowdog_cli.utils.settings import RCLONE_PREFIX
 
 
 @contextmanager
@@ -106,8 +107,8 @@ def parse_rclone_config(config_str: str) -> tuple[str, str | None]:
         (remote_name, config_ini_section_str_or_None)
         Returns None for the config when there are no inline parameters.
     """
-    if config_str.startswith("rclone:"):
-        config_str = config_str[len("rclone:") :]
+    if config_str.startswith(RCLONE_PREFIX):
+        config_str = config_str[len(RCLONE_PREFIX) :]
 
     if "," not in config_str:
         # No inline params: remote is defined in the system rclone.conf
@@ -308,8 +309,8 @@ class RcloneUploadedFiles:
             indicating that the system rclone.conf should be used.
         """
         # Remove optional leading 'rclone:'
-        if connection_str.startswith("rclone:"):
-            connection_str = connection_str[7:]
+        if connection_str.startswith(RCLONE_PREFIX):
+            connection_str = connection_str[len(RCLONE_PREFIX) :]
 
         if ":" not in connection_str:
             raise ValueError("No colon separator found in connection string")
