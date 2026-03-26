@@ -345,4 +345,6 @@ def upgrade_rclone():
     Upgrade the rclone binary.
     """
     print_info("Downloading / upgrading the rclone binary")
-    Rclone.upgrade_rclone()
+    ctx = _suppress_rclone_download_output() if ARGS_PARSER.quiet else nullcontext()
+    with ctx:
+        Rclone.upgrade_rclone()
