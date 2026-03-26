@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-YellowDog Python Examples (`yellowdog-python-examples`) is a Python CLI tool suite for managing distributed computing jobs and resources on the YellowDog platform. It provides 21 `yd-*` commands (e.g., `yd-submit`, `yd-provision`, `yd-list`) installable as a package.
+YellowDog Python Examples (`yellowdog-python-examples`) is a Python CLI tool suite for managing distributed computing jobs and resources on the YellowDog platform. It provides ~25 `yd-*` commands (e.g., `yd-submit`, `yd-provision`, `yd-list`, `yd-upload`, `yd-download`) installable as a package.
 
 Current version: defined in `yellowdog_cli/__init__.py`.
 
@@ -65,6 +65,8 @@ yellowdog_cli/
     ├── load_resources.py        # load_resource_specifications(): loads TOML/JSON/Jsonnet files, applies substitutions, re-sequences in dependency order
     ├── provision_utils.py       # get_user_data_property() (reads/concatenates userdata scripts), get_template_id() (name→ID), get_image_id()
     ├── rclone_utils.py          # RcloneUploadedFiles: uploads task data input files via rclone; parses rclone connection strings; deduplicates
+    ├── dataclient_utils.py      # Core logic for rclone-backed data client commands: resolve_remote_path(), upload_file/directory(), download_files(), delete_remote(), list_remote(), glob support
+    ├── dataclient_wrapper.py    # @dataclient_wrapper decorator used by yd-upload/download/delete/ls (no SDK client needed)
     ├── follow_utils.py          # follow_ids(): subscribes to SSE event streams for WRs/WPs/CRs in daemon threads; auto-reconnects on drop
     ├── interactive.py           # confirmed() (respects --yes/YD_YES), select() (numbered list selection with range syntax e.g. 1,2,4-7)
     ├── start_hold_common.py     # Shared logic for yd-start and yd-hold: filter by status, confirm, apply action
@@ -76,7 +78,7 @@ yellowdog_cli/
 
 ### Command Pattern
 
-Every command module follows this structure:
+Most command modules use `@main_wrapper` (requires YellowDog SDK client):
 
 ```python
 from yellowdog_cli.utils.wrapper import main_wrapper
@@ -93,6 +95,19 @@ if __name__ == "__main__":
     main()
 ```
 
+Data client commands (`yd-upload`, `yd-download`, `yd-delete`, `yd-ls`) use `@dataclient_wrapper` instead — no SDK client is initialised:
+
+```python
+from yellowdog_cli.utils.dataclient_wrapper import dataclient_wrapper
+
+CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
+
+@dataclient_wrapper
+def main():
+    # Command logic using ARGS_PARSER and CONFIG_DATA_CLIENT
+    ...
+```
+
 ### Global State (wrapper.py)
 
 `wrapper.py` initialises two module-level globals used everywhere:
@@ -106,6 +121,8 @@ The `@main_wrapper` decorator handles: PAC proxy setup, exception catching (perm
 ### Configuration
 
 Config is loaded from (in priority order): CLI args → environment variables → TOML file. Key env vars: `YD_KEY`, `YD_SECRET`, `YD_NAMESPACE`, `YD_TAG`, `YD_URL`. Variables prefixed `YD_VAR_` are available for substitution in specs.
+
+Any TOML property can be overridden on the command line with `--property 'section.key=value'` (repeatable). Valid sections: `common`, `dataClient`, `workRequirement`, `workerPool`, `computeRequirement`. Values are JSON-parsed first (handles bool, int, float, list, dict), falling back to plain string. Overrides are applied after TOML validation in `load_config.py` via `_apply_property_overrides()`.
 
 ### Variable Substitution
 
@@ -128,4 +145,5 @@ Specs (TOML/JSON/Jsonnet) support `{{variable_name}}` substitution with type tag
 - `python-dotenv` — `.env` file support
 - `pypac` — proxy auto-configuration
 - `jsonnet` — optional, for Jsonnet spec templating
+- `rclone_api` — Python wrapper around the rclone binary; used by data client commands
 - Cloud wizard extras: `boto3`, `google-cloud-*`, `azure-*`
