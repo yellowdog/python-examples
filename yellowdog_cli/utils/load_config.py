@@ -2,6 +2,7 @@
 Common utility functions, mostly related to loading configuration data.
 """
 
+import json
 import os
 from os import getenv
 from os.path import abspath, dirname, join, relpath
@@ -54,6 +55,61 @@ from yellowdog_cli.utils.variables import (
     process_variable_substitutions_insitu,
 )
 
+
+def _parse_property_value(value_str: str):
+    """
+    Parse a property value string into a Python object.
+    Tries JSON first (handles bool, int, float, list, dict), falls back to str.
+    """
+    try:
+        return json.loads(value_str)
+    except (json.JSONDecodeError, ValueError):
+        return value_str
+
+
+def _apply_property_overrides(config: dict, overrides: list[str]) -> None:
+    """
+    Apply '--property section.key=value' overrides to CONFIG_TOML in-place.
+
+    Each override must be in 'section.key=value' format.  The value is parsed
+    via JSON first (handles bool, int, float, list, dict); if that fails it is
+    treated as a plain string.  Unknown section names are rejected; unknown
+    property names produce a warning.
+    """
+    valid_sections = {
+        COMMON_SECTION,
+        DATA_CLIENT_SECTION,
+        WORK_REQUIREMENT_SECTION,
+        WORKER_POOL_SECTION,
+        COMPUTE_REQUIREMENT_SECTION,
+    }
+    for override in overrides:
+        if "=" not in override:
+            print_error(
+                f"Invalid --property format '{override}': expected 'section.key=value'"
+            )
+            exit(1)
+        lhs, _, value_str = override.partition("=")
+        if "." not in lhs:
+            print_error(
+                f"Invalid --property format '{override}': "
+                f"expected 'section.key=value' (missing section)"
+            )
+            exit(1)
+        section, _, key = lhs.partition(".")
+        if section not in valid_sections:
+            print_error(
+                f"Unknown section '{section}' in --property '{override}'. "
+                f"Valid sections: {', '.join(sorted(valid_sections))}"
+            )
+            exit(1)
+        value = _parse_property_value(value_str)
+        if section not in config:
+            config[section] = {}
+        config[section][key] = value
+        print_info(f"Property override: [{section}] {key} = {value!r}")
+
+
 # Support for alternative common env. vars; written into the normal vars.
 for norm, alt in [
     (YD_KEY, YD_KEY_ALT),
@@ -75,6 +131,8 @@ if ARGS_PARSER.no_config:
     print_info(f"Configuration file ('{CONFIG_FILE}') ignored")
     CONFIG_TOML = {COMMON_SECTION: {}}
     CONFIG_FILE_DIR = os.getcwd()
+    if ARGS_PARSER.property_overrides:
+        _apply_property_overrides(CONFIG_TOML, ARGS_PARSER.property_overrides)
 
 else:
     # Attempt to load configuration data from TOML file
@@ -92,6 +150,8 @@ else:
         except Exception as e:
             print_error(e)
             exit(1)
+        if ARGS_PARSER.property_overrides:
+            _apply_property_overrides(CONFIG_TOML, ARGS_PARSER.property_overrides)
 
     except FileNotFoundError as e:
         if ARGS_PARSER.config_file is not None:

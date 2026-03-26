@@ -133,6 +133,19 @@ class CLIParser:
             required=False,
             help="ignore the contents of any TOML configuration file (even if specified on the command line)",
         )
+        parser.add_argument(
+            "--property",
+            type=str,
+            required=False,
+            action="append",
+            help=(
+                "override a TOML configuration property; "
+                "format: 'section.key=value', e.g. "
+                "'workRequirement.workerTags=[\"mytag\"]'; "
+                "can be supplied multiple times"
+            ),
+            metavar="<section.key=value>",
+        )
 
         # Module-specific arguments
 
@@ -1393,6 +1406,11 @@ class CLIParser:
     @allow_missing_attribute
     def no_config(self) -> bool | None:
         return self.args.no_config
+
+    @property
+    @allow_missing_attribute
+    def property_overrides(self) -> list[str] | None:
+        return self.args.property
 
     # -----------------------------------------------------------------------
     # yd-* (all except yd-compare)

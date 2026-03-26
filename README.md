@@ -13,6 +13,7 @@
    * [Importing common Properties](#importing-common-properties)
    * [HTTPS Proxy Support](#https-proxy-support)
    * [Specifying Common Properties using the Command Line or Environment Variables](#specifying-common-properties-using-the-command-line-or-environment-variables)
+   * [Overriding Arbitrary TOML Properties on the Command Line](#overriding-arbitrary-toml-properties-on-the-command-line)
    * [Support for .env Files](#support-for-env-files)
    * [Variable Substitutions in Common Properties](#variable-substitutions-in-common-properties)
 * [Variable Substitutions](#variable-substitutions)
@@ -397,6 +398,38 @@ The **environment variables** are as follows:
 When setting the value of the above properties, a property set on the command line takes precedence over one set via the configuration file, and both take precedence over a value set in an environment variable.
 
 If all the required common properties are set using the command line or environment variables, then the entire `common` section of the TOML file can be omitted.
+
+## Overriding Arbitrary TOML Properties on the Command Line
+
+Any property in the TOML configuration file can be overridden on the command line using the `--property` flag (repeatable):
+
+```
+--property 'section.key=value'
+```
+
+The `section` must be one of `common`, `dataClient`, `workRequirement`, `workerPool`, or `computeRequirement`. The `value` is interpreted as JSON first (so booleans, numbers, lists, and dicts are handled correctly), falling back to a plain string if JSON parsing fails.
+
+Examples:
+
+```bash
+# Override a single string value
+yd-submit --property 'common.namespace=myproject'
+
+# Override a numeric value
+yd-provision --property 'workerPool.targetInstanceCount=4'
+
+# Override a list
+yd-submit --property 'workRequirement.workerTags=["gpu","large"]'
+
+# Override a boolean
+yd-provision --property 'workerPool.maintainInstanceCount=true'
+
+# Multiple overrides
+yd-submit --property 'workRequirement.maxRetries=3' \
+          --property 'workRequirement.priority=1.5'
+```
+
+`--property` overrides are applied after the TOML file is loaded, so they take effect regardless of what the file contains. Specific CLI flags (`--namespace`, `--tag`, etc.) are still applied on top, as before. `{{variable}}` substitutions within values are resolved in the normal way.
 
 ## Support for `.env` Files
 
