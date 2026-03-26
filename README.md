@@ -126,6 +126,7 @@
    * [yd-compare](#yd-compare)
    * [yd-finish](#yd-finish)
    * [yd-application](#yd-application)
+   * [yd-jsonnet2json](#yd-jsonnet2json)
    * [yd-delete](#yd-delete-1)
    * [yd-download](#yd-download-1)
    * [yd-ls](#yd-ls-1)
@@ -234,26 +235,24 @@ Both of the installation methods above will install a number of **`yd-`** comman
 Commands are run from the command line. Invoking any command with the `--help` or `-h` option will display the command line options applicable to that command, e.g.:
 
 ```text
- % yd-cancel -h
-usage: yd-cancel [-h] [--docs] [--config <config_file.toml>] [--key <app-key-id>] [--secret <app-key-secret>]
-                 [--url <url>] [--debug] [--pac] [--no-format] [--quiet] [--env-override] [--print-pid]
-                 [--variable <var1=v1>] [--namespace [<namespace>]] [--tag [<tag>]] [--abort] [--follow]
-                 [--interactive] [--yes] [--raw-events]
+% yd-cancel -h
+usage: yd-cancel [-h] [--docs] [--config <config_file.toml>] [--key <app-key-id>] [--secret <app-key-secret>] [--url <url>] [--debug]
+                 [--pac] [--no-format] [--quiet] [--env-override] [--print-pid] [--no-config] [--property <section.key=value>]
+                 [--variable <var1=v1>] [--namespace [<namespace>]] [--tag [<tag>]] [--abort] [--follow] [--interactive] [--yes]
+                 [--raw-events]
                  [<work-requirement-name-or-ID> ...]
 
 YellowDog command line utility for cancelling Work Requirements
 
 positional arguments:
   <work-requirement-name-or-ID>
-                        the name(s) or YellowDog ID(s) of the work requirement(s) to be cancelled; can also supply
-                        task IDs
+                        the name(s) or YellowDog ID(s) of the work requirement(s) to be cancelled; can also supply task IDs
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --docs                provide a link to the documentation for this version
   --config <config_file.toml>, -c <config_file.toml>
-                        configuration file in TOML format; the default to use is 'config.toml' in the current
-                        directory
+                        configuration file in TOML format; the default to use is 'config.toml' in the current directory
   --key <app-key-id>, -k <app-key-id>
                         the application key ID
   --secret <app-key-secret>, -s <app-key-secret>
@@ -266,15 +265,17 @@ optional arguments:
   --quiet, -q           suppress (non-error, non-interactive) status and progress messages
   --env-override        values in '.env' file override values in the environment
   --print-pid, --pp     include the process ID of this CLI invocation alongside timestamp in logging messages
+  --no-config, --nc     ignore the contents of any TOML configuration file (even if specified on the command line)
+  --property <section.key=value>
+                        override a TOML configuration property; format: 'section.key=value', e.g.
+                        'workRequirement.workerTags=["mytag"]'; can be supplied multiple times
   --variable <var1=v1>, -v <var1=v1>
-                        user-defined variable substitution; the option can be supplied multiple times, one per
-                        variable
+                        user-defined variable substitution; the option can be supplied multiple times, one per variable
   --namespace [<namespace>], -n [<namespace>]
-                        the namespace to use when specifying entities; this is set to '' if the option is provided
-                        without a value
+                        the namespace to use when specifying entities; this is set to '' if the option is provided without a value
   --tag [<tag>], -t [<tag>]
-                        the tag to use when naming, tagging, or selecting entities; this is set to '' if the option
-                        is provided without a value
+                        the tag to use when naming, tagging, or selecting entities; this is set to '' if the option is provided without
+                        a value
   --abort, -a           abort running tasks with immediate effect
   --follow, -f          follow progress after cancelling the work requirement(s)
   --interactive, -i     list, and interactively select, the items to act on
@@ -431,6 +432,12 @@ yd-submit --property 'workRequirement.maxRetries=3' \
 
 `--property` overrides are applied after the TOML file is loaded, so they take effect regardless of what the file contains. Specific CLI flags (`--namespace`, `--tag`, etc.) are still applied on top, as before. `{{variable}}` substitutions within values are resolved in the normal way.
 
+Use `--dry-run` to verify the effect of an override before submitting:
+
+```bash
+yd-submit --property 'workRequirement.priority=2.0' --dry-run --quiet
+```
+
 ## Support for `.env` Files
 
 Environment variables can also be set in a `.env` file, typically in the user's home directory or the current working directory.
@@ -585,6 +592,8 @@ Variable substitutions can also be used within **User Data** to be supplied to i
 
 The `workRequirement` section of the configuration file is optional. It's used only by the `yd-submit` command, and controls the Work Requirement that is submitted to the Platform.
 
+**Jump to:** [Property Dictionary](#work-requirement-property-dictionary) · [Automatic Properties](#automatic-properties) · [Examples](#examples) · [Variable Substitutions](#variable-substitutions-in-work-requirement-properties) · [Dry-Running](#dry-running-work-requirement-submissions) · [Data Client](#using-the-yellowdog-data-client) · [Task Execution Context](#task-execution-context) · [CSV Data](#specifying-work-requirements-using-csv-data)
+
 The details of a Work Requirement to be submitted can be captured entirely within the TOML configuration file for simple (single Task Group) examples. More complex examples capture the Work Requirement in a combination of the TOML file plus a JSON document, or in a JSON document only.
 
 ## Work Requirement JSON File Structure
@@ -647,7 +656,7 @@ The following table outlines all the properties available for defining Work Requ
 | `csvFile`                   | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                                                                                   | Yes  |     |      |      |
 | `csvFiles`                  | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                                                                                          | Yes  |     |      |      |
 | `dependencies`              | The names of other Task Groups within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `["task_group_1", "task_group_2"]`.                                                             |      |     | Yes  |      |
-| `dependentOn`               | [Deprecated in favour of `dependencies`] The name of another Task Group within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `"task_group_1"`.                                      |      |     | Yes  |      |
+| `dependentOn`               | **Deprecated** — use `dependencies` instead (see above). Takes a single string rather than a list. Support for `dependentOn` will be removed in a future release.                                                                         |      |     | Yes  |      |
 | `disablePreallocation`      | If `true`, tasks are only allocated to nodes as workers become idle and are not queued on the node. Default: `false`.                                                                                                                      | Yes  | Yes | Yes  |      |
 | `environment`               | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                                    | Yes  | Yes | Yes  | Yes  |
 | `finishIfAllTasksFinished`  | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                           | Yes  | Yes | Yes  |      |
@@ -1007,6 +1016,9 @@ Note that the generated JSON is a **consolidated form** of what would be submitt
 A simple example of the JSON output is shown below, showing a Work Requirement with a single Task Group, containing a single Task.
 
 `% yd-submit --dry-run --quiet`
+
+> **Note:** When used outside of `--dry-run`, `--quiet` on `yd-submit` prints only the Work Requirement YDID to stdout — see [yd-submit](#yd-submit) for scripting examples.
+
 ```json
 {
   "name": "pyex-docker-pwt_240424-12051160",
@@ -1058,7 +1070,7 @@ Note that variable substitutions **can** be used in the raw JSON file, just as i
 
 The YellowDog Data Client is described at https://docs.yellowdog.ai/#/the-platform/the-data-client.
 
-The CLI provides full support for expressing Data Client inputs and outputs as part of Task specifications. In addition, it can provide automatic upload of objects on the local filesystem to Data Client targets. It does this using a local `rclone` binary that will be downloaded to your system the first time the Data Client upload capability is used, if `rclone` is not already present.
+The CLI provides full support for expressing Data Client inputs and outputs as part of Task specifications. In addition, it can provide automatic upload of objects on the local filesystem to Data Client targets. It does this using a local `rclone` binary that will be downloaded to your system the first time the Data Client upload capability is used, if `rclone` is not already present. The binary is stored in the Python package's own directory and does not affect any `rclone` already on your `$PATH`. To explicitly upgrade it to the latest version, run `yd-submit --upgrade-rclone`.
 
 Currently, Data Client only supports **individual files**, not directories or wildcards. If multiple, unspecified files are required, we recommend you compress/decompress them into a single file. The compression/decompression can be handled as part of the execution of the Task at its start and/or conclusion.
 
@@ -2454,7 +2466,14 @@ All destructive commands require user confirmation before taking effect. This ca
 
 Some commands support the `--interactive` or `-i` option, allowing user selections to be made. E.g., this can be used to select which object paths to delete.
 
-The `--quiet` or `-q` option reduces the command output down to essential messages only.
+The `--quiet` or `-q` option reduces the command output down to essential messages only. For `yd-submit`, `yd-provision`, and `yd-instantiate`, `--quiet` prints **only the YDID** of the created entity to stdout, making those commands directly composable in shell scripts:
+
+```bash
+WR_ID=$(yd-submit --quiet)
+yd-follow "$WR_ID"
+```
+
+The `--print-pid` (or `--pp`) option prefixes every log line with the process ID of the CLI invocation. This is useful when running multiple commands in parallel, to disambiguate interleaved output.
 
 If you encounter an error it can be useful for support purposes to see the full Python stack trace. This can be enabled by running the command using the `--debug` option.
 
@@ -2469,6 +2488,17 @@ Use the `--dry-run` option to inspect the details of the Work Requirement, Task 
 Once submitted, the Work Requirement will appear in the **Work** tab in the YellowDog Portal.
 
 The Work Requirement's progress can be tracked to completion by using the `--follow` (or `-f`) option when invoking `yd-submit`: the command will report on Tasks as they conclude and won't return until the Work Requirement has finished.
+
+For a compact, live view, use `--progress` instead. This displays a progress bar showing completed and failed tasks vs. the total, and blocks until the Work Requirement finishes — similar to `--follow` but with a single updating line rather than per-task event messages.
+
+When `--quiet` (`-q`) is used, only the YDID of the submitted Work Requirement is printed to stdout, with all other output suppressed. This is convenient for scripting:
+
+```bash
+WR_ID=$(yd-submit --quiet)
+yd-follow "$WR_ID"
+```
+
+To explicitly download or upgrade the rclone binary used by the Data Client, run `yd-submit --upgrade-rclone`.
 
 ## yd-provision
 
@@ -2690,6 +2720,16 @@ The `yd-finish` command moves work requirements into the `FINISHING` state, mean
 ## yd-application
 
 The `yd-application` command shows the details of the current Application, i.e., the Application represented by the `key` and `secret` being used.
+
+## yd-jsonnet2json
+
+The `yd-jsonnet2json` command converts a Jsonnet file to JSON without any additional processing by the CLI (no variable substitution, no property expansion). It takes a single argument — the Jsonnet filename — and writes the resulting JSON to stdout:
+
+```shell
+yd-jsonnet2json my_spec.jsonnet
+```
+
+This is the quickest way to verify that a Jsonnet file is syntactically correct and produces the expected JSON structure. For full variable substitution and property expansion, use `--jsonnet-dry-run` or `--dry-run` on the relevant command instead.
 
 ## yd-delete
 
