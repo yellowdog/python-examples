@@ -1185,6 +1185,15 @@ class CLIParser:
                 required=False,
                 help="download the latest rclone binary, then exit",
             )
+            parser.add_argument(
+                "--progress",
+                action="store_true",
+                required=False,
+                help=(
+                    "display a live progress bar showing task completion; "
+                    "implies following the Work Requirement to completion"
+                ),
+            )
 
         # yd-upload / yd-download / yd-delete / yd-ls (data client commands)
         if any(
@@ -2001,6 +2010,11 @@ class CLIParser:
     @allow_missing_attribute
     def upgrade_rclone(self) -> bool | None:
         return self.args.upgrade_rclone
+
+    @property
+    @allow_missing_attribute
+    def progress(self) -> bool | None:
+        return self.args.progress
 
     # -----------------------------------------------------------------------
     # yd-upload / yd-download / yd-delete / yd-ls (data client commands)

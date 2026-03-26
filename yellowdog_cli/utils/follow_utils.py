@@ -2,6 +2,7 @@
 Utility function to follow event streams.
 """
 
+from collections.abc import Callable
 from threading import Thread
 from time import sleep
 
@@ -80,9 +81,17 @@ def follow_ids(ydids: list[str], auto_cr: bool = False):
         print_info("All event streams have concluded")
 
 
-def follow_events(ydid: str, ydid_type: YDIDType):
+def follow_events(
+    ydid: str,
+    ydid_type: YDIDType,
+    on_event: Callable[[str, YDIDType], None] | None = None,
+):
     """
-    Follow events.
+    Follow events for a single YDID.
+
+    If on_event is provided it is called for each raw SSE line instead of
+    print_event(), allowing callers to handle events themselves (e.g. to
+    update a progress bar).
     """
     while True:
         response = requests.get(
@@ -107,7 +116,10 @@ def follow_events(ydid: str, ydid_type: YDIDType):
         try:
             for event in response.iter_lines(decode_unicode=True):
                 if event:
-                    print_event(event, ydid_type)
+                    if on_event is not None:
+                        on_event(event, ydid_type)
+                    else:
+                        print_event(event, ydid_type)
             break
 
         except Exception as e:

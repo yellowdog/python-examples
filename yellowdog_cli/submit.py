@@ -4,6 +4,7 @@
 A script to submit a Work Requirement.
 """
 
+import signal
 from concurrent.futures import Future, ThreadPoolExecutor
 from copy import deepcopy
 from datetime import timedelta
@@ -14,6 +15,13 @@ from os.path import dirname, relpath
 
 import jsons
 import requests
+from rich.progress import (
+    BarColumn,
+    Progress,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 from yellowdog_client.common.server_sent_events import (
     DelegatedSubscriptionEventListener,
 )
@@ -43,6 +51,7 @@ from yellowdog_cli.utils.load_config import (
 )
 from yellowdog_cli.utils.misc_utils import format_yd_name, generate_id, link_entity
 from yellowdog_cli.utils.printing import (
+    CONSOLE,
     WorkRequirementSnapshot,
     print_error,
     print_info,
@@ -399,7 +408,9 @@ def submit_work_requirement(
             cleanup_on_failure(work_requirement)
             raise e
 
-    if ARGS_PARSER.follow:
+    if ARGS_PARSER.progress:
+        follow_progress_bar(work_requirement)
+    elif ARGS_PARSER.follow:
         follow_progress(work_requirement)
 
 
@@ -1077,6 +1088,110 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     if not ARGS_PARSER.dry_run:
         print_info("Following Work Requirement event stream")
         follow_events(work_requirement.id, YDIDType.WORK_REQUIREMENT)
+
+
+def follow_progress_bar(work_requirement: WorkRequirement) -> None:
+    """
+    Follow a Work Requirement and display a live progress bar.
+    Updates on each SSE event; concludes when the event stream closes.
+    """
+    if ARGS_PARSER.dry_run:
+        return
+
+    from json import loads as json_loads
+
+    total_tasks: int = 0
+    completed_tasks: int = 0
+    failed_tasks: int = 0
+
+    progress = Progress(
+        TextColumn("{task.description}"),
+        BarColumn(
+            complete_style="green4",
+            finished_style="green4",
+            pulse_style="deep_sky_blue4",
+        ),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
+        console=CONSOLE,
+        transient=False,
+    )
+    bar_task = progress.add_task("Starting\u2026", total=None)
+
+    def on_event(event: str, ydid_type: YDIDType) -> None:
+        nonlocal total_tasks, completed_tasks, failed_tasks
+        if not event.startswith("data:"):
+            return
+        try:
+            event_data = json_loads(event[len("data:") :])
+        except Exception:
+            return
+        if ydid_type is not YDIDType.WORK_REQUIREMENT:
+            return
+
+        new_total = new_completed = new_failed = 0
+        for tg in event_data.get("taskGroups", []):
+            summary = tg.get("taskSummary", {})
+            new_total += summary.get("taskCount", 0)
+            counts = summary.get("statusCounts", {})
+            new_completed += counts.get("COMPLETED", 0)
+            new_failed += counts.get("FAILED", 0) + counts.get("ABORTED", 0)
+
+        total_tasks = new_total
+        completed_tasks = new_completed
+        failed_tasks = new_failed
+
+        wr_status = event_data.get("status", "")
+        done = completed_tasks + failed_tasks
+        desc = f"{wr_status}  {done:,}/{total_tasks:,}"
+        if failed_tasks:
+            desc += f"  ({failed_tasks:,} failed)"
+
+        progress.update(
+            bar_task,
+            total=total_tasks if total_tasks > 0 else None,
+            completed=done,
+            description=desc,
+        )
+
+    def _restore_cursor() -> None:
+        """
+        Restore cursor visibility via the same file Rich writes to, bypassing
+        any FileProxy replacement of sys.stdout that Live._enable_redirect_io()
+        may have installed.
+        """
+        try:
+            CONSOLE.file.write("\033[?25h")
+            CONSOLE.file.flush()
+        except Exception:
+            pass
+
+    # Install a SIGINT handler that fires at OS-signal level, before Python
+    # raises KeyboardInterrupt.  This ensures the cursor is restored even if
+    # Rich's Live.stop() cleanup is somehow incomplete on interrupt.
+    _original_sigint = signal.getsignal(signal.SIGINT)
+
+    def _on_sigint(sig: int, frame) -> None:
+        _restore_cursor()
+        signal.signal(signal.SIGINT, _original_sigint)
+        signal.default_int_handler(sig, frame)  # raises KeyboardInterrupt
+
+    signal.signal(signal.SIGINT, _on_sigint)
+
+    print_info(f"Tracking progress for Work Requirement '{work_requirement.name}'")
+    try:
+        with progress:
+            follow_events(
+                work_requirement.id, YDIDType.WORK_REQUIREMENT, on_event=on_event
+            )
+    finally:
+        signal.signal(signal.SIGINT, _original_sigint)
+        _restore_cursor()
+
+    if failed_tasks:
+        print_warning(
+            f"Work Requirement finished with {failed_tasks:,} failed/aborted task(s)"
+        )
 
 
 def on_update(work_req: WorkRequirement):
