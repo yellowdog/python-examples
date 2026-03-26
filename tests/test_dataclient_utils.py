@@ -6,6 +6,7 @@ import pytest
 
 from yellowdog_cli.utils.config_types import ConfigDataClient
 from yellowdog_cli.utils.dataclient_utils import resolve_remote_path
+from yellowdog_cli.utils.variables import VARIABLE_SUBSTITUTIONS
 
 
 class TestResolveRemotePath:
@@ -94,3 +95,55 @@ class TestResolveRemotePath:
     def test_rclone_prefix_stripped_from_inline_remote(self):
         config = self._config(remote="rclone:s3r,type=s3,provider=AWS", bucket="b")
         assert resolve_remote_path(config) == "s3r:b"
+
+
+class TestResolveRemotePathVariableSubstitution:
+    """
+    Variable substitutions ({{var}}) in relative_path and filename arguments.
+    """
+
+    def setup_method(self):
+        VARIABLE_SUBSTITUTIONS["testns"] = "mynamespace"
+        VARIABLE_SUBSTITUTIONS["testtag"] = "mytag"
+
+    def teardown_method(self):
+        VARIABLE_SUBSTITUTIONS.pop("testns", None)
+        VARIABLE_SUBSTITUTIONS.pop("testtag", None)
+
+    def _config(self, bucket: str = "b", prefix: str = "p") -> ConfigDataClient:
+        return ConfigDataClient(remote="r", bucket=bucket, prefix=prefix)
+
+    def test_variable_in_relative_path(self):
+        config = self._config()
+        result = resolve_remote_path(config, relative_path="{{testns}}/data.csv")
+        assert result == "r:b/p/mynamespace/data.csv"
+
+    def test_variable_in_filename(self):
+        config = self._config()
+        result = resolve_remote_path(config, filename="{{testtag}}_output.txt")
+        assert result == "r:b/p/mytag_output.txt"
+
+    def test_multiple_variables_in_relative_path(self):
+        config = self._config()
+        result = resolve_remote_path(
+            config, relative_path="{{testns}}/{{testtag}}/results"
+        )
+        assert result == "r:b/p/mynamespace/mytag/results"
+
+    def test_variable_with_wildcard(self):
+        config = self._config()
+        result = resolve_remote_path(config, relative_path="{{testtag}}_*")
+        assert result == "r:b/p/mytag_*"
+
+    def test_unknown_variable_left_as_is(self):
+        # Unresolved variables are passed through unchanged
+        config = self._config()
+        result = resolve_remote_path(config, relative_path="{{unknown}}/data")
+        assert result == "r:b/p/{{unknown}}/data"
+
+    def test_builtin_variable_username(self):
+        config = self._config(prefix="")
+        result = resolve_remote_path(config, relative_path="{{username}}/data")
+        # username is always set; just check it resolved to something
+        assert "{{username}}" not in result
+        assert result.startswith("r:b/")

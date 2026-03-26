@@ -15,6 +15,7 @@ from rclone_api.dir_listing import DirListing
 from yellowdog_cli.utils.config_types import ConfigDataClient
 from yellowdog_cli.utils.printing import print_info, print_warning
 from yellowdog_cli.utils.rclone_utils import make_rclone, parse_rclone_config
+from yellowdog_cli.utils.variables import process_variable_substitutions
 
 
 def _require_remote(config: ConfigDataClient) -> str:
@@ -56,6 +57,11 @@ def resolve_remote_path(
     """
     remote_str = _require_remote(config)
     remote_name, _ = parse_rclone_config(remote_str)
+
+    if relative_path is not None:
+        relative_path = process_variable_substitutions(relative_path)
+    if filename is not None:
+        filename = process_variable_substitutions(filename)
 
     # Absolute rclone path — use verbatim
     if relative_path is not None and relative_path.startswith(f"{remote_name}:"):

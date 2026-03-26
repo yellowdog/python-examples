@@ -2348,7 +2348,7 @@ The `remote` field accepts either:
 - An inline rclone connection string (e.g., `"S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2"`)
 - An `rclone:` prefix can optionally be included
 
-The default prefix is `{{namespace}}/{{tag}}`, using the `namespace` and `tag` values from the `[common]` section (or their environment variable / command line equivalents). Variable substitutions (`{{...}}`) are supported in all `[dataClient]` values.
+The default prefix is `{{namespace}}/{{tag}}`, using the `namespace` and `tag` values from the `[common]` section (or their environment variable / command line equivalents). Variable substitutions (`{{...}}`) are supported in all `[dataClient]` values and also in the remote path arguments passed to `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` on the command line. All built-in variables (`{{namespace}}`, `{{tag}}`, `{{username}}`, `{{date}}`, etc.) and user-defined variables (`YD_VAR_*` / `[common.variables]`) are available. Arguments containing `{{...}}` should be quoted to prevent shell interpretation.
 
 > **Note on `bucket`:** The `bucket` property is named after S3/GCS terminology but applies equally to other rclone storage backends — use it to specify the container name (Azure Blob Storage), the root directory (SFTP, local, Google Drive), or the equivalent top-level path component for your storage target.
 
@@ -2364,7 +2364,7 @@ Key options:
 - `--recursive`/`-R` — upload directories recursively, preserving the directory structure
 - `--flatten` — upload all files in a directory tree to a flat (single-level) remote destination
 - `--sync` — synchronise the remote destination to match the local source (implies `--recursive`); files present at the destination but absent locally are deleted
-- `--destination`/`-d <remote_path>` — override the destination path
+- `--destination`/`-d <remote_path>` — override the destination path; supports `{{variable}}` substitution
 - `--dry-run`/`-D` — show what would be uploaded without actually uploading
 
 ## yd-download
@@ -2381,7 +2381,7 @@ Key options:
 - `--destination`/`-d <local_path>` — local destination directory (default: mirrors the remote directory name)
 - `--dry-run`/`-D` — show what would be downloaded without actually downloading
 
-Remote paths may contain wildcard characters (`*`, `?`, `[…]`). A wildcard path is expanded against the configured prefix and all matching files and directories are downloaded. The matched names are displayed before the download begins. When a wildcard is used, files are downloaded into the current directory (preserving the names of the matched items) unless `--destination` is specified. `--sync` is supported with wildcards.
+Remote paths support `{{variable}}` substitution (e.g., `'{{tag}}/results.csv'`) and may also contain wildcard characters (`*`, `?`, `[…]`). A wildcard path is expanded against the configured prefix and all matching files and directories are downloaded. The matched names are displayed before the download begins. When a wildcard is used, files are downloaded into the current directory (preserving the names of the matched items) unless `--destination` is specified. `--sync` is supported with wildcards.
 
 Example: `yd-download 'results_*'` downloads everything whose name starts with `results_`.
 
@@ -2400,7 +2400,7 @@ Key options:
 - `--dry-run`/`-D` — show what would be deleted without actually deleting
 - `--yes`/`-y` — skip confirmation prompts
 
-Remote paths may contain wildcard characters (`*`, `?`, `[…]`). The wildcard is expanded first and the matched names are displayed; confirmation is then requested before any deletions take place. Matching directories require `--recursive` to be deleted.
+Remote paths support `{{variable}}` substitution and may also contain wildcard characters (`*`, `?`, `[…]`). The wildcard is expanded first and the matched names are displayed; confirmation is then requested before any deletions take place. Matching directories require `--recursive` to be deleted.
 
 Example: `yd-delete 'results_*'` deletes all items whose name starts with `results_`.
 
@@ -2417,7 +2417,7 @@ If no remote paths are specified, the configured prefix is listed.
 Key options:
 - `--recursive`/`-R` — list recursively; output is displayed as a directory tree
 
-Remote paths may contain wildcard characters (`*`, `?`, `[…]`). Only entries in the configured prefix whose names match the pattern are listed. With `--recursive`, matching directories are expanded into full trees.
+Remote paths support `{{variable}}` substitution and may also contain wildcard characters (`*`, `?`, `[…]`). Only entries in the configured prefix whose names match the pattern are listed. With `--recursive`, matching directories are expanded into full trees.
 
 Example: `yd-ls -R 'results_*'` lists all items matching `results_*`, showing directory contents as trees.
 
