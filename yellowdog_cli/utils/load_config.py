@@ -429,7 +429,7 @@ def load_config_data_client() -> ConfigDataClient:
     register_dc_substitutions()
     base_section = CONFIG_TOML.get(DATA_CLIENT_SECTION, {})
 
-    profile_name = getattr(ARGS_PARSER, "data_client", None) or os.environ.get(
+    profile_name = getattr(ARGS_PARSER, "data_client_profile", None) or os.environ.get(
         YD_DATA_CLIENT
     )
     if profile_name is not None:

@@ -1661,11 +1661,11 @@ bucket = "staging-data"
 # inherits prefix from [dataClient]
 ```
 
-Select a profile with `--data-client <name>`:
+Select a profile with `--data-client-profile <name>`:
 
 ```
-yd-upload --data-client prod myfile.txt
-yd-download --data-client staging results/
+yd-upload --data-client-profile prod myfile.txt
+yd-download --data-client-profile staging results/
 ```
 
 The active profile can also be set via the `YD_DATA_CLIENT` environment variable. The `--remote`, `--bucket`, `--prefix`, and `--no-prefix` flags still apply on top of the selected profile, so individual fields can be overridden per invocation.
@@ -1685,7 +1685,7 @@ The `remote`, `bucket`, and `prefix` values from `[dataClient]` are available as
 | `{{dataClient.<name>.bucket}}` | Named profile's bucket |
 | `{{dataClient.<name>.prefix}}` | Named profile's prefix |
 
-For `yd-upload`/`yd-download`/`yd-delete`/`yd-ls`, `{{dataClient.remote/bucket/prefix}}` reflects the fully-resolved active profile (after `--data-client` selection, env vars, and CLI overrides). For all other commands, it reflects the base `[dataClient]` section.
+For `yd-upload`/`yd-download`/`yd-delete`/`yd-ls`, `{{dataClient.remote/bucket/prefix}}` reflects the fully-resolved active profile (after `--data-client-profile` selection, env vars, and CLI overrides). For all other commands, it reflects the base `[dataClient]` section.
 
 Named profile variables are always resolved with profile fields taking precedence over the base section, so `{{dataClient.prod.prefix}}` gives the prod profile's prefix (or the base prefix if not set in `[dataClient.prod]`).
 
