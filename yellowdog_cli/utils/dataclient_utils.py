@@ -292,7 +292,28 @@ def download_files(
 
     if dry_run:
         action = "sync" if sync else "download"
-        print_info(f"Dry-run: Would {action} '{remote_path}' → '{local_destination}'")
+        if is_glob(remote_path):
+            _, matches = list_remote_glob(config, remote_path)
+            if not matches:
+                print_warning(f"No wildcard matches for '{remote_path}'")
+                return
+            names = [f"'{e['Name'] + ('/' if e['IsDir'] else '')}'" for e in matches]
+            print_info(
+                f"Dry-run: Would {action} {len(matches)} matched item(s)"
+                f" → '{local_destination}': {', '.join(names)}"
+            )
+        else:
+            listing = list_remote(config, remote_path)
+            if not listing.dirs and not listing.files:
+                print_warning(f"'{remote_path}' does not exist")
+                return
+            n_files = len(listing.files)
+            n_dirs = len(listing.dirs)
+            ies = "y" if n_dirs == 1 else "ies"
+            print_info(
+                f"Dry-run: Would {action} '{remote_path}' → '{local_destination}'"
+                f" ({n_files} file(s), {n_dirs} director{ies})"
+            )
         return
 
     if is_glob(remote_path):
@@ -386,7 +407,43 @@ def delete_remote(
     """
     if dry_run:
         action = "recursively delete" if recursive else "delete"
-        print_info(f"Dry-run: Would {action} '{remote_path}'")
+        if is_glob(remote_path):
+            _, matches = list_remote_glob(config, remote_path)
+            if not matches:
+                print_warning(f"No wildcard matches for '{remote_path}'")
+                return
+            names = [f"'{e['Name'] + ('/' if e['IsDir'] else '')}'" for e in matches]
+            print_info(
+                f"Dry-run: Would {action} {len(matches)} matched item(s):"
+                f" {', '.join(names)}"
+            )
+        else:
+            listing = list_remote(config, remote_path)
+            if not listing.dirs and not listing.files:
+                print_warning(f"'{remote_path}' does not exist")
+                return
+            basename = remote_path.rstrip("/").rsplit("/", 1)[-1].split(":")[-1]
+            is_file = (
+                not listing.dirs
+                and len(listing.files) == 1
+                and listing.files[0].name == basename
+            )
+            if not is_file and not recursive:
+                print_warning(
+                    f"'{remote_path}' is a directory; use --recursive to delete it"
+                )
+                return
+            if is_file:
+                print_info(f"Dry-run: Would {action} '{remote_path}'")
+            else:
+                rec_listing = list_remote(config, remote_path, recursive=True)
+                n_files = len(rec_listing.files)
+                n_dirs = len(rec_listing.dirs)
+                ies = "y" if n_dirs == 1 else "ies"
+                print_info(
+                    f"Dry-run: Would {action} '{remote_path}'"
+                    f" ({n_files} file(s), {n_dirs} subdirector{ies})"
+                )
         return
 
     if is_glob(remote_path):

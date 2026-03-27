@@ -55,8 +55,9 @@ def main():
 
 def _delete_one(remote_path: str, recursive: bool, dry_run: bool) -> None:
     if dry_run:
-        action = "recursively delete" if recursive else "delete"
-        print_info(f"Dry-run: Would {action} '{remote_path}'")
+        delete_remote(
+            CONFIG_DATA_CLIENT, remote_path, recursive=recursive, dry_run=True
+        )
         return
 
     if is_glob(remote_path):
