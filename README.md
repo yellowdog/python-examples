@@ -1623,6 +1623,8 @@ yd-provision my_worker_pool.json
 
 The `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` commands provide direct access to remote data stores (object storage buckets) via **[rclone](https://rclone.org)**. They do **not** require a YellowDog Application key or secret — only the data store connection details.
 
+The `rclone` binary will be automatically downloaded if not already present.
+
 These commands share a common `[dataClient]` TOML configuration section:
 
 ```toml
