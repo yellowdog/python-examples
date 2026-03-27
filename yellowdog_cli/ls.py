@@ -17,6 +17,7 @@ from yellowdog_cli.utils.dataclient_utils import (
 from yellowdog_cli.utils.dataclient_wrapper import dataclient_wrapper
 from yellowdog_cli.utils.load_config import load_config_data_client
 from yellowdog_cli.utils.printing import print_info, print_simple
+from yellowdog_cli.utils.rclone_utils import upgrade_rclone
 
 CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
 
@@ -66,6 +67,10 @@ def _ls_glob(config: ConfigDataClient, remote_path: str, recursive: bool) -> Non
 @dataclient_wrapper
 def main():
     """ """
+    if ARGS_PARSER.upgrade_rclone:
+        upgrade_rclone()
+        return
+
     recursive = ARGS_PARSER.recursive or False
     remote_paths = ARGS_PARSER.remote_paths or []
 

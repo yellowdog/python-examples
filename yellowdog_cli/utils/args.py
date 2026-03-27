@@ -1233,6 +1233,12 @@ class CLIParser:
                 help="suppress the default path prefix; place files at the bucket root",
             )
             parser.add_argument(
+                "--upgrade-rclone",
+                action="store_true",
+                required=False,
+                help="download the latest rclone binary, then exit",
+            )
+            parser.add_argument(
                 "--data-client-profile",
                 "--profile",
                 type=str,
