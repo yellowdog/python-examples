@@ -16,7 +16,7 @@ from yellowdog_cli.utils.dataclient_utils import (
 from yellowdog_cli.utils.dataclient_wrapper import dataclient_wrapper
 from yellowdog_cli.utils.load_config import load_config_data_client
 from yellowdog_cli.utils.printing import print_error, print_warning
-from yellowdog_cli.utils.rclone_utils import upgrade_rclone
+from yellowdog_cli.utils.rclone_utils import upgrade_rclone, which_rclone
 
 CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
 
@@ -26,6 +26,10 @@ def main():
     """ """
     if ARGS_PARSER.upgrade_rclone:
         upgrade_rclone()
+        return
+
+    if ARGS_PARSER.which_rclone:
+        which_rclone()
         return
 
     sync = ARGS_PARSER.sync or False

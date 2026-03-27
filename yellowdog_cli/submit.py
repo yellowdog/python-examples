@@ -99,7 +99,11 @@ from yellowdog_cli.utils.property_names import (
     WORKER_TAGS,
     WR_TAG,
 )
-from yellowdog_cli.utils.rclone_utils import RcloneUploadedFiles, upgrade_rclone
+from yellowdog_cli.utils.rclone_utils import (
+    RcloneUploadedFiles,
+    upgrade_rclone,
+    which_rclone,
+)
 from yellowdog_cli.utils.settings import (
     DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
     MAX_BATCH_SUBMIT_ATTEMPTS,
@@ -172,6 +176,10 @@ def main():
 
     if ARGS_PARSER.upgrade_rclone:
         upgrade_rclone()
+        return
+
+    if ARGS_PARSER.which_rclone:
+        which_rclone()
         return
 
     if not 1 <= TASK_BATCH_SIZE <= 10000:

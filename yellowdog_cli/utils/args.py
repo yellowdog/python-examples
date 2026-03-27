@@ -1186,6 +1186,12 @@ class CLIParser:
                 help="download the latest rclone binary, then exit",
             )
             parser.add_argument(
+                "--which-rclone",
+                action="store_true",
+                required=False,
+                help="report the path and version of the rclone binary in use, then exit",
+            )
+            parser.add_argument(
                 "--progress",
                 action="store_true",
                 required=False,
@@ -1237,6 +1243,12 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="download the latest rclone binary, then exit",
+            )
+            parser.add_argument(
+                "--which-rclone",
+                action="store_true",
+                required=False,
+                help="report the path and version of the rclone binary in use, then exit",
             )
             parser.add_argument(
                 "--data-client-profile",
@@ -2027,6 +2039,11 @@ class CLIParser:
     @allow_missing_attribute
     def upgrade_rclone(self) -> bool | None:
         return self.args.upgrade_rclone
+
+    @property
+    @allow_missing_attribute
+    def which_rclone(self) -> bool | None:
+        return self.args.which_rclone
 
     @property
     @allow_missing_attribute
