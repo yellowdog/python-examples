@@ -33,6 +33,7 @@ from yellowdog_cli.utils.settings import (
     DEFAULT_URL,
     TASK_BATCH_SIZE_DEFAULT,
     TOML_VAR_NESTED_DEPTH,
+    YD_DATA_CLIENT,
     YD_DATA_CLIENT_BUCKET,
     YD_DATA_CLIENT_PREFIX,
     YD_DATA_CLIENT_REMOTE,
@@ -146,7 +147,16 @@ else:
         print_info(f"Loading configuration data from: '{CONFIG_FILE}'")
         CONFIG_TOML: dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
         try:
-            validate_properties(CONFIG_TOML, f"'{CONFIG_FILE}'")
+            # Strip profile sub-tables from [dataClient] before validation;
+            # profile names are user-defined and not in ALL_KEYS.
+            toml_for_validation = dict(CONFIG_TOML)
+            if DATA_CLIENT_SECTION in toml_for_validation:
+                toml_for_validation[DATA_CLIENT_SECTION] = {
+                    k: v
+                    for k, v in toml_for_validation[DATA_CLIENT_SECTION].items()
+                    if not isinstance(v, dict)
+                }
+            validate_properties(toml_for_validation, f"'{CONFIG_FILE}'")
         except Exception as e:
             print_error(e)
             exit(1)
@@ -332,14 +342,48 @@ def _load_namespace_and_tag() -> None:
     )
 
 
+def _select_dc_section(base: dict, profile_name: str | None) -> dict:
+    """
+    From the raw [dataClient] TOML dict (which may contain named profile sub-tables),
+    return the merged scalar section to use.
+
+    If profile_name is None: return only scalar (non-dict) entries from base.
+    If profile_name is given: merge scalar base entries with the named profile's
+    entries, with the profile taking precedence. Raises ValueError if not found.
+    """
+    scalars = {k: v for k, v in base.items() if not isinstance(v, dict)}
+    if profile_name is None:
+        return scalars
+    profile = base.get(profile_name)
+    if not isinstance(profile, dict):
+        raise ValueError(
+            f"Data client profile '[{DATA_CLIENT_SECTION}.{profile_name}]' not found in config"
+        )
+    return {**scalars, **profile}
+
+
 def load_config_data_client() -> ConfigDataClient:
     """
     Load the configuration data for the data client (rclone-backed commands).
-    Priority: CLI flags > environment variables > [dataClient] section in config.toml.
+    Priority: CLI flags > environment variables > TOML config.
+    Named profiles ([dataClient.<name>]) inherit unset fields from [dataClient].
     Resolved values are registered in VARIABLE_SUBSTITUTIONS for use in specs.
     """
     _load_namespace_and_tag()
-    dc_section = CONFIG_TOML.get(DATA_CLIENT_SECTION, {})
+    base_section = CONFIG_TOML.get(DATA_CLIENT_SECTION, {})
+
+    profile_name = getattr(ARGS_PARSER, "data_client", None) or os.environ.get(
+        YD_DATA_CLIENT
+    )
+    if profile_name is not None:
+        try:
+            dc_section = _select_dc_section(base_section, profile_name)
+        except ValueError as e:
+            print_error(e)
+            exit(1)
+        print_info(f"Using data client profile: '{profile_name}'")
+    else:
+        dc_section = _select_dc_section(base_section, None)
 
     for _ in range(TOML_VAR_NESTED_DEPTH):
         process_variable_substitutions_insitu(dc_section)

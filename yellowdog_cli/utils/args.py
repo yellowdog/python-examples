@@ -1233,6 +1233,16 @@ class CLIParser:
                 help="suppress the default path prefix; place files at the bucket root",
             )
             parser.add_argument(
+                "--data-client",
+                type=str,
+                required=False,
+                help=(
+                    "select a named [dataClient.<name>] profile from the config; "
+                    "inherits unset fields from [dataClient]"
+                ),
+                metavar="<name>",
+            )
+            parser.add_argument(
                 "--dry-run",
                 "-D",
                 action="store_true",
@@ -2039,6 +2049,11 @@ class CLIParser:
     @allow_missing_attribute
     def no_prefix(self) -> bool | None:
         return self.args.no_prefix
+
+    @property
+    @allow_missing_attribute
+    def data_client(self) -> str | None:
+        return self.args.data_client
 
     # -----------------------------------------------------------------------
     # yd-upload

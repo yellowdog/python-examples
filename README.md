@@ -2389,6 +2389,35 @@ The default prefix is `{{namespace}}/{{tag}}`, using the `namespace` and `tag` v
 
 > **Note on `bucket`:** The `bucket` property is named after S3/GCS terminology but applies equally to other rclone storage backends — use it to specify the container name (Azure Blob Storage), the root directory (SFTP, local, Google Drive), or the equivalent top-level path component for your storage target.
 
+### Named Profiles
+
+Multiple named profiles can be defined as sub-tables of `[dataClient]`. A named profile overrides only the fields it specifies; any field not set in the profile inherits the corresponding value from the base `[dataClient]` section.
+
+```toml
+[dataClient]
+prefix = "{{namespace}}/{{tag}}"   # shared default inherited by all profiles
+
+[dataClient.prod]
+remote = "s3-prod"
+bucket = "prod-data"
+
+[dataClient.staging]
+remote = "s3-staging"
+bucket = "staging-data"
+# inherits prefix from [dataClient]
+```
+
+Select a profile with `--data-client <name>`:
+
+```
+yd-upload --data-client prod myfile.txt
+yd-download --data-client staging results/
+```
+
+The active profile can also be set via the `YD_DATA_CLIENT` environment variable. The `--remote`, `--bucket`, `--prefix`, and `--no-prefix` flags still apply on top of the selected profile, so individual fields can be overridden per invocation.
+
+Profile names are free-form; the only reserved names are `remote`, `bucket`, and `prefix` (the scalar field names of `[dataClient]` itself).
+
 ## yd-upload
 
 The `yd-upload` command uploads local files or directories to a remote data store.
