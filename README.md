@@ -69,6 +69,11 @@
       * [TOML Properties Inherited by Worker Pool JSON Specifications](#toml-properties-inherited-by-worker-pool-json-specifications)
    * [Variable Substitutions in Worker Pool Properties](#variable-substitutions-in-worker-pool-properties)
    * [Dry-Running Worker Pool Provisioning](#dry-running-worker-pool-provisioning)
+* [Data Client](#data-client)
+   * [yd-upload](#yd-upload)
+   * [yd-download](#yd-download)
+   * [yd-delete](#yd-delete)
+   * [yd-ls](#yd-ls)
 * [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
    * [Overview of Operation](#overview-of-operation)
       * [Resource Creation](#resource-creation)
@@ -100,11 +105,6 @@
    * [Variable Substitutions in Jsonnet Files](#variable-substitutions-in-jsonnet-files)
    * [Checking Jsonnet Processing](#checking-jsonnet-processing)
    * [Jsonnet Example](#jsonnet-example)
-* [Data Client Commands](#data-client-commands)
-   * [yd-upload](#yd-upload)
-   * [yd-download](#yd-download)
-   * [yd-delete](#yd-delete)
-   * [yd-ls](#yd-ls)
 * [Command List](#command-list)
    * [yd-submit](#yd-submit)
    * [yd-provision](#yd-provision)
@@ -1619,6 +1619,167 @@ yd-provision --dry-run -q > my_worker_pool.json
 yd-provision my_worker_pool.json
 ```
 
+# Data Client
+
+The `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` commands provide direct access to remote data stores (object storage buckets) via **[rclone](https://rclone.org)**. They do **not** require a YellowDog Application key or secret — only the data store connection details.
+
+These commands share a common `[dataClient]` TOML configuration section:
+
+```toml
+[dataClient]
+    remote = "myremote"               # rclone remote name (from rclone.conf) or inline connection string
+    bucket = "my-bucket"              # bucket / container / root path (see note below)
+    prefix = "{{namespace}}/{{tag}}"  # path prefix within the bucket (default: namespace/tag)
+```
+
+The `remote`, `bucket`, and `prefix` values can also be supplied via command line options (`--remote`/`-r`, `--bucket`/`-b`, `--prefix`/`-p`) or environment variables (`YD_DATA_CLIENT_REMOTE`, `YD_DATA_CLIENT_BUCKET`, `YD_DATA_CLIENT_PREFIX`). The `--no-prefix` flag disables the prefix entirely.
+
+The `remote` field accepts either:
+- A plain remote name defined in the system `rclone.conf` (e.g., `"yds3"`)
+- An inline rclone connection string (e.g., `"S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2"`)
+- An `rclone:` prefix can optionally be included
+
+The default prefix is `{{namespace}}/{{tag}}`, using the `namespace` and `tag` values from the `[common]` section (or their environment variable / command line equivalents). Variable substitutions (`{{...}}`) are supported in all `[dataClient]` values and also in the remote path arguments passed to `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` on the command line. All built-in variables (`{{namespace}}`, `{{tag}}`, `{{username}}`, `{{date}}`, etc.) and user-defined variables (`YD_VAR_*` / `[common.variables]`) are available. Arguments containing `{{...}}` should be quoted to prevent shell interpretation.
+
+> **Note on `bucket`:** The `bucket` property is named after S3/GCS terminology but applies equally to other rclone storage backends — use it to specify the container name (Azure Blob Storage), the root directory (SFTP, local, Google Drive), or the equivalent top-level path component for your storage target.
+
+### Named Profiles
+
+Multiple named profiles can be defined as sub-tables of `[dataClient]`. A named profile overrides only the fields it specifies; any field not set in the profile inherits the corresponding value from the base `[dataClient]` section.
+
+```toml
+[dataClient]
+prefix = "{{namespace}}/{{tag}}"   # shared default inherited by all profiles
+
+[dataClient.prod]
+remote = "s3-prod"
+bucket = "prod-data"
+
+[dataClient.staging]
+remote = "s3-staging"
+bucket = "staging-data"
+# inherits prefix from [dataClient]
+```
+
+Select a profile with `--data-client <name>`:
+
+```
+yd-upload --data-client prod myfile.txt
+yd-download --data-client staging results/
+```
+
+The active profile can also be set via the `YD_DATA_CLIENT` environment variable. The `--remote`, `--bucket`, `--prefix`, and `--no-prefix` flags still apply on top of the selected profile, so individual fields can be overridden per invocation.
+
+Profile names are free-form; the only reserved names are `remote`, `bucket`, and `prefix` (the scalar field names of `[dataClient]` itself).
+
+### Variable Substitutions for Data Client Properties
+
+The `remote`, `bucket`, and `prefix` values from `[dataClient]` are available as variable substitutions in all spec files (TOML, JSON, Jsonnet) and in `userdata` scripts for every command — including `yd-submit`, `yd-provision`, and `yd-instantiate`:
+
+| Variable | Value |
+|---|---|
+| `{{dataClient.remote}}` | Active profile's remote (or base `[dataClient].remote`) |
+| `{{dataClient.bucket}}` | Active profile's bucket |
+| `{{dataClient.prefix}}` | Active profile's prefix |
+| `{{dataClient.<name>.remote}}` | Named profile's remote, regardless of active selection |
+| `{{dataClient.<name>.bucket}}` | Named profile's bucket |
+| `{{dataClient.<name>.prefix}}` | Named profile's prefix |
+
+For `yd-upload`/`yd-download`/`yd-delete`/`yd-ls`, `{{dataClient.remote/bucket/prefix}}` reflects the fully-resolved active profile (after `--data-client` selection, env vars, and CLI overrides). For all other commands, it reflects the base `[dataClient]` section.
+
+Named profile variables are always resolved with profile fields taking precedence over the base section, so `{{dataClient.prod.prefix}}` gives the prod profile's prefix (or the base prefix if not set in `[dataClient.prod]`).
+
+> **Note on Worker Pool / Compute Requirement specs and User Data:** In JSON/Jsonnet Worker Pool and Compute Requirement specifications, and in all User Data (whether supplied via `userData`, `userDataFile`, or `userDataFiles`), variable substitutions **must be prefixed and postfixed by double underscores** to disambiguate them from server-side Mustache processing. Use `__{{dataClient.remote}}__`, `__{{dataClient.prod.bucket}}__`, etc.
+
+Example use in a work requirement spec (no underscores needed in WR JSON):
+
+```json
+{
+  "taskDataInputs": [
+    {
+      "source": "{{dataClient.remote}}:{{dataClient.bucket}}/{{dataClient.prefix}}/input.csv",
+      "destination": "input.csv"
+    }
+  ]
+}
+```
+
+Example use in a `userdata` script (double underscores required):
+
+```bash
+#!/bin/bash
+rclone copy __{{dataClient.prod.remote}}__:__{{dataClient.prod.bucket}}__/configs /tmp/configs
+```
+
+## yd-upload
+
+The `yd-upload` command uploads local files or directories to a remote data store.
+
+```
+yd-upload [options] <local_path> [<local_path> ...]
+```
+
+Key options:
+- `--recursive`/`-R` — upload directories recursively, preserving the directory structure
+- `--flatten` — upload all files in a directory tree to a flat (single-level) remote destination
+- `--sync` — synchronise the remote destination to match the local source (implies `--recursive`); files present at the destination but absent locally are deleted
+- `--destination`/`-d <remote_path>` — override the destination path; supports `{{variable}}` substitution
+- `--dry-run`/`-D` — show what would be uploaded without actually uploading
+
+## yd-download
+
+The `yd-download` command downloads files from a remote data store to a local directory.
+
+```
+yd-download [options] <remote_path> [<remote_path> ...]
+```
+
+Key options:
+- `--sync` — mirror the remote source to the local destination, deleting local files not present remotely (not compatible with `--flatten`)
+- `--flatten` — download all files in a remote directory tree to a flat (single-level) local destination
+- `--destination`/`-d <local_path>` — local destination directory (default: mirrors the remote directory name)
+- `--dry-run`/`-D` — show what would be downloaded without actually downloading
+
+Remote paths support `{{variable}}` substitution (e.g., `'{{tag}}/results.csv'`) and may also contain wildcard characters (`*`, `?`, `[…]`). A wildcard path is expanded against the configured prefix and all matching files and directories are downloaded. The matched names are displayed before the download begins. When a wildcard is used, files are downloaded into the current directory (preserving the names of the matched items) unless `--destination` is specified. `--sync` is supported with wildcards.
+
+Example: `yd-download 'results_*'` downloads everything whose name starts with `results_`.
+
+## yd-delete
+
+The `yd-delete` command deletes files or directories from a remote data store.
+
+```
+yd-delete [options] [<remote_path> ...]
+```
+
+If no remote paths are specified, the command operates on the entire configured prefix. Use `--recursive` to delete a directory tree.
+
+Key options:
+- `--recursive`/`-R` — recursively delete a remote directory tree
+- `--dry-run`/`-D` — show what would be deleted without actually deleting
+- `--yes`/`-y` — skip confirmation prompts
+
+Remote paths support `{{variable}}` substitution and may also contain wildcard characters (`*`, `?`, `[…]`). The wildcard is expanded first and the matched names are displayed; confirmation is then requested before any deletions take place. Matching directories require `--recursive` to be deleted.
+
+Example: `yd-delete 'results_*'` deletes all items whose name starts with `results_`.
+
+## yd-ls
+
+The `yd-ls` command lists files and directories in a remote data store.
+
+```
+yd-ls [options] [<remote_path> ...]
+```
+
+If no remote paths are specified, the configured prefix is listed.
+
+Key options:
+- `--recursive`/`-R` — list recursively; output is displayed as a directory tree
+
+Remote paths support `{{variable}}` substitution and may also contain wildcard characters (`*`, `?`, `[…]`). Only entries in the configured prefix whose names match the pattern are listed. With `--recursive`, matching directories are expanded into full trees.
+
+Example: `yd-ls -R 'results_*'` lists all items matching `results_*`, showing directory contents as trees.
+
 # Creating, Updating and Removing Resources
 
 The commands **yd-create** and **yd-remove** allow the creation, update and removal of the following YellowDog resources:
@@ -2364,167 +2525,6 @@ When this is inspected using the `dry-run` option (`yd-submit -D my_work_req.jso
   ]
 }
 ```
-
-# Data Client Commands
-
-The `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` commands provide direct access to remote data stores (object storage buckets) via **[rclone](https://rclone.org)**. They do **not** require a YellowDog Application key or secret — only the data store connection details.
-
-These commands share a common `[dataClient]` TOML configuration section:
-
-```toml
-[dataClient]
-    remote = "myremote"               # rclone remote name (from rclone.conf) or inline connection string
-    bucket = "my-bucket"              # bucket / container / root path (see note below)
-    prefix = "{{namespace}}/{{tag}}"  # path prefix within the bucket (default: namespace/tag)
-```
-
-The `remote`, `bucket`, and `prefix` values can also be supplied via command line options (`--remote`/`-r`, `--bucket`/`-b`, `--prefix`/`-p`) or environment variables (`YD_DATA_CLIENT_REMOTE`, `YD_DATA_CLIENT_BUCKET`, `YD_DATA_CLIENT_PREFIX`). The `--no-prefix` flag disables the prefix entirely.
-
-The `remote` field accepts either:
-- A plain remote name defined in the system `rclone.conf` (e.g., `"yds3"`)
-- An inline rclone connection string (e.g., `"S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2"`)
-- An `rclone:` prefix can optionally be included
-
-The default prefix is `{{namespace}}/{{tag}}`, using the `namespace` and `tag` values from the `[common]` section (or their environment variable / command line equivalents). Variable substitutions (`{{...}}`) are supported in all `[dataClient]` values and also in the remote path arguments passed to `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` on the command line. All built-in variables (`{{namespace}}`, `{{tag}}`, `{{username}}`, `{{date}}`, etc.) and user-defined variables (`YD_VAR_*` / `[common.variables]`) are available. Arguments containing `{{...}}` should be quoted to prevent shell interpretation.
-
-> **Note on `bucket`:** The `bucket` property is named after S3/GCS terminology but applies equally to other rclone storage backends — use it to specify the container name (Azure Blob Storage), the root directory (SFTP, local, Google Drive), or the equivalent top-level path component for your storage target.
-
-### Named Profiles
-
-Multiple named profiles can be defined as sub-tables of `[dataClient]`. A named profile overrides only the fields it specifies; any field not set in the profile inherits the corresponding value from the base `[dataClient]` section.
-
-```toml
-[dataClient]
-prefix = "{{namespace}}/{{tag}}"   # shared default inherited by all profiles
-
-[dataClient.prod]
-remote = "s3-prod"
-bucket = "prod-data"
-
-[dataClient.staging]
-remote = "s3-staging"
-bucket = "staging-data"
-# inherits prefix from [dataClient]
-```
-
-Select a profile with `--data-client <name>`:
-
-```
-yd-upload --data-client prod myfile.txt
-yd-download --data-client staging results/
-```
-
-The active profile can also be set via the `YD_DATA_CLIENT` environment variable. The `--remote`, `--bucket`, `--prefix`, and `--no-prefix` flags still apply on top of the selected profile, so individual fields can be overridden per invocation.
-
-Profile names are free-form; the only reserved names are `remote`, `bucket`, and `prefix` (the scalar field names of `[dataClient]` itself).
-
-### Variable Substitutions for Data Client Properties
-
-The `remote`, `bucket`, and `prefix` values from `[dataClient]` are available as variable substitutions in all spec files (TOML, JSON, Jsonnet) and in `userdata` scripts for every command — including `yd-submit`, `yd-provision`, and `yd-instantiate`:
-
-| Variable | Value |
-|---|---|
-| `{{dataClient.remote}}` | Active profile's remote (or base `[dataClient].remote`) |
-| `{{dataClient.bucket}}` | Active profile's bucket |
-| `{{dataClient.prefix}}` | Active profile's prefix |
-| `{{dataClient.<name>.remote}}` | Named profile's remote, regardless of active selection |
-| `{{dataClient.<name>.bucket}}` | Named profile's bucket |
-| `{{dataClient.<name>.prefix}}` | Named profile's prefix |
-
-For `yd-upload`/`yd-download`/`yd-delete`/`yd-ls`, `{{dataClient.remote/bucket/prefix}}` reflects the fully-resolved active profile (after `--data-client` selection, env vars, and CLI overrides). For all other commands, it reflects the base `[dataClient]` section.
-
-Named profile variables are always resolved with profile fields taking precedence over the base section, so `{{dataClient.prod.prefix}}` gives the prod profile's prefix (or the base prefix if not set in `[dataClient.prod]`).
-
-> **Note on Worker Pool / Compute Requirement specs and User Data:** In JSON/Jsonnet Worker Pool and Compute Requirement specifications, and in all User Data (whether supplied via `userData`, `userDataFile`, or `userDataFiles`), variable substitutions **must be prefixed and postfixed by double underscores** to disambiguate them from server-side Mustache processing. Use `__{{dataClient.remote}}__`, `__{{dataClient.prod.bucket}}__`, etc.
-
-Example use in a work requirement spec (no underscores needed in WR JSON):
-
-```json
-{
-  "taskDataInputs": [
-    {
-      "source": "{{dataClient.remote}}:{{dataClient.bucket}}/{{dataClient.prefix}}/input.csv",
-      "destination": "input.csv"
-    }
-  ]
-}
-```
-
-Example use in a `userdata` script (double underscores required):
-
-```bash
-#!/bin/bash
-rclone copy __{{dataClient.prod.remote}}__:__{{dataClient.prod.bucket}}__/configs /tmp/configs
-```
-
-## yd-upload
-
-The `yd-upload` command uploads local files or directories to a remote data store.
-
-```
-yd-upload [options] <local_path> [<local_path> ...]
-```
-
-Key options:
-- `--recursive`/`-R` — upload directories recursively, preserving the directory structure
-- `--flatten` — upload all files in a directory tree to a flat (single-level) remote destination
-- `--sync` — synchronise the remote destination to match the local source (implies `--recursive`); files present at the destination but absent locally are deleted
-- `--destination`/`-d <remote_path>` — override the destination path; supports `{{variable}}` substitution
-- `--dry-run`/`-D` — show what would be uploaded without actually uploading
-
-## yd-download
-
-The `yd-download` command downloads files from a remote data store to a local directory.
-
-```
-yd-download [options] <remote_path> [<remote_path> ...]
-```
-
-Key options:
-- `--sync` — mirror the remote source to the local destination, deleting local files not present remotely (not compatible with `--flatten`)
-- `--flatten` — download all files in a remote directory tree to a flat (single-level) local destination
-- `--destination`/`-d <local_path>` — local destination directory (default: mirrors the remote directory name)
-- `--dry-run`/`-D` — show what would be downloaded without actually downloading
-
-Remote paths support `{{variable}}` substitution (e.g., `'{{tag}}/results.csv'`) and may also contain wildcard characters (`*`, `?`, `[…]`). A wildcard path is expanded against the configured prefix and all matching files and directories are downloaded. The matched names are displayed before the download begins. When a wildcard is used, files are downloaded into the current directory (preserving the names of the matched items) unless `--destination` is specified. `--sync` is supported with wildcards.
-
-Example: `yd-download 'results_*'` downloads everything whose name starts with `results_`.
-
-## yd-delete
-
-The `yd-delete` command deletes files or directories from a remote data store.
-
-```
-yd-delete [options] [<remote_path> ...]
-```
-
-If no remote paths are specified, the command operates on the entire configured prefix. Use `--recursive` to delete a directory tree.
-
-Key options:
-- `--recursive`/`-R` — recursively delete a remote directory tree
-- `--dry-run`/`-D` — show what would be deleted without actually deleting
-- `--yes`/`-y` — skip confirmation prompts
-
-Remote paths support `{{variable}}` substitution and may also contain wildcard characters (`*`, `?`, `[…]`). The wildcard is expanded first and the matched names are displayed; confirmation is then requested before any deletions take place. Matching directories require `--recursive` to be deleted.
-
-Example: `yd-delete 'results_*'` deletes all items whose name starts with `results_`.
-
-## yd-ls
-
-The `yd-ls` command lists files and directories in a remote data store.
-
-```
-yd-ls [options] [<remote_path> ...]
-```
-
-If no remote paths are specified, the configured prefix is listed.
-
-Key options:
-- `--recursive`/`-R` — list recursively; output is displayed as a directory tree
-
-Remote paths support `{{variable}}` substitution and may also contain wildcard characters (`*`, `?`, `[…]`). Only entries in the configured prefix whose names match the pattern are listed. With `--recursive`, matching directories are expanded into full trees.
-
-Example: `yd-ls -R 'results_*'` lists all items matching `results_*`, showing directory contents as trees.
 
 # Command List
 
