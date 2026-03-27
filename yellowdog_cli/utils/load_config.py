@@ -50,6 +50,7 @@ from yellowdog_cli.utils.type_check import check_list, check_str
 from yellowdog_cli.utils.validate_properties import validate_properties
 from yellowdog_cli.utils.variables import (
     VARIABLE_SUBSTITUTIONS,
+    add_or_update_substitution,
     add_substitutions_without_overwriting,
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions,
@@ -271,6 +272,8 @@ def load_config_common() -> ConfigCommon:
             )
             os.environ[requests_ca_bundle] = certificates
 
+        register_dc_substitutions()
+
         return ConfigCommon(
             # Required
             key=key,
@@ -342,6 +345,57 @@ def _load_namespace_and_tag() -> None:
     )
 
 
+def _build_dc_substitutions(base: dict) -> dict:
+    """
+    Build the {{dataClient.*}} substitution dict from the raw [dataClient] TOML section.
+
+    Returns raw (pre-substitution) string values; variable resolution is applied
+    by the caller via add_substitutions_without_overwriting.
+
+    Produces:
+    - {{dataClient.remote/bucket/prefix}} from the base scalar fields
+    - {{dataClient.<name>.remote/bucket/prefix}} for each named profile sub-table,
+      with unset profile fields inherited from the base
+    """
+    scalars = {k: v for k, v in base.items() if not isinstance(v, dict)}
+    subs: dict = {}
+
+    for field in (DATA_CLIENT_REMOTE, DATA_CLIENT_BUCKET, DATA_CLIENT_PREFIX):
+        value = scalars.get(field)
+        if value is not None:
+            subs[f"{DATA_CLIENT_SECTION}.{field}"] = str(value)
+
+    for name, profile in base.items():
+        if not isinstance(profile, dict):
+            continue
+        merged = {**scalars, **profile}
+        for field in (DATA_CLIENT_REMOTE, DATA_CLIENT_BUCKET, DATA_CLIENT_PREFIX):
+            value = merged.get(field)
+            if value is not None:
+                subs[f"{DATA_CLIENT_SECTION}.{name}.{field}"] = str(value)
+
+    return subs
+
+
+def register_dc_substitutions() -> None:
+    """
+    Register {{dataClient.*}} variable substitutions from the [dataClient] TOML section.
+
+    Must be called after namespace and tag are registered (i.e. after
+    load_config_common or _load_namespace_and_tag) so that prefix values
+    containing {{namespace}}/{{tag}} resolve correctly.
+
+    Called from load_config_common() for all @main_wrapper commands, and from
+    load_config_data_client() for data client commands (which bypass main_wrapper).
+    """
+    base = CONFIG_TOML.get(DATA_CLIENT_SECTION, {})
+    if not base:
+        return
+    subs = _build_dc_substitutions(base)
+    if subs:
+        add_substitutions_without_overwriting(subs)
+
+
 def _select_dc_section(base: dict, profile_name: str | None) -> dict:
     """
     From the raw [dataClient] TOML dict (which may contain named profile sub-tables),
@@ -370,6 +424,9 @@ def load_config_data_client() -> ConfigDataClient:
     Resolved values are registered in VARIABLE_SUBSTITUTIONS for use in specs.
     """
     _load_namespace_and_tag()
+    # Register all {{dataClient.*}} vars for data client commands, which bypass
+    # load_config_common() and therefore don't get this called automatically.
+    register_dc_substitutions()
     base_section = CONFIG_TOML.get(DATA_CLIENT_SECTION, {})
 
     profile_name = getattr(ARGS_PARSER, "data_client", None) or os.environ.get(
@@ -417,7 +474,7 @@ def load_config_data_client() -> ConfigDataClient:
         if prefix is None:
             prefix = process_variable_substitutions("{{namespace}}/{{tag}}")
 
-    # Register resolved values for use in task specs
+    # Register legacy {{remote/bucket/prefix}} names (backward compat).
     add_substitutions_without_overwriting(
         subs={
             k: v
@@ -429,6 +486,17 @@ def load_config_data_client() -> ConfigDataClient:
             if v is not None
         }
     )
+
+    # Register {{dataClient.remote/bucket/prefix}} with the fully-resolved active
+    # profile values, overwriting whatever register_dc_substitutions() set from the
+    # base section (active profile takes precedence).
+    for key, value in {
+        f"{DATA_CLIENT_SECTION}.{DATA_CLIENT_REMOTE}": remote,
+        f"{DATA_CLIENT_SECTION}.{DATA_CLIENT_BUCKET}": bucket,
+        f"{DATA_CLIENT_SECTION}.{DATA_CLIENT_PREFIX}": prefix,
+    }.items():
+        if value is not None:
+            add_or_update_substitution(key, value)
 
     return ConfigDataClient(remote=remote, bucket=bucket, prefix=prefix)
 

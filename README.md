@@ -2418,6 +2418,45 @@ The active profile can also be set via the `YD_DATA_CLIENT` environment variable
 
 Profile names are free-form; the only reserved names are `remote`, `bucket`, and `prefix` (the scalar field names of `[dataClient]` itself).
 
+### Variable Substitutions for Data Client Properties
+
+The `remote`, `bucket`, and `prefix` values from `[dataClient]` are available as variable substitutions in all spec files (TOML, JSON, Jsonnet) and in `userdata` scripts for every command — including `yd-submit`, `yd-provision`, and `yd-instantiate`:
+
+| Variable | Value |
+|---|---|
+| `{{dataClient.remote}}` | Active profile's remote (or base `[dataClient].remote`) |
+| `{{dataClient.bucket}}` | Active profile's bucket |
+| `{{dataClient.prefix}}` | Active profile's prefix |
+| `{{dataClient.<name>.remote}}` | Named profile's remote, regardless of active selection |
+| `{{dataClient.<name>.bucket}}` | Named profile's bucket |
+| `{{dataClient.<name>.prefix}}` | Named profile's prefix |
+
+For `yd-upload`/`yd-download`/`yd-delete`/`yd-ls`, `{{dataClient.remote/bucket/prefix}}` reflects the fully-resolved active profile (after `--data-client` selection, env vars, and CLI overrides). For all other commands, it reflects the base `[dataClient]` section.
+
+Named profile variables are always resolved with profile fields taking precedence over the base section, so `{{dataClient.prod.prefix}}` gives the prod profile's prefix (or the base prefix if not set in `[dataClient.prod]`).
+
+> **Note on Worker Pool / Compute Requirement specs and User Data:** In JSON/Jsonnet Worker Pool and Compute Requirement specifications, and in all User Data (whether supplied via `userData`, `userDataFile`, or `userDataFiles`), variable substitutions **must be prefixed and postfixed by double underscores** to disambiguate them from server-side Mustache processing. Use `__{{dataClient.remote}}__`, `__{{dataClient.prod.bucket}}__`, etc.
+
+Example use in a work requirement spec (no underscores needed in WR JSON):
+
+```json
+{
+  "taskDataInputs": [
+    {
+      "source": "{{dataClient.remote}}:{{dataClient.bucket}}/{{dataClient.prefix}}/input.csv",
+      "destination": "input.csv"
+    }
+  ]
+}
+```
+
+Example use in a `userdata` script (double underscores required):
+
+```bash
+#!/bin/bash
+rclone copy __{{dataClient.prod.remote}}__:__{{dataClient.prod.bucket}}__/configs /tmp/configs
+```
+
 ## yd-upload
 
 The `yd-upload` command uploads local files or directories to a remote data store.
