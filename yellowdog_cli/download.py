@@ -18,7 +18,6 @@ CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
 
 @dataclient_wrapper
 def main():
-    """ """
     if ARGS_PARSER.upgrade_rclone:
         upgrade_rclone()
         return

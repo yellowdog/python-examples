@@ -66,7 +66,7 @@ def _ls_glob(config: ConfigDataClient, remote_path: str, recursive: bool) -> Non
 
 @dataclient_wrapper
 def main():
-    """ """
+
     if ARGS_PARSER.upgrade_rclone:
         upgrade_rclone()
         return
@@ -95,7 +95,7 @@ def main():
 
 
 def _print_listing(listing, recursive: bool = False) -> None:
-    """ """
+
     if not listing.dirs and not listing.files:
         print_simple("  (empty)")
         return
@@ -106,7 +106,7 @@ def _print_listing(listing, recursive: bool = False) -> None:
 
 
 def _print_flat(listing) -> None:
-    """ """
+
     entries = []
     for d in listing.dirs:
         entries.append(("DIR", d.name + "/", ""))

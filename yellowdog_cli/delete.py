@@ -23,7 +23,6 @@ CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
 
 @dataclient_wrapper
 def main():
-    """ """
     if ARGS_PARSER.upgrade_rclone:
         upgrade_rclone()
         return
@@ -55,7 +54,6 @@ def main():
 
 
 def _delete_one(remote_path: str, recursive: bool, dry_run: bool) -> None:
-    """ """
     if dry_run:
         action = "recursively delete" if recursive else "delete"
         print_info(f"Dry-run: Would {action} '{remote_path}'")
