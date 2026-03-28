@@ -453,6 +453,10 @@ def delete_remote(
     _, rclone = _rclone_for_config(config)
 
     if recursive:
+        listing = list_remote(config, remote_path)
+        if not listing.dirs and not listing.files:
+            print_warning(f"'{remote_path}' does not exist")
+            return
         print_info(f"Deleting directory '{remote_path}'")
         result = rclone.purge(remote_path)
     else:
