@@ -434,7 +434,7 @@ def delete_remote(
                 )
                 return
             if is_file:
-                print_info(f"Dry-run: Would {action} '{remote_path}'")
+                print_info(f"Dry-run: Would delete '{remote_path}'")
             else:
                 rec_listing = list_remote(config, remote_path, recursive=True)
                 n_files = len(rec_listing.files)
@@ -452,34 +452,30 @@ def delete_remote(
 
     _, rclone = _rclone_for_config(config)
 
-    if recursive:
-        listing = list_remote(config, remote_path)
-        if not listing.dirs and not listing.files:
-            print_warning(f"'{remote_path}' does not exist")
-            return
+    listing = list_remote(config, remote_path)
+    if not listing.dirs and not listing.files:
+        print_warning(f"'{remote_path}' does not exist")
+        return
+
+    # When rclone lists a single file, it returns that file itself in the
+    # listing (name == basename of the path).  Distinguish this from a
+    # directory whose *contents* are listed (names differ from the path).
+    basename = remote_path.rstrip("/").rsplit("/", 1)[-1].split(":")[-1]
+    is_file = (
+        not listing.dirs
+        and len(listing.files) == 1
+        and listing.files[0].name == basename
+    )
+
+    if is_file:
+        print_info(f"Deleting '{remote_path}'")
+        result = rclone.delete_files(remote_path)
+    elif recursive:
         print_info(f"Deleting directory '{remote_path}'")
         result = rclone.purge(remote_path)
     else:
-        listing = list_remote(config, remote_path)
-        # When rclone lists a single file, it returns that file itself in the
-        # listing (name == basename of the path).  Distinguish this from a
-        # directory whose *contents* are listed (names differ from the path).
-        if not listing.dirs and not listing.files:
-            print_warning(f"'{remote_path}' does not exist")
-            return
-        basename = remote_path.rstrip("/").rsplit("/", 1)[-1].split(":")[-1]
-        is_file = (
-            not listing.dirs
-            and len(listing.files) == 1
-            and listing.files[0].name == basename
-        )
-        if not is_file and (listing.dirs or listing.files):
-            print_warning(
-                f"'{remote_path}' is a directory; use --recursive to delete it"
-            )
-            return
-        print_info(f"Deleting '{remote_path}'")
-        result = rclone.delete_files(remote_path)
+        print_warning(f"'{remote_path}' is a directory; use --recursive to delete it")
+        return
 
     if result.returncode != 0:
         raise Exception(f"Delete failed: {result.stderr}")
