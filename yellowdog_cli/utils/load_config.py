@@ -98,18 +98,23 @@ def _apply_property_overrides(config: dict, overrides: list[str]) -> None:
                 f"expected 'section.key=value' (missing section)"
             )
             exit(1)
-        section, _, key = lhs.partition(".")
+        section, _, rest = lhs.partition(".")
         if section not in valid_sections:
             print_error(
                 f"Unknown section '{section}' in --property '{override}'. "
                 f"Valid sections: {', '.join(sorted(valid_sections))}"
             )
             exit(1)
+        path = rest.split(".")
         value = _parse_property_value(value_str)
         if section not in config:
             config[section] = {}
-        config[section][key] = value
-        print_info(f"Property override: [{section}] {key} = {value!r}")
+        target = config[section]
+        for part in path[:-1]:
+            target = target.setdefault(part, {})
+        target[path[-1]] = value
+        display_section = ".".join([section] + path[:-1])
+        print_info(f"Property override: [{display_section}] {path[-1]} = {value!r}")
 
 
 # Support for alternative common env. vars; written into the normal vars.
