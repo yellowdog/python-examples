@@ -15,7 +15,7 @@ from yellowdog_cli.utils.dataclient_utils import (
 )
 from yellowdog_cli.utils.dataclient_wrapper import dataclient_wrapper
 from yellowdog_cli.utils.load_config import load_config_data_client
-from yellowdog_cli.utils.printing import print_error, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.rclone_utils import upgrade_rclone, which_rclone
 
 CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
@@ -69,6 +69,8 @@ def main():
                 else resolve_remote_path(CONFIG_DATA_CLIENT, filename=local_path.name)
             )
             upload_file(CONFIG_DATA_CLIENT, local_path, remote_path, dry_run=dry_run)
+
+    print_info("Upload complete")
 
 
 if __name__ == "__main__":

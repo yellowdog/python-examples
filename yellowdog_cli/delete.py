@@ -52,6 +52,8 @@ def main():
             )
             _delete_one(remote_path, recursive=recursive, dry_run=dry_run)
 
+    print_info("Deletion complete")
+
 
 def _delete_one(remote_path: str, recursive: bool, dry_run: bool) -> None:
     if dry_run:

@@ -11,6 +11,7 @@ from yellowdog_cli.utils.config_types import ConfigDataClient
 from yellowdog_cli.utils.dataclient_utils import download_files, resolve_remote_path
 from yellowdog_cli.utils.dataclient_wrapper import dataclient_wrapper
 from yellowdog_cli.utils.load_config import load_config_data_client
+from yellowdog_cli.utils.printing import print_info
 from yellowdog_cli.utils.rclone_utils import upgrade_rclone, which_rclone
 
 CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
@@ -54,6 +55,8 @@ def main():
             sync=sync,
             dry_run=dry_run,
         )
+
+    print_info("Download complete")
 
 
 if __name__ == "__main__":
