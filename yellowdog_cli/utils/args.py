@@ -894,6 +894,18 @@ class CLIParser:
                 help=f"the YellowDog ID(s) of the item(s) to {verb}",
             )
 
+        # yd-follow
+        if "follow" in sys.argv[0]:
+            parser.add_argument(
+                "--progress",
+                action="store_true",
+                required=False,
+                help=(
+                    "display a live progress bar for Work Requirement IDs; "
+                    "ignored for Worker Pool and Compute Requirement IDs"
+                ),
+            )
+
         # yd-submit / yd-provision / yd-instantiate
         if any(
             module in sys.argv[0] for module in ["submit", "provision", "instantiate"]

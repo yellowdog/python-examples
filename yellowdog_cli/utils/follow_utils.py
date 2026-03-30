@@ -2,17 +2,27 @@
 Utility function to follow event streams.
 """
 
+import signal
 from collections.abc import Callable
+from json import loads as json_loads
 from threading import Thread
 from time import sleep
 
 import requests
+from rich.progress import (
+    BarColumn,
+    Progress,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.entity_utils import (
     get_compute_requirement_id_by_worker_pool_id,
 )
 from yellowdog_cli.utils.printing import (
+    CONSOLE,
     print_error,
     print_event,
     print_info,
@@ -21,6 +31,100 @@ from yellowdog_cli.utils.printing import (
 from yellowdog_cli.utils.settings import EVENT_STREAM_RETRY_INTERVAL
 from yellowdog_cli.utils.wrapper import CLIENT, CONFIG_COMMON
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
+
+
+def follow_work_requirement_with_progress(ydid: str) -> None:
+    """
+    Follow a Work Requirement event stream, displaying a live Rich progress bar.
+
+    Safe to call from either the main thread or a daemon thread; signal
+    handling is skipped automatically when not in the main thread.
+    """
+    total_tasks = completed_tasks = failed_tasks = 0
+
+    progress = Progress(
+        TextColumn("{task.description}"),
+        BarColumn(
+            complete_style="green4",
+            finished_style="green4",
+            pulse_style="deep_sky_blue4",
+        ),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
+        console=CONSOLE,
+        transient=False,
+    )
+    bar_task = progress.add_task("Starting\u2026", total=None)
+
+    def on_event(event: str, ydid_type: YDIDType) -> None:
+        nonlocal total_tasks, completed_tasks, failed_tasks
+        if not event.startswith("data:"):
+            return
+        try:
+            event_data = json_loads(event[len("data:") :])
+        except Exception:
+            return
+        if ydid_type is not YDIDType.WORK_REQUIREMENT:
+            return
+
+        new_total = new_completed = new_failed = 0
+        for tg in event_data.get("taskGroups", []):
+            summary = tg.get("taskSummary", {})
+            new_total += summary.get("taskCount", 0)
+            counts = summary.get("statusCounts", {})
+            new_completed += counts.get("COMPLETED", 0)
+            new_failed += counts.get("FAILED", 0) + counts.get("ABORTED", 0)
+
+        total_tasks = new_total
+        completed_tasks = new_completed
+        failed_tasks = new_failed
+
+        wr_status = event_data.get("status", "")
+        done = completed_tasks + failed_tasks
+        desc = f"{wr_status}  {done:,}/{total_tasks:,}"
+        if failed_tasks:
+            desc += f"  ({failed_tasks:,} failed)"
+
+        progress.update(
+            bar_task,
+            total=total_tasks if total_tasks > 0 else None,
+            completed=done,
+            description=desc,
+        )
+
+    def _restore_cursor() -> None:
+        try:
+            CONSOLE.file.write("\033[?25h")
+            CONSOLE.file.flush()
+        except Exception:
+            pass
+
+    _original_sigint = signal.getsignal(signal.SIGINT)
+
+    def _on_sigint(sig: int, frame) -> None:
+        _restore_cursor()
+        signal.signal(signal.SIGINT, _original_sigint)
+        signal.default_int_handler(sig, frame)
+
+    try:
+        signal.signal(signal.SIGINT, _on_sigint)
+        in_main_thread = True
+    except ValueError:
+        in_main_thread = False  # Signal handlers only work in the main thread
+
+    print_info(f"Tracking progress for Work Requirement '{ydid}'")
+    try:
+        with progress:
+            follow_events(ydid, YDIDType.WORK_REQUIREMENT, on_event=on_event)
+    finally:
+        if in_main_thread:
+            signal.signal(signal.SIGINT, _original_sigint)
+        _restore_cursor()
+
+    if failed_tasks:
+        print_warning(
+            f"Work Requirement finished with {failed_tasks:,} failed/aborted task(s)"
+        )
 
 
 def follow_ids(ydids: list[str], auto_cr: bool = False):
@@ -66,7 +170,11 @@ def follow_ids(ydids: list[str], auto_cr: bool = False):
             )
             continue
 
-        thread = Thread(target=follow_events, args=(ydid, ydid_type), daemon=True)
+        if ARGS_PARSER.progress and ydid_type == YDIDType.WORK_REQUIREMENT:
+            target, args = follow_work_requirement_with_progress, (ydid,)
+        else:
+            target, args = follow_events, (ydid, ydid_type)
+        thread = Thread(target=target, args=args, daemon=True)
         try:
             thread.start()
         except RuntimeError as e:
@@ -74,8 +182,28 @@ def follow_ids(ydids: list[str], auto_cr: bool = False):
             continue
         threads.append(thread)
 
+    # Install a SIGINT handler in the main thread so that Ctrl-C restores the
+    # terminal cursor even if Rich's Live context is running in a daemon thread
+    # (signal handlers can only be installed from the main thread).
+    _original_sigint = signal.getsignal(signal.SIGINT)
+    if ARGS_PARSER.progress and threads:
+
+        def _on_sigint(sig, frame):
+            try:
+                CONSOLE.file.write("\033[?25h")
+                CONSOLE.file.flush()
+            except Exception:
+                pass
+            signal.signal(signal.SIGINT, _original_sigint)
+            signal.default_int_handler(sig, frame)
+
+        signal.signal(signal.SIGINT, _on_sigint)
+
     for thread in threads:
         thread.join()
+
+    if ARGS_PARSER.progress:
+        signal.signal(signal.SIGINT, _original_sigint)
 
     if len(threads) > 1 and not ARGS_PARSER.print_pid:
         print_info("All event streams have concluded")
