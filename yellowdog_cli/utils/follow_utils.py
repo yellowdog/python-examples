@@ -47,6 +47,36 @@ class _WRNameColumn(ProgressColumn):
         return Text(f"[{name}]" if name else "", style="dim")
 
 
+def _progress_desc(
+    wr_status: str,
+    total: int,
+    completed: int,
+    failed: int,
+    aborted: int,
+    cancelled: int,
+) -> str:
+    """
+    Build the progress-bar description string.
+
+    Shows WR status and done/total counts, then a breakdown of each terminal
+    state (omitting any that are zero).
+    """
+    done = completed + failed + aborted + cancelled
+    desc = f"{wr_status}  {done:,}/{total:,}"
+    parts = []
+    if completed:
+        parts.append(f"{completed:,} completed")
+    if failed:
+        parts.append(f"{failed:,} failed")
+    if aborted:
+        parts.append(f"{aborted:,} aborted")
+    if cancelled:
+        parts.append(f"{cancelled:,} cancelled")
+    if parts:
+        desc += "  " + " · ".join(parts)
+    return desc
+
+
 def follow_work_requirement_with_progress(ydid: str) -> None:
     """
     Follow a Work Requirement event stream, displaying a live Rich progress bar.
@@ -54,7 +84,7 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
     Safe to call from either the main thread or a daemon thread; signal
     handling is skipped automatically when not in the main thread.
     """
-    total_tasks = completed_tasks = failed_tasks = 0
+    total_tasks = completed_tasks = failed_tasks = aborted_tasks = cancelled_tasks = 0
 
     wr = None
     wr_name = ""
@@ -94,25 +124,29 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
                     total_tasks += summary.taskCount or 0
                     counts = summary.statusCounts or {}
                     completed_tasks += counts.get(TaskStatus.COMPLETED, 0)
-                    failed_tasks += counts.get(TaskStatus.FAILED, 0) + counts.get(
-                        TaskStatus.ABORTED, 0
-                    )
+                    failed_tasks += counts.get(TaskStatus.FAILED, 0)
+                    aborted_tasks += counts.get(TaskStatus.ABORTED, 0)
+                    cancelled_tasks += counts.get(TaskStatus.CANCELLED, 0)
             wr_status = wr.status.value if wr.status else ""
-            done = completed_tasks + failed_tasks
-            desc = f"{wr_status}  {done:,}/{total_tasks:,}"
-            if failed_tasks:
-                desc += f"  ({failed_tasks:,} failed)"
+            done = completed_tasks + failed_tasks + aborted_tasks + cancelled_tasks
             progress.update(
                 bar_task,
                 total=total_tasks if total_tasks > 0 else None,
                 completed=done,
-                description=desc,
+                description=_progress_desc(
+                    wr_status,
+                    total_tasks,
+                    completed_tasks,
+                    failed_tasks,
+                    aborted_tasks,
+                    cancelled_tasks,
+                ),
             )
         except Exception:
             pass
 
     def on_event(event: str, ydid_type: YDIDType) -> None:
-        nonlocal total_tasks, completed_tasks, failed_tasks
+        nonlocal total_tasks, completed_tasks, failed_tasks, aborted_tasks, cancelled_tasks
         if not event.startswith("data:"):
             return
         try:
@@ -122,29 +156,36 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
         if ydid_type is not YDIDType.WORK_REQUIREMENT:
             return
 
-        new_total = new_completed = new_failed = 0
+        new_total = new_completed = new_failed = new_aborted = new_cancelled = 0
         for tg in event_data.get("taskGroups", []):
             summary = tg.get("taskSummary", {})
             new_total += summary.get("taskCount", 0)
             counts = summary.get("statusCounts", {})
             new_completed += counts.get("COMPLETED", 0)
-            new_failed += counts.get("FAILED", 0) + counts.get("ABORTED", 0)
+            new_failed += counts.get("FAILED", 0)
+            new_aborted += counts.get("ABORTED", 0)
+            new_cancelled += counts.get("CANCELLED", 0)
 
         total_tasks = new_total
         completed_tasks = new_completed
         failed_tasks = new_failed
+        aborted_tasks = new_aborted
+        cancelled_tasks = new_cancelled
 
         wr_status = event_data.get("status", "")
-        done = completed_tasks + failed_tasks
-        desc = f"{wr_status}  {done:,}/{total_tasks:,}"
-        if failed_tasks:
-            desc += f"  ({failed_tasks:,} failed)"
-
+        done = completed_tasks + failed_tasks + aborted_tasks + cancelled_tasks
         progress.update(
             bar_task,
             total=total_tasks if total_tasks > 0 else None,
             completed=done,
-            description=desc,
+            description=_progress_desc(
+                wr_status,
+                total_tasks,
+                completed_tasks,
+                failed_tasks,
+                aborted_tasks,
+                cancelled_tasks,
+            ),
         )
 
     def _restore_cursor() -> None:
@@ -176,10 +217,16 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
             signal.signal(signal.SIGINT, _original_sigint)
         _restore_cursor()
 
-    if failed_tasks:
-        print_warning(
-            f"Work Requirement finished with {failed_tasks:,} failed/aborted task(s)"
-        )
+    terminal_failures = failed_tasks + aborted_tasks + cancelled_tasks
+    if terminal_failures:
+        parts = []
+        if failed_tasks:
+            parts.append(f"{failed_tasks:,} failed")
+        if aborted_tasks:
+            parts.append(f"{aborted_tasks:,} aborted")
+        if cancelled_tasks:
+            parts.append(f"{cancelled_tasks:,} cancelled")
+        print_warning(f"Work Requirement finished with {' · '.join(parts)} task(s)")
 
 
 def follow_ids(ydids: list[str], auto_cr: bool = False):
