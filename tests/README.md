@@ -67,6 +67,7 @@ pytest -v -n 4 --run-demos
 | `test_system_error_handling.py` | Hard failures (exit 1) and soft failures (exit 0 + error message) for bad input, unknown YDIDs, missing resources |
 | `test_system_resources.py` | Full create → list → show → remove lifecycle for keyrings, namespaces, image families, namespace policies, attributes, groups |
 | `test_system_cancel_hold_finish.py` | Work Requirement control commands: hold, start, finish, cancel (WR stays PENDING — no compute provisioned) |
+| `test_system_dataclient.py` | Data client commands (`yd-upload`, `yd-ls`, `yd-download`, `yd-delete`): upload/list/delete cycle, upload→download round-trip, recursive upload and listing, wildcard list and delete, dry-run enforcement for upload/download/delete |
 
 ### System Compute Tests (`--run-system-compute`, provisions real cloud instances)
 
@@ -98,6 +99,8 @@ export YD_KEY=...
 export YD_SECRET=...
 export YD_URL=...   # optional, defaults to production
 ```
+
+`test_system_dataclient.py` additionally requires a `[dataClient]` section in `tests/system/config.toml` (rclone connection string and remote path).
 
 ## Parallel Execution
 
