@@ -6,7 +6,7 @@ import signal
 from collections.abc import Callable
 from json import loads as json_loads
 from threading import Thread
-from time import sleep
+from time import monotonic, sleep, time
 
 import requests
 from rich.progress import (
@@ -55,10 +55,15 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
     """
     total_tasks = completed_tasks = failed_tasks = 0
 
+    wr_name = ""
+    wr_age_seconds = 0.0
     try:
-        wr_name = CLIENT.work_client.get_work_requirement_by_id(ydid).name or ""
+        wr = CLIENT.work_client.get_work_requirement_by_id(ydid)
+        wr_name = wr.name or ""
+        if wr.createdTime is not None:
+            wr_age_seconds = max(0.0, time() - wr.createdTime.timestamp())
     except Exception:
-        wr_name = ""
+        pass
 
     progress = Progress(
         TextColumn("{task.description}"),
@@ -74,6 +79,8 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
         transient=False,
     )
     bar_task = progress.add_task("Starting\u2026", total=None, wr_name=wr_name)
+    if wr_age_seconds > 0:
+        progress.tasks[0].start_time = monotonic() - wr_age_seconds
 
     def on_event(event: str, ydid_type: YDIDType) -> None:
         nonlocal total_tasks, completed_tasks, failed_tasks
