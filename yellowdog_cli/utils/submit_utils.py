@@ -2,8 +2,13 @@
 Utility functions for use with the submit command.
 """
 
+from dataclasses import dataclass
+from os import chdir, getcwd
+from os.path import abspath, exists
+from pathlib import Path
 from time import sleep
 
+from rclone_api import Config
 from yellowdog_client.model import (
     TaskData,
     TaskDataInput,
@@ -13,15 +18,20 @@ from yellowdog_client.model import (
 )
 
 from yellowdog_cli.utils.config_types import ConfigWorkRequirement
-from yellowdog_cli.utils.printing import print_info, print_warning
+from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.property_names import (
+    DATA_CLIENT_LOCAL_PATH,
+    DATA_CLIENT_UPLOAD_PATH,
     DEPENDENCIES,
     DEPENDENT_ON,
     ERROR_TYPES,
     PROCESS_EXIT_CODES,
     RETRYABLE_ERRORS,
     STATUSES_AT_FAILURE,
+    TASK_DATA_SOURCE,
 )
+from yellowdog_cli.utils.rclone_utils import make_rclone, parse_rclone_config
+from yellowdog_cli.utils.settings import RCLONE_PREFIX
 from yellowdog_cli.utils.type_check import check_list, check_str
 from yellowdog_cli.utils.variables import process_variable_substitutions_insitu
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
@@ -206,3 +216,202 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
         raise Exception(
             f"Unable to process task retry error matcher data '{task_error_matcher_data}': {e}"
         )
+
+
+@dataclass
+class RcloneUploadedFile:
+    """
+    Capture the local and destination state of an rcloned file.
+    """
+
+    local_file_path: str
+    upload_file_path: str
+
+
+class RcloneUploadedFiles:
+    """
+    Upload and manage uploaded files from taskData.inputs.
+    """
+
+    def __init__(
+        self,
+        files_directory: str = ".",
+    ):
+        self._rcloned_files: list[RcloneUploadedFile] = []
+        self._files_directory = abspath(files_directory)
+        self._working_directory = getcwd()
+
+    def upload_dataclient_input_files(self, task_data_inputs: list[dict] | None):
+        """
+        Extract files to be uploaded from a task_data_inputs objects, and
+        upload them. Important: removes any 'localFile' and 'uploadPath'
+        properties.
+        """
+        if task_data_inputs is None:
+            return
+
+        for task_data_input in task_data_inputs:
+            if (
+                local_file := task_data_input.pop(DATA_CLIENT_LOCAL_PATH, None)
+            ) is None:
+                continue
+            if (
+                upload_path := task_data_input.pop(DATA_CLIENT_UPLOAD_PATH, None)
+            ) is None:
+                if (upload_path := task_data_input.get(TASK_DATA_SOURCE, None)) is None:
+                    continue
+            self._upload_rclone_file(local_file, upload_path)
+
+    def _upload_rclone_file(self, local_file: str, rclone_upload_path: str):
+        """
+        Rclone a DataClient inputs file if it hasn't already been uploaded to
+        the same location.
+        """
+        chdir(self._files_directory)
+
+        if not exists(local_file):
+            raise Exception(
+                f"File '{Path(self._files_directory)/local_file}' does not exist "
+                "and cannot be uploaded"
+            )
+
+        rclone_uploaded_file = RcloneUploadedFile(local_file, rclone_upload_path)
+        if rclone_uploaded_file in self._rcloned_files:
+            # Duplicate
+            return
+
+        if not ARGS_PARSER.dry_run:
+            try:
+                self._upload_rclone_file_core(rclone_uploaded_file)
+            except Exception as e:
+                raise Exception(
+                    f"Unable to upload '{local_file}' -> '{rclone_upload_path}': {e}"
+                )
+        else:
+            print_info(
+                f"Dry-run: Would upload '{local_file}' -> "
+                f"'{self._bucket_and_prefix(rclone_uploaded_file)}'"
+            )
+
+        self._rcloned_files.append(rclone_uploaded_file)
+
+        chdir(self._working_directory)
+
+    def _upload_rclone_file_core(self, rclone_upload_file: RcloneUploadedFile):
+        """
+        Core upload method for a single file.
+        """
+        remote_name, config_section, remote_path = self._parse_rclone_connection_string(
+            rclone_upload_file.upload_file_path
+        )
+
+        # Auto-downloads rclone binary if missing (~20-40 MB, only once)
+        rclone = make_rclone(
+            Config(config_section) if config_section is not None else None
+        )
+
+        local_file = Path(rclone_upload_file.local_file_path).resolve()
+        print_info(
+            f"Uploading '{rclone_upload_file.local_file_path}' → "
+            f"'{self._bucket_and_prefix(rclone_upload_file)}'"
+        )
+
+        result = rclone.copy_to(
+            src=str(local_file),
+            dst=f"{remote_name}:{remote_path}",
+            other_args=[],
+        )
+
+        if result.returncode != 0:
+            raise Exception(f"Upload failed: {result.stderr}")
+
+    def delete(self):
+        """
+        Delete all files that have been rcloned. Note: can't delete
+        a list of files in one rclone-api call because they may be
+        stored in different places. This can be optimised later by
+        grouping into batches of files with the same connection info.
+        """
+        for rcloned_file in self._rcloned_files:
+            self._delete_rcloned_file(rcloned_file.upload_file_path)
+
+        self._rcloned_files = []
+
+    def _delete_rcloned_file(self, conn_str: str):
+        """
+        Deletes exactly one rcloned file specified in the connection string.
+
+        Example:
+            conn_str = "rclone:S3,type=s3,provider=AWS,env_auth=true,\
+                        region=eu-west-2,location_constraint=eu-west-2:\
+                        tech.yellowdog.devsandbox.dev-platform/yd-demo/pwt/file.txt"
+            delete_single_s3_object(conn_str)
+        """
+        remote_name, config_section, remote_path = self._parse_rclone_connection_string(
+            conn_str
+        )
+
+        # Auto-downloads rclone binary if missing (~20-40 MB, only once)
+        rclone = make_rclone(
+            Config(config_section) if config_section is not None else None
+        )
+
+        rcloned_file = f"{remote_name}:{remote_path}"
+        print_info(f"Deleting rcloned file '{rcloned_file}'")
+        if not rclone.exists(rcloned_file):
+            print_warning(f"Rcloned file does not exist: '{rcloned_file}'")
+            return
+
+        result = rclone.delete_files([rcloned_file])
+
+        if result.returncode != 0:
+            print_error(
+                f"Failed to delete rcloned file '{remote_path}' ({result.stderr})"
+            )
+
+    @staticmethod
+    def _parse_rclone_connection_string(
+        connection_str: str,
+    ) -> tuple[str, str | None, str]:
+        """
+        Parses rclone connection strings in two forms:
+
+        Inline config (all parameters embedded in the string):
+          'rclone:NAME,type=...,key=val...:bucket/path/to/file.txt'
+
+        Local rclone.conf remote (remote name only, no inline parameters):
+          'rclone:yds3:/path/to/file.txt'
+
+        The leading 'rclone:' is optional in both forms.
+
+        Returns:
+            (remote_name, config_ini_section_str_or_None, bucket_and_path_prefix)
+            config_ini_section_str is None for locally configured remotes,
+            indicating that the system rclone.conf should be used.
+        """
+        # Remove optional leading 'rclone:'
+        if connection_str.startswith(RCLONE_PREFIX):
+            connection_str = connection_str[len(RCLONE_PREFIX) :]
+
+        if ":" not in connection_str:
+            raise ValueError("No colon separator found in connection string")
+
+        # Split on LAST colon → config vs path
+        remote_part, path_part = connection_str.rsplit(":", 1)
+        remote_name, config_section = parse_rclone_config(remote_part)
+        path_part = path_part.strip()  # keep internal slashes
+
+        return remote_name, config_section, path_part
+
+    @staticmethod
+    def _bucket_and_prefix(rclone_uploaded_file: RcloneUploadedFile):
+        """
+        Remove everything except the service, bucket name and object name.
+        """
+        try:
+            service, rclone_details, bucket_name_and_object = (
+                rclone_uploaded_file.upload_file_path.split(":")
+            )
+            return bucket_name_and_object
+        except Exception:
+            return rclone_uploaded_file.upload_file_path

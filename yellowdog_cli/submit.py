@@ -93,11 +93,7 @@ from yellowdog_cli.utils.property_names import (
     WORKER_TAGS,
     WR_TAG,
 )
-from yellowdog_cli.utils.rclone_utils import (
-    RcloneUploadedFiles,
-    upgrade_rclone,
-    which_rclone,
-)
+from yellowdog_cli.utils.rclone_utils import upgrade_rclone, which_rclone
 from yellowdog_cli.utils.settings import (
     DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
     MAX_BATCH_SUBMIT_ATTEMPTS,
@@ -106,6 +102,7 @@ from yellowdog_cli.utils.settings import (
     VAR_OPENING_DELIMITER,
 )
 from yellowdog_cli.utils.submit_utils import (
+    RcloneUploadedFiles,
     generate_dependencies,
     generate_task_error_matchers_list,
     generate_taskdata_object,
