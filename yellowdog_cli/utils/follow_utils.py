@@ -89,10 +89,22 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
     wr = None
     wr_name = ""
     wr_age_seconds = 0.0
+    wr_is_terminal = False
     try:
         wr = CLIENT.work_client.get_work_requirement_by_id(ydid)
         wr_name = wr.name or ""
-        if wr.createdTime is not None:
+        wr_is_terminal = wr.status is not None and wr.status.finished
+        if (
+            wr_is_terminal
+            and wr.createdTime is not None
+            and wr.statusChangedTime is not None
+        ):
+            # Show how long the WR actually ran, not how long ago we fetched it
+            wr_age_seconds = max(
+                0.0,
+                (wr.statusChangedTime - wr.createdTime).total_seconds(),
+            )
+        elif wr.createdTime is not None:
             wr_age_seconds = max(0.0, time() - wr.createdTime.timestamp())
     except Exception:
         pass
@@ -113,6 +125,8 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
     bar_task = progress.add_task("Starting\u2026", total=None, wr_name=wr_name)
     if wr_age_seconds > 0:
         progress.tasks[0].start_time = monotonic() - wr_age_seconds
+    if wr_is_terminal:
+        progress.stop_task(bar_task)
 
     # Pre-populate from the fetched WR so the bar shows a meaningful state
     # even if no events arrive (e.g. the WR is already in a terminal state).
