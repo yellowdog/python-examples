@@ -18,6 +18,7 @@ from rich.progress import (
     TimeElapsedColumn,
 )
 from rich.text import Text
+from yellowdog_client.model import TaskStatus
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.entity_utils import (
@@ -55,6 +56,7 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
     """
     total_tasks = completed_tasks = failed_tasks = 0
 
+    wr = None
     wr_name = ""
     wr_age_seconds = 0.0
     try:
@@ -81,6 +83,33 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
     bar_task = progress.add_task("Starting\u2026", total=None, wr_name=wr_name)
     if wr_age_seconds > 0:
         progress.tasks[0].start_time = monotonic() - wr_age_seconds
+
+    # Pre-populate from the fetched WR so the bar shows a meaningful state
+    # even if no events arrive (e.g. the WR is already in a terminal state).
+    if wr is not None:
+        try:
+            for tg in wr.taskGroups or []:
+                summary = tg.taskSummary
+                if summary:
+                    total_tasks += summary.taskCount or 0
+                    counts = summary.statusCounts or {}
+                    completed_tasks += counts.get(TaskStatus.COMPLETED, 0)
+                    failed_tasks += counts.get(TaskStatus.FAILED, 0) + counts.get(
+                        TaskStatus.ABORTED, 0
+                    )
+            wr_status = wr.status.value if wr.status else ""
+            done = completed_tasks + failed_tasks
+            desc = f"{wr_status}  {done:,}/{total_tasks:,}"
+            if failed_tasks:
+                desc += f"  ({failed_tasks:,} failed)"
+            progress.update(
+                bar_task,
+                total=total_tasks if total_tasks > 0 else None,
+                completed=done,
+                description=desc,
+            )
+        except Exception:
+            pass
 
     def on_event(event: str, ydid_type: YDIDType) -> None:
         nonlocal total_tasks, completed_tasks, failed_tasks
