@@ -12,10 +12,12 @@ import requests
 from rich.progress import (
     BarColumn,
     Progress,
+    ProgressColumn,
     TaskProgressColumn,
     TextColumn,
     TimeElapsedColumn,
 )
+from rich.text import Text
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.entity_utils import (
@@ -33,6 +35,17 @@ from yellowdog_cli.utils.wrapper import CLIENT, CONFIG_COMMON
 from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 
+class _WRNameColumn(ProgressColumn):
+    """
+    Renders the Work Requirement name (stored in task.fields["wr_name"]) in
+    brackets with dim styling, for display after the progress bar.
+    """
+
+    def render(self, task) -> Text:
+        name = task.fields.get("wr_name", "")
+        return Text(f"[{name}]" if name else "", style="dim")
+
+
 def follow_work_requirement_with_progress(ydid: str) -> None:
     """
     Follow a Work Requirement event stream, displaying a live Rich progress bar.
@@ -41,6 +54,11 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
     handling is skipped automatically when not in the main thread.
     """
     total_tasks = completed_tasks = failed_tasks = 0
+
+    try:
+        wr_name = CLIENT.work_client.get_work_requirement_by_id(ydid).name or ""
+    except Exception:
+        wr_name = ""
 
     progress = Progress(
         TextColumn("{task.description}"),
@@ -51,10 +69,11 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
         ),
         TaskProgressColumn(),
         TimeElapsedColumn(),
+        _WRNameColumn(),
         console=CONSOLE,
         transient=False,
     )
-    bar_task = progress.add_task("Starting\u2026", total=None)
+    bar_task = progress.add_task("Starting\u2026", total=None, wr_name=wr_name)
 
     def on_event(event: str, ydid_type: YDIDType) -> None:
         nonlocal total_tasks, completed_tasks, failed_tasks
