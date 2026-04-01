@@ -1,8 +1,10 @@
+import pytest
 from cli_test_helpers import shell
 
 RESOURCE_DIR = "tests/resource-examples"
 
 
+@pytest.mark.system
 class TestCreateRemove:
     def test_source_template(self):
         resources = f"{RESOURCE_DIR}/compute-sources.json"

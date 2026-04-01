@@ -1,6 +1,8 @@
+import pytest
 from cli_test_helpers import shell
 
 
+@pytest.mark.system
 class TestList:
     def test_help(self):
         result = shell("yd-list --help")
