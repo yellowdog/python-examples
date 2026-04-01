@@ -26,6 +26,7 @@ from yellowdog_client.model import (
     BestComputeSourceReportSource,
     ComputeRequirement,
     ComputeRequirementDynamicTemplateTestResult,
+    ComputeRequirementStatus,
     ComputeRequirementSummary,
     ComputeRequirementTemplateSummary,
     ComputeRequirementTemplateTestResult,
@@ -35,21 +36,26 @@ from yellowdog_client.model import (
     ExternalUser,
     Group,
     Instance,
+    InstanceStatus,
     InternalUser,
     KeyringSummary,
     MachineImageFamilySummary,
     Namespace,
     NamespacePolicy,
     Node,
+    NodeActionQueueStatus,
+    NodeStatus,
     PermissionDetail,
     ProvisionedWorkerPool,
     ProvisionedWorkerPoolProperties,
     Role,
     Task,
     TaskGroup,
+    TaskStatus,
     User,
     Worker,
     WorkerPoolSummary,
+    WorkerStatus,
     WorkRequirement,
     WorkRequirementSummary,
 )
@@ -1298,65 +1304,63 @@ class StatusCount:
 
 
 STATUS_COUNTS_TASKS = [
-    StatusCount("PENDING"),
-    StatusCount("READY", True),
-    StatusCount("ALLOCATED"),
-    StatusCount("EXECUTING", True),
-    StatusCount("UPLOADING"),
-    StatusCount("DOWNLOADING"),
-    StatusCount("COMPLETED", True),
-    StatusCount("CANCELLED"),
-    StatusCount("ABORTED"),
-    StatusCount("FAILED"),
+    StatusCount(TaskStatus.PENDING.value),
+    StatusCount(TaskStatus.READY.value, True),
+    StatusCount(TaskStatus.ALLOCATED.value),
+    StatusCount(TaskStatus.EXECUTING.value, True),
+    StatusCount(TaskStatus.UPLOADING.value),
+    StatusCount(TaskStatus.DOWNLOADING.value),
+    StatusCount(TaskStatus.COMPLETED.value, True),
+    StatusCount(TaskStatus.CANCELLED.value),
+    StatusCount(TaskStatus.ABORTED.value),
+    StatusCount(TaskStatus.FAILED.value),
 ]
 
 STATUS_COUNTS_INSTANCES = [
-    StatusCount("PENDING", True),
-    StatusCount("RUNNING", True),
-    StatusCount("STOPPING"),
-    StatusCount("STOPPED"),
-    StatusCount("TERMINATING"),
-    StatusCount("TERMINATED", True),
-    StatusCount("UNAVAILABLE"),
-    StatusCount("UNKNOWN"),
+    StatusCount(InstanceStatus.PENDING.value, True),
+    StatusCount(InstanceStatus.RUNNING.value, True),
+    StatusCount(InstanceStatus.STOPPING.value),
+    StatusCount(InstanceStatus.STOPPED.value),
+    StatusCount(InstanceStatus.TERMINATING.value),
+    StatusCount(InstanceStatus.TERMINATED.value, True),
+    StatusCount(InstanceStatus.UNAVAILABLE.value),
+    StatusCount(InstanceStatus.UNKNOWN.value),
 ]
 
 STATUS_COUNTS_WORKERS = [
-    StatusCount("BATCH_ALLOCATION"),
-    StatusCount("DOING_TASK", True),
-    StatusCount("STOPPED", True),
-    StatusCount("SLEEPING"),  # Should no longer see this state
-    StatusCount("STARTING"),
-    StatusCount("LATE"),
-    StatusCount("FOUND"),
-    StatusCount("LOST"),
-    StatusCount("SHUTDOWN"),
+    StatusCount(WorkerStatus.BATCH_ALLOCATION.value),  # Deprecated
+    StatusCount(WorkerStatus.DOING_TASK.value, True),  # Deprecated
+    StatusCount(WorkerStatus.STOPPED.value, True),
+    StatusCount(WorkerStatus.RUNNING.value, True),
+    StatusCount(WorkerStatus.SLEEPING.value),  # Deprecated
+    StatusCount(WorkerStatus.STARTING.value),
+    StatusCount(WorkerStatus.LATE.value),
+    StatusCount(WorkerStatus.LOST.value),
+    StatusCount(WorkerStatus.SHUTDOWN.value),
 ]
 
 STATUS_COUNTS_NODES = [
-    StatusCount("RUNNING", True),
-    StatusCount("TERMINATED", True),
-    StatusCount("DEREGISTERED"),
-    StatusCount("LATE"),
-    StatusCount("LOST"),
+    StatusCount(NodeStatus.RUNNING.value, True),
+    StatusCount(NodeStatus.TERMINATED.value, True),
+    StatusCount(NodeStatus.DEREGISTERED.value),
+    StatusCount(NodeStatus.LATE.value),
+    StatusCount(NodeStatus.LOST.value),
 ]
 
 STATUS_COUNTS_NODE_ACTIONS = [
-    # StatusCount("EMPTY", True),
-    StatusCount("WAITING", True),
-    StatusCount("EXECUTING", True),
-    StatusCount("FAILED"),
+    # StatusCount(NodeActionQueueStatus.EMPTY.value, True),
+    StatusCount(NodeActionQueueStatus.WAITING.value, True),
+    StatusCount(NodeActionQueueStatus.EXECUTING.value, True),
+    StatusCount(NodeActionQueueStatus.FAILED.value),
 ]
 
 STATUS_COUNTS_COMPUTE_REQ = [
-    StatusCount("PENDING", True),
-    StatusCount("RUNNING", True),
-    StatusCount("STOPPING"),
-    StatusCount("STOPPED"),
-    StatusCount("TERMINATING"),
-    StatusCount("TERMINATED"),
-    StatusCount("UNAVAILABLE"),
-    StatusCount("UNKNOWN"),
+    StatusCount(ComputeRequirementStatus.PROVISIONING.value, True),
+    StatusCount(ComputeRequirementStatus.RUNNING.value, True),
+    StatusCount(ComputeRequirementStatus.STOPPING.value),
+    StatusCount(ComputeRequirementStatus.STOPPED.value),
+    StatusCount(ComputeRequirementStatus.TERMINATING.value),
+    StatusCount(ComputeRequirementStatus.TERMINATED.value),
 ]
 
 
