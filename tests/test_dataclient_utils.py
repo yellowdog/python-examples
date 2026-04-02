@@ -113,33 +113,22 @@ class TestResolveRemotePathVariableSubstitution:
     def _config(self, bucket: str = "b", prefix: str = "p") -> ConfigDataClient:
         return ConfigDataClient(remote="r", bucket=bucket, prefix=prefix)
 
-    def test_variable_in_relative_path(self):
-        config = self._config()
-        result = resolve_remote_path(config, relative_path="{{testns}}/data.csv")
-        assert result == "r:b/p/mynamespace/data.csv"
-
-    def test_variable_in_filename(self):
-        config = self._config()
-        result = resolve_remote_path(config, filename="{{testtag}}_output.txt")
-        assert result == "r:b/p/mytag_output.txt"
-
-    def test_multiple_variables_in_relative_path(self):
-        config = self._config()
-        result = resolve_remote_path(
-            config, relative_path="{{testns}}/{{testtag}}/results"
-        )
-        assert result == "r:b/p/mynamespace/mytag/results"
-
-    def test_variable_with_wildcard(self):
-        config = self._config()
-        result = resolve_remote_path(config, relative_path="{{testtag}}_*")
-        assert result == "r:b/p/mytag_*"
-
-    def test_unknown_variable_left_as_is(self):
-        # Unresolved variables are passed through unchanged
-        config = self._config()
-        result = resolve_remote_path(config, relative_path="{{unknown}}/data")
-        assert result == "r:b/p/{{unknown}}/data"
+    @pytest.mark.parametrize(
+        "kwargs,expected",
+        [
+            ({"relative_path": "{{testns}}/data.csv"}, "r:b/p/mynamespace/data.csv"),
+            ({"filename": "{{testtag}}_output.txt"}, "r:b/p/mytag_output.txt"),
+            (
+                {"relative_path": "{{testns}}/{{testtag}}/results"},
+                "r:b/p/mynamespace/mytag/results",
+            ),
+            ({"relative_path": "{{testtag}}_*"}, "r:b/p/mytag_*"),
+            # Unresolved variables are passed through unchanged
+            ({"relative_path": "{{unknown}}/data"}, "r:b/p/{{unknown}}/data"),
+        ],
+    )
+    def test_variable_substitution(self, kwargs, expected):
+        assert resolve_remote_path(self._config(), **kwargs) == expected
 
     def test_builtin_variable_username(self):
         config = self._config(prefix="")

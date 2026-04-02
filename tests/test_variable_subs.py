@@ -38,25 +38,14 @@ def patched_subs(monkeypatch):
 class TestProcessTypedVariableSubstitution:
     """This function is pure — no global state involved."""
 
-    # --- NUMBER ---
-
-    def test_number_integer(self):
-        result = var_module.process_typed_variable_substitution(NUMBER_TYPE_TAG, "42")
-        assert result == 42
-        assert isinstance(result, int)
-
-    def test_number_float(self):
-        result = var_module.process_typed_variable_substitution(NUMBER_TYPE_TAG, "3.14")
-        assert result == 3.14
-        assert isinstance(result, float)
-
-    def test_number_negative(self):
-        result = var_module.process_typed_variable_substitution(NUMBER_TYPE_TAG, "-7")
-        assert result == -7
-
-    def test_number_zero(self):
-        result = var_module.process_typed_variable_substitution(NUMBER_TYPE_TAG, "0")
-        assert result == 0
+    @pytest.mark.parametrize(
+        "s,expected", [("42", 42), ("3.14", 3.14), ("-7", -7), ("0", 0)]
+    )
+    def test_number_valid(self, s, expected):
+        assert (
+            var_module.process_typed_variable_substitution(NUMBER_TYPE_TAG, s)
+            == expected
+        )
 
     def test_number_invalid_raises(self):
         with pytest.raises(Exception, match="Non-number"):
@@ -64,103 +53,63 @@ class TestProcessTypedVariableSubstitution:
                 NUMBER_TYPE_TAG, "not-a-number"
             )
 
-    # --- BOOL ---
+    @pytest.mark.parametrize("s", ["true", "True", "TRUE"])
+    def test_bool_true(self, s):
+        assert var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, s) is True
 
-    def test_bool_true_lowercase(self):
-        result = var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, "true")
-        assert result is True
+    @pytest.mark.parametrize("s", ["false", "False"])
+    def test_bool_false(self, s):
+        assert var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, s) is False
 
-    def test_bool_true_mixed_case(self):
-        result = var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, "True")
-        assert result is True
-
-    def test_bool_true_uppercase(self):
-        result = var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, "TRUE")
-        assert result is True
-
-    def test_bool_false_lowercase(self):
-        result = var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, "false")
-        assert result is False
-
-    def test_bool_false_mixed_case(self):
-        result = var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, "False")
-        assert result is False
-
-    def test_bool_invalid_raises(self):
+    @pytest.mark.parametrize("s", ["yes", "1"])
+    def test_bool_invalid_raises(self, s):
         with pytest.raises(Exception, match="Non-boolean"):
-            var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, "yes")
+            var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, s)
 
-    def test_bool_numeric_raises(self):
-        with pytest.raises(Exception, match="Non-boolean"):
-            var_module.process_typed_variable_substitution(BOOL_TYPE_TAG, "1")
-
-    # --- ARRAY ---
-
-    def test_array_of_ints(self):
-        result = var_module.process_typed_variable_substitution(
-            ARRAY_TYPE_TAG, "[1, 2, 3]"
+    @pytest.mark.parametrize(
+        "s,expected",
+        [("[1, 2, 3]", [1, 2, 3]), ("['a', 'b', 'c']", ["a", "b", "c"]), ("[]", [])],
+    )
+    def test_array_valid(self, s, expected):
+        assert (
+            var_module.process_typed_variable_substitution(ARRAY_TYPE_TAG, s)
+            == expected
         )
-        assert result == [1, 2, 3]
 
-    def test_array_of_strings(self):
-        result = var_module.process_typed_variable_substitution(
-            ARRAY_TYPE_TAG, "['a', 'b', 'c']"
-        )
-        assert result == ["a", "b", "c"]
-
-    def test_array_empty(self):
-        result = var_module.process_typed_variable_substitution(ARRAY_TYPE_TAG, "[]")
-        assert result == []
-
-    def test_array_dict_raises(self):
+    @pytest.mark.parametrize("s", ["{'a': 1}", "not-a-list"])
+    def test_array_invalid_raises(self, s):
         with pytest.raises(Exception, match="array"):
-            var_module.process_typed_variable_substitution(ARRAY_TYPE_TAG, "{'a': 1}")
+            var_module.process_typed_variable_substitution(ARRAY_TYPE_TAG, s)
 
-    def test_array_invalid_syntax_raises(self):
-        with pytest.raises(Exception, match="array"):
-            var_module.process_typed_variable_substitution(ARRAY_TYPE_TAG, "not-a-list")
-
-    # --- TABLE ---
-
-    def test_table_simple(self):
-        result = var_module.process_typed_variable_substitution(
-            TABLE_TYPE_TAG, "{'a': 1}"
+    @pytest.mark.parametrize(
+        "s,expected",
+        [("{'a': 1}", {"a": 1}), ("{'x': {'y': 2}}", {"x": {"y": 2}})],
+    )
+    def test_table_valid(self, s, expected):
+        assert (
+            var_module.process_typed_variable_substitution(TABLE_TYPE_TAG, s)
+            == expected
         )
-        assert result == {"a": 1}
 
-    def test_table_nested(self):
-        result = var_module.process_typed_variable_substitution(
-            TABLE_TYPE_TAG, "{'x': {'y': 2}}"
-        )
-        assert result == {"x": {"y": 2}}
-
-    def test_table_list_raises(self):
+    @pytest.mark.parametrize("s", ["[1, 2]", "not-a-dict"])
+    def test_table_invalid_raises(self, s):
         with pytest.raises(Exception, match="table"):
-            var_module.process_typed_variable_substitution(TABLE_TYPE_TAG, "[1, 2]")
+            var_module.process_typed_variable_substitution(TABLE_TYPE_TAG, s)
 
-    def test_table_invalid_raises(self):
-        with pytest.raises(Exception, match="table"):
-            var_module.process_typed_variable_substitution(TABLE_TYPE_TAG, "not-a-dict")
-
-    # --- FORMAT_NAME ---
-
-    def test_format_name_lowercases_and_substitutes(self):
-        result = var_module.process_typed_variable_substitution(
-            FORMAT_NAME_TYPE_TAG, "My Name/Value"
+    @pytest.mark.parametrize(
+        "s,expected",
+        [("My Name/Value", "my_name-value"), ("Test@Job#2024", "testjob2024")],
+    )
+    def test_format_name(self, s, expected):
+        assert (
+            var_module.process_typed_variable_substitution(FORMAT_NAME_TYPE_TAG, s)
+            == expected
         )
-        assert result == "my_name-value"
-
-    def test_format_name_removes_special_chars(self):
-        result = var_module.process_typed_variable_substitution(
-            FORMAT_NAME_TYPE_TAG, "Test@Job#2024"
-        )
-        assert result == "testjob2024"
-
-    # --- UNKNOWN TAG ---
 
     def test_unknown_type_tag_returns_none(self):
-        result = var_module.process_typed_variable_substitution("unknown:", "value")
-        assert result is None
+        assert (
+            var_module.process_typed_variable_substitution("unknown:", "value") is None
+        )
 
 
 # ---------------------------------------------------------------------------

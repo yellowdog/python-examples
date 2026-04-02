@@ -3,59 +3,22 @@ from cli_test_helpers import shell
 
 
 @pytest.mark.system
-class TestList:
-    def test_help(self):
-        result = shell("yd-list --help")
-        assert result.exit_code == 0
-
-    def test_workerpool(self):
-        result = shell("yd-list -p -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_compute_requirements(self):
-        result = shell("yd-list -r -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_work_reqs(self):
-        result = shell("yd-list -w -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_worker_pools(self):
-        result = shell("yd-list -p -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_compute_reqs(self):
-        result = shell("yd-list -r -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_compute_templates(self):
-        result = shell("yd-list -C -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_source_templates(self):
-        result = shell("yd-list -S -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_keyrings(self):
-        result = shell("yd-list -K -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_image_families(self):
-        result = shell("yd-list -I -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_allowances(self):
-        result = shell("yd-list -A -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_groups(self):
-        result = shell("yd-list --groups -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_roles(self):
-        result = shell("yd-list --roles -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_permissions(self):
-        result = shell("yd-list --permissions -n='' -t=''")
-        assert result.exit_code == 0
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        "yd-list --help",
+        "yd-list -A -n='' -t=''",
+        "yd-list -C -n='' -t=''",
+        "yd-list -I -n='' -t=''",
+        "yd-list -K -n='' -t=''",
+        "yd-list -S -n='' -t=''",
+        "yd-list -p -n='' -t=''",
+        "yd-list -r -n='' -t=''",
+        "yd-list -w -n='' -t=''",
+        "yd-list --groups -n='' -t=''",
+        "yd-list --permissions -n='' -t=''",
+        "yd-list --roles -n='' -t=''",
+    ],
+)
+def test_list(cmd):
+    assert shell(cmd).exit_code == 0

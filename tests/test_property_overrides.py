@@ -21,37 +21,23 @@ class TestParsePropertyValue:
     Tests for _parse_property_value: value string → Python object.
     """
 
-    def test_plain_string(self):
-        assert _parse_property_value("hello") == "hello"
-
-    def test_integer(self):
-        assert _parse_property_value("42") == 42
-
-    def test_float(self):
-        assert _parse_property_value("3.14") == pytest.approx(3.14)
-
-    def test_bool_true(self):
-        assert _parse_property_value("true") is True
-
-    def test_bool_false(self):
-        assert _parse_property_value("false") is False
-
-    def test_json_list(self):
-        assert _parse_property_value('["a", "b"]') == ["a", "b"]
-
-    def test_json_dict(self):
-        assert _parse_property_value('{"k": "v"}') == {"k": "v"}
-
-    def test_null(self):
-        assert _parse_property_value("null") is None
-
-    def test_string_with_spaces(self):
-        assert _parse_property_value("hello world") == "hello world"
-
-    def test_url_string(self):
-        # URLs aren't valid JSON; fall back to string
-        result = _parse_property_value("https://api.example.com")
-        assert result == "https://api.example.com"
+    @pytest.mark.parametrize(
+        "s,expected",
+        [
+            ("hello", "hello"),
+            ("42", 42),
+            ("3.14", pytest.approx(3.14)),
+            ("true", True),
+            ("false", False),
+            ('["a", "b"]', ["a", "b"]),
+            ('{"k": "v"}', {"k": "v"}),
+            ("null", None),
+            ("hello world", "hello world"),
+            ("https://api.example.com", "https://api.example.com"),
+        ],
+    )
+    def test_parse(self, s, expected):
+        assert _parse_property_value(s) == expected
 
 
 class TestApplyPropertyOverrides:

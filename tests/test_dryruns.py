@@ -2,153 +2,39 @@
 Tests that run the standard demo dry-runs.
 """
 
+import pytest
 from cli_test_helpers import shell
 
 DEMO_DIR = "../python-examples-demos"
 CMD_SEQ = "yd-provision -D && yd-submit -D && yd-instantiate -D"
 
+_DEMOS = [
+    "bash",
+    "bash/gce-instance-groups",
+    "batch-allocation",
+    "blender-2",
+    "cmd.exe",
+    "common-factors-csv",
+    "image-montage",
+    "montecarlo",
+    "powershell",
+    "primes",
+    "video-demo",
+]
 
-class TestDemoDryRuns:
-    def test_bash(self):
-        result = shell(f"cd {DEMO_DIR}/bash && {CMD_SEQ}")
-        assert result.exit_code == 0
 
-    def test_batch_allocation(self):
-        result = shell(f"cd {DEMO_DIR}/batch-allocation && {CMD_SEQ}")
-        assert result.exit_code == 0
+@pytest.mark.parametrize("demo", _DEMOS)
+def test_dry_run_in_dir(demo):
+    result = shell(f"cd {DEMO_DIR}/{demo} && {CMD_SEQ}")
+    assert result.exit_code == 0
 
-    def test_gce_instance_groups(self):
-        result = shell(f"cd {DEMO_DIR}/bash/gce-instance-groups && {CMD_SEQ}")
-        assert result.exit_code == 0
 
-    def test_primes(self):
-        result = shell(f"cd {DEMO_DIR}/primes && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_image_montage(self):
-        result = shell(f"cd {DEMO_DIR}/image-montage && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_common_factors(self):
-        result = shell(f"cd {DEMO_DIR}/common-factors-csv && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_powershell(self):
-        result = shell(f"cd {DEMO_DIR}/powershell && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_cmd_exe(self):
-        result = shell(f"cd {DEMO_DIR}/cmd.exe && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_blender_2(self):
-        result = shell(f"cd {DEMO_DIR}/blender-2 && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_montecarlo(self):
-        result = shell(f"cd {DEMO_DIR}/montecarlo && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_video_demo(self):
-        result = shell(f"cd {DEMO_DIR}/video-demo && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    # Tests run from outside the demo directories
-    def test_bash_out(self):
-        demo_name = "bash"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_gce_instance_groups_out(self):
-        demo_name = "bash/gce-instance-groups"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_batch_allocation_out(self):
-        demo_name = "batch-allocation"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_primes_out(self):
-        demo_name = "primes"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_image_montage_out(self):
-        demo_name = "image-montage"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_common_factors_out(self):
-        demo_name = "common-factors-csv"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_powershell_out(self):
-        demo_name = "powershell"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_cmd_exe_out(self):
-        demo_name = "cmd.exe"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_blender_2_out(self):
-        demo_name = "blender-2"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_montecarlo_out(self):
-        demo_name = "montecarlo"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
-
-    def test_video_demo_out(self):
-        demo_name = "video-demo"
-        result = shell(
-            f"cd {DEMO_DIR} && yd-provision -D -c {demo_name}/config.toml && yd-submit"
-            f" -D -c {demo_name}/config.toml && yd-instantiate -D -c"
-            f" {demo_name}/config.toml"
-        )
-        assert result.exit_code == 0
+@pytest.mark.parametrize("demo", _DEMOS)
+def test_dry_run_out_of_dir(demo):
+    result = shell(
+        f"cd {DEMO_DIR}"
+        f" && yd-provision -D -c {demo}/config.toml"
+        f" && yd-submit -D -c {demo}/config.toml"
+        f" && yd-instantiate -D -c {demo}/config.toml"
+    )
+    assert result.exit_code == 0
