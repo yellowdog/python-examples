@@ -650,7 +650,6 @@ The following table outlines all the properties available for defining Work Requ
 | Property Name               | Description                                                                                                                                                                                                                                | TOML | WR  | TGrp | Task |
 |:----------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
 | `addYDEnvironmentVariables` | Automatically add YellowDog environment variables to each Task's environment.                                                                                                                                                              | Yes  | Yes | Yes  | Yes  |
-| `alwaysUpload`              | Whether to attempt to upload task outputs on failure. Default: `true`.                                                                                                                                                                     | Yes  | Yes | Yes  | Yes  |
 | `arguments`                 | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                                                                                    | Yes  | Yes | Yes  | Yes  |
 | `completedTaskTtl`          | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                                                                                       | Yes  | Yes | Yes  |      |
 | `csvFile`                   | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                                                                                   | Yes  |     |      |      |
@@ -746,7 +745,6 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
 ```toml
 [workRequirement]
     addYDEnvironmentVariables = true
-    alwaysUpload = true
     arguments = ["1", "TWO"]
     completedTaskTtl = 10
     csvFile = "file1.csv"
@@ -801,7 +799,6 @@ Showing all possible properties at the Work Requirement level:
 ```json
 {
   "addYDEnvironmentVariables": true,
-  "alwaysUpload": true,
   "arguments": [1, "TWO"],
   "completedTaskTtl": 10,
   "environment": {"MY_VAR": 100},
@@ -863,7 +860,6 @@ Showing all possible properties at the Task Group level:
   "taskGroups": [
     {
       "addYDEnvironmentVariables": true,
-      "alwaysUpload": true,
       "arguments": [1, "TWO"],
       "completedTaskTtl": 10,
       "environment": {"MY_VAR": 100},
@@ -930,7 +926,6 @@ Showing all possible properties at the Task level:
       "tasks": [
         {
           "addYDEnvironmentVariables": true,
-          "alwaysUpload": true,
           "arguments": [1, 2],
           "environment": {"MY_VAR": 100},
           "name": "my-task",
@@ -1148,7 +1143,7 @@ TOML, in the `workRequirement` section:
 ```toml
 taskDataOutputs = [
   {source = "out_src_path_1", destination = "dest_path_1"},
-  {source = "out_src_path_2", destination = "dest_path_2"},
+  {source = "out_src_path_2", destination = "dest_path_2", alwaysUpload = true},
 ]
 ```
 
@@ -1156,7 +1151,7 @@ JSON:
 ```json
 "taskDataOutputs": [
   {"destination": "dest_path_1", "source": "out_src_path_1"},
-  {"destination": "dest_path_2", "source": "out_src_path_2"}
+  {"destination": "dest_path_2", "source": "out_src_path_2". "alwaysUpload": True}
 ],
 ```
 
