@@ -240,7 +240,7 @@ def _download_with_glob(
     entries = json.loads(check.stdout or "[]")
     matches = [e for e in entries if fnmatch.fnmatch(e["Name"], pattern)]
     if not matches:
-        print_warning(f"No matches for wildcard '{remote_path}'")
+        print_info(f"No matches for wildcard '{remote_path}'")
         return
     print_info(_format_glob_matches(remote_path, matches))
 
@@ -295,7 +295,7 @@ def download_files(
         if is_glob(remote_path):
             _, matches = list_remote_glob(config, remote_path)
             if not matches:
-                print_warning(f"No wildcard matches for '{remote_path}'")
+                print_info(f"No wildcard matches for '{remote_path}'")
                 return
             names = [f"'{e['Name'] + ('/' if e['IsDir'] else '')}'" for e in matches]
             print_info(
@@ -374,7 +374,7 @@ def _delete_with_glob(
     entries = json.loads(check.stdout or "[]")
     matches = [e for e in entries if fnmatch.fnmatch(e["Name"], pattern)]
     if not matches:
-        print_warning(f"No matches for wildcard '{remote_path}'")
+        print_info(f"No matches for wildcard '{remote_path}'")
         return
 
     base = remote_dir.rstrip("/")
@@ -410,7 +410,7 @@ def delete_remote(
         if is_glob(remote_path):
             _, matches = list_remote_glob(config, remote_path)
             if not matches:
-                print_warning(f"No wildcard matches for '{remote_path}'")
+                print_info(f"No wildcard matches for '{remote_path}'")
                 return
             names = [f"'{e['Name'] + ('/' if e['IsDir'] else '')}'" for e in matches]
             print_info(

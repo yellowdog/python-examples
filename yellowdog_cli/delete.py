@@ -15,7 +15,7 @@ from yellowdog_cli.utils.dataclient_utils import (
 from yellowdog_cli.utils.dataclient_wrapper import dataclient_wrapper
 from yellowdog_cli.utils.interactive import confirmed
 from yellowdog_cli.utils.load_config import load_config_data_client
-from yellowdog_cli.utils.printing import print_info, print_warning
+from yellowdog_cli.utils.printing import print_info
 from yellowdog_cli.utils.rclone_utils import upgrade_rclone, which_rclone
 
 CONFIG_DATA_CLIENT: ConfigDataClient = load_config_data_client()
@@ -65,7 +65,7 @@ def _delete_one(remote_path: str, recursive: bool, dry_run: bool) -> None:
     if is_glob(remote_path):
         _, matches = list_remote_glob(CONFIG_DATA_CLIENT, remote_path)
         if not matches:
-            print_warning(f"No matches for wildcard '{remote_path}'")
+            print_info(f"No matches for wildcard '{remote_path}'")
             return
         names = [f"'{e['Name'] + ('/' if e['IsDir'] else '')}'" for e in matches]
         print_info(f"Wildcard '{remote_path}' matches: {', '.join(names)}")
