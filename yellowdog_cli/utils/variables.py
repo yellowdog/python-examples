@@ -41,10 +41,16 @@ from yellowdog_cli.utils.settings import (
     VAR_CLOSING_DELIMITER,
     VAR_DEFAULT_SEPARATOR,
     VAR_OPENING_DELIMITER,
+    VAR_UNSET_SUFFIX,
     WP_VARIABLES_POSTFIX,
     WP_VARIABLES_PREFIX,
     YD_ENV_VAR_PREFIX,
 )
+
+# Sentinel returned by process_variable_substitutions() when a property
+# bearing the '::' unset suffix has no value defined; callers that walk
+# a dict/list (i.e. _walk_data) use this to delete the property entirely.
+_UNSET = object()
 
 # Set up default variable substitutions
 try:
@@ -170,29 +176,43 @@ def process_variable_substitutions_insitu(
         variable substitutions.
         """
         if isinstance(data, dict):
+            keys_to_delete = []
             for key, value in data.items():
                 if isinstance(value, str):
                     # Require the use of post/prefix only for userData in TOML
                     if key == USERDATA:
-                        data[key] = process_variable_substitutions(
+                        result = process_variable_substitutions(
                             value,
                             prefix=WP_VARIABLES_PREFIX,
                             postfix=WP_VARIABLES_POSTFIX,
                         )
                     else:
-                        data[key] = process_variable_substitutions(
+                        result = process_variable_substitutions(
                             value, prefix=prefix, postfix=postfix
                         )
+                    if result is _UNSET:
+                        keys_to_delete.append(key)
+                    else:
+                        data[key] = result
                 elif isinstance(value, dict) or isinstance(value, list):
                     _walk_data(value)
+            for key in keys_to_delete:
+                del data[key]
         elif isinstance(data, list):
+            indices_to_delete = []
             for index, item in enumerate(data):
                 if isinstance(item, str):
-                    data[index] = process_variable_substitutions(
+                    result = process_variable_substitutions(
                         item, prefix=prefix, postfix=postfix
                     )
+                    if result is _UNSET:
+                        indices_to_delete.append(index)
+                    else:
+                        data[index] = result
                 elif isinstance(item, dict) or isinstance(item, list):
                     _walk_data(item)
+            for index in reversed(indices_to_delete):
+                del data[index]
 
     _walk_data(data)
     return data
@@ -245,7 +265,12 @@ def process_variable_substitutions(
         element_processed = process_untyped_variable_substitutions(
             element_minus_type_tag, opening_delimiter, closing_delimiter
         )
-        assert element_processed is not None  # element_minus_type_tag is always str
+        assert (
+            element_processed is not None or element_processed is _UNSET
+        )  # element_minus_type_tag is always str
+
+        if element_processed is _UNSET:
+            return _UNSET  # type: ignore[return-value]
 
         if element_processed == element_minus_type_tag:  # No variable processing
             return_str += element
@@ -301,6 +326,20 @@ def process_untyped_variable_substitutions(
                 or ""
             )
         input_string = opening_delimiter + processed_string + closing_delimiter
+
+    # Check for the unset suffix ('::') — must be done before the general
+    # substitution loop so the bare variable name can be looked up cleanly.
+    # Syntax: "{{varname::}}" — if varname is defined, use its value;
+    # if not, return _UNSET to signal the caller to remove the property.
+    unset_marker = f"{opening_delimiter}.*{VAR_UNSET_SUFFIX}{closing_delimiter}"
+    if re.fullmatch(unset_marker, input_string):
+        bare_name = remove_outer_delimiters(
+            input_string, opening_delimiter, closing_delimiter
+        )[: -len(VAR_UNSET_SUFFIX)]
+        if bare_name in VARIABLE_SUBSTITUTIONS:
+            input_string = str(VARIABLE_SUBSTITUTIONS[bare_name])
+        else:
+            return _UNSET  # type: ignore[return-value]
 
     # Perform initial substitutions from the substitutions dictionary; this
     # will not substitute variables that have default values

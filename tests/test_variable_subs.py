@@ -206,6 +206,74 @@ class TestProcessVariableSubstitutions:
 
 
 # ---------------------------------------------------------------------------
+# Unset suffix ('::')
+# ---------------------------------------------------------------------------
+
+
+class TestUnsetSuffix:
+    """
+    '{{varname::}}' removes the property when varname is undefined,
+    and uses the variable's value when it is defined.
+    """
+
+    @pytest.fixture(autouse=True)
+    def use_known_subs(self, patched_subs):
+        pass
+
+    # process_variable_substitutions: value-level behaviour
+
+    def test_unset_returns_sentinel_when_var_missing(self):
+        result = var_module.process_variable_substitutions("{{missing::}}")
+        assert result is var_module._UNSET
+
+    def test_unset_returns_value_when_var_defined(self):
+        result = var_module.process_variable_substitutions("{{myvar::}}")
+        assert result == "hello"
+
+    def test_unset_with_numeric_var_defined(self):
+        result = var_module.process_variable_substitutions("{{num_var::}}")
+        assert result == "42"
+
+    # process_variable_substitutions_insitu: dict-level removal
+
+    def test_dict_key_removed_when_var_missing(self):
+        data = {"name": "job", "tag": "{{missing::}}"}
+        var_module.process_variable_substitutions_insitu(data)
+        assert "tag" not in data
+        assert data["name"] == "job"
+
+    def test_dict_key_kept_when_var_defined(self):
+        data = {"name": "job", "tag": "{{myvar::}}"}
+        var_module.process_variable_substitutions_insitu(data)
+        assert data["tag"] == "hello"
+
+    def test_multiple_dict_keys_removed(self):
+        data = {"name": "job", "tag": "{{missing1::}}", "ns": "{{missing2::}}"}
+        var_module.process_variable_substitutions_insitu(data)
+        assert "tag" not in data
+        assert "ns" not in data
+        assert data["name"] == "job"
+
+    def test_nested_dict_key_removed(self):
+        data = {"outer": {"name": "x", "optional": "{{missing::}}"}}
+        var_module.process_variable_substitutions_insitu(data)
+        assert "optional" not in data["outer"]
+        assert data["outer"]["name"] == "x"
+
+    # process_variable_substitutions_insitu: list-level removal
+
+    def test_list_element_removed_when_var_missing(self):
+        data = {"items": ["keep", "{{missing::}}", "also-keep"]}
+        var_module.process_variable_substitutions_insitu(data)
+        assert data["items"] == ["keep", "also-keep"]
+
+    def test_list_element_kept_when_var_defined(self):
+        data = {"items": ["{{myvar::}}", "other"]}
+        var_module.process_variable_substitutions_insitu(data)
+        assert data["items"] == ["hello", "other"]
+
+
+# ---------------------------------------------------------------------------
 # process_variable_substitutions_in_file_contents
 # ---------------------------------------------------------------------------
 

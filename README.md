@@ -24,6 +24,7 @@
       * [Precedence Order](#precedence-order)
       * [Nested Variables](#nested-variables)
       * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
+      * [Removing Properties Using the Unset Suffix](#removing-properties-using-the-unset-suffix)
    * [Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data](#variable-substitutions-in-worker-pool-and-compute-requirement-specifications-and-in-user-data)
 * [Work Requirement Properties](#work-requirement-properties)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
@@ -581,6 +582,29 @@ Default values can be used anywhere that variable substitutions are allowed.  In
 ```toml
 name = "{{name_var:={{tag}}-{{datetime}}}}"
 ```
+
+### Removing Properties Using the Unset Suffix
+
+The `::` suffix can be used to make a property **conditional on a variable being defined**. If the variable is defined, its value is used normally. If the variable is not defined, the property is **removed entirely** from the specification before it is submitted.
+
+The syntax is:
+
+```
+"{{variable_name::}}"
+```
+
+For example, in a TOML file:
+
+```toml
+[workRequirement]
+name          = "my-job"
+tag           = "{{tag::}}"          # removed if 'tag' is not set
+maxRetries    = "{{num:retries::}}"  # removed if 'retries' is not set
+```
+
+If `tag` is not supplied, the `tag` property will be absent from the submitted Work Requirement (rather than being set to an empty string or causing an error). If `tag` is supplied, e.g. via `-v tag=my-tag`, it will be used as the value.
+
+This also works inside JSON/Jsonnet specifications and for list elements.
 
 ## Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
 
