@@ -45,12 +45,21 @@ pytest -v -n 4 --run-demos
 
 | File | What it tests |
 |---|---|
+| `test_build_dc_substitutions.py` | `utils/load_config.py` — `_build_dc_substitutions` (data client config merging and inheritance) |
+| `test_compact_json.py` | `utils/compact_json.py` — `CompactJSONEncoder` (inline vs. expanded formatting, float notation) |
 | `test_csv_data.py` | `utils/csv_data.py` — `CSVTaskData`, `CSVDataCache`, substitution helpers |
+| `test_dataclient_utils.py` | `utils/dataclient_utils.py` — `resolve_remote_path` (rclone remote path resolution) |
+| `test_ls_formatting.py` | `ls.py` — `_print_listing`, `_print_flat`, `_print_tree` output formatting |
 | `test_misc_utils.py` | `utils/misc_utils.py` — name formatting, ID generation, delimiter parsing, etc. |
+| `test_property_overrides.py` | `utils/load_config.py` — `_apply_property_overrides`, `_parse_property_value` (CLI `--property` flag) |
+| `test_rclone_utils.py` | `utils/rclone_utils.py` — `parse_rclone_config` (plain remotes and inline config strings) |
+| `test_resequence_resources.py` | `utils/load_resources.py` — `_resequence_resources` (creation/removal dependency ordering) |
+| `test_select_dc_section.py` | `utils/load_config.py` — `_select_dc_section` (data client profile selection and merging) |
 | `test_type_check.py` | `utils/type_check.py` — `check_int/float/bool/str/list/dict` |
+| `test_validate_properties.py` | `utils/validate_properties.py` — `validate_properties` (key validation, deprecated and excluded keys) |
 | `test_variable_processing.py` | `utils/misc_utils.py` — `split_delimited_string`, `remove_outer_delimiters` |
 | `test_variable_subs.py` | `utils/variables.py` — `{{variable}}` substitution engine |
-| `test_ydid_utils.py` | `utils/ydid_utils.py` — `get_ydid_type`, `is_valid_ydid`, type constants |
+| `test_ydid_utils.py` | `utils/ydid_utils.py` — `get_ydid_type`, type constants |
 
 ### Other No-Flag Tests (no credentials needed)
 
