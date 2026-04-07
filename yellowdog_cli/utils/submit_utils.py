@@ -37,6 +37,20 @@ from yellowdog_cli.utils.variables import process_variable_substitutions_insitu
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
 
 
+def assemble_arguments(
+    prefix: list | None,
+    args: list | None,
+    postfix: list | None,
+) -> list | None:
+    """
+    Combine argumentsPrefix + arguments + argumentsPostfix.
+    If both prefix and postfix are empty/None, returns args unchanged.
+    """
+    if not prefix and not postfix:
+        return args
+    return (prefix or []) + (args or []) + (postfix or [])
+
+
 def update_config_work_requirement_object(
     config_wr: ConfigWorkRequirement,
 ) -> ConfigWorkRequirement:

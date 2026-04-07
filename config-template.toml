@@ -104,6 +104,10 @@
     # Optional — default: []
     # arguments = ["--input", "data.csv"]
 
+    # Arguments prepended/appended to the arguments list for every task
+    # argumentsPrefix = ["--abc"]
+    # argumentsPostfix = ["--xyz"]
+
     # Environment variables passed to the task.
     # Optional — default: {}
     # environment = {MY_VAR = "value", ANOTHER = "42"}

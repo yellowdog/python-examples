@@ -28,6 +28,8 @@ class ConfigCommon:
 class ConfigWorkRequirement:
     add_yd_env_vars: bool = False
     args: list[str] = field(default_factory=list)
+    args_postfix: list[str] | None = None
+    args_prefix: list[str] | None = None
     completed_task_ttl: float | None = None  # In minutes
     csv_files: list[str] | None = None
     disable_preallocation: bool | None = None

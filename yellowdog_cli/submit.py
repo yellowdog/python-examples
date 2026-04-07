@@ -55,6 +55,8 @@ from yellowdog_cli.utils.printing import (
 from yellowdog_cli.utils.property_names import (
     ADD_YD_ENV_VARS,
     ARGS,
+    ARGS_POSTFIX,
+    ARGS_PREFIX,
     COMPLETED_TASK_TTL,
     DISABLE_PREALLOCATION,
     ENV,
@@ -103,6 +105,7 @@ from yellowdog_cli.utils.settings import (
 )
 from yellowdog_cli.utils.submit_utils import (
     RcloneUploadedFiles,
+    assemble_arguments,
     generate_dependencies,
     generate_task_error_matchers_list,
     generate_taskdata_object,
@@ -829,6 +832,17 @@ def generate_batch_of_tasks_for_task_group(
                 wr_data.get(ARGS, task_group_data.get(ARGS, config_wr.args)),
             )
         )
+        args_prefix = check_list(
+            wr_data.get(
+                ARGS_PREFIX, task_group_data.get(ARGS_PREFIX, config_wr.args_prefix)
+            )
+        )
+        args_postfix = check_list(
+            wr_data.get(
+                ARGS_POSTFIX, task_group_data.get(ARGS_POSTFIX, config_wr.args_postfix)
+            )
+        )
+        arguments_list = assemble_arguments(args_prefix, arguments_list, args_postfix)
         env = check_dict(
             task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, config_wr.env)))
         )

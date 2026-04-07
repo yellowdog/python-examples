@@ -4,6 +4,8 @@ Property names.
 
 ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
 ARGS = "arguments"  # List
+ARGS_PREFIX = "argumentsPrefix"  # List
+ARGS_POSTFIX = "argumentsPostfix"  # List
 CERTIFICATES = "certificates"
 COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
@@ -103,6 +105,8 @@ WR_TAG = "tag"  # String
 ALL_KEYS = [
     ADD_YD_ENV_VARS,
     ARGS,
+    ARGS_POSTFIX,
+    ARGS_PREFIX,
     CERTIFICATES,
     COMMON_SECTION,
     COMPLETED_TASK_TTL,

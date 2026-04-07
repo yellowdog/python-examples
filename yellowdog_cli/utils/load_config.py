@@ -580,6 +580,8 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         return ConfigWorkRequirement(
             add_yd_env_vars=wr_section.get(ADD_YD_ENV_VARS, False),
             args=wr_section.get(ARGS, []),
+            args_postfix=wr_section.get(ARGS_POSTFIX, None),
+            args_prefix=wr_section.get(ARGS_PREFIX, None),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
             csv_files=csv_files,
             disable_preallocation=wr_section.get(DISABLE_PREALLOCATION, None),
