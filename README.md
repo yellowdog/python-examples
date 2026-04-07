@@ -2798,16 +2798,16 @@ This is the quickest way to verify that a Jsonnet file is syntactically correct 
 
 ## yd-delete
 
-The `yd-delete` command deletes files or directories from a remote data store. See [Data Client Commands](#data-client-commands) for full documentation.
+The `yd-delete` command deletes files or directories from a remote data store. See [Data Client](#data-client) for full documentation.
 
 ## yd-download
 
-The `yd-download` command downloads files from a remote data store to the local filesystem. See [Data Client Commands](#data-client-commands) for full documentation.
+The `yd-download` command downloads files from a remote data store to the local filesystem. See [Data Client](#data-client) for full documentation.
 
 ## yd-ls
 
-The `yd-ls` command lists files and directories in a remote data store. See [Data Client Commands](#data-client-commands) for full documentation.
+The `yd-ls` command lists files and directories in a remote data store. See [Data Client](#data-client) for full documentation.
 
 ## yd-upload
 
-The `yd-upload` command uploads local files or directories to a remote data store. See [Data Client Commands](#data-client-commands) for full documentation.
+The `yd-upload` command uploads local files or directories to a remote data store. See [Data Client](#data-client) for full documentation.
