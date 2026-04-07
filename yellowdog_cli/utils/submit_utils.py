@@ -51,6 +51,20 @@ def assemble_arguments(
     return (prefix or []) + (args or []) + (postfix or [])
 
 
+def merge_environment(
+    base: dict | None,
+    additions: dict | None,
+) -> dict | None:
+    """
+    Merge addEnvironment entries into the task's environment dict.
+    Keys in additions override existing keys in base.
+    Returns base unchanged if additions is empty/None.
+    """
+    if not additions:
+        return base
+    return {**(base or {}), **additions}
+
+
 def update_config_work_requirement_object(
     config_wr: ConfigWorkRequirement,
 ) -> ConfigWorkRequirement:

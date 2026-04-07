@@ -30,6 +30,7 @@
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
    * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
+   * [Merging Additional Environment Variables into Tasks](#merging-additional-environment-variables-into-tasks)
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
          * [Obtaining Names/Context from Environment Variables at Task Run Time](#obtaining-namescontext-from-environment-variables-at-task-run-time)
@@ -673,6 +674,7 @@ The following table outlines all the properties available for defining Work Requ
 
 | Property Name               | Description                                                                                                                                                                                                          | TOML | WR  | TGrp | Task |
 |:----------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
+| `addEnvironment`            | A table of environment variable key-value pairs merged into each Task's `environment`. Keys in `addEnvironment` override any matching keys already present in `environment`. E.g., `{EXTRA = "val", X = "1"}`.       | Yes  | Yes | Yes  |      |
 | `addYDEnvironmentVariables` | Automatically add YellowDog environment variables to each Task's environment.                                                                                                                                        | Yes  | Yes | Yes  | Yes  |
 | `arguments`                 | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                                                              | Yes  | Yes | Yes  | Yes  |
 | `argumentsPostfix`          | A fixed list of arguments appended after `arguments` for every Task. Combined result is `argumentsPrefix` + `arguments` + `argumentsPostfix`. E.g.: `["--output", "results/"]`.                                      | Yes  | Yes | Yes  |      |
@@ -717,6 +719,35 @@ The following table outlines all the properties available for defining Work Requ
 | `vcpus`                     | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                                                                           | Yes  | Yes | Yes  |      |
 | `workerTags`                | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                         | Yes  | Yes | Yes  |      |
 | `workRequirementData`       | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                                                             | Yes  |     |      |      |
+
+## Merging Additional Environment Variables into Tasks
+
+The `addEnvironment` property allows a fixed set of environment variable key-value pairs to be merged into the `environment` of every Task, without replacing the entire `environment` property. Any key in `addEnvironment` that also exists in the Task's `environment` is **overridden** by the value from `addEnvironment`.
+
+`addEnvironment` follows the same inheritance hierarchy as `argumentsPrefix` and `argumentsPostfix`: it can be set in the TOML `[workRequirement]` section, at the Work Requirement JSON level, or at the Task Group JSON level (not at the per-Task level), with lower levels taking precedence.
+
+### Example — TOML
+
+```toml
+[workRequirement]
+    environment = {MY_VAR = "original", KEEP = "kept"}
+    addEnvironment = {MY_VAR = "overridden", EXTRA = "new"}
+    # Effective environment for each task: {MY_VAR = "overridden", KEEP = "kept", EXTRA = "new"}
+```
+
+### Example — JSON
+
+```json
+{
+  "taskGroups": [
+    {
+      "environment": {"MY_VAR": "original", "KEEP": "kept"},
+      "addEnvironment": {"MY_VAR": "overridden", "EXTRA": "new"},
+      "tasks": [{}]
+    }
+  ]
+}
+```
 
 ## Automatic Properties
 
@@ -770,6 +801,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
 
 ```toml
 [workRequirement]
+    addEnvironment = {EXTRA_VAR = "extra_value", MY_VAR = "override"}
     addYDEnvironmentVariables = true
     arguments = ["1", "TWO"]
     argumentsPostfix = ["--postfix-arg"]
@@ -826,6 +858,7 @@ Showing all possible properties at the Work Requirement level:
 
 ```json
 {
+  "addEnvironment": {"EXTRA_VAR": "extra_value", "MY_VAR": "override"},
   "addYDEnvironmentVariables": true,
   "arguments": [1, "TWO"],
   "argumentsPostfix": ["--postfix-arg"],
@@ -889,6 +922,7 @@ Showing all possible properties at the Task Group level:
 {
   "taskGroups": [
     {
+      "addEnvironment": {"EXTRA_VAR": "extra_value", "MY_VAR": "override"},
       "addYDEnvironmentVariables": true,
       "arguments": [1, "TWO"],
       "argumentsPostfix": ["--postfix-arg"],

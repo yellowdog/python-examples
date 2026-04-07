@@ -45,7 +45,9 @@ pytest -v -n 4 --run-demos
 
 | File | What it tests |
 |---|---|
+| `test_arguments_assembly.py` | `utils/submit_utils.py` — `assemble_arguments` (argumentsPrefix + arguments + argumentsPostfix combination) |
 | `test_build_dc_substitutions.py` | `utils/load_config.py` — `_build_dc_substitutions` (data client config merging and inheritance) |
+| `test_environment_merge.py` | `utils/submit_utils.py` — `merge_environment` (addEnvironment merging and key-override behaviour) |
 | `test_compact_json.py` | `utils/compact_json.py` — `CompactJSONEncoder` (inline vs. expanded formatting, float notation) |
 | `test_csv_data.py` | `utils/csv_data.py` — `CSVTaskData`, `CSVDataCache`, substitution helpers |
 | `test_dataclient_utils.py` | `utils/dataclient_utils.py` — `resolve_remote_path` (rclone remote path resolution) |

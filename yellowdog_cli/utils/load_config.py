@@ -578,6 +578,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         )
 
         return ConfigWorkRequirement(
+            add_environment=wr_section.get(ADD_ENVIRONMENT, None),
             add_yd_env_vars=wr_section.get(ADD_YD_ENV_VARS, False),
             args=wr_section.get(ARGS, []),
             args_postfix=wr_section.get(ARGS_POSTFIX, None),

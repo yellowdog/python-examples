@@ -53,6 +53,7 @@ from yellowdog_cli.utils.printing import (
     print_warning,
 )
 from yellowdog_cli.utils.property_names import (
+    ADD_ENVIRONMENT,
     ADD_YD_ENV_VARS,
     ARGS,
     ARGS_POSTFIX,
@@ -109,6 +110,7 @@ from yellowdog_cli.utils.submit_utils import (
     generate_dependencies,
     generate_task_error_matchers_list,
     generate_taskdata_object,
+    merge_environment,
     pause_between_batches,
     update_config_work_requirement_object,
 )
@@ -846,6 +848,13 @@ def generate_batch_of_tasks_for_task_group(
         env = check_dict(
             task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, config_wr.env)))
         )
+        add_env = check_dict(
+            wr_data.get(
+                ADD_ENVIRONMENT,
+                task_group_data.get(ADD_ENVIRONMENT, config_wr.add_environment),
+            )
+        )
+        env = merge_environment(env, add_env)
 
         add_yd_env_vars = check_bool(
             task.get(

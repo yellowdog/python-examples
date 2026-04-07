@@ -26,6 +26,7 @@ class ConfigCommon:
 
 @dataclass
 class ConfigWorkRequirement:
+    add_environment: dict | None = None
     add_yd_env_vars: bool = False
     args: list[str] = field(default_factory=list)
     args_postfix: list[str] | None = None

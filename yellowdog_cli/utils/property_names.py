@@ -2,6 +2,7 @@
 Property names.
 """
 
+ADD_ENVIRONMENT = "addEnvironment"  # Dict
 ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
 ARGS = "arguments"  # List
 ARGS_PREFIX = "argumentsPrefix"  # List
@@ -103,6 +104,7 @@ WR_TAG = "tag"  # String
 
 
 ALL_KEYS = [
+    ADD_ENVIRONMENT,
     ADD_YD_ENV_VARS,
     ARGS,
     ARGS_POSTFIX,
