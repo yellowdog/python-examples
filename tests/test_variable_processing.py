@@ -17,6 +17,12 @@ class TestVariableProcessing:
             ("{{one}}", "{{", "}}", "one"),
             ("{{{one}}}", "{{", "}}", "{one}"),
             ("__{{{on}e}}}__", "__{{", "}}__", "{on}e}"),
+            (
+                "{{ one two}}",
+                "{{",
+                "}}",
+                " one two",
+            ),  # Spaces can be handled, although not documented
         ],
     )
     def test_remove_outer_delimiters(
