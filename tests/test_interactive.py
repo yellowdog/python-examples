@@ -32,7 +32,9 @@ class TestConfirmedShortCircuits:
                 assert confirmed("delete everything?") is True
 
     def test_yd_yes_empty_env_var_falls_through(self):
-        """YD_YES set but empty → not treated as confirmed."""
+        """
+        YD_YES set but empty → not treated as confirmed.
+        """
         mock_args = SimpleNamespace(yes=False, no_format=True)
         responses = iter(["y"])
         with patch.object(interactive_module, "ARGS_PARSER", mock_args):
@@ -85,7 +87,9 @@ class TestConfirmedShortCircuits:
 
 
 def _select(responses, num_items=10, result_required=False, single_result=False):
-    """Helper: run get_selected_list_items with a scripted list of inputs."""
+    """
+    Helper: run get_selected_list_items with a scripted list of inputs.
+    """
     resp_iter = iter(responses)
     with patch.object(
         interactive_module, "_get_user_input", side_effect=resp_iter

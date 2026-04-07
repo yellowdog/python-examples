@@ -8,7 +8,9 @@ from yellowdog_cli.utils.validate_properties import validate_properties
 
 
 class TestValidProperties:
-    """Valid property dicts should pass without raising."""
+    """
+    Valid property dicts should pass without raising.
+    """
 
     def test_single_valid_key(self):
         validate_properties({"name": "test"}, "ctx")
@@ -36,7 +38,9 @@ class TestValidProperties:
 
 
 class TestInvalidProperties:
-    """Unknown keys should raise an exception naming the bad key(s)."""
+    """
+    Unknown keys should raise an exception naming the bad key(s).
+    """
 
     def test_invalid_top_level_key_raises(self):
         with pytest.raises(Exception, match="Invalid properties"):
@@ -93,7 +97,9 @@ class TestExcludedKeys:
 
 
 class TestDeprecatedKeys:
-    """Deprecated keys must raise an exception with a helpful migration hint."""
+    """
+    Deprecated keys must raise an exception with a helpful migration hint.
+    """
 
     @pytest.mark.parametrize(
         "key",

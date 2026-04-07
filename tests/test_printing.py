@@ -34,7 +34,9 @@ from yellowdog_cli.utils.settings import MAX_TABLE_DESCRIPTION
 
 
 def _mock_args(print_pid=False, no_format=True, **kwargs):
-    """Return a mock ARGS_PARSER with sensible test defaults."""
+    """
+    Return a mock ARGS_PARSER with sensible test defaults.
+    """
     ns = SimpleNamespace(print_pid=print_pid, no_format=no_format, **kwargs)
     return ns
 

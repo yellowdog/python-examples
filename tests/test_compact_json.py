@@ -14,7 +14,9 @@ def _enc(data, **kwargs) -> str:
 
 
 class TestSmallContainers:
-    """Small containers (few items, short repr) go on a single line."""
+    """
+    Small containers (few items, short repr) go on a single line.
+    """
 
     def test_small_list(self):
         assert _enc([1, 2, 3]) == "[1, 2, 3]"
@@ -44,7 +46,9 @@ class TestSmallContainers:
 
 
 class TestLargeContainers:
-    """Containers exceeding MAX_ITEMS or MAX_WIDTH are expanded across lines."""
+    """
+    Containers exceeding MAX_ITEMS or MAX_WIDTH are expanded across lines.
+    """
 
     def test_list_over_max_items(self):
         data = list(range(11))  # 11 > MAX_ITEMS = 10
@@ -79,7 +83,9 @@ class TestLargeContainers:
 
 
 class TestNestedContainers:
-    """Containers that hold other containers are never put on a single line."""
+    """
+    Containers that hold other containers are never put on a single line.
+    """
 
     def test_list_of_lists(self):
         result = _enc([[1, 2], [3, 4]])
@@ -103,7 +109,9 @@ class TestNestedContainers:
 
 
 class TestFloatFormatting:
-    """`g` format: drops trailing zeros, uses scientific notation when needed."""
+    """
+    `g` format: drops trailing zeros, uses scientific notation when needed.
+    """
 
     def test_regular_float(self):
         assert _enc(3.14) == "3.14"
@@ -154,7 +162,9 @@ class TestIterencode:
 
 
 class TestRoundTrip:
-    """Encoded output must always be valid JSON that round-trips correctly."""
+    """
+    Encoded output must always be valid JSON that round-trips correctly.
+    """
 
     @pytest.mark.parametrize(
         "data",
