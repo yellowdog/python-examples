@@ -49,6 +49,7 @@ pytest -v -n 4 --run-demos
 | `test_compact_json.py` | `utils/compact_json.py` — `CompactJSONEncoder` (inline vs. expanded formatting, float notation) |
 | `test_csv_data.py` | `utils/csv_data.py` — `CSVTaskData`, `CSVDataCache`, substitution helpers |
 | `test_dataclient_utils.py` | `utils/dataclient_utils.py` — `resolve_remote_path` (rclone remote path resolution) |
+| `test_interactive.py` | `utils/interactive.py` — `confirmed` (--yes / YD_YES shortcuts), `get_selected_list_items` (range parsing: comma, dash, `*`, error recovery) |
 | `test_ls_formatting.py` | `ls.py` — `_print_listing`, `_print_flat`, `_print_tree` output formatting |
 | `test_misc_utils.py` | `utils/misc_utils.py` — name formatting, ID generation, delimiter parsing, etc. |
 | `test_printing.py` | `utils/printing.py` — `_truncate_text`, `_yes_or_no`, `indent`, `status_counts_msg`, `get_type_name`, `print_string`; table-building helpers |
