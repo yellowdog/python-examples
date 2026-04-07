@@ -2,6 +2,9 @@
 Tests that run the standard demo dry-runs.
 """
 
+import subprocess
+import time
+
 import pytest
 from cli_test_helpers import shell
 
@@ -27,6 +30,17 @@ _DEMOS = [
 def test_dry_run_in_dir(demo):
     result = shell(f"cd {DEMO_DIR}/{demo} && {CMD_SEQ}")
     assert result.exit_code == 0
+
+
+def test_generic_gui():
+    proc = subprocess.Popen(
+        ["./yellow-gui.py"],
+        cwd=f"{DEMO_DIR}/yellow-gui",
+    )
+    time.sleep(2.5)
+    assert proc.poll() is None, "GUI exited unexpectedly on startup"
+    proc.terminate()
+    proc.wait()
 
 
 @pytest.mark.parametrize("demo", _DEMOS)

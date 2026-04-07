@@ -67,9 +67,8 @@ pytest -v -n 4 --run-demos
 
 | File | What it tests |
 |---|---|
-| `test_dryruns.py` | All standard demos in `--dry-run` mode (no platform calls) |
+| `test_dryruns.py` | All standard demos in `--dry-run` mode (no platform calls); GUI starts and stays up |
 | `test_entrypoints.py` | All `yd-*` CLI entry points are present and respond to `--help` |
-| `test_gui.py` | GUI interface starts without error |
 
 ### System Tests (`--run-system`, credentials required)
 
