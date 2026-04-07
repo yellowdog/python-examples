@@ -101,6 +101,6 @@ class TestParseRcloneConfig:
         assert "type = s3" in config
 
     def test_double_quoted_value_stripped(self):
-        name, config = parse_rclone_config("R2,type=\"s3\"")
+        name, config = parse_rclone_config('R2,type="s3"')
         assert config is not None
         assert "type = s3" in config

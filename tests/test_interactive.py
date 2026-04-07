@@ -13,7 +13,6 @@ from unittest.mock import patch
 import yellowdog_cli.utils.interactive as interactive_module
 from yellowdog_cli.utils.interactive import confirmed, get_selected_list_items
 
-
 # ---------------------------------------------------------------------------
 # confirmed() — short-circuit paths (no user input required)
 # ---------------------------------------------------------------------------
@@ -91,9 +90,7 @@ def _select(responses, num_items=10, result_required=False, single_result=False)
     Helper: run get_selected_list_items with a scripted list of inputs.
     """
     resp_iter = iter(responses)
-    with patch.object(
-        interactive_module, "_get_user_input", side_effect=resp_iter
-    ):
+    with patch.object(interactive_module, "_get_user_input", side_effect=resp_iter):
         return get_selected_list_items(
             num_items,
             result_required=result_required,

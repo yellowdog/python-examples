@@ -27,7 +27,6 @@ from yellowdog_cli.utils.printing import (
 )
 from yellowdog_cli.utils.settings import MAX_TABLE_DESCRIPTION
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -157,7 +156,9 @@ class TestStatusCountsMsg:
 
     def test_empty_msg_if_zero_total_false_keeps_output(self):
         counts = [StatusCount("RUNNING", include_if_zero=True)]
-        result = status_counts_msg(counts, {"RUNNING": 0}, empty_msg_if_zero_total=False)
+        result = status_counts_msg(
+            counts, {"RUNNING": 0}, empty_msg_if_zero_total=False
+        )
         assert result == "0 RUNNING"
 
     def test_nonzero_total_always_returned(self):
@@ -231,13 +232,17 @@ class TestPrintString:
         assert re.search(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", result)
 
     def test_no_pid_by_default(self):
-        with patch("yellowdog_cli.utils.printing.ARGS_PARSER", _mock_args(print_pid=False)):
+        with patch(
+            "yellowdog_cli.utils.printing.ARGS_PARSER", _mock_args(print_pid=False)
+        ):
             result = print_string("msg")
         # PID is 6 digits in parens; should not appear
         assert "(" not in result
 
     def test_with_pid_includes_pid(self):
-        with patch("yellowdog_cli.utils.printing.ARGS_PARSER", _mock_args(print_pid=True)):
+        with patch(
+            "yellowdog_cli.utils.printing.ARGS_PARSER", _mock_args(print_pid=True)
+        ):
             result = print_string("msg")
         assert re.search(r"\(\d{6}\)", result)
 
@@ -248,7 +253,9 @@ class TestPrintString:
         assert result.endswith(" : ")
 
     def test_no_format_returns_prefix_plus_msg_directly(self):
-        with patch("yellowdog_cli.utils.printing.ARGS_PARSER", _mock_args(no_format=True)):
+        with patch(
+            "yellowdog_cli.utils.printing.ARGS_PARSER", _mock_args(no_format=True)
+        ):
             result = print_string("raw message")
         assert result.endswith("raw message")
 
@@ -259,7 +266,9 @@ class TestPrintString:
 
 
 class TestKeyringTable:
-    def _keyring(self, name="k1", description="A keyring", id="ydid:keyring:abc") -> KeyringSummary:
+    def _keyring(
+        self, name="k1", description="A keyring", id="ydid:keyring:abc"
+    ) -> KeyringSummary:
         return SimpleNamespace(name=name, description=description, id=id)  # type: ignore[return-value]
 
     def test_headers_present(self):
@@ -313,9 +322,17 @@ class TestTaskTable:
 
 
 class TestWorkRequirementTable:
-    def _wr(self, name="wr-1", namespace: str | None = "ns", tag: str | None = "t",
-             status="RUNNING", completed=3, total=5, healthy=True,
-             id="ydid:wr:001") -> WorkRequirementSummary:
+    def _wr(
+        self,
+        name="wr-1",
+        namespace: str | None = "ns",
+        tag: str | None = "t",
+        status="RUNNING",
+        completed=3,
+        total=5,
+        healthy=True,
+        id="ydid:wr:001",
+    ) -> WorkRequirementSummary:
         return SimpleNamespace(  # type: ignore[return-value]
             name=name,
             namespace=namespace,

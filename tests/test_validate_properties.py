@@ -16,7 +16,9 @@ class TestValidProperties:
         validate_properties({"name": "test"}, "ctx")
 
     def test_multiple_valid_keys(self):
-        validate_properties({"name": "job", "namespace": "default", "priority": 1.0}, "ctx")
+        validate_properties(
+            {"name": "job", "namespace": "default", "priority": 1.0}, "ctx"
+        )
 
     def test_empty_dict_is_valid(self):
         validate_properties({}, "ctx")
@@ -76,22 +78,31 @@ class TestExcludedKeys:
 
     def test_environment_contents_not_validated(self):
         # Arbitrary env var names inside 'environment' must not raise
-        validate_properties({"environment": {"MY_CUSTOM_VAR": "value", "PATH": "/usr/bin"}}, "ctx")
+        validate_properties(
+            {"environment": {"MY_CUSTOM_VAR": "value", "PATH": "/usr/bin"}}, "ctx"
+        )
 
     def test_variables_contents_not_validated(self):
         validate_properties({"variables": {"myVar": "value", "anotherVar": 42}}, "ctx")
 
     def test_instance_tags_contents_not_validated(self):
-        validate_properties({"instanceTags": {"CostCentre": "eng", "Team": "platform"}}, "ctx")
+        validate_properties(
+            {"instanceTags": {"CostCentre": "eng", "Team": "platform"}}, "ctx"
+        )
 
     def test_task_data_inputs_contents_not_validated(self):
         validate_properties(
-            {"taskDataInputs": [{"source": "s3://bucket/key", "destination": "/tmp"}]}, "ctx"
+            {"taskDataInputs": [{"source": "s3://bucket/key", "destination": "/tmp"}]},
+            "ctx",
         )
 
     def test_task_data_outputs_contents_not_validated(self):
         validate_properties(
-            {"taskDataOutputs": [{"source": "/tmp/result", "destination": "s3://bucket/out"}]},
+            {
+                "taskDataOutputs": [
+                    {"source": "/tmp/result", "destination": "s3://bucket/out"}
+                ]
+            },
             "ctx",
         )
 
