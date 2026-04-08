@@ -16,7 +16,7 @@ def main():
         # Check file extension
         backup_filename = filename + ".backup"
 
-        if not filename.lower().endswith("json"):
+        if not filename.lower().endswith(".json"):
             print(f"Ignoring non-JSON file: '{filename}'")
             continue
 

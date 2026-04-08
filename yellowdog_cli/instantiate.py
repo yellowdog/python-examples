@@ -7,6 +7,7 @@ A script to provision a Compute Requirement.
 from dataclasses import dataclass
 from json import loads as json_loads
 from math import ceil, floor
+from typing import cast
 
 import requests
 from yellowdog_client.model import (
@@ -130,7 +131,7 @@ def main():
 
         try:
             compute_requirement_template_usage = ComputeRequirementTemplateUsage(
-                templateId=CONFIG_WP.template_id,
+                templateId=cast(str, CONFIG_WP.template_id),
                 requirementNamespace=CONFIG_COMMON.namespace,
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].target_instances,

@@ -4,6 +4,8 @@
 A script to resize Worker Pools and Compute Requirements.
 """
 
+from typing import cast
+
 from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementStatus,
@@ -61,7 +63,7 @@ def _resize_worker_pool():
 
     if ARGS_PARSER.follow:
         print_info("Following event stream(s)")
-        follow_ids([worker_pool.id], auto_cr=ARGS_PARSER.auto_cr)
+        follow_ids([cast(str, worker_pool.id)], auto_cr=ARGS_PARSER.auto_cr)
 
 
 def _resize_compute_requirement():
@@ -122,7 +124,7 @@ def _resize_compute_requirement():
                     " ignored when resizing Compute Requirements"
                 )
             print_info("Following event stream")
-            follow_events(cr.id, YDIDType.COMPUTE_REQUIREMENT)
+            follow_events(cast(str, cr.id), YDIDType.COMPUTE_REQUIREMENT)
 
         return
 

@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from os.path import join, normpath, relpath
+from typing import TypeAlias
 from urllib.parse import urlparse
 
 from dotenv import dotenv_values, find_dotenv, load_dotenv
@@ -46,12 +47,24 @@ def generate_id(prefix: str = "", max_length: int = 60) -> str:
 
 
 # Utility functions for creating links to YD entities
-def link_entity(base_url: str, entity: object) -> str:
-    entity_type = type(entity)
+_EntityType: TypeAlias = (
+    ConfiguredWorkerPool | ProvisionedWorkerPool | WorkRequirement | ComputeRequirement
+)
+
+entities: dict[str, str] = {
+    "ConfiguredWorkerPool": "workers",
+    "ProvisionedWorkerPool": "workers",
+    "WorkRequirement": "work",
+    "ComputeRequirement": "compute",
+}
+
+
+def link_entity(base_url: str, entity: _EntityType) -> str:
+    entity_type_name = type(entity).__name__
     return link(
         base_url,
-        f"#/{(entities.get(entity_type))}/{entity.id}",
-        camel_case_split(entity_type.__name__).upper(),
+        f"#/{entities.get(entity_type_name)}/{entity.id}",  # type: ignore[union-attr]
+        camel_case_split(entity_type_name).upper(),
     )
 
 
@@ -69,14 +82,6 @@ def link(base_url: str, url_suffix: str = "", text: str | None = None) -> str:
 
 def camel_case_split(value: str) -> str:
     return " ".join(re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", value))
-
-
-entities = {
-    ConfiguredWorkerPool: "workers",
-    ProvisionedWorkerPool: "workers",
-    WorkRequirement: "work",
-    ComputeRequirement: "compute",
-}
 
 
 def add_batch_number_postfix(name: str, batch_number: int, num_batches: int) -> str:
@@ -137,6 +142,7 @@ def get_delimited_string_boundaries(
         if slate == 1 and start is None:
             start = boundary[0]
         elif slate == 0:
+            assert start is not None  # set when slate first reached 1
             substrings.append(
                 Substring(start=start, end=boundary[0] + len(closing_delimiter))
             )
@@ -192,7 +198,7 @@ def split_delimited_string(
 
     return [
         s[boundary.start : boundary.end]
-        for boundary in sorted(non_delimited_boundaries + delimited_boundaries)
+        for boundary in sorted(non_delimited_boundaries + delimited_boundaries)  # type: ignore[type-var]
     ]
 
 
@@ -258,4 +264,4 @@ def load_dotenv_file():
         )
 
     # Actually load the variables (including non-'YD' variables)
-    load_dotenv(dotenv_file, override=ARGS_PARSER.env_override)
+    load_dotenv(dotenv_file, override=bool(ARGS_PARSER.env_override))

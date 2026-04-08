@@ -104,12 +104,10 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: list[str]):
 
     for name_or_id in names_or_ids:
 
-        work_requirement_summary: WorkRequirementSummary = (
-            get_work_requirement_summary_by_name_or_id(
-                CLIENT,
-                name_or_id,
-                namespace=CONFIG_COMMON.namespace,
-            )
+        work_requirement_summary = get_work_requirement_summary_by_name_or_id(
+            CLIENT,
+            name_or_id,
+            namespace=CONFIG_COMMON.namespace,
         )
         if work_requirement_summary is None:
             print_error(f"Work Requirement '{name_or_id}' not found")
@@ -153,7 +151,7 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: list[str]):
                 )
 
     if ARGS_PARSER.follow:
-        follow_ids([wrs.id for wrs in work_requirement_summaries])
+        follow_ids([cast(str, wrs.id) for wrs in work_requirement_summaries])
 
 
 # Entry point

@@ -7,6 +7,7 @@ from os import chdir, getcwd
 from os.path import abspath, exists
 from pathlib import Path
 from time import sleep
+from typing import cast
 
 from rclone_api import Config
 from yellowdog_client.model import (
@@ -192,11 +193,14 @@ def generate_dependencies(task_group_data: dict) -> list[str] | None:
     if dependencies is not None:
         return dependencies
 
-    print_warning(
-        "The 'dependentOn' task group property is deprecated; "
-        "please use 'dependencies' instead"
-    )
-    return [dependent_on]
+    if dependent_on is not None:
+        print_warning(
+            "The 'dependentOn' task group property is deprecated; "
+            "please use 'dependencies' instead"
+        )
+        return [dependent_on]
+
+    return None
 
 
 def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatcher:
@@ -279,16 +283,19 @@ class RcloneUploadedFiles:
             return
 
         for task_data_input in task_data_inputs:
-            if (
-                local_file := task_data_input.pop(DATA_CLIENT_LOCAL_PATH, None)
-            ) is None:
+            local_file = task_data_input.pop(DATA_CLIENT_LOCAL_PATH, None)
+            if local_file is None:
                 continue
-            if (
-                upload_path := task_data_input.pop(DATA_CLIENT_UPLOAD_PATH, None)
-            ) is None:
-                if (upload_path := task_data_input.get(TASK_DATA_SOURCE, None)) is None:
-                    continue
-            self._upload_rclone_file(local_file, upload_path)
+            upload_path = task_data_input.pop(DATA_CLIENT_UPLOAD_PATH, None)
+            if upload_path is None:
+                upload_path = task_data_input.get(TASK_DATA_SOURCE, None)
+            if upload_path is None:
+                continue
+            self._upload_rclone_file(
+                # Ugly cast to keep PyCharm type system happy
+                cast(str, cast(object, local_file)),
+                cast(str, upload_path),
+            )
 
     def _upload_rclone_file(self, local_file: str, rclone_upload_path: str):
         """

@@ -1217,7 +1217,7 @@ JSON:
 ```json
 "taskDataOutputs": [
   {"destination": "dest_path_1", "source": "out_src_path_1"},
-  {"destination": "dest_path_2", "source": "out_src_path_2". "alwaysUpload": True}
+  {"destination": "dest_path_2", "source": "out_src_path_2", "alwaysUpload": True}
 ],
 ```
 

@@ -381,14 +381,13 @@ def follow_events(
     print_info(f"Event stream concluded for '{ydid}'")
 
 
-def get_event_url(ydid: str, ydid_type: YDIDType) -> str | None:
+def get_event_url(ydid: str, ydid_type: YDIDType) -> str:
     """
-    Get the event stream URL.
+    Get the event stream URL. Assumes we've already checked that the
+    YDID is one of these types.
     """
     if ydid_type is YDIDType.WORK_REQUIREMENT:
         return f"{CONFIG_COMMON.url}/work/requirements/{ydid}/updates"
     if ydid_type == YDIDType.WORKER_POOL:
         return f"{CONFIG_COMMON.url}/workerPools/{ydid}/updates"
-    if ydid_type == YDIDType.COMPUTE_REQUIREMENT:
-        return f"{CONFIG_COMMON.url}/compute/requirements/{ydid}/updates"
-    return None
+    return f"{CONFIG_COMMON.url}/compute/requirements/{ydid}/updates"

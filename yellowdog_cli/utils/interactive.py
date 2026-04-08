@@ -37,7 +37,7 @@ def select(
     force_interactive: bool = False,
     result_required: bool = False,
     sort_objects: bool = True,
-) -> list[Item]:
+) -> list[Item | str | dict]:
     """
     Print a numbered list of objects.
     Manually select objects from a list if --interactive is set.
@@ -48,7 +48,7 @@ def select(
         return objects
 
     if sort_objects:
-        objects = sorted_objects(objects)
+        objects = sorted_objects(objects)  # type: ignore[arg-type, assignment]
 
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(
@@ -75,7 +75,7 @@ def select(
 
 
 def get_selected_list_items(
-    num_items, result_required: bool = False, single_result: bool = False
+    num_items: int, result_required: bool = False, single_result: bool = False
 ) -> list[int]:
     """
     Get a numbered selection list.
@@ -93,7 +93,7 @@ def get_selected_list_items(
         input_string = (
             f"Please select an item number{cancel_string}:"
             if single_result
-            else (f"Please select items (e.g.: 1,2,4-7 / *){cancel_string}:")
+            else f"Please select items (e.g.: 1,2,4-7 / *){cancel_string}:"
         )
         selector_string = _get_user_input(print_string(input_string) + " ")
         if selector_string.strip() == "*":

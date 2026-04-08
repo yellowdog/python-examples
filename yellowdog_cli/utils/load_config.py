@@ -8,6 +8,7 @@ from os import getenv
 from os.path import abspath, dirname, join, relpath
 from pathlib import Path
 from sys import exit
+from typing import cast
 
 from tomli import TOMLDecodeError
 
@@ -123,8 +124,9 @@ for norm, alt in [
     (YD_SECRET, YD_SECRET_ALT),
     (YD_URL, YD_URL_ALT),
 ]:
-    if os.getenv(norm) is None and os.getenv(alt) is not None:
-        os.environ[norm] = os.getenv(alt)
+    alt_value = os.getenv(alt)
+    if os.getenv(norm) is None and alt_value is not None:
+        os.environ[norm] = alt_value
 
 # CLI > YD_CONF > 'config.toml'
 CONFIG_FILE = relpath(
@@ -246,7 +248,9 @@ def load_config_common() -> ConfigCommon:
                     f"'{VARIABLE_SUBSTITUTIONS['username']}'"
                 )
 
-        url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
+        url = cast(
+            str, process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
+        )
         if url != DEFAULT_URL:
             print_info(f"Using the YellowDog API at: {url}")
 
@@ -255,19 +259,20 @@ def load_config_common() -> ConfigCommon:
         # substitutions for the items in its dictionary each time it's
         # called
         add_substitutions_without_overwriting(subs={URL: url})
-        key = process_variable_substitutions(common_section[KEY])
+        key = cast(str, process_variable_substitutions(common_section[KEY]))
         add_substitutions_without_overwriting(subs={KEY: key})
-        secret = process_variable_substitutions(common_section[SECRET])
+        secret = cast(str, process_variable_substitutions(common_section[SECRET]))
         add_substitutions_without_overwriting(subs={SECRET: secret})
-        namespace = process_variable_substitutions(common_section[NAMESPACE])
+        namespace = cast(str, process_variable_substitutions(common_section[NAMESPACE]))
         add_substitutions_without_overwriting(subs={NAMESPACE: namespace})
-        name_tag = process_variable_substitutions(common_section[NAME_TAG])
+        name_tag = cast(str, process_variable_substitutions(common_section[NAME_TAG]))
         add_substitutions_without_overwriting(subs={NAME_TAG: name_tag})
 
         # Specify a certificates bundle directly by setting the requests
         # environment variable; this will override the default certificates
-        certificates = process_variable_substitutions(
-            common_section.get(CERTIFICATES, None)
+        certificates = cast(
+            str | None,
+            process_variable_substitutions(common_section.get(CERTIFICATES, None)),
         )
         if certificates is not None:
             certificates = abspath(certificates)
@@ -298,7 +303,9 @@ def load_config_common() -> ConfigCommon:
 
 
 def import_toml(filename: str) -> dict:
-    filename = relpath(join(CONFIG_FILE_DIR, process_variable_substitutions(filename)))
+    filename = relpath(
+        join(CONFIG_FILE_DIR, cast(str, process_variable_substitutions(filename)))
+    )
     print_info(f"Loading imported common configuration data from: '{filename}'")
     try:
         common_config: dict = load_toml_file_with_variable_substitutions(filename)
@@ -321,7 +328,7 @@ def _load_namespace_and_tag() -> None:
     # Use .get() (not .pop()) so CONFIG_TOML is left intact for load_config_common().
     import_file = common_section.get(IMPORT_COMMON)
     if import_file is not None:
-        imported = import_toml(import_file)
+        imported = import_toml(str(import_file))
         # Imported values are baseline; local section takes precedence
         common_section = {**imported, **common_section}
 
@@ -452,13 +459,13 @@ def load_config_data_client() -> ConfigDataClient:
 
     def _resolve(cli_value: str | None, env_var: str, toml_key: str) -> str | None:
         if cli_value is not None:
-            return process_variable_substitutions(cli_value)
+            return cast(str | None, process_variable_substitutions(cli_value))
         env_value = os.environ.get(env_var)
         if env_value is not None:
-            return process_variable_substitutions(env_value)
+            return cast(str | None, process_variable_substitutions(env_value))
         toml_value = dc_section.get(toml_key)
         if toml_value is not None:
-            return process_variable_substitutions(str(toml_value))
+            return cast(str | None, process_variable_substitutions(str(toml_value)))
         return None
 
     remote = _resolve(
@@ -477,7 +484,9 @@ def load_config_data_client() -> ConfigDataClient:
             DATA_CLIENT_PREFIX,
         )
         if prefix is None:
-            prefix = process_variable_substitutions("{{namespace}}/{{tag}}")
+            prefix = cast(
+                str | None, process_variable_substitutions("{{namespace}}/{{tag}}")
+            )
 
     # Register legacy {{remote/bucket/prefix}} names (backward compat).
     add_substitutions_without_overwriting(
@@ -531,12 +540,14 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         if worker_tags is not None:
             check_list(worker_tags)
             for index, worker_tag in enumerate(worker_tags):
-                worker_tags[index] = process_variable_substitutions(worker_tag)
+                worker_tags[index] = cast(
+                    str, process_variable_substitutions(worker_tag)
+                )
 
         wr_data_file = wr_section.get(WR_DATA, None)
         if wr_data_file is not None:
             check_str(wr_data_file)
-            wr_data_file = process_variable_substitutions(wr_data_file)
+            wr_data_file = cast(str, process_variable_substitutions(wr_data_file))
             wr_data_file = pathname_relative_to_config_file(
                 CONFIG_FILE_DIR, wr_data_file
             )
@@ -549,7 +560,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         )
         if task_type is not None:
             check_str(task_type)
-            task_type = process_variable_substitutions(task_type)
+            task_type = cast(str | None, process_variable_substitutions(task_type))
 
         csv_file = wr_section.get(CSV_FILE, None)
         csv_files = wr_section.get(CSV_FILES, None)
@@ -584,7 +595,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             args_postfix=wr_section.get(ARGS_POSTFIX, None),
             args_prefix=wr_section.get(ARGS_PREFIX, None),
             completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
-            csv_files=csv_files,
+            csv_files=cast(list[str] | None, csv_files),
             disable_preallocation=wr_section.get(DISABLE_PREALLOCATION, None),
             env=wr_section.get(ENV, {}),
             finish_if_all_tasks_finished=wr_section.get(
@@ -661,12 +672,18 @@ def load_config_worker_pool() -> ConfigWorkerPool:
         return ConfigWorkerPool()
 
     try:
-        worker_tag = process_variable_substitutions(wp_section.get(WORKER_TAG, None))
-        worker_pool_data_file = process_variable_substitutions(
-            wp_section.get(WORKER_POOL_DATA_FILE, None)
+        worker_tag = cast(
+            str | None, process_variable_substitutions(wp_section.get(WORKER_TAG, None))
         )
-        compute_requirement_data_file = process_variable_substitutions(
-            wp_section.get(COMPUTE_REQUIREMENT_DATA_FILE, None)
+        worker_pool_data_file = cast(
+            str | None,
+            process_variable_substitutions(wp_section.get(WORKER_POOL_DATA_FILE, None)),
+        )
+        compute_requirement_data_file = cast(
+            str | None,
+            process_variable_substitutions(
+                wp_section.get(COMPUTE_REQUIREMENT_DATA_FILE, None)
+            ),
         )
         if (
             worker_pool_data_file is not None
@@ -688,7 +705,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
         workers_per_vcpu = (
             None
             if wp_section.get(WORKERS_PER_VCPU, None) is None
-            else float(wp_section[WORKERS_PER_VCPU])
+            else int(wp_section[WORKERS_PER_VCPU])
         )
 
         return ConfigWorkerPool(
@@ -709,8 +726,9 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             metrics_enabled=wp_section.get(METRICS_ENABLED, False),
             min_nodes=int(wp_section.get(MIN_NODES, 0)),
             min_nodes_set=(False if wp_section.get(MIN_NODES) is None else True),
-            name=process_variable_substitutions(
-                wp_section.get(WP_NAME, None),
+            name=cast(
+                str | None,
+                process_variable_substitutions(wp_section.get(WP_NAME, None)),
             ),
             node_boot_timeout=float(wp_section.get(NODE_BOOT_TIMEOUT, 10.0)),
             target_instance_count=int(wp_section.get(TARGET_INSTANCE_COUNT, 1)),

@@ -76,7 +76,7 @@ def get_task_groups_from_wr_by_id(
     Cache results.
     """
     work_requirement = client.work_client.get_work_requirement_by_id(wr_id)
-    return work_requirement.taskGroups
+    return [] if work_requirement.taskGroups is None else work_requirement.taskGroups
 
 
 def get_task_group_name(

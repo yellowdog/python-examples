@@ -6,6 +6,7 @@ Command to list YellowDog entities.
 
 from json import loads as json_loads
 from os.path import exists
+from typing import cast
 
 from requests import get
 from yellowdog_client.common import SearchClient
@@ -243,7 +244,7 @@ def list_work_requirements():
 
 def list_task_groups(work_summary: WorkRequirementSummary):
     task_groups: list[TaskGroup] = get_task_groups_from_wr_by_id(
-        CLIENT, work_summary.id
+        CLIENT, cast(str, work_summary.id)
     )
     task_groups = sorted_objects(task_groups)
     if not ARGS_PARSER.tasks:
@@ -312,9 +313,9 @@ def list_worker_pools():
             "Please select the Worker Pool(s) for which to list "
             f"{'Nodes' if ARGS_PARSER.nodes else 'Workers'}"
         )
-        worker_pool_summaries = select(
-            CLIENT,
-            sorted_objects(worker_pool_summaries),
+        worker_pool_summaries = cast(
+            list[WorkerPoolSummary],
+            select(CLIENT, sorted_objects(worker_pool_summaries)),
         )
         list_nodes(worker_pool_summaries)
         return
@@ -464,21 +465,23 @@ def list_workers(nodes: list[Node]):
     """
     workers_all: list[Worker] = []
     for node in nodes:
-        for worker in node.workers:
+        for worker in node.workers or []:
             if ARGS_PARSER.active_only:
                 if worker.status not in [
                     WorkerStatus.SLEEPING,
                     WorkerStatus.DOING_TASK,
-                    WorkerStatus.FOUND,
                     WorkerStatus.STOPPED,
                     WorkerStatus.STARTING,
                 ]:
                     continue
             # Add extra info to the Worker object
-            worker.workerTag = node.details.workerTag
-            worker.taskTypes = node.details.supportedTaskTypes
-            worker.workerPoolName = node.workerPoolName
-            workers_all.append(worker)
+            if node.details is not None:
+                worker.workerTag = node.details.workerTag
+                worker.taskTypes = node.details.supportedTaskTypes
+                worker.workerPoolName = (
+                    node.workerPoolName
+                )  # This property is added by the caller
+                workers_all.append(worker)
 
     if len(workers_all) == 0:
         print_info("No Workers to display")

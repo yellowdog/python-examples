@@ -8,15 +8,23 @@ tested in test_variable_processing.py; this file covers the rest.
 import re
 
 import pytest
+from yellowdog_client.model import (
+    ComputeRequirement,
+    ConfiguredWorkerPool,
+    ProvisionedWorkerPool,
+    WorkRequirement,
+)
 
 from yellowdog_cli.utils.misc_utils import (
     Substring,
     add_batch_number_postfix,
     camel_case_split,
+    entities,
     format_yd_name,
     generate_id,
     get_delimited_string_boundaries,
     link,
+    link_entity,
     pathname_relative_to_config_file,
     split_delimited_string,
 )
@@ -171,6 +179,49 @@ class TestSplitDelimitedStringEdgeCases:
         # Adjacent variables produce an empty string between them
         result = split_delimited_string("{{a}}{{b}}", "{{", "}}")
         assert result == ["{{a}}", "", "{{b}}"]
+
+
+class TestEntities:
+    """
+    entities dict maps SDK class names to their URL path segments.
+    link_entity uses type(entity).__name__ as the key.
+    """
+
+    def test_all_four_types_present(self):
+        assert set(entities.keys()) == {
+            "ConfiguredWorkerPool",
+            "ProvisionedWorkerPool",
+            "WorkRequirement",
+            "ComputeRequirement",
+        }
+
+    @pytest.mark.parametrize(
+        "cls,expected_segment",
+        [
+            (ConfiguredWorkerPool, "workers"),
+            (ProvisionedWorkerPool, "workers"),
+            (WorkRequirement, "work"),
+            (ComputeRequirement, "compute"),
+        ],
+    )
+    def test_class_name_maps_to_correct_segment(self, cls, expected_segment):
+        assert entities[cls.__name__] == expected_segment
+
+    @pytest.mark.parametrize(
+        "cls,expected_segment",
+        [
+            (ConfiguredWorkerPool, "workers"),
+            (ProvisionedWorkerPool, "workers"),
+            (WorkRequirement, "work"),
+            (ComputeRequirement, "compute"),
+        ],
+    )
+    def test_link_entity_uses_correct_path_segment(self, cls, expected_segment):
+        # object.__new__ gives a bare instance so type(entity).__name__ is correct
+        entity = object.__new__(cls)
+        entity.id = "test-id-123"
+        result = link_entity("https://app.yellowdog.ai", entity)
+        assert f"#/{expected_segment}/test-id-123" in result
 
 
 class TestLink:

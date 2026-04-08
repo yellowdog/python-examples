@@ -5,6 +5,7 @@ A script to remove YellowDog resources.
 """
 
 from copy import deepcopy
+from typing import cast
 
 from requests import delete
 from requests.exceptions import HTTPError
@@ -78,7 +79,7 @@ def remove_resources(resources: list[dict] | None = None):
     else:
         resources = deepcopy(resources)  # Avoid overwriting the input argument
 
-    for resource in resources:
+    for resource in resources or []:
         try:
             resource_type = resource.pop(PROP_RESOURCE)
         except KeyError:
@@ -351,7 +352,9 @@ def remove_allowance(resource: dict):
     description = resource.get(PROP_DESCRIPTION, None)
     if description is not None:
         print_info(f"Removing allowance(s) matching description '{description}'")
-        num_removed = remove_allowances_matching_description(CLIENT, description)
+        num_removed = remove_allowances_matching_description(
+            CLIENT, cast(str, description)
+        )
         if num_removed > 0:
             print_info(f"Removed {num_removed} Allowance(s)")
 

@@ -13,18 +13,16 @@ from textwrap import fill
 from textwrap import indent as text_indent
 from typing import Any
 
-from rich.console import Console, Theme
+from rich.console import Console
 from rich.highlighter import JSONHighlighter, RegexHighlighter
 from rich.markup import escape
+from rich.theme import Theme
 from tabulate import tabulate
 from yellowdog_client import PlatformClient
 from yellowdog_client.common.json import Json
 from yellowdog_client.model import (
     Allowance,
     Application,
-    BestComputeSourceReport,
-    BestComputeSourceReportSource,
-    ComputeRequirement,
     ComputeRequirementDynamicTemplateTestResult,
     ComputeRequirementStatus,
     ComputeRequirementSummary,
@@ -32,7 +30,6 @@ from yellowdog_client.model import (
     ComputeRequirementTemplateTestResult,
     ComputeRequirementTemplateUsage,
     ComputeSourceTemplateSummary,
-    ConfiguredWorkerPool,
     ExternalUser,
     Group,
     Instance,
@@ -46,7 +43,6 @@ from yellowdog_client.model import (
     NodeActionQueueStatus,
     NodeStatus,
     PermissionDetail,
-    ProvisionedWorkerPool,
     ProvisionedWorkerPoolProperties,
     Role,
     Task,
@@ -105,14 +101,14 @@ class PrintLogHighlighter(RegexHighlighter):
     """
 
     base_style = "pyexamples."
-    highlights = [
+    highlights = [  # type: ignore[assignment]
         re.compile(
             r"(?P<date_time>[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
             r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])"
         ),
-        re.compile(r"(?P<quoted>'[a-zA-Z0-9-._=;,:\/\\\[\]{}+#@$£%\^&\*\(\)~`<>?]*')"),
+        re.compile(r"(?P<quoted>'[a-zA-Z0-9-._=;,:/\\\[\]{}+#@$£%^&*()~`<>?]*')"),
         YDID_HIGHLIGHT_RE,
-        re.compile(r"(?P<url>(https?):((//)|(\\\\))+[\w\d:#@%/;$~_?\+-=\\\.&]*)"),
+        re.compile(r"(?P<url>(https?):((//)|(\\\\))+[\w:#@%/;$~_?+=\\.&]*)"),
     ] + HIGHLIGHTED_STATES
 
 
@@ -123,7 +119,7 @@ class PrintTableHighlighter(RegexHighlighter):
 
     base_style = "pyexamples."
     table_outline_chars = "┌─┬│┼┐┤└┴┘├"
-    highlights = [
+    highlights = [  # type: ignore[assignment]
         re.compile(rf"(?P<table_outline>[{table_outline_chars}]*)"),
         re.compile(rf"(?P<table_content>[^{table_outline_chars}]*)"),
         YDID_HIGHLIGHT_RE,
@@ -215,7 +211,7 @@ def print_info(
 
 def print_debug(
     log_message: str = "",
-    override_quiet: bool = False,
+    _override_quiet: bool = False,
     no_fill: bool = False,
 ):
     """
@@ -265,30 +261,30 @@ def print_warning(
     )
 
 
-TYPE_MAP = {
-    AWSAvailabilityZone: "AWS Availability Zones",
-    Allowance: "Allowance",
-    Application: "Application",
-    ComputeRequirement: "ComputeRequirement",
-    ComputeRequirementSummary: "Compute Requirement",
-    ComputeRequirementTemplateSummary: "Compute Requirement Template",
-    ComputeSourceTemplateSummary: "Compute Source Template",
-    ConfiguredWorkerPool: "Configured Worker Pool",
-    Group: "Group",
-    KeyringSummary: "Keyring",
-    MachineImageFamilySummary: "Machine Image Family",
-    Namespace: "Namespace",
-    NamespacePolicy: "Namespace Policy",
-    Node: "Node",
-    PermissionDetail: "Permission",
-    ProvisionedWorkerPool: "Provisioned Worker Pool",
-    Role: "Role",
-    Task: "Task",
-    TaskGroup: "Task Group",
-    User: "User",
-    WorkRequirementSummary: "Work Requirement",
-    Worker: "Worker",
-    WorkerPoolSummary: "Worker Pool",
+TYPE_MAP: dict[str, str] = {
+    "AWSAvailabilityZone": "AWS Availability Zones",
+    "Allowance": "Allowance",
+    "Application": "Application",
+    "ComputeRequirement": "ComputeRequirement",
+    "ComputeRequirementSummary": "Compute Requirement",
+    "ComputeRequirementTemplateSummary": "Compute Requirement Template",
+    "ComputeSourceTemplateSummary": "Compute Source Template",
+    "ConfiguredWorkerPool": "Configured Worker Pool",
+    "Group": "Group",
+    "KeyringSummary": "Keyring",
+    "MachineImageFamilySummary": "Machine Image Family",
+    "Namespace": "Namespace",
+    "NamespacePolicy": "Namespace Policy",
+    "Node": "Node",
+    "PermissionDetail": "Permission",
+    "ProvisionedWorkerPool": "Provisioned Worker Pool",
+    "Role": "Role",
+    "Task": "Task",
+    "TaskGroup": "Task Group",
+    "User": "User",
+    "WorkRequirementSummary": "Work Requirement",
+    "Worker": "Worker",
+    "WorkerPoolSummary": "Worker Pool",
 }
 
 
@@ -314,7 +310,7 @@ def get_type_name(obj: Item) -> str:
         # Special case
         return "Allowance"
 
-    return TYPE_MAP.get(type(obj), "")
+    return TYPE_MAP.get(type(obj).__name__, "")
 
 
 def compute_requirement_table(
@@ -414,7 +410,7 @@ def task_table(task_list: list[Task]) -> tuple[list[str], list[list]]:
 
 
 def worker_pool_table(
-    client: PlatformClient, worker_pool_summaries: list[WorkerPoolSummary]
+    _client: PlatformClient, worker_pool_summaries: list[WorkerPoolSummary]
 ) -> tuple[list[str], list[list]]:
     headers = [
         "#",
@@ -431,7 +427,7 @@ def worker_pool_table(
                 index + 1,
                 worker_pool_summary.name,
                 worker_pool_summary.namespace,
-                f"{worker_pool_summary.type.split('.')[-1:][0].replace('WorkerPool', '')}",
+                f"{(worker_pool_summary.type or '').split('.')[-1:][0].replace('WorkerPool', '')}",
                 f"{worker_pool_summary.status}",
                 worker_pool_summary.id,
             ]
@@ -454,12 +450,18 @@ def compute_requirement_template_table(
     table = []
     for index, crt_summary in enumerate(crt_summaries):
         try:
-            type = crt_summary.type.split(".")[-1].replace("ComputeRequirement", "")
+            type_str = (
+                (crt_summary.type or "")
+                .split(".")[-1]
+                .replace("ComputeRequirement", "")
+            )
         except Exception:
-            type = None
+            type_str = None
         try:
-            strategy_type = crt_summary.strategyType.split(".")[-1].replace(
-                "ProvisionStrategy", ""
+            strategy_type = (
+                (crt_summary.strategyType or "")
+                .split(".")[-1]
+                .replace("ProvisionStrategy", "")
             )
         except Exception:
             strategy_type = None
@@ -468,7 +470,7 @@ def compute_requirement_template_table(
                 index + 1,
                 crt_summary.name,
                 crt_summary.namespace,
-                type,
+                type_str,
                 _truncate_text(crt_summary.description),
                 strategy_type,
                 crt_summary.id,
@@ -492,9 +494,9 @@ def compute_source_template_table(
     table = []
     for index, cst_summary in enumerate(cst_summaries):
         try:
-            type = cst_summary.sourceType.split(".")[-1]
+            type_str = (cst_summary.sourceType or "").split(".")[-1]
         except Exception:
-            type = None
+            type_str = None
         try:
             provider = cst_summary.provider
         except Exception:
@@ -506,7 +508,7 @@ def compute_source_template_table(
                 cst_summary.namespace,
                 _truncate_text(cst_summary.description),
                 provider,
-                type,
+                type_str,
                 cst_summary.id,
             ]
         )
@@ -588,8 +590,8 @@ def instances_table(
                 instance.status,
                 instance.privateIpAddress,
                 instance.publicIpAddress,
-                instance.id.sourceId,
-                instance.id.instanceId,
+                instance.id.sourceId if instance.id else None,
+                instance.id.instanceId if instance.id else None,
             ]
         )
     return headers, table
@@ -618,14 +620,14 @@ def nodes_table(
         table.append(
             [
                 index + 1,
-                node.workerPoolName,
+                getattr(node, "workerPoolName", None),
                 node.details.provider,
                 node.details.region,
                 node.details.ram,
                 node.details.vcpus,
-                ", ".join(node.details.supportedTaskTypes),
+                ", ".join(node.details.supportedTaskTypes or []),
                 node.details.workerTag,
-                len(node.workers),
+                len(node.workers or []),
                 node.status,
                 node.id,
             ]
@@ -651,12 +653,12 @@ def workers_table(
         table.append(
             [
                 index + 1,
-                worker.workerPoolName,
-                ", ".join(worker.taskTypes),
-                worker.workerTag,
+                getattr(worker, "workerPoolName", None),
+                ", ".join(getattr(worker, "taskTypes", None) or []),
+                getattr(worker, "workerTag", None),
                 worker.status,
-                worker.claimCount,
-                _yes_or_no(worker.exclusive),
+                getattr(worker, "claimCount", None),
+                _yes_or_no(getattr(worker, "exclusive", False)),
                 worker.id,
             ]
         )
@@ -737,7 +739,7 @@ def aws_availability_zone_table(
                 index + 1,
                 az.az,
                 az.default_subnet_id,
-                az.default_sec_grp.id,
+                az.default_sec_grp.id if az.default_sec_grp else None,
             ]
         )
     return headers, table
@@ -864,7 +866,7 @@ def groups_table(
                 group.name,
                 _yes_or_no(group.adminGroup),
                 _truncate_text(group.description),
-                ", ".join([x.role.name for x in group.roles]),
+                ", ".join([x.role.name or "" for x in group.roles or []]),
                 group.id,
             ]
         )
@@ -906,7 +908,7 @@ def permissions_table(
     ]
     table = []
     for index, permission in enumerate(permissions):
-        includes = ", ".join(sorted([x for x in permission.includes]))
+        includes = ", ".join(sorted(permission.includes or []))
         table.append(
             [
                 index + 1,
@@ -939,7 +941,7 @@ def print_numbered_object_list(
     print_info(
         "Displaying"
         f" {'all' if showing_all else 'matching'}"
-        f" {(object_type_name if object_type_name is not None else get_type_name(objects[0]))}(s):",
+        f" {(object_type_name if object_type_name is not None else get_type_name(objects[0]))}(s):",  # type: ignore
         override_quiet=override_quiet,
     )
     print()
@@ -949,53 +951,53 @@ def print_numbered_object_list(
         headers = ["#", "Name"]
         table = [[index + 1, name] for index, name in enumerate(objects)]
     elif isinstance(objects[0], ComputeRequirementSummary):
-        headers, table = compute_requirement_table(objects)
+        headers, table = compute_requirement_table(objects)  # type: ignore
     elif isinstance(objects[0], WorkRequirementSummary):
-        headers, table = work_requirement_table(objects)
+        headers, table = work_requirement_table(objects)  # type: ignore
     elif isinstance(objects[0], TaskGroup):
-        headers, table = task_group_table(objects)
+        headers, table = task_group_table(objects)  # type: ignore
     elif isinstance(objects[0], Task):
-        headers, table = task_table(objects)
+        headers, table = task_table(objects)  # type: ignore
     elif isinstance(objects[0], WorkerPoolSummary):
-        headers, table = worker_pool_table(client, objects)
+        headers, table = worker_pool_table(client, objects)  # type: ignore
     elif isinstance(objects[0], ComputeRequirementTemplateSummary):
-        headers, table = compute_requirement_template_table(objects)
+        headers, table = compute_requirement_template_table(objects)  # type: ignore
     elif isinstance(objects[0], ComputeSourceTemplateSummary):
-        headers, table = compute_source_template_table(objects)
+        headers, table = compute_source_template_table(objects)  # type: ignore
     elif isinstance(objects[0], KeyringSummary):
-        headers, table = keyring_table(objects)
+        headers, table = keyring_table(objects)  # type: ignore
     elif isinstance(objects[0], MachineImageFamilySummary):
-        headers, table = image_family_table(objects)
+        headers, table = image_family_table(objects)  # type: ignore
     elif isinstance(objects[0], Instance):
-        headers, table = instances_table(objects)
+        headers, table = instances_table(objects)  # type: ignore
     elif isinstance(objects[0], Allowance):
-        headers, table = allowances_table(objects)
+        headers, table = allowances_table(objects)  # type: ignore
     elif isinstance(objects[0], AWSAvailabilityZone):
-        headers, table = aws_availability_zone_table(objects)
+        headers, table = aws_availability_zone_table(objects)  # type: ignore
     elif object_type_name == "Attribute Definition":
-        headers, table = attribute_definitions_table(objects)
+        headers, table = attribute_definitions_table(objects)  # type: ignore
     elif isinstance(objects[0], NamespacePolicy):
-        headers, table = namespace_policies_table(objects)
+        headers, table = namespace_policies_table(objects)  # type: ignore
     elif isinstance(objects[0], Node):
-        headers, table = nodes_table(objects)
+        headers, table = nodes_table(objects)  # type: ignore
     elif isinstance(objects[0], Worker):
-        headers, table = workers_table(objects)
+        headers, table = workers_table(objects)  # type: ignore
     elif isinstance(objects[0], User):
-        headers, table = users_table(objects)
+        headers, table = users_table(objects)  # type: ignore
     elif isinstance(objects[0], Application):
-        headers, table = applications_table(objects)
+        headers, table = applications_table(objects)  # type: ignore
     elif isinstance(objects[0], Group):
-        headers, table = groups_table(objects)
+        headers, table = groups_table(objects)  # type: ignore
     elif isinstance(objects[0], Role):
-        headers, table = roles_table(objects)
+        headers, table = roles_table(objects)  # type: ignore
     elif isinstance(objects[0], PermissionDetail):
-        headers, table = permissions_table(objects)
+        headers, table = permissions_table(objects)  # type: ignore
     elif isinstance(objects[0], Namespace):
-        headers, table = namespaces_table(objects)
+        headers, table = namespaces_table(objects)  # type: ignore
     else:
         table = []
         for index, obj in enumerate(objects):
-            table.append([index + 1, ":", obj.name])
+            table.append([index + 1, ":", obj.name])  # type: ignore[union-attr]
     if headers is None:
         print_table_core(indent(tabulate(table, tablefmt="plain"), indent_width=4))
     else:
@@ -1023,7 +1025,9 @@ def print_numbered_strings(objects: list[str], override_quiet: bool = False):
     print(flush=True)
 
 
-def sorted_objects(objects: list[Item | str], reverse: bool = False) -> list[Item]:
+def sorted_objects(
+    objects: list[Item | str], reverse: bool = False
+) -> list[Item | str]:
     """
     Sort objects by their 'name' property, or 'instanceType' in the case of
     Instances, etc.
@@ -1035,35 +1039,35 @@ def sorted_objects(objects: list[Item | str], reverse: bool = False) -> list[Ite
         reverse = ARGS_PARSER.reverse
 
     if isinstance(objects[0], str):
-        return sorted(objects, reverse=reverse)
+        return sorted(objects, reverse=reverse)  # type: ignore[type-var]
 
     if isinstance(objects[0], Instance):
-        return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)
+        return sorted(objects, key=lambda x: x.instanceType, reverse=reverse)  # type: ignore[union-attr]
 
     if isinstance(objects[0], Node):
         # Note: worker_pool_name property is added dynamically in yd_list
-        return sorted(objects, key=lambda x: str(x.workerPoolName), reverse=reverse)
+        return sorted(objects, key=lambda x: str(x.workerPoolName), reverse=reverse)  # type: ignore[attr-defined]
 
     if isinstance(objects[0], Worker):
         # Note: worker_pool_name property is added dynamically in yd_list
-        return sorted(objects, key=lambda x: str(x.workerPoolName), reverse=reverse)
+        return sorted(objects, key=lambda x: str(x.workerPoolName), reverse=reverse)  # type: ignore[attr-defined]
 
     if isinstance(objects[0], AWSAvailabilityZone):
-        return sorted(objects)
+        return sorted(objects)  # type: ignore[type-var]
 
     if isinstance(objects[0], Allowance):
         try:
-            return sorted(objects, key=lambda x: x.description, reverse=reverse)
+            return sorted(objects, key=lambda x: x.description, reverse=reverse)  # type: ignore[union-attr]
         except TypeError:
             return objects
 
     if isinstance(objects[0], Task):  # Sort tasks by their task number
-        return sorted(objects, key=lambda x: int(x.id.split(":")[-1]), reverse=reverse)
+        return sorted(objects, key=lambda x: int(x.id.split(":")[-1]), reverse=reverse)  # type: ignore[union-attr]
 
     try:
-        return sorted(objects, key=lambda x: x.name, reverse=reverse)
+        return sorted(objects, key=lambda x: x.name, reverse=reverse)  # type: ignore[union-attr]
     except Exception:
-        return sorted(objects, key=lambda x: x.namespace, reverse=reverse)
+        return sorted(objects, key=lambda x: x.namespace, reverse=reverse)  # type: ignore[union-attr]
 
 
 def indent(txt: str, indent_width: int = 4) -> str:
@@ -1121,7 +1125,7 @@ def print_yd_object(
     Print a YellowDog object as a JSON data structure,
     using the compact JSON encoder.
     """
-    object_data: object = Json.dump(yd_object)
+    object_data: Any = Json.dump(yd_object)
 
     def remove_unused_props(d):
         """
@@ -1235,7 +1239,7 @@ class WorkRequirementSnapshot:
         Set the Work Requirement to be represented, processed to
         comply with the API.
         """
-        self.wr_data = Json.dump(wr)  # Dictionary holding the complete WR
+        self.wr_data = Json.dump(wr)  # type: ignore[assignment]  # Dictionary holding the complete WR
 
     def add_tasks(self, task_group_name: str, tasks: list[Task]):
         """
@@ -1265,8 +1269,10 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
         print_info("Reports are only available for Dynamic Templates")
         return
 
-    report: BestComputeSourceReport = result.report
-    sources: list[BestComputeSourceReportSource] = report.sources
+    report = result.report
+    if report is None:
+        return
+    sources = report.sources or []
     source_table = [
         [
             "#",
@@ -1280,7 +1286,7 @@ def print_compute_template_test_result(result: ComputeRequirementTemplateTestRes
     ]
     for index, source in enumerate(sources):
         source_table.append(
-            [
+            [  # type: ignore[list-item]
                 index + 1,
                 source.rank,
                 source.provider,
@@ -1406,8 +1412,8 @@ def print_event(event: str, id_type: YDIDType):
         print_json(event_data)
         return
 
-    indent = "\n" + (" " * PREFIX_LEN) + "--> "
-    indent_2 = "\n" + (" " * (PREFIX_LEN + 4))
+    event_indent = "\n" + (" " * PREFIX_LEN) + "--> "
+    event_indent_2 = "\n" + (" " * (PREFIX_LEN + 4))
 
     if id_type == YDIDType.WORK_REQUIREMENT:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
@@ -1418,8 +1424,8 @@ def print_event(event: str, id_type: YDIDType):
             elif task_group["starved"] is True:
                 status += "/STARVED"
             msg += (
-                f"{indent}[{status}] Task Group '{task_group['name']}':"
-                f" {task_group['taskSummary']['taskCount']:,d} Task(s){indent_2}"
+                f"{event_indent}[{status}] Task Group '{task_group['name']}':"
+                f" {task_group['taskSummary']['taskCount']:,d} Task(s){event_indent_2}"
             )
             msg += status_counts_msg(
                 STATUS_COUNTS_TASKS, task_group["taskSummary"]["statusCounts"]
@@ -1427,7 +1433,7 @@ def print_event(event: str, id_type: YDIDType):
 
     elif id_type == YDIDType.WORKER_POOL:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
-        msg += f"{indent}Node(s):        " + status_counts_msg(
+        msg += f"{event_indent}Node(s):        " + status_counts_msg(
             STATUS_COUNTS_NODES, event_data["nodeSummary"]["statusCounts"]
         )
         node_actions_msg = status_counts_msg(
@@ -1436,14 +1442,14 @@ def print_event(event: str, id_type: YDIDType):
             empty_msg_if_zero_total=True,
         )
         if len(node_actions_msg) > 0:
-            msg += f"{indent}Node Action(s): " + node_actions_msg
+            msg += f"{event_indent}Node Action(s): " + node_actions_msg
         workers_msg = status_counts_msg(
             STATUS_COUNTS_WORKERS,
             event_data["workerSummary"]["statusCounts"],
             empty_msg_if_zero_total=True,
         )
         if len(workers_msg) > 0:
-            msg += f"{indent}Worker(s):      " + workers_msg
+            msg += f"{event_indent}Worker(s):      " + workers_msg
 
     elif id_type == YDIDType.COMPUTE_REQUIREMENT:
         msg = f"{id_type.value} '{event_data['name']}' is {event_data['status']}"
@@ -1454,7 +1460,7 @@ def print_event(event: str, id_type: YDIDType):
             ]
         )
         msg += (
-            f"{indent}Instance(s): "
+            f"{event_indent}Instance(s): "
             f"{event_data['targetInstanceCount']:,d} TARGET,"
             f" {event_data['expectedInstanceCount']:,d} EXPECTED,"
             f" {alive_count:,d} ALIVE"
@@ -1466,7 +1472,7 @@ def print_event(event: str, id_type: YDIDType):
                 empty_msg_if_zero_total=True,
             )
             if len(source_msg) > 0:
-                msg += f"{indent}Source: '{source['name']}': " + source_msg
+                msg += f"{event_indent}Source: '{source['name']}': " + source_msg
 
     else:
         return

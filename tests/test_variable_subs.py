@@ -274,6 +274,61 @@ class TestUnsetSuffix:
 
 
 # ---------------------------------------------------------------------------
+# add_substitutions_without_overwriting
+# ---------------------------------------------------------------------------
+
+
+class TestAddSubstitutionsWithoutOverwriting:
+    """
+    Tests for the merging/resolution step that runs after a TOML
+    [common.variables] section is loaded.
+    """
+
+    @pytest.fixture(autouse=True)
+    def reset_subs(self, monkeypatch):
+        monkeypatch.setattr(var_module, "VARIABLE_SUBSTITUTIONS", dict(KNOWN_SUBS))
+
+    def test_new_var_added(self):
+        var_module.add_substitutions_without_overwriting({"newvar": "world"})
+        assert var_module.VARIABLE_SUBSTITUTIONS["newvar"] == "world"
+
+    def test_incoming_var_takes_priority_over_existing(self):
+        # Incoming subs win over what's already in VARIABLE_SUBSTITUTIONS
+        # (e.g. TOML variable overrides a built-in default with the same name)
+        var_module.add_substitutions_without_overwriting({"myvar": "overridden"})
+        assert var_module.VARIABLE_SUBSTITUTIONS["myvar"] == "overridden"
+
+    def test_existing_var_preserved_when_not_in_incoming(self):
+        # Pre-existing entries not in the incoming subs are still kept
+        var_module.add_substitutions_without_overwriting({"newvar": "world"})
+        assert var_module.VARIABLE_SUBSTITUTIONS["myvar"] == "hello"
+
+    def test_resolved_reference_stored_as_string(self):
+        # newvar = "{{myvar}}" → should resolve to "hello"
+        var_module.add_substitutions_without_overwriting({"newvar": "{{myvar}}"})
+        assert var_module.VARIABLE_SUBSTITUTIONS["newvar"] == "hello"
+
+    def test_unset_var_removed_from_substitutions(self):
+        # zzz = "{{missing::}}" — 'missing' not defined → zzz should be deleted,
+        # not stored as the _UNSET sentinel (regression test for the bug that
+        # produced "<object object at 0x...>" in yd-show output)
+        var_module.add_substitutions_without_overwriting({"zzz": "{{missing::}}"})
+        assert "zzz" not in var_module.VARIABLE_SUBSTITUTIONS
+
+    def test_unset_var_not_stored_as_sentinel(self):
+        # The sentinel must not leak into the substitutions table as a string
+        var_module.add_substitutions_without_overwriting({"zzz": "{{missing::}}"})
+        assert var_module.VARIABLE_SUBSTITUTIONS.get("zzz") is not var_module._UNSET
+        stored = var_module.VARIABLE_SUBSTITUTIONS.get("zzz", "")
+        assert "<object object" not in stored
+
+    def test_unset_var_defined_kept(self):
+        # zzz = "{{myvar::}}" — 'myvar' IS defined → zzz should be kept with its value
+        var_module.add_substitutions_without_overwriting({"zzz": "{{myvar::}}"})
+        assert var_module.VARIABLE_SUBSTITUTIONS["zzz"] == "hello"
+
+
+# ---------------------------------------------------------------------------
 # process_variable_substitutions_in_file_contents
 # ---------------------------------------------------------------------------
 

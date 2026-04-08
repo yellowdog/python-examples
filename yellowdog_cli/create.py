@@ -7,6 +7,7 @@ A script to create or update YellowDog resources.
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
+from typing import cast
 
 import yellowdog_client.model as model
 from dateparser import parse as date_parse
@@ -153,7 +154,7 @@ def create_resources(resources: list[dict] | None = None, show_secrets: bool = F
             " 'resource' property is removed."
         )
 
-    for resource in resources:
+    for resource in cast(list[dict], resources):  # Keep typing happy
         try:
             resource_type = resource.pop(PROP_RESOURCE)
             # There is potential additional processing for CRTs, CSTs and
@@ -359,7 +360,7 @@ def create_compute_requirement_template(resource: dict):
 
     images_id = resource.get(PROP_IMAGES_ID)
     if images_id is not None:
-        _get_images_id(images_id, resource, PROP_IMAGES_ID)
+        _get_images_id(cast(str, images_id), resource, PROP_IMAGES_ID)
 
     if ARGS_PARSER.dry_run:
         _get_model_object(type, resource)  # Report omissions, extras, errors
@@ -529,7 +530,7 @@ def create_image_family(resource):
     # Delete Image Groups that have been removed from
     # the new resource specification
     updated_image_group_names = [image_group[PROP_NAME] for image_group in image_groups]
-    for existing_image_group in existing_image_family.imageGroups:
+    for existing_image_group in existing_image_family.imageGroups or []:
         if existing_image_group.name not in updated_image_group_names:
             if confirmed(f"Remove existing Image Group '{existing_image_group.name}'?"):
                 CLIENT.images_client.delete_image_group(existing_image_group)
@@ -583,12 +584,12 @@ def _create_image_group(
         return
 
     # This is an update, so Images have been ignored
-    images: list[MachineImage] = image_group.images
+    images: list[MachineImage] = image_group.images or []
 
     # Delete Images that have been removed from
     # the new resource specification
     updated_image_names = [image[PROP_NAME] for image in images]
-    for existing_image in existing_image_group.images:
+    for existing_image in existing_image_group.images or []:
         if existing_image.name not in updated_image_names:
             if confirmed(f"Remove existing Image '{existing_image.name}'?"):
                 CLIENT.images_client.delete_image(existing_image)
@@ -601,7 +602,7 @@ def _create_image_group(
         image.osType = ImageOsType[str(image.osType)]  # Replace with Enum
         image.provider = CloudProvider[str(image.provider)]  # Replace with Enum
         # Populate the Image ID (this could be made more efficient)
-        for existing_image in existing_image_group.images:
+        for existing_image in existing_image_group.images or []:
             if image.name == existing_image.name:
                 image.id = existing_image.id
                 break
@@ -681,7 +682,7 @@ def create_allowance(resource: dict):
                     CLEAR_CST_CACHE = False
                 template_id = get_compute_source_template_id_by_name(
                     client=CLIENT,
-                    name=template_name_or_id,
+                    name=cast(str, template_name_or_id),
                     namespace=CONFIG_COMMON.namespace,  # Worth a try if namespace not included in name
                 )
                 if template_id is None:
@@ -707,7 +708,7 @@ def create_allowance(resource: dict):
                     clear_compute_requirement_template_cache()
                     CLEAR_CRT_CACHE = False
                 template_id = get_compute_requirement_template_id_by_name(
-                    client=CLIENT, name=template_name_or_id
+                    client=CLIENT, name=cast(str, template_name_or_id)
                 )
                 if template_id is None:
                     print_error(
@@ -729,7 +730,7 @@ def create_allowance(resource: dict):
 
     effective_from = resource.get(PROP_EFFECTIVE_FROM, None)
     if effective_from is not None:
-        resource[PROP_EFFECTIVE_FROM] = date_parse(effective_from)
+        resource[PROP_EFFECTIVE_FROM] = date_parse(cast(str, effective_from))
         if resource[PROP_EFFECTIVE_FROM] is None:
             raise Exception(
                 f"Unable to parse '{PROP_EFFECTIVE_FROM}' date '{effective_from}'"
@@ -741,7 +742,7 @@ def create_allowance(resource: dict):
 
     effective_until = resource.get(PROP_EFFECTIVE_UNTIL, None)
     if effective_until is not None:
-        resource[PROP_EFFECTIVE_UNTIL] = date_parse(effective_until)
+        resource[PROP_EFFECTIVE_UNTIL] = date_parse(cast(str, effective_until))
         if resource[PROP_EFFECTIVE_UNTIL] is None:
             raise Exception(
                 f"Unable to parse '{PROP_EFFECTIVE_UNTIL}' date '{effective_until}'"
@@ -793,6 +794,7 @@ def create_attribute_definition(resource: dict, resource_type: str):
     """
     Use the API to create/update user attribute definitions.
     """
+    default_rank_order = None
     try:
         name = resource[PROP_NAME]
         title = resource[PROP_TITLE]
@@ -920,7 +922,7 @@ def create_group(resource: dict):
             return []
 
         role_specifications = []
-        for role_item in roles_input:
+        for role_item in roles_input or []:
             # Get the role
             role = role_item.get(PROP_ROLE)
             if role is None:
@@ -966,15 +968,20 @@ def create_group(resource: dict):
                     )
                 role_specifications.append(
                     RoleSpecification(
-                        id=id_,
-                        name=name_,
+                        id=cast(str, id_),
+                        name=cast(str, name_),
                         global_=False,
                         namespaces=set(namespace_names),
                     )
                 )
             else:
                 role_specifications.append(
-                    RoleSpecification(id=id_, name=name_, global_=True, namespaces=None)
+                    RoleSpecification(
+                        id=cast(str, id_),
+                        name=cast(str, name_),
+                        global_=True,
+                        namespaces=None,
+                    )
                 )
 
         return role_specifications
@@ -989,12 +996,12 @@ def create_group(resource: dict):
             CLIENT.account_client.add_role_to_group(
                 group_id_,
                 role_spec.id,
-                RoleScope(role_spec.global_, role_spec.namespaces),
+                RoleScope(cast(bool, role_spec.global_), role_spec.namespaces),
             )
             if role_spec.global_:
                 print_info(f"Added/updated role '{role_spec.name}' with global scope")
             else:
-                ns_list_quoted = [f"'{ns}'" for ns in role_spec.namespaces]
+                ns_list_quoted = [f"'{ns}'" for ns in role_spec.namespaces or []]
                 print_info(
                     f"Added/updated role '{role_spec.name}' scoped to "
                     f"namespace(s): {', '.join(ns_list_quoted)}"
@@ -1019,8 +1026,8 @@ def create_group(resource: dict):
         """
         existing_role_specifications = [
             RoleSpecification(
-                id=role.role.id,
-                name=role.role.name,
+                id=cast(str, role.role.id),
+                name=cast(str, role.role.name),
                 global_=role.scope.global_,
                 namespaces=(
                     None
@@ -1072,7 +1079,9 @@ def create_group(resource: dict):
         if group is not None:
             updated_role_specs = get_updated_role_specifications()
             add_or_update_roles(group_id, updated_role_specs)
-            remove_roles(group_id, get_roles_to_remove(group.roles, updated_role_specs))
+            remove_roles(
+                group_id, get_roles_to_remove(group.roles or [], updated_role_specs)
+            )
 
 
 def create_application(resource: dict):
@@ -1100,7 +1109,8 @@ def create_application(resource: dict):
         Helper function to add/remove groups from an application.
         """
         current_group_ids = {
-            group.id for group in get_application_group_summaries(CLIENT, app.id)
+            group.id
+            for group in get_application_group_summaries(CLIENT, cast(str, app.id))
         }
 
         if current_group_ids == new_group_ids:
@@ -1111,7 +1121,7 @@ def create_application(resource: dict):
         for group_id in group_ids_to_remove:
             CLIENT.account_client.remove_application_from_group(group_id, app.id)
             print_info(
-                f"Removed Group '{get_group_name_by_id(CLIENT, group_id)}' "
+                f"Removed Group '{get_group_name_by_id(CLIENT, cast(str, group_id))}' "
                 f"from Application ({group_id})"
             )
 
@@ -1244,7 +1254,7 @@ def update_user(resource: dict, internal_user: bool):
         if user.id != id:
             raise Exception(f"User name and supplied ID do not match ({resource})")
     if user is None and id is not None:
-        user = get_user_by_name_or_id(CLIENT, id)
+        user = get_user_by_name_or_id(CLIENT, cast(str, id))
 
     if user is None:
         print_warning(

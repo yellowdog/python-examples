@@ -4,6 +4,8 @@
 A script to terminate Compute Requirements and Nodes.
 """
 
+from typing import cast
+
 from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementStatus,
@@ -87,7 +89,9 @@ def main():
     if terminated_count > 0:
         print_info(f"Terminated {terminated_count} Compute Requirement(s)")
         if ARGS_PARSER.follow:
-            follow_ids([cr.id for cr in selected_compute_requirement_summaries])
+            follow_ids(
+                [cast(str, cr.id) for cr in selected_compute_requirement_summaries]
+            )
     else:
         print_info("No Compute Requirements terminated")
 
@@ -189,11 +193,15 @@ def _terminate_node_instance_by_id(node_id: str) -> str | None:
         return None
 
     if (
-        cr_id := get_compute_requirement_id_by_worker_pool_id(CLIENT, node.workerPoolId)
+        cr_id := get_compute_requirement_id_by_worker_pool_id(
+            CLIENT, cast(str, node.workerPoolId)
+        )
     ) is None:
         return None
 
-    instance: Instance = get_instance_id_by_id(CLIENT, cr_id, node.details.instanceId)
+    instance: Instance | None = get_instance_id_by_id(
+        CLIENT, cr_id, node.details.instanceId
+    )
 
     if instance is None:
         print_error(
@@ -223,7 +231,7 @@ def _terminate_instance(
         print_error(f"Cannot find Compute Requirement {cr_id}")
         return None
 
-    instance: Instance = get_instance_id_by_id(CLIENT, cr_id, instance_id)
+    instance: Instance | None = get_instance_id_by_id(CLIENT, cr_id, instance_id)
     if instance is None:
         print_error(
             f"Cannot find Instance ID '{instance_id}' in Compute Requirement {cr_id}"

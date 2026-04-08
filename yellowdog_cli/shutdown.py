@@ -4,7 +4,10 @@
 A script to shut down Worker Pools and/or Nodes.
 """
 
+from typing import cast
+
 from yellowdog_client.model import (
+    ConfiguredWorkerPool,
     ProvisionedWorkerPool,
     WorkerPool,
     WorkerPoolStatus,
@@ -71,10 +74,14 @@ def main():
                 )
                 shutdown_count += 1
                 worker_pool: WorkerPool = get_worker_pool_by_id(
-                    CLIENT, worker_pool_summary.id
+                    CLIENT, cast(str, worker_pool_summary.id)
                 )
-                print_info(f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}")
-                optionally_terminate_compute_requirement(worker_pool_summary.id)
+                print_info(
+                    f"Shut down {link_entity(CONFIG_COMMON.url, cast(ConfiguredWorkerPool, worker_pool))}"
+                )
+                optionally_terminate_compute_requirement(
+                    cast(str, worker_pool_summary.id)
+                )
             except Exception as e:
                 print_error(f"Failed to shut down '{worker_pool_summary.name}': {e}")
 
@@ -82,7 +89,7 @@ def main():
         print_info(f"Shut down {shutdown_count} Worker Pool(s)")
         if ARGS_PARSER.follow:
             follow_ids(
-                [wp.id for wp in selected_worker_pool_summaries],
+                [cast(str, wp.id) for wp in selected_worker_pool_summaries],
                 auto_cr=ARGS_PARSER.auto_cr,
             )
     else:

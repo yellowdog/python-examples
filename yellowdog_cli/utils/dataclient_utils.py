@@ -6,10 +6,11 @@ yd-upload, yd-download, yd-delete, yd-ls.
 import fnmatch
 import json
 from pathlib import Path
+from typing import cast
 
 _GLOB_CHARS = frozenset("*?[")
 
-from rclone_api import Config
+from rclone_api import Config, Rclone
 from rclone_api.dir_listing import DirListing
 
 from yellowdog_cli.utils.config_types import ConfigDataClient
@@ -59,9 +60,9 @@ def resolve_remote_path(
     remote_name, _ = parse_rclone_config(remote_str)
 
     if relative_path is not None:
-        relative_path = process_variable_substitutions(relative_path)
+        relative_path = cast(str, process_variable_substitutions(relative_path))
     if filename is not None:
-        filename = process_variable_substitutions(filename)
+        filename = cast(str, process_variable_substitutions(filename))
 
     # Absolute rclone path — use verbatim
     if relative_path is not None and relative_path.startswith(f"{remote_name}:"):
@@ -100,7 +101,7 @@ def upload_file(
         raise Exception(f"Upload failed: {result.stderr}")
 
 
-def _rclone_sync(rclone, src: str, dst: str):
+def _rclone_sync(rclone: Rclone, src: str, dst: str):
     """
     Run 'rclone sync src dst', making dst an exact mirror of src.
     rclone_api has no sync wrapper, so we call the underlying _run directly.

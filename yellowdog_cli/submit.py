@@ -11,6 +11,7 @@ from gzip import compress
 from json import dumps as json_dumps
 from math import ceil
 from os.path import dirname, relpath
+from typing import cast
 
 import jsons
 import requests
@@ -74,7 +75,6 @@ from yellowdog_cli.utils.property_names import (
     RAM,
     REGIONS,
     SET_TASK_NAMES,
-    TASK_BATCH_SIZE,
     TASK_COUNT,
     TASK_DATA,
     TASK_DATA_FILE,
@@ -400,7 +400,7 @@ def submit_work_requirement(
             add_tasks_to_task_group(
                 tg_number,
                 task_group,
-                wr_data,
+                cast(dict, wr_data),
                 task_count,
                 work_requirement,
                 files_directory=files_directory,
@@ -784,7 +784,7 @@ def generate_batch_of_tasks_for_task_group(
     task_group: TaskGroup,
     tg_number: int,
     tasks: list,
-    task_count: int,
+    task_count: int | None,
     num_tasks: int,
     num_task_groups: int,
 ) -> list[Task]:
@@ -923,8 +923,8 @@ def generate_batch_of_tasks_for_task_group(
                 task_number=task_number + 1,
                 tg_name=task_group.name,
                 tg_number=tg_number + 1,
-                task_type=task_type,
-                args=arguments_list,
+                task_type=cast(str, task_type),
+                args=cast(list, arguments_list),
                 task_data_property=get_task_data_property(
                     config_wr,
                     wr_data,
@@ -1030,7 +1030,7 @@ def get_task_data_property(
     wr_data: dict,
     task_group_data: dict,
     task: dict,
-    task_name: str,
+    task_name: str | None,
     files_directory: str = "",
 ) -> str | None:
     """
@@ -1087,7 +1087,7 @@ def follow_progress(work_requirement: WorkRequirement) -> None:
     """
     if not ARGS_PARSER.dry_run:
         print_info("Following Work Requirement event stream")
-        follow_events(work_requirement.id, YDIDType.WORK_REQUIREMENT)
+        follow_events(cast(str, work_requirement.id), YDIDType.WORK_REQUIREMENT)
 
 
 def follow_progress_bar(work_requirement: WorkRequirement) -> None:
@@ -1096,7 +1096,7 @@ def follow_progress_bar(work_requirement: WorkRequirement) -> None:
     """
     if ARGS_PARSER.dry_run:
         return
-    follow_work_requirement_with_progress(work_requirement.id)
+    follow_work_requirement_with_progress(cast(str, work_requirement.id))
 
 
 def on_update(work_req: WorkRequirement):
@@ -1105,7 +1105,7 @@ def on_update(work_req: WorkRequirement):
     """
     completed = 0
     total = 0
-    for task_group in work_req.taskGroups:
+    for task_group in work_req.taskGroups or []:
         completed += task_group.taskSummary.statusCounts[TaskStatus.COMPLETED]
         total += task_group.taskSummary.taskCount
     print_info(
@@ -1196,23 +1196,23 @@ def get_task_group_name(
     """
 
     if name:
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
-            formatted_number_str(task_group_number, num_task_groups),
-        )
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
-            str(num_task_groups),
-        )
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
-            str(task_count),
+        n: str = name  # Keep PyCharm typing happy
+        return (
+            n.replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
+                formatted_number_str(task_group_number, num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
+                str(num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
+                str(task_count),
+            )
         )
 
-    else:
-        name = "task_group_" + formatted_number_str(task_group_number, num_task_groups)
-
-    return name
+    return "task_group_" + formatted_number_str(task_group_number, num_task_groups)
 
 
 def create_task(
@@ -1226,7 +1226,7 @@ def create_task(
     task_type: str,
     args: list[str],
     task_data_property: str | None,
-    env: dict[str, str],
+    env: dict[str, str] | None,
     task_timeout: timedelta | None,
     add_yd_env_vars: bool = False,
     task_data_inputs_and_outputs: TaskData | None = None,

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from math import ceil, floor
 from os.path import dirname
+from typing import cast
 
 import requests
 from yellowdog_client.common.iso_datetime import iso_timedelta_format
@@ -283,7 +284,7 @@ def create_worker_pool_from_toml():
 
     # Allow the Compute Requirement Template name to be used instead of ID
     CONFIG_WP.template_id = get_template_id(
-        client=CLIENT, template_id_or_name=CONFIG_WP.template_id
+        client=CLIENT, template_id_or_name=cast(str, CONFIG_WP.template_id)
     )
 
     # Allow the Image Family name to be used instead of ID
@@ -326,7 +327,7 @@ def create_worker_pool_from_toml():
     else:
         node_workers = NodeWorkerTarget.per_node(CONFIG_WP.workers_per_node)
 
-    if CONFIG_WP.maintainInstanceCount is True:
+    if CONFIG_WP.maintainInstanceCount:
         print_info(
             f"Warning: Property '{MAINTAIN_INSTANCE_COUNT}' will be set to "
             "'false' when creating a Worker Pool"
@@ -377,7 +378,7 @@ def create_worker_pool_from_toml():
             print_info(f"Provisioning Worker Pool '{CONFIG_COMMON.namespace}/{id}'")
         try:
             compute_requirement_template_usage = ComputeRequirementTemplateUsage(
-                templateId=CONFIG_WP.template_id,
+                templateId=cast(str, CONFIG_WP.template_id),
                 requirementNamespace=CONFIG_COMMON.namespace,
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].initial_nodes,

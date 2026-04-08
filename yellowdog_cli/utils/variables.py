@@ -11,6 +11,7 @@ from copy import deepcopy
 from getpass import getuser
 from json import loads as json_loads
 from random import randint
+from typing import cast
 
 from tomli import load as toml_load
 
@@ -126,15 +127,24 @@ def add_substitutions_without_overwriting(subs: dict):
     # Merge: existing entries take priority over incoming ones, then update
     # the dict in-place so that all callers holding a reference to it see the
     # change (rebinding the name would silently break imported references).
-    for key, value in VARIABLE_SUBSTITUTIONS.items():
-        subs.setdefault(key, value)
+    for key_, value_ in VARIABLE_SUBSTITUTIONS.items():
+        subs.setdefault(key_, value_)
     VARIABLE_SUBSTITUTIONS.clear()
     VARIABLE_SUBSTITUTIONS.update(subs)
 
-    # Populate variables that can now be substituted
-    # Ensure that the value is stored as a string
-    for key, value in VARIABLE_SUBSTITUTIONS.items():
-        VARIABLE_SUBSTITUTIONS[key] = process_variable_substitutions(str(value))
+    # Populate variables that can now be substituted.
+    # Ensure that the value is stored as a string.
+    # If a variable resolves to _UNSET (e.g. it references an undefined
+    # variable with the '::' unset suffix), remove it entirely.
+    keys_to_unset = []
+    for key_, value_ in VARIABLE_SUBSTITUTIONS.items():
+        result = process_variable_substitutions(str(value_))
+        if result is _UNSET:
+            keys_to_unset.append(key_)
+        else:
+            VARIABLE_SUBSTITUTIONS[key_] = cast(str, result)
+    for key_ in keys_to_unset:
+        del VARIABLE_SUBSTITUTIONS[key_]
 
 
 def add_or_update_substitution(key: str, value: str):
@@ -177,27 +187,27 @@ def process_variable_substitutions_insitu(
         """
         if isinstance(data, dict):
             keys_to_delete = []
-            for key, value in data.items():
-                if isinstance(value, str):
+            for key_, value_ in data.items():
+                if isinstance(value_, str):
                     # Require the use of post/prefix only for userData in TOML
-                    if key == USERDATA:
+                    if key_ == USERDATA:
                         result = process_variable_substitutions(
-                            value,
+                            value_,
                             prefix=WP_VARIABLES_PREFIX,
                             postfix=WP_VARIABLES_POSTFIX,
                         )
                     else:
                         result = process_variable_substitutions(
-                            value, prefix=prefix, postfix=postfix
+                            value_, prefix=prefix, postfix=postfix
                         )
                     if result is _UNSET:
-                        keys_to_delete.append(key)
+                        keys_to_delete.append(key_)
                     else:
-                        data[key] = result
-                elif isinstance(value, dict) or isinstance(value, list):
-                    _walk_data(value)
-            for key in keys_to_delete:
-                del data[key]
+                        data[key_] = result
+                elif isinstance(value_, dict) or isinstance(value_, list):
+                    _walk_data(value_)
+            for key_ in keys_to_delete:
+                del data[key_]
         elif isinstance(data, list):
             indices_to_delete = []
             for index, item in enumerate(data):
@@ -219,14 +229,19 @@ def process_variable_substitutions_insitu(
 
 
 def process_variable_substitutions(
-    input_string: str | None, prefix: str = "", postfix: str = ""
+    input_string: str | int | bool | float | list | dict | None,
+    prefix: str = "",
+    postfix: str = "",
 ) -> str | int | bool | float | list | dict | None:
     """
     Process type-tagged and non-type-tagged variables, returning the required
     type if there's a type-tagged variable at the start of the input string.
+    Non-string, non-None values are returned unchanged.
     """
     if input_string is None:
         return None
+    if not isinstance(input_string, str):
+        return input_string
 
     opening_delimiter = prefix + VAR_OPENING_DELIMITER
     closing_delimiter = VAR_CLOSING_DELIMITER + postfix
@@ -270,24 +285,26 @@ def process_variable_substitutions(
         )  # element_minus_type_tag is always str
 
         if element_processed is _UNSET:
-            return _UNSET  # type: ignore[return-value]
+            return _UNSET  # type: ignore
 
         if element_processed == element_minus_type_tag:  # No variable processing
             return_str += element
             continue
 
         if type_tag == "":  # Variable(s) processed, but no type tag
-            return_str += element_processed
+            return_str += cast(str, element_processed)
             continue
 
         if index == 0 and len(elements) == 1:
             # The first and only element has a type tag:
             # immediately return the type matching the tag
-            return process_typed_variable_substitution(type_tag, element_processed)
+            return process_typed_variable_substitution(
+                type_tag, cast(str, element_processed)
+            )
 
         # Just append the type as a string
         return_str += str(
-            process_typed_variable_substitution(type_tag, element_processed)
+            process_typed_variable_substitution(type_tag, cast(str, element_processed))
         )
 
     return return_str
@@ -327,32 +344,35 @@ def process_untyped_variable_substitutions(
             )
         input_string = opening_delimiter + processed_string + closing_delimiter
 
+    assert isinstance(input_string, str)  # narrow: None already returned above
+    s: str = input_string
+
     # Check for the unset suffix ('::') — must be done before the general
     # substitution loop so the bare variable name can be looked up cleanly.
     # Syntax: "{{varname::}}" — if varname is defined, use its value;
     # if not, return _UNSET to signal the caller to remove the property.
     unset_marker = f"{opening_delimiter}.*{VAR_UNSET_SUFFIX}{closing_delimiter}"
-    if re.fullmatch(unset_marker, input_string):
-        bare_name = remove_outer_delimiters(
-            input_string, opening_delimiter, closing_delimiter
-        )[: -len(VAR_UNSET_SUFFIX)]
+    if re.fullmatch(unset_marker, s):
+        bare_name = remove_outer_delimiters(s, opening_delimiter, closing_delimiter)[
+            : -len(VAR_UNSET_SUFFIX)
+        ]
         if bare_name in VARIABLE_SUBSTITUTIONS:
-            input_string = str(VARIABLE_SUBSTITUTIONS[bare_name])
+            s = str(VARIABLE_SUBSTITUTIONS[bare_name])
         else:
-            return _UNSET  # type: ignore[return-value]
+            return _UNSET  # type: ignore
 
     # Perform initial substitutions from the substitutions dictionary; this
     # will not substitute variables that have default values
     for substitution, value in VARIABLE_SUBSTITUTIONS.items():
-        input_string = input_string.replace(
+        s = s.replace(
             f"{opening_delimiter}{substitution}{closing_delimiter}", str(value)
         )
 
     # Check for substitutions from general environment variables
-    if input_string.startswith(f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}"):
-        var_name = input_string.replace(
-            f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}", ""
-        ).replace(closing_delimiter, "")
+    if s.startswith(f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}"):
+        var_name = s.replace(f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}", "").replace(
+            closing_delimiter, ""
+        )
         if VAR_DEFAULT_SEPARATOR in var_name:  # Check for a default
             split_result = var_name.split(VAR_DEFAULT_SEPARATOR)
             if split_result[0] == "" or len(split_result) != 2:
@@ -365,18 +385,18 @@ def process_untyped_variable_substitutions(
         var = os.getenv(var_name, None)
         if var is not None:  # Matching environment variable
             if var_default is None:  # Just replace the prefix and the variable name
-                input_string = input_string.replace(
+                s = s.replace(
                     f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}{var_name}{closing_delimiter}",
                     var,
                 )
             else:  # Also replace the default separator & value
-                input_string = input_string.replace(
+                s = s.replace(
                     f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}{var_name}"
                     f"{VAR_DEFAULT_SEPARATOR}{var_default}{closing_delimiter}",
                     var,
                 )
         elif var_default is not None:  # Variable not found, but default exists
-            input_string = input_string.replace(
+            s = s.replace(
                 f"{opening_delimiter}{ENV_VAR_SUB_PREFIX}{var_name}"
                 f"{VAR_DEFAULT_SEPARATOR}{var_default}{closing_delimiter}",
                 var_default,
@@ -385,7 +405,7 @@ def process_untyped_variable_substitutions(
     # Create list of variable substitutions with their default values
     substitutions_with_defaults = re.findall(
         f"{opening_delimiter}.*" + VAR_DEFAULT_SEPARATOR + f".*{closing_delimiter}",
-        input_string,
+        s,
     )
     default_value_substitutions = []  # List of (variable_name, default_value)
     for substitution in substitutions_with_defaults:
@@ -399,16 +419,18 @@ def process_untyped_variable_substitutions(
         default_value_substitutions.append(variable_default)
 
     # Remove default variable values if present (i.e., remove ':=<default>')
-    input_string = re.sub(
-        VAR_DEFAULT_SEPARATOR + f".*{closing_delimiter}",
-        f"{closing_delimiter}",
-        input_string,
+    s = str(
+        re.sub(
+            VAR_DEFAULT_SEPARATOR + f".*{closing_delimiter}",
+            f"{closing_delimiter}",
+            s,
+        )
     )
 
     # Repeat substitutions from the substitutions dictionary, now that defaults
     # have been removed
     for substitution, value in VARIABLE_SUBSTITUTIONS.items():
-        input_string = input_string.replace(
+        s = s.replace(
             f"{opening_delimiter}{substitution}{closing_delimiter}", str(value)
         )
 
@@ -416,13 +438,13 @@ def process_untyped_variable_substitutions(
     # allows for multiple variables with the same name, but with different
     # default values
     for var_name, default_value in default_value_substitutions:
-        input_string = input_string.replace(
+        s = s.replace(
             f"{opening_delimiter}{var_name}{closing_delimiter}",
             str(default_value),
             1,
         )
 
-    return input_string
+    return s
 
 
 def process_typed_variable_substitution(
