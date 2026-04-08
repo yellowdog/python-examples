@@ -2,7 +2,9 @@
 Utility functions for use with the submit command.
 """
 
+from copy import deepcopy
 from dataclasses import dataclass
+from datetime import timedelta
 from os import chdir, getcwd
 from os.path import abspath, exists
 from pathlib import Path
@@ -11,6 +13,7 @@ from typing import cast
 
 from rclone_api import Config
 from yellowdog_client.model import (
+    Task,
     TaskData,
     TaskDataInput,
     TaskDataOutput,
@@ -29,13 +32,43 @@ from yellowdog_cli.utils.property_names import (
     PROCESS_EXIT_CODES,
     RETRYABLE_ERRORS,
     STATUSES_AT_FAILURE,
+    TASK_DATA,
+    TASK_DATA_FILE,
     TASK_DATA_SOURCE,
+    TASK_GROUPS,
+    TASK_TAG,
+    TASKS,
 )
 from yellowdog_cli.utils.rclone_utils import make_rclone, parse_rclone_config
-from yellowdog_cli.utils.settings import RCLONE_PREFIX
+from yellowdog_cli.utils.settings import (
+    RCLONE_PREFIX,
+    VAR_CLOSING_DELIMITER,
+    VAR_OPENING_DELIMITER,
+)
 from yellowdog_cli.utils.type_check import check_list, check_str
-from yellowdog_cli.utils.variables import process_variable_substitutions_insitu
+from yellowdog_cli.utils.variables import (
+    process_variable_substitutions_insitu,
+    resolve_filename,
+)
+
+# Lazy substitution variable names (mirrors variables.py L_* constants)
+L_TASK_COUNT = "task_count"
+L_TASK_GROUP_COUNT = "task_group_count"
+L_TASK_GROUP_NAME = "task_group_name"
+L_TASK_GROUP_NUMBER = "task_group_number"
+L_TASK_NUMBER = "task_number"
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
+
+# Names for environment variables optionally added to each Task's environment
+YD_NAMESPACE = "YD_NAMESPACE"
+YD_NUM_TASK_GROUPS = "YD_NUM_TASK_GROUPS"
+YD_NUM_TASKS = "YD_NUM_TASKS"
+YD_TAG = "YD_TAG"
+YD_TASK_GROUP_NAME = "YD_TASK_GROUP_NAME"
+YD_TASK_GROUP_NUMBER = "YD_TASK_GROUP_NUMBER"
+YD_TASK_NAME = "YD_TASK_NAME"
+YD_TASK_NUMBER = "YD_TASK_NUMBER"
+YD_WORK_REQUIREMENT_NAME = "YD_WORK_REQUIREMENT_NAME"
 
 
 def assemble_arguments(
@@ -450,3 +483,177 @@ class RcloneUploadedFiles:
             return bucket_name_and_object
         except Exception:
             return rclone_uploaded_file.upload_file_path
+
+
+def formatted_number_str(
+    current_item_number: int, num_items: int, zero_indexed: bool = True
+) -> str:
+    """
+    Return a nicely formatted number string given a current item number
+    and a total number of items.
+    """
+    return str(current_item_number + 1 if zero_indexed else current_item_number).zfill(
+        len(str(num_items))
+    )
+
+
+def get_task_name(
+    name: str | None,
+    set_task_names: bool,
+    task_number: int,
+    num_tasks: int,
+    task_group_number: int,
+    num_task_groups: int,
+    task_group_name: str,
+) -> str | None:
+    """
+    Create the name of a Task. Supports lazy substitution.
+    """
+    if name:
+        n: str = name  # Keep PyCharm typing happy
+        return (
+            n.replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_NUMBER + VAR_CLOSING_DELIMITER}",
+                formatted_number_str(task_number, num_tasks),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
+                str(num_tasks),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
+                formatted_number_str(task_group_number, num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
+                str(num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NAME + VAR_CLOSING_DELIMITER}",
+                task_group_name,
+            )
+        )
+    elif set_task_names:
+        name = "task_" + formatted_number_str(task_number, num_tasks)
+    else:
+        name = None
+
+    return name
+
+
+def get_task_group_name(
+    name: str | None,
+    task_group_number: int,
+    num_task_groups: int,
+    task_count: int,
+) -> str:
+    """
+    Create the name of a Task Group. Supports lazy substitution.
+    """
+    if name:
+        n: str = name  # Keep PyCharm typing happy
+        return (
+            n.replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
+                formatted_number_str(task_group_number, num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
+                str(num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
+                str(task_count),
+            )
+        )
+
+    return "task_group_" + formatted_number_str(task_group_number, num_task_groups)
+
+
+def get_task_data_property(
+    config_wr: ConfigWorkRequirement,
+    wr_data: dict,
+    task_group_data: dict,
+    task: dict,
+    task_name: str | None,
+    files_directory: str = "",
+) -> str | None:
+    """
+    Get the 'taskData' property, either using the contents of the file
+    specified in 'taskDataFile' or using the string specified in 'taskData'.
+    Raise exception if both 'taskData' and 'taskDataFile' are set at the same
+    level in the Work Requirement.
+    """
+    # Try Task, Task Group, then Work Requirement data
+    for data, task_data_default, task_data_file_default in [
+        (task, None, None),
+        (task_group_data, None, None),
+        (wr_data, config_wr.task_data, config_wr.task_data_file),
+    ]:
+        task_data_property = data.get(TASK_DATA, task_data_default)
+        task_data_file_property = data.get(TASK_DATA_FILE, task_data_file_default)
+        if task_data_property and task_data_file_property:
+            raise ValueError(
+                f"Task '{task_name}': Properties '{TASK_DATA}' and "
+                f"'{TASK_DATA_FILE}' are both set"
+            )
+
+        if task_data_property:
+            return task_data_property
+
+        if task_data_file_property:
+            with open(resolve_filename(files_directory, task_data_file_property)) as f:
+                return f.read()
+
+    return None
+
+
+def create_task(
+    wr_data: dict,
+    task_group_data: dict,
+    task_data: dict,
+    task_name: str | None,
+    task_number: int,
+    tg_name: str,
+    tg_number: int,
+    task_type: str,
+    args: list[str],
+    task_data_property: str | None,
+    env: dict[str, str] | None,
+    task_timeout: timedelta | None,
+    add_yd_env_vars: bool = False,
+    task_data_inputs_and_outputs: TaskData | None = None,
+    wr_name: str = "",
+    namespace: str = "",
+) -> Task:
+    """
+    Create a Task object.
+    """
+    env_copy = deepcopy(env)  # Copy the environment property to prevent overwriting
+    task_tag = task_data.get(TASK_TAG, None)
+
+    # Optionally add Task details to the environment as a convenience
+    if add_yd_env_vars:
+        num_task_groups = len(wr_data[TASK_GROUPS])
+        num_tasks = len(task_group_data[TASKS])
+        env_copy[YD_TASK_NAME] = task_name or ""
+        env_copy[YD_TASK_NUMBER] = str(task_number)
+        env_copy[YD_NUM_TASKS] = str(num_tasks)
+        env_copy[YD_TASK_GROUP_NAME] = tg_name
+        env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
+        env_copy[YD_NUM_TASK_GROUPS] = str(num_task_groups)
+        env_copy[YD_WORK_REQUIREMENT_NAME] = wr_name
+        env_copy[YD_NAMESPACE] = namespace
+        if task_tag is not None:
+            env_copy[YD_TAG] = cast(str, task_tag)
+
+    return Task(
+        name=task_name,
+        taskType=task_type,
+        arguments=args or None,
+        environment=env_copy or None,
+        taskData=task_data_property,
+        timeout=task_timeout,
+        tag=task_tag,
+        data=task_data_inputs_and_outputs,
+    )
