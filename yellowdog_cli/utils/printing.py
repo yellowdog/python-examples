@@ -9,6 +9,7 @@ from datetime import datetime
 from json import dumps as json_dumps
 from json import loads as json_loads
 from os import get_terminal_size, getpid
+from sys import stderr
 from textwrap import fill
 from textwrap import indent as text_indent
 from typing import Any
@@ -234,7 +235,7 @@ def print_error(error_obj: Exception | str):
     Print an error message to stderr.
     """
     if ARGS_PARSER.no_format:
-        print(print_string(f"Error: {error_obj}"), flush=True)
+        print(print_string(f"Error: {error_obj}"), flush=True, file=stderr)
         return
 
     CONSOLE_ERR.print(escape(print_string(f"Error: {error_obj}")), style=ERROR_STYLE)
