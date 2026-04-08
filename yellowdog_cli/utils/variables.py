@@ -358,6 +358,12 @@ def process_untyped_variable_substitutions(
         ]
         if bare_name in VARIABLE_SUBSTITUTIONS:
             s = str(VARIABLE_SUBSTITUTIONS[bare_name])
+        elif bare_name.startswith(ENV_VAR_SUB_PREFIX):
+            env_value = os.getenv(bare_name[len(ENV_VAR_SUB_PREFIX) :])
+            if env_value is not None:
+                s = env_value
+            else:
+                return _UNSET  # type: ignore
         else:
             return _UNSET  # type: ignore
 

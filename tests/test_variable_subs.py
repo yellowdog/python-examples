@@ -272,6 +272,33 @@ class TestUnsetSuffix:
         var_module.process_variable_substitutions_insitu(data)
         assert data["items"] == ["hello", "other"]
 
+    # env: prefix with '::' unset suffix
+
+    def test_env_unset_returns_value_when_env_var_set(self, monkeypatch):
+        monkeypatch.setenv("_YD_TEST_UNSET_VAR", "from-env")
+        result = var_module.process_variable_substitutions(
+            "{{env:_YD_TEST_UNSET_VAR::}}"
+        )
+        assert result == "from-env"
+
+    def test_env_unset_returns_sentinel_when_env_var_missing(self):
+        result = var_module.process_variable_substitutions(
+            "{{env:_YD_TEST_NONEXISTENT_UNSET_XYZ::}}"
+        )
+        assert result is var_module._UNSET
+
+    def test_env_unset_dict_key_kept_when_env_var_set(self, monkeypatch):
+        monkeypatch.setenv("_YD_TEST_UNSET_VAR", "cfg-value")
+        data = {"key": "{{env:_YD_TEST_UNSET_VAR::}}"}
+        var_module.process_variable_substitutions_insitu(data)
+        assert data["key"] == "cfg-value"
+
+    def test_env_unset_dict_key_removed_when_env_var_missing(self):
+        data = {"name": "job", "key": "{{env:_YD_TEST_NONEXISTENT_UNSET_XYZ::}}"}
+        var_module.process_variable_substitutions_insitu(data)
+        assert "key" not in data
+        assert data["name"] == "job"
+
 
 # ---------------------------------------------------------------------------
 # add_substitutions_without_overwriting
