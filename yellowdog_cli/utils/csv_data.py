@@ -49,7 +49,7 @@ class CSVTaskData:
                     row_length = len(row)
                 else:
                     if len(row) != row_length:
-                        raise Exception(
+                        raise ValueError(
                             f"Malformed CSV file (row {row_number + 1}): "
                             "all rows must have the same number of items"
                         )
@@ -114,7 +114,7 @@ class CSVDataCache:
             if self._max_entries is not None:
                 if (
                     len(self._csv_task_data_objects) == self._max_entries
-                    and len(self._csv_task_data_objects) > 0
+                    and self._csv_task_data_objects
                 ):
                     self._csv_task_data_objects.popitem(last=False)
             csv_task_data = CSVTaskData(csv_filename)
@@ -184,7 +184,7 @@ def perform_csv_task_expansion(
         )
 
     if len(csv_files) > len(wr_data[TASK_GROUPS]):
-        raise Exception("Number of CSV files exceeds number of Task Groups")
+        raise ValueError("Number of CSV files exceeds number of Task Groups")
 
     for counter, csv_file in enumerate(csv_files):
         csv_file, index = get_csv_file_index(csv_file, wr_data[TASK_GROUPS])
@@ -199,7 +199,7 @@ def perform_csv_task_expansion(
             f" '{resolved_csv_file}'"
         )
         if len(wr_data[TASK_GROUPS][index][TASKS]) != 1:
-            raise Exception(
+            raise ValueError(
                 f"Task Group {index + 1} must have only a single (prototype) Task "
                 "when using CSV file for data"
             )
@@ -261,7 +261,7 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
         try:
             float(value)
         except ValueError:
-            raise Exception(f"Invalid number substitution in CSV: '{value}'")
+            raise ValueError(f"Invalid number substitution in CSV: '{value}'")
         input = input.replace(f"'{num_sub_str}'", value)
 
     bool_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{BOOL_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
@@ -271,7 +271,7 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
         elif value.lower() == "false":
             value = "False"
         else:
-            raise Exception(f"Invalid Boolean substitution in CSV: '{value}'")
+            raise ValueError(f"Invalid Boolean substitution in CSV: '{value}'")
         input = input.replace(f"'{bool_sub_str}'", value)
 
     lower_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{FORMAT_NAME_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
@@ -302,11 +302,11 @@ def get_csv_file_index(
     if len(matches) == 1:
         index = int(matches[0][1:])
         if not 0 < index <= len(task_groups):
-            raise Exception(
+            raise ValueError(
                 f"CSV file Task Group index '{index}' is outside Task Group range"
             )
         if index in USED_FILE_INDEXES:
-            raise Exception(f"CSV file Task Group index '{index}' used more than once")
+            raise ValueError(f"CSV file Task Group index '{index}' used more than once")
         USED_FILE_INDEXES.append(index)
         return csv_filename.replace(matches[0], ""), index - 1
 
@@ -320,7 +320,7 @@ def get_csv_file_index(
             except KeyError:
                 pass
         else:
-            raise Exception(f"No matches for Task Group name '{matches[0][1:]}'")
+            raise KeyError(f"No matches for Task Group name '{matches[0][1:]}'")
 
     # Invalid Task Group naming?
     split_name = csv_filename.split(":")

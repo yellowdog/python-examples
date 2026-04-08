@@ -660,7 +660,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
         process_variable_substitutions_insitu(cr_section)
 
     duplicate_keys = set(wp_section.keys()).intersection(set(cr_section.keys()))
-    if len(duplicate_keys) != 0:
+    if duplicate_keys:
         print_error(
             f"Duplicate keys in '{WORKER_POOL_SECTION}' and"
             f" '{COMPUTE_REQUIREMENT_SECTION}': {duplicate_keys}"
@@ -668,7 +668,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
         exit(1)
     wp_section.update(cr_section)
 
-    if len(wp_section) == 0:
+    if not wp_section:
         return ConfigWorkerPool()
 
     try:

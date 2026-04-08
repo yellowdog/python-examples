@@ -40,7 +40,7 @@ VALID_TERMINATION_STATUSES = [
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.compute_requirements_instances_or_nodes) > 0:
+    if ARGS_PARSER.compute_requirements_instances_or_nodes:
         terminate_by_name_or_id(ARGS_PARSER.compute_requirements_instances_or_nodes)
         return
 
@@ -64,7 +64,7 @@ def main():
         CLIENT, compute_requirement_summaries
     )
 
-    if len(selected_compute_requirement_summaries) > 0 and confirmed(
+    if selected_compute_requirement_summaries and confirmed(
         f"Terminate {len(selected_compute_requirement_summaries)} Compute Requirement(s)?"
     ):
         for compute_requirement_summary in selected_compute_requirement_summaries:
@@ -153,7 +153,7 @@ def terminate_by_name_or_id(names_or_ids: list[str]):
                 compute_requirement_ids.append(compute_requirement_id)
 
     # Handle termination of accumulated compute requirement IDs
-    if len(compute_requirement_ids) > 0:
+    if compute_requirement_ids:
         if not confirmed(
             f"Terminate {len(compute_requirement_ids)} Compute Requirement(s)?"
             f": ({', '.join(compute_requirement_ids)})"

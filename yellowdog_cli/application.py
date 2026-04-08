@@ -64,7 +64,7 @@ def main():
         readable_namespaces = (
             ""
             if application_details.readableNamespaces is None
-            else ", ".join([rns for rns in application_details.readableNamespaces])
+            else ", ".join(application_details.readableNamespaces)
         )
         print_simple(
             f"  Readable namespaces:               {readable_namespaces}",

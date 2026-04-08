@@ -83,7 +83,7 @@ def main():
         return
 
     if CONFIG_WP.template_id is None:
-        raise Exception("No 'templateId' supplied")
+        raise ValueError("No 'templateId' supplied")
 
     # Allow use of CRT name instead of ID
     CONFIG_WP.template_id = get_template_id(
@@ -157,7 +157,7 @@ def main():
                     print_compute_template_test_result(test_result)
                 except requests.HTTPError as http_error:
                     if http_error.response.status_code == 404:
-                        raise Exception(
+                        raise RuntimeError(
                             json_loads(http_error.response.text).get(
                                 "message", "Template ID not found"
                             )
@@ -190,7 +190,7 @@ def main():
                 print_info("Dry-run: Complete")
 
         except Exception as e:
-            raise Exception(
+            raise RuntimeError(
                 "Unable to"
                 f" {'report on' if ARGS_PARSER.report else 'provision'} Compute"
                 f" Requirement: {e}"
@@ -241,7 +241,7 @@ def _create_compute_requirement_from_json(
     """
 
     if ARGS_PARSER.report:
-        raise Exception(
+        raise ValueError(
             "Compute Template reports aren't available when using JSON "
             "Compute Requirement / Worker Pool specifications"
         )
@@ -252,7 +252,7 @@ def _create_compute_requirement_from_json(
         )
     else:
         if ARGS_PARSER.jsonnet_dry_run:
-            raise Exception(
+            raise ValueError(
                 "Option '--jsonnet-dry-run' can only be used with files "
                 "ending in '.jsonnet'"
             )
@@ -294,9 +294,7 @@ def _create_compute_requirement_from_json(
                 cr_data[key] = value
 
     except KeyError as e:
-        raise Exception(
-            f"Missing key error in JSON Compute Requirement definition: {e}"
-        )
+        raise KeyError(f"Missing key error in JSON Compute Requirement definition: {e}")
 
     # Allow use of CRT name instead of ID
     cr_data["templateId"] = get_template_id(
@@ -333,7 +331,7 @@ def _create_compute_requirement_from_json(
             follow_events(id, YDIDType.COMPUTE_REQUIREMENT)
     else:
         print_error(f"Failed to provision Compute Requirement '{name}'")
-        raise Exception(f"{response.text}")
+        raise RuntimeError(f"{response.text}")
 
 
 # Standalone entry point

@@ -247,7 +247,7 @@ def follow_ids(ydids: list[str], auto_cr: bool = False):
     """
     Creates an event thread for each YDID passed on the command line.
     """
-    if len(ydids) == 0:
+    if not ydids:
         return
 
     ydids_set = set(ydids)  # Eliminate duplicates

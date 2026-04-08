@@ -97,7 +97,7 @@ class AWSConfig(CommonCloudConfig):
         try:  # Check for valid credentials
             boto3.client("iam").list_users(MaxItems=1)
         except ClientError as e:
-            raise Exception(
+            raise RuntimeError(
                 "Invalid or missing AWS credentials. Did you remember to set/export"
                 " the AWS account credentials?"
             )
@@ -110,7 +110,7 @@ class AWSConfig(CommonCloudConfig):
             if region_name.lower() in opted_in_regions:
                 self.region_name = region_name.lower()
             else:
-                raise Exception(
+                raise ValueError(
                     f"Invalid or not opted-in AWS region name '{region_name}'"
                 )
 
@@ -290,7 +290,7 @@ class AWSConfig(CommonCloudConfig):
             )
             self._source_names_spot.append(name)
 
-        if len(self._source_template_resources) == 0:
+        if not self._source_template_resources:
             print_warning("No Compute Source Templates defined")
             return
 
@@ -362,7 +362,7 @@ class AWSConfig(CommonCloudConfig):
                     )
                     continue
                 else:
-                    raise Exception(f"Unable to list security groups: {e}")
+                    raise RuntimeError(f"Unable to list security groups: {e}")
 
             aws_sec_grp = AWSSecurityGroup(name="", id="")
             for sec_grp in response["SecurityGroups"]:
@@ -541,7 +541,7 @@ class AWSConfig(CommonCloudConfig):
         """
         Create an access key for use in a YellowDog Credential:
         """
-        if len(self._access_keys) > 0:
+        if self._access_keys:
             print_warning(f"Access key(s) already exist for user '{IAM_USER_NAME}'")
             if confirmed("Delete existing access key(s) and generate a new key?"):
                 self._delete_access_keys(iam_client)
@@ -571,7 +571,7 @@ class AWSConfig(CommonCloudConfig):
         """
         Delete the access key(s).
         """
-        if len(self._access_keys) == 0:
+        if not self._access_keys:
             print_warning(f"No access keys to delete for user '{IAM_USER_NAME}'")
             return
 

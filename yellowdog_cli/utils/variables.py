@@ -89,7 +89,7 @@ for key, value in os.environ.items():
         VARIABLE_SUBSTITUTIONS[key] = value
         subs_list.append(f"'{key}'")
 
-if len(subs_list) > 0:
+if subs_list:
     print_info(
         "Adding environment-defined variable substitution(s) for: "
         f"{', '.join(subs_list)}"
@@ -110,7 +110,7 @@ if ARGS_PARSER.variables is not None:
             )
             exit(1)  # Note: exception trap not yet in place
 
-if len(subs_list) > 0:
+if subs_list:
     print_info(
         "Adding command-line-defined variable substitution(s) for: "
         f"{', '.join(subs_list)}"
@@ -382,7 +382,7 @@ def process_untyped_variable_substitutions(
         if VAR_DEFAULT_SEPARATOR in var_name:  # Check for a default
             split_result = var_name.split(VAR_DEFAULT_SEPARATOR)
             if split_result[0] == "" or len(split_result) != 2:
-                raise Exception(
+                raise ValueError(
                     f"Malformed '<variable>:=<default>' substitution: '{var_name}'"
                 )
             var_name, var_default = split_result
@@ -419,7 +419,7 @@ def process_untyped_variable_substitutions(
             substitution, opening_delimiter, closing_delimiter
         ).split(VAR_DEFAULT_SEPARATOR)
         if variable_default[0] == "" or len(variable_default) != 2:
-            raise Exception(
+            raise ValueError(
                 f"Malformed '<variable>:=<default>' substitution: '{substitution}'"
             )
         default_value_substitutions.append(variable_default)
@@ -470,7 +470,7 @@ def process_typed_variable_substitution(
             try:
                 return float(input_string)
             except ValueError:
-                raise Exception(
+                raise ValueError(
                     f"Non-number used in variable number substitution: '{input_string}'"
                 )
 
@@ -479,7 +479,7 @@ def process_typed_variable_substitution(
             return True
         if input_string.lower() == "false":
             return False
-        raise Exception(
+        raise ValueError(
             f"Non-boolean used in variable boolean substitution: '{input_string}'"
         )
 
@@ -487,10 +487,10 @@ def process_typed_variable_substitution(
         try:
             return_value = literal_eval(input_string)
             if not isinstance(return_value, list):
-                raise Exception("Not an array/list")
+                raise TypeError("Not an array/list")
             return return_value
         except Exception as e:
-            raise Exception(
+            raise ValueError(
                 f"Property cannot be parsed as an array: '{input_string}' ({e})"
             )
 
@@ -498,10 +498,10 @@ def process_typed_variable_substitution(
         try:
             return_value = literal_eval(input_string)
             if not isinstance(return_value, dict):
-                raise Exception("Not a table/dict")
+                raise TypeError("Not a table/dict")
             return return_value
         except Exception as e:
-            raise Exception(
+            raise ValueError(
                 f"Property cannot be parsed as a table: '{input_string}' "
                 f"(Use JSON syntax?) ({e})"
             )
@@ -516,8 +516,7 @@ def resolve_filename(files_directory: str, filename: str) -> str:
     """
     if os.path.dirname(os.path.abspath(filename)) == os.path.abspath(files_directory):
         return filename
-    else:
-        return os.path.join(files_directory, filename)
+    return os.path.join(files_directory, filename)
 
 
 def load_json_file_with_variable_substitutions(
@@ -558,7 +557,7 @@ def load_jsonnet_file_with_variable_substitutions(
             dict_data = json_loads(evaluate_file(preprocessed_filename))
         except RuntimeError as e:
             # Include only the first line of the exception message
-            raise Exception(str(e).partition("\n")[0])
+            raise RuntimeError(str(e).partition("\n")[0])
 
     # Secondary processing after Jsonnet expansion
     process_variable_substitutions_insitu(dict_data, prefix, postfix)

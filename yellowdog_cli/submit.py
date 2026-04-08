@@ -179,7 +179,7 @@ def main():
         return
 
     if not 1 <= TASK_BATCH_SIZE <= 10000:
-        raise Exception("Task batch size must be between 1 and 10,000")
+        raise ValueError("Task batch size must be between 1 and 10,000")
 
     if ARGS_PARSER.json_raw:
         submit_json_raw(ARGS_PARSER.json_raw)
@@ -201,7 +201,7 @@ def main():
     )
 
     if not csv_files and ARGS_PARSER.process_csv_only:
-        raise Exception(
+        raise ValueError(
             "Option '--process-csv-only' is only valid if CSV file(s) specified"
         )
 
@@ -223,7 +223,7 @@ def main():
     elif wr_data_file is not None:
 
         if ARGS_PARSER.jsonnet_dry_run and not wr_data_file.lower().endswith("jsonnet"):
-            raise Exception(
+            raise ValueError(
                 "Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
             )
 
@@ -276,7 +276,7 @@ def main():
 
         # None of the above
         else:
-            raise Exception(
+            raise ValueError(
                 f"Work Requirement data file '{wr_data_file}' "
                 "must end with '.json', '.jsonnet', or '.toml'"
             )
@@ -484,10 +484,10 @@ def create_task_group(
         ).union(task_types_from_tasks)
     )
     # Use the task type from the config file if present and task_types is empty
-    if config_wr.task_type is not None and len(task_types) == 0:
+    if config_wr.task_type is not None and not task_types:
         task_types.append(config_wr.task_type)
-    if len(task_types) == 0:
-        raise Exception(
+    if not task_types:
+        raise ValueError(
             f"No Task Type(s) specified in Task Group '{task_group_name}': "
             "is a valid Work Requirement defined?"
         )
@@ -1019,7 +1019,7 @@ def submit_batch_of_tasks_to_task_group(
                 )
             last_exception = e
 
-    raise Exception(
+    raise RuntimeError(
         f"Failed to submit batch {batch_number_str} {task_range_str}of {num_task_batches}: "
         f"{last_exception}"
     )
@@ -1049,7 +1049,7 @@ def get_task_data_property(
         task_data_property = data.get(TASK_DATA, task_data_default)
         task_data_file_property = data.get(TASK_DATA_FILE, task_data_file_default)
         if task_data_property and task_data_file_property:
-            raise Exception(
+            raise ValueError(
                 f"Task '{task_name}': Properties '{TASK_DATA}' and "
                 f"'{TASK_DATA_FILE}' are both set"
             )
@@ -1256,8 +1256,8 @@ def create_task(
     return Task(
         name=task_name,
         taskType=task_type,
-        arguments=None if len(args) == 0 else args,
-        environment=None if len(env_copy) == 0 else env_copy,
+        arguments=None if not args else args,
+        environment=None if not env_copy else env_copy,
         taskData=task_data_property,
         timeout=task_timeout,
         tag=task_tag,
@@ -1277,7 +1277,7 @@ def submit_json_raw(wr_file: str):
     elif wr_file.lower().endswith(".json"):
         wr_data = load_json_file_with_variable_substitutions(wr_file)
     else:
-        raise Exception(
+        raise ValueError(
             f"Work Requirement file '{wr_file}' must end in '.json' or '.jsonnet'"
         )
 
@@ -1299,9 +1299,9 @@ def submit_json_raw(wr_file: str):
     try:
         task_groups = wr_data["taskGroups"]
     except KeyError:
-        raise Exception("Property 'taskGroups' is not defined")
-    if len(task_groups) == 0:
-        raise Exception("There must be at least one Task Group")
+        raise KeyError("Property 'taskGroups' is not defined")
+    if not task_groups:
+        raise ValueError("There must be at least one Task Group")
     for task_group in task_groups:
         task_lists[task_group["name"]] = task_group.get("tasks", [])
         task_group.pop("tasks", None)
@@ -1322,7 +1322,7 @@ def submit_json_raw(wr_file: str):
             print(wr_id)
     else:
         print_error(f"Failed to create Work Requirement '{wr_name}'")
-        raise Exception(f"{response.text}")
+        raise RuntimeError(f"{response.text}")
 
     if ARGS_PARSER.hold:
         CLIENT.work_client.hold_work_requirement_by_id(wr_id)

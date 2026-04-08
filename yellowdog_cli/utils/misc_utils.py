@@ -39,7 +39,7 @@ def generate_id(prefix: str = "", max_length: int = 60) -> str:
     # Include seconds to three decimal points
     generated_id = prefix + UTCNOW.strftime("_%y%m%d-%H%M%S%f")[:-3]
     if len(generated_id) > max_length:
-        raise Exception(
+        raise ValueError(
             f"Error: Generated ID '{generated_id}' would exceed "
             f"maximum length ({max_length})"
         )
@@ -123,7 +123,7 @@ def get_delimited_string_boundaries(
     openings = [(x.span()[0], 1) for x in re.finditer(opening_delimiter, input_string)]
     closings = [(x.span()[0], -1) for x in re.finditer(closing_delimiter, input_string)]
 
-    mismatched_delimiters_exception = Exception(
+    mismatched_delimiters_exception = ValueError(
         f"Mismatched variable delimiters ('{opening_delimiter}', '{closing_delimiter}')"
         f" in '{input_string}'"
     )
@@ -172,7 +172,7 @@ def split_delimited_string(
         s, opening_delimiter, closing_delimiter
     )
 
-    if len(delimited_boundaries) == 0:
+    if not delimited_boundaries:
         return [s]
 
     # Get non-delimited boundaries (i.e., the gaps)
@@ -252,12 +252,12 @@ def load_dotenv_file():
 
     dotenv_yd_substitutions = [  # Find 'YD' variables
         f"'{key}'"
-        for key in dotenv_values(dotenv_file).keys()
+        for key in dotenv_values(dotenv_file)
         if key.startswith("YD")
         and (os.environ.get(key) is None or ARGS_PARSER.env_override)
     ]
 
-    if len(dotenv_yd_substitutions) > 0:
+    if dotenv_yd_substitutions:
         print_info(
             "Adding 'YD' environment variable(s): "
             f"{', '.join(dotenv_yd_substitutions)}"

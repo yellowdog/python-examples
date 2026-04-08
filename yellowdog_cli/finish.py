@@ -23,7 +23,7 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.work_requirement_names) > 0:
+    if ARGS_PARSER.work_requirement_names:
         _finish_work_requirements_by_name_or_id(ARGS_PARSER.work_requirement_names)
         return
 
@@ -51,12 +51,12 @@ def main():
     finishing_count = 0
     work_requirement_ids: list[str] = []
 
-    if len(selected_work_requirement_summaries) > 0:
+    if selected_work_requirement_summaries:
         selected_work_requirement_summaries = select(
             CLIENT, selected_work_requirement_summaries
         )
 
-    if len(selected_work_requirement_summaries) > 0 and confirmed(
+    if selected_work_requirement_summaries and confirmed(
         f"Finish {len(selected_work_requirement_summaries)} Work Requirement(s)?"
     ):
         for work_summary in selected_work_requirement_summaries:

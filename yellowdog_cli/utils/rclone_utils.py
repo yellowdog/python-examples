@@ -59,7 +59,7 @@ def _find_rclone_conf() -> Path:
         p = Path(env_path)
         if p.exists():
             return p
-        raise Exception(f"RCLONE_CONFIG points to missing file: '{env_path}'")
+        raise FileNotFoundError(f"RCLONE_CONFIG points to missing file: '{env_path}'")
 
     if platform.system() == "Windows":
         appdata = os.environ.get("APPDATA", "")
@@ -69,7 +69,7 @@ def _find_rclone_conf() -> Path:
 
     if p.exists():
         return p
-    raise Exception(f"No rclone config file found at '{p}'")
+    raise FileNotFoundError(f"No rclone config file found at '{p}'")
 
 
 def make_rclone(config: Config | None) -> Rclone:

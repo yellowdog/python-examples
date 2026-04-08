@@ -146,7 +146,7 @@ def generate_taskdata_object(
             ),
         )
     except TypeError as e:
-        raise Exception(
+        raise TypeError(
             f"Unable to generate 'taskDataInputs' or 'taskDataOutputs' list: {str(e)}"
         )
 
@@ -182,7 +182,7 @@ def generate_dependencies(task_group_data: dict) -> list[str] | None:
     dependencies = check_list(task_group_data.get(DEPENDENCIES, None))
 
     if dependent_on is not None and dependencies is not None:
-        raise Exception(
+        raise ValueError(
             "Only one of 'dependencies' or 'dependentOn' (deprecated) can "
             "be specified in a task group"
         )
@@ -220,7 +220,7 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
                 else [int(exit_code_str) for exit_code_str in exit_codes_str]
             )
         except Exception as e:
-            raise Exception(f"Unable to process error exit codes: {e}")
+            raise ValueError(f"Unable to process error exit codes: {e}")
 
         statuses_str: list[str] | None = check_list(
             task_error_matcher_data.get(STATUSES_AT_FAILURE, None)
@@ -232,7 +232,7 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
                 else [TaskStatus(status) for status in statuses_str]
             )
         except Exception as e:
-            raise Exception(f"Unable to process error status: {e}")
+            raise ValueError(f"Unable to process error status: {e}")
 
         error_types: list[str] | None = check_list(
             task_error_matcher_data.get(ERROR_TYPES, None)
@@ -245,7 +245,7 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
         )
 
     except Exception as e:
-        raise Exception(
+        raise RuntimeError(
             f"Unable to process task retry error matcher data '{task_error_matcher_data}': {e}"
         )
 
@@ -305,7 +305,7 @@ class RcloneUploadedFiles:
         chdir(self._files_directory)
 
         if not exists(local_file):
-            raise Exception(
+            raise FileNotFoundError(
                 f"File '{Path(self._files_directory)/local_file}' does not exist "
                 "and cannot be uploaded"
             )
@@ -319,7 +319,7 @@ class RcloneUploadedFiles:
             try:
                 self._upload_rclone_file_core(rclone_uploaded_file)
             except Exception as e:
-                raise Exception(
+                raise RuntimeError(
                     f"Unable to upload '{local_file}' -> '{rclone_upload_path}': {e}"
                 )
         else:
@@ -358,7 +358,7 @@ class RcloneUploadedFiles:
         )
 
         if result.returncode != 0:
-            raise Exception(f"Upload failed: {result.stderr}")
+            raise RuntimeError(f"Upload failed: {result.stderr}")
 
     def delete(self):
         """

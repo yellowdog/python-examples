@@ -15,8 +15,8 @@ def validate_properties(data: dict, context: str):
     ALL_KEYS list. Raise an exception if not.
     """
     invalid_keys = set(_get_keys(data)) - set(ALL_KEYS)
-    if len(invalid_keys) > 0:
-        raise Exception(f"Invalid properties in {context}: {invalid_keys}")
+    if invalid_keys:
+        raise KeyError(f"Invalid properties in {context}: {invalid_keys}")
 
 
 @dataclass
@@ -65,7 +65,7 @@ def _get_keys(data: dict | list) -> list[str]:
                 keys += _get_keys(value)
 
     if errors:
-        raise Exception("Please update your property names")
+        raise ValueError("Please update your property names")
 
     elif isinstance(data, list):
         for element in data:

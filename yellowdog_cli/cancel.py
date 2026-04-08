@@ -26,7 +26,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.work_requirement_names) > 0:
+    if ARGS_PARSER.work_requirement_names:
         _cancel_work_requirements_by_name_or_id(ARGS_PARSER.work_requirement_names)
         return
 
@@ -53,12 +53,12 @@ def main():
     cancelling_count = 0
     work_requirement_ids: list[str] = []
 
-    if len(selected_work_requirement_summaries) > 0:
+    if selected_work_requirement_summaries:
         selected_work_requirement_summaries = select(
             CLIENT, selected_work_requirement_summaries
         )
 
-    if len(selected_work_requirement_summaries) > 0 and confirmed(
+    if selected_work_requirement_summaries and confirmed(
         f"Cancel {len(selected_work_requirement_summaries)} "
         f"Work Requirement(s)"
         f"{'' if not ARGS_PARSER.abort else ' and abort all allocated tasks'}?"

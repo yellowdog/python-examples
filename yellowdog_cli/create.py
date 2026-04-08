@@ -223,7 +223,7 @@ def create_compute_source_template(resource: dict):
         source_type = source.pop(PROP_TYPE).split(".")[-1]  # Extract Source type
         name = source[PROP_NAME]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     # Allow image families (etc.) to be referenced by name rather than ID
     global CLEAR_IMAGE_FAMILY_CACHE
@@ -301,7 +301,7 @@ def create_compute_requirement_template(resource: dict):
         name = resource[PROP_NAME]
         namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     # Allow source templates to be referenced by name instead of ID:
     # substitute ID for name
@@ -414,7 +414,7 @@ def create_keyring(resource: dict, show_secrets: bool = False):
         name = resource[PROP_NAME]
         description = resource[PROP_DESCRIPTION]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     keyrings: list[model.KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
     for keyring in keyrings:
@@ -454,7 +454,7 @@ def create_credential(resource: dict):
         ]  # Extract Source type
         name = credential_data[PROP_NAME]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     credential = _get_model_object(credential_type, credential_data)
     try:
@@ -479,14 +479,14 @@ def create_image_family(resource):
         namespace = resource[PROP_NAMESPACE]
         os_type_str = resource.pop(PROP_OS_TYPE)
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     fq_name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{family_name}"
 
     try:
         os_type = ImageOsType[os_type_str]  # Change to Enum
     except KeyError:
-        raise Exception(
+        raise ValueError(
             f"Property '{PROP_OS_TYPE}' has invalid value '{os_type_str}'; valid values are"
             f" {[e.value for e in ImageOsType]}"
         )
@@ -636,7 +636,7 @@ def create_configured_worker_pool(resource: dict):
         name = resource[PROP_NAME]
         namespace = resource[PROP_NAMESPACE]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     name = f"{namespace}{NAMESPACE_PREFIX_SEPARATOR}{name}"
 
@@ -670,7 +670,7 @@ def create_allowance(resource: dict):
         original_type = resource.pop(PROP_TYPE)
         type = original_type.split(".")[-1]  # Extract type
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     if type == "SourcesAllowance":
         template_name_or_id = resource.get(PROP_SOURCE_CREATED_FROM, None)
@@ -732,7 +732,7 @@ def create_allowance(resource: dict):
     if effective_from is not None:
         resource[PROP_EFFECTIVE_FROM] = date_parse(cast(str, effective_from))
         if resource[PROP_EFFECTIVE_FROM] is None:
-            raise Exception(
+            raise ValueError(
                 f"Unable to parse '{PROP_EFFECTIVE_FROM}' date '{effective_from}'"
             )
         print_info(
@@ -744,7 +744,7 @@ def create_allowance(resource: dict):
     if effective_until is not None:
         resource[PROP_EFFECTIVE_UNTIL] = date_parse(cast(str, effective_until))
         if resource[PROP_EFFECTIVE_UNTIL] is None:
-            raise Exception(
+            raise ValueError(
                 f"Unable to parse '{PROP_EFFECTIVE_UNTIL}' date '{effective_until}'"
             )
         print_info(
@@ -801,7 +801,7 @@ def create_attribute_definition(resource: dict, resource_type: str):
         if resource_type == RN_NUMERIC_ATTRIBUTE_DEFINITION:
             default_rank_order = resource[PROP_DEFAULT_RANK_ORDER]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     url = f"{CONFIG_COMMON.url}/compute/attributes/user"
     headers = {"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"}
@@ -848,7 +848,7 @@ def create_attribute_definition(resource: dict, resource_type: str):
             print_info(f"Updated existing Attribute Definition '{name}'")
             return
 
-    raise Exception(f"HTTP {response.status_code} ({response.text})")
+    raise RuntimeError(f"HTTP {response.status_code} ({response.text})")
 
 
 def create_namespace_policy(resource: dict):
@@ -861,7 +861,7 @@ def create_namespace_policy(resource: dict):
             autoscalingMaxNodes=resource.get(PROP_AUTOSCALING_MAX_NODES),
         )
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     # Test for existing policy
     try:
@@ -911,7 +911,7 @@ def create_group(resource: dict):
         name = resource[PROP_NAME]
         description = resource.get(PROP_DESCRIPTION)
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     def get_updated_role_specifications() -> list[RoleSpecification]:
         """
@@ -926,14 +926,14 @@ def create_group(resource: dict):
             # Get the role
             role = role_item.get(PROP_ROLE)
             if role is None:
-                raise Exception("Role must have 'role' specified")
+                raise ValueError("Role must have 'role' specified")
 
             # Get the ID and name of the role
             id_ = role.get(PROP_ID)
             if id_ is None:
                 name_ = role.get(PROP_NAME)
                 if name_ is None:
-                    raise Exception("Group role must have 'id' or 'name' specified")
+                    raise ValueError("Group role must have 'id' or 'name' specified")
                 id_ = get_role_id_by_name(CLIENT, name_)
             else:
                 name_ = role.get(PROP_NAME)
@@ -943,27 +943,27 @@ def create_group(resource: dict):
             # Get the scope of the role
             scope = role_item.get(PROP_SCOPE)
             if scope is None:
-                raise Exception(f"Group role '{name_}' must have 'scope' specified")
+                raise ValueError(f"Group role '{name_}' must have 'scope' specified")
             global_ = scope.get(PROP_GLOBAL)
             if global_ is None or global_ is False:
                 namespaces_ = scope.get(PROP_NAMESPACES)
                 if namespaces_ is None:
-                    raise Exception(
+                    raise ValueError(
                         f"Non-global group role '{name_}' must have 'namespaces' specified"
                     )
                 namespace_names = []
                 for namespace_ in namespaces_:
                     namespace_name = namespace_.get(PROP_NAMESPACE)
                     if namespace_name is None:
-                        raise Exception(
+                        raise ValueError(
                             f"Namespace applied to role '{name_}' "
                             "must have 'namespace' property"
                         )
                     namespace_names.append(namespace_name)
 
                 # Construct the role specification & add to the list
-                if len(namespace_names) == 0:
-                    raise Exception(
+                if not namespace_names:
+                    raise ValueError(
                         f"Non-global role '{name_}' must have at least one namespace scope"
                     )
                 role_specifications.append(
@@ -1092,7 +1092,7 @@ def create_application(resource: dict):
     try:
         name = resource[PROP_NAME]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     groups: list[str] = resource.pop(PROP_GROUPS, [])
     # Convert group names to IDs
@@ -1195,12 +1195,12 @@ def update_user(resource: dict, internal_user: bool):
     # Check we have a user identity
     if internal_user:
         if not any([username, name, id]):
-            raise Exception(
+            raise ValueError(
                 f"Expected one of '{PROP_NAME}', '{PROP_USERNAME}', '{PROP_ID}' "
                 f"to be defined for resource '{RN_INTERNAL_USER}' ({resource})"
             )
     elif not any([name, id]):
-        raise Exception(
+        raise ValueError(
             f"Expected one of '{PROP_NAME}', '{PROP_ID}' to be defined for "
             f"resource '{RN_EXTERNAL_USER}' ({resource})"
         )
@@ -1252,7 +1252,7 @@ def update_user(resource: dict, internal_user: bool):
         user = get_user_by_name_or_id(CLIENT, username)
     if user is not None and id is not None:
         if user.id != id:
-            raise Exception(f"User name and supplied ID do not match ({resource})")
+            raise ValueError(f"User name and supplied ID do not match ({resource})")
     if user is None and id is not None:
         user = get_user_by_name_or_id(CLIENT, cast(str, id))
 
@@ -1275,7 +1275,7 @@ def create_namespace(resource: dict):
     try:
         name = resource[PROP_NAME]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     try:
         namespace_id = CLIENT.namespaces_client.create_namespace(
@@ -1286,7 +1286,7 @@ def create_namespace(resource: dict):
             print_warning(f"Namespace '{name}' already exists")
             return
         else:
-            raise Exception(f"Failed to create namespace '{name}' ({e})")
+            raise RuntimeError(f"Failed to create namespace '{name}' ({e})")
 
     print_info(f"Created namespace '{name}' ({namespace_id})")
 
@@ -1307,7 +1307,7 @@ def _get_model_object(class_name: str, resource: dict, **kwargs):
                     str(model_object.purchaseOption)
                 ]
             except KeyError:
-                raise Exception(
+                raise ValueError(
                     "Invalid AWS Fleet Compute Source Purchase Option property: "
                     f"'{str(model_object.purchaseOption)}'"
                 )
@@ -1328,7 +1328,7 @@ def _get_model_object(class_name: str, resource: dict, **kwargs):
                     InstanceStatus(status) for status in model_object.monitoredStatuses
                 ]
             except KeyError as e:
-                raise Exception(f"Invalid Allowance property: {e}")
+                raise KeyError(f"Invalid Allowance property: {e}")
 
     while True:
         try:
@@ -1346,7 +1346,7 @@ def _get_model_object(class_name: str, resource: dict, **kwargs):
                 resource.pop(keyword)
             elif "missing" in str(e):
                 keyword = str(e).split("'")[1]
-                raise Exception(f"Missing expected property '{keyword}'")
+                raise KeyError(f"Missing expected property '{keyword}'")
             else:
                 raise e
 
@@ -1376,9 +1376,9 @@ def _create_image_family(
     try:
         image_family = CLIENT.images_client.add_image_family(image_family)
     except Exception as e:
-        raise Exception(f"Failed to create Machine Image Family '{fq_name}': {e}")
+        raise RuntimeError(f"Failed to create Machine Image Family '{fq_name}': {e}")
 
-    if image_groups is None or len(image_groups) == 0:
+    if not image_groups:
         return image_family
 
     # Create any additional image groups
@@ -1388,7 +1388,7 @@ def _create_image_family(
                 image_family, image_group
             )
         except Exception as e:
-            raise Exception(
+            raise RuntimeError(
                 f"Failed to add Machine Image Group '{image_group.name}' to "
                 f"Image Family '{fq_name}': {e}"
             )

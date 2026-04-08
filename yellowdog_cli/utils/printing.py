@@ -933,7 +933,7 @@ def print_numbered_object_list(
     Print a numbered list of objects.
     Assume that the list supplied is already sorted.
     """
-    if len(objects) == 0:
+    if not objects:
         return
 
     if ARGS_PARSER.auto_select_all and ARGS_PARSER.details and ARGS_PARSER.quiet:
@@ -1033,7 +1033,7 @@ def sorted_objects(
     Sort objects by their 'name' property, or 'instanceType' in the case of
     Instances, etc.
     """
-    if len(objects) == 0:
+    if not objects:
         return objects
 
     if ARGS_PARSER.reverse is not None:
@@ -1442,14 +1442,14 @@ def print_event(event: str, id_type: YDIDType):
             event_data["nodeSummary"]["actionQueueStatuses"],
             empty_msg_if_zero_total=True,
         )
-        if len(node_actions_msg) > 0:
+        if node_actions_msg:
             msg += f"{event_indent}Node Action(s): " + node_actions_msg
         workers_msg = status_counts_msg(
             STATUS_COUNTS_WORKERS,
             event_data["workerSummary"]["statusCounts"],
             empty_msg_if_zero_total=True,
         )
-        if len(workers_msg) > 0:
+        if workers_msg:
             msg += f"{event_indent}Worker(s):      " + workers_msg
 
     elif id_type == YDIDType.COMPUTE_REQUIREMENT:
@@ -1472,7 +1472,7 @@ def print_event(event: str, id_type: YDIDType):
                 source["instanceSummary"]["statusCounts"],
                 empty_msg_if_zero_total=True,
             )
-            if len(source_msg) > 0:
+            if source_msg:
                 msg += f"{event_indent}Source: '{source['name']}': " + source_msg
 
     else:
@@ -1498,7 +1498,7 @@ def print_to_file(json_string: str, output_file: str, with_final_comma: bool = F
                 else:
                     print(json_string, flush=True)
     except Exception as e:
-        raise Exception(f"Cannot open output file for writing: {e}")
+        raise RuntimeError(f"Cannot open output file for writing: {e}")
 
     FIRST_OUTPUT_TO_FILE = False
 

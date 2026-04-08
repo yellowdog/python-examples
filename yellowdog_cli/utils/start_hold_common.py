@@ -44,7 +44,7 @@ def _start_or_hold_work_requirements(
     action: str, required_state: WorkRequirementStatus, action_function: Callable
 ) -> list[str]:
 
-    if len(ARGS_PARSER.work_requirement_names) > 0:
+    if ARGS_PARSER.work_requirement_names:
         return _start_or_hold_work_requirements_by_name_or_id(
             action=action,
             required_state=required_state,
@@ -70,12 +70,12 @@ def _start_or_hold_work_requirements(
     count = 0
     work_requirement_ids: list[str] = []
 
-    if len(selected_work_requirement_summaries) > 0:
+    if selected_work_requirement_summaries:
         selected_work_requirement_summaries = select(
             CLIENT, selected_work_requirement_summaries
         )
 
-    if len(selected_work_requirement_summaries) > 0 and confirmed(
+    if selected_work_requirement_summaries and confirmed(
         f"{action} {len(selected_work_requirement_summaries)} Work Requirement(s)?"
     ):
         for work_summary in selected_work_requirement_summaries:

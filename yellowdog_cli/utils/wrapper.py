@@ -29,8 +29,7 @@ def dry_run() -> bool:
     dry_run_ = ARGS_PARSER.dry_run or ARGS_PARSER.process_csv_only
     if dry_run_ is None:
         return False
-    else:
-        return dry_run_
+    return dry_run_
 
 
 def set_proxy():

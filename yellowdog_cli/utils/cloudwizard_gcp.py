@@ -38,7 +38,9 @@ class GCPConfig(CommonCloudConfig):
                 )
             )
         except FileNotFoundError:
-            raise Exception(f"GCP credentials file '{service_account_file}' not found")
+            raise FileNotFoundError(
+                f"GCP credentials file '{service_account_file}' not found"
+            )
 
         self._regions_with_default_subnets: list[str] = []
         self._selected_regions: list[str] = []
@@ -87,7 +89,7 @@ class GCPConfig(CommonCloudConfig):
             override_quiet=True,
         )
 
-        if len(self._selected_regions) == 0:
+        if not self._selected_regions:
             print_warning(
                 "No regions selected; no Compute Source/Requirement Templates will be"
                 " created"
@@ -152,7 +154,7 @@ class GCPConfig(CommonCloudConfig):
             )
         except Exception as e:
             if "401" in str(e):
-                raise Exception(f"Invalid GCP credentials: {e}")
+                raise RuntimeError(f"Invalid GCP credentials: {e}")
             else:
                 raise e
 

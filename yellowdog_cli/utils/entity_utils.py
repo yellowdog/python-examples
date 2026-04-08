@@ -90,7 +90,7 @@ def get_task_group_name(
         if task.taskGroupId == task_group.id:
             return task_group.name
 
-    raise Exception(f"Task group name not found for Task ID {task.id}")
+    raise RuntimeError(f"Task group name not found for Task ID {task.id}")
 
 
 def get_filtered_work_requirement_summaries(
@@ -235,14 +235,10 @@ def get_compute_source_template_id_by_name(
     namespace_ = namespace if namespace_ is None else namespace_
 
     # Ensure exact name match
-    if (
-        len(
-            csts := get_compute_source_templates(
-                client, namespace_, name, partial_name_matches=False
-            )
-        )
-        == 0
-    ):
+    csts = get_compute_source_templates(
+        client, namespace_, name, partial_name_matches=False
+    )
+    if not csts:
         return None
 
     # Names are unique within namespaces
@@ -322,14 +318,10 @@ def get_compute_requirement_template_id_by_name(
     namespace_, name = split_namespace_and_name(name)
     namespace_ = namespace if namespace_ is None else namespace_
 
-    if (
-        len(
-            crts := get_compute_requirement_templates(
-                client, namespace_, name, partial_name_matches=False
-            )
-        )
-        == 0
-    ):
+    crts = get_compute_requirement_templates(
+        client, namespace_, name, partial_name_matches=False
+    )
+    if not crts:
         return None
 
     return crts[0].id
@@ -484,7 +476,7 @@ def get_image_name_or_id(
         ]
         if len(matching_image_families) > 1:
             namespaces = [ifs.namespace for ifs in matching_image_families]
-            raise Exception(
+            raise ValueError(
                 f"Ambiguous Images ID '{original_image_name_or_id}': please "
                 f"specify a namespace from: {', '.join(namespaces)}"
             )
@@ -506,7 +498,7 @@ def get_image_name_or_id(
 
         # This will be tidied up when the Application can
         # query its properties
-        if len(image_family_summaries) == 0:  # Global search didn't work
+        if not image_family_summaries:  # Global search didn't work
             image_family_summaries = get_image_family_summaries(client, split_name[0])
 
         matching_image_families = [
@@ -549,7 +541,7 @@ def get_image_name_or_id(
                 )
         if len(if_group_matches) > 1:
             namespaces = [match[0].namespace for match in if_group_matches]
-            raise Exception(
+            raise ValueError(
                 f"Ambiguous image-family/image-group '{original_image_name_or_id}': "
                 f"please specify a namespace from: {', '.join(namespaces)}"
             )
@@ -560,7 +552,7 @@ def get_image_name_or_id(
 
         # This will be tidied up when the Application can
         # query its properties
-        if len(image_family_summaries) == 0:  # Global search didn't work
+        if not image_family_summaries:  # Global search didn't work
             image_family_summaries = get_image_family_summaries(client, split_name[0])
 
         for ifs in image_family_summaries:
@@ -572,7 +564,7 @@ def get_image_name_or_id(
                         else:
                             return _replaced(f"yd/{image_name_or_id}")
                 else:
-                    raise Exception(
+                    raise ValueError(
                         "Image family found, but no matching image "
                         f"group for '{original_image_name_or_id}'"
                     )
@@ -598,7 +590,7 @@ def remove_allowances_matching_description(
         allowance for allowance in allowances if description == allowance.description
     ]
 
-    if len(allowances) == 0:
+    if not allowances:
         print_info(f"Cannot find Allowance matching description '{description}'")
         return 0
 
@@ -650,10 +642,9 @@ def split_namespace_and_name(
     if len(parts) == 2:
         if parts[0] == "":  # Handle the case of a leading slash
             return None, parts[1]
-        else:
-            return parts[0], parts[1]
+        return parts[0], parts[1]
 
-    raise Exception(f"Malformed name or namespace/name '{namespace_and_name}'")
+    raise ValueError(f"Malformed name or namespace/name '{namespace_and_name}'")
 
 
 def substitute_ids_for_names_in_crt(
@@ -1173,8 +1164,8 @@ def get_task_group_by_id(client: PlatformClient, task_group_id: str) -> TaskGrou
         task_groups = get_task_groups_from_wr_by_id(client, work_requirement_id)
     except Exception as e:
         if "404" in str(e):
-            raise Exception(f"Task Group ID '{task_group_id}' not found")
-        raise Exception(
+            raise KeyError(f"Task Group ID '{task_group_id}' not found")
+        raise RuntimeError(
             f"Unable to obtain Task Group details for '{task_group_id}': {e}"
         )
 
@@ -1182,4 +1173,4 @@ def get_task_group_by_id(client: PlatformClient, task_group_id: str) -> TaskGrou
         if task_group.id == task_group_id:
             return task_group
 
-    raise Exception(f"Task Group ID '{task_group_id}' not found")
+    raise KeyError(f"Task Group ID '{task_group_id}' not found")

@@ -449,7 +449,7 @@ def remove_attribute_definition(resource: dict):
     try:
         name = resource[PROP_NAME]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     if not confirmed(f"Remove Attribute Definition '{name}'?"):
         return
@@ -462,7 +462,7 @@ def remove_attribute_definition(resource: dict):
         print_info(f"Removed Attribute Definition '{name}' (if present)")
         return
 
-    raise Exception(f"HTTP {response.status_code} ({response.text})")
+    raise RuntimeError(f"HTTP {response.status_code} ({response.text})")
 
 
 def remove_namespace_policy(resource: dict):

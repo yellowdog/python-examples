@@ -60,7 +60,7 @@ def load_resource_specifications(creation_or_update: bool = True) -> list[dict]:
             )
             if get_ydid_type(resource_spec) is not None:
                 exception_message += "; did you mean to use the '--ids' option?"
-            raise Exception(exception_message)
+            raise ValueError(exception_message)
 
         # Transform single resource items into lists
         if isinstance(resources_loaded, dict):
@@ -124,11 +124,11 @@ def _resequence_resources(
             reverse=not creation_or_update,
         )
     except KeyError:
-        raise Exception(
+        raise KeyError(
             "Property 'resource' is not specified for one or more resource specifications"
         )
     except ValueError as e:
         resource_type = str(e).split("'")[1]
-        raise Exception(f"Unknown resource type: '{resource_type}'")
+        raise ValueError(f"Unknown resource type: '{resource_type}'")
 
     return resources

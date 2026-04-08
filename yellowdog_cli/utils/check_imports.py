@@ -10,7 +10,7 @@ def check_jsonnet_import():
     try:
         from _jsonnet import evaluate_file
     except ImportError:
-        raise Exception(
+        raise ImportError(
             "Jsonnet support is not included by default. The 'jsonnet' Python package"
             " can usually be installed by adding the option to pip:"
             ' pip install -U "yellowdog-python-examples[jsonnet]"'
@@ -23,7 +23,7 @@ def check_cloudwizard_imports():
     try:
         import boto3  # One example package required for Cloud Wizard
     except ImportError:
-        raise Exception(
+        raise ImportError(
             "The cloud provider SDKs needed for Cloud Wizard are not installed"
             " by default. They can be installed by adding the option to pip:"
             ' pip install -U "yellowdog-python-examples[cloudwizard]"'

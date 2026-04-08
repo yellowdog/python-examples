@@ -92,7 +92,7 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main
 @main_wrapper
 def main():
     if not check_for_valid_option():
-        raise Exception("Please choose a (single) listing type")
+        raise ValueError("Please choose a (single) listing type")
 
     # Always use interactive mode for selections
     ARGS_PARSER.interactive = True
@@ -215,7 +215,7 @@ def list_work_requirements():
             exclude_filter=exclude_filter,
         )
     )
-    if len(work_requirement_summaries) == 0:
+    if not work_requirement_summaries:
         print_info("No matching Work Requirements")
         return
 
@@ -304,7 +304,7 @@ def list_worker_pools():
         and CONFIG_COMMON.namespace in wp_summary.namespace
     ]
 
-    if len(worker_pool_summaries) == 0:
+    if not worker_pool_summaries:
         print_info("No Worker Pools to display")
         return
 
@@ -365,7 +365,7 @@ def list_compute_requirements():
         )
     )
 
-    if len(compute_requirement_summaries) == 0:
+    if not compute_requirement_summaries:
         print_info("No matching Compute Requirements")
         return
 
@@ -401,7 +401,7 @@ def list_instances(compute_requirement_id: str):
         instance_search=instance_search
     )
     instances: list[Instance] = search_client.list_all()
-    if len(instances) == 0:
+    if not instances:
         print_info("No instances to list")
         return
 
@@ -442,7 +442,7 @@ def list_nodes(worker_pool_summaries: list[WorkerPoolSummary]):
             node.workerPoolName = worker_pool_summary.name
         nodes_all += nodes
 
-    if len(nodes_all) == 0:
+    if not nodes_all:
         print_info("No Nodes to display")
         return
 
@@ -483,7 +483,7 @@ def list_workers(nodes: list[Node]):
                 )  # This property is added by the caller
                 workers_all.append(worker)
 
-    if len(workers_all) == 0:
+    if not workers_all:
         print_info("No Workers to display")
         return
 
@@ -520,7 +520,7 @@ def list_compute_requirement_templates():
         )
     )
 
-    if len(cr_templates) == 0:
+    if not cr_templates:
         print_info("No matching Compute Requirement Templates found")
         return
 
@@ -535,7 +535,7 @@ def list_compute_requirement_templates():
 
     # Show details
     cr_templates = select(CLIENT, cr_templates)
-    if len(cr_templates) > 0 and ARGS_PARSER.substitute_ids:
+    if cr_templates and ARGS_PARSER.substitute_ids:
         print_info(
             "Substituting Compute Source Template IDs and Image Family IDs with names"
         )
@@ -570,7 +570,7 @@ def list_compute_source_templates():
         CLIENT, namespace=CONFIG_COMMON.namespace, name=CONFIG_COMMON.name_tag
     )
 
-    if len(cs_templates) == 0:
+    if not cs_templates:
         print_info("No matching Compute Source Templates found")
         return
 
@@ -605,7 +605,7 @@ def list_keyrings():
     Print the list of Keyrings
     """
     keyrings: list[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
-    if len(keyrings) == 0:
+    if not keyrings:
         print_info("No Keyrings found")
         return
 
@@ -635,7 +635,7 @@ def get_keyring(name: str) -> Keyring:
     if response.status_code == 200:
         return Keyring(**response.json())
     else:
-        raise Exception(f"Failed to get Keyring '{name}' ({response.text})")
+        raise RuntimeError(f"Failed to get Keyring '{name}' ({response.text})")
 
 
 def list_image_families():
@@ -651,7 +651,7 @@ def list_image_families():
     )
     search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)
     image_family_summaries: list[MachineImageFamilySummary] = search_client.list_all()
-    if len(image_family_summaries) == 0:
+    if not image_family_summaries:
         print_info(
             f"No matching Machine Image Families found in namespace "
             f"'{CONFIG_COMMON.namespace}' with tag including '{CONFIG_COMMON.name_tag}'"
@@ -690,7 +690,7 @@ def list_allowances():
         allowances_search
     )
     allowances: list[Allowance] = search_client.list_all()
-    if len(allowances) == 0:
+    if not allowances:
         print_info("No Allowances to display")
         return
 
@@ -704,7 +704,7 @@ def list_allowances():
         return
 
     # Show details
-    if len(allowances) > 0 and ARGS_PARSER.substitute_ids:
+    if allowances and ARGS_PARSER.substitute_ids:
         print_info(
             "Substituting Compute Requirement Template IDs with names (if applicable)"
         )
@@ -729,7 +729,7 @@ def list_attribute_definitions():
     )
 
     if response.status_code != 200:
-        raise Exception(
+        raise RuntimeError(
             "Unable to list user attribute definitions: HTTP "
             f"{response.status_code} ({response.text})"
         )
@@ -774,7 +774,7 @@ def list_namespaces():
         NamespaceSearch()
     ).list_all()
 
-    if len(namespaces) == 0:
+    if not namespaces:
         print_info("No Namespaces found")
         return
 
@@ -800,7 +800,7 @@ def list_namespace_policies():
         np_search
     )
     namespace_policies: list[NamespacePolicy] = search_client.list_all()
-    if len(namespace_policies) == 0:
+    if not namespace_policies:
         print_info("No Namespace Policies to display")
         return
 
@@ -827,7 +827,7 @@ def list_users():
     """
     users: list[User] = get_all_users(CLIENT)
 
-    if len(users) == 0:
+    if not users:
         print_info("No Users to display")
         return
 
@@ -860,7 +860,7 @@ def list_applications():
     """
     applications = get_all_applications(CLIENT)
 
-    if len(applications) == 0:
+    if not applications:
         print_info("No Applications to display")
         return
 
@@ -896,7 +896,7 @@ def list_groups():
     """
     group_summaries = get_all_groups(CLIENT)
 
-    if len(group_summaries) == 0:
+    if not group_summaries:
         print_info("No Groups to display")
         return
 
@@ -923,7 +923,7 @@ def list_roles():
     """
     role_summaries = get_all_roles(CLIENT)
 
-    if len(role_summaries) == 0:
+    if not role_summaries:
         print_info("No Roles to display")
         return
 

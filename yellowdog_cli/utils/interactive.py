@@ -44,7 +44,7 @@ def select(
     Return the list of objects.
     """
 
-    if len(objects) == 0:
+    if not objects:
         return objects
 
     if sort_objects:
@@ -84,9 +84,8 @@ def get_selected_list_items(
     def in_range(num: int) -> bool:
         if 1 <= num <= num_items:
             return True
-        else:
-            print_error(f"'{num}' is out of range")
-            return False
+        print_error(f"'{num}' is out of range")
+        return False
 
     while True:
         cancel_string = "" if result_required else " or press <Return> to cancel"
@@ -114,7 +113,7 @@ def get_selected_list_items(
                             selector_set.add(i)
                         else:
                             error_flag = True
-                elif not (selector.isspace() or len(selector) == 0):
+                elif not (selector.isspace() or not selector):
                     i = int(selector)
                     if in_range(i):
                         selector_set.add(i)
@@ -125,19 +124,17 @@ def get_selected_list_items(
                 error_flag = True
         if error_flag:
             continue
-        if len(selector_set) == 0:
+        if not selector_set:
             if result_required:
                 continue
-            else:
-                break
+            break
         if single_result and len(selector_set) != 1:
             print_error("please enter a single item number")
             continue
-        else:
-            break
+        break
 
     selected_list = sorted(list(selector_set))
-    if len(selected_list) > 0:
+    if selected_list:
         if not single_result:
             if len(selected_list) > 20:
                 display_selections = (
@@ -177,7 +174,7 @@ def confirmed(msg: str) -> bool:
         if response.lower() in ["y", "yes"]:
             print_info("Action confirmed by user")
             return True
-        elif response.lower() in ["n", "no", ""]:
+        if response.lower() in ["n", "no", ""]:
             print_info("Action cancelled by user")
             return False
 
@@ -188,7 +185,6 @@ def _get_user_input(input_prompt: str) -> str:
     """
     if ARGS_PARSER.no_format:
         return input(input_prompt)
-    else:
-        # Prevents broken wrapping
-        CONSOLE.print(input_prompt, end="")
-        return CONSOLE.input("")
+    # Prevents broken wrapping
+    CONSOLE.print(input_prompt, end="")
+    return CONSOLE.input("")

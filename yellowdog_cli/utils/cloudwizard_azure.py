@@ -70,7 +70,7 @@ class AzureConfig(CommonCloudConfig):
                 error = True
                 print_error(f"Environment variable '{env_var}' is not set")
         if error:
-            raise Exception(
+            raise RuntimeError(
                 "Required Azure credential environment variable(s) not set ... exiting"
             )
         self._credential = EnvironmentCredential()
@@ -423,7 +423,7 @@ class AzureConfig(CommonCloudConfig):
             )
             self._source_names_spot.append(name)
 
-        if len(self._source_template_resources) == 0:
+        if not self._source_template_resources:
             print_warning("No Compute Source Templates defined")
             return
 
@@ -619,4 +619,4 @@ class AzureConfig(CommonCloudConfig):
                 )
             ]
         except Exception as e:
-            raise Exception(f"Unable to obtain list of Azure regions: {e}")
+            raise RuntimeError(f"Unable to obtain list of Azure regions: {e}")

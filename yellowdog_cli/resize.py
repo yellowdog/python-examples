@@ -47,7 +47,7 @@ def _resize_worker_pool():
             CLIENT, ARGS_PARSER.worker_pool_name, namespace=CONFIG_COMMON.namespace
         )
         if worker_pool_id is None:
-            raise Exception(f"Worker Pool '{ARGS_PARSER.worker_pool_name}' not found")
+            raise KeyError(f"Worker Pool '{ARGS_PARSER.worker_pool_name}' not found")
 
     worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
         worker_pool_id=worker_pool_id
@@ -129,7 +129,7 @@ def _resize_compute_requirement():
         return
 
     else:
-        raise Exception(
+        raise KeyError(
             f"Compute Requirement '{ARGS_PARSER.worker_pool_name}' not found or not in "
             f"status '{ComputeRequirementStatus.RUNNING}'"
         )

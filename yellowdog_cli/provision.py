@@ -114,7 +114,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         )
     else:
         if ARGS_PARSER.jsonnet_dry_run:
-            raise Exception(
+            raise ValueError(
                 "Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
             )
         wp_data = load_json_file_with_variable_substitutions(
@@ -246,7 +246,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                 provisioned_properties[key] = value
 
     except KeyError as e:
-        raise Exception(f"Key error in JSON Worker Pool definition: {e}")
+        raise KeyError(f"Key error in JSON Worker Pool definition: {e}")
 
     if ARGS_PARSER.dry_run:
         print_info("Dry-run: Printing JSON Worker Pool specification")
@@ -272,7 +272,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             follow_ids([id], auto_cr=ARGS_PARSER.auto_cr)
     else:
         print_error(f"Failed to provision Worker Pool '{name}'")
-        raise Exception(f"{response.text}")
+        raise RuntimeError(f"{response.text}")
 
 
 def create_worker_pool_from_toml():
@@ -419,7 +419,7 @@ def create_worker_pool_from_toml():
                 )
 
         except Exception as e:
-            raise Exception(f"Unable to provision worker pool: {e}")
+            raise RuntimeError(f"Unable to provision worker pool: {e}")
 
     idle_node_shutdown_string = (
         f"time limit is {CONFIG_WP.idle_node_timeout} minute(s)"

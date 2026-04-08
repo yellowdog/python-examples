@@ -24,7 +24,7 @@ def _require_remote(config: ConfigDataClient) -> str:
     Return config.remote, raising a clear error if it is not set.
     """
     if not config.remote:
-        raise Exception(
+        raise ValueError(
             "No rclone remote configured. "
             "Set 'remote' in the [dataClient] config section, "
             "via the YD_DATA_CLIENT_REMOTE environment variable, "
@@ -98,7 +98,7 @@ def upload_file(
     print_info(f"Uploading '{local_path}' → '{remote_path}'")
     result = rclone.copy_to(src=str(local_path.resolve()), dst=remote_path)
     if result.returncode != 0:
-        raise Exception(f"Upload failed: {result.stderr}")
+        raise RuntimeError(f"Upload failed: {result.stderr}")
 
 
 def _rclone_sync(rclone: Rclone, src: str, dst: str):
@@ -157,7 +157,7 @@ def upload_directory(
     else:
         result = rclone.copy(src=str(local_path.resolve()), dst=remote_path)
     if result.returncode != 0:
-        raise Exception(f"Directory upload failed: {result.stderr}")
+        raise RuntimeError(f"Directory upload failed: {result.stderr}")
 
 
 def _upload_directory_flat(
@@ -268,7 +268,7 @@ def _download_with_glob(
         capture=False,
     )
     if result.returncode != 0:
-        raise Exception(f"Download failed: {result.stderr}")
+        raise RuntimeError(f"Download failed: {result.stderr}")
 
 
 def download_files(
@@ -340,7 +340,7 @@ def download_files(
                     src=f"{remote_path.rstrip('/')}/{f.path.path}", dst=file_dst
                 )
                 if result.returncode != 0:
-                    raise Exception(
+                    raise RuntimeError(
                         f"Download failed for '{f.path.path}': {result.stderr}"
                     )
     else:
@@ -351,7 +351,7 @@ def download_files(
         else:
             result = rclone.copy(src=remote_path, dst=dst)
         if result.returncode != 0:
-            raise Exception(f"Download failed: {result.stderr}")
+            raise RuntimeError(f"Download failed: {result.stderr}")
 
 
 def _delete_with_glob(
@@ -394,7 +394,7 @@ def _delete_with_glob(
             print_info(f"Deleting '{entry_path}'")
             result = rclone.delete_files(entry_path)
         if result.returncode != 0:
-            raise Exception(f"Delete failed: {result.stderr}")
+            raise RuntimeError(f"Delete failed: {result.stderr}")
 
 
 def delete_remote(
@@ -479,7 +479,7 @@ def delete_remote(
         return
 
     if result.returncode != 0:
-        raise Exception(f"Delete failed: {result.stderr}")
+        raise RuntimeError(f"Delete failed: {result.stderr}")
 
 
 def list_remote_glob(

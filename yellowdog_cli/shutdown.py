@@ -29,7 +29,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.worker_pool_nodes_list) > 0:
+    if ARGS_PARSER.worker_pool_nodes_list:
         shutdown_by_names_or_ids(ARGS_PARSER.worker_pool_nodes_list)
         return
 
@@ -61,10 +61,10 @@ def main():
             ):
                 selected_worker_pool_summaries.append(worker_pool_summary)
 
-    if len(selected_worker_pool_summaries) > 0:
+    if selected_worker_pool_summaries:
         selected_worker_pool_summaries = select(CLIENT, selected_worker_pool_summaries)
 
-    if len(selected_worker_pool_summaries) > 0 and confirmed(
+    if selected_worker_pool_summaries and confirmed(
         f"Shutdown {len(selected_worker_pool_summaries)} Worker Pool(s)?"
     ):
         for worker_pool_summary in selected_worker_pool_summaries:
@@ -119,7 +119,7 @@ def shutdown_by_names_or_ids(names_or_ids: list[str]):
                 continue
         worker_pool_ids.append(worker_pool_id)
 
-    if len(worker_pool_ids) == 0 and len(node_ids) == 0:
+    if not worker_pool_ids and not node_ids:
         print_info("No Worker Pools or Nodes to shut down")
         return
 
