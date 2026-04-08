@@ -302,8 +302,8 @@ def submit_work_requirement(
     check_dict(wr_data)
 
     # Remap 'task_type' at WR level to 'task_types' if 'task_types' is empty
-    if wr_data.get(TASK_TYPE, None) is not None:
-        if wr_data.get(TASK_TYPES, None) is None:
+    if wr_data.get(TASK_TYPE) is not None:
+        if wr_data.get(TASK_TYPES) is None:
             wr_data[TASK_TYPES] = [wr_data[TASK_TYPE]]
 
     # Overwrite the WR name?
@@ -413,8 +413,8 @@ def create_task_group(
 
     # Remap 'task_type' to 'task_types' in the Task Group if 'task_types'
     # is empty, as a convenience
-    if task_group_data.get(TASK_TYPE, None) is not None:
-        if task_group_data.get(TASK_TYPES, None) is None:
+    if task_group_data.get(TASK_TYPE) is not None:
+        if task_group_data.get(TASK_TYPES) is None:
             task_group_data[TASK_TYPES] = [task_group_data[TASK_TYPE]]
 
     # Gather task types
@@ -437,7 +437,7 @@ def create_task_group(
 
     # The following handles possible CSV substitution at the config.toml level
     try:
-        if task_group_data.get(NAME, None) is None:
+        if task_group_data.get(NAME) is None:
             task_group_data[NAME] = task_group_data[TASKS][0][TASK_GROUP_NAME]
     except (KeyError, IndexError):
         pass
@@ -591,7 +591,7 @@ def create_task_group(
             task_group_data.get(PRIORITY, wr_data.get(PRIORITY, config_wr.priority))
         ),
         completedTaskTtl=completed_task_ttl,
-        tag=task_group_data.get(TASK_GROUP_TAG, None),
+        tag=task_group_data.get(TASK_GROUP_TAG),
     )
 
     print_info(f"Generated Task Group '{task_group_name}'")

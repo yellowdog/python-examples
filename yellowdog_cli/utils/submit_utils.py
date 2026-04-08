@@ -209,8 +209,8 @@ def generate_dependencies(task_group_data: dict) -> list[str] | None:
     """
     Generate the contents of the 'dependencies' property of the TaskGroup.
     """
-    dependent_on = check_str(task_group_data.get(DEPENDENT_ON, None))
-    dependencies = check_list(task_group_data.get(DEPENDENCIES, None))
+    dependent_on = check_str(task_group_data.get(DEPENDENT_ON))
+    dependencies = check_list(task_group_data.get(DEPENDENCIES))
 
     if dependent_on is not None and dependencies is not None:
         raise ValueError(
@@ -241,7 +241,7 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
     try:
 
         exit_codes_str: list[int] | None = check_list(
-            task_error_matcher_data.get(PROCESS_EXIT_CODES, None)
+            task_error_matcher_data.get(PROCESS_EXIT_CODES)
         )
         try:
             # Ensure ints
@@ -254,7 +254,7 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
             raise ValueError(f"Unable to process error exit codes: {e}")
 
         statuses_str: list[str] | None = check_list(
-            task_error_matcher_data.get(STATUSES_AT_FAILURE, None)
+            task_error_matcher_data.get(STATUSES_AT_FAILURE)
         )
         try:
             statuses = (
@@ -266,7 +266,7 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
             raise ValueError(f"Unable to process error status: {e}")
 
         error_types: list[str] | None = check_list(
-            task_error_matcher_data.get(ERROR_TYPES, None)
+            task_error_matcher_data.get(ERROR_TYPES)
         )
 
         return TaskErrorMatcher(
@@ -319,7 +319,7 @@ class RcloneUploadedFiles:
                 continue
             upload_path = task_data_input.pop(DATA_CLIENT_UPLOAD_PATH, None)
             if upload_path is None:
-                upload_path = task_data_input.get(TASK_DATA_SOURCE, None)
+                upload_path = task_data_input.get(TASK_DATA_SOURCE)
             if upload_path is None:
                 continue
             self._upload_rclone_file(
@@ -628,7 +628,7 @@ def create_task(
     Create a Task object.
     """
     env_copy = deepcopy(env)  # Copy the environment property to prevent overwriting
-    task_tag = task_data.get(TASK_TAG, None)
+    task_tag = task_data.get(TASK_TAG)
 
     # Optionally add Task details to the environment as a convenience
     if add_yd_env_vars:

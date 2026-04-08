@@ -226,21 +226,21 @@ def load_config_common() -> ConfigCommon:
                     "(or automatically set)"
                 )
             elif (
-                common_section.get(key_name, None) is None
-                and os.environ.get(env_var_name, None) is not None
+                common_section.get(key_name) is None
+                and os.environ.get(env_var_name) is not None
             ):
                 common_section[key_name] = os.environ[env_var_name]
                 print_info(f"Using '{key_name}' provided via the environment")
 
         # Provide default values for namespace and tag
-        if common_section.get(NAMESPACE, None) is None:
+        if common_section.get(NAMESPACE) is None:
             common_section[NAMESPACE] = "default"
             if ARGS_PARSER.namespace_required:
                 print_info(
                     "Using default value for 'namespace': "
                     f"'{common_section[NAMESPACE]}'"
                 )
-        if common_section.get(NAME_TAG, None) is None:
+        if common_section.get(NAME_TAG) is None:
             common_section[NAME_TAG] = "{{username}}"
             if ARGS_PARSER.tag_required:
                 print_info(
@@ -272,7 +272,7 @@ def load_config_common() -> ConfigCommon:
         # environment variable; this will override the default certificates
         certificates = cast(
             str | None,
-            process_variable_substitutions(common_section.get(CERTIFICATES, None)),
+            process_variable_substitutions(common_section.get(CERTIFICATES)),
         )
         if certificates is not None:
             certificates = abspath(certificates)
@@ -531,7 +531,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
 
     try:
         # Allow WORKER_TAG if WORKER_TAGS is empty
-        worker_tags = wr_section.get(WORKER_TAGS, None)
+        worker_tags = wr_section.get(WORKER_TAGS)
         if worker_tags is None:
             try:
                 worker_tags = [wr_section[WORKER_TAG]]
@@ -544,7 +544,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
                     str, process_variable_substitutions(worker_tag)
                 )
 
-        wr_data_file = wr_section.get(WR_DATA, None)
+        wr_data_file = wr_section.get(WR_DATA)
         if wr_data_file is not None:
             check_str(wr_data_file)
             wr_data_file = cast(str, process_variable_substitutions(wr_data_file))
@@ -554,7 +554,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
 
         # Check for properties set on the command line
         task_type = (
-            wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, None))
+            wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE))
             if ARGS_PARSER.task_type is None
             else ARGS_PARSER.task_type
         )
@@ -562,8 +562,8 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             check_str(task_type)
             task_type = cast(str | None, process_variable_substitutions(task_type))
 
-        csv_file = wr_section.get(CSV_FILE, None)
-        csv_files = wr_section.get(CSV_FILES, None)
+        csv_file = wr_section.get(CSV_FILE)
+        csv_files = wr_section.get(CSV_FILES)
         if csv_file and csv_files:
             print_error("Only one of 'csvFile' and 'csvFiles' should be set")
             exit(1)
@@ -589,49 +589,49 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         )
 
         return ConfigWorkRequirement(
-            add_environment=wr_section.get(ADD_ENVIRONMENT, None),
+            add_environment=wr_section.get(ADD_ENVIRONMENT),
             add_yd_env_vars=wr_section.get(ADD_YD_ENV_VARS, False),
             args=wr_section.get(ARGS, []),
-            args_postfix=wr_section.get(ARGS_POSTFIX, None),
-            args_prefix=wr_section.get(ARGS_PREFIX, None),
-            completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
+            args_postfix=wr_section.get(ARGS_POSTFIX),
+            args_prefix=wr_section.get(ARGS_PREFIX),
+            completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL),
             csv_files=cast(list[str] | None, csv_files),
-            disable_preallocation=wr_section.get(DISABLE_PREALLOCATION, None),
+            disable_preallocation=wr_section.get(DISABLE_PREALLOCATION),
             env=wr_section.get(ENV, {}),
             finish_if_all_tasks_finished=wr_section.get(
                 FINISH_IF_ALL_TASKS_FINISHED, True
             ),
             finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, False),
-            instance_types=wr_section.get(INSTANCE_TYPES, None),
+            instance_types=wr_section.get(INSTANCE_TYPES),
             max_retries=wr_section.get(MAX_RETRIES, 0),
-            max_workers=wr_section.get(MAX_WORKERS, None),
-            min_workers=wr_section.get(MIN_WORKERS, None),
-            namespaces=wr_section.get(NAMESPACES, None),
-            parallel_batches=wr_section.get(PARALLEL_BATCHES, None),
+            max_workers=wr_section.get(MAX_WORKERS),
+            min_workers=wr_section.get(MIN_WORKERS),
+            namespaces=wr_section.get(NAMESPACES),
+            parallel_batches=wr_section.get(PARALLEL_BATCHES),
             priority=wr_section.get(PRIORITY, 0.0),
-            providers=wr_section.get(PROVIDERS, None),
-            ram=wr_section.get(RAM, None),
-            regions=wr_section.get(REGIONS, None),
-            retryable_errors=wr_section.get(RETRYABLE_ERRORS, None),
+            providers=wr_section.get(PROVIDERS),
+            ram=wr_section.get(RAM),
+            regions=wr_section.get(REGIONS),
+            retryable_errors=wr_section.get(RETRYABLE_ERRORS),
             set_task_names=wr_section.get(SET_TASK_NAMES, True),
             task_batch_size=task_batch_size,
             task_count=task_count,
-            task_data=wr_section.get(TASK_DATA, None),
-            task_data_inputs=wr_section.get(TASK_DATA_INPUTS, None),
-            task_data_file=wr_section.get(TASK_DATA_FILE, None),
-            task_data_outputs=wr_section.get(TASK_DATA_OUTPUTS, None),
+            task_data=wr_section.get(TASK_DATA),
+            task_data_inputs=wr_section.get(TASK_DATA_INPUTS),
+            task_data_file=wr_section.get(TASK_DATA_FILE),
+            task_data_outputs=wr_section.get(TASK_DATA_OUTPUTS),
             task_group_count=task_group_count,
-            task_group_name=wr_section.get(TASK_GROUP_NAME, None),
-            task_name=wr_section.get(TASK_NAME, None),
-            task_timeout=wr_section.get(TASK_TIMEOUT, None),
+            task_group_name=wr_section.get(TASK_GROUP_NAME),
+            task_name=wr_section.get(TASK_NAME),
+            task_timeout=wr_section.get(TASK_TIMEOUT),
             task_type=task_type,
-            tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
-            task_level_timeout=wr_section.get(TASK_LEVEL_TIMEOUT, None),
-            vcpus=wr_section.get(VCPUS, None),
+            tasks_per_worker=wr_section.get(TASKS_PER_WORKER),
+            task_level_timeout=wr_section.get(TASK_LEVEL_TIMEOUT),
+            vcpus=wr_section.get(VCPUS),
             worker_tags=worker_tags,
             wr_data_file=wr_data_file,
-            wr_name=wr_section.get(WR_NAME, None),
-            wr_tag=wr_section.get(WR_TAG, None),
+            wr_name=wr_section.get(WR_NAME),
+            wr_tag=wr_section.get(WR_TAG),
         )
 
     except KeyError as e:
@@ -673,16 +673,16 @@ def load_config_worker_pool() -> ConfigWorkerPool:
 
     try:
         worker_tag = cast(
-            str | None, process_variable_substitutions(wp_section.get(WORKER_TAG, None))
+            str | None, process_variable_substitutions(wp_section.get(WORKER_TAG))
         )
         worker_pool_data_file = cast(
             str | None,
-            process_variable_substitutions(wp_section.get(WORKER_POOL_DATA_FILE, None)),
+            process_variable_substitutions(wp_section.get(WORKER_POOL_DATA_FILE)),
         )
         compute_requirement_data_file = cast(
             str | None,
             process_variable_substitutions(
-                wp_section.get(COMPUTE_REQUIREMENT_DATA_FILE, None)
+                wp_section.get(COMPUTE_REQUIREMENT_DATA_FILE)
             ),
         )
         if (
@@ -704,7 +704,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             )
         workers_per_vcpu = (
             None
-            if wp_section.get(WORKERS_PER_VCPU, None) is None
+            if wp_section.get(WORKERS_PER_VCPU) is None
             else int(wp_section[WORKERS_PER_VCPU])
         )
 
@@ -713,11 +713,11 @@ def load_config_worker_pool() -> ConfigWorkerPool:
                 COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
             ),
             compute_requirement_data_file=compute_requirement_data_file,
-            cr_tag=wp_section.get(CR_TAG, None),
+            cr_tag=wp_section.get(CR_TAG),
             idle_node_timeout=float(wp_section.get(IDLE_NODE_TIMEOUT, 5.0)),
             idle_pool_timeout=float(wp_section.get(IDLE_POOL_TIMEOUT, 30.0)),
-            images_id=wp_section.get(IMAGES_ID, None),
-            instance_tags=wp_section.get(INSTANCE_TAGS, None),
+            images_id=wp_section.get(IMAGES_ID),
+            instance_tags=wp_section.get(INSTANCE_TAGS),
             maintainInstanceCount=wp_section.get(MAINTAIN_INSTANCE_COUNT, False),
             max_nodes=wp_section.get(
                 MAX_NODES, max(1, int(wp_section.get(TARGET_INSTANCE_COUNT, 1)))
@@ -728,20 +728,20 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             min_nodes_set=(False if wp_section.get(MIN_NODES) is None else True),
             name=cast(
                 str | None,
-                process_variable_substitutions(wp_section.get(WP_NAME, None)),
+                process_variable_substitutions(wp_section.get(WP_NAME)),
             ),
             node_boot_timeout=float(wp_section.get(NODE_BOOT_TIMEOUT, 10.0)),
             target_instance_count=int(wp_section.get(TARGET_INSTANCE_COUNT, 1)),
             target_instance_count_set=(
                 False if wp_section.get(TARGET_INSTANCE_COUNT) is None else True
             ),
-            template_id=wp_section.get(TEMPLATE_ID, None),
-            user_data=wp_section.get(USERDATA, None),
-            user_data_file=wp_section.get(USERDATAFILE, None),
-            user_data_files=wp_section.get(USERDATAFILES, None),
+            template_id=wp_section.get(TEMPLATE_ID),
+            user_data=wp_section.get(USERDATA),
+            user_data_file=wp_section.get(USERDATAFILE),
+            user_data_files=wp_section.get(USERDATAFILES),
             worker_pool_data_file=worker_pool_data_file,
             worker_tag=worker_tag,
-            workers_custom_command=wp_section.get(WORKERS_CUSTOM_COMMAND, None),
+            workers_custom_command=wp_section.get(WORKERS_CUSTOM_COMMAND),
             workers_per_vcpu=workers_per_vcpu,
             workers_per_node=int(wp_section.get(WORKERS_PER_NODE, 1)),
         )

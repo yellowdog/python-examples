@@ -66,7 +66,7 @@ class AzureConfig(CommonCloudConfig):
             AZURE_CLIENT_ID,
             AZURE_CLIENT_SECRET,
         ]:
-            if environ.get(env_var, None) is None:
+            if environ.get(env_var) is None:
                 error = True
                 print_error(f"Environment variable '{env_var}' is not set")
         if error:

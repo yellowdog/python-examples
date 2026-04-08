@@ -673,7 +673,7 @@ def create_allowance(resource: dict):
         raise KeyError(f"Expected property to be defined ({e})")
 
     if type == "SourcesAllowance":
-        template_name_or_id = resource.get(PROP_SOURCE_CREATED_FROM, None)
+        template_name_or_id = resource.get(PROP_SOURCE_CREATED_FROM)
         if template_name_or_id is not None:
             if get_ydid_type(template_name_or_id) != YDIDType.COMPUTE_SOURCE_TEMPLATE:
                 global CLEAR_CST_CACHE
@@ -697,7 +697,7 @@ def create_allowance(resource: dict):
                 resource[PROP_SOURCE_CREATED_FROM] = template_id
 
     elif type == "RequirementsAllowance":
-        template_name_or_id = resource.get(PROP_REQUIREMENT_CREATED_FROM, None)
+        template_name_or_id = resource.get(PROP_REQUIREMENT_CREATED_FROM)
         if template_name_or_id is not None:
             if (
                 get_ydid_type(template_name_or_id)
@@ -728,7 +728,7 @@ def create_allowance(resource: dict):
         else:
             return dt.strftime("%Y-%m-%d %H:%M:%S %Z%z").rstrip()
 
-    effective_from = resource.get(PROP_EFFECTIVE_FROM, None)
+    effective_from = resource.get(PROP_EFFECTIVE_FROM)
     if effective_from is not None:
         resource[PROP_EFFECTIVE_FROM] = date_parse(cast(str, effective_from))
         if resource[PROP_EFFECTIVE_FROM] is None:
@@ -740,7 +740,7 @@ def create_allowance(resource: dict):
             f"'{_display_datetime(resource[PROP_EFFECTIVE_FROM])}'"
         )
 
-    effective_until = resource.get(PROP_EFFECTIVE_UNTIL, None)
+    effective_until = resource.get(PROP_EFFECTIVE_UNTIL)
     if effective_until is not None:
         resource[PROP_EFFECTIVE_UNTIL] = date_parse(cast(str, effective_until))
         if resource[PROP_EFFECTIVE_UNTIL] is None:
@@ -756,7 +756,7 @@ def create_allowance(resource: dict):
         _get_model_object(type, resource)  # Report extras and omissions
         # Datetime objects must be converted to strings for JSON presentation
         for property_ in [PROP_EFFECTIVE_FROM, PROP_EFFECTIVE_UNTIL]:
-            if resource.get(property_, None) is not None:
+            if resource.get(property_) is not None:
                 resource[property_] = _display_datetime(
                     resource[property_], canonical=True
                 )
@@ -764,7 +764,7 @@ def create_allowance(resource: dict):
         print_json(resource)
         return
 
-    description = resource.get(PROP_DESCRIPTION, None)
+    description = resource.get(PROP_DESCRIPTION)
     if ARGS_PARSER.match_allowances_by_description:
         # Look for existing Allowances that match the description string
         if description is not None:

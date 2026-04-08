@@ -349,7 +349,7 @@ def remove_allowance(resource: dict):
     """
     Remove an allowance, matching on the 'description' property.
     """
-    description = resource.get(PROP_DESCRIPTION, None)
+    description = resource.get(PROP_DESCRIPTION)
     if description is not None:
         print_info(f"Removing allowance(s) matching description '{description}'")
         num_removed = remove_allowances_matching_description(

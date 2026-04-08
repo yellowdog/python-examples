@@ -107,7 +107,7 @@ class CSVDataCache:
         self._csv_task_data_objects: OrderedDict[str, CSVTaskData] = OrderedDict()
 
     def get_csv_task_data(self, csv_filename: str) -> CSVTaskData:
-        csv_task_data = self._csv_task_data_objects.get(csv_filename, None)
+        csv_task_data = self._csv_task_data_objects.get(csv_filename)
         if csv_task_data:  # Cache hit
             csv_task_data.reset()
         else:  # Cache miss
