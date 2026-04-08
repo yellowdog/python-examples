@@ -292,11 +292,10 @@ class TestAddSubstitutionsWithoutOverwriting:
         var_module.add_substitutions_without_overwriting({"newvar": "world"})
         assert var_module.VARIABLE_SUBSTITUTIONS["newvar"] == "world"
 
-    def test_incoming_var_takes_priority_over_existing(self):
-        # Incoming subs win over what's already in VARIABLE_SUBSTITUTIONS
-        # (e.g. TOML variable overrides a built-in default with the same name)
+    def test_existing_var_not_overwritten_by_incoming(self):
+        # Existing entries (CLI / env vars) take priority over incoming TOML values
         var_module.add_substitutions_without_overwriting({"myvar": "overridden"})
-        assert var_module.VARIABLE_SUBSTITUTIONS["myvar"] == "overridden"
+        assert var_module.VARIABLE_SUBSTITUTIONS["myvar"] == "hello"
 
     def test_existing_var_preserved_when_not_in_incoming(self):
         # Pre-existing entries not in the incoming subs are still kept

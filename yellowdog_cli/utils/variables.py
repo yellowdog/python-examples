@@ -124,13 +124,13 @@ def add_substitutions_without_overwriting(subs: dict):
     Add a dictionary of substitutions. Do not overwrite existing values, but
     resolve remaining variables if possible.
     """
-    # Merge: existing entries take priority over incoming ones, then update
-    # the dict in-place so that all callers holding a reference to it see the
-    # change (rebinding the name would silently break imported references).
-    for key_, value_ in VARIABLE_SUBSTITUTIONS.items():
-        subs.setdefault(key_, value_)
+    # Merge: existing entries (CLI / env vars) take priority over incoming
+    # TOML ones. Update the dict in-place so that all callers holding a
+    # reference to it see the change (rebinding the name would silently
+    # break imported references).
+    merged = {**subs, **VARIABLE_SUBSTITUTIONS}
     VARIABLE_SUBSTITUTIONS.clear()
-    VARIABLE_SUBSTITUTIONS.update(subs)
+    VARIABLE_SUBSTITUTIONS.update(merged)
 
     # Populate variables that can now be substituted.
     # Ensure that the value is stored as a string.
