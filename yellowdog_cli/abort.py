@@ -84,9 +84,7 @@ def abort_tasks_selectively(
     tasks: list[Task] = CLIENT.work_client.find_tasks(task_search)
 
     if len(tasks) > 0:
-        tasks = select(
-            CLIENT, sorted_objects(tasks), parent=wr_summary, override_quiet=True
-        )
+        tasks = select(CLIENT, sorted_objects(tasks), override_quiet=True)
     else:
         print_info(
             "No currently executing Tasks in this Work Requirement",
