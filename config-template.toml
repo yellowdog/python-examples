@@ -119,7 +119,7 @@
 
     # Inject YellowDog environment variables into the task (YDA_*, etc.).
     # Optional — default: false
-    # addYDEnvironmentVariables = false
+    # addYDEnvironment = false
 
     # --------------------------------------------------------------------------
     # Counts

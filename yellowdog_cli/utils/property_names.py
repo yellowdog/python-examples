@@ -3,7 +3,7 @@ Property names.
 """
 
 ADD_ENVIRONMENT = "addEnvironment"  # Dict
-ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
+ADD_YD_ENV_VARS = "addYDEnvironment"
 ARGS = "arguments"  # List
 ARGS_PREFIX = "argumentsPrefix"  # List
 ARGS_POSTFIX = "argumentsPostfix"  # List
