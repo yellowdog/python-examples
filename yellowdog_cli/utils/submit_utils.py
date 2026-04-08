@@ -41,6 +41,11 @@ from yellowdog_cli.utils.property_names import (
 )
 from yellowdog_cli.utils.rclone_utils import make_rclone, parse_rclone_config
 from yellowdog_cli.utils.settings import (
+    L_TASK_COUNT,
+    L_TASK_GROUP_COUNT,
+    L_TASK_GROUP_NAME,
+    L_TASK_GROUP_NUMBER,
+    L_TASK_NUMBER,
     RCLONE_PREFIX,
     VAR_CLOSING_DELIMITER,
     VAR_OPENING_DELIMITER,
@@ -50,13 +55,6 @@ from yellowdog_cli.utils.variables import (
     process_variable_substitutions_insitu,
     resolve_filename,
 )
-
-# Lazy substitution variable names (mirrors variables.py L_* constants)
-L_TASK_COUNT = "task_count"
-L_TASK_GROUP_COUNT = "task_group_count"
-L_TASK_GROUP_NAME = "task_group_name"
-L_TASK_GROUP_NUMBER = "task_group_number"
-L_TASK_NUMBER = "task_number"
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
 
 # Names for environment variables optionally added to each Task's environment

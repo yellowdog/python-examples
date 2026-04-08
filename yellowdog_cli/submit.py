@@ -95,6 +95,13 @@ from yellowdog_cli.utils.property_names import (
 from yellowdog_cli.utils.rclone_utils import upgrade_rclone, which_rclone
 from yellowdog_cli.utils.settings import (
     DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
+    L_TASK_COUNT,
+    L_TASK_GROUP_COUNT,
+    L_TASK_GROUP_NAME,
+    L_TASK_GROUP_NUMBER,
+    L_TASK_NAME,
+    L_TASK_NUMBER,
+    L_WR_NAME,
     MAX_BATCH_SUBMIT_ATTEMPTS,
     VAR_NAME_OF_UNNAMED_TASK,
 )
@@ -123,13 +130,6 @@ from yellowdog_cli.utils.type_check import (
 )
 from yellowdog_cli.utils.validate_properties import validate_properties
 from yellowdog_cli.utils.variables import (
-    L_TASK_COUNT,
-    L_TASK_GROUP_COUNT,
-    L_TASK_GROUP_NAME,
-    L_TASK_GROUP_NUMBER,
-    L_TASK_NAME,
-    L_TASK_NUMBER,
-    L_WR_NAME,
     add_or_update_substitution,
     add_substitutions_without_overwriting,
     load_json_file_with_variable_substitutions,

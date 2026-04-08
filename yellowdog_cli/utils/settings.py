@@ -41,6 +41,16 @@ VAR_OPENING_DELIMITER = "{{"
 VAR_CLOSING_DELIMITER = "}}"
 VAR_DEFAULT_SEPARATOR = ":="
 VAR_UNSET_SUFFIX = "::"
+
+# Lazy variable substitution names (used in submit/task naming)
+L_WR_NAME = "wr_name"
+L_TASK_NAME = "task_name"
+L_TASK_NUMBER = "task_number"
+L_TASK_GROUP_NAME = "task_group_name"
+L_TASK_GROUP_NUMBER = "task_group_number"
+L_TASK_COUNT = "task_count"
+L_TASK_GROUP_COUNT = "task_group_count"
+
 TYPE_TAG_TERMINATOR = ":"
 TAG_DEFAULT_DIFF = "="
 NUMBER_TYPE_TAG = "num" + TYPE_TAG_TERMINATOR

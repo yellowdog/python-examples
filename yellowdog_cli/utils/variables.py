@@ -71,16 +71,6 @@ VARIABLE_SUBSTITUTIONS = {
     ),
 }
 
-# Lazy substitutions: 'submit' only
-if "submit" in sys.argv[0]:
-    L_WR_NAME = "wr_name"
-    L_TASK_NAME = "task_name"
-    L_TASK_NUMBER = "task_number"
-    L_TASK_GROUP_NAME = "task_group_name"
-    L_TASK_GROUP_NUMBER = "task_group_number"
-    L_TASK_COUNT = "task_count"
-    L_TASK_GROUP_COUNT = "task_group_count"
-
 # Substitutions from environment variables
 subs_list = []
 for key, value in os.environ.items():
