@@ -324,7 +324,10 @@ def submit_work_requirement(
     Task > Task Group > Top-Level JSON Property > TOML config file
     """
     # Create a default tasks_data dictionary if required
-    wr_data = {TASK_GROUPS: [{TASKS: [{}]}]} if wr_data is None else wr_data
+    if wr_data is None:
+        wr_data = (
+            {TASK_GROUPS: []} if ARGS_PARSER.empty else {TASK_GROUPS: [{TASKS: [{}]}]}
+        )
     check_dict(wr_data)
 
     # Remap 'task_type' at WR level to 'task_types' if 'task_types' is empty
@@ -371,8 +374,12 @@ def submit_work_requirement(
 
     # Create the list of TaskGroup objects
     task_groups: list[TaskGroup] = []
-    for tg_number, task_group_data in enumerate(wr_data[TASK_GROUPS]):
-        task_groups.append(create_task_group(tg_number, wr_data, task_group_data))
+    for tg_number, task_group_data in enumerate(
+        cast(dict, wr_data).get(TASK_GROUPS, [])
+    ):
+        task_groups.append(
+            create_task_group(tg_number, cast(dict, wr_data), task_group_data)
+        )
 
     # Create the Work Requirement
     priority = check_float_or_int(wr_data.get(PRIORITY, CONFIG_WR.priority))
@@ -510,7 +517,7 @@ def create_task_group(
     # Use the task type from the config file if present and task_types is empty
     if config_wr.task_type is not None and not task_types:
         task_types.append(config_wr.task_type)
-    if not task_types:
+    if not task_types and num_tasks > 0:
         raise ValueError(
             f"No Task Type(s) specified in Task Group '{task_group_name}': "
             "is a valid Work Requirement defined?"
@@ -670,11 +677,7 @@ def add_tasks_to_task_group(
       existing Task Group that already contains tasks).
     """
 
-    # Ensure there's at least one Task
     num_tasks = len(wr_data[TASK_GROUPS][tg_number][TASKS])
-    if num_tasks == 0:
-        wr_data[TASK_GROUPS][tg_number][TASKS] = [{}]
-        num_tasks = 1
 
     # If the 'taskCount' property is set, and there is only one Task
     # in the Task Group, create 'taskCount' duplicates of the Task.

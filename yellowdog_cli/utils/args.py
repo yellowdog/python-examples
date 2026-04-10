@@ -350,6 +350,16 @@ class CLIParser:
                 metavar="<max_number_of_parallel_batches>",
             )
             parser.add_argument(
+                "--empty",
+                "-e",
+                action="store_true",
+                required=False,
+                help=(
+                    "submit a new Work Requirement with no Task Groups or Tasks;"
+                    " use with '--add-to' to populate it later"
+                ),
+            )
+            parser.add_argument(
                 "--no-overwrite",
                 "-N",
                 action="store_true",
@@ -1580,6 +1590,11 @@ class CLIParser:
     @allow_missing_attribute
     def parallel_batches(self) -> int | None:
         return self.args.parallel_batches
+
+    @property
+    @allow_missing_attribute
+    def empty(self) -> bool | None:
+        return self.args.empty
 
     @property
     @allow_missing_attribute

@@ -1125,6 +1125,29 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
 
 ### Adding Task Groups and Tasks to an Existing Work Requirement
 
+The `--empty` (`-e`) option submits a new Work Requirement with no Task Groups or Tasks (using TOML configuration only, without a JSON spec file), providing a named shell that can be populated later using `--add-to`:
+
+```bash
+WR_ID=$(yd-submit --empty --quiet)
+yd-submit --add-to "$WR_ID" my-spec.json
+```
+
+When a JSON spec file is supplied, empty arrays are honoured directly — `--empty` is not required:
+
+```json
+{ "taskGroups": [] }
+```
+
+or a Task Group with no tasks:
+
+```json
+{
+  "taskGroups": [
+    { "name": "my-task-group", "tasks": [] }
+  ]
+}
+```
+
 The `--add-to` (`-A`) option allows task groups and/or tasks to be added to a Work Requirement that has already been submitted, as long as it is not in a terminal state.
 
 The argument to `--add-to` is the name or YellowDog ID of the target Work Requirement:
@@ -2662,7 +2685,7 @@ WR_ID=$(yd-submit --quiet)
 yd-follow "$WR_ID"
 ```
 
-To add Task Groups or Tasks to an existing Work Requirement, use `--add-to` (`-A`). See [Adding Task Groups and Tasks to an Existing Work Requirement](#adding-task-groups-and-tasks-to-an-existing-work-requirement) for details.
+To submit a Work Requirement with no Task Groups (to be populated later), use `--empty` (`-e`). To add Task Groups or Tasks to an existing Work Requirement, use `--add-to` (`-A`). See [Adding Task Groups and Tasks to an Existing Work Requirement](#adding-task-groups-and-tasks-to-an-existing-work-requirement) for details.
 
 To explicitly download or upgrade the rclone binary used by the Data Client, run `yd-submit --upgrade-rclone`.
 
