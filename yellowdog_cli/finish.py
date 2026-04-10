@@ -4,6 +4,8 @@
 A script to finish Work Requirements.
 """
 
+from typing import cast
+
 from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementStatus,
