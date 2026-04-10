@@ -37,6 +37,7 @@ class ConfigWorkRequirement:
     env: dict = field(default_factory=dict)
     finish_if_all_tasks_finished: bool = True
     finish_if_any_task_failed: bool = False
+    instance_pricing_preference: str | None = None
     instance_types: list[str] | None = None
     max_retries: int = 0
     max_workers: int | None = None

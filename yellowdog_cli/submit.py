@@ -28,6 +28,9 @@ from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementStatus,
 )
+from yellowdog_client.model.instance_pricing_preference import (
+    InstancePricingPreference,
+)
 
 from yellowdog_cli.utils.config_types import ConfigWorkRequirement
 from yellowdog_cli.utils.csv_data import (
@@ -63,6 +66,7 @@ from yellowdog_cli.utils.property_names import (
     ENV,
     FINISH_IF_ALL_TASKS_FINISHED,
     FINISH_IF_ANY_TASK_FAILED,
+    INSTANCE_PRICING_PREFERENCE,
     INSTANCE_TYPES,
     MAX_RETRIES,
     MAX_WORKERS,
@@ -505,6 +509,18 @@ def create_task_group(
         else [CloudProvider(provider) for provider in providers_data]
     )
 
+    ipp_data: str | None = check_str(
+        task_group_data.get(
+            INSTANCE_PRICING_PREFERENCE,
+            wr_data.get(
+                INSTANCE_PRICING_PREFERENCE, config_wr.instance_pricing_preference
+            ),
+        )
+    )
+    instance_pricing_preference: InstancePricingPreference | None = (
+        None if ipp_data is None else InstancePricingPreference(ipp_data)
+    )
+
     task_timeout_minutes: float | None = check_float_or_int(
         task_group_data.get(TASK_TIMEOUT, config_wr.task_timeout)
     )
@@ -531,6 +547,7 @@ def create_task_group(
                 INSTANCE_TYPES, wr_data.get(INSTANCE_TYPES, config_wr.instance_types)
             )
         ),
+        instancePricingPreference=instance_pricing_preference,
         vcpus=vcpus,
         ram=ram,
         minWorkers=check_int(task_group_data.get(MIN_WORKERS, config_wr.min_workers)),

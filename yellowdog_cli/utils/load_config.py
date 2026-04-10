@@ -602,6 +602,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
                 FINISH_IF_ALL_TASKS_FINISHED, True
             ),
             finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, False),
+            instance_pricing_preference=wr_section.get(INSTANCE_PRICING_PREFERENCE),
             instance_types=wr_section.get(INSTANCE_TYPES),
             max_retries=wr_section.get(MAX_RETRIES, 0),
             max_workers=wr_section.get(MAX_WORKERS),

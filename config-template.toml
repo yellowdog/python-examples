@@ -243,6 +243,11 @@
     # Optional
     # instanceTypes = ["t3.medium", "t3.large"]
 
+    # Preferred instance pricing model.
+    # One of: SPOT_ONLY, ON_DEMAND_ONLY, SPOT_THEN_ON_DEMAND, ON_DEMAND_THEN_SPOT
+    # Optional
+    # instancePricingPreference = "SPOT_THEN_ON_DEMAND"
+
     # Accepted source namespaces.
     # Optional
     # namespaces = ["my_namespace"]

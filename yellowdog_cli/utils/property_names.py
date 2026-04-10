@@ -34,6 +34,7 @@ IDLE_NODE_TIMEOUT = "idleNodeTimeout"  # Float
 IDLE_POOL_TIMEOUT = "idlePoolTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
 IMPORT_COMMON = "importCommon"  # String
+INSTANCE_PRICING_PREFERENCE = "instancePricingPreference"  # String (enum)
 INSTANCE_TAGS = "instanceTags"  # Dictionary
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
@@ -136,6 +137,7 @@ ALL_KEYS = [
     IDLE_POOL_TIMEOUT,
     IMAGES_ID,
     IMPORT_COMMON,
+    INSTANCE_PRICING_PREFERENCE,
     INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
