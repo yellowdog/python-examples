@@ -790,28 +790,24 @@ def add_tasks_to_task_group(
         )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             executors: list[Future] = []
-            tasks_lists: list[list[Task]] = []
             for batch_number in range(num_task_batches):
-                tasks_lists.append(
-                    generate_batch_of_tasks_for_task_group(
-                        (TASK_BATCH_SIZE * batch_number),
-                        min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
-                        wr_data,
-                        files_directory,
-                        task_group,
-                        effective_tg_number,
-                        tasks,
-                        task_count,
-                        num_tasks,
-                        num_task_groups,
-                        task_number_offset=task_number_offset,
-                        wr_tg_index=tg_number,
-                    )
-                )
                 executors.append(
                     executor.submit(
                         submit_batch_of_tasks_to_task_group,
-                        tasks_lists[-1],
+                        generate_batch_of_tasks_for_task_group(
+                            (TASK_BATCH_SIZE * batch_number),
+                            min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
+                            wr_data,
+                            files_directory,
+                            task_group,
+                            effective_tg_number,
+                            tasks,
+                            task_count,
+                            num_tasks,
+                            num_task_groups,
+                            task_number_offset=task_number_offset,
+                            wr_tg_index=tg_number,
+                        ),
                         work_requirement,
                         task_group,
                         num_task_batches,
@@ -821,8 +817,7 @@ def add_tasks_to_task_group(
                     )
                 )
 
-            executor.shutdown()
-            num_submitted_tasks = sum([x.result() for x in executors])
+        num_submitted_tasks = sum(x.result() for x in executors)
 
     if not ARGS_PARSER.dry_run:
         if num_submitted_tasks > 0:
