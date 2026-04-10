@@ -1228,7 +1228,9 @@ def add_to_existing_work_requirement(
     if new_tgs:
         work_requirement.taskGroups = existing_tgs + [tg for _, tg in new_tgs]
         work_requirement = CLIENT.work_client.update_work_requirement(work_requirement)
-        print_info(f"Added {len(new_tgs)} new Task Group(s) to Work Requirement '{ID}'")
+        print_info(
+            f"Added {len(new_tgs)} new Task Group(s) to existing Work Requirement '{ID}'"
+        )
 
     # Add tasks to new TGs (no task offset)
     for spec_idx, spec_tg in new_tgs:
