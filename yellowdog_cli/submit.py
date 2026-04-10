@@ -15,16 +15,12 @@ from typing import cast
 
 import jsons
 import requests
-from yellowdog_client.common.server_sent_events import (
-    DelegatedSubscriptionEventListener,
-)
 from yellowdog_client.model import (
     CloudProvider,
     DoubleRange,
     RunSpecification,
     Task,
     TaskGroup,
-    TaskStatus,
     WorkRequirement,
     WorkRequirementStatus,
 )
@@ -1093,26 +1089,9 @@ def submit_batch_of_tasks_to_task_group(
     )
 
 
-def follow_progress_old(work_requirement: WorkRequirement) -> None:
-    """
-    Follow and report the progress of a Work Requirement.
-    Deprecated temporarily due to problems with Python 3.10+.
-    """
-    listener = DelegatedSubscriptionEventListener(on_update=on_update)
-    CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
-    work_requirement = (
-        CLIENT.work_client.get_work_requirement_helper(work_requirement)
-        .when_requirement_matches(lambda wr: wr.status.finished)
-        .result()
-    )
-    if work_requirement.status != WorkRequirementStatus.COMPLETED:
-        print_info(f"Work Requirement did not complete: {work_requirement.status}")
-
-
 def follow_progress(work_requirement: WorkRequirement) -> None:
     """
     Follow and report the progress of a Work Requirement.
-    Replacement for the SDK version above.
     """
     if not ARGS_PARSER.dry_run:
         print_info("Following Work Requirement event stream")
@@ -1126,21 +1105,6 @@ def follow_progress_bar(work_requirement: WorkRequirement) -> None:
     if ARGS_PARSER.dry_run:
         return
     follow_work_requirement_with_progress(cast(str, work_requirement.id))
-
-
-def on_update(work_req: WorkRequirement):
-    """
-    Print status messages on Work Requirement update
-    """
-    completed = 0
-    total = 0
-    for task_group in work_req.taskGroups or []:
-        completed += task_group.taskSummary.statusCounts[TaskStatus.COMPLETED]
-        total += task_group.taskSummary.taskCount
-    print_info(
-        f"Work Requirement is {work_req.status} with {completed}/{total} "
-        "completed Tasks"
-    )
 
 
 def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
