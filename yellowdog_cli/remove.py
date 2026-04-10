@@ -13,7 +13,6 @@ from yellowdog_client.model import (
     MachineImage,
     MachineImageFamily,
     MachineImageGroup,
-    WorkerPoolStatus,
 )
 
 from yellowdog_cli.utils.entity_utils import (
@@ -319,10 +318,7 @@ def remove_configured_worker_pool(resource: dict):
         )
         return
 
-    if worker_pool.status in [
-        WorkerPoolStatus.SHUTDOWN,
-        WorkerPoolStatus.TERMINATED,
-    ]:
+    if worker_pool.status.finished:
         print_info(
             f"Not shutting down already {worker_pool.status} Configured "
             f"Worker Pool '{fq_name}' ({worker_pool.id})"

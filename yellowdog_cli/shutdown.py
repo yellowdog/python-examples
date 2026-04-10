@@ -10,7 +10,6 @@ from yellowdog_client.model import (
     ConfiguredWorkerPool,
     ProvisionedWorkerPool,
     WorkerPool,
-    WorkerPoolStatus,
     WorkerPoolSummary,
 )
 
@@ -50,10 +49,7 @@ def main():
 
     selected_worker_pool_summaries: list[WorkerPoolSummary] = []
     for worker_pool_summary in worker_pool_summaries:
-        if worker_pool_summary.status not in [
-            WorkerPoolStatus.TERMINATED,
-            WorkerPoolStatus.SHUTDOWN,
-        ]:
+        if not worker_pool_summary.status.finished:
             if (
                 worker_pool_summary.name is not None
                 and worker_pool_summary.namespace == CONFIG_COMMON.namespace
