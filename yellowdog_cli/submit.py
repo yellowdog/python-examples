@@ -39,6 +39,7 @@ from yellowdog_cli.utils.csv_data import (
     load_jsonnet_file_with_csv_task_expansion,
     load_toml_file_with_csv_task_expansion,
 )
+from yellowdog_cli.utils.entity_utils import get_work_requirement_summary_by_name_or_id
 from yellowdog_cli.utils.follow_utils import (
     follow_events,
     follow_work_requirement_with_progress,
@@ -205,10 +206,17 @@ def main():
 
     if wr_data_file is None and csv_files is not None:
         wr_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0], files_directory)
-        submit_work_requirement(
-            files_directory=files_directory,
-            wr_data=wr_data,
-        )
+        if ARGS_PARSER.add_to and not ARGS_PARSER.dry_run:
+            add_to_existing_work_requirement(
+                files_directory=files_directory,
+                wr_data=wr_data,
+                task_count=None,
+            )
+        else:
+            submit_work_requirement(
+                files_directory=files_directory,
+                wr_data=wr_data,
+            )
 
     elif wr_data_file is not None:
 
@@ -272,16 +280,30 @@ def main():
             )
 
         validate_properties(wr_data, "Work Requirement JSON")
-        submit_work_requirement(
-            files_directory=files_directory,
-            wr_data=wr_data,
-        )
+        if ARGS_PARSER.add_to and not ARGS_PARSER.dry_run:
+            add_to_existing_work_requirement(
+                files_directory=files_directory,
+                wr_data=wr_data,
+                task_count=None,
+            )
+        else:
+            submit_work_requirement(
+                files_directory=files_directory,
+                wr_data=wr_data,
+            )
 
     else:
-        submit_work_requirement(
-            files_directory=files_directory,
-            task_count=CONFIG_WR.task_count,
-        )
+        if ARGS_PARSER.add_to and not ARGS_PARSER.dry_run:
+            add_to_existing_work_requirement(
+                files_directory=files_directory,
+                wr_data=None,
+                task_count=CONFIG_WR.task_count,
+            )
+        else:
+            submit_work_requirement(
+                files_directory=files_directory,
+                task_count=CONFIG_WR.task_count,
+            )
 
     if ARGS_PARSER.dry_run:
         WR_SNAPSHOT.print()
@@ -410,9 +432,16 @@ def create_task_group(
     tg_number: int,
     wr_data: dict,
     task_group_data: dict,
+    tg_number_offset: int = 0,
+    total_num_task_groups: int | None = None,
 ) -> TaskGroup:
     """
     Create a TaskGroup object.
+
+    tg_number_offset: added to tg_number for display/naming purposes when
+      adding to an existing Work Requirement.
+    total_num_task_groups: total TG count across the WR (existing + new) for
+      formatting; defaults to len(wr_data[TASK_GROUPS]).
     """
 
     # Remap 'task_type' to 'task_types' in the Task Group if 'task_types'
@@ -430,7 +459,12 @@ def create_task_group(
             pass
 
     # Name the Task Group
-    num_task_groups = len(wr_data[TASK_GROUPS])
+    num_task_groups = (
+        total_num_task_groups
+        if total_num_task_groups is not None
+        else len(wr_data[TASK_GROUPS])
+    )
+    effective_tg_number = tg_number + tg_number_offset
     num_tasks = len(task_group_data[TASKS])
     if num_tasks == 1:  # Account for Task expansion
         num_tasks = check_int(
@@ -448,7 +482,7 @@ def create_task_group(
     task_group_name = format_yd_name(
         get_task_group_name(
             task_group_data.get(NAME, CONFIG_WR.task_group_name),
-            tg_number,
+            effective_tg_number,
             num_task_groups,
             num_tasks,
         )
@@ -458,7 +492,7 @@ def create_task_group(
     add_or_update_substitution(L_TASK_COUNT, str(num_tasks))
     add_or_update_substitution(L_TASK_GROUP_NAME, task_group_name)
     add_or_update_substitution(
-        L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
+        L_TASK_GROUP_NUMBER, formatted_number_str(effective_tg_number, num_task_groups)
     )
     add_or_update_substitution(L_TASK_GROUP_COUNT, str(num_task_groups))
     process_variable_substitutions_insitu(task_group_data)
@@ -622,9 +656,18 @@ def add_tasks_to_task_group(
     task_count: int | None,
     work_requirement: WorkRequirement,
     files_directory: str = "",
+    tg_number_offset: int = 0,
+    total_num_task_groups: int | None = None,
+    task_number_offset: int = 0,
 ) -> None:
     """
     Add all the constituent Tasks to the Task Group.
+
+    tg_number_offset: added to tg_number for display/naming when adding to an
+      existing Work Requirement.
+    total_num_task_groups: total TG count (existing + new) for formatting.
+    task_number_offset: starting task number within the TG (for adding to an
+      existing Task Group that already contains tasks).
     """
 
     # Ensure there's at least one Task
@@ -658,7 +701,12 @@ def add_tasks_to_task_group(
                 f" {int(task_group_task_count)}'"
             )
 
-    num_task_groups = len(wr_data[TASK_GROUPS])
+    num_task_groups = (
+        total_num_task_groups
+        if total_num_task_groups is not None
+        else len(wr_data[TASK_GROUPS])
+    )
+    effective_tg_number = tg_number + tg_number_offset
 
     # Determine Task batching
     tasks = wr_data[TASK_GROUPS][tg_number][TASKS]
@@ -674,7 +722,7 @@ def add_tasks_to_task_group(
     add_or_update_substitution(L_TASK_COUNT, str(num_tasks))
     add_or_update_substitution(L_TASK_GROUP_NAME, task_group.name)
     add_or_update_substitution(
-        L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
+        L_TASK_GROUP_NUMBER, formatted_number_str(effective_tg_number, num_task_groups)
     )
     add_or_update_substitution(L_TASK_GROUP_COUNT, str(num_task_groups))
 
@@ -709,11 +757,13 @@ def add_tasks_to_task_group(
                 wr_data,
                 files_directory,
                 task_group,
-                tg_number,
+                effective_tg_number,
                 tasks,
                 task_count,
                 num_tasks,
                 num_task_groups,
+                task_number_offset=task_number_offset,
+                wr_tg_index=tg_number,
             )
             num_submitted_tasks += submit_batch_of_tasks_to_task_group(
                 tasks_list,
@@ -746,11 +796,13 @@ def add_tasks_to_task_group(
                         wr_data,
                         files_directory,
                         task_group,
-                        tg_number,
+                        effective_tg_number,
                         tasks,
                         task_count,
                         num_tasks,
                         num_task_groups,
+                        task_number_offset=task_number_offset,
+                        wr_tg_index=tg_number,
                     )
                 )
                 executors.append(
@@ -790,13 +842,22 @@ def generate_batch_of_tasks_for_task_group(
     task_count: int | None,
     num_tasks: int,
     num_task_groups: int,
+    task_number_offset: int = 0,
+    wr_tg_index: int | None = None,
 ) -> list[Task]:
     """
     Generate a batch of tasks for subsequent addition to a task group.
+
+    tg_number: WR-relative display number (already includes any offset).
+    task_number_offset: added to task_number for naming when adding to an
+      existing Task Group that already contains tasks.
+    wr_tg_index: spec-relative index for accessing wr_data[TASK_GROUPS];
+      defaults to tg_number when not provided.
     """
+    spec_tg_index = wr_tg_index if wr_tg_index is not None else tg_number
     tasks_list: list[Task] = []
     for task_number in range(start_task_number, end_task_number):
-        task_group_data = wr_data[TASK_GROUPS][tg_number]
+        task_group_data = wr_data[TASK_GROUPS][spec_tg_index]
         task = tasks[task_number] if task_count is None else tasks[0]
 
         set_task_names = check_bool(
@@ -809,11 +870,14 @@ def generate_batch_of_tasks_for_task_group(
             )
         )
 
+        display_task_number = task_number + task_number_offset
+        display_num_tasks = task_number_offset + num_tasks
+
         task_name = get_task_name(
             task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
             set_task_names,
-            task_number,
-            num_tasks,
+            display_task_number,
+            display_num_tasks,
             tg_number,
             num_task_groups,
             task_group.name,
@@ -826,7 +890,8 @@ def generate_batch_of_tasks_for_task_group(
             VAR_NAME_OF_UNNAMED_TASK if task_name is None else task_name,
         )
         add_or_update_substitution(
-            L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
+            L_TASK_NUMBER,
+            formatted_number_str(display_task_number, display_num_tasks),
         )
         process_variable_substitutions_insitu(task)
         config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
@@ -923,7 +988,7 @@ def generate_batch_of_tasks_for_task_group(
                 task_group_data=task_group_data,
                 task_data=task,
                 task_name=task_name,
-                task_number=task_number + 1,
+                task_number=display_task_number + 1,
                 tg_name=task_group.name,
                 tg_number=tg_number + 1,
                 task_type=cast(str, task_type),
@@ -1091,6 +1156,157 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     print_warning(f"Cancelled Work Requirement '{work_requirement.name}'")
 
     RCLONE_UPLOADED_FILES.delete()
+
+
+def add_to_existing_work_requirement(
+    files_directory: str,
+    wr_data: dict | None = None,
+    task_count: int | None = None,
+) -> None:
+    """
+    Add task groups and/or tasks to an existing Work Requirement identified
+    by the --add-to argument (name or YellowDog ID).
+    """
+    terminal_statuses = {
+        WorkRequirementStatus.COMPLETED,
+        WorkRequirementStatus.CANCELLED,
+        WorkRequirementStatus.FAILED,
+    }
+
+    wr_summary = get_work_requirement_summary_by_name_or_id(
+        CLIENT, ARGS_PARSER.add_to, CONFIG_COMMON.namespace
+    )
+    if wr_summary is None:
+        raise ValueError(
+            f"Work Requirement '{ARGS_PARSER.add_to}' not found in namespace"
+            f" '{CONFIG_COMMON.namespace}'"
+        )
+
+    if wr_summary.status in terminal_statuses:
+        raise ValueError(
+            f"Work Requirement '{wr_summary.name}' has terminal status"
+            f" '{wr_summary.status}': cannot add tasks"
+        )
+
+    work_requirement = CLIENT.work_client.get_work_requirement_by_id(
+        cast(str, wr_summary.id)
+    )
+    existing_tgs: list[TaskGroup] = work_requirement.taskGroups or []
+
+    # Use the existing WR's name as the ID for substitutions
+    global ID, CONFIG_WR
+    ID = cast(str, work_requirement.name)
+    add_substitutions_without_overwriting(subs={L_WR_NAME: ID})
+    CONFIG_WR = update_config_work_requirement_object(CONFIG_WR)
+
+    # Initialise rclone file uploads
+    global RCLONE_UPLOADED_FILES
+    RCLONE_UPLOADED_FILES = RcloneUploadedFiles(files_directory=files_directory)
+
+    # Build spec data
+    wr_data = {TASK_GROUPS: [{TASKS: [{}]}]} if wr_data is None else wr_data
+    check_dict(wr_data)
+
+    if wr_data.get(TASK_TYPE) is not None:
+        if wr_data.get(TASK_TYPES) is None:
+            wr_data[TASK_TYPES] = [wr_data[TASK_TYPE]]
+
+    process_variable_substitutions_insitu(wr_data)
+
+    # Expand task groups from taskGroupCount if needed
+    task_group_count = check_float_or_int(
+        wr_data.get(TASK_GROUP_COUNT, CONFIG_WR.task_group_count)
+    )
+    if task_group_count > 1:
+        if len(wr_data[TASK_GROUPS]) == 1:
+            print_info(
+                f"Expanding number of Task Groups to '{TASK_GROUP_COUNT}="
+                f"{task_group_count}'"
+            )
+            wr_data[TASK_GROUPS] = [
+                deepcopy(wr_data[TASK_GROUPS][0]) for _ in range(task_group_count)
+            ]
+        elif len(wr_data[TASK_GROUPS]) > 1:
+            print_warning(
+                f"Note: Work Requirement already contains"
+                f" {len(wr_data[TASK_GROUPS])} Task Groups: ignoring expansion "
+                f"using '{TASK_GROUP_COUNT} = {int(task_group_count)}'"
+            )
+
+    n_existing = len(existing_tgs)
+    n_spec = len(wr_data[TASK_GROUPS])
+    total_tgs = n_existing + n_spec
+
+    # Create TaskGroup objects for all spec TGs with WR-relative numbering
+    spec_task_groups: list[TaskGroup] = []
+    for tg_number, task_group_data in enumerate(wr_data[TASK_GROUPS]):
+        spec_task_groups.append(
+            create_task_group(
+                tg_number,
+                wr_data,
+                task_group_data,
+                tg_number_offset=n_existing,
+                total_num_task_groups=total_tgs,
+            )
+        )
+
+    # Partition spec TGs: those whose name matches an existing TG (add tasks
+    # to existing TG) vs those that are new (add TG to WR first)
+    matched: list[tuple[int, TaskGroup, TaskGroup]] = (
+        []
+    )  # (spec_idx, spec_tg, existing_tg)
+    new_tgs: list[tuple[int, TaskGroup]] = []  # (spec_idx, spec_tg)
+    for spec_idx, spec_tg in enumerate(spec_task_groups):
+        matched_existing = next(
+            (tg for tg in existing_tgs if tg.name == spec_tg.name), None
+        )
+        if matched_existing is not None:
+            matched.append((spec_idx, spec_tg, matched_existing))
+        else:
+            new_tgs.append((spec_idx, spec_tg))
+
+    # If there are new TGs, update the Work Requirement with the full TG list
+    if new_tgs:
+        work_requirement.taskGroups = existing_tgs + [tg for _, tg in new_tgs]
+        work_requirement = CLIENT.work_client.update_work_requirement(work_requirement)
+        print_info(f"Added {len(new_tgs)} new Task Group(s) to Work Requirement '{ID}'")
+
+    # Add tasks to new TGs (no task offset)
+    for spec_idx, spec_tg in new_tgs:
+        add_tasks_to_task_group(
+            tg_number=spec_idx,
+            task_group=spec_tg,
+            wr_data=cast(dict, wr_data),
+            task_count=task_count,
+            work_requirement=work_requirement,
+            files_directory=files_directory,
+            tg_number_offset=n_existing,
+            total_num_task_groups=total_tgs,
+            task_number_offset=0,
+        )
+
+    # Add tasks to matched (existing) TGs, offsetting task numbers
+    for spec_idx, spec_tg, existing_tg in matched:
+        task_summary = existing_tg.taskSummary
+        existing_task_count: int = (
+            task_summary.taskCount if task_summary is not None else 0
+        )
+        add_tasks_to_task_group(
+            tg_number=spec_idx,
+            task_group=existing_tg,
+            wr_data=cast(dict, wr_data),
+            task_count=task_count,
+            work_requirement=work_requirement,
+            files_directory=files_directory,
+            tg_number_offset=n_existing,
+            total_num_task_groups=total_tgs,
+            task_number_offset=existing_task_count,
+        )
+
+    if ARGS_PARSER.progress:
+        follow_progress_bar(work_requirement)
+    elif ARGS_PARSER.follow:
+        follow_progress(work_requirement)
 
 
 def submit_json_raw(wr_file: str):

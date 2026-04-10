@@ -1123,6 +1123,35 @@ A simple example of the JSON output is shown below, showing a Work Requirement w
 }
 ```
 
+### Adding Task Groups and Tasks to an Existing Work Requirement
+
+The `--add-to` (`-A`) option allows task groups and/or tasks to be added to a Work Requirement that has already been submitted, as long as it is not in a terminal state.
+
+The argument to `--add-to` is the name or YellowDog ID of the target Work Requirement:
+
+```bash
+yd-submit --add-to my-work-requirement my-spec.json
+```
+
+The Work Requirement specification supplied is processed in the same way as for a normal submission. The resulting Task Groups are then matched against the Task Groups already present in the target Work Requirement, by name:
+
+- **Matching Task Group name**: the new Tasks are appended to the existing Task Group. Task and Task Group numbers continue from where the existing tasks left off, ensuring consistent naming.
+- **New Task Group name**: the Task Group is added to the Work Requirement, and its Tasks are submitted in the normal way.
+
+A single `yd-submit --add-to` invocation can add a mix of new Task Groups and tasks to existing Task Groups simultaneously.
+
+As with a normal `yd-submit`, `--follow` (or `-f`) can be used to follow the Work Requirement to completion after additions have been submitted.
+
+If the spec contains `taskDataInputs` with `localFile` entries, those files will be uploaded to the remote destination as usual. If a file was already uploaded during the original submission and has not changed, use `--no-overwrite` (`-N`) to skip re-uploading it:
+
+```bash
+yd-submit --add-to my-work-requirement --no-overwrite my-spec.json
+```
+
+`--no-overwrite` checks whether the file already exists at the remote destination before uploading, and skips it if so. Without this flag (the default), any file present in the spec is uploaded unconditionally, overwriting any existing remote copy.
+
+> **Note:** `--dry-run` is not supported with `--add-to`. Dry-run the specification independently first to inspect its structure before submitting.
+
 ### Submitting 'Raw' JSON Work Requirement Specifications
 
 It's possible to use the JSON output of `yd-submit --dry-run` (such as the example above) as a self-contained, fully-specified Work Requirement specification, using the `--json-raw` (or `-j`) command line option, i.e.: `yd-submit --json-raw <filename.json>`.
@@ -2632,6 +2661,8 @@ When `--quiet` (`-q`) is used, only the YDID of the submitted Work Requirement i
 WR_ID=$(yd-submit --quiet)
 yd-follow "$WR_ID"
 ```
+
+To add Task Groups or Tasks to an existing Work Requirement, use `--add-to` (`-A`). See [Adding Task Groups and Tasks to an Existing Work Requirement](#adding-task-groups-and-tasks-to-an-existing-work-requirement) for details.
 
 To explicitly download or upgrade the rclone binary used by the Data Client, run `yd-submit --upgrade-rclone`.
 

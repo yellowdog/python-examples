@@ -376,6 +376,15 @@ class RcloneUploadedFiles:
             Config(config_section) if config_section is not None else None
         )
 
+        remote_dest = f"{remote_name}:{remote_path}"
+
+        if ARGS_PARSER.no_overwrite and rclone.exists(remote_dest):
+            print_info(
+                f"Skipping upload of '{rclone_upload_file.local_file_path}'"
+                f" (already exists at '{self._bucket_and_prefix(rclone_upload_file)}')"
+            )
+            return
+
         local_file = Path(rclone_upload_file.local_file_path).resolve()
         print_info(
             f"Uploading '{rclone_upload_file.local_file_path}' → "
@@ -384,7 +393,7 @@ class RcloneUploadedFiles:
 
         result = rclone.copy_to(
             src=str(local_file),
-            dst=f"{remote_name}:{remote_path}",
+            dst=remote_dest,
             other_args=[],
         )
 

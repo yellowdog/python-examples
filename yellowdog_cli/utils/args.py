@@ -349,6 +349,27 @@ class CLIParser:
                 ),
                 metavar="<max_number_of_parallel_batches>",
             )
+            parser.add_argument(
+                "--no-overwrite",
+                "-N",
+                action="store_true",
+                required=False,
+                help=(
+                    "skip uploading a file if it already exists at the"
+                    " remote destination; by default existing files are overwritten"
+                ),
+            )
+            parser.add_argument(
+                "--add-to",
+                "-A",
+                type=str,
+                required=False,
+                help=(
+                    "add task groups and/or tasks to an existing work requirement"
+                    " specified by name or YellowDog ID"
+                ),
+                metavar="<work_requirement_name_or_id>",
+            )
 
         # yd-provision / yd-instantiate
         if any(module in sys.argv[0] for module in ["provision", "instantiate"]):
@@ -1559,6 +1580,16 @@ class CLIParser:
     @allow_missing_attribute
     def parallel_batches(self) -> int | None:
         return self.args.parallel_batches
+
+    @property
+    @allow_missing_attribute
+    def no_overwrite(self) -> bool | None:
+        return self.args.no_overwrite
+
+    @property
+    @allow_missing_attribute
+    def add_to(self) -> str | None:
+        return self.args.add_to
 
     # -----------------------------------------------------------------------
     # yd-provision / yd-instantiate
