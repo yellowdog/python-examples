@@ -156,6 +156,7 @@ class TestAddToTerminalStatusRejection:
             WorkRequirementStatus.COMPLETED,
             WorkRequirementStatus.CANCELLED,
             WorkRequirementStatus.FAILED,
+            WorkRequirementStatus.CANCELLING,
         ],
     )
     def test_raises_for_terminal_status(self, status: WorkRequirementStatus):

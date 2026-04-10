@@ -1165,12 +1165,6 @@ def add_to_existing_work_requirement(
     Add task groups and/or tasks to an existing Work Requirement identified
     by the --add-to argument (name or YellowDog ID).
     """
-    terminal_statuses = {
-        WorkRequirementStatus.COMPLETED,
-        WorkRequirementStatus.CANCELLED,
-        WorkRequirementStatus.FAILED,
-    }
-
     wr_summary = get_work_requirement_summary_by_name_or_id(
         CLIENT, ARGS_PARSER.add_to, CONFIG_COMMON.namespace
     )
@@ -1180,7 +1174,10 @@ def add_to_existing_work_requirement(
             f" '{CONFIG_COMMON.namespace}'"
         )
 
-    if wr_summary.status in terminal_statuses:
+    if (
+        wr_summary.status.finished
+        or wr_summary.status == WorkRequirementStatus.CANCELLING
+    ):
         raise ValueError(
             f"Work Requirement '{wr_summary.name}' has terminal status"
             f" '{wr_summary.status}': cannot add tasks"
@@ -1205,11 +1202,11 @@ def add_to_existing_work_requirement(
     wr_data = {TASK_GROUPS: [{TASKS: [{}]}]} if wr_data is None else wr_data
     check_dict(wr_data)
 
-    if wr_data.get(TASK_TYPE) is not None:
+    if cast(dict, wr_data).get(TASK_TYPE) is not None:
         if wr_data.get(TASK_TYPES) is None:
             wr_data[TASK_TYPES] = [wr_data[TASK_TYPE]]
 
-    process_variable_substitutions_insitu(wr_data)
+    process_variable_substitutions_insitu(cast(dict, wr_data))
 
     # Expand task groups from taskGroupCount if needed
     task_group_count = check_float_or_int(
@@ -1241,7 +1238,7 @@ def add_to_existing_work_requirement(
         spec_task_groups.append(
             create_task_group(
                 tg_number,
-                wr_data,
+                cast(dict, wr_data),
                 task_group_data,
                 tg_number_offset=n_existing,
                 total_num_task_groups=total_tgs,
