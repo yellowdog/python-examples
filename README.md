@@ -1345,10 +1345,12 @@ This is the directory into which downloaded objects are placed, and in which out
 CSV data files can be used to drive the generation of lists of Tasks, as follows:
 
 - A **prototype** Task specification is created within a JSON Work Requirement specification or in the `workRequirement` section of the TOML configuration file
-- The prototype task includes one or more variable substitutions
+- The prototype task includes one or more variable substitutions using the CSV delimiter syntax `<<variable_name>>`
 - A CSV file is created, with the **headers** (first row) matching the names of the variable substitutions in the Task prototype
 - Each subsequent row of the CSV file represents a new Task to be built using the prototype, with the variables substituted by the values in the row
 - A Task will be created for each row of data
+
+Note that CSV substitutions use `<<` and `>>` as delimiters, which is distinct from the `{{` and `}}` delimiters used for general variable substitutions. This means that regular variable substitutions (e.g. `{{namespace}}`) can coexist with CSV substitutions in the same Task prototype without ambiguity.
 
 ### Work Requirement CSV Data Example
 
@@ -1360,8 +1362,8 @@ As an example, consider the following JSON Work Requirement `wr.json`:
     {
       "tasks": [
         {
-          "arguments": ["{{arg_1}}", "{{arg_2}}", "{{arg_3}}"],
-          "environment": {"ENV_VAR_1": "{{env_1}}"}
+          "arguments": ["<<arg_1>>", "<<arg_2>>", "<<arg_3>>"],
+          "environment": {"ENV_VAR_1": "<<env_1>>"}
         }
       ]
     }
@@ -1413,7 +1415,7 @@ When the CSV file data is processed, the only substitutions made are those which
 
 All variable substitutions unrelated to the CSV file data are left unchanged, for subsequent processing by `yd-submit`.
 
-If the value to be inserted is a number (an integer or floating point value) or Boolean, the `{{num:my_number_var}}` and `{{bool:my_boolean_var}}` forms can be used in the JSON file, as with their use in other parts of the JSON Work Requirement specification. The substituted value will assume the nominated type rather than being a string. (The `array:` and `table:` prefixes are not currently supported for CSV substitutions.)
+If the value to be inserted is a number (an integer or floating point value) or Boolean, the `<<num:my_number_var>>` and `<<bool:my_boolean_var>>` forms can be used in the JSON file. The substituted value will assume the nominated type rather than being a string. (The `array:` and `table:` prefixes are not currently supported for CSV substitutions.)
 
 ### Property Inheritance
 
@@ -1431,16 +1433,16 @@ The CSV files are supplied on the command line in the order of the Task Groups t
     {
       "tasks": [
         {
-          "arguments": ["{{arg_1}}", "{{arg_2}}", "{{arg_3}}"],
-          "environment": {"ENV_VAR_1": "{{env_1}}"}
+          "arguments": ["<<arg_1>>", "<<arg_2>>", "<<arg_3>>"],
+          "environment": {"ENV_VAR_1": "<<env_1>>"}
         }
       ]
     },
     {
       "tasks": [
         {
-          "arguments": ["{{arg_1}}", "{{arg_2}}"],
-          "environment": {"ENV_VAR_1": "{{env_1}}", "ENV_VAR_2": "{{env_2}}"}
+          "arguments": ["<<arg_1>>", "<<arg_2>>"],
+          "environment": {"ENV_VAR_1": "<<env_1>>", "ENV_VAR_2": "<<env_2>>"}
         }
       ]
     }
@@ -1477,7 +1479,7 @@ It's possible to use TOML exclusively to derive a list of Tasks from CSV data --
 To make use of this:
 
 1. Ensure that no JSON Work Requirement document is specified (no `workRequirementData` in the TOML file, or no positional argument on the command line)
-2. Insert the required CSV-supplied variable substitutions directly into the TOML properties, e.g. `arguments = ["{{arg_1}}", "{{arg_2}}"]`
+2. Insert the required CSV-supplied variable substitutions directly into the TOML properties, e.g. `arguments = ["<<arg_1>>", "<<arg_2>>"]`
 3. Specify a single CSV file in the `csvFiles` TOML property, e.g. `csvFiles = ["wr_data.csv"]`, or provide the CSV file on the command line `-V wr_data.csv`
 
 When `yd-submit` is run, it will expand the Task list to match the number of data rows in the CSV file.
