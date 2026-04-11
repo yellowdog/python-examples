@@ -4,8 +4,10 @@
 * [YellowDog Python Examples Commands](#yellowdog-python-examples-commands)
 * [Overview](#overview)
 * [YellowDog Prerequisites](#yellowdog-prerequisites)
-* [Script Installation with Pip](#script-installation-with-pip)
-* [Script Installation with Pipx](#script-installation-with-pipx)
+* [Installation](#installation)
+   * [Option 1: pipx (recommended)](#option-1-pipx-recommended)
+   * [Option 2: uv](#option-2-uv)
+   * [Option 3: pip + virtual environment](#option-3-pip--virtual-environment)
 * [Usage](#usage)
 * [Configuration](#configuration)
 * [Naming Rules](#naming-rules)
@@ -203,36 +205,125 @@ To set up **Configured Worker Pools**, you'll need:
 
 6. Obtain the YellowDog Agent and install/configure it on your on-premise systems using the Token obtained above. See guidance for [Linux](https://github.com/yellowdog/resources/blob/main/agent-install/linux/README.md) and [Windows](https://github.com/yellowdog/resources/blob/main/agent-install/windows/README-CONFIGURED.md).
 
-# Script Installation with Pip
+# Installation
 
-Python version 3.10 or later is required. It's recommended that the installation is performed in a Python virtual environment (or similar) to isolate the installation from other Python environments on your system.
+Python 3.10 or later is required. If you don't have Python installed, download it from **[python.org](https://www.python.org/downloads/)**, or use your system package manager:
 
-Installation and subsequent update are via `pip` and PyPI using: 
+| Platform        | Command                             |
+|-----------------|-------------------------------------|
+| macOS           | `brew install python`               |
+| Ubuntu / Debian | `sudo apt install python3`          |
+| Windows         | `winget install Python.Python.3.12` |
 
-```shell
-pip install -U yellowdog-python-examples
-```
+Three installation methods are available. **pipx is recommended** for most users; uv is a good choice if you already use it as your Python toolchain; pip + virtual environment is the better choice if you are integrating these commands into a broader Python development workflow.
 
-If you're interested in including **Jsonnet** support, please see the [Jsonnet Support](#jsonnet-support) section below.
+## Option 1: pipx (recommended)
 
-# Script Installation with Pipx
+**[pipx](https://pipx.pypa.io)** installs the commands into an isolated environment and puts them on your PATH automatically. You never need to create or activate a virtual environment.
 
-The commands can also be installed using **[pipx](https://pypa.github.io/pipx/)**.
+### Install pipx
 
-This method requires Python 3.7+ and pipx to be installed. Pipx avoids the need manually to create a virtual environment for Python Examples. To install:
+| Platform | Command                                                |
+|----------|--------------------------------------------------------|
+| macOS    | `brew install pipx && pipx ensurepath`                 |
+| Linux    | `pip install --user pipx && pipx ensurepath`           |
+| Windows  | `pip install --user pipx` (then restart your terminal) |
+
+### Install the YellowDog CLI
 
 ```shell
 pipx install yellowdog-python-examples
 ```
 
-To update:
+### Update
+
 ```shell
 pipx upgrade yellowdog-python-examples
 ```
 
+### With Jsonnet support
+
+```shell
+pipx install yellowdog-python-examples          # first-time install
+pipx inject yellowdog-python-examples jsonnet   # add Jsonnet
+
+pipx upgrade yellowdog-python-examples          # update CLI
+pipx inject --force yellowdog-python-examples jsonnet  # update Jsonnet
+```
+
+## Option 2: uv
+
+**[uv](https://docs.astral.sh/uv/)** is a fast, modern Python package and project manager. Like pipx, it installs CLI tools into isolated environments and puts them on your PATH automatically.
+
+### Install uv
+
+See the [uv installation docs](https://docs.astral.sh/uv/getting-started/installation/) for full instructions. Quick options:
+
+| Platform         | Command                                            |
+|------------------|----------------------------------------------------|
+| macOS / Linux    | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| macOS (Homebrew) | `brew install uv`                                  |
+| Windows          | `winget install --id=astral-sh.uv -e`              |
+
+### Install the YellowDog CLI
+
+```shell
+uv tool install yellowdog-python-examples
+```
+
+### Update
+
+```shell
+uv tool upgrade yellowdog-python-examples
+```
+
+### With Jsonnet support
+
+```shell
+uv tool install "yellowdog-python-examples[jsonnet]"
+```
+
+To update:
+
+```shell
+uv tool upgrade yellowdog-python-examples
+```
+
+## Option 3: pip + virtual environment
+
+This method gives you full control over the Python environment and integrates naturally with other Python tooling.
+
+### Create and activate a virtual environment
+
+```shell
+python3 -m venv yd-env
+source yd-env/bin/activate   # macOS / Linux
+yd-env\Scripts\activate      # Windows
+```
+
+### Install the YellowDog CLI
+
+```shell
+pip install -U yellowdog-python-examples
+```
+
+### Update
+
+```shell
+pip install -U yellowdog-python-examples
+```
+
+### With Jsonnet support
+
+```shell
+pip install -U "yellowdog-python-examples[jsonnet]"
+```
+
+> **Note:** You will need to activate the virtual environment (`source yd-env/bin/activate`) each time you open a new terminal session, or add the activation to your shell profile.
+
 # Usage
 
-Both of the installation methods above will install a number of **`yd-`** commands on your PATH.
+Both installation methods add a number of **`yd-`** commands to your PATH.
 
 Commands are run from the command line. Invoking any command with the `--help` or `-h` option will display the command line options applicable to that command, e.g.:
 
@@ -2497,21 +2588,38 @@ The use of the filename extension `.jsonnet` will activate Jsonnet evaluation. (
 
 ## Jsonnet Installation
 
-Jsonnet is **not** installed by default when `yellowdog-python-examples` because the package has binary components that are not available on PyPI for all platforms. If you try to use a Jsonnet file in the absence of Jsonnet, the scripts will print an error message, and suggest an installation mechanism.
+Jsonnet is **not** installed by default. If you try to use a Jsonnet file without it installed, the commands will print an error with installation instructions.
 
-To install Jsonnet at the same time as installing or updating the Python Examples scripts, modify the installation as follows to include the `jsonnet` option:
-
-```
-pip install -U "yellowdog-python-examples[jsonnet]"
-```
-
-To install Jsonnet separately from `yellowdog-python-examples`, use:
+**With pipx:**
 
 ```shell
-pip install -U jsonnet
+pipx inject yellowdog-python-examples jsonnet
 ```
 
-If Jsonnet installation fails, you'll need to ensure that the platform on which you're running has the required build tools available, so that the Jsonnet binary components can be built locally. The required build packages vary by platform but usually include general development tools including a C++ compiler, and Python development tools including the Python headers.
+To update Jsonnet alongside the CLI:
+
+```shell
+pipx upgrade yellowdog-python-examples
+pipx inject --force yellowdog-python-examples jsonnet
+```
+
+**With uv:**
+
+```shell
+uv tool install "yellowdog-python-examples[jsonnet]"
+```
+
+To update:
+
+```shell
+uv tool upgrade yellowdog-python-examples
+```
+
+**With pip:**
+
+```shell
+pip install -U "yellowdog-python-examples[jsonnet]"
+```
 
 ## Variable Substitutions in Jsonnet Files
 
