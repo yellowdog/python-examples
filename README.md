@@ -384,7 +384,7 @@ The configuration file has four possible sections:
 
 1. A `common` section that contains required security properties for interacting with the YellowDog platform, sets the Namespace in which YellowDog assets and objects are created, and a Tag that is used for tagging and naming assets and objects.
 2. A `workRequirement` section that defines the properties of Work Requirements to be submitted to the YellowDog platform.
-3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. (This can be substitued by a `computeRequirement` section if instance provisioning is all that's required.)
+3. A `workerPool` section that defines the properties of Provisioned Worker Pools to be created using the YellowDog platform. (This can be substituted by a `computeRequirement` section if instance provisioning is all that's required.)
 4. A `dataClient` section that configures the remote data store used by the `yd-upload`, `yd-download`, `yd-delete`, and `yd-ls` commands.
 
 There is a documented template TOML file provided in [config-template.toml](config-template.toml), containing the main properties that can be configured.
@@ -422,7 +422,7 @@ The `[common]` section of the configuration file can contain the following prope
 | `secret`    | The **secret** of the YellowDog Application under which the commands will run                      |
 | `namespace` | The **namespace** to be used for grouping resources                                                |
 | `tag`       | The **tag** to be used for tagging resources and naming objects                                    |
-| `url`       | The **URL** of the YellowDog Platform API endpoint. Defaults to `https://portal.yellowdog.co/api`. |
+| `url`       | The **URL** of the YellowDog Platform API endpoint. Defaults to `https://api.yellowdog.ai`. |
 | `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                                 |
 | `variables` | A table containing **variable substitutions** (see the Variables section below)                    |
 
@@ -806,7 +806,7 @@ The following table outlines all the properties available for defining Work Requ
 | `taskTimeout`               | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. The default is no timeout.                                                                           | Yes  | Yes | Yes  |      |
 | `timeout`                   | As above, but set at the individual Task level, which overrides the group level `taskTimeout` property (if present).                                                                                                 | Yes  |     |      | Yes  |
 | `taskType`                  | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                           | Yes  |     |      | Yes  |
-| `taskTypes`                 | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", bash"]`.                                                                                                                    |      | Yes | Yes  |      |
+| `taskTypes`                 | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", "bash"]`.                                                                                                                    |      | Yes | Yes  |      |
 | `tasksPerWorker`            | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                                                                  | Yes  | Yes | Yes  |      |
 | `vcpus`                     | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                                                                           | Yes  | Yes | Yes  |      |
 | `workerTags`                | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                         | Yes  | Yes | Yes  |      |
@@ -977,9 +977,9 @@ Showing all possible properties at the Work Requirement level:
       "statusesAtFailure" : ["FAILED"],
       "errorTypes": ["ALLOCATION_LOST"]
     }
-  ]
+  ],
   "setTaskNames": false,
-  "tag": "my_tag"
+  "tag": "my_tag",
   "taskCount": 100,
   "taskData": "my_task_data_string",
   "taskDataFile": "my_data_file.txt",
@@ -1042,7 +1042,7 @@ Showing all possible properties at the Task Group level:
           "statusesAtFailure" : ["FAILED"],
           "errorTypes": ["ALLOCATION_LOST"]
         }
-      ]
+      ],
       "setTaskNames": false,
       "tag": "my_tag",
       "taskCount": 5,
@@ -1620,7 +1620,7 @@ Similarly, the `imagesId` property can be populated with the YDID of an Image Fa
 
 ## Automatic Properties
 
-The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, and a UTC timestamp, e,g,: `wp_mytag_221024-155524`.
+The name of the Worker Pool, if not supplied, is automatically generated using a concatenation of `wp_`, the `tag` property, and a UTC timestamp, e.g.: `wp_mytag_221024-155524`.
 
 ## TOML Properties in the `workerPool` Section
 
@@ -1786,7 +1786,7 @@ When a JSON Worker Pool specification is used, the following properties from the
 - `instanceTags`
 - `requirementName`: obtained from the `name` property in the `TOML` configuration. (The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
 - `requirementNamespace`: obtained from the `namespace` property in the `TOML` configuration
-- `requirementTag`: : obtained from the `requirementTag` property at the `workerPool` level, or the `tag` in the `common` configuration
+- `requirementTag`: obtained from the `requirementTag` property at the `workerPool` level, or the `tag` in the `common` configuration
 - `targetInstanceCount`
 - `templateId`
 - `userData`
@@ -2084,9 +2084,9 @@ When using the `yd-create` and `yd-remove` commands, note that an additional pro
 To generate example JSON specifications from resources already included in the platform, the `yd-list` command can be used with the `--details`, `--substitute-ids`/`-U`, and  `--strip-ids` options, and select the resources for which details are required. E.g.:
 
 ```shell
-yd-list --source-templates --details --substitute-ids --strip-ids
-yd-list --compute-templates --details --substitute-ids --strip-ids
-yd-list --image-families --details --substitute-ids --strip-ids
+yd-list compute-source-templates --details --substitute-ids --strip-ids
+yd-list compute-requirement-templates --details --substitute-ids --strip-ids
+yd-list image-families --details --substitute-ids --strip-ids
 ```
 
 This will produce a list of resource specifications that can be copied and used directly with `yd-create` and `yd-remove`.
@@ -2094,7 +2094,7 @@ This will produce a list of resource specifications that can be copied and used 
 The detailed resource list can also be copied directly to an output file in addition to being displayed on the console using the `--output-file` option:
 
 ```shell
-yd-list yd-list --source-templates --details --output-file my-resources.json
+yd-list compute-source-templates --details --output-file my-resources.json
 ```
 
 Alternatively, the `yd-show` command can be used with one or more `ydid` arguments to generate the details of each identified resource. E.g.,
