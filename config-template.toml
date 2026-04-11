@@ -55,37 +55,6 @@
     #     my_var   = "some_value"
     #     my_count = "{{num:42}}"   # type tags: num:, bool:, array:, table:
 
-
-[dataClient]  #################################################################
-#
-# Settings for the rclone-backed data client commands:
-# yd-upload, yd-download, yd-delete, yd-ls.
-#
-# 'remote' can be a plain rclone remote name (looked up in rclone.conf),
-# an optional 'rclone:' prefix followed by a plain name, or a full inline
-# connection string: 'NAME,type=s3,provider=AWS,env_auth=true,...'
-#
-# For non-S3 targets the 'bucket' property serves as the top-level container
-# (Azure Blob container, GCS bucket, local root path, etc.).
-#
-# Can be set via YD_DATA_CLIENT_REMOTE / YD_DATA_CLIENT_BUCKET /
-# YD_DATA_CLIENT_PREFIX or with --remote / --bucket / --prefix flags.
-#
-
-    # rclone remote to use.
-    # Required for data-client commands
-    # remote = "my-s3-remote"
-
-    # Bucket (or container / root) within the remote.
-    # Optional
-    # bucket = "my-bucket"
-
-    # Path prefix within the bucket; prepended to every remote path.
-    # Defaults to "{{namespace}}/{{tag}}" if not set (and --no-prefix not used).
-    # Optional
-    # prefix = "{{namespace}}/{{tag}}"
-
-
 [workRequirement]  ############################################################
 #
 # Default settings for yd-submit.  All properties may also be set (or
@@ -315,6 +284,34 @@
     # Optional
     # workRequirementData = "my_work_requirement.json"
 
+[dataClient]  #################################################################
+#
+# Settings for the rclone-backed data client commands:
+# yd-upload, yd-download, yd-delete, yd-ls.
+#
+# 'remote' can be a plain rclone remote name (looked up in rclone.conf),
+# an optional 'rclone:' prefix followed by a plain name, or a full inline
+# connection string: 'NAME,type=s3,provider=AWS,env_auth=true,...'
+#
+# For non-S3 targets the 'bucket' property serves as the top-level container
+# (Azure Blob container, GCS bucket, local root path, etc.).
+#
+# Can be set via YD_DATA_CLIENT_REMOTE / YD_DATA_CLIENT_BUCKET /
+# YD_DATA_CLIENT_PREFIX or with --remote / --bucket / --prefix flags.
+#
+
+    # rclone remote to use.
+    # Required for data-client commands
+    # remote = "my-s3-remote"
+
+    # Bucket (or container / root) within the remote.
+    # Optional
+    # bucket = "my-bucket"
+
+    # Path prefix within the bucket; prepended to every remote path.
+    # Defaults to "{{namespace}}/{{tag}}" if not set (and --no-prefix not used).
+    # Optional
+    # prefix = "{{namespace}}/{{tag}}"
 
 [workerPool]  #################################################################
 #
