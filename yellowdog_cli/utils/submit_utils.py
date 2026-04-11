@@ -632,6 +632,8 @@ def create_task(
     task_data_inputs_and_outputs: TaskData | None = None,
     wr_name: str = "",
     namespace: str = "",
+    total_num_task_groups: int | None = None,
+    total_num_tasks: int | None = None,
 ) -> Task:
     """
     Create a Task object.
@@ -641,8 +643,16 @@ def create_task(
 
     # Optionally add Task details to the environment as a convenience
     if add_yd_env_vars:
-        num_task_groups = len(wr_data[TASK_GROUPS])
-        num_tasks = len(task_group_data[TASKS])
+        num_task_groups = (
+            total_num_task_groups
+            if total_num_task_groups is not None
+            else len(wr_data[TASK_GROUPS])
+        )
+        num_tasks = (
+            total_num_tasks
+            if total_num_tasks is not None
+            else len(task_group_data[TASKS])
+        )
         env_copy[YD_TASK_NAME] = task_name or ""
         env_copy[YD_TASK_NUMBER] = str(task_number)
         env_copy[YD_NUM_TASKS] = str(num_tasks)

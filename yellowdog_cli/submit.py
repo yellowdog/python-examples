@@ -1001,6 +1001,8 @@ def generate_batch_of_tasks_for_task_group(
                 task_data_inputs_and_outputs=task_data_inputs_and_outputs,
                 wr_name=ID,
                 namespace=CONFIG_COMMON.namespace,
+                total_num_task_groups=num_task_groups,
+                total_num_tasks=display_num_tasks,
             )
         )
 

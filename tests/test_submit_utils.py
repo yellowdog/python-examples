@@ -314,6 +314,35 @@ class TestCreateTask:
         assert env[su.YD_NUM_TASKS] == "5"
         assert env[su.YD_NUM_TASK_GROUPS] == "3"
 
+    def test_total_num_task_groups_and_tasks_override_wr_data_counts(self):
+        # When adding to an existing WR, the spec wr_data only contains the new
+        # TGs/tasks, but YD_NUM_TASK_GROUPS / YD_NUM_TASKS must reflect the
+        # combined existing+new totals passed via the explicit override params.
+        wr_data = _minimal_wr_data(num_task_groups=1, num_tasks=3)  # spec only
+        task_group_data = {TASKS: [{} for _ in range(3)]}
+        task = su.create_task(
+            wr_data=wr_data,
+            task_group_data=task_group_data,
+            task_data={},
+            task_name="t",
+            task_number=0,
+            tg_name="g",
+            tg_number=0,
+            task_type="bash",
+            args=[],
+            task_data_property=None,
+            env={},
+            task_timeout=None,
+            add_yd_env_vars=True,
+            wr_name="wr",
+            namespace="ns",
+            total_num_task_groups=5,  # 2 existing + 3 spec
+            total_num_tasks=10,  # task_number_offset + spec tasks
+        )
+        env: dict = task.environment  # type: ignore[assignment]
+        assert env[su.YD_NUM_TASK_GROUPS] == "5"
+        assert env[su.YD_NUM_TASKS] == "10"
+
     def test_tag_added_to_yd_env_vars_when_present(self):
         task = self._call(
             env={},
