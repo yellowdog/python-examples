@@ -231,7 +231,7 @@ def list_task_groups(work_summary: WorkRequirementSummary):
 
 
 def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
-    tasks: list[Task] = get_all_tasks_in_task_group(CLIENT, task_group.id)
+    tasks: list[Task] = get_all_tasks_in_task_group(CLIENT, cast(str, task_group.id))
     tasks = sorted_objects(tasks)
     if ARGS_PARSER.details:
         print_yd_object_list([(task, None) for task in select(CLIENT, tasks)])
@@ -268,7 +268,7 @@ def list_worker_pools():
         wp_summary
         for wp_summary in worker_pool_summaries
         if wp_summary.status not in excluded_states
-        and CONFIG_COMMON.namespace in wp_summary.namespace
+        and CONFIG_COMMON.namespace in cast(str, wp_summary.namespace)
     ]
 
     if not worker_pool_summaries:
@@ -446,7 +446,7 @@ def list_workers(nodes: list[Node]):
                 worker.workerTag = node.details.workerTag
                 worker.taskTypes = node.details.supportedTaskTypes
                 worker.workerPoolName = (
-                    node.workerPoolName
+                    node.workerPoolName  # type: ignore[attr-defined]
                 )  # This property is added by the caller
                 workers_all.append(worker)
 
@@ -894,7 +894,7 @@ def list_roles():
         print_info("No Roles to display")
         return
 
-    role_summaries.sort(key=lambda role: role.name if role.name is not None else "")
+    role_summaries.sort(key=lambda role_: role_.name if role_.name is not None else "")
 
     print_info("Obtaining permissions for each role ...")
     roles: list[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
@@ -918,7 +918,7 @@ def list_permissions():
     List all permissions in the account.
     """
     permissions: list[PermissionDetail] = CLIENT.account_client.list_permissions()
-    permissions.sort(key=lambda permission: permission.name)
+    permissions.sort(key=lambda permission_: permission_.name)
 
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, permissions, object_type_name="Permission")
