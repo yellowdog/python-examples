@@ -2781,36 +2781,49 @@ The `yd-terminate` command immediately terminates Compute Requirements that matc
 
 ## yd-list
 
-The `yd-list` command is used to list various YellowDog items, using the `namespace` and `tag` properties (if applicable) to target the scope of what to list:
+The `yd-list` command is used to list various YellowDog items, using the `namespace` and `tag` properties (if applicable) to target the scope of what to list.
 
-- Allowances
-- Applications
-- Attribute Definitions
-- Compute Requirement Templates
-- Compute Requirements
-- Compute Source Templates
-- Groups
-- Image Families, Image Groups, and Images
-- Instances
-- Keyrings
-- Namespaces
-- Namespace Policies
-- Nodes
-- Roles
-- Task Groups
-- Tasks
-- Users
-- Work Requirements
-- Worker Pools
-- Workers
+The entity type to list is supplied as a positional argument:
 
-Please use `yd-list --help` to inspect the various options.
+```shell
+yd-list <entity-type> [options]
+```
 
-In some cases a `--details/-d` option can be supplied to drill down into additional detail on selected resources. For example `yd-list --keyrings --details` allows inspection of the Credentials within the selected Keyrings.
+Valid entity types are:
 
-The `--active` flag can be used to list only entities that are in a non-terminated state, if applicable, for example Work Requirements and Worker Pools.
+| Entity Type | Description |
+|---|---|
+| `allowances` | Allowances |
+| `applications` | Applications |
+| `attribute-definitions` | User compute attribute definitions |
+| `compute-requirement-templates` | Compute Requirement Templates |
+| `compute-requirements` | Compute Requirements |
+| `compute-source-templates` | Compute Source Templates |
+| `groups` | Groups |
+| `image-families` | Machine Image Families, Groups, and Images |
+| `instances` | Compute instances (interactive: select a Compute Requirement first) |
+| `keyrings` | Keyrings |
+| `namespace-policies` | Namespace Policies |
+| `namespaces` | Namespaces |
+| `nodes` | Worker Pool Nodes (interactive: select a Worker Pool first) |
+| `permissions` | Permissions |
+| `roles` | Roles |
+| `task-groups` | Task Groups (interactive: select a Work Requirement first) |
+| `tasks` | Tasks (interactive: select a Work Requirement and Task Group first) |
+| `users` | Users |
+| `work-requirements` | Work Requirements |
+| `worker-pools` | Worker Pools |
+| `workers` | Workers (interactive: select a Worker Pool first) |
 
-For convenience, `namespace` and `tag`, are set to empty strings unless explicitly set on the command line.
+Unambiguous prefix matching is supported — for example `yd-list work-r` resolves to `yd-list work-requirements`, and `yd-list key` resolves to `yd-list keyrings`.
+
+Please use `yd-list --help` to inspect the full list of options.
+
+In some cases a `--details/-d` option can be supplied to drill down into additional detail on selected resources. For example `yd-list keyrings --details` allows inspection of the Credentials within the selected Keyrings.
+
+The `--active-only/-l` flag can be used to list only entities that are in a non-terminated state, if applicable, for example Work Requirements and Worker Pools.
+
+For convenience, `namespace` and `tag` are set to empty strings unless explicitly set on the command line.
 
 ## yd-resize
 

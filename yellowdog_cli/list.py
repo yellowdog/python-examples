@@ -91,9 +91,6 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main
 
 @main_wrapper
 def main():
-    if not check_for_valid_option():
-        raise ValueError("Please choose a (single) listing type")
-
     # Always use interactive mode for selections
     ARGS_PARSER.interactive = True
 
@@ -117,70 +114,40 @@ def main():
             ):
                 return
 
-    if ARGS_PARSER.work_requirements or ARGS_PARSER.task_groups or ARGS_PARSER.tasks:
+    entity_type = ARGS_PARSER.entity_type
+
+    if entity_type in ("work-requirements", "task-groups", "tasks"):
         list_work_requirements()
-    elif ARGS_PARSER.worker_pools or ARGS_PARSER.nodes or ARGS_PARSER.workers:
+    elif entity_type in ("worker-pools", "nodes", "workers"):
         list_worker_pools()
-    elif ARGS_PARSER.compute_requirements or ARGS_PARSER.instances:
+    elif entity_type in ("compute-requirements", "instances"):
         list_compute_requirements()
-    elif ARGS_PARSER.compute_requirement_templates:
+    elif entity_type == "compute-requirement-templates":
         list_compute_requirement_templates()
-    elif ARGS_PARSER.compute_source_templates:
+    elif entity_type == "compute-source-templates":
         list_compute_source_templates()
-    elif ARGS_PARSER.keyrings:
+    elif entity_type == "keyrings":
         list_keyrings()
-    elif ARGS_PARSER.image_families:
+    elif entity_type == "image-families":
         list_image_families()
-    elif ARGS_PARSER.allowances:
+    elif entity_type == "allowances":
         list_allowances()
-    elif ARGS_PARSER.attribute_definitions:
+    elif entity_type == "attribute-definitions":
         list_attribute_definitions()
-    elif ARGS_PARSER.namespaces:
+    elif entity_type == "namespaces":
         list_namespaces()
-    elif ARGS_PARSER.namespace_policies:
+    elif entity_type == "namespace-policies":
         list_namespace_policies()
-    elif ARGS_PARSER.users:
+    elif entity_type == "users":
         list_users()
-    elif ARGS_PARSER.applications:
+    elif entity_type == "applications":
         list_applications()
-    elif ARGS_PARSER.groups:
+    elif entity_type == "groups":
         list_groups()
-    elif ARGS_PARSER.roles:
+    elif entity_type == "roles":
         list_roles()
-    elif ARGS_PARSER.permissions:
+    elif entity_type == "permissions":
         list_permissions()
-
-
-def check_for_valid_option() -> bool:
-    """
-    Only one of the listing options must be selected.
-    """
-    if [
-        ARGS_PARSER.allowances,
-        ARGS_PARSER.applications,
-        ARGS_PARSER.attribute_definitions,
-        ARGS_PARSER.compute_requirements,
-        ARGS_PARSER.compute_requirement_templates,
-        ARGS_PARSER.groups,
-        ARGS_PARSER.image_families,
-        ARGS_PARSER.instances,
-        ARGS_PARSER.keyrings,
-        ARGS_PARSER.namespaces,
-        ARGS_PARSER.namespace_policies,
-        ARGS_PARSER.nodes,
-        ARGS_PARSER.permissions,
-        ARGS_PARSER.roles,
-        ARGS_PARSER.compute_source_templates,
-        ARGS_PARSER.task_groups,
-        ARGS_PARSER.tasks,
-        ARGS_PARSER.users,
-        ARGS_PARSER.work_requirements,
-        ARGS_PARSER.worker_pools,
-        ARGS_PARSER.workers,
-    ].count(True) == 1:
-        return True
-    else:
-        return False
 
 
 def list_work_requirements():
@@ -220,7 +187,7 @@ def list_work_requirements():
         return
 
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
-    if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
+    if ARGS_PARSER.entity_type == "work-requirements":
         if ARGS_PARSER.details:
             print_yd_object_list(
                 [
@@ -247,7 +214,7 @@ def list_task_groups(work_summary: WorkRequirementSummary):
         CLIENT, cast(str, work_summary.id)
     )
     task_groups = sorted_objects(task_groups)
-    if not ARGS_PARSER.tasks:
+    if ARGS_PARSER.entity_type != "tasks":
         if ARGS_PARSER.details:
             print_yd_object_list(
                 [(task_group, None) for task_group in select(CLIENT, task_groups)]
@@ -308,10 +275,10 @@ def list_worker_pools():
         print_info("No Worker Pools to display")
         return
 
-    if ARGS_PARSER.nodes or ARGS_PARSER.workers:
+    if ARGS_PARSER.entity_type in ("nodes", "workers"):
         print_info(
             "Please select the Worker Pool(s) for which to list "
-            f"{'Nodes' if ARGS_PARSER.nodes else 'Workers'}"
+            f"{'Nodes' if ARGS_PARSER.entity_type == 'nodes' else 'Workers'}"
         )
         worker_pool_summaries = cast(
             list[WorkerPoolSummary],
@@ -371,7 +338,7 @@ def list_compute_requirements():
 
     compute_requirement_summaries = sorted_objects(compute_requirement_summaries)
 
-    if ARGS_PARSER.instances:
+    if ARGS_PARSER.entity_type == "instances":
         for compute_requirement_summary in select(
             CLIENT, compute_requirement_summaries, single_result=True
         ):
@@ -446,7 +413,7 @@ def list_nodes(worker_pool_summaries: list[WorkerPoolSummary]):
         print_info("No Nodes to display")
         return
 
-    if ARGS_PARSER.workers:
+    if ARGS_PARSER.entity_type == "workers":
         list_workers(nodes_all)
         return
 

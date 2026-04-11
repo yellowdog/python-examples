@@ -47,7 +47,9 @@ class TestSystemLifecycle:
         ), f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
 
         # 3. Confirm WR shows COMPLETED in yd-list
-        result = shell(f"cd {SYSTEM_DIR} && yd-list -w --nf -n={NAMESPACE} -t={tag}")
+        result = shell(
+            f"cd {SYSTEM_DIR} && yd-list work-requirements --nf -n={NAMESPACE} -t={tag}"
+        )
         assert result.exit_code == 0
         assert (
             "COMPLETED" in result.stdout

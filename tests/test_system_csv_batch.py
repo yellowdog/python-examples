@@ -38,6 +38,8 @@ class TestSystemCsvBatch:
         ), f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
 
         # 3. Verify all 10 tasks completed
-        result = shell(f"cd {SYSTEM_DIR} && yd-list -w --nf -n={NAMESPACE} -t={tag}")
+        result = shell(
+            f"cd {SYSTEM_DIR} && yd-list work-requirements --nf -n={NAMESPACE} -t={tag}"
+        )
         assert result.exit_code == 0
         assert "10/10" in result.stdout, f"Not all 10 tasks completed:\n{result.stdout}"

@@ -34,6 +34,48 @@ def allow_missing_attribute(func):
     return wrapper
 
 
+ENTITY_TYPES = [
+    "allowances",
+    "applications",
+    "attribute-definitions",
+    "compute-requirement-templates",
+    "compute-requirements",
+    "compute-source-templates",
+    "groups",
+    "image-families",
+    "instances",
+    "keyrings",
+    "namespace-policies",
+    "namespaces",
+    "nodes",
+    "permissions",
+    "roles",
+    "task-groups",
+    "tasks",
+    "users",
+    "work-requirements",
+    "worker-pools",
+    "workers",
+]
+
+
+def resolve_entity_type(value: str) -> str:
+    """
+    Resolve a (possibly abbreviated) entity type string to its canonical form.
+    Raises argparse.ArgumentTypeError if the value is ambiguous or unrecognised.
+    """
+    matches = [e for e in ENTITY_TYPES if e.startswith(value)]
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise argparse.ArgumentTypeError(
+            f"'{value}' is ambiguous — matches: {', '.join(matches)}"
+        )
+    raise argparse.ArgumentTypeError(
+        f"unknown entity type '{value}'; valid types: {', '.join(ENTITY_TYPES)}"
+    )
+
+
 class CLIParser:
     def __init__(self, description: str | None = None):
         """
@@ -483,45 +525,20 @@ class CLIParser:
         # yd-list
         if "list" in sys.argv[0]:
             parser.add_argument(
+                "entity_type",
+                type=resolve_entity_type,
+                metavar="ENTITY_TYPE",
+                help=(
+                    "type of entity to list; unambiguous prefix matching is supported "
+                    "(e.g. 'work-r' resolves to 'work-requirements'). "
+                    "Valid types: " + ", ".join(ENTITY_TYPES)
+                ),
+            )
+            parser.add_argument(
                 "--reverse",
                 action="store_true",
                 required=False,
                 help="list items in reverse-sorted name order",
-            )
-            parser.add_argument(
-                "--work-requirements",
-                "-w",
-                action="store_true",
-                required=False,
-                help="list work requirements",
-            )
-            parser.add_argument(
-                "--task-groups",
-                "-g",
-                action="store_true",
-                required=False,
-                help="list task groups in selected work requirements",
-            )
-            parser.add_argument(
-                "--tasks",
-                "-T",
-                action="store_true",
-                required=False,
-                help="list tasks in selected work requirements / task groups",
-            )
-            parser.add_argument(
-                "--worker-pools",
-                "-p",
-                action="store_true",
-                required=False,
-                help="list worker pools",
-            )
-            parser.add_argument(
-                "--compute-requirements",
-                "-r",
-                action="store_true",
-                required=False,
-                help="list compute requirements",
             )
             parser.add_argument(
                 "--active-only",
@@ -534,115 +551,10 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
-                "--compute-requirement-templates",
-                "-C",
-                action="store_true",
-                required=False,
-                help="list compute requirement templates",
-            )
-            parser.add_argument(
-                "--compute-source-templates",
-                "-S",
-                action="store_true",
-                required=False,
-                help="list compute source templates",
-            )
-            parser.add_argument(
-                "--keyrings",
-                "-K",
-                action="store_true",
-                required=False,
-                help="list keyrings",
-            )
-            parser.add_argument(
-                "--image-families",
-                "-I",
-                action="store_true",
-                required=False,
-                help="list machine image families",
-            )
-            parser.add_argument(
-                "--instances",
-                "-i",
-                action="store_true",
-                required=False,
-                help="list compute instances",
-            )
-            parser.add_argument(
-                "--nodes",
-                action="store_true",
-                required=False,
-                help="list worker pool nodes",
-            )
-            parser.add_argument(
-                "--workers",
-                action="store_true",
-                required=False,
-                help="list all workers in a worker pool",
-            )
-            parser.add_argument(
                 "--public-ips-only",
                 action="store_true",
                 required=False,
-                help="when used with '--instances', lists public IP addresses only",
-            )
-            parser.add_argument(
-                "--allowances",
-                "-A",
-                action="store_true",
-                required=False,
-                help="list allowances",
-            )
-            parser.add_argument(
-                "--attribute-definitions",
-                "-R",
-                action="store_true",
-                required=False,
-                help="list user attribute definitions",
-            )
-            parser.add_argument(
-                "--namespaces",
-                "-M",
-                action="store_true",
-                required=False,
-                help="list namespaces",
-            )
-            parser.add_argument(
-                "--namespace-policies",
-                "-P",
-                action="store_true",
-                required=False,
-                help="list namespace policies",
-            )
-            parser.add_argument(
-                "--users",
-                action="store_true",
-                required=False,
-                help="list users",
-            )
-            parser.add_argument(
-                "--applications",
-                action="store_true",
-                required=False,
-                help="list applications",
-            )
-            parser.add_argument(
-                "--groups",
-                action="store_true",
-                required=False,
-                help="list groups",
-            )
-            parser.add_argument(
-                "--roles",
-                action="store_true",
-                required=False,
-                help="list roles",
-            )
-            parser.add_argument(
-                "--permissions",
-                action="store_true",
-                required=False,
-                help="list permissions",
+                help="when used with 'instances', lists public IP addresses only",
             )
             parser.add_argument(
                 "--details",
@@ -1659,28 +1571,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def work_requirements(self) -> bool | None:
-        return self.args.work_requirements
-
-    @property
-    @allow_missing_attribute
-    def task_groups(self) -> bool | None:
-        return self.args.task_groups
-
-    @property
-    @allow_missing_attribute
-    def tasks(self) -> bool | None:
-        return self.args.tasks
-
-    @property
-    @allow_missing_attribute
-    def worker_pools(self) -> bool | None:
-        return self.args.worker_pools
-
-    @property
-    @allow_missing_attribute
-    def compute_requirements(self) -> bool | None:
-        return self.args.compute_requirements
+    def entity_type(self) -> str | None:
+        return self.args.entity_type
 
     @property
     @allow_missing_attribute
@@ -1689,88 +1581,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def compute_requirement_templates(self) -> bool | None:
-        return self.args.compute_requirement_templates
-
-    @property
-    @allow_missing_attribute
-    def compute_source_templates(self) -> bool | None:
-        return self.args.compute_source_templates
-
-    @property
-    @allow_missing_attribute
-    def keyrings(self) -> bool | None:
-        return self.args.keyrings
-
-    @property
-    @allow_missing_attribute
-    def image_families(self) -> bool | None:
-        return self.args.image_families
-
-    @property
-    @allow_missing_attribute
-    def instances(self) -> bool | None:
-        return self.args.instances
-
-    @property
-    @allow_missing_attribute
-    def nodes(self) -> bool | None:
-        return self.args.nodes
-
-    @property
-    @allow_missing_attribute
-    def workers(self) -> bool | None:
-        return self.args.workers
-
-    @property
-    @allow_missing_attribute
     def public_ips_only(self) -> bool | None:
         return self.args.public_ips_only
-
-    @property
-    @allow_missing_attribute
-    def allowances(self) -> bool | None:
-        return self.args.allowances
-
-    @property
-    @allow_missing_attribute
-    def attribute_definitions(self) -> bool | None:
-        return self.args.attribute_definitions
-
-    @property
-    @allow_missing_attribute
-    def namespaces(self) -> bool | None:
-        return self.args.namespaces
-
-    @property
-    @allow_missing_attribute
-    def namespace_policies(self) -> bool | None:
-        return self.args.namespace_policies
-
-    @property
-    @allow_missing_attribute
-    def users(self) -> bool | None:
-        return self.args.users
-
-    @property
-    @allow_missing_attribute
-    def applications(self) -> bool | None:
-        return self.args.applications
-
-    @property
-    @allow_missing_attribute
-    def groups(self) -> bool | None:
-        return self.args.groups
-
-    @property
-    @allow_missing_attribute
-    def roles(self) -> bool | None:
-        return self.args.roles
-
-    @property
-    @allow_missing_attribute
-    def permissions(self) -> bool | None:
-        return self.args.permissions
 
     @property
     @allow_missing_attribute

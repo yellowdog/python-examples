@@ -2,7 +2,7 @@
 System compute test: Worker Pool resize.
 
 Provisions a pool with 1 node, resizes to 2, verifies the target instance
-count changes in yd-list -r output, then tears down.
+count changes in yd-list compute-requirements output, then tears down.
 
 Run with: pytest --run-system-compute tests/test_system_resize.py
 """
@@ -59,10 +59,12 @@ class TestSystemResize:
             wp_id, 2
         ), f"yd-resize did not succeed within timeout for {wp_id}"
 
-        # 3. Verify the target instance count changed to 2 in yd-list -r.
+        # 3. Verify the target instance count changed to 2 in yd-list compute-requirements.
         # The compute requirement table shows "STATUS (target/expected/alive)",
         # so after resize the target column will read "2".
-        result = shell(f"cd {SYSTEM_DIR} && yd-list -r --nf -n={NAMESPACE} -t={tag}")
+        result = shell(
+            f"cd {SYSTEM_DIR} && yd-list compute-requirements --nf -n={NAMESPACE} -t={tag}"
+        )
         assert result.exit_code == 0
         assert (
             "(2/" in result.stdout

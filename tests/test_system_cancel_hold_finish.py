@@ -35,7 +35,9 @@ def _wr_status(tag: str) -> str:
     output for the first known status word. Log messages never contain WR
     status words, so no false positives from the surrounding log output.
     """
-    result = shell(f"cd {SYSTEM_DIR} && yd-list -w -n={NAMESPACE} -t={tag}")
+    result = shell(
+        f"cd {SYSTEM_DIR} && yd-list work-requirements -n={NAMESPACE} -t={tag}"
+    )
     output = result.stdout + result.stderr
     for status in _WR_STATUSES:
         if status in output:
