@@ -58,12 +58,46 @@ ENTITY_TYPES = [
     "workers",
 ]
 
+# Single uppercase letter synonyms for each entity type.
+SYNONYMS: dict[str, str] = {
+    "A": "allowances",
+    "B": "applications",
+    "D": "attribute-definitions",
+    "C": "compute-requirement-templates",
+    "R": "compute-requirements",
+    "S": "compute-source-templates",
+    "G": "groups",
+    "I": "image-families",
+    "E": "instances",
+    "K": "keyrings",
+    "L": "namespace-policies",
+    "M": "namespaces",
+    "N": "nodes",
+    "X": "permissions",
+    "O": "roles",
+    "H": "task-groups",
+    "T": "tasks",
+    "U": "users",
+    "W": "work-requirements",
+    "P": "worker-pools",
+    "F": "workers",
+}
+
+# For help text: "allowances (A)", "applications (B)", ...
+_SYNONYM_REVERSE: dict[str, str] = {v: k for k, v in SYNONYMS.items()}
+_ENTITY_TYPE_HELP = ", ".join(f"{t} ({_SYNONYM_REVERSE[t]})" for t in ENTITY_TYPES)
+
 
 def resolve_entity_type(value: str) -> str:
     """
-    Resolve a (possibly abbreviated) entity type string to its canonical form.
-    Raises argparse.ArgumentTypeError if the value is ambiguous or unrecognised.
+    Resolve an entity type string to its canonical form.
+
+    Checks single-letter uppercase synonyms first, then falls back to
+    unambiguous prefix matching. Raises argparse.ArgumentTypeError if the
+    value is ambiguous or unrecognised.
     """
+    if value in SYNONYMS:
+        return SYNONYMS[value]
     matches = [e for e in ENTITY_TYPES if e.startswith(value)]
     if len(matches) == 1:
         return matches[0]
@@ -72,7 +106,7 @@ def resolve_entity_type(value: str) -> str:
             f"'{value}' is ambiguous — matches: {', '.join(matches)}"
         )
     raise argparse.ArgumentTypeError(
-        f"unknown entity type '{value}'; valid types: {', '.join(ENTITY_TYPES)}"
+        f"unknown entity type '{value}'; valid types: {_ENTITY_TYPE_HELP}"
     )
 
 
@@ -529,9 +563,9 @@ class CLIParser:
                 type=resolve_entity_type,
                 metavar="ENTITY_TYPE",
                 help=(
-                    "type of entity to list; unambiguous prefix matching is supported "
-                    "(e.g. 'work-r' resolves to 'work-requirements'). "
-                    "Valid types: " + ", ".join(ENTITY_TYPES)
+                    "type of entity to list; accepts a full name, an unambiguous "
+                    "prefix (e.g. 'work-r'), or a single uppercase synonym "
+                    "(e.g. 'W'). Valid types: " + _ENTITY_TYPE_HELP
                 ),
             )
             parser.add_argument(

@@ -2791,31 +2791,31 @@ yd-list <entity-type> [options]
 
 Valid entity types are:
 
-| Entity Type | Description |
-|---|---|
-| `allowances` | Allowances |
-| `applications` | Applications |
-| `attribute-definitions` | User compute attribute definitions |
-| `compute-requirement-templates` | Compute Requirement Templates |
-| `compute-requirements` | Compute Requirements |
-| `compute-source-templates` | Compute Source Templates |
-| `groups` | Groups |
-| `image-families` | Machine Image Families, Groups, and Images |
-| `instances` | Compute instances (interactive: select a Compute Requirement first) |
-| `keyrings` | Keyrings |
-| `namespace-policies` | Namespace Policies |
-| `namespaces` | Namespaces |
-| `nodes` | Worker Pool Nodes (interactive: select a Worker Pool first) |
-| `permissions` | Permissions |
-| `roles` | Roles |
-| `task-groups` | Task Groups (interactive: select a Work Requirement first) |
-| `tasks` | Tasks (interactive: select a Work Requirement and Task Group first) |
-| `users` | Users |
-| `work-requirements` | Work Requirements |
-| `worker-pools` | Worker Pools |
-| `workers` | Workers (interactive: select a Worker Pool first) |
+| Entity Type | Synonym | Description |
+|---|---|---|
+| `allowances` | `A` | Allowances |
+| `applications` | `B` | Applications |
+| `attribute-definitions` | `D` | User compute attribute definitions |
+| `compute-requirement-templates` | `C` | Compute Requirement Templates |
+| `compute-requirements` | `R` | Compute Requirements |
+| `compute-source-templates` | `S` | Compute Source Templates |
+| `groups` | `G` | Groups |
+| `image-families` | `I` | Machine Image Families, Groups, and Images |
+| `instances` | `E` | Compute instances (interactive: select a Compute Requirement first) |
+| `keyrings` | `K` | Keyrings |
+| `namespace-policies` | `L` | Namespace Policies |
+| `namespaces` | `M` | Namespaces |
+| `nodes` | `N` | Worker Pool Nodes (interactive: select a Worker Pool first) |
+| `permissions` | `X` | Permissions |
+| `roles` | `O` | Roles |
+| `task-groups` | `H` | Task Groups (interactive: select a Work Requirement first) |
+| `tasks` | `T` | Tasks (interactive: select a Work Requirement and Task Group first) |
+| `users` | `U` | Users |
+| `work-requirements` | `W` | Work Requirements |
+| `worker-pools` | `P` | Worker Pools |
+| `workers` | `F` | Workers (interactive: select a Worker Pool first) |
 
-Unambiguous prefix matching is supported — for example `yd-list work-r` resolves to `yd-list work-requirements`, and `yd-list key` resolves to `yd-list keyrings`.
+Unambiguous prefix matching is supported — for example `yd-list work-r` resolves to `yd-list work-requirements`, and `yd-list key` resolves to `yd-list keyrings`. Single uppercase synonyms also work, e.g. `yd-list W` and `yd-list K`.
 
 Please use `yd-list --help` to inspect the full list of options.
 
