@@ -53,9 +53,9 @@ yellowdog_cli/
     ├── settings.py              # Constants, env var names, Rich theme
     ├── entity_utils.py          # API entity lookups (LRU-cached search functions)
     ├── printing.py              # Rich-based output formatting
-    ├── variables.py             # Variable substitution engine ({{ }})
+    ├── variables.py             # Variable substitution engine ({{ }} delimiters)
     ├── submit_utils.py          # Work requirement construction helpers
-    ├── csv_data.py              # CSV batch task processing
+    ├── csv_data.py              # CSV batch task processing; substitution uses << >> delimiters
     ├── property_names.py        # All TOML/JSON spec property name constants + ALL_KEYS list
     ├── ydid_utils.py            # YDIDType enum + get_ydid_type() prefix parser
     ├── items.py                 # Item TypeVar — union of all SDK model types used as a generic
@@ -127,6 +127,8 @@ Any TOML property can be overridden on the command line with `--property 'sectio
 ### Variable Substitution
 
 Specs (TOML/JSON/Jsonnet) support `{{variable_name}}` substitution with type tags: `num:`, `bool:`, `array:`, `table:`, `format_name:`. Default values use `:=` separator. Environment variables via `env:` prefix. Up to 3 levels of nesting (`TOML_VAR_NESTED_DEPTH = 3`).
+
+CSV batch task prototypes use a separate `<<variable_name>>` delimiter system (defined in `csv_data.py`), distinct from `{{`/`}}` to allow both to coexist in the same spec without ambiguity.
 
 ### Coding Conventions
 
