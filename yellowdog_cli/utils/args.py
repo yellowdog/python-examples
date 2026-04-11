@@ -436,13 +436,13 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
-                "--no-overwrite",
-                "-N",
+                "--overwrite",
+                "-O",
                 action="store_true",
                 required=False,
                 help=(
-                    "skip uploading a file if it already exists at the"
-                    " remote destination; by default existing files are overwritten"
+                    "overwrite a file if it already exists at the"
+                    " remote destination; by default existing files are skipped"
                 ),
             )
             parser.add_argument(
@@ -1544,8 +1544,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def no_overwrite(self) -> bool | None:
-        return self.args.no_overwrite
+    def overwrite(self) -> bool | None:
+        return self.args.overwrite
 
     @property
     @allow_missing_attribute

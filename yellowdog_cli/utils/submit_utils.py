@@ -378,7 +378,7 @@ class RcloneUploadedFiles:
 
         remote_dest = f"{remote_name}:{remote_path}"
 
-        if ARGS_PARSER.no_overwrite and rclone.exists(remote_dest):
+        if not ARGS_PARSER.overwrite and rclone.exists(remote_dest):
             print_info(
                 f"Skipping upload of '{rclone_upload_file.local_file_path}'"
                 f" (already exists at '{self._bucket_and_prefix(rclone_upload_file)}')"

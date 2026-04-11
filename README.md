@@ -1165,13 +1165,13 @@ A single `yd-submit --add-to` invocation can add a mix of new Task Groups and ta
 
 As with a normal `yd-submit`, `--follow` (or `-f`) can be used to follow the Work Requirement to completion after additions have been submitted.
 
-If the spec contains `taskDataInputs` with `localFile` entries, those files will be uploaded to the remote destination as usual. If a file was already uploaded during the original submission and has not changed, use `--no-overwrite` (`-N`) to skip re-uploading it:
+If the spec contains `taskDataInputs` with `localFile` entries, those files will be uploaded to the remote destination as usual. If a file was already uploaded during the original submission and has not changed, it will be skipped by default. Use `--overwrite` (`-O`) to force re-uploading:
 
 ```bash
-yd-submit --add-to my-work-requirement --no-overwrite my-spec.json
+yd-submit --add-to my-work-requirement --overwrite my-spec.json
 ```
 
-`--no-overwrite` checks whether the file already exists at the remote destination before uploading, and skips it if so. Without this flag (the default), any file present in the spec is uploaded unconditionally, overwriting any existing remote copy.
+By default, `yd-submit` checks whether a file already exists at the remote destination before uploading, and skips it if so. With `--overwrite`, any file present in the spec is uploaded unconditionally, replacing any existing remote copy.
 
 > **Note:** `--dry-run` is not supported with `--add-to`. Dry-run the specification independently first to inspect its structure before submitting.
 

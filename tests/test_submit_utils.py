@@ -6,6 +6,7 @@ Unit tests for the functions moved from submit.py to submit_utils.py:
 
 from datetime import timedelta
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -358,3 +359,113 @@ class TestCreateTask:
         task = self._call(env={}, add_yd_env_vars=True, wr_name="wr", namespace="ns")
         env: dict = task.environment  # type: ignore[assignment]
         assert su.YD_TAG not in env
+
+
+# ---------------------------------------------------------------------------
+# RcloneUploadedFiles._upload_rclone_file_core — overwrite / skip logic
+# ---------------------------------------------------------------------------
+
+
+class TestUploadRcloneFileCore:
+    """
+    Tests for the skip-if-exists / overwrite behaviour in _upload_rclone_file_core.
+
+    The method is patched at three points:
+      - _parse_rclone_connection_string → returns a fixed (remote, None, path) tuple
+      - make_rclone → returns a mock rclone client
+      - ARGS_PARSER.overwrite → controls whether --overwrite was passed
+    """
+
+    _CONN_STR = "rclone:myremote:/bucket/file.txt"
+    _PARSED = ("myremote", None, "bucket/file.txt")
+    _REMOTE_DEST = "myremote:bucket/file.txt"
+
+    def _run(self, *, remote_exists: bool, overwrite: bool) -> MagicMock:
+        """
+        Run _upload_rclone_file_core with the given remote-exists / overwrite
+        state. Returns the mock rclone instance so callers can inspect calls.
+        """
+        uploaded_file = su.RcloneUploadedFile(
+            local_file_path="file.txt",
+            upload_file_path=self._CONN_STR,
+        )
+        mock_rclone = MagicMock()
+        mock_rclone.exists.return_value = remote_exists
+        mock_rclone.copy_to.return_value = MagicMock(returncode=0, stderr="")
+
+        instance = su.RcloneUploadedFiles()
+
+        with (
+            patch.object(
+                su.RcloneUploadedFiles,
+                "_parse_rclone_connection_string",
+                return_value=self._PARSED,
+            ),
+            patch.object(su, "make_rclone", return_value=mock_rclone),
+            patch.object(
+                su.ARGS_PARSER.__class__,
+                "overwrite",
+                new_callable=lambda: property(lambda self: overwrite),
+            ),
+            patch("yellowdog_cli.utils.submit_utils.Path") as mock_path,
+        ):
+            mock_path.return_value.resolve.return_value = "/resolved/file.txt"
+            instance._upload_rclone_file_core(uploaded_file)
+
+        return mock_rclone
+
+    def test_file_exists_no_overwrite_skips_upload(self):
+        mock_rclone = self._run(remote_exists=True, overwrite=False)
+        mock_rclone.copy_to.assert_not_called()
+
+    def test_file_exists_with_overwrite_uploads(self):
+        mock_rclone = self._run(remote_exists=True, overwrite=True)
+        mock_rclone.copy_to.assert_called_once()
+
+    def test_file_absent_no_overwrite_uploads(self):
+        mock_rclone = self._run(remote_exists=False, overwrite=False)
+        mock_rclone.copy_to.assert_called_once()
+
+    def test_file_absent_with_overwrite_uploads(self):
+        mock_rclone = self._run(remote_exists=False, overwrite=True)
+        mock_rclone.copy_to.assert_called_once()
+
+    def test_file_exists_no_overwrite_existence_check_uses_correct_dest(self):
+        mock_rclone = self._run(remote_exists=True, overwrite=False)
+        mock_rclone.exists.assert_called_once_with(self._REMOTE_DEST)
+
+    def test_file_exists_with_overwrite_skips_existence_check(self):
+        # When --overwrite is set we don't need to check existence at all
+        mock_rclone = self._run(remote_exists=True, overwrite=True)
+        mock_rclone.exists.assert_not_called()
+
+    def test_upload_failure_raises_runtime_error(self):
+        uploaded_file = su.RcloneUploadedFile(
+            local_file_path="file.txt",
+            upload_file_path=self._CONN_STR,
+        )
+        mock_rclone = MagicMock()
+        mock_rclone.exists.return_value = False
+        mock_rclone.copy_to.return_value = MagicMock(
+            returncode=1, stderr="connection refused"
+        )
+
+        instance = su.RcloneUploadedFiles()
+
+        with (
+            patch.object(
+                su.RcloneUploadedFiles,
+                "_parse_rclone_connection_string",
+                return_value=self._PARSED,
+            ),
+            patch.object(su, "make_rclone", return_value=mock_rclone),
+            patch.object(
+                su.ARGS_PARSER.__class__,
+                "overwrite",
+                new_callable=lambda: property(lambda self: False),
+            ),
+            patch("yellowdog_cli.utils.submit_utils.Path") as mock_path,
+            pytest.raises(RuntimeError, match="Upload failed"),
+        ):
+            mock_path.return_value.resolve.return_value = "/resolved/file.txt"
+            instance._upload_rclone_file_core(uploaded_file)
