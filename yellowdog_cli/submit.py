@@ -21,6 +21,7 @@ from yellowdog_client.model import (
     RunSpecification,
     Task,
     TaskGroup,
+    TaskTemplate,
     WorkRequirement,
     WorkRequirementStatus,
 )
@@ -84,6 +85,7 @@ from yellowdog_cli.utils.property_names import (
     TASK_GROUPS,
     TASK_LEVEL_TIMEOUT,
     TASK_NAME,
+    TASK_TEMPLATE,
     TASK_TIMEOUT,
     TASK_TYPE,
     TASK_TYPES,
@@ -502,6 +504,13 @@ def create_task_group(
     # Create a copy of global CONFIG_WR and apply lazy substitutions
     config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
 
+    # Resolve taskTemplate early so it can satisfy the task-type validation below
+    task_template_data = check_dict(
+        task_group_data.get(
+            TASK_TEMPLATE, wr_data.get(TASK_TEMPLATE, config_wr.task_template)
+        )
+    )
+
     # Assemble the RunSpecification values for the Task Group;
     # 'task_types' can automatically be added to by the task_types
     # specified in the Tasks.
@@ -513,7 +522,12 @@ def create_task_group(
     # Use the task type from the config file if present and task_types is empty
     if config_wr.task_type is not None and not task_types:
         task_types.append(config_wr.task_type)
-    if not task_types and num_tasks > 0:
+    # taskTemplate.taskType satisfies the requirement, so only raise when the
+    # template also provides no type
+    template_provides_type = (
+        task_template_data is not None and task_template_data.get(TASK_TYPE) is not None
+    )
+    if not task_types and not template_provides_type and num_tasks > 0:
         raise ValueError(
             f"No Task Type(s) specified in Task Group '{task_group_name}': "
             "is a valid Work Requirement defined?"
@@ -620,6 +634,11 @@ def create_task_group(
     )
     completed_task_ttl = None if ctttl_data is None else timedelta(minutes=ctttl_data)
 
+    # Build TaskTemplate object
+    task_template = (
+        None if task_template_data is None else TaskTemplate(**task_template_data)
+    )
+
     # Create the Task Group
     task_group = TaskGroup(
         name=task_group_name,
@@ -646,6 +665,7 @@ def create_task_group(
         ),
         completedTaskTtl=completed_task_ttl,
         tag=task_group_data.get(TASK_GROUP_TAG),
+        taskTemplate=task_template,
     )
 
     print_info(f"Generated Task Group '{task_group_name}'")

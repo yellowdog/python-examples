@@ -10,6 +10,7 @@ from yellowdog_client.model import (
     CloudProvider,
     DoubleRange,
     TaskGroup,
+    TaskTemplate,
     WorkRequirement,
 )
 from yellowdog_client.model.instance_pricing_preference import InstancePricingPreference
@@ -25,6 +26,7 @@ from yellowdog_cli.utils.property_names import (
     RAM,
     TASK_GROUP_COUNT,
     TASK_GROUPS,
+    TASK_TEMPLATE,
     TASK_TIMEOUT,
     TASK_TYPE,
     TASK_TYPES,
@@ -137,6 +139,17 @@ class TestCreateTaskGroupTaskTypes:
         # Empty task group: no types required
         tg_data = {TASKS: []}
         _call_create_task_group(tg_data)  # should not raise
+
+    def test_no_error_when_task_type_provided_only_via_task_template(self):
+        # taskTemplate.taskType satisfies the requirement
+        tg_data = {TASKS: [{}], TASK_TEMPLATE: {"taskType": "docker"}}
+        _call_create_task_group(tg_data)  # should not raise
+
+    def test_raises_when_no_task_types_and_task_template_has_no_task_type(self):
+        # taskTemplate present but no taskType field — still no type
+        tg_data = {TASKS: [{}, {}], TASK_TEMPLATE: {"taskData": "d"}}
+        with pytest.raises(ValueError, match="No Task Type"):
+            _call_create_task_group(tg_data)
 
 
 # ---------------------------------------------------------------------------
@@ -251,6 +264,73 @@ class TestCreateTaskGroupNaming:
             config_wr=ConfigWorkRequirement(task_group_name="cfg-group"),
         )
         assert tg.name == "explicit"
+
+
+# ---------------------------------------------------------------------------
+# create_task_group — taskTemplate
+# ---------------------------------------------------------------------------
+
+
+class TestCreateTaskGroupTaskTemplate:
+    """taskTemplate propagation to the TaskGroup object."""
+
+    def _tg(self, **extra) -> dict:
+        return {TASKS: [{}], TASK_TYPES: ["bash"], **extra}
+
+    def test_task_template_set_from_tg_data(self):
+        tg_data = self._tg(
+            **{
+                TASK_TEMPLATE: {
+                    "taskType": "docker",
+                    "taskData": "d",
+                    "environment": {"K": "V"},
+                }
+            }
+        )
+        tg = _call_create_task_group(tg_data)
+        assert tg.taskTemplate == TaskTemplate(  # type: ignore[attr-defined]
+            taskType="docker", taskData="d", environment={"K": "V"}
+        )
+
+    def test_task_template_set_from_wr_data(self):
+        tg_data = self._tg()
+        wr_data = {TASK_GROUPS: [tg_data], TASK_TEMPLATE: {"taskType": "docker"}}
+        tg = _call_create_task_group(tg_data, wr_data=wr_data)
+        assert tg.taskTemplate == TaskTemplate(taskType="docker")  # type: ignore[attr-defined]
+
+    def test_tg_level_task_template_overrides_wr_level(self):
+        tg_data = self._tg(**{TASK_TEMPLATE: {"taskType": "bash"}})
+        wr_data = {TASK_GROUPS: [tg_data], TASK_TEMPLATE: {"taskType": "docker"}}
+        tg = _call_create_task_group(tg_data, wr_data=wr_data)
+        assert tg.taskTemplate.taskType == "bash"  # type: ignore[union-attr]
+
+    def test_task_template_set_from_config_wr(self):
+        tg_data = self._tg()
+        tg = _call_create_task_group(
+            tg_data,
+            config_wr=ConfigWorkRequirement(task_template={"taskType": "bash"}),
+        )
+        assert tg.taskTemplate.taskType == "bash"  # type: ignore[union-attr]
+
+    def test_tg_level_task_template_overrides_config_wr(self):
+        tg_data = self._tg(**{TASK_TEMPLATE: {"taskType": "docker"}})
+        tg = _call_create_task_group(
+            tg_data,
+            config_wr=ConfigWorkRequirement(task_template={"taskType": "bash"}),
+        )
+        assert tg.taskTemplate.taskType == "docker"  # type: ignore[union-attr]
+
+    def test_task_template_none_when_not_set(self):
+        tg = _call_create_task_group(self._tg())
+        assert tg.taskTemplate is None  # type: ignore[attr-defined]
+
+    def test_task_template_partial_fields(self):
+        tg_data = self._tg(**{TASK_TEMPLATE: {"taskData": "payload"}})
+        tg = _call_create_task_group(tg_data)
+        tmpl = tg.taskTemplate  # type: ignore[attr-defined]
+        assert tmpl.taskType is None
+        assert tmpl.taskData == "payload"
+        assert tmpl.environment is None
 
 
 # ---------------------------------------------------------------------------

@@ -60,6 +60,7 @@ class ConfigWorkRequirement:
     task_group_name: str | None = None
     task_level_timeout: float | None = None
     task_name: str | None = None
+    task_template: dict | None = None
     task_timeout: float | None = None
     task_type: str | None = None
     tasks_per_worker: int | None = None

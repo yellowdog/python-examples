@@ -33,6 +33,7 @@
    * [Property Inheritance](#property-inheritance)
    * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
    * [Merging Additional Environment Variables into Tasks](#merging-additional-environment-variables-into-tasks)
+   * [Task Templates](#task-templates)
    * [Automatic Properties](#automatic-properties)
       * [Work Requirement, Task Group and Task Naming](#work-requirement-task-group-and-task-naming)
          * [Obtaining Names/Context from Environment Variables at Task Run Time](#obtaining-namescontext-from-environment-variables-at-task-run-time)
@@ -708,7 +709,7 @@ Variable substitutions can also be used within **User Data** to be supplied to i
 
 The `workRequirement` section of the configuration file is optional. It's used only by the `yd-submit` command, and controls the Work Requirement that is submitted to the Platform.
 
-**Jump to:** [Property Dictionary](#work-requirement-property-dictionary) · [Automatic Properties](#automatic-properties) · [Examples](#examples) · [Variable Substitutions](#variable-substitutions-in-work-requirement-properties) · [Dry-Running](#dry-running-work-requirement-submissions) · [Data Client](#using-the-yellowdog-data-client) · [Task Execution Context](#task-execution-context) · [CSV Data](#specifying-work-requirements-using-csv-data)
+**Jump to:** [Property Dictionary](#work-requirement-property-dictionary) · [Task Templates](#task-templates) · [Automatic Properties](#automatic-properties) · [Examples](#examples) · [Variable Substitutions](#variable-substitutions-in-work-requirement-properties) · [Dry-Running](#dry-running-work-requirement-submissions) · [Data Client](#using-the-yellowdog-data-client) · [Task Execution Context](#task-execution-context) · [CSV Data](#specifying-work-requirements-using-csv-data)
 
 The details of a Work Requirement to be submitted can be captured entirely within the TOML configuration file for simple (single Task Group) examples. More complex examples capture the Work Requirement in a combination of the TOML file plus a JSON document, or in a JSON document only.
 
@@ -803,10 +804,11 @@ The following table outlines all the properties available for defining Work Requ
 | `taskName`                  | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                               | Yes  |     |      |      |
 | `taskGroupCount`            | Create `taskGroupCount` duplicates of a single Task Group.                                                                                                                                                           | Yes  | Yes |      |      |
 | `taskGroupName`             | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                      | Yes  |     |      |      |
+| `taskTemplate`              | Sets default `taskType`, `taskData`, and/or `environment` for all Tasks in a Task Group; applied by the back-end, allowing Tasks to be more compact. E.g., `{"taskType": "docker", "environment": {"X": "1"}}`.      | Yes  | Yes | Yes  |      |
 | `taskTimeout`               | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. The default is no timeout.                                                                           | Yes  | Yes | Yes  |      |
 | `timeout`                   | As above, but set at the individual Task level, which overrides the group level `taskTimeout` property (if present).                                                                                                 | Yes  |     |      | Yes  |
 | `taskType`                  | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                           | Yes  |     |      | Yes  |
-| `taskTypes`                 | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", "bash"]`.                                                                                                                    |      | Yes | Yes  |      |
+| `taskTypes`                 | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", "bash"]`.                                                                                                                   |      | Yes | Yes  |      |
 | `tasksPerWorker`            | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                                                                  | Yes  | Yes | Yes  |      |
 | `vcpus`                     | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                                                                           | Yes  | Yes | Yes  |      |
 | `workerTags`                | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                         | Yes  | Yes | Yes  |      |
@@ -840,6 +842,45 @@ The `addEnvironment` property allows a fixed set of environment variable key-val
   ]
 }
 ```
+
+## Task Templates
+
+The `taskTemplate` property on a Task Group optionally sets default values for `taskType`, `taskData`, and `environment` for all Tasks in that group. These defaults are applied by the YellowDog back-end, allowing individual Task specifications to be more compact — Tasks that share the same type and data don't need to repeat them.
+
+Any combination of the three fields can be specified; omitted fields are simply not defaulted. Values specified directly on an individual Task take precedence over the template.
+
+`taskTemplate` can be set in the TOML config (applying globally as a default), at the Work Requirement level, or at the Task Group level. More specific levels take precedence.
+
+### Example — TOML
+
+```toml
+[workRequirement]
+    taskTemplate = {taskType = "docker", taskData = "default-data", environment = {BATCH_SIZE = "100"}}
+```
+
+### Example — JSON
+
+```json
+{
+  "taskGroups": [
+    {
+      "taskTemplate": {
+        "taskType": "docker",
+        "taskData": "default-data",
+        "environment": {"BATCH_SIZE": "100"}
+      },
+      "taskTypes": ["docker"],
+      "tasks": [
+        {},
+        {"environment": {"BATCH_SIZE": "200"}},
+        {}
+      ]
+    }
+  ]
+}
+```
+
+All three Tasks use the `docker` task type from the template. The second Task overrides `BATCH_SIZE` to `"200"`; the others inherit `"100"` from the template.
 
 ## Automatic Properties
 
@@ -937,6 +978,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskName = "my_task_number_{{task_number}}"
     taskGroupCount = 5
     taskGroupName = "my_task_group_number_{{task_group_number}}"
+    taskTemplate = {taskType = "docker", taskData = "my_data_string", environment = {MY_VAR = "value"}}
     taskTimeout = 120.0
     taskType = "docker"
     tasksPerWorker = 1
@@ -992,6 +1034,7 @@ Showing all possible properties at the Work Requirement level:
     {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
   ],
   "taskGroupCount": 5,
+  "taskTemplate": {"taskType": "docker", "taskData": "my_task_data_string", "environment": {"MY_VAR": "value"}},
   "taskTimeout": 120.0,
   "taskTypes": ["docker"],
   "tasksPerWorker": 1,
@@ -1056,6 +1099,7 @@ Showing all possible properties at the Task Group level:
         {"alwaysUpload": true, "destination": "dest_path_1", "source": "out_src_path_1"},
         {"alwaysUpload": false, "destination": "dest_path_2", "source": "out_src_path_2"}
       ],
+      "taskTemplate": {"taskType": "docker", "taskData": "default-data", "environment": {"VAR": "value"}},
       "taskTimeout": 120.0,
       "taskTypes": ["docker"],
       "tasksPerWorker": 1,

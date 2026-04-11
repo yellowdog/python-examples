@@ -79,6 +79,7 @@ TASK_GROUP_TAG = "tag"  # String
 TASK_LEVEL_TIMEOUT = "timeout"  # Float
 TASK_NAME = "taskName"  # String
 TASK_TAG = "tag"  # String
+TASK_TEMPLATE = "taskTemplate"  # Dict
 TASK_TIMEOUT = "taskTimeout"  # Float
 TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
@@ -181,6 +182,7 @@ ALL_KEYS = [
     TASK_LEVEL_TIMEOUT,
     TASK_NAME,
     TASK_TAG,
+    TASK_TEMPLATE,
     TASK_TIMEOUT,
     TASK_TYPE,
     TASK_TYPES,

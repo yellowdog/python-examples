@@ -624,6 +624,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
             task_group_count=task_group_count,
             task_group_name=wr_section.get(TASK_GROUP_NAME),
             task_name=wr_section.get(TASK_NAME),
+            task_template=wr_section.get(TASK_TEMPLATE),
             task_timeout=wr_section.get(TASK_TIMEOUT),
             task_type=task_type,
             tasks_per_worker=wr_section.get(TASKS_PER_WORKER),
