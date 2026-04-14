@@ -735,6 +735,12 @@ The `env:` prefix can be combined with the unset suffix to make a property condi
 region = "{{env:MY_REGION::}}"   # removed if MY_REGION is not set
 ```
 
+The bare `{{::}}` (no variable name) always removes the property unconditionally — useful for explicitly suppressing a property that a base template includes:
+
+```toml
+taskType = "{{::}}"   # always removed
+```
+
 ## Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data
 
 In JSON/Jsonnet specifications for Worker Pools and Compute Requirements, variable substitutions **must be prefixed and postfixed by double underscores** `__`, e.g., `__{{username}}__`. This is to disambiguate client-side variable substitutions from server-side Mustache variable processing.

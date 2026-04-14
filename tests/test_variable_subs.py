@@ -368,6 +368,23 @@ class TestUnsetSuffix:
         assert "key" not in data
         assert data["name"] == "job"
 
+    # bare '{{::}}' — always-unset shorthand
+
+    def test_bare_unset_returns_sentinel(self):
+        result = var_module.process_variable_substitutions("{{::}}")
+        assert result is var_module._UNSET
+
+    def test_bare_unset_removes_dict_key(self):
+        data = {"name": "job", "taskType": "{{::}}"}
+        var_module.process_variable_substitutions_insitu(data)
+        assert "taskType" not in data
+        assert data["name"] == "job"
+
+    def test_bare_unset_removes_list_element(self):
+        data = {"items": ["keep", "{{::}}", "also-keep"]}
+        var_module.process_variable_substitutions_insitu(data)
+        assert data["items"] == ["keep", "also-keep"]
+
 
 # ---------------------------------------------------------------------------
 # add_substitutions_without_overwriting
