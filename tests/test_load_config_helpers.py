@@ -229,7 +229,6 @@ class TestLoadConfigWorkRequirement:
         assert result.task_count == 1
         assert result.task_group_count == 1
         assert result.task_batch_size == TASK_BATCH_SIZE_DEFAULT
-        assert result.priority == pytest.approx(0.0)
         assert result.task_type is None
         assert result.csv_files is None
 

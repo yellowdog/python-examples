@@ -39,12 +39,12 @@ class ConfigWorkRequirement:
     finish_if_any_task_failed: bool = False
     instance_pricing_preference: str | None = None
     instance_types: list[str] | None = None
-    max_retries: int = 0
+    max_retries: int | None = None
     max_workers: int | None = None
     min_workers: int | None = None
     namespaces: list[str] | None = None
     parallel_batches: int | None = None
-    priority: float = 0.0
+    priority: float | None = None
     providers: list[str] | None = None
     ram: list[float] | None = None
     regions: list[str] | None = None
