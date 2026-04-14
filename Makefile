@@ -32,8 +32,7 @@ format: pyupgrade isort black
 #	mypy $(SRC) $(TESTS)
 
 pypi_upload: clean build
-	# '--repository yellowdog-cli' maps into the correct application token
-	# for the YellowDog PyPI account
+	# '--repository yellowdog-cli' maps into the correct API token for yellowdog-cli uploads
 	python -m twine upload --repository yellowdog-cli dist/*
 
 pypi_test_upload: clean build
