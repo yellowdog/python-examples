@@ -577,6 +577,33 @@ def get_task_group_name(
     return "task_group_" + formatted_number_str(task_group_number, num_task_groups)
 
 
+def resolve_task_data(
+    data: dict,
+    files_directory: str = "",
+    task_data_default: str | None = None,
+    task_data_file_default: str | None = None,
+) -> str | None:
+    """
+    Resolve 'taskData' from a single dict level.
+
+    Returns the task data string (reading from file if 'taskDataFile' is used),
+    or None if neither property is present at this level.
+    Raises ValueError if both 'taskData' and 'taskDataFile' are set.
+    """
+    task_data = data.get(TASK_DATA, task_data_default)
+    task_data_file = data.get(TASK_DATA_FILE, task_data_file_default)
+    if task_data and task_data_file:
+        raise ValueError(
+            f"Properties '{TASK_DATA}' and '{TASK_DATA_FILE}' are both set"
+        )
+    if task_data:
+        return task_data
+    if task_data_file:
+        with open(resolve_filename(files_directory, task_data_file)) as f:
+            return f.read()
+    return None
+
+
 def get_task_data_property(
     config_wr: ConfigWorkRequirement,
     wr_data: dict,
@@ -586,31 +613,26 @@ def get_task_data_property(
     files_directory: str = "",
 ) -> str | None:
     """
-    Get the 'taskData' property, either using the contents of the file
-    specified in 'taskDataFile' or using the string specified in 'taskData'.
-    Raise exception if both 'taskData' and 'taskDataFile' are set at the same
-    level in the Work Requirement.
+    Get the 'taskData' property for a Task, checking Task → Task Group → WR
+    level in order. 'taskDataFile' is resolved to its file contents at whichever
+    level it is found.
     """
-    # Try Task, Task Group, then Work Requirement data
     for data, task_data_default, task_data_file_default in [
         (task, None, None),
         (task_group_data, None, None),
         (wr_data, config_wr.task_data, config_wr.task_data_file),
     ]:
-        task_data_property = data.get(TASK_DATA, task_data_default)
-        task_data_file_property = data.get(TASK_DATA_FILE, task_data_file_default)
-        if task_data_property and task_data_file_property:
+        try:
+            result = resolve_task_data(
+                data, files_directory, task_data_default, task_data_file_default
+            )
+        except ValueError:
             raise ValueError(
                 f"Task '{task_name}': Properties '{TASK_DATA}' and "
                 f"'{TASK_DATA_FILE}' are both set"
             )
-
-        if task_data_property:
-            return task_data_property
-
-        if task_data_file_property:
-            with open(resolve_filename(files_directory, task_data_file_property)) as f:
-                return f.read()
+        if result is not None:
+            return result
 
     return None
 

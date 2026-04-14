@@ -848,7 +848,7 @@ The following table outlines all the properties available for defining Work Requ
 | `taskName`                  | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                               | Yes  |     |      |      |
 | `taskGroupCount`            | Create `taskGroupCount` duplicates of a single Task Group.                                                                                                                                                           | Yes  | Yes |      |      |
 | `taskGroupName`             | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                      | Yes  |     |      |      |
-| `taskTemplate`              | Sets default `taskType`, `taskData`, and/or `environment` for all Tasks in a Task Group; applied by the platform, allowing Tasks to be more compact. E.g., `{"taskType": "docker", "environment": {"X": "1"}}`.      | Yes  | Yes | Yes  |      |
+| `taskTemplate`              | Sets default `taskType`, `taskData` (or `taskDataFile`), and/or `environment` for all Tasks in a Task Group; applied by the platform, allowing Tasks to be more compact. E.g., `{"taskType": "docker", "environment": {"X": "1"}}`.      | Yes  | Yes | Yes  |      |
 | `taskTimeout`               | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. The default is no timeout.                                                                           | Yes  | Yes | Yes  |      |
 | `timeout`                   | As above, but set at the individual Task level, which overrides the group level `taskTimeout` property (if present).                                                                                                 | Yes  |     |      | Yes  |
 | `taskType`                  | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                           | Yes  |     |      | Yes  |
@@ -935,6 +935,8 @@ Each Task is invoked as `python process.py --input <file>`.
 The `taskTemplate` property on a Task Group optionally sets default values for `taskType`, `taskData`, and `environment` for all Tasks in that group. These defaults are applied by the YellowDog platform, allowing individual Task specifications to be more compact — Tasks that share the same type and data don't need to repeat them.
 
 Any combination of the three fields can be specified; omitted fields are simply not defaulted. Values specified directly on an individual Task take precedence over the template.
+
+`taskDataFile` can be used inside `taskTemplate` as an alternative to `taskData`, exactly as it can at the Task level — the file contents are read client-side and used as the `taskData` value.
 
 `taskTemplate` can be set in the TOML config (applying globally as a default), at the Work Requirement level, or at the Task Group level. More specific levels take precedence.
 

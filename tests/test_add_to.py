@@ -286,7 +286,12 @@ class TestAddToPartitioning:
             return updated_wr
 
         def fake_create_tg(
-            tg_number, wr_data, task_group_data, tg_number_offset, total_num_task_groups
+            tg_number,
+            wr_data,
+            task_group_data,
+            tg_number_offset,
+            total_num_task_groups,
+            files_directory="",
         ):
             return _make_tg(task_group_data[NAME])
 

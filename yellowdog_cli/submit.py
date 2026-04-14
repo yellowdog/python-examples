@@ -77,6 +77,8 @@ from yellowdog_cli.utils.property_names import (
     REGIONS,
     SET_TASK_NAMES,
     TASK_COUNT,
+    TASK_DATA,
+    TASK_DATA_FILE,
     TASK_DATA_INPUTS,
     TASK_DATA_OUTPUTS,
     TASK_GROUP_COUNT,
@@ -121,6 +123,7 @@ from yellowdog_cli.utils.submit_utils import (
     get_task_name,
     merge_environment,
     pause_between_batches,
+    resolve_task_data,
     update_config_work_requirement_object,
 )
 from yellowdog_cli.utils.type_check import (
@@ -376,7 +379,12 @@ def submit_work_requirement(
         cast(dict, wr_data).get(TASK_GROUPS, [])
     ):
         task_groups.append(
-            create_task_group(tg_number, cast(dict, wr_data), task_group_data)
+            create_task_group(
+                tg_number,
+                cast(dict, wr_data),
+                task_group_data,
+                files_directory=files_directory,
+            )
         )
 
     # Create the Work Requirement
@@ -439,6 +447,7 @@ def create_task_group(
     task_group_data: dict,
     tg_number_offset: int = 0,
     total_num_task_groups: int | None = None,
+    files_directory: str = "",
 ) -> TaskGroup:
     """
     Create a TaskGroup object.
@@ -634,10 +643,19 @@ def create_task_group(
     )
     completed_task_ttl = None if ctttl_data is None else timedelta(minutes=ctttl_data)
 
-    # Build TaskTemplate object
-    task_template = (
-        None if task_template_data is None else TaskTemplate(**task_template_data)
-    )
+    # Build TaskTemplate object, resolving taskDataFile → taskData if present
+    if task_template_data is not None:
+        tt = dict(task_template_data)
+        try:
+            task_data = resolve_task_data(tt, files_directory)
+        except ValueError as e:
+            raise ValueError(f"taskTemplate: {e}") from e
+        tt.pop(TASK_DATA_FILE, None)
+        if task_data is not None:
+            tt[TASK_DATA] = task_data
+        task_template = TaskTemplate(**tt)
+    else:
+        task_template = None
 
     # Create the Task Group
     task_group = TaskGroup(
@@ -1228,6 +1246,7 @@ def add_to_existing_work_requirement(
                 task_group_data,
                 tg_number_offset=n_existing,
                 total_num_task_groups=total_tgs,
+                files_directory=files_directory,
             )
         )
 
