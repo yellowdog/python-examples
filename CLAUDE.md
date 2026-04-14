@@ -28,7 +28,7 @@ make build            # python -m build
 # Run tests
 pytest -v                           # standard tests only
 pytest -v --run-demos               # include demo integration tests
-pytest -v -n 2 --run-demos          # parallel with pytest-xdist
+pytest -v -n 4 --run-demos tests/test_demos.py  # parallel demos (target file to avoid unit tests consuming workers first)
 pytest -v -k test_variable          # run a single test file/pattern
 
 # Update dependencies
@@ -54,7 +54,7 @@ yellowdog_cli/
     ├── entity_utils.py          # API entity lookups (LRU-cached search functions)
     ├── printing.py              # Rich-based output formatting
     ├── variables.py             # Variable substitution engine ({{ }} delimiters)
-    ├── submit_utils.py          # Work requirement construction helpers
+    ├── submit_utils.py          # Work requirement construction helpers; resolve_task_data() resolves taskData/taskDataFile (with variable substitution) for tasks and taskTemplate
     ├── csv_data.py              # CSV batch task processing; substitution uses << >> delimiters
     ├── property_names.py        # All TOML/JSON spec property name constants + ALL_KEYS list
     ├── ydid_utils.py            # YDIDType enum + get_ydid_type() prefix parser
@@ -127,6 +127,8 @@ Any TOML property can be overridden on the command line with `--property 'sectio
 ### Variable Substitution
 
 Specs (TOML/JSON/Jsonnet) support `{{variable_name}}` substitution with type tags: `num:`, `bool:`, `array:`, `table:`, `format_name:`. Default values use `:=` separator. Environment variables via `env:` prefix. Up to 3 levels of nesting (`TOML_VAR_NESTED_DEPTH = 3`).
+
+The `::` unset suffix (`{{varname::}}`) removes a property entirely when the variable is undefined; if defined, its value is used normally. The bare `{{::}}` always removes the property unconditionally. Both work in TOML, JSON, and Jsonnet — `process_variable_substitutions_in_file_contents` leaves unset tokens intact so `process_variable_substitutions_insitu` can remove them after parsing.
 
 CSV batch task prototypes use a separate `<<variable_name>>` delimiter system (defined in `csv_data.py`), distinct from `{{`/`}}` to allow both to coexist in the same spec without ambiguity.
 
