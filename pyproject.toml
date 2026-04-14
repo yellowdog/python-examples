@@ -59,6 +59,8 @@
     yd-instantiate = "yellowdog_cli.instantiate:main"
     yd-jsonnet2json = "yellowdog_cli.jsonnet2json:main"
     yd-list = "yellowdog_cli.list:main"
+    yd-nodeaction = "yellowdog_cli.nodeaction:main"
+    yd-ls = "yellowdog_cli.ls:main"
     yd-provision = "yellowdog_cli.provision:main"
     yd-remove = "yellowdog_cli.remove:main"
     yd-resize = "yellowdog_cli.resize:main"

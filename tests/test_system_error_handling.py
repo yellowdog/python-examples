@@ -44,9 +44,16 @@ def _has_error(result) -> bool:
 class TestHardFailures:
     """Commands that raise an exception and exit 1."""
 
-    def test_create_nonexistent_file(self):
+    @pytest.mark.parametrize(
+        "cmd",
+        [
+            "yd-create /this/path/does/not/exist.json",
+            "yd-remove -y /this/path/does/not/exist.json",
+        ],
+    )
+    def test_nonexistent_file(self, cmd):
         # No platform needed
-        result = shell("yd-create /this/path/does/not/exist.json")
+        result = shell(cmd)
         assert result.exit_code == 1
         assert _has_error(result)
 
@@ -55,12 +62,6 @@ class TestHardFailures:
         bad = tmp_path / "bad.json"
         bad.write_text("{ this is not : valid json !!!")
         result = shell(f"yd-create {bad}")
-        assert result.exit_code == 1
-        assert _has_error(result)
-
-    def test_remove_nonexistent_file(self):
-        # No platform needed
-        result = shell("yd-remove -y /this/path/does/not/exist.json")
         assert result.exit_code == 1
         assert _has_error(result)
 

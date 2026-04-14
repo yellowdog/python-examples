@@ -11,7 +11,7 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, main_wrapper
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.yellowdog_ids) == 0:
+    if not ARGS_PARSER.yellowdog_ids:
         print_info("No YellowDog IDs to follow")
         return
 

@@ -49,7 +49,7 @@ class CSVTaskData:
                     row_length = len(row)
                 else:
                     if len(row) != row_length:
-                        raise Exception(
+                        raise ValueError(
                             f"Malformed CSV file (row {row_number + 1}): "
                             "all rows must have the same number of items"
                         )
@@ -107,14 +107,14 @@ class CSVDataCache:
         self._csv_task_data_objects: OrderedDict[str, CSVTaskData] = OrderedDict()
 
     def get_csv_task_data(self, csv_filename: str) -> CSVTaskData:
-        csv_task_data = self._csv_task_data_objects.get(csv_filename, None)
+        csv_task_data = self._csv_task_data_objects.get(csv_filename)
         if csv_task_data:  # Cache hit
             csv_task_data.reset()
         else:  # Cache miss
             if self._max_entries is not None:
                 if (
                     len(self._csv_task_data_objects) == self._max_entries
-                    and len(self._csv_task_data_objects) > 0
+                    and self._csv_task_data_objects
                 ):
                     self._csv_task_data_objects.popitem(last=False)
             csv_task_data = CSVTaskData(csv_filename)
@@ -184,7 +184,7 @@ def perform_csv_task_expansion(
         )
 
     if len(csv_files) > len(wr_data[TASK_GROUPS]):
-        raise Exception("Number of CSV files exceeds number of Task Groups")
+        raise ValueError("Number of CSV files exceeds number of Task Groups")
 
     for counter, csv_file in enumerate(csv_files):
         csv_file, index = get_csv_file_index(csv_file, wr_data[TASK_GROUPS])
@@ -199,7 +199,7 @@ def perform_csv_task_expansion(
             f" '{resolved_csv_file}'"
         )
         if len(wr_data[TASK_GROUPS][index][TASKS]) != 1:
-            raise Exception(
+            raise ValueError(
                 f"Task Group {index + 1} must have only a single (prototype) Task "
                 "when using CSV file for data"
             )
@@ -261,7 +261,7 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
         try:
             float(value)
         except ValueError:
-            raise Exception(f"Invalid number substitution in CSV: '{value}'")
+            raise ValueError(f"Invalid number substitution in CSV: '{value}'")
         input = input.replace(f"'{num_sub_str}'", value)
 
     bool_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{BOOL_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
@@ -271,7 +271,7 @@ def make_string_substitutions(input: str, var_name: str, value: str) -> str:
         elif value.lower() == "false":
             value = "False"
         else:
-            raise Exception(f"Invalid Boolean substitution in CSV: '{value}'")
+            raise ValueError(f"Invalid Boolean substitution in CSV: '{value}'")
         input = input.replace(f"'{bool_sub_str}'", value)
 
     lower_sub_str = f"{CSV_VAR_OPENING_DELIMITER}{FORMAT_NAME_TYPE_TAG}{var_name}{CSV_VAR_CLOSING_DELIMITER}"
@@ -302,11 +302,11 @@ def get_csv_file_index(
     if len(matches) == 1:
         index = int(matches[0][1:])
         if not 0 < index <= len(task_groups):
-            raise Exception(
+            raise ValueError(
                 f"CSV file Task Group index '{index}' is outside Task Group range"
             )
         if index in USED_FILE_INDEXES:
-            raise Exception(f"CSV file Task Group index '{index}' used more than once")
+            raise ValueError(f"CSV file Task Group index '{index}' used more than once")
         USED_FILE_INDEXES.append(index)
         return csv_filename.replace(matches[0], ""), index - 1
 
@@ -320,7 +320,7 @@ def get_csv_file_index(
             except KeyError:
                 pass
         else:
-            raise Exception(f"No matches for Task Group name '{matches[0][1:]}'")
+            raise KeyError(f"No matches for Task Group name '{matches[0][1:]}'")
 
     # Invalid Task Group naming?
     split_name = csv_filename.split(":")
@@ -375,21 +375,8 @@ def csv_expand_toml_tasks(
     # Populate properties that can be set at Task level only
     for config_value, config_name in [
         (config_wr.add_yd_env_vars, ADD_YD_ENV_VARS),
-        (config_wr.always_upload, ALWAYS_UPLOAD),
         (config_wr.args, ARGS),
-        (config_wr.docker_env, DOCKER_ENV),
-        (config_wr.docker_options, DOCKER_OPTIONS),
-        (config_wr.docker_password, DOCKER_PASSWORD),
-        (config_wr.docker_registry, DOCKER_REGISTRY),
-        (config_wr.docker_username, DOCKER_USERNAME),
         (config_wr.env, ENV),
-        (config_wr.executable, EXECUTABLE),
-        (config_wr.flatten_input_paths, FLATTEN_PATHS),
-        (config_wr.inputs_optional, INPUTS_OPTIONAL),
-        (config_wr.inputs_required, INPUTS_REQUIRED),
-        (config_wr.outputs_optional, OUTPUTS_OPTIONAL),
-        (config_wr.outputs_other, OUTPUTS_OTHER),
-        (config_wr.outputs_required, OUTPUTS_REQUIRED),
         (config_wr.set_task_names, SET_TASK_NAMES),
         (config_wr.task_data, TASK_DATA),
         (config_wr.task_data_file, TASK_DATA_FILE),
@@ -400,10 +387,6 @@ def csv_expand_toml_tasks(
         (config_wr.task_name, TASK_NAME),
         (config_wr.task_timeout, TASK_TIMEOUT),
         (config_wr.task_type, TASK_TYPE),
-        (config_wr.upload_files, UPLOAD_FILES),
-        (config_wr.upload_taskoutput, UPLOAD_TASKOUTPUT),
-        (config_wr.verify_at_start, VERIFY_AT_START),
-        (config_wr.verify_wait, VERIFY_WAIT),
         # Note: not TASK_COUNT; count determined by CSV data
     ]:
         if config_value is not None and substitutions_present(

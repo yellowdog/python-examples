@@ -5,6 +5,7 @@ A script to remove YellowDog resources.
 """
 
 from copy import deepcopy
+from typing import cast
 
 from requests import delete
 from requests.exceptions import HTTPError
@@ -12,8 +13,6 @@ from yellowdog_client.model import (
     MachineImage,
     MachineImageFamily,
     MachineImageGroup,
-    NamespaceStorageConfiguration,
-    WorkerPoolStatus,
 )
 
 from yellowdog_cli.utils.entity_utils import (
@@ -53,7 +52,6 @@ from yellowdog_cli.utils.settings import (
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
-    RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
@@ -80,7 +78,7 @@ def remove_resources(resources: list[dict] | None = None):
     else:
         resources = deepcopy(resources)  # Avoid overwriting the input argument
 
-    for resource in resources:
+    for resource in resources or []:
         try:
             resource_type = resource.pop(PROP_RESOURCE)
         except KeyError:
@@ -100,8 +98,6 @@ def remove_resources(resources: list[dict] | None = None):
                 remove_credential(resource)
             elif resource_type == RN_IMAGE_FAMILY:
                 remove_image_family(resource)
-            elif resource_type == RN_STORAGE_CONFIGURATION:
-                remove_namespace_configuration(resource)
             elif resource_type == RN_CONFIGURED_POOL:
                 remove_configured_worker_pool(resource)
             elif resource_type == RN_ALLOWANCE:
@@ -294,35 +290,6 @@ def remove_image_family(resource: dict):
         print_error(f"Unable to remove Image Family '{fq_name}': {e}")
 
 
-def remove_namespace_configuration(resource: dict):
-    """
-    Remove a Namespace Storage Configuration.
-    """
-    try:
-        namespace = resource[PROP_NAMESPACE]
-    except KeyError as e:
-        print_error(f"Expected property to be defined ({e})")
-        return
-
-    namespaces: list[NamespaceStorageConfiguration] = (
-        CLIENT.object_store_client.get_namespace_storage_configurations()
-    )
-    if namespace not in [x.namespace for x in namespaces]:
-        print_warning(f"Cannot find Namespace Storage Configuration '{namespace}'")
-        return
-
-    if not confirmed(f"Remove Namespace Storage Configuration '{namespace}'?"):
-        return
-
-    try:
-        CLIENT.object_store_client.delete_namespace_storage_configuration(namespace)
-        print_info(f"Removed Namespace Storage Configuration '{namespace}'")
-    except Exception as e:
-        print_error(
-            f"Unable to remove Namespace Storage Configuration '{namespace}': {e}"
-        )
-
-
 def remove_configured_worker_pool(resource: dict):
     """
     Shutdown a Configured Worker Pool.
@@ -351,10 +318,7 @@ def remove_configured_worker_pool(resource: dict):
         )
         return
 
-    if worker_pool.status in [
-        WorkerPoolStatus.SHUTDOWN,
-        WorkerPoolStatus.TERMINATED,
-    ]:
+    if worker_pool.status.finished:
         print_info(
             f"Not shutting down already {worker_pool.status} Configured "
             f"Worker Pool '{fq_name}' ({worker_pool.id})"
@@ -381,10 +345,12 @@ def remove_allowance(resource: dict):
     """
     Remove an allowance, matching on the 'description' property.
     """
-    description = resource.get(PROP_DESCRIPTION, None)
+    description = resource.get(PROP_DESCRIPTION)
     if description is not None:
         print_info(f"Removing allowance(s) matching description '{description}'")
-        num_removed = remove_allowances_matching_description(CLIENT, description)
+        num_removed = remove_allowances_matching_description(
+            CLIENT, cast(str, description)
+        )
         if num_removed > 0:
             print_info(f"Removed {num_removed} Allowance(s)")
 
@@ -479,7 +445,7 @@ def remove_attribute_definition(resource: dict):
     try:
         name = resource[PROP_NAME]
     except KeyError as e:
-        raise Exception(f"Expected property to be defined ({e})")
+        raise KeyError(f"Expected property to be defined ({e})")
 
     if not confirmed(f"Remove Attribute Definition '{name}'?"):
         return
@@ -492,7 +458,7 @@ def remove_attribute_definition(resource: dict):
         print_info(f"Removed Attribute Definition '{name}' (if present)")
         return
 
-    raise Exception(f"HTTP {response.status_code} ({response.text})")
+    raise RuntimeError(f"HTTP {response.status_code} ({response.text})")
 
 
 def remove_namespace_policy(resource: dict):

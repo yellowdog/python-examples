@@ -2,17 +2,20 @@
 Common utility functions, mostly related to loading configuration data.
 """
 
+import json
 import os
 from os import getenv
 from os.path import abspath, dirname, join, relpath
 from pathlib import Path
 from sys import exit
+from typing import cast
 
 from tomli import TOMLDecodeError
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.config_types import (
     ConfigCommon,
+    ConfigDataClient,
     ConfigWorkerPool,
     ConfigWorkRequirement,
 )
@@ -31,6 +34,10 @@ from yellowdog_cli.utils.settings import (
     DEFAULT_URL,
     TASK_BATCH_SIZE_DEFAULT,
     TOML_VAR_NESTED_DEPTH,
+    YD_DATA_CLIENT,
+    YD_DATA_CLIENT_BUCKET,
+    YD_DATA_CLIENT_PREFIX,
+    YD_DATA_CLIENT_REMOTE,
     YD_KEY,
     YD_KEY_ALT,
     YD_NAMESPACE,
@@ -44,11 +51,72 @@ from yellowdog_cli.utils.type_check import check_list, check_str
 from yellowdog_cli.utils.validate_properties import validate_properties
 from yellowdog_cli.utils.variables import (
     VARIABLE_SUBSTITUTIONS,
+    add_or_update_substitution,
     add_substitutions_without_overwriting,
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions,
     process_variable_substitutions_insitu,
 )
+
+
+def _parse_property_value(value_str: str):
+    """
+    Parse a property value string into a Python object.
+    Tries JSON first (handles bool, int, float, list, dict), falls back to str.
+    """
+    try:
+        return json.loads(value_str)
+    except (json.JSONDecodeError, ValueError):
+        return value_str
+
+
+def _apply_property_overrides(config: dict, overrides: list[str]) -> None:
+    """
+    Apply '--property section.key=value' overrides to CONFIG_TOML in-place.
+
+    Each override must be in 'section.key=value' format.  The value is parsed
+    via JSON first (handles bool, int, float, list, dict); if that fails it is
+    treated as a plain string.  Unknown section names are rejected; unknown
+    property names produce a warning.
+    """
+    valid_sections = {
+        COMMON_SECTION,
+        DATA_CLIENT_SECTION,
+        WORK_REQUIREMENT_SECTION,
+        WORKER_POOL_SECTION,
+        COMPUTE_REQUIREMENT_SECTION,
+    }
+    for override in overrides:
+        if "=" not in override:
+            print_error(
+                f"Invalid --property format '{override}': expected 'section.key=value'"
+            )
+            exit(1)
+        lhs, _, value_str = override.partition("=")
+        if "." not in lhs:
+            print_error(
+                f"Invalid --property format '{override}': "
+                f"expected 'section.key=value' (missing section)"
+            )
+            exit(1)
+        section, _, rest = lhs.partition(".")
+        if section not in valid_sections:
+            print_error(
+                f"Unknown section '{section}' in --property '{override}'. "
+                f"Valid sections: {', '.join(sorted(valid_sections))}"
+            )
+            exit(1)
+        path = rest.split(".")
+        value = _parse_property_value(value_str)
+        if section not in config:
+            config[section] = {}
+        target = config[section]
+        for part in path[:-1]:
+            target = target.setdefault(part, {})
+        target[path[-1]] = value
+        display_section = ".".join([section] + path[:-1])
+        print_info(f"Property override: [{display_section}] {path[-1]} = {value!r}")
+
 
 # Support for alternative common env. vars; written into the normal vars.
 for norm, alt in [
@@ -56,8 +124,9 @@ for norm, alt in [
     (YD_SECRET, YD_SECRET_ALT),
     (YD_URL, YD_URL_ALT),
 ]:
-    if os.getenv(norm) is None and os.getenv(alt) is not None:
-        os.environ[norm] = os.getenv(alt)
+    alt_value = os.getenv(alt)
+    if os.getenv(norm) is None and alt_value is not None:
+        os.environ[norm] = alt_value
 
 # CLI > YD_CONF > 'config.toml'
 CONFIG_FILE = relpath(
@@ -71,6 +140,8 @@ if ARGS_PARSER.no_config:
     print_info(f"Configuration file ('{CONFIG_FILE}') ignored")
     CONFIG_TOML = {COMMON_SECTION: {}}
     CONFIG_FILE_DIR = os.getcwd()
+    if ARGS_PARSER.property_overrides:
+        _apply_property_overrides(CONFIG_TOML, ARGS_PARSER.property_overrides)
 
 else:
     # Attempt to load configuration data from TOML file
@@ -84,10 +155,21 @@ else:
         print_info(f"Loading configuration data from: '{CONFIG_FILE}'")
         CONFIG_TOML: dict = load_toml_file_with_variable_substitutions(CONFIG_FILE)
         try:
-            validate_properties(CONFIG_TOML, f"'{CONFIG_FILE}'")
+            # Strip profile sub-tables from [dataClient] before validation;
+            # profile names are user-defined and not in ALL_KEYS.
+            toml_for_validation = dict(CONFIG_TOML)
+            if DATA_CLIENT_SECTION in toml_for_validation:
+                toml_for_validation[DATA_CLIENT_SECTION] = {
+                    k: v
+                    for k, v in toml_for_validation[DATA_CLIENT_SECTION].items()
+                    if not isinstance(v, dict)
+                }
+            validate_properties(toml_for_validation, f"'{CONFIG_FILE}'")
         except Exception as e:
             print_error(e)
             exit(1)
+        if ARGS_PARSER.property_overrides:
+            _apply_property_overrides(CONFIG_TOML, ARGS_PARSER.property_overrides)
 
     except FileNotFoundError as e:
         if ARGS_PARSER.config_file is not None:
@@ -144,21 +226,21 @@ def load_config_common() -> ConfigCommon:
                     "(or automatically set)"
                 )
             elif (
-                common_section.get(key_name, None) is None
-                and os.environ.get(env_var_name, None) is not None
+                common_section.get(key_name) is None
+                and os.environ.get(env_var_name) is not None
             ):
                 common_section[key_name] = os.environ[env_var_name]
                 print_info(f"Using '{key_name}' provided via the environment")
 
         # Provide default values for namespace and tag
-        if common_section.get(NAMESPACE, None) is None:
+        if common_section.get(NAMESPACE) is None:
             common_section[NAMESPACE] = "default"
             if ARGS_PARSER.namespace_required:
                 print_info(
                     "Using default value for 'namespace': "
                     f"'{common_section[NAMESPACE]}'"
                 )
-        if common_section.get(NAME_TAG, None) is None:
+        if common_section.get(NAME_TAG) is None:
             common_section[NAME_TAG] = "{{username}}"
             if ARGS_PARSER.tag_required:
                 print_info(
@@ -166,7 +248,9 @@ def load_config_common() -> ConfigCommon:
                     f"'{VARIABLE_SUBSTITUTIONS['username']}'"
                 )
 
-        url = process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
+        url = cast(
+            str, process_variable_substitutions(common_section.get(URL, DEFAULT_URL))
+        )
         if url != DEFAULT_URL:
             print_info(f"Using the YellowDog API at: {url}")
 
@@ -175,19 +259,20 @@ def load_config_common() -> ConfigCommon:
         # substitutions for the items in its dictionary each time it's
         # called
         add_substitutions_without_overwriting(subs={URL: url})
-        key = process_variable_substitutions(common_section[KEY])
+        key = cast(str, process_variable_substitutions(common_section[KEY]))
         add_substitutions_without_overwriting(subs={KEY: key})
-        secret = process_variable_substitutions(common_section[SECRET])
+        secret = cast(str, process_variable_substitutions(common_section[SECRET]))
         add_substitutions_without_overwriting(subs={SECRET: secret})
-        namespace = process_variable_substitutions(common_section[NAMESPACE])
+        namespace = cast(str, process_variable_substitutions(common_section[NAMESPACE]))
         add_substitutions_without_overwriting(subs={NAMESPACE: namespace})
-        name_tag = process_variable_substitutions(common_section[NAME_TAG])
+        name_tag = cast(str, process_variable_substitutions(common_section[NAME_TAG]))
         add_substitutions_without_overwriting(subs={NAME_TAG: name_tag})
 
         # Specify a certificates bundle directly by setting the requests
         # environment variable; this will override the default certificates
-        certificates = process_variable_substitutions(
-            common_section.get(CERTIFICATES, None)
+        certificates = cast(
+            str | None,
+            process_variable_substitutions(common_section.get(CERTIFICATES)),
         )
         if certificates is not None:
             certificates = abspath(certificates)
@@ -196,6 +281,8 @@ def load_config_common() -> ConfigCommon:
                 f"Setting environment variable '{requests_ca_bundle}' to '{certificates}'"
             )
             os.environ[requests_ca_bundle] = certificates
+
+        register_dc_substitutions()
 
         return ConfigCommon(
             # Required
@@ -216,7 +303,9 @@ def load_config_common() -> ConfigCommon:
 
 
 def import_toml(filename: str) -> dict:
-    filename = relpath(join(CONFIG_FILE_DIR, process_variable_substitutions(filename)))
+    filename = relpath(
+        join(CONFIG_FILE_DIR, cast(str, process_variable_substitutions(filename)))
+    )
     print_info(f"Loading imported common configuration data from: '{filename}'")
     try:
         common_config: dict = load_toml_file_with_variable_substitutions(filename)
@@ -224,6 +313,206 @@ def import_toml(filename: str) -> dict:
     except (FileNotFoundError, PermissionError, TOMLDecodeError) as e:
         print_error(f"Unable to load imported common configuration data: {e}")
         exit(1)
+
+
+def _load_namespace_and_tag() -> None:
+    """
+    Populate VARIABLE_SUBSTITUTIONS with 'namespace' and 'tag' without
+    requiring a full common config load (no key/secret needed).
+    Priority: CLI flags > environment variables > [common] section in config.toml > defaults.
+    Safe to call before load_config_common(); won't overwrite values it sets.
+    """
+    common_section = dict(CONFIG_TOML.get(COMMON_SECTION, {}))
+
+    # Handle importCommon: merge namespace/tag from the imported file.
+    # Use .get() (not .pop()) so CONFIG_TOML is left intact for load_config_common().
+    import_file = common_section.get(IMPORT_COMMON)
+    if import_file is not None:
+        imported = import_toml(str(import_file))
+        # Imported values are baseline; local section takes precedence
+        common_section = {**imported, **common_section}
+
+    if ARGS_PARSER.namespace is not None:
+        namespace = ARGS_PARSER.namespace
+    elif common_section.get(NAMESPACE) is not None:
+        namespace = str(common_section[NAMESPACE])
+    elif os.environ.get(YD_NAMESPACE) is not None:
+        namespace = os.environ[YD_NAMESPACE]
+    else:
+        namespace = "default"
+    namespace = process_variable_substitutions(namespace)
+
+    if ARGS_PARSER.tag is not None:
+        name_tag = ARGS_PARSER.tag
+    elif common_section.get(NAME_TAG) is not None:
+        name_tag = str(common_section[NAME_TAG])
+    elif os.environ.get(YD_TAG) is not None:
+        name_tag = os.environ[YD_TAG]
+    else:
+        name_tag = "{{username}}"
+    name_tag = process_variable_substitutions(name_tag)
+
+    add_substitutions_without_overwriting(
+        subs={NAMESPACE: namespace, NAME_TAG: name_tag}
+    )
+
+
+def _build_dc_substitutions(base: dict) -> dict:
+    """
+    Build the {{dataClient.*}} substitution dict from the raw [dataClient] TOML section.
+
+    Returns raw (pre-substitution) string values; variable resolution is applied
+    by the caller via add_substitutions_without_overwriting.
+
+    Produces:
+    - {{dataClient.remote/bucket/prefix}} from the base scalar fields
+    - {{dataClient.<name>.remote/bucket/prefix}} for each named profile sub-table,
+      with unset profile fields inherited from the base
+    """
+    scalars = {k: v for k, v in base.items() if not isinstance(v, dict)}
+    subs: dict = {}
+
+    for field in (DATA_CLIENT_REMOTE, DATA_CLIENT_BUCKET, DATA_CLIENT_PREFIX):
+        value = scalars.get(field)
+        if value is not None:
+            subs[f"{DATA_CLIENT_SECTION}.{field}"] = str(value)
+
+    for name, profile in base.items():
+        if not isinstance(profile, dict):
+            continue
+        merged = {**scalars, **profile}
+        for field in (DATA_CLIENT_REMOTE, DATA_CLIENT_BUCKET, DATA_CLIENT_PREFIX):
+            value = merged.get(field)
+            if value is not None:
+                subs[f"{DATA_CLIENT_SECTION}.{name}.{field}"] = str(value)
+
+    return subs
+
+
+def register_dc_substitutions() -> None:
+    """
+    Register {{dataClient.*}} variable substitutions from the [dataClient] TOML section.
+
+    Must be called after namespace and tag are registered (i.e. after
+    load_config_common or _load_namespace_and_tag) so that prefix values
+    containing {{namespace}}/{{tag}} resolve correctly.
+
+    Called from load_config_common() for all @main_wrapper commands, and from
+    load_config_data_client() for data client commands (which bypass main_wrapper).
+    """
+    base = CONFIG_TOML.get(DATA_CLIENT_SECTION, {})
+    if not base:
+        return
+    subs = _build_dc_substitutions(base)
+    if subs:
+        add_substitutions_without_overwriting(subs)
+
+
+def _select_dc_section(base: dict, profile_name: str | None) -> dict:
+    """
+    From the raw [dataClient] TOML dict (which may contain named profile sub-tables),
+    return the merged scalar section to use.
+
+    If profile_name is None: return only scalar (non-dict) entries from base.
+    If profile_name is given: merge scalar base entries with the named profile's
+    entries, with the profile taking precedence. Raises ValueError if not found.
+    """
+    scalars = {k: v for k, v in base.items() if not isinstance(v, dict)}
+    if profile_name is None:
+        return scalars
+    profile = base.get(profile_name)
+    if not isinstance(profile, dict):
+        raise ValueError(
+            f"Data client profile '[{DATA_CLIENT_SECTION}.{profile_name}]' not found in config"
+        )
+    return {**scalars, **profile}
+
+
+def load_config_data_client() -> ConfigDataClient:
+    """
+    Load the configuration data for the data client (rclone-backed commands).
+    Priority: CLI flags > environment variables > TOML config.
+    Named profiles ([dataClient.<name>]) inherit unset fields from [dataClient].
+    Resolved values are registered in VARIABLE_SUBSTITUTIONS for use in specs.
+    """
+    _load_namespace_and_tag()
+    # Register all {{dataClient.*}} vars for data client commands, which bypass
+    # load_config_common() and therefore don't get this called automatically.
+    register_dc_substitutions()
+    base_section = CONFIG_TOML.get(DATA_CLIENT_SECTION, {})
+
+    profile_name = getattr(ARGS_PARSER, "data_client_profile", None) or os.environ.get(
+        YD_DATA_CLIENT
+    )
+    if profile_name is not None:
+        try:
+            dc_section = _select_dc_section(base_section, profile_name)
+        except ValueError as e:
+            print_error(e)
+            exit(1)
+        print_info(f"Using data client profile: '{profile_name}'")
+    else:
+        dc_section = _select_dc_section(base_section, None)
+
+    for _ in range(TOML_VAR_NESTED_DEPTH):
+        process_variable_substitutions_insitu(dc_section)
+
+    def _resolve(cli_value: str | None, env_var: str, toml_key: str) -> str | None:
+        if cli_value is not None:
+            return cast(str | None, process_variable_substitutions(cli_value))
+        env_value = os.environ.get(env_var)
+        if env_value is not None:
+            return cast(str | None, process_variable_substitutions(env_value))
+        toml_value = dc_section.get(toml_key)
+        if toml_value is not None:
+            return cast(str | None, process_variable_substitutions(str(toml_value)))
+        return None
+
+    remote = _resolve(
+        getattr(ARGS_PARSER, "remote", None), YD_DATA_CLIENT_REMOTE, DATA_CLIENT_REMOTE
+    )
+    bucket = _resolve(
+        getattr(ARGS_PARSER, "bucket", None), YD_DATA_CLIENT_BUCKET, DATA_CLIENT_BUCKET
+    )
+
+    if getattr(ARGS_PARSER, "no_prefix", False):
+        prefix = None
+    else:
+        prefix = _resolve(
+            getattr(ARGS_PARSER, "prefix", None),
+            YD_DATA_CLIENT_PREFIX,
+            DATA_CLIENT_PREFIX,
+        )
+        if prefix is None:
+            prefix = cast(
+                str | None, process_variable_substitutions("{{namespace}}/{{tag}}")
+            )
+
+    # Register legacy {{remote/bucket/prefix}} names (backward compat).
+    add_substitutions_without_overwriting(
+        subs={
+            k: v
+            for k, v in {
+                DATA_CLIENT_REMOTE: remote,
+                DATA_CLIENT_BUCKET: bucket,
+                DATA_CLIENT_PREFIX: prefix,
+            }.items()
+            if v is not None
+        }
+    )
+
+    # Register {{dataClient.remote/bucket/prefix}} with the fully-resolved active
+    # profile values, overwriting whatever register_dc_substitutions() set from the
+    # base section (active profile takes precedence).
+    for key, value in {
+        f"{DATA_CLIENT_SECTION}.{DATA_CLIENT_REMOTE}": remote,
+        f"{DATA_CLIENT_SECTION}.{DATA_CLIENT_BUCKET}": bucket,
+        f"{DATA_CLIENT_SECTION}.{DATA_CLIENT_PREFIX}": prefix,
+    }.items():
+        if value is not None:
+            add_or_update_substitution(key, value)
+
+    return ConfigDataClient(remote=remote, bucket=bucket, prefix=prefix)
 
 
 def load_config_work_requirement() -> ConfigWorkRequirement:
@@ -242,7 +531,7 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
 
     try:
         # Allow WORKER_TAG if WORKER_TAGS is empty
-        worker_tags = wr_section.get(WORKER_TAGS, None)
+        worker_tags = wr_section.get(WORKER_TAGS)
         if worker_tags is None:
             try:
                 worker_tags = [wr_section[WORKER_TAG]]
@@ -251,35 +540,30 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         if worker_tags is not None:
             check_list(worker_tags)
             for index, worker_tag in enumerate(worker_tags):
-                worker_tags[index] = process_variable_substitutions(worker_tag)
+                worker_tags[index] = cast(
+                    str, process_variable_substitutions(worker_tag)
+                )
 
-        wr_data_file = wr_section.get(WR_DATA, None)
+        wr_data_file = wr_section.get(WR_DATA)
         if wr_data_file is not None:
             check_str(wr_data_file)
-            wr_data_file = process_variable_substitutions(wr_data_file)
+            wr_data_file = cast(str, process_variable_substitutions(wr_data_file))
             wr_data_file = pathname_relative_to_config_file(
                 CONFIG_FILE_DIR, wr_data_file
             )
 
         # Check for properties set on the command line
-        executable = (
-            check_str(wr_section.get(EXECUTABLE, wr_section.get(EXECUTABLE, None)))
-            if ARGS_PARSER.executable is None
-            else ARGS_PARSER.executable
-        )
-        executable = process_variable_substitutions(executable)
-
         task_type = (
-            wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE, None))
+            wr_section.get(TASK_TYPE, wr_section.get(TASK_TYPE))
             if ARGS_PARSER.task_type is None
             else ARGS_PARSER.task_type
         )
         if task_type is not None:
             check_str(task_type)
-            task_type = process_variable_substitutions(task_type)
+            task_type = cast(str | None, process_variable_substitutions(task_type))
 
-        csv_file = wr_section.get(CSV_FILE, None)
-        csv_files = wr_section.get(CSV_FILES, None)
+        csv_file = wr_section.get(CSV_FILE)
+        csv_files = wr_section.get(CSV_FILES)
         if csv_file and csv_files:
             print_error("Only one of 'csvFile' and 'csvFiles' should be set")
             exit(1)
@@ -305,66 +589,51 @@ def load_config_work_requirement() -> ConfigWorkRequirement:
         )
 
         return ConfigWorkRequirement(
+            add_environment=wr_section.get(ADD_ENVIRONMENT),
             add_yd_env_vars=wr_section.get(ADD_YD_ENV_VARS, False),
-            always_upload=wr_section.get(ALWAYS_UPLOAD, True),
             args=wr_section.get(ARGS, []),
-            batch_allocation=wr_section.get(BATCH_ALLOCATION, None),
-            upload_taskoutput=wr_section.get(UPLOAD_TASKOUTPUT, False),
-            completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL, None),
-            csv_files=csv_files,
-            disable_preallocation=wr_section.get(DISABLE_PREALLOCATION, None),
-            docker_env=wr_section.get(DOCKER_ENV, None),
-            docker_options=wr_section.get(DOCKER_OPTIONS, None),
-            docker_password=wr_section.get(DOCKER_PASSWORD, None),
-            docker_registry=wr_section.get(DOCKER_REGISTRY, None),
-            docker_username=wr_section.get(DOCKER_USERNAME, None),
+            args_postfix=wr_section.get(ARGS_POSTFIX),
+            args_prefix=wr_section.get(ARGS_PREFIX),
+            completed_task_ttl=wr_section.get(COMPLETED_TASK_TTL),
+            csv_files=cast(list[str] | None, csv_files),
+            disable_preallocation=wr_section.get(DISABLE_PREALLOCATION),
             env=wr_section.get(ENV, {}),
-            exclusive_workers=wr_section.get(EXCLUSIVE_WORKERS, None),
-            executable=executable,
             finish_if_all_tasks_finished=wr_section.get(
                 FINISH_IF_ALL_TASKS_FINISHED, True
             ),
             finish_if_any_task_failed=wr_section.get(FINISH_IF_ANY_TASK_FAILED, False),
-            flatten_input_paths=wr_section.get(FLATTEN_PATHS, None),
-            flatten_upload_paths=wr_section.get(FLATTEN_UPLOAD_PATHS, None),
-            inputs_optional=wr_section.get(INPUTS_OPTIONAL, []),
-            inputs_required=wr_section.get(INPUTS_REQUIRED, []),
-            instance_types=wr_section.get(INSTANCE_TYPES, None),
+            instance_pricing_preference=wr_section.get(INSTANCE_PRICING_PREFERENCE),
+            instance_types=wr_section.get(INSTANCE_TYPES),
             max_retries=wr_section.get(MAX_RETRIES, 0),
-            max_workers=wr_section.get(MAX_WORKERS, None),
-            min_workers=wr_section.get(MIN_WORKERS, None),
-            namespaces=wr_section.get(NAMESPACES, None),
-            outputs_optional=wr_section.get(OUTPUTS_OPTIONAL, []),
-            outputs_other=wr_section.get(OUTPUTS_OTHER, []),
-            outputs_required=wr_section.get(OUTPUTS_REQUIRED, []),
-            parallel_batches=wr_section.get(PARALLEL_BATCHES, None),
+            max_workers=wr_section.get(MAX_WORKERS),
+            min_workers=wr_section.get(MIN_WORKERS),
+            namespaces=wr_section.get(NAMESPACES),
+            parallel_batches=wr_section.get(PARALLEL_BATCHES),
             priority=wr_section.get(PRIORITY, 0.0),
-            providers=wr_section.get(PROVIDERS, None),
-            ram=wr_section.get(RAM, None),
-            regions=wr_section.get(REGIONS, None),
-            retryable_errors=wr_section.get(RETRYABLE_ERRORS, None),
+            providers=wr_section.get(PROVIDERS),
+            ram=wr_section.get(RAM),
+            regions=wr_section.get(REGIONS),
+            retryable_errors=wr_section.get(RETRYABLE_ERRORS),
             set_task_names=wr_section.get(SET_TASK_NAMES, True),
             task_batch_size=task_batch_size,
             task_count=task_count,
-            task_data=wr_section.get(TASK_DATA, None),
-            task_data_inputs=wr_section.get(TASK_DATA_INPUTS, None),
-            task_data_file=wr_section.get(TASK_DATA_FILE, None),
-            task_data_outputs=wr_section.get(TASK_DATA_OUTPUTS, None),
+            task_data=wr_section.get(TASK_DATA),
+            task_data_inputs=wr_section.get(TASK_DATA_INPUTS),
+            task_data_file=wr_section.get(TASK_DATA_FILE),
+            task_data_outputs=wr_section.get(TASK_DATA_OUTPUTS),
             task_group_count=task_group_count,
-            task_group_name=wr_section.get(TASK_GROUP_NAME, None),
-            task_name=wr_section.get(TASK_NAME, None),
-            task_timeout=wr_section.get(TASK_TIMEOUT, None),
+            task_group_name=wr_section.get(TASK_GROUP_NAME),
+            task_name=wr_section.get(TASK_NAME),
+            task_template=wr_section.get(TASK_TEMPLATE),
+            task_timeout=wr_section.get(TASK_TIMEOUT),
             task_type=task_type,
-            tasks_per_worker=wr_section.get(TASKS_PER_WORKER, None),
-            task_level_timeout=wr_section.get(TASK_LEVEL_TIMEOUT, None),
-            upload_files=wr_section.get(UPLOAD_FILES, []),
-            vcpus=wr_section.get(VCPUS, None),
-            verify_at_start=wr_section.get(VERIFY_AT_START, []),
-            verify_wait=wr_section.get(VERIFY_WAIT, []),
+            tasks_per_worker=wr_section.get(TASKS_PER_WORKER),
+            task_level_timeout=wr_section.get(TASK_LEVEL_TIMEOUT),
+            vcpus=wr_section.get(VCPUS),
             worker_tags=worker_tags,
             wr_data_file=wr_data_file,
-            wr_name=wr_section.get(WR_NAME, None),
-            wr_tag=wr_section.get(WR_TAG, None),
+            wr_name=wr_section.get(WR_NAME),
+            wr_tag=wr_section.get(WR_TAG),
         )
 
     except KeyError as e:
@@ -393,7 +662,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
         process_variable_substitutions_insitu(cr_section)
 
     duplicate_keys = set(wp_section.keys()).intersection(set(cr_section.keys()))
-    if len(duplicate_keys) != 0:
+    if duplicate_keys:
         print_error(
             f"Duplicate keys in '{WORKER_POOL_SECTION}' and"
             f" '{COMPUTE_REQUIREMENT_SECTION}': {duplicate_keys}"
@@ -401,16 +670,22 @@ def load_config_worker_pool() -> ConfigWorkerPool:
         exit(1)
     wp_section.update(cr_section)
 
-    if len(wp_section) == 0:
+    if not wp_section:
         return ConfigWorkerPool()
 
     try:
-        worker_tag = process_variable_substitutions(wp_section.get(WORKER_TAG, None))
-        worker_pool_data_file = process_variable_substitutions(
-            wp_section.get(WORKER_POOL_DATA_FILE, None)
+        worker_tag = cast(
+            str | None, process_variable_substitutions(wp_section.get(WORKER_TAG))
         )
-        compute_requirement_data_file = process_variable_substitutions(
-            wp_section.get(COMPUTE_REQUIREMENT_DATA_FILE, None)
+        worker_pool_data_file = cast(
+            str | None,
+            process_variable_substitutions(wp_section.get(WORKER_POOL_DATA_FILE)),
+        )
+        compute_requirement_data_file = cast(
+            str | None,
+            process_variable_substitutions(
+                wp_section.get(COMPUTE_REQUIREMENT_DATA_FILE)
+            ),
         )
         if (
             worker_pool_data_file is not None
@@ -431,8 +706,8 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             )
         workers_per_vcpu = (
             None
-            if wp_section.get(WORKERS_PER_VCPU, None) is None
-            else float(wp_section[WORKERS_PER_VCPU])
+            if wp_section.get(WORKERS_PER_VCPU) is None
+            else int(wp_section[WORKERS_PER_VCPU])
         )
 
         return ConfigWorkerPool(
@@ -440,11 +715,11 @@ def load_config_worker_pool() -> ConfigWorkerPool:
                 COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
             ),
             compute_requirement_data_file=compute_requirement_data_file,
-            cr_tag=wp_section.get(CR_TAG, None),
+            cr_tag=wp_section.get(CR_TAG),
             idle_node_timeout=float(wp_section.get(IDLE_NODE_TIMEOUT, 5.0)),
             idle_pool_timeout=float(wp_section.get(IDLE_POOL_TIMEOUT, 30.0)),
-            images_id=wp_section.get(IMAGES_ID, None),
-            instance_tags=wp_section.get(INSTANCE_TAGS, None),
+            images_id=wp_section.get(IMAGES_ID),
+            instance_tags=wp_section.get(INSTANCE_TAGS),
             maintainInstanceCount=wp_section.get(MAINTAIN_INSTANCE_COUNT, False),
             max_nodes=wp_section.get(
                 MAX_NODES, max(1, int(wp_section.get(TARGET_INSTANCE_COUNT, 1)))
@@ -453,21 +728,22 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             metrics_enabled=wp_section.get(METRICS_ENABLED, False),
             min_nodes=int(wp_section.get(MIN_NODES, 0)),
             min_nodes_set=(False if wp_section.get(MIN_NODES) is None else True),
-            name=process_variable_substitutions(
-                wp_section.get(WP_NAME, None),
+            name=cast(
+                str | None,
+                process_variable_substitutions(wp_section.get(WP_NAME)),
             ),
             node_boot_timeout=float(wp_section.get(NODE_BOOT_TIMEOUT, 10.0)),
             target_instance_count=int(wp_section.get(TARGET_INSTANCE_COUNT, 1)),
             target_instance_count_set=(
                 False if wp_section.get(TARGET_INSTANCE_COUNT) is None else True
             ),
-            template_id=wp_section.get(TEMPLATE_ID, None),
-            user_data=wp_section.get(USERDATA, None),
-            user_data_file=wp_section.get(USERDATAFILE, None),
-            user_data_files=wp_section.get(USERDATAFILES, None),
+            template_id=wp_section.get(TEMPLATE_ID),
+            user_data=wp_section.get(USERDATA),
+            user_data_file=wp_section.get(USERDATAFILE),
+            user_data_files=wp_section.get(USERDATAFILES),
             worker_pool_data_file=worker_pool_data_file,
             worker_tag=worker_tag,
-            workers_custom_command=wp_section.get(WORKERS_CUSTOM_COMMAND, None),
+            workers_custom_command=wp_section.get(WORKERS_CUSTOM_COMMAND),
             workers_per_vcpu=workers_per_vcpu,
             workers_per_node=int(wp_section.get(WORKERS_PER_NODE, 1)),
         )

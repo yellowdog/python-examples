@@ -17,7 +17,7 @@ def _type(type_) -> str:
         return "List"
     if "dict" in f"{type_}":
         return "Dict"
-    raise Exception(f"Unhandled type '{type_}'")
+    raise TypeError(f"Unhandled type '{type_}'")
 
 
 def _check(thing, type_):
@@ -29,10 +29,10 @@ def _check(thing, type_):
 
     # Bool is a subtype of int, so test for exact match in that case
     is_required_type = (
-        type(thing) == type_ if type_ is bool else isinstance(thing, type_)
+        type(thing) is type_ if type_ is bool else isinstance(thing, type_)
     )
     if not is_required_type:
-        raise Exception(f"Property value '{thing}' should be of type '{_type(type_)}'")
+        raise TypeError(f"Property value '{thing}' should be of type '{_type(type_)}'")
     return thing
 
 
@@ -56,7 +56,7 @@ def check_float_or_int(thing):
         try:
             return _check(thing, int)
         except Exception:
-            raise Exception(
+            raise TypeError(
                 f"Property value '{thing}' should be of type 'Float' or 'Integer'"
             )
 

@@ -2,10 +2,18 @@
 Property names.
 """
 
-ADD_YD_ENV_VARS = "addYDEnvironmentVariables"
-ALWAYS_UPLOAD = "alwaysUpload"  # Bool
+ACTION_CONTENT = "content"  # String - file content for writeFile action
+ACTION_CONTENT_FILE = "contentFile"  # String - path to file whose content to use
+ACTION_CONTENT_FILES = "contentFiles"  # List - paths to files to concatenate
+ACTION_GROUPS = "actionGroups"  # List - grouped node actions
+ACTION_PATH = "path"  # String - command/file path
+ACTION_TYPE = "type"  # String - "runCommand", "writeFile", "createWorkers"
+ACTIONS = "actions"  # List - flat node actions
+ADD_ENVIRONMENT = "addEnvironment"  # Dict
+ADD_YD_ENV_VARS = "addYDEnvironment"
 ARGS = "arguments"  # List
-BATCH_ALLOCATION = "batchAllocation"  # Bool
+ARGS_PREFIX = "argumentsPrefix"  # List
+ARGS_POSTFIX = "argumentsPostfix"  # List
 CERTIFICATES = "certificates"
 COMMON_SECTION = "common"  # No value
 COMPLETED_TASK_TTL = "completedTaskTtl"  # Float
@@ -15,36 +23,28 @@ COMPUTE_REQUIREMENT_SECTION = "computeRequirement"  # No value
 CR_TAG = "requirementTag"  # String
 CSV_FILE = "csvFile"  # String
 CSV_FILES = "csvFiles"  # List of Strings
+DATA_CLIENT_BUCKET = "bucket"  # String
 DATA_CLIENT_LOCAL_PATH = "localPath"  # String
+DATA_CLIENT_PREFIX = "prefix"  # String
+DATA_CLIENT_REMOTE = "remote"  # String
+DATA_CLIENT_SECTION = "dataClient"  # No value
 DATA_CLIENT_UPLOAD_PATH = "uploadPath"  # String
 DISABLE_PREALLOCATION = "disablePreallocation"
 DEPENDENCIES = "dependencies"  # List of Strings
 DEPENDENT_ON = "dependentOn"  # String (Deprecated)
 DIRECTORY_NAME = "directoryName"  # String
-DOCKER_ENV = "dockerEnvironment"  # Dictionary
-DOCKER_OPTIONS = "dockerOptions"  # List
-DOCKER_PASSWORD = "dockerPassword"  # String
-DOCKER_REGISTRY = "dockerRegistry"  # String
-DOCKER_USERNAME = "dockerUsername"  # String
 ENV = "environment"  # Dictionary
 ERROR_TYPES = "errorTypes"  # List of Strings
-EXCLUSIVE_WORKERS = "exclusiveWorkers"  # Boolean
-EXECUTABLE = "executable"  # String
-FILE_PATTERN = "filePattern"  # String
 FINISH_IF_ALL_TASKS_FINISHED = "finishIfAllTasksFinished"  # Boolean
 FINISH_IF_ANY_TASK_FAILED = "finishIfAnyTaskFailed"  # Boolean
-FLATTEN_PATHS = "flattenInputPaths"  # Boolean
-FLATTEN_UPLOAD_PATHS = "flattenUploadPaths"  # Boolean
 IDLE_NODE_TIMEOUT = "idleNodeTimeout"  # Float
 IDLE_POOL_TIMEOUT = "idlePoolTimeout"  # Float
 IMAGES_ID = "imagesId"  # String
 IMPORT_COMMON = "importCommon"  # String
-INPUTS_OPTIONAL = "inputsOptional"  # List of Strings
-INPUTS_REQUIRED = "inputs"  # List of Strings
+INSTANCE_PRICING_PREFERENCE = "instancePricingPreference"  # String (enum)
 INSTANCE_TAGS = "instanceTags"  # Dictionary
 INSTANCE_TYPES = "instanceTypes"  # List of Strings
 KEY = "key"  # String
-LOCAL_PATH = "localPath"  # String
 MAINTAIN_INSTANCE_COUNT = "maintainInstanceCount"  # Bool
 MAX_NODES = "maxNodes"  # Integer
 MAX_RETRIES = "maximumTaskRetries"  # Integer
@@ -57,9 +57,14 @@ NAMESPACE = "namespace"  # String
 NAMESPACES = "namespaces"  # List of Strings
 NAME_TAG = "tag"  # String
 NODE_BOOT_TIMEOUT = "nodeBootTimeout"  # Float
-OUTPUTS_OPTIONAL = "outputs"  # List of Strings
-OUTPUTS_OTHER = "outputsOther"  # List of Dicts
-OUTPUTS_REQUIRED = "outputsRequired"  # List of Strings
+NODE_TARGET_COUNT = "targetCount"  # Float - worker count
+NODE_TARGET_CUSTOM_CMD = (
+    "customTargetCommand"  # String - custom command for worker target
+)
+NODE_TARGET_TYPE = "targetType"  # String - "PER_NODE", "PER_VCPU", "CUSTOM"
+NODE_TOTAL_WORKERS = "totalWorkers"  # Integer
+NODE_TYPES = "nodeTypes"  # List of Strings - node type filter
+NODE_WORKERS = "nodeWorkers"  # Dict - NodeWorkerTarget spec
 PARALLEL_BATCHES = "parallelBatches"  # Integer
 PRIORITY = "priority"  # Float
 PROCESS_EXIT_CODES = "processExitCodes"  # List of Ints
@@ -89,13 +94,11 @@ TASK_GROUP_TAG = "tag"  # String
 TASK_LEVEL_TIMEOUT = "timeout"  # Float
 TASK_NAME = "taskName"  # String
 TASK_TAG = "tag"  # String
+TASK_TEMPLATE = "taskTemplate"  # Dict
 TASK_TIMEOUT = "taskTimeout"  # Float
 TASK_TYPE = "taskType"  # String
 TASK_TYPES = "taskTypes"  # List of Strings
 TEMPLATE_ID = "templateId"  # String
-UPLOAD_FILES = "uploadFiles"  # List of Dicts
-UPLOAD_PATH = "uploadPath"  # String
-UPLOAD_TASKOUTPUT = "uploadTaskProcessOutput"  # Bool
 URL = "url"  # String
 USERDATA = "userData"  # String
 USERDATAFILE = "userDataFile"  # String
@@ -103,8 +106,6 @@ USERDATAFILES = "userDataFiles"  # List of Strings
 USE_PAC = "usePAC"  # Boolean
 VARIABLES = "variables"  # Dictionary
 VCPUS = "vcpus"  # List of two Floats
-VERIFY_AT_START = "verifyAtStart"  # List of Strings
-VERIFY_WAIT = "verifyWait"  # List of Strings
 WORKERS_CUSTOM_COMMAND = "workersCustomCommand"  # String
 WORKERS_PER_NODE = "workersPerNode"  # Integer
 WORKERS_PER_VCPU = "workersPerVCPU"  # Integer
@@ -120,10 +121,18 @@ WR_TAG = "tag"  # String
 
 
 ALL_KEYS = [
+    ACTION_CONTENT,
+    ACTION_CONTENT_FILE,
+    ACTION_CONTENT_FILES,
+    ACTION_GROUPS,
+    ACTION_PATH,
+    ACTION_TYPE,
+    ACTIONS,
+    ADD_ENVIRONMENT,
     ADD_YD_ENV_VARS,
-    ALWAYS_UPLOAD,
     ARGS,
-    BATCH_ALLOCATION,
+    ARGS_POSTFIX,
+    ARGS_PREFIX,
     CERTIFICATES,
     COMMON_SECTION,
     COMPLETED_TASK_TTL,
@@ -133,36 +142,28 @@ ALL_KEYS = [
     CR_TAG,
     CSV_FILE,
     CSV_FILES,
+    DATA_CLIENT_BUCKET,
     DATA_CLIENT_LOCAL_PATH,
+    DATA_CLIENT_PREFIX,
+    DATA_CLIENT_REMOTE,
+    DATA_CLIENT_SECTION,
     DATA_CLIENT_UPLOAD_PATH,
     DISABLE_PREALLOCATION,
     DEPENDENCIES,
     DEPENDENT_ON,
     DIRECTORY_NAME,
-    DOCKER_ENV,
-    DOCKER_OPTIONS,
-    DOCKER_PASSWORD,
-    DOCKER_REGISTRY,
-    DOCKER_USERNAME,
     ENV,
     ERROR_TYPES,
-    EXCLUSIVE_WORKERS,
-    EXECUTABLE,
-    FILE_PATTERN,
     FINISH_IF_ALL_TASKS_FINISHED,
     FINISH_IF_ANY_TASK_FAILED,
-    FLATTEN_PATHS,
-    FLATTEN_UPLOAD_PATHS,
     IDLE_NODE_TIMEOUT,
     IDLE_POOL_TIMEOUT,
     IMAGES_ID,
     IMPORT_COMMON,
-    INPUTS_OPTIONAL,
-    INPUTS_REQUIRED,
+    INSTANCE_PRICING_PREFERENCE,
     INSTANCE_TAGS,
     INSTANCE_TYPES,
     KEY,
-    LOCAL_PATH,
     MAINTAIN_INSTANCE_COUNT,
     MAX_NODES,
     MAX_RETRIES,
@@ -174,9 +175,12 @@ ALL_KEYS = [
     NAMESPACES,
     NAME_TAG,
     NODE_BOOT_TIMEOUT,
-    OUTPUTS_OPTIONAL,
-    OUTPUTS_OTHER,
-    OUTPUTS_REQUIRED,
+    NODE_TARGET_COUNT,
+    NODE_TARGET_CUSTOM_CMD,
+    NODE_TARGET_TYPE,
+    NODE_TOTAL_WORKERS,
+    NODE_TYPES,
+    NODE_WORKERS,
     PARALLEL_BATCHES,
     PRIORITY,
     PROCESS_EXIT_CODES,
@@ -206,13 +210,11 @@ ALL_KEYS = [
     TASK_LEVEL_TIMEOUT,
     TASK_NAME,
     TASK_TAG,
+    TASK_TEMPLATE,
     TASK_TIMEOUT,
     TASK_TYPE,
     TASK_TYPES,
     TEMPLATE_ID,
-    UPLOAD_FILES,
-    UPLOAD_PATH,
-    UPLOAD_TASKOUTPUT,
     URL,
     USERDATA,
     USERDATAFILE,
@@ -220,8 +222,6 @@ ALL_KEYS = [
     USE_PAC,
     VARIABLES,
     VCPUS,
-    VERIFY_AT_START,
-    VERIFY_WAIT,
     WORKERS_CUSTOM_COMMAND,
     WORKERS_PER_NODE,
     WORKERS_PER_VCPU,

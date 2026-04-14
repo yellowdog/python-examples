@@ -4,12 +4,11 @@
 Command to list YellowDog entities.
 """
 
-from dataclasses import asdict, fields
 from json import loads as json_loads
 from os.path import exists
+from typing import cast
 
 from requests import get
-from tabulate import tabulate
 from yellowdog_client.common import SearchClient
 from yellowdog_client.model import (
     Allowance,
@@ -28,11 +27,9 @@ from yellowdog_client.model import (
     NamespacePolicy,
     NamespacePolicySearch,
     NamespaceSearch,
-    NamespaceStorageConfiguration,
     Node,
     NodeSearch,
     NodeStatus,
-    ObjectDetail,
     PermissionDetail,
     Role,
     Task,
@@ -60,25 +57,42 @@ from yellowdog_cli.utils.entity_utils import (
     get_task_groups_from_wr_by_id,
     get_user_groups,
     get_worker_pool_summaries,
-    list_matching_object_paths,
     substitute_id_for_name_in_allowance,
     substitute_ids_for_names_in_crt,
     substitute_image_family_id_for_name_in_cst,
 )
 from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.misc_utils import unpack_namespace_in_prefix
 from yellowdog_cli.utils.printing import (
-    indent,
     print_info,
     print_json,
     print_numbered_object_list,
-    print_table_core,
     print_warning,
     print_yd_object,
     print_yd_object_list,
     sorted_objects,
 )
 from yellowdog_cli.utils.settings import (
+    ET_ALLOWANCES,
+    ET_APPLICATIONS,
+    ET_ATTRIBUTE_DEFINITIONS,
+    ET_COMPUTE_REQUIREMENT_TEMPLATES,
+    ET_COMPUTE_REQUIREMENTS,
+    ET_COMPUTE_SOURCE_TEMPLATES,
+    ET_GROUPS,
+    ET_IMAGE_FAMILIES,
+    ET_INSTANCES,
+    ET_KEYRINGS,
+    ET_NAMESPACE_POLICIES,
+    ET_NAMESPACES,
+    ET_NODES,
+    ET_PERMISSIONS,
+    ET_ROLES,
+    ET_TASK_GROUPS,
+    ET_TASKS,
+    ET_USERS,
+    ET_WORK_REQUIREMENTS,
+    ET_WORKER_POOLS,
+    ET_WORKERS,
     PROP_GROUPS,
     PROP_RESOURCE,
     RN_ALLOWANCE,
@@ -98,9 +112,6 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main
 
 @main_wrapper
 def main():
-    if not check_for_valid_option():
-        raise Exception("Please choose a (single) listing type")
-
     # Always use interactive mode for selections
     ARGS_PARSER.interactive = True
 
@@ -124,76 +135,40 @@ def main():
             ):
                 return
 
-    if ARGS_PARSER.object_paths:
-        list_object_paths()
-    elif ARGS_PARSER.work_requirements or ARGS_PARSER.task_groups or ARGS_PARSER.tasks:
+    entity_type = ARGS_PARSER.entity_type
+
+    if entity_type in (ET_WORK_REQUIREMENTS, ET_TASK_GROUPS, ET_TASKS):
         list_work_requirements()
-    elif ARGS_PARSER.worker_pools or ARGS_PARSER.nodes or ARGS_PARSER.workers:
+    elif entity_type in (ET_WORKER_POOLS, ET_NODES, ET_WORKERS):
         list_worker_pools()
-    elif ARGS_PARSER.compute_requirements or ARGS_PARSER.instances:
+    elif entity_type in (ET_COMPUTE_REQUIREMENTS, ET_INSTANCES):
         list_compute_requirements()
-    elif ARGS_PARSER.compute_requirement_templates:
+    elif entity_type == ET_COMPUTE_REQUIREMENT_TEMPLATES:
         list_compute_requirement_templates()
-    elif ARGS_PARSER.compute_source_templates:
+    elif entity_type == ET_COMPUTE_SOURCE_TEMPLATES:
         list_compute_source_templates()
-    elif ARGS_PARSER.keyrings:
+    elif entity_type == ET_KEYRINGS:
         list_keyrings()
-    elif ARGS_PARSER.image_families:
+    elif entity_type == ET_IMAGE_FAMILIES:
         list_image_families()
-    elif ARGS_PARSER.namespace_storage_configurations:
-        list_namespace_storage_configurations()
-    elif ARGS_PARSER.allowances:
+    elif entity_type == ET_ALLOWANCES:
         list_allowances()
-    elif ARGS_PARSER.attribute_definitions:
+    elif entity_type == ET_ATTRIBUTE_DEFINITIONS:
         list_attribute_definitions()
-    elif ARGS_PARSER.namespaces:
+    elif entity_type == ET_NAMESPACES:
         list_namespaces()
-    elif ARGS_PARSER.namespace_policies:
+    elif entity_type == ET_NAMESPACE_POLICIES:
         list_namespace_policies()
-    elif ARGS_PARSER.users:
+    elif entity_type == ET_USERS:
         list_users()
-    elif ARGS_PARSER.applications:
+    elif entity_type == ET_APPLICATIONS:
         list_applications()
-    elif ARGS_PARSER.groups:
+    elif entity_type == ET_GROUPS:
         list_groups()
-    elif ARGS_PARSER.roles:
+    elif entity_type == ET_ROLES:
         list_roles()
-    elif ARGS_PARSER.permissions:
+    elif entity_type == ET_PERMISSIONS:
         list_permissions()
-
-
-def check_for_valid_option() -> bool:
-    """
-    Only one of the listing options must be selected.
-    """
-    if [
-        ARGS_PARSER.allowances,
-        ARGS_PARSER.applications,
-        ARGS_PARSER.attribute_definitions,
-        ARGS_PARSER.compute_requirements,
-        ARGS_PARSER.compute_requirement_templates,
-        ARGS_PARSER.groups,
-        ARGS_PARSER.image_families,
-        ARGS_PARSER.instances,
-        ARGS_PARSER.keyrings,
-        ARGS_PARSER.namespaces,
-        ARGS_PARSER.namespace_policies,
-        ARGS_PARSER.namespace_storage_configurations,
-        ARGS_PARSER.nodes,
-        ARGS_PARSER.object_paths,
-        ARGS_PARSER.permissions,
-        ARGS_PARSER.roles,
-        ARGS_PARSER.compute_source_templates,
-        ARGS_PARSER.task_groups,
-        ARGS_PARSER.tasks,
-        ARGS_PARSER.users,
-        ARGS_PARSER.work_requirements,
-        ARGS_PARSER.worker_pools,
-        ARGS_PARSER.workers,
-    ].count(True) == 1:
-        return True
-    else:
-        return False
 
 
 def list_work_requirements():
@@ -228,12 +203,12 @@ def list_work_requirements():
             exclude_filter=exclude_filter,
         )
     )
-    if len(work_requirement_summaries) == 0:
+    if not work_requirement_summaries:
         print_info("No matching Work Requirements")
         return
 
     work_requirement_summaries = sorted_objects(work_requirement_summaries)
-    if not (ARGS_PARSER.task_groups or ARGS_PARSER.tasks):
+    if ARGS_PARSER.entity_type == ET_WORK_REQUIREMENTS:
         if ARGS_PARSER.details:
             print_yd_object_list(
                 [
@@ -257,10 +232,10 @@ def list_work_requirements():
 
 def list_task_groups(work_summary: WorkRequirementSummary):
     task_groups: list[TaskGroup] = get_task_groups_from_wr_by_id(
-        CLIENT, work_summary.id
+        CLIENT, cast(str, work_summary.id)
     )
     task_groups = sorted_objects(task_groups)
-    if not ARGS_PARSER.tasks:
+    if ARGS_PARSER.entity_type != ET_TASKS:
         if ARGS_PARSER.details:
             print_yd_object_list(
                 [(task_group, None) for task_group in select(CLIENT, task_groups)]
@@ -277,7 +252,7 @@ def list_task_groups(work_summary: WorkRequirementSummary):
 
 
 def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
-    tasks: list[Task] = get_all_tasks_in_task_group(CLIENT, task_group.id)
+    tasks: list[Task] = get_all_tasks_in_task_group(CLIENT, cast(str, task_group.id))
     tasks = sorted_objects(tasks)
     if ARGS_PARSER.details:
         print_yd_object_list([(task, None) for task in select(CLIENT, tasks)])
@@ -286,45 +261,6 @@ def list_tasks(task_group: TaskGroup, work_summary: WorkRequirementSummary):
             print(task.id)
     else:
         print_numbered_object_list(CLIENT, tasks)
-
-
-def list_object_paths():
-    namespace, tag = unpack_namespace_in_prefix(
-        CONFIG_COMMON.namespace, CONFIG_COMMON.name_tag
-    )
-    print_info(
-        f"Listing Object Paths in namespace '{namespace}' and "
-        f"names (prefixes) starting with '{tag}'"
-    )
-    if ARGS_PARSER.all and not ARGS_PARSER.details:
-        print_info("Listing all Objects")
-
-    object_paths = list_matching_object_paths(CLIENT, namespace, tag, ARGS_PARSER.all)
-
-    if len(object_paths) == 0:
-        print_info("No matching Object Paths")
-        return
-
-    if not ARGS_PARSER.details:
-        print_numbered_object_list(CLIENT, sorted_objects(object_paths))
-        return
-
-    # Print object details for selected objects
-    object_paths = select(CLIENT, object_paths, override_quiet=True)
-    if len(object_paths) != 0:
-        print_info(f"Showing Object details for {len(object_paths)} Object(s)")
-
-    object_detail_list = []
-    for object_path in object_paths:
-        if object_path.prefix:
-            print_info(f"Object Path '{object_path.name}' is a prefix not an object")
-            continue
-        object_detail: ObjectDetail = CLIENT.object_store_client.get_object_detail(
-            namespace=namespace, name=object_path.name
-        )
-        object_detail_list.append((object_detail, None))
-        # print_object_detail(object_detail)  # Retired for now
-    print_yd_object_list(object_detail_list)
 
 
 def list_worker_pools():
@@ -353,21 +289,21 @@ def list_worker_pools():
         wp_summary
         for wp_summary in worker_pool_summaries
         if wp_summary.status not in excluded_states
-        and CONFIG_COMMON.namespace in wp_summary.namespace
+        and CONFIG_COMMON.namespace in cast(str, wp_summary.namespace)
     ]
 
-    if len(worker_pool_summaries) == 0:
+    if not worker_pool_summaries:
         print_info("No Worker Pools to display")
         return
 
-    if ARGS_PARSER.nodes or ARGS_PARSER.workers:
+    if ARGS_PARSER.entity_type in (ET_NODES, ET_WORKERS):
         print_info(
             "Please select the Worker Pool(s) for which to list "
-            f"{'Nodes' if ARGS_PARSER.nodes else 'Workers'}"
+            f"{'Nodes' if ARGS_PARSER.entity_type == ET_NODES else 'Workers'}"
         )
-        worker_pool_summaries = select(
-            CLIENT,
-            sorted_objects(worker_pool_summaries),
+        worker_pool_summaries = cast(
+            list[WorkerPoolSummary],
+            select(CLIENT, sorted_objects(worker_pool_summaries)),
         )
         list_nodes(worker_pool_summaries)
         return
@@ -417,13 +353,13 @@ def list_compute_requirements():
         )
     )
 
-    if len(compute_requirement_summaries) == 0:
+    if not compute_requirement_summaries:
         print_info("No matching Compute Requirements")
         return
 
     compute_requirement_summaries = sorted_objects(compute_requirement_summaries)
 
-    if ARGS_PARSER.instances:
+    if ARGS_PARSER.entity_type == ET_INSTANCES:
         for compute_requirement_summary in select(
             CLIENT, compute_requirement_summaries, single_result=True
         ):
@@ -453,7 +389,7 @@ def list_instances(compute_requirement_id: str):
         instance_search=instance_search
     )
     instances: list[Instance] = search_client.list_all()
-    if len(instances) == 0:
+    if not instances:
         print_info("No instances to list")
         return
 
@@ -494,11 +430,11 @@ def list_nodes(worker_pool_summaries: list[WorkerPoolSummary]):
             node.workerPoolName = worker_pool_summary.name
         nodes_all += nodes
 
-    if len(nodes_all) == 0:
+    if not nodes_all:
         print_info("No Nodes to display")
         return
 
-    if ARGS_PARSER.workers:
+    if ARGS_PARSER.entity_type == ET_WORKERS:
         list_workers(nodes_all)
         return
 
@@ -517,23 +453,25 @@ def list_workers(nodes: list[Node]):
     """
     workers_all: list[Worker] = []
     for node in nodes:
-        for worker in node.workers:
+        for worker in node.workers or []:
             if ARGS_PARSER.active_only:
                 if worker.status not in [
                     WorkerStatus.SLEEPING,
                     WorkerStatus.DOING_TASK,
-                    WorkerStatus.FOUND,
                     WorkerStatus.STOPPED,
                     WorkerStatus.STARTING,
                 ]:
                     continue
             # Add extra info to the Worker object
-            worker.workerTag = node.details.workerTag
-            worker.taskTypes = node.details.supportedTaskTypes
-            worker.workerPoolName = node.workerPoolName
-            workers_all.append(worker)
+            if node.details is not None:
+                worker.workerTag = node.details.workerTag
+                worker.taskTypes = node.details.supportedTaskTypes
+                worker.workerPoolName = (
+                    node.workerPoolName  # type: ignore[attr-defined]
+                )  # This property is added by the caller
+                workers_all.append(worker)
 
-    if len(workers_all) == 0:
+    if not workers_all:
         print_info("No Workers to display")
         return
 
@@ -570,7 +508,7 @@ def list_compute_requirement_templates():
         )
     )
 
-    if len(cr_templates) == 0:
+    if not cr_templates:
         print_info("No matching Compute Requirement Templates found")
         return
 
@@ -585,7 +523,7 @@ def list_compute_requirement_templates():
 
     # Show details
     cr_templates = select(CLIENT, cr_templates)
-    if len(cr_templates) > 0 and ARGS_PARSER.substitute_ids:
+    if cr_templates and ARGS_PARSER.substitute_ids:
         print_info(
             "Substituting Compute Source Template IDs and Image Family IDs with names"
         )
@@ -620,7 +558,7 @@ def list_compute_source_templates():
         CLIENT, namespace=CONFIG_COMMON.namespace, name=CONFIG_COMMON.name_tag
     )
 
-    if len(cs_templates) == 0:
+    if not cs_templates:
         print_info("No matching Compute Source Templates found")
         return
 
@@ -655,7 +593,7 @@ def list_keyrings():
     Print the list of Keyrings
     """
     keyrings: list[KeyringSummary] = CLIENT.keyring_client.find_all_keyrings()
-    if len(keyrings) == 0:
+    if not keyrings:
         print_info("No Keyrings found")
         return
 
@@ -685,7 +623,7 @@ def get_keyring(name: str) -> Keyring:
     if response.status_code == 200:
         return Keyring(**response.json())
     else:
-        raise Exception(f"Failed to get Keyring '{name}' ({response.text})")
+        raise RuntimeError(f"Failed to get Keyring '{name}' ({response.text})")
 
 
 def list_image_families():
@@ -701,7 +639,7 @@ def list_image_families():
     )
     search_client: SearchClient = CLIENT.images_client.get_image_families(image_search)
     image_family_summaries: list[MachineImageFamilySummary] = search_client.list_all()
-    if len(image_family_summaries) == 0:
+    if not image_family_summaries:
         print_info(
             f"No matching Machine Image Families found in namespace "
             f"'{CONFIG_COMMON.namespace}' with tag including '{CONFIG_COMMON.name_tag}'"
@@ -731,75 +669,6 @@ def list_image_families():
     )
 
 
-def list_namespace_storage_configurations():
-    """
-    List Storage Namespaces. For now, prints a table directly rather than
-    calling the printing module, due to it being a bit fiddly.
-    """
-
-    # Get the configured namespaces
-    namespaces_config: list[NamespaceStorageConfiguration] = (
-        CLIENT.object_store_client.get_namespace_storage_configurations()
-    )
-    namespace_config_names = [namespace.namespace for namespace in namespaces_config]
-
-    # Create dicts for the default object store namespaces, and give them
-    # a type name. Exclude configured namespaces.
-    namespaces_default = [
-        {"namespace": namespace, "type": "Default Storage Configuration"}
-        for namespace in sorted(CLIENT.object_store_client.get_namespaces())
-        if namespace not in namespace_config_names
-    ]
-
-    # Convert NamespaceStorageConfiguration objects to dicts, and simplify
-    # the type names
-    namespace_list: list[dict] = [asdict(x) for x in namespaces_config]
-    for namespace in namespace_list:
-        namespace["type"] = namespace["type"].split(".")[-1]
-
-    # Combine configured and default Namespaces
-    namespace_list += namespaces_default
-
-    if len(namespace_list) == 0:
-        print_info("No Namespaces found")
-        return
-    print_info("Displaying all Object Store Namespaces")
-
-    # Accumulate all available headings; keep "namespace", "type"
-    # at the start
-    all_fields = set()
-    for config in namespaces_config:
-        for field in fields(config):
-            if not (field.name == "namespace" or field.name == "type"):
-                all_fields.add(field.name)
-    all_fields = sorted(list(all_fields))
-    all_fields.insert(0, "type")
-    all_fields.insert(0, "namespace")
-
-    # Assemble and print the table
-    headings = [field.capitalize() for field in all_fields]
-    headings.insert(0, "#")
-    rows = sorted(
-        [
-            [index + 1] + [namespace.get(field, "") for field in all_fields]
-            for index, namespace in enumerate(namespace_list)
-        ]
-    )
-    print(flush=True)
-    print_table_core(
-        indent(tabulate(rows, headings, tablefmt="simple_outline")),
-    )
-    print(flush=True)
-
-    if ARGS_PARSER.details:  # Print the details for non-default only
-        print_yd_object_list(
-            [
-                (namespace, None)
-                for namespace in select(CLIENT, namespaces_config, showing_all=True)
-            ]
-        )
-
-
 def list_allowances():
     """
     List allowances.
@@ -809,7 +678,7 @@ def list_allowances():
         allowances_search
     )
     allowances: list[Allowance] = search_client.list_all()
-    if len(allowances) == 0:
+    if not allowances:
         print_info("No Allowances to display")
         return
 
@@ -823,7 +692,7 @@ def list_allowances():
         return
 
     # Show details
-    if len(allowances) > 0 and ARGS_PARSER.substitute_ids:
+    if allowances and ARGS_PARSER.substitute_ids:
         print_info(
             "Substituting Compute Requirement Template IDs with names (if applicable)"
         )
@@ -848,7 +717,7 @@ def list_attribute_definitions():
     )
 
     if response.status_code != 200:
-        raise Exception(
+        raise RuntimeError(
             "Unable to list user attribute definitions: HTTP "
             f"{response.status_code} ({response.text})"
         )
@@ -893,7 +762,7 @@ def list_namespaces():
         NamespaceSearch()
     ).list_all()
 
-    if len(namespaces) == 0:
+    if not namespaces:
         print_info("No Namespaces found")
         return
 
@@ -919,7 +788,7 @@ def list_namespace_policies():
         np_search
     )
     namespace_policies: list[NamespacePolicy] = search_client.list_all()
-    if len(namespace_policies) == 0:
+    if not namespace_policies:
         print_info("No Namespace Policies to display")
         return
 
@@ -946,7 +815,7 @@ def list_users():
     """
     users: list[User] = get_all_users(CLIENT)
 
-    if len(users) == 0:
+    if not users:
         print_info("No Users to display")
         return
 
@@ -979,7 +848,7 @@ def list_applications():
     """
     applications = get_all_applications(CLIENT)
 
-    if len(applications) == 0:
+    if not applications:
         print_info("No Applications to display")
         return
 
@@ -1015,7 +884,7 @@ def list_groups():
     """
     group_summaries = get_all_groups(CLIENT)
 
-    if len(group_summaries) == 0:
+    if not group_summaries:
         print_info("No Groups to display")
         return
 
@@ -1042,11 +911,11 @@ def list_roles():
     """
     role_summaries = get_all_roles(CLIENT)
 
-    if len(role_summaries) == 0:
+    if not role_summaries:
         print_info("No Roles to display")
         return
 
-    role_summaries.sort(key=lambda role: role.name if role.name is not None else "")
+    role_summaries.sort(key=lambda role_: role_.name if role_.name is not None else "")
 
     print_info("Obtaining permissions for each role ...")
     roles: list[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
@@ -1070,7 +939,7 @@ def list_permissions():
     List all permissions in the account.
     """
     permissions: list[PermissionDetail] = CLIENT.account_client.list_permissions()
-    permissions.sort(key=lambda permission: permission.name)
+    permissions.sort(key=lambda permission_: permission_.name)
 
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, permissions, object_type_name="Permission")

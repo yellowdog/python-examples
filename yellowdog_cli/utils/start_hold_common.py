@@ -5,6 +5,7 @@ Core functionality for starting and holding Work Requirements.
 """
 
 from collections.abc import Callable
+from typing import cast
 
 from yellowdog_client.model import (
     WorkRequirement,
@@ -43,7 +44,7 @@ def _start_or_hold_work_requirements(
     action: str, required_state: WorkRequirementStatus, action_function: Callable
 ) -> list[str]:
 
-    if len(ARGS_PARSER.work_requirement_names) > 0:
+    if ARGS_PARSER.work_requirement_names:
         return _start_or_hold_work_requirements_by_name_or_id(
             action=action,
             required_state=required_state,
@@ -69,12 +70,12 @@ def _start_or_hold_work_requirements(
     count = 0
     work_requirement_ids: list[str] = []
 
-    if len(selected_work_requirement_summaries) > 0:
+    if selected_work_requirement_summaries:
         selected_work_requirement_summaries = select(
             CLIENT, selected_work_requirement_summaries
         )
 
-    if len(selected_work_requirement_summaries) > 0 and confirmed(
+    if selected_work_requirement_summaries and confirmed(
         f"{action} {len(selected_work_requirement_summaries)} Work Requirement(s)?"
     ):
         for work_summary in selected_work_requirement_summaries:
@@ -94,7 +95,7 @@ def _start_or_hold_work_requirements(
                     print_error(
                         f"Failed to {action} Work Requirement '{work_summary.name}': {e}"
                     )
-            work_requirement_ids.append(work_summary.id)
+            work_requirement_ids.append(cast(str, work_summary.id))
 
         if count > 0:
             print_info(f"{action} applied to {count} Work Requirement(s)")
@@ -120,10 +121,8 @@ def _start_or_hold_work_requirements_by_name_or_id(
     work_requirement_summaries: list[WorkRequirementSummary] = []
 
     for name_or_id in names_or_ids:
-        work_requirement_summary: WorkRequirementSummary = (
-            get_work_requirement_summary_by_name_or_id(
-                CLIENT, name_or_id, namespace=CONFIG_COMMON.namespace
-            )
+        work_requirement_summary = get_work_requirement_summary_by_name_or_id(
+            CLIENT, name_or_id, namespace=CONFIG_COMMON.namespace
         )
 
         if work_requirement_summary is None:
@@ -156,4 +155,4 @@ def _start_or_hold_work_requirements_by_name_or_id(
                 f"Failed to apply action '{action}' to Work Requirement {fq_name_and_id}: {e}"
             )
 
-    return [wr.id for wr in work_requirement_summaries]
+    return [cast(str, wr.id) for wr in work_requirement_summaries]

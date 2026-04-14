@@ -32,7 +32,7 @@ def get_user_data_property(
     """
     options = [config.user_data, config.user_data_file, config.user_data_files]
     if options.count(None) < 2:
-        raise Exception(
+        raise ValueError(
             f"Only one of '{USERDATA}', '{USERDATAFILE}' or '{USERDATAFILES}' "
             "should be set"
         )
@@ -48,7 +48,7 @@ def get_user_data_property(
             try:
                 chdir(source_directory)
             except Exception as e:
-                raise Exception(
+                raise RuntimeError(
                     f"Unable to switch to content directory '{source_directory}': {e}"
                 )
 
@@ -76,7 +76,9 @@ def get_user_data_property(
                 user_data, prefix=WP_VARIABLES_PREFIX, postfix=WP_VARIABLES_POSTFIX
             )
         except Exception as e:
-            raise Exception(f"Error processing variable substitutions: {e}")
+            raise RuntimeError(f"Error processing variable substitutions: {e}")
+
+    return None
 
 
 def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
@@ -91,13 +93,12 @@ def get_template_id(client: PlatformClient, template_id_or_name: str) -> str:
         client=client, name=template_id_or_name
     )
     if template_id is None:
-        raise Exception(
+        raise KeyError(
             f"Compute Requirement Template '{template_id_or_name}' not found"
         )
 
     print_info(
-        f"Substituting Compute Requirement Template name '{template_id_or_name}'"
-        f" with ID {template_id}"
+        f"Compute Requirement Template '{template_id_or_name}' --> " f"{template_id}"
     )
     return template_id
 

@@ -8,111 +8,73 @@ tested in test_variable_processing.py; this file covers the rest.
 import re
 
 import pytest
+from yellowdog_client.model import (
+    ComputeRequirement,
+    ConfiguredWorkerPool,
+    ProvisionedWorkerPool,
+    WorkRequirement,
+)
 
 from yellowdog_cli.utils.misc_utils import (
     Substring,
     add_batch_number_postfix,
     camel_case_split,
+    entities,
     format_yd_name,
     generate_id,
     get_delimited_string_boundaries,
     link,
+    link_entity,
     pathname_relative_to_config_file,
     split_delimited_string,
-    unpack_namespace_in_prefix,
 )
 
 
-class TestUnpackNamespaceInPrefix:
-    def test_no_separator_returns_unchanged(self):
-        assert unpack_namespace_in_prefix("my-ns", "my-prefix") == (
-            "my-ns",
-            "my-prefix",
-        )
-
-    def test_separator_with_explicit_ns_overrides(self):
-        assert unpack_namespace_in_prefix("my-ns", "other-ns::my-prefix") == (
-            "other-ns",
-            "my-prefix",
-        )
-
-    def test_separator_with_empty_ns_uses_supplied_ns(self):
-        assert unpack_namespace_in_prefix("my-ns", "::my-prefix") == (
-            "my-ns",
-            "my-prefix",
-        )
-
-    def test_leading_slash_stripped_from_prefix(self):
-        ns, prefix = unpack_namespace_in_prefix("ns", "/path/to/prefix")
-        assert prefix == "path/to/prefix"
-        assert ns == "ns"
-
-    def test_leading_slash_stripped_after_separator(self):
-        ns, prefix = unpack_namespace_in_prefix("ns", "other-ns::/path/to")
-        assert ns == "other-ns"
-        assert prefix == "path/to"
-
-    def test_too_many_separators_raises(self):
-        with pytest.raises(Exception):
-            unpack_namespace_in_prefix("ns", "a::b::c")
-
-    def test_empty_prefix(self):
-        assert unpack_namespace_in_prefix("ns", "") == ("ns", "")
-
-
 class TestAddBatchNumberPostfix:
-    def test_single_batch_no_postfix(self):
-        assert add_batch_number_postfix("job", 0, 1) == "job"
-
-    def test_two_batches_first(self):
-        assert add_batch_number_postfix("job", 0, 2) == "job_1"
-
-    def test_two_batches_second(self):
-        assert add_batch_number_postfix("job", 1, 2) == "job_2"
-
-    def test_ten_batches_zero_padded(self):
-        assert add_batch_number_postfix("job", 0, 10) == "job_01"
-        assert add_batch_number_postfix("job", 9, 10) == "job_10"
-
-    def test_hundred_batches_two_digit_pad(self):
-        assert add_batch_number_postfix("job", 0, 100) == "job_001"
-        assert add_batch_number_postfix("job", 99, 100) == "job_100"
+    @pytest.mark.parametrize(
+        "name,batch,total,expected",
+        [
+            ("job", 0, 1, "job"),
+            ("job", 0, 2, "job_1"),
+            ("job", 1, 2, "job_2"),
+            ("job", 0, 10, "job_01"),
+            ("job", 9, 10, "job_10"),
+            ("job", 0, 100, "job_001"),
+            ("job", 99, 100, "job_100"),
+        ],
+    )
+    def test_postfix(self, name, batch, total, expected):
+        assert add_batch_number_postfix(name, batch, total) == expected
 
 
 class TestFormatYdName:
-    def test_slashes_become_dashes(self):
-        assert format_yd_name("path/to/thing") == "path-to-thing"
+    @pytest.mark.parametrize(
+        "s,expected",
+        [
+            ("path/to/thing", "path-to-thing"),
+            ("hello world", "hello_world"),
+            ("file.name", "file_name"),
+            ("UPPER", "upper"),
+            ("a@b#c!d", "abcd"),
+            ("My Job/2024.run test", "my_job-2024_run_test"),
+        ],
+    )
+    def test_transformation(self, s, expected):
+        assert format_yd_name(s) == expected
 
-    def test_spaces_become_underscores(self):
-        assert format_yd_name("hello world") == "hello_world"
-
-    def test_dots_become_underscores(self):
-        assert format_yd_name("file.name") == "file_name"
-
-    def test_uppercase_lowercased(self):
-        assert format_yd_name("UPPER") == "upper"
-
-    def test_special_chars_removed(self):
-        assert format_yd_name("a@b#c!d") == "abcd"
-
-    def test_numeric_start_gets_y_prefix_when_add_prefix_true(self):
-        result = format_yd_name("123abc", add_prefix=True)
-        assert result == "y123abc"
-
-    def test_numeric_start_no_prefix_when_add_prefix_false(self):
-        result = format_yd_name("123abc", add_prefix=False)
-        assert result == "123abc"
-
-    def test_alphabetic_start_no_prefix_added(self):
-        assert format_yd_name("abc123", add_prefix=True) == "abc123"
+    @pytest.mark.parametrize(
+        "s,add_prefix,expected",
+        [
+            ("123abc", True, "y123abc"),
+            ("123abc", False, "123abc"),
+            ("abc123", True, "abc123"),
+        ],
+    )
+    def test_numeric_prefix_behaviour(self, s, add_prefix, expected):
+        assert format_yd_name(s, add_prefix=add_prefix) == expected
 
     def test_truncated_at_60_chars(self):
-        result = format_yd_name("a" * 70)
-        assert len(result) == 60
-
-    def test_combined_transformations(self):
-        result = format_yd_name("My Job/2024.run test")
-        assert result == "my_job-2024_run_test"
+        assert len(format_yd_name("a" * 70)) == 60
 
     def test_result_only_contains_valid_chars(self):
         result = format_yd_name("weird @#$% chars!!", add_prefix=False)
@@ -120,18 +82,18 @@ class TestFormatYdName:
 
 
 class TestCamelCaseSplit:
-    def test_two_words(self):
-        assert camel_case_split("WorkRequirement") == "Work Requirement"
-
-    def test_single_word(self):
-        assert camel_case_split("Hello") == "Hello"
-
-    def test_three_words(self):
-        assert camel_case_split("ConfiguredWorkerPool") == "Configured Worker Pool"
-
-    def test_known_entity_names(self):
-        assert camel_case_split("ComputeRequirement") == "Compute Requirement"
-        assert camel_case_split("WorkerPool") == "Worker Pool"
+    @pytest.mark.parametrize(
+        "s,expected",
+        [
+            ("WorkRequirement", "Work Requirement"),
+            ("Hello", "Hello"),
+            ("ConfiguredWorkerPool", "Configured Worker Pool"),
+            ("ComputeRequirement", "Compute Requirement"),
+            ("WorkerPool", "Worker Pool"),
+        ],
+    )
+    def test_split(self, s, expected):
+        assert camel_case_split(s) == expected
 
 
 class TestGenerateId:
@@ -217,6 +179,49 @@ class TestSplitDelimitedStringEdgeCases:
         # Adjacent variables produce an empty string between them
         result = split_delimited_string("{{a}}{{b}}", "{{", "}}")
         assert result == ["{{a}}", "", "{{b}}"]
+
+
+class TestEntities:
+    """
+    entities dict maps SDK class names to their URL path segments.
+    link_entity uses type(entity).__name__ as the key.
+    """
+
+    def test_all_four_types_present(self):
+        assert set(entities.keys()) == {
+            "ConfiguredWorkerPool",
+            "ProvisionedWorkerPool",
+            "WorkRequirement",
+            "ComputeRequirement",
+        }
+
+    @pytest.mark.parametrize(
+        "cls,expected_segment",
+        [
+            (ConfiguredWorkerPool, "workers"),
+            (ProvisionedWorkerPool, "workers"),
+            (WorkRequirement, "work"),
+            (ComputeRequirement, "compute"),
+        ],
+    )
+    def test_class_name_maps_to_correct_segment(self, cls, expected_segment):
+        assert entities[cls.__name__] == expected_segment
+
+    @pytest.mark.parametrize(
+        "cls,expected_segment",
+        [
+            (ConfiguredWorkerPool, "workers"),
+            (ProvisionedWorkerPool, "workers"),
+            (WorkRequirement, "work"),
+            (ComputeRequirement, "compute"),
+        ],
+    )
+    def test_link_entity_uses_correct_path_segment(self, cls, expected_segment):
+        # object.__new__ gives a bare instance so type(entity).__name__ is correct
+        entity = object.__new__(cls)
+        entity.id = "test-id-123"
+        result = link_entity("https://app.yellowdog.ai", entity)
+        assert f"#/{expected_segment}/test-id-123" in result
 
 
 class TestLink:

@@ -29,7 +29,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 @main_wrapper
 def main():
 
-    if len(ARGS_PARSER.task_id_list) > 0:
+    if ARGS_PARSER.task_id_list:
         _abort_tasks_by_name_or_id(ARGS_PARSER.task_id_list)
         return
 
@@ -55,7 +55,7 @@ def main():
         )
     )
 
-    if len(selected_work_requirement_summaries) != 0:
+    if selected_work_requirement_summaries:
         selected_work_requirement_summaries = select(
             CLIENT,
             selected_work_requirement_summaries,
@@ -83,10 +83,8 @@ def abort_tasks_selectively(
     )
     tasks: list[Task] = CLIENT.work_client.find_tasks(task_search)
 
-    if len(tasks) > 0:
-        tasks = select(
-            CLIENT, sorted_objects(tasks), parent=wr_summary, override_quiet=True
-        )
+    if tasks:
+        tasks = select(CLIENT, sorted_objects(tasks), override_quiet=True)
     else:
         print_info(
             "No currently executing Tasks in this Work Requirement",
@@ -94,7 +92,7 @@ def abort_tasks_selectively(
         )
 
     aborted_tasks = 0
-    if len(tasks) != 0 and confirmed(f"Abort {len(tasks)} Task(s)?"):
+    if tasks and confirmed(f"Abort {len(tasks)} Task(s)?"):
         for task in tasks:
             try:
                 CLIENT.work_client.cancel_task(task, abort=True)

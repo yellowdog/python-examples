@@ -1,71 +1,38 @@
+import pytest
 from cli_test_helpers import shell
 
+from yellowdog_cli.utils.settings import (
+    ET_ALLOWANCES,
+    ET_COMPUTE_REQUIREMENT_TEMPLATES,
+    ET_COMPUTE_REQUIREMENTS,
+    ET_COMPUTE_SOURCE_TEMPLATES,
+    ET_GROUPS,
+    ET_IMAGE_FAMILIES,
+    ET_KEYRINGS,
+    ET_PERMISSIONS,
+    ET_ROLES,
+    ET_WORK_REQUIREMENTS,
+    ET_WORKER_POOLS,
+)
 
-class TestList:
-    def test_help(self):
-        result = shell("yd-list --help")
-        assert result.exit_code == 0
 
-    def test_workerpool(self):
-        result = shell("yd-list -p -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_compute_requirements(self):
-        result = shell("yd-list -r -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_objects(self):
-        result = shell("yd-list -o -t=''")
-        assert result.exit_code == 0
-
-    def test_objects_all(self):
-        result = shell("yd-list -oa -t=''")
-        assert result.exit_code == 0
-
-    def test_work_reqs(self):
-        result = shell("yd-list -w -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_worker_pools(self):
-        result = shell("yd-list -p -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_compute_reqs(self):
-        result = shell("yd-list -r -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_compute_templates(self):
-        result = shell("yd-list -C -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_source_templates(self):
-        result = shell("yd-list -S -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_keyrings(self):
-        result = shell("yd-list -K -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_image_families(self):
-        result = shell("yd-list -I -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_namespaces(self):
-        result = shell("yd-list -N -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_allowances(self):
-        result = shell("yd-list -A -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_groups(self):
-        result = shell("yd-list --groups -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_roles(self):
-        result = shell("yd-list --roles -n='' -t=''")
-        assert result.exit_code == 0
-
-    def test_permissions(self):
-        result = shell("yd-list --permissions -n='' -t=''")
-        assert result.exit_code == 0
+@pytest.mark.system
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        "yd-list --help",
+        f"yd-list {ET_ALLOWANCES} -n='' -t=''",
+        f"yd-list {ET_COMPUTE_REQUIREMENT_TEMPLATES} -n='' -t=''",
+        f"yd-list {ET_IMAGE_FAMILIES} -n='' -t=''",
+        f"yd-list {ET_KEYRINGS} -n='' -t=''",
+        f"yd-list {ET_COMPUTE_SOURCE_TEMPLATES} -n='' -t=''",
+        f"yd-list {ET_WORKER_POOLS} -n='' -t=''",
+        f"yd-list {ET_COMPUTE_REQUIREMENTS} -n='' -t=''",
+        f"yd-list {ET_WORK_REQUIREMENTS} -n='' -t=''",
+        f"yd-list {ET_GROUPS} -n='' -t=''",
+        f"yd-list {ET_PERMISSIONS} -n='' -t=''",
+        f"yd-list {ET_ROLES} -n='' -t=''",
+    ],
+)
+def test_list(cmd):
+    assert shell(cmd).exit_code == 0

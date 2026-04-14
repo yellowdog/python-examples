@@ -18,7 +18,7 @@ from cli_test_helpers import shell
 
 from yellowdog_cli.utils.ydid_utils import YDID
 
-RESOURCE_DIR = "tests/resource-examples"
+R = "tests/resource-examples"
 
 
 # ---------------------------------------------------------------------------
@@ -49,196 +49,78 @@ def _assert_show(ydid: str) -> None:
 
 
 @pytest.mark.system
-class TestSystemResources:
-    # ------------------------------------------------------------------
-    # Keyring
-    # ------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "create_cmd,remove_cmd,name,list_cmd,ids_cmd",
+    [
+        pytest.param(
+            f"yd-create {R}/keyring.json",
+            f"yd-remove -y {R}/keyring.json",
+            "aaa-test-1",
+            "yd-list keyrings -n='' -t=''",
+            "yd-list keyrings -D -n='' -t=''",
+            id="keyring",
+        ),
+        pytest.param(
+            f"yd-create {R}/namespace.json",
+            f"yd-remove -y {R}/namespace.json",
+            "delete-me",
+            "yd-list namespaces -t=''",
+            "yd-list namespaces -D -t=''",
+            id="namespace",
+        ),
+        pytest.param(
+            f"yd-create {R}/image-family.json",
+            f"yd-remove -y {R}/image-family.json",
+            "aaa-test",
+            "yd-list image-families -n=pyexamples-pwt -t=''",
+            "yd-list image-families -D -n=pyexamples-pwt -t=''",
+            id="image_family",
+        ),
+        pytest.param(
+            f"yd-create -y {R}/namespace_policies.json",
+            f"yd-remove -y {R}/namespace_policies.json",
+            "test_namespace_policy_1",
+            "yd-list namespace-policies -t=''",
+            "yd-list namespace-policies -D -t=''",
+            id="namespace_policy",
+        ),
+        pytest.param(
+            f"yd-create {R}/stringattribute.json",
+            f"yd-remove -y {R}/stringattribute.json",
+            "user.pwt-test-3",
+            "yd-list attribute-definitions -n='' -t=''",
+            "yd-list attribute-definitions -D -n='' -t=''",
+            id="string_attribute",
+        ),
+        pytest.param(
+            f"yd-create -y {R}/group.json",
+            f"yd-remove -y {R}/group.json",
+            "aaa",
+            "yd-list groups -n='' -t=''",
+            "yd-list groups -D -n='' -t=''",
+            id="group",
+        ),
+    ],
+)
+def test_resource_lifecycle(create_cmd, remove_cmd, name, list_cmd, ids_cmd, cleanup):
+    cleanup(remove_cmd)
 
-    def test_keyring_lifecycle(self, cleanup):
-        spec = f"{RESOURCE_DIR}/keyring.json"
-        name = "aaa-test-1"
-        list_cmd = "yd-list -K -n='' -t=''"
-        ids_cmd = "yd-list -K -D -n='' -t=''"
+    before = _ydids(ids_cmd)
 
-        cleanup(f"yd-remove -y {spec}")
+    result = shell(create_cmd)
+    assert result.exit_code == 0, f"yd-create failed:\n{result.stdout}"
 
-        before = _ydids(ids_cmd)
+    result = shell(list_cmd)
+    assert result.exit_code == 0
+    assert name in result.stdout, f"'{name}' not found in yd-list output"
 
-        result = shell(f"yd-create {spec}")
-        assert result.exit_code == 0, f"yd-create failed:\n{result.stdout}"
+    new_ydids = _ydids(ids_cmd) - before
+    if new_ydids:
+        _assert_show(next(iter(new_ydids)))
 
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name in result.stdout, f"'{name}' not found in yd-list output"
+    result = shell(remove_cmd)
+    assert result.exit_code == 0, f"yd-remove failed:\n{result.stdout}"
 
-        new_ydids = _ydids(ids_cmd) - before
-        if new_ydids:
-            _assert_show(next(iter(new_ydids)))
-
-        result = shell(f"yd-remove -y {spec}")
-        assert result.exit_code == 0, f"yd-remove failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name not in result.stdout, f"'{name}' still present after removal"
-
-    # ------------------------------------------------------------------
-    # Namespace
-    # ------------------------------------------------------------------
-
-    def test_namespace_lifecycle(self, cleanup):
-        spec = f"{RESOURCE_DIR}/namespace.json"
-        name = "delete-me"
-        list_cmd = "yd-list -M -t=''"
-        ids_cmd = "yd-list -M -D -t=''"
-
-        cleanup(f"yd-remove -y {spec}")
-
-        before = _ydids(ids_cmd)
-
-        result = shell(f"yd-create {spec}")
-        assert result.exit_code == 0, f"yd-create failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name in result.stdout, f"'{name}' not found in yd-list output"
-
-        new_ydids = _ydids(ids_cmd) - before
-        if new_ydids:
-            _assert_show(next(iter(new_ydids)))
-
-        result = shell(f"yd-remove -y {spec}")
-        assert result.exit_code == 0, f"yd-remove failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name not in result.stdout, f"'{name}' still present after removal"
-
-    # ------------------------------------------------------------------
-    # Image family
-    # ------------------------------------------------------------------
-
-    def test_image_family_lifecycle(self, cleanup):
-        spec = f"{RESOURCE_DIR}/image-family.json"
-        name = "aaa-test"
-        namespace = "pyexamples-pwt"
-        list_cmd = f"yd-list -I -n={namespace} -t=''"
-        ids_cmd = f"yd-list -I -D -n={namespace} -t=''"
-
-        cleanup(f"yd-remove -y {spec}")
-
-        before = _ydids(ids_cmd)
-
-        result = shell(f"yd-create {spec}")
-        assert result.exit_code == 0, f"yd-create failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name in result.stdout, f"'{name}' not found in yd-list output"
-
-        new_ydids = _ydids(ids_cmd) - before
-        if new_ydids:
-            _assert_show(next(iter(new_ydids)))
-
-        result = shell(f"yd-remove -y {spec}")
-        assert result.exit_code == 0, f"yd-remove failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name not in result.stdout, f"'{name}' still present after removal"
-
-    # ------------------------------------------------------------------
-    # Namespace policy
-    # ------------------------------------------------------------------
-
-    def test_namespace_policy_lifecycle(self, cleanup):
-        spec = f"{RESOURCE_DIR}/namespace_policies.json"
-        name = "test_namespace_policy_1"
-        list_cmd = "yd-list -P -t=''"
-        ids_cmd = "yd-list -P -D -t=''"
-
-        cleanup(f"yd-remove -y {spec}")
-
-        before = _ydids(ids_cmd)
-
-        result = shell(f"yd-create -y {spec}")
-        assert result.exit_code == 0, f"yd-create failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name in result.stdout, f"'{name}' not found in yd-list output"
-
-        new_ydids = _ydids(ids_cmd) - before
-        if new_ydids:
-            _assert_show(next(iter(new_ydids)))
-
-        result = shell(f"yd-remove -y {spec}")
-        assert result.exit_code == 0, f"yd-remove failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name not in result.stdout, f"'{name}' still present after removal"
-
-    # ------------------------------------------------------------------
-    # String attribute definition
-    # ------------------------------------------------------------------
-
-    def test_string_attribute_lifecycle(self, cleanup):
-        spec = f"{RESOURCE_DIR}/stringattribute.json"
-        name = "user.pwt-test-3"
-        list_cmd = "yd-list -R -n='' -t=''"
-        ids_cmd = "yd-list -R -D -n='' -t=''"
-
-        cleanup(f"yd-remove -y {spec}")
-
-        before = _ydids(ids_cmd)
-
-        result = shell(f"yd-create {spec}")
-        assert result.exit_code == 0, f"yd-create failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name in result.stdout, f"'{name}' not found in yd-list output"
-
-        new_ydids = _ydids(ids_cmd) - before
-        if new_ydids:
-            _assert_show(next(iter(new_ydids)))
-
-        result = shell(f"yd-remove -y {spec}")
-        assert result.exit_code == 0, f"yd-remove failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name not in result.stdout, f"'{name}' still present after removal"
-
-    # ------------------------------------------------------------------
-    # Group
-    # ------------------------------------------------------------------
-
-    def test_group_lifecycle(self, cleanup):
-        spec = f"{RESOURCE_DIR}/group.json"
-        name = "aaa"
-        list_cmd = "yd-list --groups -n='' -t=''"
-        ids_cmd = "yd-list --groups -D -n='' -t=''"
-
-        cleanup(f"yd-remove -y {spec}")
-
-        before = _ydids(ids_cmd)
-
-        result = shell(f"yd-create -y {spec}")
-        assert result.exit_code == 0, f"yd-create failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name in result.stdout, f"'{name}' not found in yd-list output"
-
-        new_ydids = _ydids(ids_cmd) - before
-        if new_ydids:
-            _assert_show(next(iter(new_ydids)))
-
-        result = shell(f"yd-remove -y {spec}")
-        assert result.exit_code == 0, f"yd-remove failed:\n{result.stdout}"
-
-        result = shell(list_cmd)
-        assert result.exit_code == 0
-        assert name not in result.stdout, f"'{name}' still present after removal"
+    result = shell(list_cmd)
+    assert result.exit_code == 0
+    assert name not in result.stdout, f"'{name}' still present after removal"

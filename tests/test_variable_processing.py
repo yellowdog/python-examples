@@ -17,6 +17,12 @@ class TestVariableProcessing:
             ("{{one}}", "{{", "}}", "one"),
             ("{{{one}}}", "{{", "}}", "{one}"),
             ("__{{{on}e}}}__", "__{{", "}}__", "{on}e}"),
+            (
+                "{{ one two}}",
+                "{{",
+                "}}",
+                " one two",
+            ),  # Spaces can be handled, although not documented
         ],
     )
     def test_remove_outer_delimiters(
@@ -41,9 +47,6 @@ class TestVariableProcessing:
                 "}}",
                 ["A ", "{{one}}", "123", "{{xy}z}}", "hello"],
             ),
-            pytest.param(
-                "{{one}}}}", "{{", "}}", ["{{one}}}"], marks=pytest.mark.xfail
-            ),  # Mismatched delimiters
         ],
     )
     def test_split_delimited_string(
@@ -57,3 +60,11 @@ class TestVariableProcessing:
             )
             == expected
         )
+
+    def test_split_delimited_string_mismatched_delimiters_raises(self):
+        with pytest.raises(Exception, match="Mismatched variable delimiters"):
+            split_delimited_string(
+                s="{{one}}}}",
+                opening_delimiter="{{",
+                closing_delimiter="}}",
+            )

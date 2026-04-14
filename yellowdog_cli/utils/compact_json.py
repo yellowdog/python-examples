@@ -77,11 +77,13 @@ class CompactJSONEncoder(json.JSONEncoder):
             and len(str(o)) - 2 <= self.MAX_WIDTH
         )
 
-    def _primitives_only(self, o: list | tuple | dict):
+    def _primitives_only(self, o: list | tuple | dict) -> bool:
         if isinstance(o, (list, tuple)):
             return not any(isinstance(el, self.CONTAINER_TYPES) for el in o)
         elif isinstance(o, dict):
             return not any(isinstance(el, self.CONTAINER_TYPES) for el in o.values())
+        else:
+            return False
 
     @property
     def indent_str(self) -> str:

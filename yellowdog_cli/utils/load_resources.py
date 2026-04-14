@@ -21,7 +21,6 @@ from yellowdog_cli.utils.settings import (
     RN_NUMERIC_ATTRIBUTE_DEFINITION,
     RN_REQUIREMENT_TEMPLATE,
     RN_SOURCE_TEMPLATE,
-    RN_STORAGE_CONFIGURATION,
     RN_STRING_ATTRIBUTE_DEFINITION,
 )
 from yellowdog_cli.utils.variables import (
@@ -61,7 +60,7 @@ def load_resource_specifications(creation_or_update: bool = True) -> list[dict]:
             )
             if get_ydid_type(resource_spec) is not None:
                 exception_message += "; did you mean to use the '--ids' option?"
-            raise Exception(exception_message)
+            raise ValueError(exception_message)
 
         # Transform single resource items into lists
         if isinstance(resources_loaded, dict):
@@ -112,7 +111,6 @@ def _resequence_resources(
         RN_REQUIREMENT_TEMPLATE,
         RN_ALLOWANCE,
         RN_NAMESPACE_POLICY,
-        RN_STORAGE_CONFIGURATION,
         RN_CONFIGURED_POOL,
         RN_GROUP,
         RN_APPLICATION,
@@ -126,11 +124,11 @@ def _resequence_resources(
             reverse=not creation_or_update,
         )
     except KeyError:
-        raise Exception(
+        raise KeyError(
             "Property 'resource' is not specified for one or more resource specifications"
         )
     except ValueError as e:
         resource_type = str(e).split("'")[1]
-        raise Exception(f"Unknown resource type: '{resource_type}'")
+        raise ValueError(f"Unknown resource type: '{resource_type}'")
 
     return resources

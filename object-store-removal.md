@@ -70,7 +70,6 @@ Keep: `task_data_inputs`, `task_data_outputs`, `task_data_file` (data client).
 Remove:
 - `NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR = "::"`
 - `RN_STORAGE_CONFIGURATION = "NamespaceStorageConfiguration"`
-- `MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS` (if `--parallel-batches` is also removed)
 
 ---
 
@@ -140,7 +139,7 @@ Keep: `update_config_work_requirement_object()`, `pause_between_batches()`, `gen
 
 This is the most complex file. Work top-to-bottom:
 
-**Imports** — remove `upload_utils`, `UploadedFiles` from `submit_utils`, object-store SDK model imports (`ObjectPath`, `TaskInput`, `TaskInputSource`, `TaskInputVerification`, `TaskOutput`), `NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR`, `MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS`. Keep `rclone_utils` import; keep `TaskData`, `TaskDataInput`, `TaskDataOutput` (data client).
+**Imports** — remove `upload_utils`, `UploadedFiles` from `submit_utils`, object-store SDK model imports (`ObjectPath`, `TaskInput`, `TaskInputSource`, `TaskInputVerification`, `TaskOutput`), `NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR`. Keep `rclone_utils` import; keep `TaskData`, `TaskDataInput`, `TaskDataOutput` (data client).
 
 **Module-level globals** — remove `UPLOADED_FILES`. Keep `RCLONE_UPLOADED_FILES`.
 

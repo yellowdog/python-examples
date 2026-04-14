@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from os.path import join, normpath, relpath
+from typing import TypeAlias
 from urllib.parse import urlparse
 
 from dotenv import dotenv_values, find_dotenv, load_dotenv
@@ -19,24 +20,8 @@ from yellowdog_client.model import (
 
 from yellowdog_cli.utils.args import ARGS_PARSER
 from yellowdog_cli.utils.printing import print_info
-from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
 
 UTCNOW = datetime.now(timezone.utc)
-
-
-def unpack_namespace_in_prefix(namespace: str, prefix: str) -> tuple[str, str]:
-    """
-    Allow the prefix to include the namespace, which can override the supplied
-    namespace. Return the unpacked (namespace, prefix) tuple.
-    """
-    elems = prefix.split(NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR)
-
-    if len(elems) == 1:
-        return namespace, prefix.lstrip("/")
-    if len(elems) == 2:
-        return elems[0] if elems[0] != "" else namespace, elems[1].lstrip("/")
-
-    raise Exception(f"Cannot unpack '{namespace}/{prefix}")
 
 
 def pathname_relative_to_config_file(config_file_dir: str, file: str) -> str:
@@ -54,7 +39,7 @@ def generate_id(prefix: str = "", max_length: int = 60) -> str:
     # Include seconds to three decimal points
     generated_id = prefix + UTCNOW.strftime("_%y%m%d-%H%M%S%f")[:-3]
     if len(generated_id) > max_length:
-        raise Exception(
+        raise ValueError(
             f"Error: Generated ID '{generated_id}' would exceed "
             f"maximum length ({max_length})"
         )
@@ -62,12 +47,24 @@ def generate_id(prefix: str = "", max_length: int = 60) -> str:
 
 
 # Utility functions for creating links to YD entities
-def link_entity(base_url: str, entity: object) -> str:
-    entity_type = type(entity)
+_EntityType: TypeAlias = (
+    ConfiguredWorkerPool | ProvisionedWorkerPool | WorkRequirement | ComputeRequirement
+)
+
+entities: dict[str, str] = {
+    "ConfiguredWorkerPool": "workers",
+    "ProvisionedWorkerPool": "workers",
+    "WorkRequirement": "work",
+    "ComputeRequirement": "compute",
+}
+
+
+def link_entity(base_url: str, entity: _EntityType) -> str:
+    entity_type_name = type(entity).__name__
     return link(
         base_url,
-        f"#/{(entities.get(entity_type))}/{entity.id}",
-        camel_case_split(entity_type.__name__).upper(),
+        f"#/{entities.get(entity_type_name)}/{entity.id}",  # type: ignore[union-attr]
+        camel_case_split(entity_type_name).upper(),
     )
 
 
@@ -85,14 +82,6 @@ def link(base_url: str, url_suffix: str = "", text: str | None = None) -> str:
 
 def camel_case_split(value: str) -> str:
     return " ".join(re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", value))
-
-
-entities = {
-    ConfiguredWorkerPool: "workers",
-    ProvisionedWorkerPool: "workers",
-    WorkRequirement: "work",
-    ComputeRequirement: "compute",
-}
 
 
 def add_batch_number_postfix(name: str, batch_number: int, num_batches: int) -> str:
@@ -134,7 +123,7 @@ def get_delimited_string_boundaries(
     openings = [(x.span()[0], 1) for x in re.finditer(opening_delimiter, input_string)]
     closings = [(x.span()[0], -1) for x in re.finditer(closing_delimiter, input_string)]
 
-    mismatched_delimiters_exception = Exception(
+    mismatched_delimiters_exception = ValueError(
         f"Mismatched variable delimiters ('{opening_delimiter}', '{closing_delimiter}')"
         f" in '{input_string}'"
     )
@@ -153,6 +142,7 @@ def get_delimited_string_boundaries(
         if slate == 1 and start is None:
             start = boundary[0]
         elif slate == 0:
+            assert start is not None  # set when slate first reached 1
             substrings.append(
                 Substring(start=start, end=boundary[0] + len(closing_delimiter))
             )
@@ -182,7 +172,7 @@ def split_delimited_string(
         s, opening_delimiter, closing_delimiter
     )
 
-    if len(delimited_boundaries) == 0:
+    if not delimited_boundaries:
         return [s]
 
     # Get non-delimited boundaries (i.e., the gaps)
@@ -208,7 +198,7 @@ def split_delimited_string(
 
     return [
         s[boundary.start : boundary.end]
-        for boundary in sorted(non_delimited_boundaries + delimited_boundaries)
+        for boundary in sorted(non_delimited_boundaries + delimited_boundaries)  # type: ignore[type-var]
     ]
 
 
@@ -262,16 +252,16 @@ def load_dotenv_file():
 
     dotenv_yd_substitutions = [  # Find 'YD' variables
         f"'{key}'"
-        for key in dotenv_values(dotenv_file).keys()
+        for key in dotenv_values(dotenv_file)
         if key.startswith("YD")
         and (os.environ.get(key) is None or ARGS_PARSER.env_override)
     ]
 
-    if len(dotenv_yd_substitutions) > 0:
+    if dotenv_yd_substitutions:
         print_info(
             "Adding 'YD' environment variable(s): "
             f"{', '.join(dotenv_yd_substitutions)}"
         )
 
     # Actually load the variables (including non-'YD' variables)
-    load_dotenv(dotenv_file, override=ARGS_PARSER.env_override)
+    load_dotenv(dotenv_file, override=bool(ARGS_PARSER.env_override))

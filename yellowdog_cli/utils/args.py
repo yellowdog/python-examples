@@ -7,8 +7,29 @@ import sys
 
 from yellowdog_cli.__init__ import __version__
 from yellowdog_cli.utils.settings import (
+    DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
     DEFAULT_URL,
-    MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
+    ET_ALLOWANCES,
+    ET_APPLICATIONS,
+    ET_ATTRIBUTE_DEFINITIONS,
+    ET_COMPUTE_REQUIREMENT_TEMPLATES,
+    ET_COMPUTE_REQUIREMENTS,
+    ET_COMPUTE_SOURCE_TEMPLATES,
+    ET_GROUPS,
+    ET_IMAGE_FAMILIES,
+    ET_INSTANCES,
+    ET_KEYRINGS,
+    ET_NAMESPACE_POLICIES,
+    ET_NAMESPACES,
+    ET_NODES,
+    ET_PERMISSIONS,
+    ET_ROLES,
+    ET_TASK_GROUPS,
+    ET_TASKS,
+    ET_USERS,
+    ET_WORK_REQUIREMENTS,
+    ET_WORKER_POOLS,
+    ET_WORKERS,
 )
 from yellowdog_cli.version import DOCS_URL
 
@@ -32,6 +53,82 @@ def allow_missing_attribute(func):
             return None
 
     return wrapper
+
+
+ENTITY_TYPES = [
+    ET_ALLOWANCES,
+    ET_APPLICATIONS,
+    ET_ATTRIBUTE_DEFINITIONS,
+    ET_COMPUTE_REQUIREMENT_TEMPLATES,
+    ET_COMPUTE_REQUIREMENTS,
+    ET_COMPUTE_SOURCE_TEMPLATES,
+    ET_GROUPS,
+    ET_IMAGE_FAMILIES,
+    ET_INSTANCES,
+    ET_KEYRINGS,
+    ET_NAMESPACE_POLICIES,
+    ET_NAMESPACES,
+    ET_NODES,
+    ET_PERMISSIONS,
+    ET_ROLES,
+    ET_TASK_GROUPS,
+    ET_TASKS,
+    ET_USERS,
+    ET_WORK_REQUIREMENTS,
+    ET_WORKER_POOLS,
+    ET_WORKERS,
+]
+
+# Single uppercase letter synonyms for each entity type.
+SYNONYMS: dict[str, str] = {
+    "A": ET_ALLOWANCES,
+    "B": ET_APPLICATIONS,
+    "D": ET_ATTRIBUTE_DEFINITIONS,
+    "C": ET_COMPUTE_REQUIREMENT_TEMPLATES,
+    "R": ET_COMPUTE_REQUIREMENTS,
+    "S": ET_COMPUTE_SOURCE_TEMPLATES,
+    "G": ET_GROUPS,
+    "I": ET_IMAGE_FAMILIES,
+    "E": ET_INSTANCES,
+    "K": ET_KEYRINGS,
+    "L": ET_NAMESPACE_POLICIES,
+    "M": ET_NAMESPACES,
+    "N": ET_NODES,
+    "X": ET_PERMISSIONS,
+    "O": ET_ROLES,
+    "H": ET_TASK_GROUPS,
+    "T": ET_TASKS,
+    "U": ET_USERS,
+    "W": ET_WORK_REQUIREMENTS,
+    "P": ET_WORKER_POOLS,
+    "F": ET_WORKERS,
+}
+
+# For help text: "allowances (A)", "applications (B)", ...
+_SYNONYM_REVERSE: dict[str, str] = {v: k for k, v in SYNONYMS.items()}
+_ENTITY_TYPE_HELP = ", ".join(f"{t} ({_SYNONYM_REVERSE[t]})" for t in ENTITY_TYPES)
+
+
+def resolve_entity_type(value: str) -> str:
+    """
+    Resolve an entity type string to its canonical form.
+
+    Checks single-letter uppercase synonyms first, then falls back to
+    unambiguous prefix matching. Raises argparse.ArgumentTypeError if the
+    value is ambiguous or unrecognised.
+    """
+    if value in SYNONYMS:
+        return SYNONYMS[value]
+    matches = [e for e in ENTITY_TYPES if e.startswith(value)]
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise argparse.ArgumentTypeError(
+            f"'{value}' is ambiguous — matches: {', '.join(matches)}"
+        )
+    raise argparse.ArgumentTypeError(
+        f"unknown entity type '{value}'; valid types: {_ENTITY_TYPE_HELP}"
+    )
 
 
 class CLIParser:
@@ -133,6 +230,19 @@ class CLIParser:
             required=False,
             help="ignore the contents of any TOML configuration file (even if specified on the command line)",
         )
+        parser.add_argument(
+            "--property",
+            type=str,
+            required=False,
+            action="append",
+            help=(
+                "override a TOML configuration property; "
+                "format: 'section.key=value', e.g. "
+                "'workRequirement.workerTags=[\"mytag\"]'; "
+                "can be supplied multiple times"
+            ),
+            metavar="<section.key=value>",
+        )
 
         # Module-specific arguments
 
@@ -180,14 +290,12 @@ class CLIParser:
             parser.add_argument(
                 "--tag",
                 "-t",
-                "--prefix",
                 type=str,
                 required=False,
                 nargs="?",
                 const="",
                 help=(
-                    "the tag to use when naming, tagging, or selecting entities,"
-                    " or the prefix (directory) when used with the object store;"
+                    "the tag to use when naming, tagging, or selecting entities;"
                     " this is set to '' if the option is provided without a value"
                 ),
                 metavar="<tag>",
@@ -210,7 +318,6 @@ class CLIParser:
             parser.add_argument(
                 "--tag",
                 "-t",
-                "--prefix",
                 type=str,
                 required=False,
                 nargs="?",
@@ -254,14 +361,6 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="follow the work requirement's progress to completion",
-            )
-            parser.add_argument(
-                "--executable",
-                "-X",
-                type=str,
-                required=False,
-                help="the 'executable' to use in the case of certain task types",
-                metavar="<executable>",
             )
             parser.add_argument(
                 "--task-type",
@@ -342,10 +441,41 @@ class CLIParser:
                 required=False,
                 help=(
                     "the maximum number of parallel task batch "
-                    f"uploads (default={MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS})"
+                    f"uploads (default={DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS})"
                     "; set this to '1' for sequential batch upload"
                 ),
                 metavar="<max_number_of_parallel_batches>",
+            )
+            parser.add_argument(
+                "--empty",
+                "-e",
+                action="store_true",
+                required=False,
+                help=(
+                    "submit a new Work Requirement with no Task Groups or Tasks;"
+                    " use with '--add-to' to populate it later"
+                ),
+            )
+            parser.add_argument(
+                "--overwrite",
+                "-O",
+                action="store_true",
+                required=False,
+                help=(
+                    "overwrite a file if it already exists at the"
+                    " remote destination; by default existing files are skipped"
+                ),
+            )
+            parser.add_argument(
+                "--add-to",
+                "-A",
+                type=str,
+                required=False,
+                help=(
+                    "add task groups and/or tasks to an existing work requirement"
+                    " specified by name or YellowDog ID"
+                ),
+                metavar="<work_requirement_name_or_id>",
             )
 
         # yd-provision / yd-instantiate
@@ -396,14 +526,11 @@ class CLIParser:
                 help="follow work requirement events after applying action",
             )
 
-        # yd-cancel / yd-delete / yd-download / yd-shutdown / yd-terminate /
-        # yd-start / yd-hold / yd-finish
+        # yd-cancel / yd-shutdown / yd-terminate / yd-start / yd-hold / yd-finish
         if any(
             module in sys.argv[0]
             for module in [
                 "cancel",
-                "delete",
-                "download",
                 "shutdown",
                 "terminate",
                 "start",
@@ -419,15 +546,16 @@ class CLIParser:
                 help="list, and interactively select, the items to act on",
             )
 
-        # yd-abort / yd-cancel / yd-delete / yd-shutdown / yd-terminate /
+        # yd-abort / yd-cancel / yd-shutdown / yd-terminate /
         # yd-resize / yd-cloudwizard / yd-boost / yd-hold / yd-start / yd-list /
-        # yd-finish
+        # yd-finish / yd-delete (data client) / yd-nodeaction
         if any(
             module in sys.argv[0]
             for module in [
                 "abort",
                 "cancel",
                 "delete",
+                "nodeaction",
                 "shutdown",
                 "terminate",
                 "resize",
@@ -450,126 +578,23 @@ class CLIParser:
                 ),
             )
 
-        # yd-delete / yd-download
-        if any(module in sys.argv[0] for module in ["delete", "download"]):
-            parser.add_argument(
-                "--all",
-                "-a",
-                action="store_true",
-                required=False,
-                help="list all objects, at all levels in the prefix hierarchy",
-            )
-            parser.add_argument(
-                "--non-exact-namespace-match",
-                "-N",
-                action="store_true",
-                required=False,
-                help="match all namespaces that contain the value of 'namespace'",
-            )
-
-        # yd-download
-        if "download" in sys.argv[0]:
-            parser.add_argument(
-                "--yes",
-                "-y",
-                action="store_true",
-                required=False,
-                help="download without requiring user confirmation",
-            )
-            parser.add_argument(
-                "--directory",
-                "-d",
-                type=str,
-                default="",
-                required=False,
-                help=(
-                    "the directory to use for downloaded objects (defaults to the"
-                    " current directory)"
-                ),
-                metavar="<directory>",
-            )
-            parser.add_argument(
-                "--flatten",
-                "-f",
-                action="store_true",
-                required=False,
-                help=(
-                    "flatten download paths (warning: objects with the same filenames"
-                    " will be overwritten)"
-                ),
-            )
-            parser.add_argument(
-                "--pattern",
-                "-p",
-                type=str,
-                required=False,
-                help=(
-                    "the pattern to use to match objects to be downloaded, "
-                    " e.g.: 'work_dir/results_*/results.txt'"
-                ),
-                metavar="<pattern-string>",
-            )
-
         # yd-list
         if "list" in sys.argv[0]:
+            parser.add_argument(
+                "entity_type",
+                type=resolve_entity_type,
+                metavar="ENTITY_TYPE",
+                help=(
+                    "type of entity to list; accepts a full name, an unambiguous "
+                    "prefix (e.g. 'work-r'), or a single uppercase synonym "
+                    "(e.g. 'W'). Valid types: " + _ENTITY_TYPE_HELP
+                ),
+            )
             parser.add_argument(
                 "--reverse",
                 action="store_true",
                 required=False,
                 help="list items in reverse-sorted name order",
-            )
-            parser.add_argument(
-                "--object-paths",
-                "--objects",
-                "-o",
-                action="store_true",
-                required=False,
-                help="list object store object paths",
-            )
-            parser.add_argument(
-                "--all",
-                "-a",
-                action="store_true",
-                required=False,
-                help=(
-                    "when used with '--objects', list all objects, not just the top"
-                    " level prefixes"
-                ),
-            )
-            parser.add_argument(
-                "--work-requirements",
-                "-w",
-                action="store_true",
-                required=False,
-                help="list work requirements",
-            )
-            parser.add_argument(
-                "--task-groups",
-                "-g",
-                action="store_true",
-                required=False,
-                help="list task groups in selected work requirements",
-            )
-            parser.add_argument(
-                "--tasks",
-                "-T",
-                action="store_true",
-                required=False,
-                help="list tasks in selected work requirements / task groups",
-            )
-            parser.add_argument(
-                "--worker-pools",
-                "-p",
-                action="store_true",
-                required=False,
-                help="list worker pools",
-            )
-            parser.add_argument(
-                "--compute-requirements",
-                "-r",
-                action="store_true",
-                required=False,
-                help="list compute requirements",
             )
             parser.add_argument(
                 "--active-only",
@@ -582,122 +607,10 @@ class CLIParser:
                 ),
             )
             parser.add_argument(
-                "--compute-requirement-templates",
-                "-C",
-                action="store_true",
-                required=False,
-                help="list compute requirement templates",
-            )
-            parser.add_argument(
-                "--compute-source-templates",
-                "-S",
-                action="store_true",
-                required=False,
-                help="list compute source templates",
-            )
-            parser.add_argument(
-                "--keyrings",
-                "-K",
-                action="store_true",
-                required=False,
-                help="list keyrings",
-            )
-            parser.add_argument(
-                "--image-families",
-                "-I",
-                action="store_true",
-                required=False,
-                help="list machine image families",
-            )
-            parser.add_argument(
-                "--namespace-storage-configurations",
-                "-N",
-                action="store_true",
-                required=False,
-                help="list namespace storage configurations",
-            )
-            parser.add_argument(
-                "--instances",
-                "-i",
-                action="store_true",
-                required=False,
-                help="list compute instances",
-            )
-            parser.add_argument(
-                "--nodes",
-                action="store_true",
-                required=False,
-                help="list worker pool nodes",
-            )
-            parser.add_argument(
-                "--workers",
-                action="store_true",
-                required=False,
-                help="list all workers in a worker pool",
-            )
-            parser.add_argument(
                 "--public-ips-only",
                 action="store_true",
                 required=False,
-                help="when used with '--instances', lists public IP addresses only",
-            )
-            parser.add_argument(
-                "--allowances",
-                "-A",
-                action="store_true",
-                required=False,
-                help="list allowances",
-            )
-            parser.add_argument(
-                "--attribute-definitions",
-                "-R",
-                action="store_true",
-                required=False,
-                help="list user attribute definitions",
-            )
-            parser.add_argument(
-                "--namespaces",
-                "-M",
-                action="store_true",
-                required=False,
-                help="list namespaces",
-            )
-            parser.add_argument(
-                "--namespace-policies",
-                "-P",
-                action="store_true",
-                required=False,
-                help="list namespace policies",
-            )
-            parser.add_argument(
-                "--users",
-                action="store_true",
-                required=False,
-                help="list users",
-            )
-            parser.add_argument(
-                "--applications",
-                action="store_true",
-                required=False,
-                help="list applications",
-            )
-            parser.add_argument(
-                "--groups",
-                action="store_true",
-                required=False,
-                help="list groups",
-            )
-            parser.add_argument(
-                "--roles",
-                action="store_true",
-                required=False,
-                help="list roles",
-            )
-            parser.add_argument(
-                "--permissions",
-                action="store_true",
-                required=False,
-                help="list permissions",
+                help="when used with 'instances', lists public IP addresses only",
             )
             parser.add_argument(
                 "--details",
@@ -711,43 +624,6 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="automatically select all listed objects (implies '--details')",
-            )
-
-        # yd-upload
-        if any(module in sys.argv[0] for module in ["upload"]):
-            parser.add_argument(
-                "filenames",
-                metavar="<filename>",
-                type=str,
-                nargs="+",
-                help="files and/or directories to upload to the object store",
-            )
-            parser.add_argument(
-                "--flatten-upload-paths",
-                "-f",
-                action="store_true",
-                required=False,
-                help=(
-                    "don't mirror local directory structure when uploading files (files"
-                    " may be overwritten)"
-                ),
-            )
-            parser.add_argument(
-                "--recursive",
-                "-r",
-                action="store_true",
-                required=False,
-                help="recursively upload files from directories",
-            )
-            parser.add_argument(
-                "--batch",
-                "-b",
-                action="store_true",
-                required=False,
-                help=(
-                    "use batch upload; file_patterns must contain wildcards and "
-                    "be quoted to prevent shell expansion"
-                ),
             )
 
         # yd-submit / yd-provision / yd-instantiate / yd-create
@@ -950,28 +826,6 @@ class CLIParser:
                 ),
             )
 
-        # yd-delete
-        if "delete" in sys.argv[0]:
-            parser.add_argument(
-                "object_paths_to_delete",
-                nargs="*",
-                default=[],
-                metavar="<object_path>",
-                type=str,
-                help="the object paths to delete; optional, overrides --tag/prefix",
-            )
-
-        # yd-download
-        if "download" in sys.argv[0]:
-            parser.add_argument(
-                "object_paths_to_download",
-                nargs="*",
-                default=[],
-                metavar="<object_path>",
-                type=str,
-                help="the object paths to download; optional, overrides --tag/prefix",
-            )
-
         # yd-create / yd-remove
         if any(module in sys.argv[0] for module in ["create", "remove"]):
             parser.add_argument(
@@ -1039,10 +893,22 @@ class CLIParser:
                 help=f"the YellowDog ID(s) of the item(s) to {verb}",
             )
 
-        # yd-upload / yd-submit / yd-provision / yd-instantiate
+        # yd-follow
+        if "follow" in sys.argv[0]:
+            parser.add_argument(
+                "--progress",
+                action="store_true",
+                required=False,
+                help=(
+                    "display a live progress bar for Work Requirement IDs; "
+                    "ignored for Worker Pool and Compute Requirement IDs"
+                ),
+            )
+
+        # yd-submit / yd-provision / yd-instantiate / yd-nodeaction
         if any(
             module in sys.argv[0]
-            for module in ["upload", "submit", "provision", "instantiate"]
+            for module in ["submit", "provision", "instantiate", "nodeaction"]
         ):
             parser.add_argument(
                 "--content-path",
@@ -1173,6 +1039,68 @@ class CLIParser:
                 action="store_true",
                 required=False,
                 help="print AWS secret key during setup",
+            )
+
+        # yd-nodeaction
+        if "nodeaction" in sys.argv[0]:
+            parser.add_argument(
+                "--follow",
+                "-f",
+                action="store_true",
+                required=False,
+                help=(
+                    "poll node action queues after submission, "
+                    "reporting progress until all actions complete or fail"
+                ),
+            )
+            parser.add_argument(
+                "--actions",
+                "-S",
+                type=str,
+                required=False,
+                help="node action spec file in JSON or Jsonnet format",
+                metavar="<node_actions.json>",
+            )
+            parser.add_argument(
+                "--worker-pool",
+                "-p",
+                type=str,
+                required=False,
+                help="name of the target worker pool",
+                metavar="<worker-pool-name>",
+            )
+            parser.add_argument(
+                "--node",
+                "-N",
+                type=str,
+                required=False,
+                action="append",
+                help=(
+                    "target a specific node by ID; " "can be specified multiple times"
+                ),
+                metavar="<node-id>",
+            )
+            parser.add_argument(
+                "--all-nodes",
+                action="store_true",
+                required=False,
+                help=(
+                    "target all current nodes in the worker pool "
+                    "(filtered by nodeTypes if present in the spec)"
+                ),
+            )
+            parser.add_argument(
+                "--status",
+                action="store_true",
+                required=False,
+                help="show the node action queue for the selected node(s)",
+            )
+            parser.add_argument(
+                "--details",
+                "-d",
+                action="store_true",
+                required=False,
+                help="show the full JSON details for --status output",
             )
 
         # yd-abort
@@ -1331,6 +1259,200 @@ class CLIParser:
                 required=False,
                 help="download the latest rclone binary, then exit",
             )
+            parser.add_argument(
+                "--which-rclone",
+                action="store_true",
+                required=False,
+                help="report the path and version of the rclone binary in use, then exit",
+            )
+            parser.add_argument(
+                "--progress",
+                action="store_true",
+                required=False,
+                help=(
+                    "display a live progress bar showing task completion; "
+                    "implies following the Work Requirement to completion"
+                ),
+            )
+
+        # yd-upload / yd-download / yd-delete / yd-ls (data client commands)
+        if any(
+            module in sys.argv[0] for module in ["upload", "download", "delete", "ls"]
+        ):
+            parser.add_argument(
+                "--remote",
+                "-r",
+                type=str,
+                required=False,
+                help="rclone remote name or inline config string; overrides [dataClient] config",
+                metavar="<remote>",
+            )
+            parser.add_argument(
+                "--bucket",
+                "-b",
+                type=str,
+                required=False,
+                help="bucket or container name; overrides [dataClient] config",
+                metavar="<bucket>",
+            )
+            parser.add_argument(
+                "--prefix",
+                "-p",
+                type=str,
+                required=False,
+                help=(
+                    "remote path prefix; supports {{variable}} substitution; "
+                    "overrides [dataClient] config"
+                ),
+                metavar="<prefix>",
+            )
+            parser.add_argument(
+                "--no-prefix",
+                action="store_true",
+                required=False,
+                help="suppress the default path prefix; place files at the bucket root",
+            )
+            parser.add_argument(
+                "--upgrade-rclone",
+                action="store_true",
+                required=False,
+                help="download the latest rclone binary, then exit",
+            )
+            parser.add_argument(
+                "--which-rclone",
+                action="store_true",
+                required=False,
+                help="report the path and version of the rclone binary in use, then exit",
+            )
+            parser.add_argument(
+                "--data-client-profile",
+                "--profile",
+                type=str,
+                required=False,
+                help=(
+                    "select a named [dataClient.<name>] profile from the config; "
+                    "inherits unset fields from [dataClient]"
+                ),
+                metavar="<name>",
+            )
+            parser.add_argument(
+                "--dry-run",
+                "-D",
+                action="store_true",
+                required=False,
+                help="show what would happen without performing any transfers",
+            )
+
+        # yd-upload
+        if "upload" in sys.argv[0]:
+            parser.add_argument(
+                "local_paths",
+                metavar="<local-path>",
+                type=str,
+                nargs="+",
+                help="local file(s) or directory(ies) to upload",
+            )
+            parser.add_argument(
+                "--destination",
+                "-d",
+                type=str,
+                required=False,
+                help="explicit remote destination path, overriding the assembled default",
+                metavar="<remote-path>",
+            )
+            parser.add_argument(
+                "--recursive",
+                "-R",
+                action="store_true",
+                required=False,
+                help="upload directories recursively",
+            )
+            parser.add_argument(
+                "--flatten",
+                action="store_true",
+                required=False,
+                help="strip directory structure; upload all files flat under the destination",
+            )
+            parser.add_argument(
+                "--sync",
+                action="store_true",
+                required=False,
+                help=(
+                    "mirror the local source to the remote destination, deleting remote "
+                    "files not present locally; implies --recursive"
+                ),
+            )
+
+        # yd-download
+        if "download" in sys.argv[0]:
+            parser.add_argument(
+                "remote_paths",
+                metavar="<remote-path>",
+                type=str,
+                nargs="+",
+                help="remote file(s) or pattern(s) to download",
+            )
+            parser.add_argument(
+                "--destination",
+                "-d",
+                type=str,
+                required=False,
+                default=None,
+                help="local directory or file path to write to (default: mirrors remote name)",
+                metavar="<local-path>",
+            )
+            parser.add_argument(
+                "--sync",
+                action="store_true",
+                required=False,
+                help=(
+                    "mirror the remote source to the local destination, deleting local "
+                    "files not present remotely"
+                ),
+            )
+            parser.add_argument(
+                "--flatten",
+                action="store_true",
+                required=False,
+                help="strip remote directory structure; download all files flat",
+            )
+
+        # yd-delete (data client)
+        if "delete" in sys.argv[0]:
+            parser.add_argument(
+                "remote_paths",
+                metavar="<remote-path>",
+                type=str,
+                nargs="*",
+                help=(
+                    "remote file(s) or directory(ies) to delete; "
+                    "if omitted with --recursive, deletes the entire default prefix"
+                ),
+            )
+            parser.add_argument(
+                "--recursive",
+                "-R",
+                action="store_true",
+                required=False,
+                help="delete directories recursively",
+            )
+
+        # yd-ls
+        if "ls" in sys.argv[0]:
+            parser.add_argument(
+                "remote_paths",
+                metavar="<remote-path>",
+                type=str,
+                nargs="*",
+                help="remote path(s) to list; defaults to the configured prefix if omitted",
+            )
+            parser.add_argument(
+                "--recursive",
+                "-R",
+                action="store_true",
+                required=False,
+                help="list directories recursively",
+            )
 
         self.args = parser.parse_args()
 
@@ -1397,6 +1519,11 @@ class CLIParser:
     def no_config(self) -> bool | None:
         return self.args.no_config
 
+    @property
+    @allow_missing_attribute
+    def property_overrides(self) -> list[str] | None:
+        return self.args.property
+
     # -----------------------------------------------------------------------
     # yd-* (all except yd-compare)
     # -----------------------------------------------------------------------
@@ -1452,11 +1579,6 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def executable(self) -> str | None:
-        return self.args.executable
-
-    @property
-    @allow_missing_attribute
     def task_type(self) -> str | None:
         return self.args.task_type
 
@@ -1500,6 +1622,21 @@ class CLIParser:
     def parallel_batches(self) -> int | None:
         return self.args.parallel_batches
 
+    @property
+    @allow_missing_attribute
+    def empty(self) -> bool | None:
+        return self.args.empty
+
+    @property
+    @allow_missing_attribute
+    def overwrite(self) -> bool | None:
+        return self.args.overwrite
+
+    @property
+    @allow_missing_attribute
+    def add_to(self) -> str | None:
+        return self.args.add_to
+
     # -----------------------------------------------------------------------
     # yd-provision / yd-instantiate
     # -----------------------------------------------------------------------
@@ -1519,8 +1656,7 @@ class CLIParser:
         return self.args.abort
 
     # -----------------------------------------------------------------------
-    # yd-cancel / yd-delete / yd-download / yd-shutdown / yd-terminate /
-    # yd-start / yd-hold / yd-finish
+    # yd-cancel / yd-shutdown / yd-terminate / yd-start / yd-hold / yd-finish
     # -----------------------------------------------------------------------
 
     @property
@@ -1533,7 +1669,7 @@ class CLIParser:
         self.args.interactive = interactive
 
     # -----------------------------------------------------------------------
-    # yd-abort / yd-cancel / yd-delete / yd-shutdown / yd-terminate /
+    # yd-abort / yd-cancel / yd-shutdown / yd-terminate /
     # yd-resize / yd-cloudwizard / yd-boost / yd-hold / yd-start / yd-list /
     # yd-finish  (also yd-create / yd-remove)
     # -----------------------------------------------------------------------
@@ -1542,39 +1678,6 @@ class CLIParser:
     @allow_missing_attribute
     def yes(self) -> bool | None:
         return self.args.yes
-
-    # -----------------------------------------------------------------------
-    # yd-delete / yd-download
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def all(self) -> bool | None:
-        return self.args.all
-
-    @property
-    @allow_missing_attribute
-    def non_exact_namespace_match(self) -> bool | None:
-        return self.args.non_exact_namespace_match
-
-    # -----------------------------------------------------------------------
-    # yd-download
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def directory(self) -> str | None:
-        return self.args.directory
-
-    @property
-    @allow_missing_attribute
-    def flatten_download_paths(self) -> bool | None:
-        return self.args.flatten
-
-    @property
-    @allow_missing_attribute
-    def object_path_pattern(self) -> str | None:
-        return self.args.pattern
 
     # -----------------------------------------------------------------------
     # yd-list
@@ -1587,33 +1690,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def object_paths(self) -> bool | None:
-        return self.args.object_paths
-
-    @property
-    @allow_missing_attribute
-    def work_requirements(self) -> bool | None:
-        return self.args.work_requirements
-
-    @property
-    @allow_missing_attribute
-    def task_groups(self) -> bool | None:
-        return self.args.task_groups
-
-    @property
-    @allow_missing_attribute
-    def tasks(self) -> bool | None:
-        return self.args.tasks
-
-    @property
-    @allow_missing_attribute
-    def worker_pools(self) -> bool | None:
-        return self.args.worker_pools
-
-    @property
-    @allow_missing_attribute
-    def compute_requirements(self) -> bool | None:
-        return self.args.compute_requirements
+    def entity_type(self) -> str | None:
+        return self.args.entity_type
 
     @property
     @allow_missing_attribute
@@ -1622,93 +1700,8 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def compute_requirement_templates(self) -> bool | None:
-        return self.args.compute_requirement_templates
-
-    @property
-    @allow_missing_attribute
-    def compute_source_templates(self) -> bool | None:
-        return self.args.compute_source_templates
-
-    @property
-    @allow_missing_attribute
-    def keyrings(self) -> bool | None:
-        return self.args.keyrings
-
-    @property
-    @allow_missing_attribute
-    def image_families(self) -> bool | None:
-        return self.args.image_families
-
-    @property
-    @allow_missing_attribute
-    def namespace_storage_configurations(self) -> bool | None:
-        return self.args.namespace_storage_configurations
-
-    @property
-    @allow_missing_attribute
-    def instances(self) -> bool | None:
-        return self.args.instances
-
-    @property
-    @allow_missing_attribute
-    def nodes(self) -> bool | None:
-        return self.args.nodes
-
-    @property
-    @allow_missing_attribute
-    def workers(self) -> bool | None:
-        return self.args.workers
-
-    @property
-    @allow_missing_attribute
     def public_ips_only(self) -> bool | None:
         return self.args.public_ips_only
-
-    @property
-    @allow_missing_attribute
-    def allowances(self) -> bool | None:
-        return self.args.allowances
-
-    @property
-    @allow_missing_attribute
-    def attribute_definitions(self) -> bool | None:
-        return self.args.attribute_definitions
-
-    @property
-    @allow_missing_attribute
-    def namespaces(self) -> bool | None:
-        return self.args.namespaces
-
-    @property
-    @allow_missing_attribute
-    def namespace_policies(self) -> bool | None:
-        return self.args.namespace_policies
-
-    @property
-    @allow_missing_attribute
-    def users(self) -> bool | None:
-        return self.args.users
-
-    @property
-    @allow_missing_attribute
-    def applications(self) -> bool | None:
-        return self.args.applications
-
-    @property
-    @allow_missing_attribute
-    def groups(self) -> bool | None:
-        return self.args.groups
-
-    @property
-    @allow_missing_attribute
-    def roles(self) -> bool | None:
-        return self.args.roles
-
-    @property
-    @allow_missing_attribute
-    def permissions(self) -> bool | None:
-        return self.args.permissions
 
     @property
     @allow_missing_attribute
@@ -1723,30 +1716,6 @@ class CLIParser:
     @allow_missing_attribute
     def auto_select_all(self) -> bool | None:
         return self.args.auto_select_all
-
-    # -----------------------------------------------------------------------
-    # yd-upload
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def files(self) -> list[str]:
-        return self.args.filenames
-
-    @property
-    @allow_missing_attribute
-    def flatten(self) -> bool | None:
-        return self.args.flatten_upload_paths
-
-    @property
-    @allow_missing_attribute
-    def recursive(self) -> bool | None:
-        return self.args.recursive
-
-    @property
-    @allow_missing_attribute
-    def batch(self) -> bool | None:
-        return self.args.batch
 
     # -----------------------------------------------------------------------
     # yd-submit / yd-provision / yd-instantiate / yd-create
@@ -1855,24 +1824,6 @@ class CLIParser:
         return self.args.work_requirements
 
     # -----------------------------------------------------------------------
-    # yd-delete
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def object_paths_to_delete(self) -> list[str] | None:
-        return self.args.object_paths_to_delete
-
-    # -----------------------------------------------------------------------
-    # yd-download
-    # -----------------------------------------------------------------------
-
-    @property
-    @allow_missing_attribute
-    def object_paths_to_download(self) -> list[str] | None:
-        return self.args.object_paths_to_download
-
-    # -----------------------------------------------------------------------
     # yd-create / yd-remove
     # -----------------------------------------------------------------------
 
@@ -1919,7 +1870,7 @@ class CLIParser:
         return self.args.yellowdog_ids
 
     # -----------------------------------------------------------------------
-    # yd-upload / yd-submit / yd-provision / yd-instantiate
+    # yd-submit / yd-provision / yd-instantiate
     # -----------------------------------------------------------------------
 
     @property
@@ -1979,6 +1930,30 @@ class CLIParser:
     @allow_missing_attribute
     def show_secrets(self) -> bool | None:
         return self.args.show_secrets
+
+    # -----------------------------------------------------------------------
+    # yd-nodeaction
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def node_action_spec(self) -> str | None:
+        return self.args.actions
+
+    @property
+    @allow_missing_attribute
+    def node_ids(self) -> list[str] | None:
+        return self.args.node
+
+    @property
+    @allow_missing_attribute
+    def all_nodes(self) -> bool | None:
+        return self.args.all_nodes
+
+    @property
+    @allow_missing_attribute
+    def status(self) -> bool | None:
+        return self.args.status
 
     # -----------------------------------------------------------------------
     # yd-abort
@@ -2078,6 +2053,83 @@ class CLIParser:
     def upgrade_rclone(self) -> bool | None:
         return self.args.upgrade_rclone
 
+    @property
+    @allow_missing_attribute
+    def which_rclone(self) -> bool | None:
+        return self.args.which_rclone
+
+    @property
+    @allow_missing_attribute
+    def progress(self) -> bool | None:
+        return self.args.progress
+
+    # -----------------------------------------------------------------------
+    # yd-upload / yd-download / yd-delete / yd-ls (data client commands)
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def remote(self) -> str | None:
+        return self.args.remote
+
+    @property
+    @allow_missing_attribute
+    def bucket(self) -> str | None:
+        return self.args.bucket
+
+    @property
+    @allow_missing_attribute
+    def prefix(self) -> str | None:
+        return self.args.prefix
+
+    @property
+    @allow_missing_attribute
+    def no_prefix(self) -> bool | None:
+        return self.args.no_prefix
+
+    @property
+    @allow_missing_attribute
+    def data_client_profile(self) -> str | None:
+        return self.args.data_client_profile
+
+    # -----------------------------------------------------------------------
+    # yd-upload
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def local_paths(self) -> list[str] | None:
+        return self.args.local_paths
+
+    @property
+    @allow_missing_attribute
+    def destination(self) -> str | None:
+        return self.args.destination
+
+    @property
+    @allow_missing_attribute
+    def recursive(self) -> bool | None:
+        return self.args.recursive
+
+    @property
+    @allow_missing_attribute
+    def flatten(self) -> bool | None:
+        return self.args.flatten
+
+    @property
+    @allow_missing_attribute
+    def sync(self) -> bool | None:
+        return self.args.sync
+
+    # -----------------------------------------------------------------------
+    # yd-download / yd-delete / yd-ls
+    # -----------------------------------------------------------------------
+
+    @property
+    @allow_missing_attribute
+    def remote_paths(self) -> list[str] | None:
+        return self.args.remote_paths
+
 
 def lookup_module_description(module_name: str) -> str | None:
     """
@@ -2088,6 +2140,10 @@ def lookup_module_description(module_name: str) -> str | None:
 
     if "abort" in module_name:
         suffix = "aborting Tasks"
+    elif "delete" in module_name:
+        suffix = "deleting remote data client files and directories"
+    elif "download" in module_name:
+        suffix = "downloading files from a remote data client"
     elif "application" in module_name:
         suffix = "reporting the details of the current Application"
     elif "boost" in module_name:
@@ -2103,10 +2159,6 @@ def lookup_module_description(module_name: str) -> str | None:
         )
     elif "create" in module_name:
         suffix = "creating and updating resources"
-    elif "delete" in module_name:
-        suffix = "deleting objects in the Object Store"
-    elif "download" in module_name:
-        suffix = "downloading objects from the Object Store"
     elif "finish" in module_name:
         suffix = "finishing Work Requirements"
     elif "follow" in module_name:
@@ -2115,8 +2167,12 @@ def lookup_module_description(module_name: str) -> str | None:
         suffix = "holding (pausing) running Work Requirements"
     elif "instantiate" in module_name:
         suffix = "instantiating a Compute Requirement"
+    elif "ls" in module_name:
+        suffix = "listing remote data client files and directories"
     elif "list" in module_name:
         suffix = "listing all kinds of YellowDog items"
+    elif "nodeaction" in module_name:
+        suffix = "submitting Node Actions to Worker Pool nodes"
     elif "provision" in module_name:
         suffix = "provisioning a Worker Pool"
     elif "remove" in module_name:
@@ -2134,7 +2190,7 @@ def lookup_module_description(module_name: str) -> str | None:
     elif "terminate" in module_name:
         suffix = "terminating Compute Requirements, Instances or Nodes"
     elif "upload" in module_name:
-        suffix = "uploading objects to the Object Store"
+        suffix = "uploading files to a remote data client"
 
     return None if suffix is None else prefix + suffix
 

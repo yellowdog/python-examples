@@ -7,7 +7,7 @@ import pytest
 from cli_test_helpers import shell
 
 DEMO_DIR = "../python-examples-demos"
-CMD_SEQ = "yd-provision && yd-submit -f && yd-terminate -y"
+CMD_SEQ = "yd-provision && yd-submit -f && yd-terminate -y && yd-delete -Ry '{{tag}}*'"
 NEXTFLOW = "/Users/pwt/nextflow/nextflow"
 
 
@@ -15,6 +15,10 @@ NEXTFLOW = "/Users/pwt/nextflow/nextflow"
 class TestDemos:
     def test_bash(self):
         result = shell(f"cd {DEMO_DIR}/bash && {CMD_SEQ}")
+        assert result.exit_code == 0
+
+    def test_batch_allocation(self):
+        result = shell(f"cd {DEMO_DIR}/batch-allocation && {CMD_SEQ}")
         assert result.exit_code == 0
 
     def test_gce_instance_groups(self):
@@ -67,5 +71,12 @@ class TestDemos:
         result = shell(
             f"cd {DEMO_DIR}/modelled-on-premise && yd-instantiate "
             "&& sleep 120 && yd-terminate -y"
+        )
+        assert result.exit_code == 0
+
+    def test_video_demo(self):
+        result = shell(
+            f"cd {DEMO_DIR}/video-demo && yd-provision -v instances=1 -v max_nodes=1 "
+            f"&& yd-submit -C 1 -f && yd-terminate -y && yd-delete -Ry '{{{{tag}}}}*'"
         )
         assert result.exit_code == 0

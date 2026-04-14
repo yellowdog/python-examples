@@ -15,8 +15,8 @@ def validate_properties(data: dict, context: str):
     ALL_KEYS list. Raise an exception if not.
     """
     invalid_keys = set(_get_keys(data)) - set(ALL_KEYS)
-    if len(invalid_keys) > 0:
-        raise Exception(f"Invalid properties in {context}: {invalid_keys}")
+    if invalid_keys:
+        raise KeyError(f"Invalid properties in {context}: {invalid_keys}")
 
 
 @dataclass
@@ -34,10 +34,9 @@ DEPRECATED_KEYS = [
     DeprecatedKey("idlePoolShutdownEnabled", f"{IDLE_POOL_TIMEOUT} = 0"),
     DeprecatedKey("idleNodeShutdownTimeout", IDLE_NODE_TIMEOUT),
     DeprecatedKey("idlePoolShutdownTimeout", IDLE_POOL_TIMEOUT),
-    DeprecatedKey("captureTaskOutput", UPLOAD_TASKOUTPUT),
 ]
 
-EXCLUDED_KEYS = [ENV, DOCKER_ENV, VARIABLES, INSTANCE_TAGS]
+EXCLUDED_KEYS = [ENV, VARIABLES, INSTANCE_TAGS, TASK_DATA_INPUTS, TASK_DATA_OUTPUTS]
 
 
 def _get_keys(data: dict | list) -> list[str]:
@@ -62,13 +61,11 @@ def _get_keys(data: dict | list) -> list[str]:
                     errors = True
             keys.append(key_to_add)
 
-            if (isinstance(value, dict) and key not in EXCLUDED_KEYS) or isinstance(
-                value, list
-            ):
+            if isinstance(value, (dict, list)) and key not in EXCLUDED_KEYS:
                 keys += _get_keys(value)
 
     if errors:
-        raise Exception("Please update your property names")
+        raise ValueError("Please update your property names")
 
     elif isinstance(data, list):
         for element in data:

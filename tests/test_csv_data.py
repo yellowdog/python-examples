@@ -50,49 +50,46 @@ def single_row_csv(tmp_path):
 # ---------------------------------------------------------------------------
 
 
-class TestMakeStringsubstitutions:
+class TestMakeStringSubstitutions:
     def test_plain_substitution(self):
-        result = make_string_substitutions("Hello {{name}}", "name", "World")
+        result = make_string_substitutions("Hello <<name>>", "name", "World")
         assert result == "Hello World"
 
     def test_no_matching_var_unchanged(self):
-        result = make_string_substitutions("Hello {{other}}", "name", "World")
-        assert result == "Hello {{other}}"
+        result = make_string_substitutions("Hello <<other>>", "name", "World")
+        assert result == "Hello <<other>>"
 
     def test_multiple_occurrences(self):
-        result = make_string_substitutions("{{x}} and {{x}}", "x", "val")
+        result = make_string_substitutions("<<x>> and <<x>>", "x", "val")
         assert result == "val and val"
 
     def test_num_type_tag_replaces_quoted_expression(self):
-        # '{{num:count}}' in the input should be replaced with the bare number
-        result = make_string_substitutions("'{{num:count}}'", "count", "7")
+        # '<<num:count>>' in the input should be replaced with the bare number
+        result = make_string_substitutions("'<<num:count>>'", "count", "7")
         assert result == "7"
 
     def test_num_type_tag_invalid_value_raises(self):
         with pytest.raises(Exception, match="Invalid number"):
-            make_string_substitutions("'{{num:count}}'", "count", "not-a-number")
+            make_string_substitutions("'<<num:count>>'", "count", "not-a-number")
 
-    def test_bool_type_tag_true_case_insensitive(self):
-        result = make_string_substitutions("'{{bool:flag}}'", "flag", "TRUE")
-        assert result == "True"
-
-    def test_bool_type_tag_false_case_insensitive(self):
-        result = make_string_substitutions("'{{bool:flag}}'", "flag", "False")
-        assert result == "False"
+    @pytest.mark.parametrize("value,expected", [("TRUE", "True"), ("False", "False")])
+    def test_bool_type_tag(self, value, expected):
+        result = make_string_substitutions("'<<bool:flag>>'", "flag", value)
+        assert result == expected
 
     def test_bool_type_tag_invalid_raises(self):
         with pytest.raises(Exception, match="Invalid Boolean"):
-            make_string_substitutions("'{{bool:flag}}'", "flag", "yes")
+            make_string_substitutions("'<<bool:flag>>'", "flag", "yes")
 
     def test_format_name_type_tag(self):
         result = make_string_substitutions(
-            "{{format_name:label}}", "label", "My Job/Run"
+            "<<format_name:label>>", "label", "My Job/Run"
         )
         assert result == "my_job-run"
 
     def test_format_name_in_larger_string(self):
         result = make_string_substitutions(
-            "task-{{format_name:label}}-end", "label", "Test Case"
+            "task-<<format_name:label>>-end", "label", "Test Case"
         )
         assert result == "task-test_case-end"
 
@@ -102,33 +99,23 @@ class TestMakeStringsubstitutions:
 # ---------------------------------------------------------------------------
 
 
-class TestSubstitionsPresent:
-    def test_plain_var_present(self):
-        assert substitutions_present(["myvar"], "some {{myvar}} text") is True
-
-    def test_plain_var_absent(self):
-        assert substitutions_present(["myvar"], "no substitutions here") is False
-
-    def test_num_type_tag_present(self):
-        assert substitutions_present(["count"], "'{{num:count}}'") is True
-
-    def test_bool_type_tag_present(self):
-        assert substitutions_present(["flag"], "'{{bool:flag}}'") is True
-
-    def test_format_name_type_tag_present(self):
-        assert substitutions_present(["label"], "{{format_name:label}}") is True
-
-    def test_multiple_var_names_one_present(self):
-        assert substitutions_present(["a", "b", "c"], "only {{b}} here") is True
-
-    def test_none_of_the_vars_present(self):
-        assert substitutions_present(["x", "y"], "{{z}} is not in the list") is False
-
-    def test_empty_var_names(self):
-        assert substitutions_present([], "{{anything}}") is False
-
-    def test_empty_prototype(self):
-        assert substitutions_present(["myvar"], "") is False
+class TestSubstitutionsPresent:
+    @pytest.mark.parametrize(
+        "var_names,prototype,expected",
+        [
+            (["myvar"], "some <<myvar>> text", True),
+            (["myvar"], "no substitutions here", False),
+            (["count"], "'<<num:count>>'", True),
+            (["flag"], "'<<bool:flag>>'", True),
+            (["label"], "<<format_name:label>>", True),
+            (["a", "b", "c"], "only <<b>> here", True),
+            (["x", "y"], "<<z>> is not in the list", False),
+            ([], "<<anything>>", False),
+            (["myvar"], "", False),
+        ],
+    )
+    def test_substitutions_present(self, var_names, prototype, expected):
+        assert substitutions_present(var_names, prototype) is expected
 
 
 # ---------------------------------------------------------------------------

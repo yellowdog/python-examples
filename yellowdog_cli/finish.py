@@ -4,6 +4,8 @@
 A script to finish Work Requirements.
 """
 
+from typing import cast
+
 from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementStatus,
@@ -23,7 +25,7 @@ from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.work_requirement_names) > 0:
+    if ARGS_PARSER.work_requirement_names:
         _finish_work_requirements_by_name_or_id(ARGS_PARSER.work_requirement_names)
         return
 
@@ -51,12 +53,12 @@ def main():
     finishing_count = 0
     work_requirement_ids: list[str] = []
 
-    if len(selected_work_requirement_summaries) > 0:
+    if selected_work_requirement_summaries:
         selected_work_requirement_summaries = select(
             CLIENT, selected_work_requirement_summaries
         )
 
-    if len(selected_work_requirement_summaries) > 0 and confirmed(
+    if selected_work_requirement_summaries and confirmed(
         f"Finish {len(selected_work_requirement_summaries)} Work Requirement(s)?"
     ):
         for work_summary in selected_work_requirement_summaries:
@@ -104,12 +106,10 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: list[str]):
 
     for name_or_id in names_or_ids:
 
-        work_requirement_summary: WorkRequirementSummary = (
-            get_work_requirement_summary_by_name_or_id(
-                CLIENT,
-                name_or_id,
-                namespace=CONFIG_COMMON.namespace,
-            )
+        work_requirement_summary = get_work_requirement_summary_by_name_or_id(
+            CLIENT,
+            name_or_id,
+            namespace=CONFIG_COMMON.namespace,
         )
         if work_requirement_summary is None:
             print_error(f"Work Requirement '{name_or_id}' not found")
@@ -153,7 +153,7 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: list[str]):
                 )
 
     if ARGS_PARSER.follow:
-        follow_ids([wrs.id for wrs in work_requirement_summaries])
+        follow_ids([cast(str, wrs.id) for wrs in work_requirement_summaries])
 
 
 # Entry point

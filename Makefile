@@ -15,13 +15,13 @@ clean:
 	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP) $(PYINSTALLER)
 
 install: build
-	pip install -U -e .
+	pip install -U -e ".[jsonnet,cloudwizard]"
 
 uninstall:
 	pip uninstall -y yellowdog-python-examples
 
 black: $(SRC) $(TESTS)
-	black --preview $(SRC) $(TESTS)
+	black --preview --target-version py310 $(SRC) $(TESTS)
 
 isort: $(SRC)
 	isort --profile black $(SRC) $(TESTS)

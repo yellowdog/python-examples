@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from math import ceil, floor
 from os.path import dirname
+from typing import cast
 
 import requests
 from yellowdog_client.common.iso_datetime import iso_timedelta_format
@@ -113,8 +114,8 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
         )
     else:
         if ARGS_PARSER.jsonnet_dry_run:
-            raise Exception(
-                f"Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
+            raise ValueError(
+                "Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
             )
         wp_data = load_json_file_with_variable_substitutions(
             wp_json_file, prefix=WP_VARIABLES_PREFIX, postfix=WP_VARIABLES_POSTFIX
@@ -245,7 +246,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
                 provisioned_properties[key] = value
 
     except KeyError as e:
-        raise Exception(f"Key error in JSON Worker Pool definition: {e}")
+        raise KeyError(f"Key error in JSON Worker Pool definition: {e}")
 
     if ARGS_PARSER.dry_run:
         print_info("Dry-run: Printing JSON Worker Pool specification")
@@ -271,7 +272,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
             follow_ids([id], auto_cr=ARGS_PARSER.auto_cr)
     else:
         print_error(f"Failed to provision Worker Pool '{name}'")
-        raise Exception(f"{response.text}")
+        raise RuntimeError(f"{response.text}")
 
 
 def create_worker_pool_from_toml():
@@ -283,7 +284,7 @@ def create_worker_pool_from_toml():
 
     # Allow the Compute Requirement Template name to be used instead of ID
     CONFIG_WP.template_id = get_template_id(
-        client=CLIENT, template_id_or_name=CONFIG_WP.template_id
+        client=CLIENT, template_id_or_name=cast(str, CONFIG_WP.template_id)
     )
 
     # Allow the Image Family name to be used instead of ID
@@ -326,7 +327,7 @@ def create_worker_pool_from_toml():
     else:
         node_workers = NodeWorkerTarget.per_node(CONFIG_WP.workers_per_node)
 
-    if CONFIG_WP.maintainInstanceCount is True:
+    if CONFIG_WP.maintainInstanceCount:
         print_info(
             f"Warning: Property '{MAINTAIN_INSTANCE_COUNT}' will be set to "
             "'false' when creating a Worker Pool"
@@ -377,7 +378,7 @@ def create_worker_pool_from_toml():
             print_info(f"Provisioning Worker Pool '{CONFIG_COMMON.namespace}/{id}'")
         try:
             compute_requirement_template_usage = ComputeRequirementTemplateUsage(
-                templateId=CONFIG_WP.template_id,
+                templateId=cast(str, CONFIG_WP.template_id),
                 requirementNamespace=CONFIG_COMMON.namespace,
                 requirementName=id,
                 targetInstanceCount=batches[batch_number].initial_nodes,
@@ -418,7 +419,7 @@ def create_worker_pool_from_toml():
                 )
 
         except Exception as e:
-            raise Exception(f"Unable to provision worker pool: {e}")
+            raise RuntimeError(f"Unable to provision worker pool: {e}")
 
     idle_node_shutdown_string = (
         f"time limit is {CONFIG_WP.idle_node_timeout} minute(s)"

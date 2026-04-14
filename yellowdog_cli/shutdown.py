@@ -4,10 +4,12 @@
 A script to shut down Worker Pools and/or Nodes.
 """
 
+from typing import cast
+
 from yellowdog_client.model import (
+    ConfiguredWorkerPool,
     ProvisionedWorkerPool,
     WorkerPool,
-    WorkerPoolStatus,
     WorkerPoolSummary,
 )
 
@@ -26,7 +28,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.worker_pool_nodes_list) > 0:
+    if ARGS_PARSER.worker_pool_nodes_list:
         shutdown_by_names_or_ids(ARGS_PARSER.worker_pool_nodes_list)
         return
 
@@ -47,10 +49,7 @@ def main():
 
     selected_worker_pool_summaries: list[WorkerPoolSummary] = []
     for worker_pool_summary in worker_pool_summaries:
-        if worker_pool_summary.status not in [
-            WorkerPoolStatus.TERMINATED,
-            WorkerPoolStatus.SHUTDOWN,
-        ]:
+        if not worker_pool_summary.status.finished:
             if (
                 worker_pool_summary.name is not None
                 and worker_pool_summary.namespace == CONFIG_COMMON.namespace
@@ -58,10 +57,10 @@ def main():
             ):
                 selected_worker_pool_summaries.append(worker_pool_summary)
 
-    if len(selected_worker_pool_summaries) > 0:
+    if selected_worker_pool_summaries:
         selected_worker_pool_summaries = select(CLIENT, selected_worker_pool_summaries)
 
-    if len(selected_worker_pool_summaries) > 0 and confirmed(
+    if selected_worker_pool_summaries and confirmed(
         f"Shutdown {len(selected_worker_pool_summaries)} Worker Pool(s)?"
     ):
         for worker_pool_summary in selected_worker_pool_summaries:
@@ -71,10 +70,14 @@ def main():
                 )
                 shutdown_count += 1
                 worker_pool: WorkerPool = get_worker_pool_by_id(
-                    CLIENT, worker_pool_summary.id
+                    CLIENT, cast(str, worker_pool_summary.id)
                 )
-                print_info(f"Shut down {link_entity(CONFIG_COMMON.url, worker_pool)}")
-                optionally_terminate_compute_requirement(worker_pool_summary.id)
+                print_info(
+                    f"Shut down {link_entity(CONFIG_COMMON.url, cast(ConfiguredWorkerPool, worker_pool))}"
+                )
+                optionally_terminate_compute_requirement(
+                    cast(str, worker_pool_summary.id)
+                )
             except Exception as e:
                 print_error(f"Failed to shut down '{worker_pool_summary.name}': {e}")
 
@@ -82,7 +85,7 @@ def main():
         print_info(f"Shut down {shutdown_count} Worker Pool(s)")
         if ARGS_PARSER.follow:
             follow_ids(
-                [wp.id for wp in selected_worker_pool_summaries],
+                [cast(str, wp.id) for wp in selected_worker_pool_summaries],
                 auto_cr=ARGS_PARSER.auto_cr,
             )
     else:
@@ -112,7 +115,7 @@ def shutdown_by_names_or_ids(names_or_ids: list[str]):
                 continue
         worker_pool_ids.append(worker_pool_id)
 
-    if len(worker_pool_ids) == 0 and len(node_ids) == 0:
+    if not worker_pool_ids and not node_ids:
         print_info("No Worker Pools or Nodes to shut down")
         return
 

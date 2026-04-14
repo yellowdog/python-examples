@@ -7,29 +7,26 @@ A script to submit a Work Requirement.
 from concurrent.futures import Future, ThreadPoolExecutor
 from copy import deepcopy
 from datetime import timedelta
+from gzip import compress
+from json import dumps as json_dumps
 from math import ceil
-from os.path import basename, dirname, relpath
+from os.path import dirname, relpath
+from typing import cast
 
 import jsons
 import requests
-from yellowdog_client.common.server_sent_events import (
-    DelegatedSubscriptionEventListener,
-)
 from yellowdog_client.model import (
     CloudProvider,
     DoubleRange,
-    FlattenPath,
     RunSpecification,
     Task,
-    TaskData,
     TaskGroup,
-    TaskInput,
-    TaskInputSource,
-    TaskInputVerification,
-    TaskOutput,
-    TaskStatus,
+    TaskTemplate,
     WorkRequirement,
     WorkRequirementStatus,
+)
+from yellowdog_client.model.instance_pricing_preference import (
+    InstancePricingPreference,
 )
 
 from yellowdog_cli.utils.config_types import ConfigWorkRequirement
@@ -39,8 +36,11 @@ from yellowdog_cli.utils.csv_data import (
     load_jsonnet_file_with_csv_task_expansion,
     load_toml_file_with_csv_task_expansion,
 )
-from yellowdog_cli.utils.follow_utils import follow_events
-from yellowdog_cli.utils.interactive import confirmed
+from yellowdog_cli.utils.entity_utils import get_work_requirement_summary_by_name_or_id
+from yellowdog_cli.utils.follow_utils import (
+    follow_events,
+    follow_work_requirement_with_progress,
+)
 from yellowdog_cli.utils.load_config import (
     CONFIG_FILE_DIR,
     load_config_work_requirement,
@@ -51,52 +51,32 @@ from yellowdog_cli.utils.printing import (
     print_error,
     print_info,
     print_json,
-    print_numbered_strings,
     print_warning,
 )
 from yellowdog_cli.utils.property_names import (
+    ADD_ENVIRONMENT,
     ADD_YD_ENV_VARS,
-    ALWAYS_UPLOAD,
     ARGS,
-    BATCH_ALLOCATION,
+    ARGS_POSTFIX,
+    ARGS_PREFIX,
     COMPLETED_TASK_TTL,
-    DIRECTORY_NAME,
     DISABLE_PREALLOCATION,
-    DOCKER_ENV,
-    DOCKER_OPTIONS,
-    DOCKER_PASSWORD,
-    DOCKER_REGISTRY,
-    DOCKER_USERNAME,
     ENV,
-    EXCLUSIVE_WORKERS,
-    EXECUTABLE,
-    FILE_PATTERN,
     FINISH_IF_ALL_TASKS_FINISHED,
     FINISH_IF_ANY_TASK_FAILED,
-    FLATTEN_PATHS,
-    FLATTEN_UPLOAD_PATHS,
-    INPUTS_OPTIONAL,
-    INPUTS_REQUIRED,
+    INSTANCE_PRICING_PREFERENCE,
     INSTANCE_TYPES,
-    LOCAL_PATH,
     MAX_RETRIES,
     MAX_WORKERS,
     MIN_WORKERS,
     NAME,
     NAMESPACES,
-    OUTPUTS_OPTIONAL,
-    OUTPUTS_OTHER,
-    OUTPUTS_REQUIRED,
     PRIORITY,
     PROVIDERS,
     RAM,
     REGIONS,
-    REQUIRED,
     SET_TASK_NAMES,
-    TASK_BATCH_SIZE,
     TASK_COUNT,
-    TASK_DATA,
-    TASK_DATA_FILE,
     TASK_DATA_INPUTS,
     TASK_DATA_OUTPUTS,
     TASK_GROUP_COUNT,
@@ -105,36 +85,41 @@ from yellowdog_cli.utils.property_names import (
     TASK_GROUPS,
     TASK_LEVEL_TIMEOUT,
     TASK_NAME,
-    TASK_TAG,
+    TASK_TEMPLATE,
     TASK_TIMEOUT,
     TASK_TYPE,
     TASK_TYPES,
     TASKS,
     TASKS_PER_WORKER,
-    UPLOAD_FILES,
-    UPLOAD_PATH,
-    UPLOAD_TASKOUTPUT,
     VCPUS,
-    VERIFY_AT_START,
-    VERIFY_WAIT,
     WORKER_TAGS,
     WR_TAG,
 )
-from yellowdog_cli.utils.rclone_utils import RcloneUploadedFiles, upgrade_rclone
+from yellowdog_cli.utils.rclone_utils import upgrade_rclone, which_rclone
 from yellowdog_cli.utils.settings import (
+    DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
+    L_TASK_COUNT,
+    L_TASK_GROUP_COUNT,
+    L_TASK_GROUP_NAME,
+    L_TASK_GROUP_NUMBER,
+    L_TASK_NAME,
+    L_TASK_NUMBER,
+    L_WR_NAME,
     MAX_BATCH_SUBMIT_ATTEMPTS,
-    MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS,
-    NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR,
-    VAR_CLOSING_DELIMITER,
     VAR_NAME_OF_UNNAMED_TASK,
-    VAR_OPENING_DELIMITER,
 )
 from yellowdog_cli.utils.submit_utils import (
-    UploadedFiles,
+    RcloneUploadedFiles,
+    assemble_arguments,
+    create_task,
+    formatted_number_str,
     generate_dependencies,
     generate_task_error_matchers_list,
-    generate_task_input_list,
     generate_taskdata_object,
+    get_task_data_property,
+    get_task_group_name,
+    get_task_name,
+    merge_environment,
     pause_between_batches,
     update_config_work_requirement_object,
 )
@@ -146,23 +131,14 @@ from yellowdog_cli.utils.type_check import (
     check_list,
     check_str,
 )
-from yellowdog_cli.utils.upload_utils import unique_upload_pathname
 from yellowdog_cli.utils.validate_properties import validate_properties
 from yellowdog_cli.utils.variables import (
-    L_TASK_COUNT,
-    L_TASK_GROUP_COUNT,
-    L_TASK_GROUP_NAME,
-    L_TASK_GROUP_NUMBER,
-    L_TASK_NAME,
-    L_TASK_NUMBER,
-    L_WR_NAME,
     add_or_update_substitution,
     add_substitutions_without_overwriting,
     load_json_file_with_variable_substitutions,
     load_jsonnet_file_with_variable_substitutions,
     load_toml_file_with_variable_substitutions,
     process_variable_substitutions_insitu,
-    resolve_filename,
 )
 from yellowdog_cli.utils.wrapper import ARGS_PARSER, CLIENT, CONFIG_COMMON, main_wrapper
 from yellowdog_cli.utils.ydid_utils import YDIDType
@@ -173,25 +149,11 @@ CONFIG_WR: ConfigWorkRequirement = load_config_work_requirement()
 
 ID = generate_id(CONFIG_COMMON.name_tag)
 TASK_BATCH_SIZE = CONFIG_WR.task_batch_size
-INPUTS_FOLDER_NAME = None
 
 if ARGS_PARSER.dry_run:
     WR_SNAPSHOT = WorkRequirementSnapshot()
 
-UPLOADED_FILES: UploadedFiles | None = None
 RCLONE_UPLOADED_FILES: RcloneUploadedFiles | None = None
-
-# Names for environment variables that can be automatically added
-# to the environment for each Task
-YD_WORK_REQUIREMENT_NAME = "YD_WORK_REQUIREMENT_NAME"
-YD_TASK_GROUP_NAME = "YD_TASK_GROUP_NAME"
-YD_TASK_GROUP_NUMBER = "YD_TASK_GROUP_NUMBER"
-YD_NUM_TASK_GROUPS = "YD_NUM_TASK_GROUPS"
-YD_TASK_NAME = "YD_TASK_NAME"
-YD_TASK_NUMBER = "YD_TASK_NUMBER"
-YD_NUM_TASKS = "YD_NUM_TASKS"
-YD_NAMESPACE = "YD_NAMESPACE"
-YD_TAG = "YD_TAG"
 
 
 @main_wrapper
@@ -201,8 +163,12 @@ def main():
         upgrade_rclone()
         return
 
+    if ARGS_PARSER.which_rclone:
+        which_rclone()
+        return
+
     if not 1 <= TASK_BATCH_SIZE <= 10000:
-        raise Exception("Task batch size must be between 1 and 10,000")
+        raise ValueError("Task batch size must be between 1 and 10,000")
 
     if ARGS_PARSER.json_raw:
         submit_json_raw(ARGS_PARSER.json_raw)
@@ -224,7 +190,7 @@ def main():
     )
 
     if not csv_files and ARGS_PARSER.process_csv_only:
-        raise Exception(
+        raise ValueError(
             "Option '--process-csv-only' is only valid if CSV file(s) specified"
         )
 
@@ -238,16 +204,23 @@ def main():
 
     if wr_data_file is None and csv_files is not None:
         wr_data = csv_expand_toml_tasks(CONFIG_WR, csv_files[0], files_directory)
-        submit_work_requirement(
-            files_directory=files_directory,
-            wr_data=wr_data,
-        )
+        if ARGS_PARSER.add_to and not ARGS_PARSER.dry_run:
+            add_to_existing_work_requirement(
+                files_directory=files_directory,
+                wr_data=wr_data,
+                task_count=None,
+            )
+        else:
+            submit_work_requirement(
+                files_directory=files_directory,
+                wr_data=wr_data,
+            )
 
     elif wr_data_file is not None:
 
         if ARGS_PARSER.jsonnet_dry_run and not wr_data_file.lower().endswith("jsonnet"):
-            raise Exception(
-                f"Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
+            raise ValueError(
+                "Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
             )
 
         wr_data_file = relpath(wr_data_file)
@@ -299,22 +272,36 @@ def main():
 
         # None of the above
         else:
-            raise Exception(
+            raise ValueError(
                 f"Work Requirement data file '{wr_data_file}' "
                 "must end with '.json', '.jsonnet', or '.toml'"
             )
 
         validate_properties(wr_data, "Work Requirement JSON")
-        submit_work_requirement(
-            files_directory=files_directory,
-            wr_data=wr_data,
-        )
+        if ARGS_PARSER.add_to and not ARGS_PARSER.dry_run:
+            add_to_existing_work_requirement(
+                files_directory=files_directory,
+                wr_data=wr_data,
+                task_count=None,
+            )
+        else:
+            submit_work_requirement(
+                files_directory=files_directory,
+                wr_data=wr_data,
+            )
 
     else:
-        submit_work_requirement(
-            files_directory=files_directory,
-            task_count=CONFIG_WR.task_count,
-        )
+        if ARGS_PARSER.add_to and not ARGS_PARSER.dry_run:
+            add_to_existing_work_requirement(
+                files_directory=files_directory,
+                wr_data=None,
+                task_count=CONFIG_WR.task_count,
+            )
+        else:
+            submit_work_requirement(
+                files_directory=files_directory,
+                task_count=CONFIG_WR.task_count,
+            )
 
     if ARGS_PARSER.dry_run:
         WR_SNAPSHOT.print()
@@ -335,12 +322,15 @@ def submit_work_requirement(
     Task > Task Group > Top-Level JSON Property > TOML config file
     """
     # Create a default tasks_data dictionary if required
-    wr_data = {TASK_GROUPS: [{TASKS: [{}]}]} if wr_data is None else wr_data
+    if wr_data is None:
+        wr_data = (
+            {TASK_GROUPS: []} if ARGS_PARSER.empty else {TASK_GROUPS: [{TASKS: [{}]}]}
+        )
     check_dict(wr_data)
 
     # Remap 'task_type' at WR level to 'task_types' if 'task_types' is empty
-    if wr_data.get(TASK_TYPE, None) is not None:
-        if wr_data.get(TASK_TYPES, None) is None:
+    if wr_data.get(TASK_TYPE) is not None:
+        if wr_data.get(TASK_TYPES) is None:
             wr_data[TASK_TYPES] = [wr_data[TASK_TYPE]]
 
     # Overwrite the WR name?
@@ -356,17 +346,8 @@ def submit_work_requirement(
     process_variable_substitutions_insitu(wr_data)
 
     # Handle any files that need to be uploaded
-    global UPLOADED_FILES
-    UPLOADED_FILES = UploadedFiles(
-        client=CLIENT, wr_name=ID, config=CONFIG_COMMON, files_directory=files_directory
-    )
     global RCLONE_UPLOADED_FILES
     RCLONE_UPLOADED_FILES = RcloneUploadedFiles(files_directory=files_directory)
-
-    # Flatten upload paths?
-    flatten_upload_paths = check_bool(
-        wr_data.get(FLATTEN_UPLOAD_PATHS, CONFIG_WR.flatten_upload_paths)
-    )
 
     # Expand number of task groups if there's a single task group
     # and taskGroupCount is set
@@ -391,8 +372,12 @@ def submit_work_requirement(
 
     # Create the list of TaskGroup objects
     task_groups: list[TaskGroup] = []
-    for tg_number, task_group_data in enumerate(wr_data[TASK_GROUPS]):
-        task_groups.append(create_task_group(tg_number, wr_data, task_group_data))
+    for tg_number, task_group_data in enumerate(
+        cast(dict, wr_data).get(TASK_GROUPS, [])
+    ):
+        task_groups.append(
+            create_task_group(tg_number, cast(dict, wr_data), task_group_data)
+        )
 
     # Create the Work Requirement
     priority = check_float_or_int(wr_data.get(PRIORITY, CONFIG_WR.priority))
@@ -432,10 +417,9 @@ def submit_work_requirement(
             add_tasks_to_task_group(
                 tg_number,
                 task_group,
-                wr_data,
+                cast(dict, wr_data),
                 task_count,
                 work_requirement,
-                flatten_upload_paths=flatten_upload_paths,
                 files_directory=files_directory,
             )
 
@@ -443,7 +427,9 @@ def submit_work_requirement(
             cleanup_on_failure(work_requirement)
             raise e
 
-    if ARGS_PARSER.follow:
+    if ARGS_PARSER.progress:
+        follow_progress_bar(work_requirement)
+    elif ARGS_PARSER.follow:
         follow_progress(work_requirement)
 
 
@@ -451,15 +437,22 @@ def create_task_group(
     tg_number: int,
     wr_data: dict,
     task_group_data: dict,
+    tg_number_offset: int = 0,
+    total_num_task_groups: int | None = None,
 ) -> TaskGroup:
     """
     Create a TaskGroup object.
+
+    tg_number_offset: added to tg_number for display/naming purposes when
+      adding to an existing Work Requirement.
+    total_num_task_groups: total TG count across the WR (existing + new) for
+      formatting; defaults to len(wr_data[TASK_GROUPS]).
     """
 
     # Remap 'task_type' to 'task_types' in the Task Group if 'task_types'
     # is empty, as a convenience
-    if task_group_data.get(TASK_TYPE, None) is not None:
-        if task_group_data.get(TASK_TYPES, None) is None:
+    if task_group_data.get(TASK_TYPE) is not None:
+        if task_group_data.get(TASK_TYPES) is None:
             task_group_data[TASK_TYPES] = [task_group_data[TASK_TYPE]]
 
     # Gather task types
@@ -471,7 +464,12 @@ def create_task_group(
             pass
 
     # Name the Task Group
-    num_task_groups = len(wr_data[TASK_GROUPS])
+    num_task_groups = (
+        total_num_task_groups
+        if total_num_task_groups is not None
+        else len(wr_data[TASK_GROUPS])
+    )
+    effective_tg_number = tg_number + tg_number_offset
     num_tasks = len(task_group_data[TASKS])
     if num_tasks == 1:  # Account for Task expansion
         num_tasks = check_int(
@@ -482,14 +480,14 @@ def create_task_group(
 
     # The following handles possible CSV substitution at the config.toml level
     try:
-        if task_group_data.get(NAME, None) is None:
+        if task_group_data.get(NAME) is None:
             task_group_data[NAME] = task_group_data[TASKS][0][TASK_GROUP_NAME]
     except (KeyError, IndexError):
         pass
     task_group_name = format_yd_name(
         get_task_group_name(
             task_group_data.get(NAME, CONFIG_WR.task_group_name),
-            tg_number,
+            effective_tg_number,
             num_task_groups,
             num_tasks,
         )
@@ -499,12 +497,19 @@ def create_task_group(
     add_or_update_substitution(L_TASK_COUNT, str(num_tasks))
     add_or_update_substitution(L_TASK_GROUP_NAME, task_group_name)
     add_or_update_substitution(
-        L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
+        L_TASK_GROUP_NUMBER, formatted_number_str(effective_tg_number, num_task_groups)
     )
     add_or_update_substitution(L_TASK_GROUP_COUNT, str(num_task_groups))
     process_variable_substitutions_insitu(task_group_data)
     # Create a copy of global CONFIG_WR and apply lazy substitutions
     config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
+
+    # Resolve taskTemplate early so it can satisfy the task-type validation below
+    task_template_data = check_dict(
+        task_group_data.get(
+            TASK_TEMPLATE, wr_data.get(TASK_TEMPLATE, config_wr.task_template)
+        )
+    )
 
     # Assemble the RunSpecification values for the Task Group;
     # 'task_types' can automatically be added to by the task_types
@@ -515,10 +520,15 @@ def create_task_group(
         ).union(task_types_from_tasks)
     )
     # Use the task type from the config file if present and task_types is empty
-    if config_wr.task_type is not None and len(task_types) == 0:
+    if config_wr.task_type is not None and not task_types:
         task_types.append(config_wr.task_type)
-    if len(task_types) == 0:
-        raise Exception(
+    # taskTemplate.taskType satisfies the requirement, so only raise when the
+    # template also provides no type
+    template_provides_type = (
+        task_template_data is not None and task_template_data.get(TASK_TYPE) is not None
+    )
+    if not task_types and not template_provides_type and num_tasks > 0:
+        raise ValueError(
             f"No Task Type(s) specified in Task Group '{task_group_name}': "
             "is a valid Work Requirement defined?"
         )
@@ -550,6 +560,18 @@ def create_task_group(
         else [CloudProvider(provider) for provider in providers_data]
     )
 
+    ipp_data: str | None = check_str(
+        task_group_data.get(
+            INSTANCE_PRICING_PREFERENCE,
+            wr_data.get(
+                INSTANCE_PRICING_PREFERENCE, config_wr.instance_pricing_preference
+            ),
+        )
+    )
+    instance_pricing_preference: InstancePricingPreference | None = (
+        None if ipp_data is None else InstancePricingPreference(ipp_data)
+    )
+
     task_timeout_minutes: float | None = check_float_or_int(
         task_group_data.get(TASK_TIMEOUT, config_wr.task_timeout)
     )
@@ -558,24 +580,6 @@ def create_task_group(
         if task_timeout_minutes is None
         else timedelta(minutes=task_timeout_minutes)
     )
-
-    exclusive_workers = check_bool(
-        task_group_data.get(
-            EXCLUSIVE_WORKERS,
-            wr_data.get(EXCLUSIVE_WORKERS, config_wr.exclusive_workers),
-        )
-    )
-    batch_allocation = check_bool(
-        task_group_data.get(
-            BATCH_ALLOCATION,
-            wr_data.get(BATCH_ALLOCATION, config_wr.batch_allocation),
-        )
-    )
-    if batch_allocation and not exclusive_workers:
-        raise Exception(
-            f"Property '{EXCLUSIVE_WORKERS}' must be set when "
-            f"'{BATCH_ALLOCATION}' is specified"
-        )
 
     run_specification = RunSpecification(
         taskTypes=task_types,
@@ -589,13 +593,12 @@ def create_task_group(
                 WORKER_TAGS, wr_data.get(WORKER_TAGS, config_wr.worker_tags)
             )
         ),
-        exclusiveWorkers=exclusive_workers,
-        batchAllocation=batch_allocation,
         instanceTypes=check_list(
             task_group_data.get(
                 INSTANCE_TYPES, wr_data.get(INSTANCE_TYPES, config_wr.instance_types)
             )
         ),
+        instancePricingPreference=instance_pricing_preference,
         vcpus=vcpus,
         ram=ram,
         minWorkers=check_int(task_group_data.get(MIN_WORKERS, config_wr.min_workers)),
@@ -631,6 +634,11 @@ def create_task_group(
     )
     completed_task_ttl = None if ctttl_data is None else timedelta(minutes=ctttl_data)
 
+    # Build TaskTemplate object
+    task_template = (
+        None if task_template_data is None else TaskTemplate(**task_template_data)
+    )
+
     # Create the Task Group
     task_group = TaskGroup(
         name=task_group_name,
@@ -656,7 +664,8 @@ def create_task_group(
             task_group_data.get(PRIORITY, wr_data.get(PRIORITY, config_wr.priority))
         ),
         completedTaskTtl=completed_task_ttl,
-        tag=task_group_data.get(TASK_GROUP_TAG, None),
+        tag=task_group_data.get(TASK_GROUP_TAG),
+        taskTemplate=task_template,
     )
 
     print_info(f"Generated Task Group '{task_group_name}'")
@@ -669,18 +678,22 @@ def add_tasks_to_task_group(
     wr_data: dict,
     task_count: int | None,
     work_requirement: WorkRequirement,
-    flatten_upload_paths: bool = False,
     files_directory: str = "",
+    tg_number_offset: int = 0,
+    total_num_task_groups: int | None = None,
+    task_number_offset: int = 0,
 ) -> None:
     """
     Add all the constituent Tasks to the Task Group.
+
+    tg_number_offset: added to tg_number for display/naming when adding to an
+      existing Work Requirement.
+    total_num_task_groups: total TG count (existing + new) for formatting.
+    task_number_offset: starting task number within the TG (for adding to an
+      existing Task Group that already contains tasks).
     """
 
-    # Ensure there's at least one Task
     num_tasks = len(wr_data[TASK_GROUPS][tg_number][TASKS])
-    if num_tasks == 0:
-        wr_data[TASK_GROUPS][tg_number][TASKS] = [{}]
-        num_tasks = 1
 
     # If the 'taskCount' property is set, and there is only one Task
     # in the Task Group, create 'taskCount' duplicates of the Task.
@@ -707,7 +720,12 @@ def add_tasks_to_task_group(
                 f" {int(task_group_task_count)}'"
             )
 
-    num_task_groups = len(wr_data[TASK_GROUPS])
+    num_task_groups = (
+        total_num_task_groups
+        if total_num_task_groups is not None
+        else len(wr_data[TASK_GROUPS])
+    )
+    effective_tg_number = tg_number + tg_number_offset
 
     # Determine Task batching
     tasks = wr_data[TASK_GROUPS][tg_number][TASKS]
@@ -723,7 +741,7 @@ def add_tasks_to_task_group(
     add_or_update_substitution(L_TASK_COUNT, str(num_tasks))
     add_or_update_substitution(L_TASK_GROUP_NAME, task_group.name)
     add_or_update_substitution(
-        L_TASK_GROUP_NUMBER, formatted_number_str(tg_number, num_task_groups)
+        L_TASK_GROUP_NUMBER, formatted_number_str(effective_tg_number, num_task_groups)
     )
     add_or_update_substitution(L_TASK_GROUP_COUNT, str(num_task_groups))
 
@@ -736,7 +754,7 @@ def add_tasks_to_task_group(
         else ARGS_PARSER.parallel_batches
     )
     parallel_upload_threads = (
-        MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS
+        DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS
         if parallel_upload_threads is None
         else parallel_upload_threads
     )
@@ -758,12 +776,13 @@ def add_tasks_to_task_group(
                 wr_data,
                 files_directory,
                 task_group,
-                tg_number,
+                effective_tg_number,
                 tasks,
                 task_count,
                 num_tasks,
                 num_task_groups,
-                flatten_upload_paths,
+                task_number_offset=task_number_offset,
+                wr_tg_index=tg_number,
             )
             num_submitted_tasks += submit_batch_of_tasks_to_task_group(
                 tasks_list,
@@ -787,27 +806,24 @@ def add_tasks_to_task_group(
         )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             executors: list[Future] = []
-            tasks_lists: list[list[Task]] = []
             for batch_number in range(num_task_batches):
-                tasks_lists.append(
-                    generate_batch_of_tasks_for_task_group(
-                        (TASK_BATCH_SIZE * batch_number),
-                        min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
-                        wr_data,
-                        files_directory,
-                        task_group,
-                        tg_number,
-                        tasks,
-                        task_count,
-                        num_tasks,
-                        num_task_groups,
-                        flatten_upload_paths,
-                    )
-                )
                 executors.append(
                     executor.submit(
                         submit_batch_of_tasks_to_task_group,
-                        tasks_lists[-1],
+                        generate_batch_of_tasks_for_task_group(
+                            (TASK_BATCH_SIZE * batch_number),
+                            min(TASK_BATCH_SIZE * (batch_number + 1), num_tasks),
+                            wr_data,
+                            files_directory,
+                            task_group,
+                            effective_tg_number,
+                            tasks,
+                            task_count,
+                            num_tasks,
+                            num_task_groups,
+                            task_number_offset=task_number_offset,
+                            wr_tg_index=tg_number,
+                        ),
                         work_requirement,
                         task_group,
                         num_task_batches,
@@ -817,8 +833,7 @@ def add_tasks_to_task_group(
                     )
                 )
 
-            executor.shutdown()
-            num_submitted_tasks = sum([x.result() for x in executors])
+        num_submitted_tasks = sum(x.result() for x in executors)
 
     if not ARGS_PARSER.dry_run:
         if num_submitted_tasks > 0:
@@ -838,17 +853,25 @@ def generate_batch_of_tasks_for_task_group(
     task_group: TaskGroup,
     tg_number: int,
     tasks: list,
-    task_count: int,
+    task_count: int | None,
     num_tasks: int,
     num_task_groups: int,
-    flatten_upload_paths: bool,
+    task_number_offset: int = 0,
+    wr_tg_index: int | None = None,
 ) -> list[Task]:
     """
     Generate a batch of tasks for subsequent addition to a task group.
+
+    tg_number: WR-relative display number (already includes any offset).
+    task_number_offset: added to task_number for naming when adding to an
+      existing Task Group that already contains tasks.
+    wr_tg_index: spec-relative index for accessing wr_data[TASK_GROUPS];
+      defaults to tg_number when not provided.
     """
+    spec_tg_index = wr_tg_index if wr_tg_index is not None else tg_number
     tasks_list: list[Task] = []
     for task_number in range(start_task_number, end_task_number):
-        task_group_data = wr_data[TASK_GROUPS][tg_number]
+        task_group_data = wr_data[TASK_GROUPS][spec_tg_index]
         task = tasks[task_number] if task_count is None else tasks[0]
 
         set_task_names = check_bool(
@@ -861,11 +884,14 @@ def generate_batch_of_tasks_for_task_group(
             )
         )
 
+        display_task_number = task_number + task_number_offset
+        display_num_tasks = task_number_offset + num_tasks
+
         task_name = get_task_name(
             task.get(NAME, task.get(TASK_NAME, CONFIG_WR.task_name)),
             set_task_names,
-            task_number,
-            num_tasks,
+            display_task_number,
+            display_num_tasks,
             tg_number,
             num_task_groups,
             task_group.name,
@@ -878,28 +904,39 @@ def generate_batch_of_tasks_for_task_group(
             VAR_NAME_OF_UNNAMED_TASK if task_name is None else task_name,
         )
         add_or_update_substitution(
-            L_TASK_NUMBER, formatted_number_str(task_number, num_tasks)
+            L_TASK_NUMBER,
+            formatted_number_str(display_task_number, display_num_tasks),
         )
         process_variable_substitutions_insitu(task)
         config_wr = update_config_work_requirement_object(deepcopy(CONFIG_WR))
 
-        executable = check_str(
-            task.get(
-                EXECUTABLE,
-                task_group_data.get(
-                    EXECUTABLE, wr_data.get(EXECUTABLE, config_wr.executable)
-                ),
-            )
-        )
         arguments_list = check_list(
             task.get(
                 ARGS,
                 wr_data.get(ARGS, task_group_data.get(ARGS, config_wr.args)),
             )
         )
+        args_prefix = check_list(
+            wr_data.get(
+                ARGS_PREFIX, task_group_data.get(ARGS_PREFIX, config_wr.args_prefix)
+            )
+        )
+        args_postfix = check_list(
+            wr_data.get(
+                ARGS_POSTFIX, task_group_data.get(ARGS_POSTFIX, config_wr.args_postfix)
+            )
+        )
+        arguments_list = assemble_arguments(args_prefix, arguments_list, args_postfix)
         env = check_dict(
             task.get(ENV, task_group_data.get(ENV, wr_data.get(ENV, config_wr.env)))
         )
+        add_env = check_dict(
+            wr_data.get(
+                ADD_ENVIRONMENT,
+                task_group_data.get(ADD_ENVIRONMENT, config_wr.add_environment),
+            )
+        )
+        env = merge_environment(env, add_env)
 
         add_yd_env_vars = check_bool(
             task.get(
@@ -911,18 +948,6 @@ def generate_batch_of_tasks_for_task_group(
             )
         )
 
-        flatten_input_paths: FlattenPath | None = None
-        if check_bool(
-            task.get(
-                FLATTEN_PATHS,
-                task_group_data.get(
-                    FLATTEN_PATHS,
-                    wr_data.get(FLATTEN_PATHS, config_wr.flatten_input_paths),
-                ),
-            )
-        ):
-            flatten_input_paths = FlattenPath.FILE_NAME_ONLY
-
         # Task timeout is automatically inherited from the Task Group level
         # unless overridden by the Task
         task_timeout_minutes = check_float_or_int(
@@ -933,176 +958,6 @@ def generate_batch_of_tasks_for_task_group(
             if task_timeout_minutes is None
             else timedelta(minutes=task_timeout_minutes)
         )
-
-        # Set up lists of files to input, verify
-        input_files_list = check_list(
-            task.get(
-                INPUTS_REQUIRED,
-                task_group_data.get(
-                    INPUTS_REQUIRED,
-                    wr_data.get(INPUTS_REQUIRED, config_wr.inputs_required),
-                ),
-            )
-        )
-        verify_at_start_files_list = check_list(
-            task.get(
-                VERIFY_AT_START,
-                task_group_data.get(
-                    VERIFY_AT_START,
-                    wr_data.get(VERIFY_AT_START, config_wr.verify_at_start),
-                ),
-            )
-        )
-        verify_wait_files_list = check_list(
-            task.get(
-                VERIFY_WAIT,
-                task_group_data.get(
-                    VERIFY_WAIT, wr_data.get(VERIFY_WAIT, config_wr.verify_wait)
-                ),
-            )
-        )
-        optional_inputs_list = check_list(
-            task.get(
-                INPUTS_OPTIONAL,
-                task_group_data.get(
-                    INPUTS_OPTIONAL,
-                    wr_data.get(INPUTS_OPTIONAL, config_wr.inputs_optional),
-                ),
-            )
-        )
-
-        check_for_duplicates_in_file_lists(
-            input_files_list,
-            verify_at_start_files_list,
-            verify_wait_files_list,
-            optional_inputs_list,
-        )
-
-        # Upload files in the 'inputs' list, applying wildcard expansion.
-        # (Duplicates won't be re-added)
-        expanded_files_list: list[str] = []
-        for file in input_files_list:
-            expanded_files = UPLOADED_FILES.add_input_file(
-                filename=file, flatten_upload_paths=flatten_upload_paths
-            )
-            expanded_files_list += expanded_files
-        input_files_list = expanded_files_list
-
-        # Upload files in the 'uploadFiles' list
-        upload_files = check_list(
-            task.get(
-                UPLOAD_FILES,
-                task_group_data.get(
-                    UPLOAD_FILES,
-                    wr_data.get(UPLOAD_FILES, config_wr.upload_files),
-                ),
-            )
-        )
-        for file in upload_files:
-            try:
-                UPLOADED_FILES.add_upload_file(file[LOCAL_PATH], file[UPLOAD_PATH])
-            except KeyError:
-                raise Exception(
-                    f"Property '{UPLOAD_FILES}' must have entries with "
-                    f"properties '{LOCAL_PATH}' and '{UPLOAD_PATH}'"
-                )
-
-        # Set up the 'inputs' property
-        inputs = generate_task_input_list(
-            files=[
-                unique_upload_pathname(
-                    input_file, ID, INPUTS_FOLDER_NAME, False, flatten_upload_paths
-                )
-                for input_file in input_files_list
-            ],
-            verification=TaskInputVerification.VERIFY_AT_START,
-            wr_name=None,
-        )
-        inputs += generate_task_input_list(
-            verify_at_start_files_list, TaskInputVerification.VERIFY_AT_START, ID
-        )
-        inputs += generate_task_input_list(
-            verify_wait_files_list, TaskInputVerification.VERIFY_WAIT, ID
-        )
-        inputs += generate_task_input_list(
-            files=optional_inputs_list, verification=None, wr_name=ID
-        )
-
-        inputs = deduplicate_inputs(inputs)
-
-        # Set up the 'outputs' property
-        outputs = [
-            TaskOutput.from_worker_directory(file_pattern=file, required=False)
-            for file in check_list(
-                task.get(
-                    OUTPUTS_OPTIONAL,
-                    task_group_data.get(
-                        OUTPUTS_OPTIONAL,
-                        wr_data.get(OUTPUTS_OPTIONAL, config_wr.outputs_optional),
-                    ),
-                )
-            )
-        ]
-
-        # Add the contents of the 'outputsRequired' property
-        outputs += [
-            TaskOutput.from_worker_directory(file_pattern=file, required=True)
-            for file in check_list(
-                task.get(
-                    OUTPUTS_REQUIRED,
-                    task_group_data.get(
-                        OUTPUTS_REQUIRED,
-                        wr_data.get(OUTPUTS_REQUIRED, config_wr.outputs_required),
-                    ),
-                )
-            )
-        ]
-
-        # Add the contents of the 'outputsOther' property
-        for output_other in check_list(
-            task.get(
-                OUTPUTS_OTHER,
-                task_group_data.get(
-                    OUTPUTS_OTHER,
-                    wr_data.get(OUTPUTS_OTHER, config_wr.outputs_other),
-                ),
-            )
-        ):
-            check_dict(output_other)
-            try:
-                outputs.append(
-                    TaskOutput.from_directory(
-                        directory_name=output_other[DIRECTORY_NAME],
-                        file_pattern=output_other[FILE_PATTERN],
-                        required=output_other[REQUIRED],
-                    )
-                )
-            except KeyError as e:
-                raise Exception(f"Missing field in property '{OUTPUTS_OTHER}' ({e})")
-
-        # Add TaskOutput to 'outputs'?
-        if check_bool(
-            task.get(
-                UPLOAD_TASKOUTPUT,
-                task_group_data.get(
-                    UPLOAD_TASKOUTPUT,
-                    wr_data.get(UPLOAD_TASKOUTPUT, config_wr.upload_taskoutput),
-                ),
-            )
-        ):
-            outputs.append(TaskOutput.from_task_process())
-
-        always_upload = task.get(
-            ALWAYS_UPLOAD,
-            task_group_data.get(
-                ALWAYS_UPLOAD,
-                wr_data.get(ALWAYS_UPLOAD, config_wr.always_upload),
-            ),
-        )
-
-        # Set 'alwaysUpload' for all object store outputs
-        for task_output in outputs:
-            task_output.alwaysUpload = always_upload
 
         # Data client inputs and outputs
         task_data_inputs = check_list(
@@ -1143,17 +998,15 @@ def generate_batch_of_tasks_for_task_group(
 
         tasks_list.append(
             create_task(
-                config_wr=config_wr,
                 wr_data=wr_data,
                 task_group_data=task_group_data,
                 task_data=task,
                 task_name=task_name,
-                task_number=task_number + 1,
+                task_number=display_task_number + 1,
                 tg_name=task_group.name,
                 tg_number=tg_number + 1,
-                task_type=task_type,
-                executable=executable,
-                args=arguments_list,
+                task_type=cast(str, task_type),
+                args=cast(list, arguments_list),
                 task_data_property=get_task_data_property(
                     config_wr,
                     wr_data,
@@ -1163,13 +1016,13 @@ def generate_batch_of_tasks_for_task_group(
                     files_directory,
                 ),
                 env=env,
-                inputs=inputs,
-                outputs=outputs,
                 task_timeout=task_timeout,
-                flatten_upload_paths=flatten_upload_paths,
-                flatten_input_paths=flatten_input_paths,
                 add_yd_env_vars=add_yd_env_vars,
                 task_data_inputs_and_outputs=task_data_inputs_and_outputs,
+                wr_name=ID,
+                namespace=CONFIG_COMMON.namespace,
+                total_num_task_groups=num_task_groups,
+                total_num_tasks=display_num_tasks,
             )
         )
 
@@ -1252,90 +1105,28 @@ def submit_batch_of_tasks_to_task_group(
                 )
             last_exception = e
 
-    raise Exception(
+    raise RuntimeError(
         f"Failed to submit batch {batch_number_str} {task_range_str}of {num_task_batches}: "
         f"{last_exception}"
     )
 
 
-def get_task_data_property(
-    config_wr: ConfigWorkRequirement,
-    wr_data: dict,
-    task_group_data: dict,
-    task: dict,
-    task_name: str,
-    files_directory: str = "",
-) -> str | None:
-    """
-    Get the 'taskData' property, either using the contents of the file
-    specified in 'taskDataFile' or using the string specified in 'taskData'.
-    Raise exception if both 'taskData' and 'taskDataFile' are set at the same
-    level in the Work Requirement.
-    """
-
-    # Try Task, Task Group, then Work Requirement data
-    for data, task_data_default, task_data_file_default in [
-        (task, None, None),
-        (task_group_data, None, None),
-        (wr_data, config_wr.task_data, config_wr.task_data_file),
-    ]:
-        task_data_property = data.get(TASK_DATA, task_data_default)
-        task_data_file_property = data.get(TASK_DATA_FILE, task_data_file_default)
-        if task_data_property and task_data_file_property:
-            raise Exception(
-                f"Task '{task_name}': Properties '{TASK_DATA}' and "
-                f"'{TASK_DATA_FILE}' are both set"
-            )
-
-        if task_data_property:
-            return task_data_property
-
-        if task_data_file_property:
-            with open(resolve_filename(files_directory, task_data_file_property)) as f:
-                return f.read()
-
-    return None
-
-
-def follow_progress_old(work_requirement: WorkRequirement) -> None:
-    """
-    Follow and report the progress of a Work Requirement.
-    Deprecated temporarily due to problems with Python 3.10+.
-    """
-    listener = DelegatedSubscriptionEventListener(on_update=on_update)
-    CLIENT.work_client.add_work_requirement_listener(work_requirement, listener)
-    work_requirement = (
-        CLIENT.work_client.get_work_requirement_helper(work_requirement)
-        .when_requirement_matches(lambda wr: wr.status.finished)
-        .result()
-    )
-    if work_requirement.status != WorkRequirementStatus.COMPLETED:
-        print_info(f"Work Requirement did not complete: {work_requirement.status}")
-
-
 def follow_progress(work_requirement: WorkRequirement) -> None:
     """
     Follow and report the progress of a Work Requirement.
-    Replacement for the SDK version above.
     """
     if not ARGS_PARSER.dry_run:
         print_info("Following Work Requirement event stream")
-        follow_events(work_requirement.id, YDIDType.WORK_REQUIREMENT)
+        follow_events(cast(str, work_requirement.id), YDIDType.WORK_REQUIREMENT)
 
 
-def on_update(work_req: WorkRequirement):
+def follow_progress_bar(work_requirement: WorkRequirement) -> None:
     """
-    Print status messages on Work Requirement update
+    Follow a Work Requirement and display a live progress bar.
     """
-    completed = 0
-    total = 0
-    for task_group in work_req.taskGroups:
-        completed += task_group.taskSummary.statusCounts[TaskStatus.COMPLETED]
-        total += task_group.taskSummary.taskCount
-    print_info(
-        f"Work Requirement is {work_req.status} with {completed}/{total} "
-        "completed Tasks"
-    )
+    if ARGS_PARSER.dry_run:
+        return
+    follow_work_requirement_with_progress(cast(str, work_requirement.id))
 
 
 def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
@@ -1348,357 +1139,163 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     CLIENT.work_client.cancel_work_requirement(work_requirement)
     print_warning(f"Cancelled Work Requirement '{work_requirement.name}'")
 
-    # Delete uploaded objects
-    UPLOADED_FILES.delete()
     RCLONE_UPLOADED_FILES.delete()
 
 
-def deduplicate_inputs(task_inputs: list[TaskInput]) -> list[TaskInput]:
+def add_to_existing_work_requirement(
+    files_directory: str,
+    wr_data: dict | None = None,
+    task_count: int | None = None,
+) -> None:
     """
-    Deduplicate a list of TaskInputs. This is useful when wildcards
-    are used. Note that TaskInputs which differ only in their verification
-    type will be caught by 'check_for_duplicates_in_file_lists()'.
+    Add task groups and/or tasks to an existing Work Requirement identified
+    by the --add-to argument (name or YellowDog ID).
     """
-    deduplicated_task_inputs: list[TaskInput] = []
-    for task_input in task_inputs:
-        if task_input not in deduplicated_task_inputs:
-            deduplicated_task_inputs.append(task_input)
-        else:
-            namespace = (
-                CONFIG_COMMON.namespace
-                if task_input.source == TaskInputSource.TASK_NAMESPACE
-                else task_input.namespace
-            )
-            print_info(
-                f"Removing '{task_input.verification}' duplicate:"
-                f" '{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{task_input.objectNamePattern}'"
-            )
-
-    return deduplicated_task_inputs
-
-
-def check_for_duplicates_in_file_lists(*args: list[str]):
-    """
-    Tests for duplicates in file lists. If duplicates found, print an error
-    and raise an Exception.
-    """
-    files_list = []
-    for file_list in args:
-        files_list += file_list
-    files_list_unique = list(set(files_list))
-    for file in files_list_unique:
-        files_list.remove(file)
-    if len(files_list) != 0:
-        raise Exception(f"Duplicate file(s) in file lists: {files_list}")
-
-
-def formatted_number_str(
-    current_item_number: int, num_items: int, zero_indexed: bool = True
-) -> str:
-    """
-    Return a nicely formatted number string given a current item number
-    and a total number of items.
-    """
-    return str(current_item_number + 1 if zero_indexed else current_item_number).zfill(
-        len(str(num_items))
+    wr_summary = get_work_requirement_summary_by_name_or_id(
+        CLIENT, ARGS_PARSER.add_to, CONFIG_COMMON.namespace
     )
-
-
-def get_task_name(
-    name: str | None,
-    set_task_names: bool,
-    task_number: int,
-    num_tasks: int,
-    task_group_number: int,
-    num_task_groups: int,
-    task_group_name: str,
-) -> str | None:
-    """
-    Create the name of a Task.
-    Supports lazy substitution.
-    """
-
-    if name:
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_NUMBER + VAR_CLOSING_DELIMITER}",
-            formatted_number_str(task_number, num_tasks),
-        )
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
-            str(num_tasks),
-        )
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
-            formatted_number_str(task_group_number, num_task_groups),
-        )
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
-            str(num_task_groups),
-        )
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NAME + VAR_CLOSING_DELIMITER}",
-            task_group_name,
+    if wr_summary is None:
+        raise ValueError(
+            f"Work Requirement '{ARGS_PARSER.add_to}' not found in namespace"
+            f" '{CONFIG_COMMON.namespace}'"
         )
 
-    elif set_task_names:
-        name = "task_" + formatted_number_str(task_number, num_tasks)
-
-    else:
-        name = None
-
-    return name
-
-
-def get_task_group_name(
-    name: str | None,
-    task_group_number: int,
-    num_task_groups: int,
-    task_count: int,
-) -> str:
-    """
-    Create the name of a Task Group.
-    Supports lazy substitution.
-    """
-
-    if name:
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
-            formatted_number_str(task_group_number, num_task_groups),
-        )
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
-            str(num_task_groups),
-        )
-        name = name.replace(
-            f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
-            str(task_count),
+    if (
+        wr_summary.status.finished
+        or wr_summary.status == WorkRequirementStatus.CANCELLING
+    ):
+        raise ValueError(
+            f"Work Requirement '{wr_summary.name}' has terminal status"
+            f" '{wr_summary.status}': cannot add tasks"
         )
 
-    else:
-        name = "task_group_" + formatted_number_str(task_group_number, num_task_groups)
+    work_requirement = CLIENT.work_client.get_work_requirement_by_id(
+        cast(str, wr_summary.id)
+    )
+    existing_tgs: list[TaskGroup] = work_requirement.taskGroups or []
 
-    return name
+    # Use the existing WR's name as the ID for substitutions
+    global ID, CONFIG_WR
+    ID = cast(str, work_requirement.name)
+    add_substitutions_without_overwriting(subs={L_WR_NAME: ID})
+    CONFIG_WR = update_config_work_requirement_object(CONFIG_WR)
 
+    # Initialise rclone file uploads
+    global RCLONE_UPLOADED_FILES
+    RCLONE_UPLOADED_FILES = RcloneUploadedFiles(files_directory=files_directory)
 
-def create_task(
-    config_wr: ConfigWorkRequirement,
-    wr_data: dict,
-    task_group_data: dict,
-    task_data: dict,
-    task_name: str | None,
-    task_number: int,
-    tg_name: str,
-    tg_number: int,
-    task_type: str,
-    executable: str,
-    args: list[str],
-    task_data_property: str | None,
-    env: dict[str, str],
-    inputs: list[TaskInput] | None,
-    outputs: list[TaskOutput] | None,
-    task_timeout: timedelta | None,
-    flatten_upload_paths: bool = False,
-    flatten_input_paths: FlattenPath | None = None,
-    add_yd_env_vars: bool = False,
-    task_data_inputs_and_outputs: TaskData | None = None,
-) -> Task:
-    """
-    Create a Task object, handling special processing for specific Task Types.
-    """
+    # Build spec data
+    wr_data = {TASK_GROUPS: [{TASKS: [{}]}]} if wr_data is None else wr_data
+    check_dict(wr_data)
 
-    env_copy = deepcopy(env)  # Copy the environment property to prevent overwriting
+    if cast(dict, wr_data).get(TASK_TYPE) is not None:
+        if wr_data.get(TASK_TYPES) is None:
+            wr_data[TASK_TYPES] = [wr_data[TASK_TYPE]]
 
-    def _make_task(flatten_input_paths: FlattenPath) -> Task:
-        """
-        Helper function to create the Task object.
-        """
-        # Cannot use flatten_input_paths if there are no inputs
-        if inputs is None or len(inputs) == 0:
-            flatten_input_paths = None
+    process_variable_substitutions_insitu(cast(dict, wr_data))
 
-        if task_name is None and len(outputs) > 0:
-            raise Exception(f"Tasks must be named if outputs are specified")
+    # Expand task groups from taskGroupCount if needed
+    task_group_count = check_float_or_int(
+        wr_data.get(TASK_GROUP_COUNT, CONFIG_WR.task_group_count)
+    )
+    if task_group_count > 1:
+        if len(wr_data[TASK_GROUPS]) == 1:
+            print_info(
+                f"Expanding number of Task Groups to '{TASK_GROUP_COUNT}="
+                f"{task_group_count}'"
+            )
+            wr_data[TASK_GROUPS] = [
+                deepcopy(wr_data[TASK_GROUPS][0]) for _ in range(task_group_count)
+            ]
+        elif len(wr_data[TASK_GROUPS]) > 1:
+            print_warning(
+                f"Note: Work Requirement already contains"
+                f" {len(wr_data[TASK_GROUPS])} Task Groups: ignoring expansion "
+                f"using '{TASK_GROUP_COUNT} = {int(task_group_count)}'"
+            )
 
-        return Task(
-            name=task_name,
-            taskType=task_type,
-            arguments=None if len(args) == 0 else args,
-            inputs=None if len(inputs) == 0 else inputs,
-            environment=None if len(env_copy) == 0 else env_copy,
-            outputs=None if len(outputs) == 0 else outputs,
-            flattenInputPaths=flatten_input_paths,
-            taskData=task_data_property,
-            timeout=task_timeout,
-            tag=task_tag,
-            data=task_data_inputs_and_outputs,
-        )
+    n_existing = len(existing_tgs)
+    n_spec = len(wr_data[TASK_GROUPS])
+    total_tgs = n_existing + n_spec
 
-    task_tag = task_data.get(TASK_TAG, None)
-
-    # Optionally add Task details to the environment as a convenience
-    if add_yd_env_vars and (task_type != "docker" or executable is None):
-        num_task_groups = len(wr_data[TASK_GROUPS])
-        num_tasks = len(task_group_data[TASKS])
-        env_copy[YD_TASK_NAME] = task_name
-        env_copy[YD_TASK_NUMBER] = str(task_number)
-        env_copy[YD_NUM_TASKS] = str(num_tasks)
-        env_copy[YD_TASK_GROUP_NAME] = tg_name
-        env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
-        env_copy[YD_NUM_TASK_GROUPS] = str(num_task_groups)
-        env_copy[YD_WORK_REQUIREMENT_NAME] = ID
-        env_copy[YD_NAMESPACE] = CONFIG_COMMON.namespace
-        if task_tag is not None:
-            env_copy[YD_TAG] = task_tag
-
-    # Special processing for Bash, Python & PowerShell tasks if the 'executable'
-    # property is set. The script is uploaded if this hasn't already been done,
-    # and added to the list of required files.
-    if task_type in ["bash", "powershell", "python", "cmd", "bat"]:
-        if executable is None:
-            return _make_task(flatten_input_paths)
-
-        UPLOADED_FILES.add_input_file(
-            filename=executable,
-            flatten_upload_paths=flatten_upload_paths,
-        )
-        task_input = TaskInput.from_task_namespace(
-            unique_upload_pathname(
-                filename=executable,
-                id=ID,
-                inputs_folder_name=INPUTS_FOLDER_NAME,
-                flatten_upload_paths=flatten_upload_paths,
-            ),
-            verification=TaskInputVerification.VERIFY_AT_START,
-        )
-        # Avoid duplicate TaskInputs
-        if task_input.objectNamePattern not in [x.objectNamePattern for x in inputs]:
-            inputs.append(task_input)
-        executable_pathname = unique_upload_pathname(
-            filename=executable,
-            id=ID,
-            inputs_folder_name=INPUTS_FOLDER_NAME,
-            flatten_upload_paths=flatten_upload_paths,
-        )
-        if task_type in ["powershell", "cmd", "bat"]:
-            executable_pathname = executable_pathname.replace("/", "\\")
-        args = [
-            executable_pathname if flatten_input_paths is None else basename(executable)
-        ] + args
-        if task_type in ["cmd", "bat"]:
-            args.insert(0, "/c")
-        return _make_task(flatten_input_paths)
-
-    # Special processing for Docker tasks if the 'executable' property is set.
-    # Sets up the '--env' environment strings and the DockerHub username and
-    # password if specified.
-    elif task_type == "docker":
-        if executable is None:
-            return _make_task(flatten_input_paths)
-
-        # Set up the environment variables to be sent to the Docker container
-        docker_env = check_dict(
-            task_data.get(
-                DOCKER_ENV,
-                task_group_data.get(
-                    DOCKER_ENV,
-                    wr_data.get(DOCKER_ENV, config_wr.docker_env),
-                ),
+    # Create TaskGroup objects for all spec TGs with WR-relative numbering
+    spec_task_groups: list[TaskGroup] = []
+    for tg_number, task_group_data in enumerate(wr_data[TASK_GROUPS]):
+        spec_task_groups.append(
+            create_task_group(
+                tg_number,
+                cast(dict, wr_data),
+                task_group_data,
+                tg_number_offset=n_existing,
+                total_num_task_groups=total_tgs,
             )
         )
-        # Optionally Task details to the container environment as a convenience
-        docker_env_list = []
-        if add_yd_env_vars:
-            num_task_groups = len(wr_data[TASK_GROUPS])
-            num_tasks = len(task_group_data[TASKS])
-            docker_env_list += ["--env", f"{YD_TASK_NAME}={task_name}"]
-            docker_env_list += ["--env", f"{YD_TASK_NUMBER}={task_number}"]
-            docker_env_list += ["--env", f"{YD_NUM_TASKS}={num_tasks}"]
-            docker_env_list += ["--env", f"{YD_TASK_GROUP_NAME}={tg_name}"]
-            docker_env_list += ["--env", f"{YD_TASK_GROUP_NUMBER}={tg_number}"]
-            docker_env_list += ["--env", f"{YD_NUM_TASK_GROUPS}={num_task_groups}"]
-            docker_env_list += ["--env", f"{YD_WORK_REQUIREMENT_NAME}={ID}"]
-            docker_env_list += ["--env", f"{YD_NAMESPACE}={CONFIG_COMMON.namespace}"]
-            if task_tag is not None:
-                docker_env_list += ["--env", f"{YD_TAG}={task_tag}"]
 
-        if docker_env is not None:
-            for key, value in docker_env.items():
-                docker_env_list += ["--env", f"{key}={value}"]
+    # Partition spec TGs: those whose name matches an existing TG (add tasks
+    # to existing TG) vs those that are new (add TG to WR first)
+    matched: list[tuple[int, TaskGroup, TaskGroup]] = (
+        []
+    )  # (spec_idx, spec_tg, existing_tg)
+    new_tgs: list[tuple[int, TaskGroup]] = []  # (spec_idx, spec_tg)
+    for spec_idx, spec_tg in enumerate(spec_task_groups):
+        matched_existing = next(
+            (tg for tg in existing_tgs if tg.name == spec_tg.name), None
+        )
+        if matched_existing is not None:
+            matched.append((spec_idx, spec_tg, matched_existing))
+        else:
+            new_tgs.append((spec_idx, spec_tg))
 
-        # Check for any Docker options
-        docker_options = check_list(
-            task_data.get(
-                DOCKER_OPTIONS,
-                task_group_data.get(
-                    DOCKER_OPTIONS,
-                    wr_data.get(DOCKER_OPTIONS, config_wr.docker_options),
-                ),
-            )
+    # If there are new TGs, update the Work Requirement with the full TG list
+    if new_tgs:
+        work_requirement.taskGroups = existing_tgs + [tg for _, tg in new_tgs]
+        work_requirement = CLIENT.work_client.update_work_requirement(work_requirement)
+        print_info(
+            f"Added {len(new_tgs)} new Task Group(s) to existing Work Requirement '{ID}'"
         )
-        docker_options = [] if docker_options is None else docker_options
 
-        args = docker_env_list + docker_options + [executable] + args
+    # Add tasks to new TGs (no task offset)
+    for spec_idx, spec_tg in new_tgs:
+        add_tasks_to_task_group(
+            tg_number=spec_idx,
+            task_group=spec_tg,
+            wr_data=cast(dict, wr_data),
+            task_count=task_count,
+            work_requirement=work_requirement,
+            files_directory=files_directory,
+            tg_number_offset=n_existing,
+            total_num_task_groups=total_tgs,
+            task_number_offset=0,
+        )
 
-        # Set up the environment used by the script to run Docker
-        # Add the username and password, if present, and the registry
-        docker_username = task_data.get(
-            DOCKER_USERNAME,
-            task_group_data.get(
-                DOCKER_USERNAME,
-                wr_data.get(DOCKER_USERNAME, config_wr.docker_username),
-            ),
+    # Add tasks to matched (existing) TGs, offsetting task numbers
+    for spec_idx, spec_tg, existing_tg in matched:
+        task_summary = existing_tg.taskSummary
+        existing_task_count: int = (
+            task_summary.taskCount if task_summary is not None else 0
         )
-        docker_password = task_data.get(
-            DOCKER_PASSWORD,
-            task_group_data.get(
-                DOCKER_PASSWORD,
-                wr_data.get(DOCKER_PASSWORD, config_wr.docker_password),
-            ),
+        add_tasks_to_task_group(
+            tg_number=spec_idx,
+            task_group=existing_tg,
+            wr_data=cast(dict, wr_data),
+            task_count=task_count,
+            work_requirement=work_requirement,
+            files_directory=files_directory,
+            tg_number_offset=n_existing,
+            total_num_task_groups=total_tgs,
+            task_number_offset=existing_task_count,
         )
-        env_copy.update(
-            {
-                "DOCKER_USERNAME": docker_username,
-                "DOCKER_PASSWORD": docker_password,
-            }
-            if docker_username is not None and docker_password is not None
-            else {}
-        )
-        docker_registry = task_data.get(
-            DOCKER_REGISTRY,
-            task_group_data.get(
-                DOCKER_REGISTRY,
-                wr_data.get(DOCKER_REGISTRY, config_wr.docker_registry),
-            ),
-        )
-        env_copy.update(
-            {
-                "DOCKER_REGISTRY": docker_registry,
-            }
-            if docker_registry is not None
-            else {}
-        )
-        env_copy.update(
-            {
-                "DOCKER_IMAGE": executable,
-            }
-            if executable is not None
-            else {}
-        )
-        return _make_task(flatten_input_paths)
 
-    else:
-        # All other Task Types are sent through without additional processing
-        # of the uploaded files, arguments or environment.
-        return _make_task(flatten_input_paths)
+    if ARGS_PARSER.progress:
+        follow_progress_bar(work_requirement)
+    elif ARGS_PARSER.follow:
+        follow_progress(work_requirement)
 
 
 def submit_json_raw(wr_file: str):
     """
     Submit a 'raw' JSON Work Requirement, consisting of a combined Work
     Requirement definition and the constituent Tasks.
-
-    Note that there is no automatic upload of required ('VERIFY_AT_START')
-    input files. These can be pre-uploaded using yd-upload.
     """
 
     # Load file contents, with variable substitutions
@@ -1707,7 +1304,7 @@ def submit_json_raw(wr_file: str):
     elif wr_file.lower().endswith(".json"):
         wr_data = load_json_file_with_variable_substitutions(wr_file)
     else:
-        raise Exception(
+        raise ValueError(
             f"Work Requirement file '{wr_file}' must end in '.json' or '.jsonnet'"
         )
 
@@ -1729,9 +1326,9 @@ def submit_json_raw(wr_file: str):
     try:
         task_groups = wr_data["taskGroups"]
     except KeyError:
-        raise Exception("Property 'taskGroups' is not defined")
-    if len(task_groups) == 0:
-        raise Exception("There must be at least one Task Group")
+        raise KeyError("Property 'taskGroups' is not defined")
+    if not task_groups:
+        raise ValueError("There must be at least one Task Group")
     for task_group in task_groups:
         task_lists[task_group["name"]] = task_group.get("tasks", [])
         task_group.pop("tasks", None)
@@ -1752,51 +1349,23 @@ def submit_json_raw(wr_file: str):
             print(wr_id)
     else:
         print_error(f"Failed to create Work Requirement '{wr_name}'")
-        raise Exception(f"{response.text}")
+        raise RuntimeError(f"{response.text}")
 
     if ARGS_PARSER.hold:
         CLIENT.work_client.hold_work_requirement_by_id(wr_id)
         print_info("Work Requirement status set to 'HELD'")
 
-    # Submit Tasks to the Work Requirement
-    # Collect 'VERIFY_AT_START' files
-    verify_at_start_files = set()
-    for task_group_name, task_list in task_lists.items():
-        # Collect set of VERIFY_AT_START files
-        for task in task_list:
-            for input in task.get("inputs", []):
-                if input.get("verification", None) == "VERIFY_AT_START":
-                    namespace = (
-                        CONFIG_COMMON.namespace
-                        if input["source"] == "TASK_NAMESPACE"
-                        else input["namespace"]
-                    )
-                    verify_at_start_files.add(
-                        f"{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{input['objectNamePattern']}"
-                    )
-
-    # Warn about VERIFY_AT_START files & halt to allow upload or
-    # Work Requirement cancellation
-    if ARGS_PARSER.quiet is False and len(verify_at_start_files) != 0:
-        print_info(
-            "The following files may be required ('VERIFY_AT_START') "
-            "before Tasks are submitted, or the Tasks will fail."
-        )
-        print_info(
-            "You now have an opportunity to upload the required files "
-            "before Tasks are submitted:"
-        )
-        print()
-        print_numbered_strings(sorted(list(verify_at_start_files)))
-        if not confirmed("Proceed now (y), or Cancel Work Requirement (n)?"):
-            print_info(f"Cancelling Work Requirement '{wr_name}'")
-            CLIENT.work_client.cancel_work_requirement_by_id(wr_id)
-            return
-
     # Submit Tasks in batches
     for task_group_name, task_list in task_lists.items():
         num_batches = ceil(len(task_list) / TASK_BATCH_SIZE)
-        max_workers = min(num_batches, ARGS_PARSER.parallel_batches)
+        max_workers = min(
+            num_batches,
+            (
+                DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS
+                if ARGS_PARSER.parallel_batches is None
+                else ARGS_PARSER.parallel_batches
+            ),
+        )
         print_info(
             f"Submitting task batches using {max_workers} parallel submission thread(s)"
         )
@@ -1840,14 +1409,19 @@ def submit_json_task_batch(
     """
     Submit a batch of tasks using the REST API. Return the number of tasks submitted.
     """
+    task_batch_compressed = compress(json_dumps(task_batch).encode("utf-8"))
+
     response = requests.post(
         url=(
-            f"{CONFIG_COMMON.url}/work/namespaces/"
-            f"{CONFIG_COMMON.namespace}/requirements/{wr_name}/"
-            f"taskGroups/{task_group_name}/tasks"
+            f"{CONFIG_COMMON.url}/work/namespaces/{CONFIG_COMMON.namespace}"
+            f"/requirements/{wr_name}/taskGroups/{task_group_name}/tasks"
         ),
-        headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
-        json=task_batch,
+        headers={
+            "Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}",
+            "Content-Encoding": "gzip",
+            "Content-Type": "application/json",
+        },
+        data=task_batch_compressed,
     )
 
     if response.status_code == 200:

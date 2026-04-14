@@ -4,6 +4,8 @@
 A script to resize Worker Pools and Compute Requirements.
 """
 
+from typing import cast
+
 from yellowdog_client.model import (
     ComputeRequirement,
     ComputeRequirementStatus,
@@ -45,7 +47,7 @@ def _resize_worker_pool():
             CLIENT, ARGS_PARSER.worker_pool_name, namespace=CONFIG_COMMON.namespace
         )
         if worker_pool_id is None:
-            raise Exception(f"Worker Pool '{ARGS_PARSER.worker_pool_name}' not found")
+            raise KeyError(f"Worker Pool '{ARGS_PARSER.worker_pool_name}' not found")
 
     worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
         worker_pool_id=worker_pool_id
@@ -61,7 +63,7 @@ def _resize_worker_pool():
 
     if ARGS_PARSER.follow:
         print_info("Following event stream(s)")
-        follow_ids([worker_pool.id], auto_cr=ARGS_PARSER.auto_cr)
+        follow_ids([cast(str, worker_pool.id)], auto_cr=ARGS_PARSER.auto_cr)
 
 
 def _resize_compute_requirement():
@@ -122,12 +124,12 @@ def _resize_compute_requirement():
                     " ignored when resizing Compute Requirements"
                 )
             print_info("Following event stream")
-            follow_events(cr.id, YDIDType.COMPUTE_REQUIREMENT)
+            follow_events(cast(str, cr.id), YDIDType.COMPUTE_REQUIREMENT)
 
         return
 
     else:
-        raise Exception(
+        raise KeyError(
             f"Compute Requirement '{ARGS_PARSER.worker_pool_name}' not found or not in "
             f"status '{ComputeRequirementStatus.RUNNING}'"
         )

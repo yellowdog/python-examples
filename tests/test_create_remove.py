@@ -1,97 +1,46 @@
+import pytest
 from cli_test_helpers import shell
 
-RESOURCE_DIR = "tests/resource-examples"
+R = "tests/resource-examples"
 
 
-class TestCreateRemove:
-    def test_source_template(self):
-        resources = f"{RESOURCE_DIR}/compute-sources.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_requirement_template(self):
-        resources = f"{RESOURCE_DIR}/compute-template.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_configured_worker_pool(self):
-        resources = f"{RESOURCE_DIR}/configured-worker-pool.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_image_family(self):
-        resources = f"{RESOURCE_DIR}/image-family.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_keyring_and_credential(self):
-        resources = f"{RESOURCE_DIR}/keyring.json {RESOURCE_DIR}/credential.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        resources = f"{RESOURCE_DIR}/credential.json {RESOURCE_DIR}/keyring.json"
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_namespace(self):
-        resources = f"{RESOURCE_DIR}/namespace.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_allowance(self):
-        resources = f"{RESOURCE_DIR}/allowances.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -My {resources}")
-        assert result.exit_code == 0
-
-    def test_string_attribute(self):
-        resources = f"{RESOURCE_DIR}/stringattribute.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_numeric_attribute(self):
-        resources = f"{RESOURCE_DIR}/numericattribute.json"
-        result = shell(f"yd-create {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_namespace_policy(self):
-        resources = f"{RESOURCE_DIR}/namespace_policies.json"
-        result = shell(f"yd-create -y {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_group(self):
-        resources = f"{RESOURCE_DIR}/group.json"
-        result = shell(f"yd-create -y {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_application(self):
-        resources = f"{RESOURCE_DIR}/application.json"
-        result = shell(f"yd-create -y {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
-
-    def test_user(self):
-        resources = f"{RESOURCE_DIR}/user.json"
-        result = shell(f"yd-create -y {resources}")
-        assert result.exit_code == 0
-        result = shell(f"yd-remove -y {resources}")
-        assert result.exit_code == 0
+@pytest.mark.system
+@pytest.mark.parametrize(
+    "create_args,remove_args",
+    [
+        (f"{R}/compute-sources.json", f"-y {R}/compute-sources.json"),
+        (f"{R}/compute-template.json", f"-y {R}/compute-template.json"),
+        (f"{R}/configured-worker-pool.json", f"-y {R}/configured-worker-pool.json"),
+        (f"{R}/image-family.json", f"-y {R}/image-family.json"),
+        (
+            f"{R}/keyring.json {R}/credential.json",
+            f"-y {R}/credential.json {R}/keyring.json",
+        ),
+        (f"{R}/namespace.json", f"-y {R}/namespace.json"),
+        (f"{R}/allowances.json", f"-My {R}/allowances.json"),
+        (f"{R}/stringattribute.json", f"-y {R}/stringattribute.json"),
+        (f"{R}/numericattribute.json", f"-y {R}/numericattribute.json"),
+        (f"-y {R}/namespace_policies.json", f"-y {R}/namespace_policies.json"),
+        (f"-y {R}/group.json", f"-y {R}/group.json"),
+        (f"-y {R}/application.json", f"-y {R}/application.json"),
+        (f"-y {R}/user.json", f"-y {R}/user.json"),
+    ],
+    ids=[
+        "source_template",
+        "requirement_template",
+        "configured_worker_pool",
+        "image_family",
+        "keyring_and_credential",
+        "namespace",
+        "allowance",
+        "string_attribute",
+        "numeric_attribute",
+        "namespace_policy",
+        "group",
+        "application",
+        "user",
+    ],
+)
+def test_create_remove(create_args, remove_args):
+    assert shell(f"yd-create {create_args}").exit_code == 0
+    assert shell(f"yd-remove {remove_args}").exit_code == 0

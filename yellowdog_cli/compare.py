@@ -197,16 +197,16 @@ class WorkerPools:
         ]
 
     def _check_worker_pool_for_match(
-        self, worker_pool: WorkerPool, task_group: TaskGroup
+        self, worker_pool: ProvisionedWorkerPool, task_group: TaskGroup
     ) -> MatchReport:
         """
         Check a worker pool against the requirements of
         a task group.
         """
         return MatchReport(
-            worker_pool_name=worker_pool.name,
-            worker_pool_id=worker_pool.id,
-            worker_pool_status=worker_pool.status.value,
+            worker_pool_name=worker_pool.name or "",
+            worker_pool_id=worker_pool.id or "",
+            worker_pool_status=str(worker_pool.status),
             namespaces=self._match_namespaces(task_group, worker_pool),
             worker_tags=self._match_worker_tags(task_group, worker_pool),
             instance_types=self._match_instance_types(task_group, worker_pool),
@@ -219,41 +219,48 @@ class WorkerPools:
 
     def _get_providers(self, worker_pool: ProvisionedWorkerPool) -> set[str]:
         return {
-            self._get_provider_from_source(source)
-            for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources
+            p
+            for source in (
+                self._get_cr_from_wp(worker_pool).provisionStrategy.sources or []
+            )
+            if (p := self._get_provider_from_source(source)) is not None
         }
 
     def _get_regions(self, worker_pool: ProvisionedWorkerPool) -> set[str]:
         return {
-            source.region
-            for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources
+            r
+            for source in (
+                self._get_cr_from_wp(worker_pool).provisionStrategy.sources or []
+            )
+            if (r := source.region) is not None
         }
 
     def _get_instance_types(self, worker_pool: ProvisionedWorkerPool) -> set[str]:
         instance_types = set()
-        for source in self._get_cr_from_wp(worker_pool).provisionStrategy.sources:
+        ps = self._get_cr_from_wp(worker_pool).provisionStrategy
+        sources: list = [] if ps is None else (ps.sources or [])
+        for source in sources:
             provider = self._get_provider_from_source(source)
             if provider == AWS:
-                instance_types.add(source.instanceType)
+                instance_types.add(source.instanceType)  # type: ignore
                 try:  # Only for Fleet sources
-                    for override in source.instanceOverrides:
+                    for override in source.instanceOverrides:  # type: ignore
                         instance_types.add(override.instanceType)
                 except Exception:
                     pass
             # ToDo: Add similar checks for the fleet equivalents
             elif provider == AZURE:
-                instance_types.add(source.vmSize)
+                instance_types.add(source.vmSize)  # type: ignore
             elif provider == GOOGLE:
-                instance_types.add(source.machineType)
+                instance_types.add(source.machineType)  # type: ignore
             elif provider == OCI:
-                instance_types.add(source.shape)
+                instance_types.add(source.shape)  # type: ignore
         return instance_types
 
     @staticmethod
     def _get_cr_from_wp(worker_pool: ProvisionedWorkerPool) -> ComputeRequirement:
-        return CLIENT.compute_client.get_compute_requirement_by_id(
-            worker_pool.computeRequirementId
-        )
+        cr_id: str = worker_pool.computeRequirementId or ""
+        return CLIENT.compute_client.get_compute_requirement_by_id(cr_id)
 
     @staticmethod
     def _get_provider_from_source(source: ComputeSource) -> str | None:
@@ -280,7 +287,8 @@ class WorkerPools:
             ),
             worker_pool_values=(
                 EMPTY_STRING
-                if worker_pool.properties.workerTag is None
+                if worker_pool.properties is None
+                or worker_pool.properties.workerTag is None
                 else worker_pool.properties.workerTag
             ),
             # Any single workerTag in the list can match
@@ -288,7 +296,8 @@ class WorkerPools:
                 MatchType.YES
                 if task_group.runSpecification.workerTags is None
                 or (
-                    worker_pool.properties.workerTag
+                    worker_pool.properties is not None
+                    and worker_pool.properties.workerTag
                     in task_group.runSpecification.workerTags
                 )
                 else MatchType.NO
@@ -307,14 +316,14 @@ class WorkerPools:
         worker_pool_instance_types = self._get_instance_types(worker_pool)
         worker_pool_values = (
             ", ".join(sorted(list(worker_pool_instance_types)))
-            if len(worker_pool_instance_types) > 0
+            if worker_pool_instance_types
             else NONE_STRING
         )
 
         # Calculate match: the instance types in the worker pool must be
         # a subset of those in the run specification
         if (
-            len(runspec_instance_types) == 0
+            not runspec_instance_types
             or worker_pool_instance_types <= runspec_instance_types
         ):
             match_type = MatchType.YES
@@ -341,17 +350,18 @@ class WorkerPools:
             else set(task_group.runSpecification.taskTypes)
         )
         nodes = self._get_all_nodes_in_worker_pool(worker_pool)
-        if len(nodes) > 0:
-            node_task_types = set(nodes[0].details.supportedTaskTypes)
+        if nodes:
+            d = nodes[0].details
+            node_task_types = set(d.supportedTaskTypes or [] if d else [])
         else:
             node_task_types = set()
 
         worker_pool_values = (
             UNKNOWN_STRING
-            if len(nodes) == 0
+            if not nodes
             else (
                 ", ".join(sorted(list(node_task_types)))
-                if len(node_task_types) > 0
+                if node_task_types
                 else NONE_STRING
             )
         )
@@ -360,7 +370,7 @@ class WorkerPools:
         # all of those in the run specification. The scheduler calculates
         # this based on what the first node reports, but we have to take
         # a node that possibly is not the first.
-        if len(nodes) == 0:
+        if not nodes:
             match_type = MatchType.MAYBE
         elif runspec_task_types <= node_task_types:
             match_type = MatchType.YES
@@ -390,7 +400,7 @@ class WorkerPools:
 
         # Calculate match: the providers in the worker pool must be
         # a subset of those in the run specification
-        if len(runspec_providers) == 0 or worker_pool_providers <= runspec_providers:
+        if not runspec_providers or worker_pool_providers <= runspec_providers:
             match_type = MatchType.YES
         else:
             match_type = MatchType.NO
@@ -420,7 +430,7 @@ class WorkerPools:
 
         # Calculate match: the regions in the worker pool must be
         # a subset of those in the run specification
-        if len(runspec_regions) == 0 or worker_pool_regions <= runspec_regions:
+        if not runspec_regions or worker_pool_regions <= runspec_regions:
             match_type = MatchType.YES
         else:
             match_type = MatchType.NO
@@ -434,7 +444,7 @@ class WorkerPools:
             ),
             worker_pool_values=(
                 ", ".join(sorted(list(worker_pool_regions)))
-                if len(worker_pool_regions) > 0
+                if worker_pool_regions
                 else NONE_STRING
             ),
             match=match_type,
@@ -457,7 +467,10 @@ class WorkerPools:
             match=(
                 MatchType.YES
                 if task_group.runSpecification.namespaces in [None, []]
-                or worker_pool.namespace in task_group.runSpecification.namespaces
+                or (
+                    task_group.runSpecification.namespaces is not None
+                    and worker_pool.namespace in task_group.runSpecification.namespaces
+                )
                 else MatchType.NO
             ),
         )
@@ -467,17 +480,18 @@ class WorkerPools:
     ) -> PropertyMatch:
 
         nodes = self._get_all_nodes_in_worker_pool(worker_pool)
-        nodes_ram = {node.details.ram for node in nodes}
+        nodes_ram = {node.details.ram for node in nodes if node.details}
 
         # Calculate match
         if task_group.runSpecification.ram is None:
             match_type = MatchType.YES
-        elif len(nodes) == 0:
+        elif not nodes:
             match_type = MatchType.MAYBE
         else:
             for node in nodes:
                 if not self._check_in_range(
-                    node.details.ram, task_group.runSpecification.ram
+                    node.details.ram if node.details else None,
+                    task_group.runSpecification.ram,
                 ):
                     # If ANY nodes fail to match, the worker
                     # pool is not considered a match
@@ -496,7 +510,7 @@ class WorkerPools:
             ),
             worker_pool_values=(
                 UNKNOWN_STRING
-                if len(nodes) == 0
+                if not nodes
                 else ", ".join([str(node_ram) for node_ram in nodes_ram])
             ),
             match=match_type,
@@ -507,17 +521,18 @@ class WorkerPools:
     ) -> PropertyMatch:
 
         nodes = self._get_all_nodes_in_worker_pool(worker_pool)
-        nodes_vcpus = {node.details.vcpus for node in nodes}
+        nodes_vcpus = {node.details.vcpus for node in nodes if node.details}
 
         # Calculate match
         if task_group.runSpecification.vcpus is None:
             match_type = MatchType.YES
-        elif len(nodes) == 0:
+        elif not nodes:
             match_type = MatchType.MAYBE
         else:
             for node in nodes:
                 if not self._check_in_range(
-                    node.details.vcpus, task_group.runSpecification.vcpus
+                    node.details.vcpus if node.details else None,
+                    task_group.runSpecification.vcpus,
                 ):
                     # If ANY nodes fail to match, the worker
                     # pool is not considered a match
@@ -536,18 +551,20 @@ class WorkerPools:
             ),
             worker_pool_values=(
                 UNKNOWN_STRING
-                if len(nodes) == 0
+                if not nodes
                 else ", ".join([str(node_vcpus) for node_vcpus in nodes_vcpus])
             ),
             match=match_type,
         )
 
     @staticmethod
-    def _check_in_range(value: float, range_: DoubleRange) -> bool:
+    def _check_in_range(value: float | None, range_: DoubleRange) -> bool:
         """
         Check whether a value is within a DoubleRange.
         """
-        return True if range_.min <= value <= range_.max else False
+        if value is None or range_.min is None or range_.max is None:
+            return False
+        return range_.min <= value <= range_.max
 
     @staticmethod
     def _doublerange_str(dr: DoubleRange) -> str:
@@ -581,36 +598,36 @@ class WorkerPools:
                 search=NodeSearch(worker_pool_id)
             ).list_all()
         except Exception as e:
-            raise Exception(f"Unable to get details of nodes: {e}")
+            raise RuntimeError(f"Unable to get details of nodes: {e}")
 
 
-def _get_work_requirement_by_id(work_requirement_id) -> WorkRequirement:
+def _get_work_requirement_by_id(work_requirement_id: str) -> WorkRequirement:
     try:
         return CLIENT.work_client.get_work_requirement_by_id(work_requirement_id)
     except Exception as e:
         if "404" in str(e):
-            raise Exception(f"Work Requirement ID '{work_requirement_id}' not found")
+            raise KeyError(f"Work Requirement ID '{work_requirement_id}' not found")
         else:
-            raise Exception(
+            raise RuntimeError(
                 f"Unable to obtain Work Requirement details for '{work_requirement_id}': {e}"
             )
 
 
-def _get_provisioned_worker_pool_by_id(worker_pool_id) -> ProvisionedWorkerPool:
+def _get_provisioned_worker_pool_by_id(worker_pool_id: str) -> ProvisionedWorkerPool:
     try:
         worker_pool = get_worker_pool_by_id(CLIENT, worker_pool_id)
     except Exception as e:
         if "404" in str(e):
-            raise Exception(f"Work Pool ID '{worker_pool_id}' not found")
+            raise KeyError(f"Work Pool ID '{worker_pool_id}' not found")
         else:
-            raise Exception(
+            raise RuntimeError(
                 f"Unable to obtain Worker Pool details for '{worker_pool_id}': {e}"
             )
 
     if isinstance(worker_pool, ProvisionedWorkerPool):
         return worker_pool
     else:
-        raise Exception(
+        raise TypeError(
             f"Worker Pool ID '{worker_pool_id}' is not a Provisioned Worker Pool; "
             "Configured Worker Pools are not supported by 'yd-compare'"
         )
@@ -669,33 +686,33 @@ def main():
 
     # Worker pools
     wp_list: list[ProvisionedWorkerPool] = []
-    for wp_id in ARGS_PARSER.worker_pool_ids:
+    for wp_id in ARGS_PARSER.worker_pool_ids or []:
         if get_ydid_type(wp_id) != YDIDType.WORKER_POOL:
-            raise Exception(
+            raise ValueError(
                 f"Not a YellowDog Worker Pool ID: '{ARGS_PARSER.wr_or_tg_id}'"
             )
         wp_list.append(_get_provisioned_worker_pool_by_id(wp_id))
     worker_pools = WorkerPools(wp_list)
 
+    wr_or_tg_id: str = ARGS_PARSER.wr_or_tg_id or ""
+
     # Task group
-    if (ydid_type := get_ydid_type(ARGS_PARSER.wr_or_tg_id)) == YDIDType.TASK_GROUP:
-        _compare_task_group(
-            get_task_group_by_id(CLIENT, ARGS_PARSER.wr_or_tg_id), worker_pools
-        )
+    if (ydid_type := get_ydid_type(wr_or_tg_id)) == YDIDType.TASK_GROUP:
+        _compare_task_group(get_task_group_by_id(CLIENT, wr_or_tg_id), worker_pools)
 
     # Work requirement
     elif ydid_type == YDIDType.WORK_REQUIREMENT:
-        work_requirement = _get_work_requirement_by_id(ARGS_PARSER.wr_or_tg_id)
+        work_requirement = _get_work_requirement_by_id(wr_or_tg_id)
         print_info(
             f"Comparing all Task Groups in Work Requirement '{work_requirement.name}' "
             f"({work_requirement.id})",
             override_quiet=True,
         )
-        for task_group in work_requirement.taskGroups:
+        for task_group in work_requirement.taskGroups or []:
             _compare_task_group(task_group, worker_pools)
 
     else:
-        raise Exception(
+        raise ValueError(
             f"Not a YellowDog Work Requirement or Task Group ID: '{ARGS_PARSER.wr_or_tg_id}'"
         )
 

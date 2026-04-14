@@ -4,6 +4,8 @@
 A script to cancel Work Requirements and optionally abort Tasks.
 """
 
+from typing import cast
+
 from yellowdog_client.model import (
     WorkRequirement,
     WorkRequirementStatus,
@@ -24,7 +26,7 @@ from yellowdog_cli.utils.ydid_utils import YDIDType, get_ydid_type
 
 @main_wrapper
 def main():
-    if len(ARGS_PARSER.work_requirement_names) > 0:
+    if ARGS_PARSER.work_requirement_names:
         _cancel_work_requirements_by_name_or_id(ARGS_PARSER.work_requirement_names)
         return
 
@@ -51,12 +53,12 @@ def main():
     cancelling_count = 0
     work_requirement_ids: list[str] = []
 
-    if len(selected_work_requirement_summaries) > 0:
+    if selected_work_requirement_summaries:
         selected_work_requirement_summaries = select(
             CLIENT, selected_work_requirement_summaries
         )
 
-    if len(selected_work_requirement_summaries) > 0 and confirmed(
+    if selected_work_requirement_summaries and confirmed(
         f"Cancel {len(selected_work_requirement_summaries)} "
         f"Work Requirement(s)"
         f"{'' if not ARGS_PARSER.abort else ' and abort all allocated tasks'}?"
@@ -122,12 +124,10 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: list[str]):
                 print_error(f"Failed to cancel Task '{name_or_id}': {e}")
             continue
 
-        work_requirement_summary: WorkRequirementSummary = (
-            get_work_requirement_summary_by_name_or_id(
-                CLIENT,
-                name_or_id,
-                namespace=CONFIG_COMMON.namespace,
-            )
+        work_requirement_summary = get_work_requirement_summary_by_name_or_id(
+            CLIENT,
+            name_or_id,
+            namespace=CONFIG_COMMON.namespace,
         )
         if work_requirement_summary is None:
             print_error(f"Work Requirement '{name_or_id}' not found")
@@ -174,7 +174,7 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: list[str]):
                 )
 
     if ARGS_PARSER.follow:
-        follow_ids([wrs.id for wrs in work_requirement_summaries])
+        follow_ids([cast(str, wrs.id) for wrs in work_requirement_summaries])
 
 
 # Entry point

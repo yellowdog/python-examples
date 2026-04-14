@@ -2,260 +2,99 @@
 Utility functions for use with the submit command.
 """
 
+from copy import deepcopy
 from dataclasses import dataclass
-from glob import glob
+from datetime import timedelta
 from os import chdir, getcwd
-from os.path import exists
+from os.path import abspath, exists
+from pathlib import Path
 from time import sleep
+from typing import cast
 
-from yellowdog_client import PlatformClient
+from rclone_api import Config
 from yellowdog_client.model import (
-    ObjectPath,
+    Task,
     TaskData,
     TaskDataInput,
     TaskDataOutput,
     TaskErrorMatcher,
-    TaskInput,
-    TaskInputVerification,
     TaskStatus,
 )
 
-from yellowdog_cli.utils.config_types import ConfigCommon, ConfigWorkRequirement
+from yellowdog_cli.utils.config_types import ConfigWorkRequirement
 from yellowdog_cli.utils.printing import print_error, print_info, print_warning
 from yellowdog_cli.utils.property_names import (
+    DATA_CLIENT_LOCAL_PATH,
+    DATA_CLIENT_UPLOAD_PATH,
     DEPENDENCIES,
     DEPENDENT_ON,
     ERROR_TYPES,
     PROCESS_EXIT_CODES,
     RETRYABLE_ERRORS,
     STATUSES_AT_FAILURE,
+    TASK_DATA,
+    TASK_DATA_FILE,
+    TASK_DATA_SOURCE,
+    TASK_GROUPS,
+    TASK_TAG,
+    TASKS,
 )
-from yellowdog_cli.utils.settings import NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR
+from yellowdog_cli.utils.rclone_utils import make_rclone, parse_rclone_config
+from yellowdog_cli.utils.settings import (
+    L_TASK_COUNT,
+    L_TASK_GROUP_COUNT,
+    L_TASK_GROUP_NAME,
+    L_TASK_GROUP_NUMBER,
+    L_TASK_NUMBER,
+    RCLONE_PREFIX,
+    VAR_CLOSING_DELIMITER,
+    VAR_OPENING_DELIMITER,
+)
 from yellowdog_cli.utils.type_check import check_list, check_str
-from yellowdog_cli.utils.upload_utils import unique_upload_pathname, upload_file_core
-from yellowdog_cli.utils.variables import process_variable_substitutions_insitu
+from yellowdog_cli.utils.variables import (
+    process_variable_substitutions_insitu,
+    resolve_filename,
+)
 from yellowdog_cli.utils.wrapper import ARGS_PARSER
 
+# Names for environment variables optionally added to each Task's environment
+YD_NAMESPACE = "YD_NAMESPACE"
+YD_NUM_TASK_GROUPS = "YD_NUM_TASK_GROUPS"
+YD_NUM_TASKS = "YD_NUM_TASKS"
+YD_TAG = "YD_TAG"
+YD_TASK_GROUP_NAME = "YD_TASK_GROUP_NAME"
+YD_TASK_GROUP_NUMBER = "YD_TASK_GROUP_NUMBER"
+YD_TASK_NAME = "YD_TASK_NAME"
+YD_TASK_NUMBER = "YD_TASK_NUMBER"
+YD_WORK_REQUIREMENT_NAME = "YD_WORK_REQUIREMENT_NAME"
 
-def generate_task_input_list(
-    files: list[str],
-    verification: TaskInputVerification | None,
-    wr_name: str | None,
-) -> list[TaskInput]:
+
+def assemble_arguments(
+    prefix: list | None,
+    args: list | None,
+    postfix: list | None,
+) -> list | None:
     """
-    Generate a TaskInput list.
+    Combine argumentsPrefix + arguments + argumentsPostfix.
+    If both prefix and postfix are empty/None, returns args unchanged.
     """
-    task_input_list: list[TaskInput] = []
-    for file in files:
-        task_input_list.append(generate_task_input(file, verification, wr_name))
-    return task_input_list
+    if not prefix and not postfix:
+        return args
+    return (prefix or []) + (args or []) + (postfix or [])
 
 
-def generate_task_input(
-    file: str, verification: TaskInputVerification | None, wr_name: str
-) -> TaskInput:
+def merge_environment(
+    base: dict | None,
+    additions: dict | None,
+) -> dict | None:
     """
-    Generate a TaskInput, accommodating files located relative to the root of
-    the namespace, relative to the root of a different namespace,
-    and relative to the directory specific to this Work Requirement.
+    Merge addEnvironment entries into the task's environment dict.
+    Keys in additions override existing keys in base.
+    Returns base unchanged if additions is empty/None.
     """
-    namespace, filepath = get_namespace_and_filepath(file, wr_name)
-    filepath = filepath.lstrip("/")
-    if namespace is None:
-        return TaskInput.from_task_namespace(
-            object_name_pattern=filepath, verification=verification
-        )
-    else:
-        return TaskInput.from_namespace(
-            namespace=namespace, object_name_pattern=filepath, verification=verification
-        )
-
-
-def get_namespace_and_filepath(
-    file: str, wr_name: str | None = None
-) -> tuple[str | None, str]:
-    """
-    Find the namespace and path, using the namespace separator.
-    """
-    try:
-        file_parts = file.split(NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR)
-
-        if len(file_parts) == 1:
-            # Use the Work Requirement ID, if supplied, as the directory
-            # within the current namespace
-            if wr_name is not None:
-                return None, f"{wr_name}/{file_parts[0]}"
-            else:
-                return None, file_parts[0]
-
-        if len(file_parts) == 2:
-            # Start at the root of the current namespace
-            if file_parts[0] == "":
-                return None, file_parts[1]
-
-            # Start at the root of a different namespace
-            elif len(file_parts[0]) > 0:
-                return file_parts[0], file_parts[1]
-
-        raise Exception
-
-    except Exception:
-        raise Exception(f"Malformed file specification: '{file}'")
-
-
-@dataclass
-class UploadedFile:
-    local_file_path: str
-    upload_namespace: str
-    uploaded_file_path: str
-
-
-class UploadedFiles:
-    """
-    Upload and manage uploaded files from the 'inputs' and
-    'uploadFiles' lists.
-    """
-
-    def __init__(
-        self,
-        client: PlatformClient,
-        wr_name: str,
-        config: ConfigCommon,
-        files_directory: str = "",
-    ):
-        self._client = client
-        self._wr_name = wr_name
-        self._config = config
-        self._uploaded_files: list[UploadedFile] = []
-        self.files_directory = files_directory
-        self.working_directory = getcwd()
-
-    def add_upload_file(self, upload_file: str, upload_path: str):
-        """
-        Upload a file if it hasn't already been uploaded to the same location.
-        Handle wildcards.
-        """
-
-        if self.files_directory != "":
-            chdir(self.files_directory)
-
-        # Handle wildcard expansion
-        expanded_files = glob(pathname=upload_file, recursive=True)
-        if len(expanded_files) > 1:
-            if not upload_path.endswith("*"):
-                raise Exception(
-                    "'uploadPath' must end in '*' when using 'uploadFiles' wildcards"
-                )
-
-        for upload_file in expanded_files:
-            if not exists(upload_file):
-                print_error(f"File '{upload_file}' does not exist")
-                continue
-
-            namespace, uploaded_file_path = get_namespace_and_filepath(
-                upload_path, self._wr_name
-            )
-            namespace = self._config.namespace if namespace is None else namespace
-
-            # Adjust upload file path for a wildcard upload
-            if "*" in uploaded_file_path:
-                uploaded_file_path = uploaded_file_path.replace(
-                    "*", upload_file.split("/")[-1]
-                )
-
-            uploaded_file_path = uploaded_file_path.lstrip("/")
-
-            duplicate = False
-            for uploaded_file in self._uploaded_files:
-                if (
-                    upload_file == uploaded_file.local_file_path
-                    and uploaded_file_path == uploaded_file.uploaded_file_path
-                    and namespace == uploaded_file.upload_namespace
-                ):
-                    duplicate = True
-                    break
-            if duplicate:
-                continue
-
-            if not ARGS_PARSER.dry_run:
-                upload_file_core(
-                    client=self._client,
-                    url=self._config.url,
-                    local_file=upload_file,
-                    namespace=namespace,
-                    remote_file=uploaded_file_path,
-                )
-            else:
-                print_info(
-                    f"Dry-run: Would upload '{upload_file}' to"
-                    f" '{namespace}{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{uploaded_file_path}'"
-                )
-
-            self._uploaded_files.append(
-                UploadedFile(
-                    local_file_path=upload_file,
-                    upload_namespace=namespace,
-                    uploaded_file_path=uploaded_file_path,
-                )
-            )
-
-        chdir(self.working_directory)
-
-    def add_input_file(self, filename: str, flatten_upload_paths: bool) -> list[str]:
-        """
-        Add a filename from the inputs list, processing wildcards if present.
-        Return the expanded list of filenames.
-        """
-
-        # Expand wildcards ... in the correct directory
-        if self.files_directory != "":
-            chdir(self.files_directory)
-
-        expanded_files = glob(pathname=filename, recursive=True)
-
-        if len(expanded_files) == 0:
-            raise Exception(f"File or files '{filename}' not found")
-
-        chdir(self.working_directory)
-
-        for filename in expanded_files:
-            # Apply Work Requirement name prefix, etc.
-            upload_file_name = unique_upload_pathname(
-                filename=filename,
-                id=self._wr_name,
-                inputs_folder_name=None,
-                urlencode_forward_slash=False,
-                flatten_upload_paths=flatten_upload_paths,
-            )
-            # Force 'uploaded_file_name' to be at the root of the namespace
-            self.add_upload_file(
-                filename, f"{NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR}{upload_file_name}"
-            )
-
-        return expanded_files
-
-    def delete(self):
-        """
-        Delete all files that have been uploaded.
-        """
-        for namespace in {uf.upload_namespace for uf in self._uploaded_files}:
-            object_paths = [
-                ObjectPath(uf.uploaded_file_path)
-                for uf in self._uploaded_files
-                if uf.upload_namespace == namespace
-            ]
-            print_info(
-                f"Deleting {len(object_paths)} uploaded object(s) in "
-                f"namespace '{namespace}'"
-            )
-            try:
-                self._client.object_store_client.delete_objects(namespace, object_paths)
-            except Exception:
-                print_error(
-                    "Failed to delete one or more objects "
-                    "(may already have been deleted)"
-                )
-        self._uploaded_files = []
+    if not additions:
+        return base
+    return {**(base or {}), **additions}
 
 
 def update_config_work_requirement_object(
@@ -338,7 +177,7 @@ def generate_taskdata_object(
             ),
         )
     except TypeError as e:
-        raise Exception(
+        raise TypeError(
             f"Unable to generate 'taskDataInputs' or 'taskDataOutputs' list: {str(e)}"
         )
 
@@ -370,11 +209,11 @@ def generate_dependencies(task_group_data: dict) -> list[str] | None:
     """
     Generate the contents of the 'dependencies' property of the TaskGroup.
     """
-    dependent_on = check_str(task_group_data.get(DEPENDENT_ON, None))
-    dependencies = check_list(task_group_data.get(DEPENDENCIES, None))
+    dependent_on = check_str(task_group_data.get(DEPENDENT_ON))
+    dependencies = check_list(task_group_data.get(DEPENDENCIES))
 
     if dependent_on is not None and dependencies is not None:
-        raise Exception(
+        raise ValueError(
             "Only one of 'dependencies' or 'dependentOn' (deprecated) can "
             "be specified in a task group"
         )
@@ -392,6 +231,8 @@ def generate_dependencies(task_group_data: dict) -> list[str] | None:
         )
         return [dependent_on]
 
+    return None
+
 
 def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatcher:
     """
@@ -400,7 +241,7 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
     try:
 
         exit_codes_str: list[int] | None = check_list(
-            task_error_matcher_data.get(PROCESS_EXIT_CODES, None)
+            task_error_matcher_data.get(PROCESS_EXIT_CODES)
         )
         try:
             # Ensure ints
@@ -410,10 +251,10 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
                 else [int(exit_code_str) for exit_code_str in exit_codes_str]
             )
         except Exception as e:
-            raise Exception(f"Unable to process error exit codes: {e}")
+            raise ValueError(f"Unable to process error exit codes: {e}")
 
         statuses_str: list[str] | None = check_list(
-            task_error_matcher_data.get(STATUSES_AT_FAILURE, None)
+            task_error_matcher_data.get(STATUSES_AT_FAILURE)
         )
         try:
             statuses = (
@@ -422,10 +263,10 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
                 else [TaskStatus(status) for status in statuses_str]
             )
         except Exception as e:
-            raise Exception(f"Unable to process error status: {e}")
+            raise ValueError(f"Unable to process error status: {e}")
 
         error_types: list[str] | None = check_list(
-            task_error_matcher_data.get(ERROR_TYPES, None)
+            task_error_matcher_data.get(ERROR_TYPES)
         )
 
         return TaskErrorMatcher(
@@ -435,6 +276,401 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
         )
 
     except Exception as e:
-        raise Exception(
+        raise RuntimeError(
             f"Unable to process task retry error matcher data '{task_error_matcher_data}': {e}"
         )
+
+
+@dataclass
+class RcloneUploadedFile:
+    """
+    Capture the local and destination state of an rcloned file.
+    """
+
+    local_file_path: str
+    upload_file_path: str
+
+
+class RcloneUploadedFiles:
+    """
+    Upload and manage uploaded files from taskData.inputs.
+    """
+
+    def __init__(
+        self,
+        files_directory: str = ".",
+    ):
+        self._rcloned_files: list[RcloneUploadedFile] = []
+        self._files_directory = abspath(files_directory)
+        self._working_directory = getcwd()
+
+    def upload_dataclient_input_files(self, task_data_inputs: list[dict] | None):
+        """
+        Extract files to be uploaded from a task_data_inputs objects, and
+        upload them. Important: removes any 'localFile' and 'uploadPath'
+        properties.
+        """
+        if task_data_inputs is None:
+            return
+
+        for task_data_input in task_data_inputs:
+            local_file = task_data_input.pop(DATA_CLIENT_LOCAL_PATH, None)
+            if local_file is None:
+                continue
+            upload_path = task_data_input.pop(DATA_CLIENT_UPLOAD_PATH, None)
+            if upload_path is None:
+                upload_path = task_data_input.get(TASK_DATA_SOURCE)
+            if upload_path is None:
+                continue
+            self._upload_rclone_file(
+                # Ugly cast to keep PyCharm type system happy
+                cast(str, cast(object, local_file)),
+                cast(str, upload_path),
+            )
+
+    def _upload_rclone_file(self, local_file: str, rclone_upload_path: str):
+        """
+        Rclone a DataClient inputs file if it hasn't already been uploaded to
+        the same location.
+        """
+        chdir(self._files_directory)
+
+        if not exists(local_file):
+            raise FileNotFoundError(
+                f"File '{Path(self._files_directory)/local_file}' does not exist "
+                "and cannot be uploaded"
+            )
+
+        rclone_uploaded_file = RcloneUploadedFile(local_file, rclone_upload_path)
+        if rclone_uploaded_file in self._rcloned_files:
+            # Duplicate
+            return
+
+        if not ARGS_PARSER.dry_run:
+            try:
+                self._upload_rclone_file_core(rclone_uploaded_file)
+            except Exception as e:
+                raise RuntimeError(
+                    f"Unable to upload '{local_file}' -> '{rclone_upload_path}': {e}"
+                )
+        else:
+            print_info(
+                f"Dry-run: Would upload '{local_file}' -> "
+                f"'{self._bucket_and_prefix(rclone_uploaded_file)}'"
+            )
+
+        self._rcloned_files.append(rclone_uploaded_file)
+
+        chdir(self._working_directory)
+
+    def _upload_rclone_file_core(self, rclone_upload_file: RcloneUploadedFile):
+        """
+        Core upload method for a single file.
+        """
+        remote_name, config_section, remote_path = self._parse_rclone_connection_string(
+            rclone_upload_file.upload_file_path
+        )
+
+        # Auto-downloads rclone binary if missing (~20-40 MB, only once)
+        rclone = make_rclone(
+            Config(config_section) if config_section is not None else None
+        )
+
+        remote_dest = f"{remote_name}:{remote_path}"
+
+        if not ARGS_PARSER.overwrite and rclone.exists(remote_dest):
+            print_info(
+                f"Skipping upload of '{rclone_upload_file.local_file_path}'"
+                f" (already exists at '{self._bucket_and_prefix(rclone_upload_file)}')"
+            )
+            return
+
+        local_file = Path(rclone_upload_file.local_file_path).resolve()
+        print_info(
+            f"Uploading '{rclone_upload_file.local_file_path}' → "
+            f"'{self._bucket_and_prefix(rclone_upload_file)}'"
+        )
+
+        result = rclone.copy_to(
+            src=str(local_file),
+            dst=remote_dest,
+            other_args=[],
+        )
+
+        if result.returncode != 0:
+            raise RuntimeError(f"Upload failed: {result.stderr}")
+
+    def delete(self):
+        """
+        Delete all files that have been rcloned. Note: can't delete
+        a list of files in one rclone-api call because they may be
+        stored in different places. This can be optimised later by
+        grouping into batches of files with the same connection info.
+        """
+        for rcloned_file in self._rcloned_files:
+            self._delete_rcloned_file(rcloned_file.upload_file_path)
+
+        self._rcloned_files = []
+
+    def _delete_rcloned_file(self, conn_str: str):
+        """
+        Deletes exactly one rcloned file specified in the connection string.
+
+        Example:
+            conn_str = "rclone:S3,type=s3,provider=AWS,env_auth=true,\
+                        region=eu-west-2,location_constraint=eu-west-2:\
+                        tech.yellowdog.devsandbox.dev-platform/yd-demo/pwt/file.txt"
+            delete_single_s3_object(conn_str)
+        """
+        remote_name, config_section, remote_path = self._parse_rclone_connection_string(
+            conn_str
+        )
+
+        # Auto-downloads rclone binary if missing (~20-40 MB, only once)
+        rclone = make_rclone(
+            Config(config_section) if config_section is not None else None
+        )
+
+        rcloned_file = f"{remote_name}:{remote_path}"
+        print_info(f"Deleting rcloned file '{rcloned_file}'")
+        if not rclone.exists(rcloned_file):
+            print_warning(f"Rcloned file does not exist: '{rcloned_file}'")
+            return
+
+        result = rclone.delete_files([rcloned_file])
+
+        if result.returncode != 0:
+            print_error(
+                f"Failed to delete rcloned file '{remote_path}' ({result.stderr})"
+            )
+
+    @staticmethod
+    def _parse_rclone_connection_string(
+        connection_str: str,
+    ) -> tuple[str, str | None, str]:
+        """
+        Parses rclone connection strings in two forms:
+
+        Inline config (all parameters embedded in the string):
+          'rclone:NAME,type=...,key=val...:bucket/path/to/file.txt'
+
+        Local rclone.conf remote (remote name only, no inline parameters):
+          'rclone:yds3:/path/to/file.txt'
+
+        The leading 'rclone:' is optional in both forms.
+
+        Returns:
+            (remote_name, config_ini_section_str_or_None, bucket_and_path_prefix)
+            config_ini_section_str is None for locally configured remotes,
+            indicating that the system rclone.conf should be used.
+        """
+        # Remove optional leading 'rclone:'
+        if connection_str.startswith(RCLONE_PREFIX):
+            connection_str = connection_str[len(RCLONE_PREFIX) :]
+
+        if ":" not in connection_str:
+            raise ValueError("No colon separator found in connection string")
+
+        # Split on LAST colon → config vs path
+        remote_part, path_part = connection_str.rsplit(":", 1)
+        remote_name, config_section = parse_rclone_config(remote_part)
+        path_part = path_part.strip()  # keep internal slashes
+
+        return remote_name, config_section, path_part
+
+    @staticmethod
+    def _bucket_and_prefix(rclone_uploaded_file: RcloneUploadedFile):
+        """
+        Remove everything except the service, bucket name and object name.
+        """
+        try:
+            service, rclone_details, bucket_name_and_object = (
+                rclone_uploaded_file.upload_file_path.split(":")
+            )
+            return bucket_name_and_object
+        except Exception:
+            return rclone_uploaded_file.upload_file_path
+
+
+def formatted_number_str(
+    current_item_number: int, num_items: int, zero_indexed: bool = True
+) -> str:
+    """
+    Return a nicely formatted number string given a current item number
+    and a total number of items.
+    """
+    return str(current_item_number + 1 if zero_indexed else current_item_number).zfill(
+        len(str(num_items))
+    )
+
+
+def get_task_name(
+    name: str | None,
+    set_task_names: bool,
+    task_number: int,
+    num_tasks: int,
+    task_group_number: int,
+    num_task_groups: int,
+    task_group_name: str,
+) -> str | None:
+    """
+    Create the name of a Task. Supports lazy substitution.
+    """
+    if name:
+        n: str = name  # Keep PyCharm typing happy
+        return (
+            n.replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_NUMBER + VAR_CLOSING_DELIMITER}",
+                formatted_number_str(task_number, num_tasks),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
+                str(num_tasks),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
+                formatted_number_str(task_group_number, num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
+                str(num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NAME + VAR_CLOSING_DELIMITER}",
+                task_group_name,
+            )
+        )
+    elif set_task_names:
+        name = "task_" + formatted_number_str(task_number, num_tasks)
+    else:
+        name = None
+
+    return name
+
+
+def get_task_group_name(
+    name: str | None,
+    task_group_number: int,
+    num_task_groups: int,
+    task_count: int,
+) -> str:
+    """
+    Create the name of a Task Group. Supports lazy substitution.
+    """
+    if name:
+        n: str = name  # Keep PyCharm typing happy
+        return (
+            n.replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_NUMBER + VAR_CLOSING_DELIMITER}",
+                formatted_number_str(task_group_number, num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_GROUP_COUNT + VAR_CLOSING_DELIMITER}",
+                str(num_task_groups),
+            )
+            .replace(
+                f"{VAR_OPENING_DELIMITER + L_TASK_COUNT + VAR_CLOSING_DELIMITER}",
+                str(task_count),
+            )
+        )
+
+    return "task_group_" + formatted_number_str(task_group_number, num_task_groups)
+
+
+def get_task_data_property(
+    config_wr: ConfigWorkRequirement,
+    wr_data: dict,
+    task_group_data: dict,
+    task: dict,
+    task_name: str | None,
+    files_directory: str = "",
+) -> str | None:
+    """
+    Get the 'taskData' property, either using the contents of the file
+    specified in 'taskDataFile' or using the string specified in 'taskData'.
+    Raise exception if both 'taskData' and 'taskDataFile' are set at the same
+    level in the Work Requirement.
+    """
+    # Try Task, Task Group, then Work Requirement data
+    for data, task_data_default, task_data_file_default in [
+        (task, None, None),
+        (task_group_data, None, None),
+        (wr_data, config_wr.task_data, config_wr.task_data_file),
+    ]:
+        task_data_property = data.get(TASK_DATA, task_data_default)
+        task_data_file_property = data.get(TASK_DATA_FILE, task_data_file_default)
+        if task_data_property and task_data_file_property:
+            raise ValueError(
+                f"Task '{task_name}': Properties '{TASK_DATA}' and "
+                f"'{TASK_DATA_FILE}' are both set"
+            )
+
+        if task_data_property:
+            return task_data_property
+
+        if task_data_file_property:
+            with open(resolve_filename(files_directory, task_data_file_property)) as f:
+                return f.read()
+
+    return None
+
+
+def create_task(
+    wr_data: dict,
+    task_group_data: dict,
+    task_data: dict,
+    task_name: str | None,
+    task_number: int,
+    tg_name: str,
+    tg_number: int,
+    task_type: str,
+    args: list[str],
+    task_data_property: str | None,
+    env: dict[str, str] | None,
+    task_timeout: timedelta | None,
+    add_yd_env_vars: bool = False,
+    task_data_inputs_and_outputs: TaskData | None = None,
+    wr_name: str = "",
+    namespace: str = "",
+    total_num_task_groups: int | None = None,
+    total_num_tasks: int | None = None,
+) -> Task:
+    """
+    Create a Task object.
+    """
+    env_copy = deepcopy(env)  # Copy the environment property to prevent overwriting
+    task_tag = task_data.get(TASK_TAG)
+
+    # Optionally add Task details to the environment as a convenience
+    if add_yd_env_vars:
+        num_task_groups = (
+            total_num_task_groups
+            if total_num_task_groups is not None
+            else len(wr_data[TASK_GROUPS])
+        )
+        num_tasks = (
+            total_num_tasks
+            if total_num_tasks is not None
+            else len(task_group_data[TASKS])
+        )
+        env_copy[YD_TASK_NAME] = task_name or ""
+        env_copy[YD_TASK_NUMBER] = str(task_number)
+        env_copy[YD_NUM_TASKS] = str(num_tasks)
+        env_copy[YD_TASK_GROUP_NAME] = tg_name
+        env_copy[YD_TASK_GROUP_NUMBER] = str(tg_number)
+        env_copy[YD_NUM_TASK_GROUPS] = str(num_task_groups)
+        env_copy[YD_WORK_REQUIREMENT_NAME] = wr_name
+        env_copy[YD_NAMESPACE] = namespace
+        if task_tag is not None:
+            env_copy[YD_TAG] = cast(str, task_tag)
+
+    return Task(
+        name=task_name,
+        taskType=task_type,
+        arguments=args or None,
+        environment=env_copy or None,
+        taskData=task_data_property,
+        timeout=task_timeout,
+        tag=task_tag,
+        data=task_data_inputs_and_outputs,
+    )

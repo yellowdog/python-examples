@@ -4,6 +4,8 @@
 A script for reporting on the details of the Application being used.
 """
 
+from typing import cast
+
 from yellowdog_client.model import ApplicationDetails
 
 from yellowdog_cli.utils.entity_utils import (
@@ -62,22 +64,24 @@ def main():
         readable_namespaces = (
             ""
             if application_details.readableNamespaces is None
-            else ", ".join([rns for rns in application_details.readableNamespaces])
+            else ", ".join(application_details.readableNamespaces)
         )
         print_simple(
             f"  Readable namespaces:               {readable_namespaces}",
             override_quiet=True,
         )
     try:
-        groups = get_application_group_summaries(CLIENT, application_details.id)
-        group_names = ", ".join([group.name for group in groups])
+        groups = get_application_group_summaries(
+            CLIENT, cast(str, application_details.id)
+        )
+        group_names = ", ".join([cast(str, group.name) for group in groups])
         print_simple(
             f"  In group(s):                       {group_names}",
             override_quiet=True,
         )
         for i, (role, namespaces) in enumerate(
             get_all_roles_and_namespaces_for_application(
-                CLIENT, application_details.id
+                CLIENT, cast(str, application_details.id)
             ).items()
         ):
             msg = f"{role} [{', '.join(namespaces)}]"

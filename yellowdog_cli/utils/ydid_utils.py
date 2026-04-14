@@ -55,7 +55,7 @@ def get_ydid_type(ydid: str | None) -> YDIDType | None:
     """
     Validate and find the type of a YellowDog ID.
     """
-    if not is_valid_ydid(ydid):
+    if ydid is None or not is_valid_ydid(ydid):
         return None
 
     if ydid.startswith(f"{YDID}:{TYPE_WORKREQ}:"):

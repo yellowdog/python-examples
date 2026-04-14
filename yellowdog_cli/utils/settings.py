@@ -11,6 +11,10 @@ YD_SECRET = "YD_SECRET"
 YD_NAMESPACE = "YD_NAMESPACE"
 YD_TAG = "YD_TAG"
 YD_URL = "YD_URL"
+YD_DATA_CLIENT = "YD_DATA_CLIENT"
+YD_DATA_CLIENT_BUCKET = "YD_DATA_CLIENT_BUCKET"
+YD_DATA_CLIENT_PREFIX = "YD_DATA_CLIENT_PREFIX"
+YD_DATA_CLIENT_REMOTE = "YD_DATA_CLIENT_REMOTE"
 YD_ENV_VAR_PREFIX = "YD_VAR_"
 ENV_VAR_SUB_PREFIX = "env:"
 RAND_VAR_SIZE = 0xFFF
@@ -21,30 +25,45 @@ YD_SECRET_ALT = "YD_API_KEY_SECRET"
 YD_URL_ALT = "YD_API_URL"
 
 TASK_BATCH_SIZE_DEFAULT = 1000
-MAX_PARALLEL_TASK_BATCH_UPLOAD_THREADS = 1
+DEFAULT_PARALLEL_TASK_BATCH_UPLOAD_THREADS = 1
 MAX_BATCH_SUBMIT_ATTEMPTS = 4  # Initial attempt plus retries
 
 CR_BATCH_SIZE_DEFAULT = 10000
 
 EVENT_STREAM_RETRY_INTERVAL = 5.0  # Seconds
+NODE_ACTION_QUEUE_POLL_INTERVAL = 5.0  # Seconds
 
-NAMESPACE_OBJECT_STORE_PREFIX_SEPARATOR = "::"
 NAMESPACE_PREFIX_SEPARATOR = "/"
 WP_VARIABLES_PREFIX = "__"
 WP_VARIABLES_POSTFIX = "__"
-CSV_VAR_OPENING_DELIMITER = "{{"
-CSV_VAR_CLOSING_DELIMITER = "}}"
+CSV_VAR_OPENING_DELIMITER = "<<"
+CSV_VAR_CLOSING_DELIMITER = ">>"
 VAR_OPENING_DELIMITER = "{{"
 VAR_CLOSING_DELIMITER = "}}"
 VAR_DEFAULT_SEPARATOR = ":="
+VAR_UNSET_SUFFIX = "::"
+
+# Lazy variable substitution names (used in submit/task naming)
+L_WR_NAME = "wr_name"
+L_TASK_NAME = "task_name"
+L_TASK_NUMBER = "task_number"
+L_TASK_GROUP_NAME = "task_group_name"
+L_TASK_GROUP_NUMBER = "task_group_number"
+L_TASK_COUNT = "task_count"
+L_TASK_GROUP_COUNT = "task_group_count"
+
 TYPE_TAG_TERMINATOR = ":"
-TAG_DEFAULT_DIFF = "="
+# The character(s) of VAR_DEFAULT_SEPARATOR that follow TYPE_TAG_TERMINATOR.
+# Used as a negative lookahead in the type-tag regex: after matching e.g. 'num:',
+# if this follows, the ':' is part of ':=' (a default separator), not a type tag.
+TYPE_TAG_DEFAULT_GUARD = VAR_DEFAULT_SEPARATOR[len(TYPE_TAG_TERMINATOR) :]
 NUMBER_TYPE_TAG = "num" + TYPE_TAG_TERMINATOR
 BOOL_TYPE_TAG = "bool" + TYPE_TAG_TERMINATOR
 ARRAY_TYPE_TAG = "array" + TYPE_TAG_TERMINATOR
 TABLE_TYPE_TAG = "table" + TYPE_TAG_TERMINATOR
 FORMAT_NAME_TYPE_TAG = "format_name" + TYPE_TAG_TERMINATOR
 TOML_VAR_NESTED_DEPTH = 3
+RCLONE_PREFIX = "rclone:"
 
 VAR_NAME_OF_UNNAMED_TASK = "none"
 
@@ -139,10 +158,32 @@ RN_NUMERIC_ATTRIBUTE_DEFINITION = "NumericAttributeDefinition"
 RN_REQUIREMENT_TEMPLATE = "ComputeRequirementTemplate"
 RN_ROLE = "Role"
 RN_SOURCE_TEMPLATE = "ComputeSourceTemplate"
-RN_STORAGE_CONFIGURATION = "NamespaceStorageConfiguration"
 RN_STRING_ATTRIBUTE_DEFINITION = "StringAttributeDefinition"
 RN_UPDATE_APPLICATION_REQUEST = "UpdateApplicationRequest"
 RN_UPDATE_GROUP_REQUEST = "UpdateGroupRequest"
+
+# Entity type names (used as CLI arguments and for dispatch)
+ET_ALLOWANCES = "allowances"
+ET_APPLICATIONS = "applications"
+ET_ATTRIBUTE_DEFINITIONS = "attribute-definitions"
+ET_COMPUTE_REQUIREMENT_TEMPLATES = "compute-requirement-templates"
+ET_COMPUTE_REQUIREMENTS = "compute-requirements"
+ET_COMPUTE_SOURCE_TEMPLATES = "compute-source-templates"
+ET_GROUPS = "groups"
+ET_IMAGE_FAMILIES = "image-families"
+ET_INSTANCES = "instances"
+ET_KEYRINGS = "keyrings"
+ET_NAMESPACE_POLICIES = "namespace-policies"
+ET_NAMESPACES = "namespaces"
+ET_NODES = "nodes"
+ET_PERMISSIONS = "permissions"
+ET_ROLES = "roles"
+ET_TASK_GROUPS = "task-groups"
+ET_TASKS = "tasks"
+ET_USERS = "users"
+ET_WORK_REQUIREMENTS = "work-requirements"
+ET_WORKER_POOLS = "worker-pools"
+ET_WORKERS = "workers"
 
 # Property Names
 PROP_ACCESS_DELEGATES = "accessDelegates"

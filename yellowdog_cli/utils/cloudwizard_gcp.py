@@ -2,17 +2,16 @@
 Configuration and utilities related to GCP account setup.
 """
 
-from google.cloud import compute_v1, storage
+from google.cloud import compute_v1
 from google.oauth2 import service_account
 from google.oauth2.service_account import Credentials
 from yellowdog_client import PlatformClient
 
 from yellowdog_cli.create import create_resources
-from yellowdog_cli.remove import remove_resources
 from yellowdog_cli.utils.cloudwizard_common import CommonCloudConfig
-from yellowdog_cli.utils.interactive import confirmed, select
-from yellowdog_cli.utils.printing import print_error, print_info, print_warning
-from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE, RN_STORAGE_CONFIGURATION
+from yellowdog_cli.utils.interactive import select
+from yellowdog_cli.utils.printing import print_info, print_warning
+from yellowdog_cli.utils.settings import RN_SOURCE_TEMPLATE
 
 YD_KEYRING_NAME = "cloudwizard-gcp"
 YD_CREDENTIAL_NAME = "cloudwizard-gcp"
@@ -20,9 +19,6 @@ YD_RESOURCE_PREFIX = "cloudwizard-gcp"
 YD_RESOURCES_FILE = f"{YD_RESOURCE_PREFIX}-yellowdog-resources.json"
 YD_INSTANCE_TAG = {"yd-cloudwizard": "yellowdog-cloudwizard-source"}
 YD_DEFAULT_INSTANCE_TYPE = "{{instance_type:=f1-micro}}"
-
-GCP_BUCKET_PREFIX = "yellowdog-cloudwizard"
-GCP_BUCKET_LOCATION = "europe-west1"
 
 
 class GCPConfig(CommonCloudConfig):
@@ -42,7 +38,9 @@ class GCPConfig(CommonCloudConfig):
                 )
             )
         except FileNotFoundError:
-            raise Exception(f"GCP credentials file '{service_account_file}' not found")
+            raise FileNotFoundError(
+                f"GCP credentials file '{service_account_file}' not found"
+            )
 
         self._regions_with_default_subnets: list[str] = []
         self._selected_regions: list[str] = []
@@ -68,13 +66,11 @@ class GCPConfig(CommonCloudConfig):
         """
         Set up resources within GCP
         """
-        self._create_storage_bucket()
 
     def _remove_gcp_resources(self):
         """
         Remove any resources created within GCP.
         """
-        self._remove_storage_bucket()
 
     def _create_yellowdog_resources(self):
         """
@@ -93,7 +89,7 @@ class GCPConfig(CommonCloudConfig):
             override_quiet=True,
         )
 
-        if len(self._selected_regions) == 0:
+        if not self._selected_regions:
             print_warning(
                 "No regions selected; no Compute Source/Requirement Templates will be"
                 " created"
@@ -136,14 +132,6 @@ class GCPConfig(CommonCloudConfig):
             YD_RESOURCES_FILE,
         )
 
-        # Create the namespace mapped to the storage bucket
-        namespace_configuration = self._generate_namespace_configuration(
-            namespace=self._namespace,
-            gcp_bucket_name=self._generate_bucket_name(),
-            credential_name=f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
-        )
-        create_resources([namespace_configuration])
-
         # Always show the Keyring details
         self._print_keyring_details()
 
@@ -155,15 +143,6 @@ class GCPConfig(CommonCloudConfig):
             client=self._client, name_prefix=YD_RESOURCE_PREFIX
         )
         self._remove_keyring(YD_KEYRING_NAME)
-        remove_resources(
-            [
-                self._generate_namespace_configuration(
-                    self._namespace,
-                    self._generate_bucket_name(),
-                    credential_name=f"{YD_KEYRING_NAME}/{YD_CREDENTIAL_NAME}",
-                )
-            ]
-        )
 
     def _gather_regions(self):
         """
@@ -175,7 +154,7 @@ class GCPConfig(CommonCloudConfig):
             )
         except Exception as e:
             if "401" in str(e):
-                raise Exception(f"Invalid GCP credentials: {e}")
+                raise RuntimeError(f"Invalid GCP credentials: {e}")
             else:
                 raise e
 
@@ -246,87 +225,4 @@ class GCPConfig(CommonCloudConfig):
                 ),
                 "serviceAccountKeyJson": service_account_file_contents,
             },
-        }
-
-    def _create_storage_bucket(self):
-        """
-        Create a storage bucket in Google storage.
-        """
-        bucket_name = self._generate_bucket_name()
-        try:
-            storage_client = storage.Client(credentials=self._credentials)
-            storage_client.create_bucket(
-                bucket_or_name=bucket_name, location=GCP_BUCKET_LOCATION
-            )
-            print_info(f"Created Google Storage Bucket '{bucket_name}'")
-        except Exception as e:
-            if "401" in str(e):
-                raise Exception(f"Invalid GCP credentials: {e}")
-            elif "409" in str(e):
-                print_warning(
-                    f"Google Storage Bucket '{bucket_name}' already exists and you"
-                    " own it"
-                )
-            else:
-                print_error(f"Unable to create Google Storage Bucket '{bucket_name}'")
-
-    def _remove_storage_bucket(self):
-        """
-        Remove a Google Storage Bucket.
-        """
-        bucket_name = self._generate_bucket_name()
-        if not confirmed(
-            f"Delete Google Storage Bucket '{bucket_name}' and any objects it contains?"
-        ):
-            return
-        try:
-            storage_client = storage.Client(credentials=self._credentials)
-            bucket = storage_client.get_bucket(bucket_or_name=bucket_name)
-            try:
-                # This only works for small populations of contained objects
-                bucket.delete(force=True)
-            except Exception:
-                objects = storage_client.list_blobs(bucket_or_name=bucket_name)
-                print_info(
-                    "Deleting any remaining objects in Google Storage Bucket"
-                    f" '{bucket_name}'"
-                )
-                counter = 0
-                for obj in objects:
-                    obj.delete()
-                    counter += 1
-                if counter > 0:
-                    print_info(
-                        f"Deleted {counter} object(s) from Google Storage Bucket"
-                        f" '{bucket_name}'"
-                    )
-                else:
-                    print_info(
-                        f"No objects to delete in Google Storage Bucket '{bucket_name}'"
-                    )
-                bucket.delete()
-            print_info(f"Deleted Google Storage Bucket '{bucket_name}'")
-        except Exception as e:
-            if "401" in str(e):
-                raise Exception(f"Invalid GCP credentials: {e}")
-            elif "404" in str(e):
-                print_warning(f"Google Storage Bucket '{bucket_name}' does not exist")
-            else:
-                print_error(f"Google Storage Bucket operation failed: {e}")
-
-    def _generate_bucket_name(self) -> str:
-        return f"{GCP_BUCKET_PREFIX}-{self._credentials.project_id}"
-
-    def _generate_namespace_configuration(
-        self, namespace: str, gcp_bucket_name: str, credential_name: str
-    ) -> dict:
-        """
-        Generate a Namespace configuration using a GCS bucket.
-        """
-        return {
-            "resource": RN_STORAGE_CONFIGURATION,
-            "type": "co.yellowdog.platform.model.GcsNamespaceStorageConfiguration",
-            "namespace": namespace,
-            "bucketName": gcp_bucket_name,
-            "credential": credential_name,
         }
