@@ -52,6 +52,7 @@ from yellowdog_cli.utils.settings import (
 )
 from yellowdog_cli.utils.type_check import check_list, check_str
 from yellowdog_cli.utils.variables import (
+    process_variable_substitutions_in_file_contents,
     process_variable_substitutions_insitu,
     resolve_filename,
 )
@@ -600,7 +601,7 @@ def resolve_task_data(
         return task_data
     if task_data_file:
         with open(resolve_filename(files_directory, task_data_file)) as f:
-            return f.read()
+            return process_variable_substitutions_in_file_contents(f.read())
     return None
 
 

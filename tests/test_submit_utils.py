@@ -149,6 +149,36 @@ class TestGetTaskGroupName:
 
 
 # ---------------------------------------------------------------------------
+# resolve_task_data
+# ---------------------------------------------------------------------------
+
+
+class TestResolveTaskData:
+    def test_returns_none_when_nothing_set(self):
+        assert su.resolve_task_data({}) is None
+
+    def test_returns_task_data_string(self):
+        assert su.resolve_task_data({TASK_DATA: "hello"}) == "hello"
+
+    def test_reads_task_data_file(self, tmp_path):
+        f = tmp_path / "data.txt"
+        f.write_text("from-file")
+        assert su.resolve_task_data({TASK_DATA_FILE: str(f)}) == "from-file"
+
+    def test_raises_when_both_set(self):
+        with pytest.raises(ValueError, match="both set"):
+            su.resolve_task_data({TASK_DATA: "x", TASK_DATA_FILE: "f.txt"})
+
+    def test_variable_substitution_applied_to_file_contents(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("_YD_TEST_TD_VAR", "world")
+        f = tmp_path / "data.txt"
+        f.write_text("hello-{{env:_YD_TEST_TD_VAR}}")
+        assert su.resolve_task_data({TASK_DATA_FILE: str(f)}) == "hello-world"
+
+
+# ---------------------------------------------------------------------------
 # get_task_data_property
 # ---------------------------------------------------------------------------
 
