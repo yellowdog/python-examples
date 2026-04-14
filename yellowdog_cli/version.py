@@ -10,7 +10,7 @@ from sys import version as py_version
 
 from yellowdog_client._version import __version__ as yd_sdk_version
 
-from yellowdog_cli.__init__ import __version__
+from yellowdog_cli.__init__ import __author__, __email__, __version__
 
 DOCS_URL = f"https://github.com/yellowdog/python-examples/blob/v{__version__}/README.md"
 
@@ -30,11 +30,12 @@ def main():
     print(f"  YellowDog SDK Version:   {yd_sdk_version}")
     print(f"  Jsonnet Version:         {_jsonnet_version()}")
     print(f"  Python Version:          {py_version.split()[0]} ")
+    print(f"  Author:                  {__author__} ({__email__}) ")
     if "--debug" in argv:
-        print(f"  Command:                {abspath(__file__)}")
-        print(f"  Python Executable:      {executable}")
+        print(f"  Command:                 {abspath(__file__)}")
+        print(f"  Python Executable:       {executable}")
         for i, p in enumerate(path, start=1):
-            print(f"    Path-{str(i).zfill(2)}:              {p}")
+            print(f"    Path-{str(i).zfill(2)}:               {p}")
 
 
 if __name__ == "__main__":
