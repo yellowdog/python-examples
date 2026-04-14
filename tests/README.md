@@ -120,6 +120,6 @@ Unit tests and demo tests support parallel execution via `pytest-xdist`:
 
 ```shell
 pytest -v -n 4                              # 4 workers, unit/dry-run tests
-pytest -v -n 4 --run-demos tests/test_demos.py  # parallel demo runs (target file directly to avoid unit tests consuming workers first)
+pytest -v -n 12 --run-demos tests/test_demos.py  # parallel demo runs (target file directly to avoid unit tests consuming workers first)
 pytest -v -n 4 --run-demos tests/test_demos.py -k 'bash or primes'
 ```
