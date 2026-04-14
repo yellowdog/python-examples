@@ -894,6 +894,11 @@ def list_groups():
         CLIENT.account_client.get_group(group.id) for group in group_summaries
     ]
 
+    if ARGS_PARSER.ids_only:
+        for group in groups:
+            print(group.id)
+        return
+
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, groups, object_type_name="Group")
         return
