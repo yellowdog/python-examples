@@ -91,9 +91,9 @@ pytest -v -n 4 --run-demos
 
 ### Demo Tests (`--run-demos`, provisions real cloud instances)
 
-| File | What it tests |
-|---|---|
-| `test_demos.py` | Full live runs of all standard demo workloads (bash, primes, image montage, OpenFOAM, Slurm, Blender, Monte Carlo, Nextflow, etc.) |
+| File | What it tests                                                  |
+|---|----------------------------------------------------------------|
+| `test_demos.py` | Full live runs of all standard python-examples-demos workloads |
 
 ### Other Platform Tests (no flags, but credentials required)
 

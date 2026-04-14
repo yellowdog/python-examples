@@ -10,47 +10,39 @@ DEMO_DIR = "../python-examples-demos"
 CMD_SEQ = "yd-provision && yd-submit -f && yd-terminate -y && yd-delete -Ry '{{tag}}*'"
 NEXTFLOW = "/Users/pwt/nextflow/nextflow"
 
+_STANDARD_DEMOS = [
+    "bash",
+    "batch-allocation",
+    "bash/gce-instance-groups",
+    "primes",
+    "image-montage",
+    "common-factors-csv",
+    "powershell",
+    "cmd.exe",
+    "blender-2",
+    "montecarlo",
+]
+
 
 @pytest.mark.demos
 class TestDemos:
-    def test_bash(self):
-        result = shell(f"cd {DEMO_DIR}/bash && {CMD_SEQ}")
+    @pytest.mark.parametrize("demo", _STANDARD_DEMOS)
+    def test_demo(self, demo: str):
+        result = shell(f"cd {DEMO_DIR}/{demo} && {CMD_SEQ}")
         assert result.exit_code == 0
 
-    def test_batch_allocation(self):
-        result = shell(f"cd {DEMO_DIR}/batch-allocation && {CMD_SEQ}")
+    def test_cmd_modelled_on_premise(self):
+        result = shell(
+            f"cd {DEMO_DIR}/modelled-on-premise && yd-instantiate "
+            "&& sleep 120 && yd-terminate -y"
+        )
         assert result.exit_code == 0
 
-    def test_gce_instance_groups(self):
-        result = shell(f"cd {DEMO_DIR}/bash/gce-instance-groups && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_primes(self):
-        result = shell(f"cd {DEMO_DIR}/primes && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_image_montage(self):
-        result = shell(f"cd {DEMO_DIR}/image-montage && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_common_factors(self):
-        result = shell(f"cd {DEMO_DIR}/common-factors-csv && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_powershell(self):
-        result = shell(f"cd {DEMO_DIR}/powershell && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_cmd_exe(self):
-        result = shell(f"cd {DEMO_DIR}/cmd.exe && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_blender_2(self):
-        result = shell(f"cd {DEMO_DIR}/blender-2 && {CMD_SEQ}")
-        assert result.exit_code == 0
-
-    def test_montecarlo(self):
-        result = shell(f"cd {DEMO_DIR}/montecarlo && {CMD_SEQ}")
+    def test_video_demo(self):
+        result = shell(
+            f"cd {DEMO_DIR}/video-demo && yd-provision -v instances=1 -v max_nodes=1 "
+            f"&& yd-submit -C 1 -f && yd-terminate -y && yd-delete -Ry '{{{{tag}}}}*'"
+        )
         assert result.exit_code == 0
 
     # def test_nextflow_image_montage(self):
@@ -66,17 +58,3 @@ class TestDemos:
     #         "&& cd .. && ./cleanup.sh"
     #     )
     #     assert result.exit_code == 0
-
-    def test_cmd_modelled_on_premise(self):
-        result = shell(
-            f"cd {DEMO_DIR}/modelled-on-premise && yd-instantiate "
-            "&& sleep 120 && yd-terminate -y"
-        )
-        assert result.exit_code == 0
-
-    def test_video_demo(self):
-        result = shell(
-            f"cd {DEMO_DIR}/video-demo && yd-provision -v instances=1 -v max_nodes=1 "
-            f"&& yd-submit -C 1 -f && yd-terminate -y && yd-delete -Ry '{{{{tag}}}}*'"
-        )
-        assert result.exit_code == 0
