@@ -3,8 +3,8 @@
     build-backend = "setuptools.build_meta"
 
 [project]
-    name = "yellowdog-python-examples"
-    description = "Python CLI commands using the YellowDog Python SDK"
+    name = "yellowdog-cli"
+    description = "Python-based CLI for interacting with the YellowDog Platform"
     classifiers = [
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
@@ -27,7 +27,7 @@
     content-type = "text/markdown"
 
 [project.urls]
-    Homepage = "https://github.com/yellowdog/python-examples"
+    Homepage = "https://github.com/yellowdog/yellowdog-cli"
 
 [project.optional-dependencies]
     jsonnet = ["jsonnet"]

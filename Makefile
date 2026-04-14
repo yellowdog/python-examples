@@ -3,7 +3,7 @@
 SRC = yellowdog_cli/*.py yellowdog_cli/utils/*.py
 TESTS = tests/*.py conftest.py
 MANIFEST = LICENSE README.md requirements.txt
-BUILD_DIST = build dist yellowdog_python_examples.egg-info
+BUILD_DIST = build dist yellowdog_cli.egg-info
 PYCACHE = __pycache__ yellowdog_cli/__pycache__ yellowdog_cli/utils/__pycache__
 TOC_BACKUP = README.md.* README_CLOUDWIZARD.md.*
 PYINSTALLER = yellowdog_cli/*.spec yellowdog_cli/build yellowdog_cli/dist
@@ -18,7 +18,7 @@ install: build
 	pip install -U -e ".[jsonnet,cloudwizard]"
 
 uninstall:
-	pip uninstall -y yellowdog-python-examples
+	pip uninstall -y yellowdog-cli
 
 black: $(SRC) $(TESTS)
 	black --preview --target-version py310 $(SRC) $(TESTS)
@@ -32,9 +32,9 @@ format: pyupgrade isort black
 #	mypy $(SRC) $(TESTS)
 
 pypi_upload: clean build
-	# '--repository yellowdog-pypi' maps into the correct application token
+	# '--repository yellowdog-cli' maps into the correct application token
 	# for the YellowDog PyPI account
-	python -m twine upload --repository yellowdog-pypi dist/*
+	python -m twine upload --repository yellowdog-cli dist/*
 
 pypi_test_upload: clean build
 	python -m twine upload --repository yellowdog-testpypi dist/*

@@ -39,29 +39,29 @@ Python 3.10 or later is required.
 **pipx (recommended)** — installs into an isolated environment and puts the commands on your PATH automatically:
 
 ```shell
-pipx install yellowdog-python-examples
+pipx install yellowdog-cli
 ```
 
 **uv:**
 
 ```shell
-uv tool install yellowdog-python-examples
+uv tool install yellowdog-cli
 ```
 
 **pip + virtual environment:**
 
 ```shell
-pip install yellowdog-python-examples
+pip install yellowdog-cli
 ```
 
 To add optional Jsonnet support:
 
 ```shell
-pipx inject yellowdog-python-examples jsonnet   # pipx
-uv tool install "yellowdog-python-examples[jsonnet]"   # uv
-pip install "yellowdog-python-examples[jsonnet]"       # pip
+pipx inject yellowdog-cli jsonnet   # pipx
+uv tool install "yellowdog-cli[jsonnet]"   # uv
+pip install "yellowdog-cli[jsonnet]"       # pip
 ```
 
 ## Documentation
 
-Please see the documentation in the [GitHub repository](https://github.com/yellowdog/python-examples) for full details.
+Please see the documentation in the [GitHub repository](https://github.com/yellowdog/yellowdog-cli) for full details.

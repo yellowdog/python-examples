@@ -57,10 +57,10 @@ Cloud Wizard currently supports Amazon AWS, Google GCP and Microsoft Azure.
 
 # YellowDog Prerequisites
 
-The `yellowdog-python-examples` Python package must be installed, with the optional Cloud Wizard dependencies:
+The `yellowdog-cli` Python package must be installed, with the optional Cloud Wizard dependencies:
 
 ```commandline
-pip install -U "yellowdog-python-examples[cloudwizard]"
+pip install -U "yellowdog-cli[cloudwizard]"
 ```
 
 You'll need a YellowDog Platform account, and to have created an **Application** via the [YellowDog Portal](https://portal.yellowdog.co/#/account/applications). The Application must belong to a group that has the following permissions at a minimum: `KEYRING_WRITE`, `COMPUTE_SOURCE_TEMPLATE_WRITE` and `COMPUTE_REQUIREMENT_TEMPLATE_WRITE`. If you make the Application a member of the `administrators` group, it will acquire these rights automatically.

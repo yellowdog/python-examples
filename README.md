@@ -1,7 +1,7 @@
-# YellowDog Python Examples Commands
+# YellowDog Command Line Interface
 
 <!--ts-->
-* [YellowDog Python Examples Commands](#yellowdog-python-examples-commands)
+* [YellowDog Command Line Interface](#yellowdog-command-line-interface)
 * [Overview](#overview)
 * [YellowDog Prerequisites](#yellowdog-prerequisites)
 * [Installation](#installation)
@@ -172,7 +172,7 @@
    * [yd-upload](#yd-upload-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Mon Apr 13 14:40:08 BST 2026 -->
+<!-- Added by: pwt, at: Tue Apr 14 10:45:02 BST 2026 -->
 
 <!--te-->
 
@@ -180,12 +180,7 @@
 
 This repository contains a set of command line utilities for driving the YellowDog Platform, written in Python. The scripts use the **[YellowDog Python SDK](https://docs.yellowdog.ai/sdk/python/index.html)**, the code for which can be found [on GitHub](https://github.com/yellowdog/yellowdog-sdk-python-public).
 
-
-*(Note: these utilities are intended to be a helpful starting point for experimenting with the YellowDog Platform. They are not assured to be of production quality nor do they represent a standard or recommended method for using YellowDog.)*
-
 This documentation should be read in conjunction with the main **[YellowDog Documentation](https://docs.yellowdog.co)**, which provides a comprehensive description of the concepts and operation of the YellowDog Platform.
-
-Template solutions for experimenting with these utilities can be found in the **[python-examples-templates](https://github.com/yellowdog/python-examples-templates)** repository.
 
 The commands provide the following capabilities:
 
@@ -268,23 +263,23 @@ Three installation methods are available. **pipx is recommended** for most users
 ### Install the YellowDog CLI
 
 ```shell
-pipx install yellowdog-python-examples
+pipx install yellowdog-cli
 ```
 
 ### Update
 
 ```shell
-pipx upgrade yellowdog-python-examples
+pipx upgrade yellowdog-cli
 ```
 
 ### With Jsonnet support
 
 ```shell
-pipx install yellowdog-python-examples          # first-time install
-pipx inject yellowdog-python-examples jsonnet   # add Jsonnet
+pipx install yellowdog-cli          # first-time install
+pipx inject yellowdog-cli jsonnet   # add Jsonnet
 
-pipx upgrade yellowdog-python-examples          # update CLI
-pipx inject --force yellowdog-python-examples jsonnet  # update Jsonnet
+pipx upgrade yellowdog-cli          # update CLI
+pipx inject --force yellowdog-cli jsonnet  # update Jsonnet
 ```
 
 ## Option 2: uv
@@ -304,25 +299,25 @@ See the [uv installation docs](https://docs.astral.sh/uv/getting-started/install
 ### Install the YellowDog CLI
 
 ```shell
-uv tool install yellowdog-python-examples
+uv tool install yellowdog-cli
 ```
 
 ### Update
 
 ```shell
-uv tool upgrade yellowdog-python-examples
+uv tool upgrade yellowdog-cli
 ```
 
 ### With Jsonnet support
 
 ```shell
-uv tool install "yellowdog-python-examples[jsonnet]"
+uv tool install "yellowdog-cli[jsonnet]"
 ```
 
 To update:
 
 ```shell
-uv tool upgrade yellowdog-python-examples
+uv tool upgrade yellowdog-cli
 ```
 
 ## Option 3: pip + virtual environment
@@ -340,19 +335,19 @@ yd-env\Scripts\activate      # Windows
 ### Install the YellowDog CLI
 
 ```shell
-pip install -U yellowdog-python-examples
+pip install -U yellowdog-cli
 ```
 
 ### Update
 
 ```shell
-pip install -U yellowdog-python-examples
+pip install -U yellowdog-cli
 ```
 
 ### With Jsonnet support
 
 ```shell
-pip install -U "yellowdog-python-examples[jsonnet]"
+pip install -U "yellowdog-cli[jsonnet]"
 ```
 
 > **Note:** You will need to activate the virtual environment (`source yd-env/bin/activate`) each time you open a new terminal session, or add the activation to your shell profile.
@@ -2898,32 +2893,32 @@ Jsonnet is **not** installed by default. If you try to use a Jsonnet file withou
 **With pipx:**
 
 ```shell
-pipx inject yellowdog-python-examples jsonnet
+pipx inject yellowdog-cli jsonnet
 ```
 
 To update Jsonnet alongside the CLI:
 
 ```shell
-pipx upgrade yellowdog-python-examples
-pipx inject --force yellowdog-python-examples jsonnet
+pipx upgrade yellowdog-cli
+pipx inject --force yellowdog-cli jsonnet
 ```
 
 **With uv:**
 
 ```shell
-uv tool install "yellowdog-python-examples[jsonnet]"
+uv tool install "yellowdog-cli[jsonnet]"
 ```
 
 To update:
 
 ```shell
-uv tool upgrade yellowdog-python-examples
+uv tool upgrade yellowdog-cli
 ```
 
 **With pip:**
 
 ```shell
-pip install -U "yellowdog-python-examples[jsonnet]"
+pip install -U "yellowdog-cli[jsonnet]"
 ```
 
 ## Variable Substitutions in Jsonnet Files

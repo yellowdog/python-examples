@@ -12,7 +12,7 @@ from yellowdog_client._version import __version__ as yd_sdk_version
 
 from yellowdog_cli.__init__ import __author__, __email__, __version__
 
-DOCS_URL = f"https://github.com/yellowdog/python-examples/blob/v{__version__}/README.md"
+DOCS_URL = f"https://github.com/yellowdog/yellowdog-cli/blob/v{__version__}/README.md"
 
 
 def _jsonnet_version() -> str:
