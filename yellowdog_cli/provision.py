@@ -106,7 +106,7 @@ def main():
 
 def create_worker_pool_from_json(wp_json_file: str) -> None:
     """
-    Directly create the Worker Pool using the YellowDog REST API
+    Directly create the Worker Pool using the YellowDog REST API.
     """
     if wp_json_file.lower().endswith(".jsonnet"):
         wp_data = load_jsonnet_file_with_variable_substitutions(
@@ -277,7 +277,7 @@ def create_worker_pool_from_json(wp_json_file: str) -> None:
 
 def create_worker_pool_from_toml():
     """
-    Create the Worker Pool
+    Create the Worker Pool.
     """
 
     _update_node_counts()

@@ -531,11 +531,12 @@ def create_task_group(
     # Use the task type from the config file if present and task_types is empty
     if config_wr.task_type is not None and not task_types:
         task_types.append(config_wr.task_type)
-    # taskTemplate.taskType satisfies the requirement, so only raise when the
-    # template also provides no type
+    # Fall back to taskTemplate.taskType if task_types is still empty
     template_provides_type = (
         task_template_data is not None and task_template_data.get(TASK_TYPE) is not None
     )
+    if template_provides_type and not task_types:
+        task_types.append(task_template_data.get(TASK_TYPE))
     if not task_types and not template_provides_type and num_tasks > 0:
         raise ValueError(
             f"No Task Type(s) specified in Task Group '{task_group_name}': "
