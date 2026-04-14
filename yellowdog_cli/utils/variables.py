@@ -546,7 +546,9 @@ def load_json_file_with_variable_substitutions(
     file_contents = process_variable_substitutions_in_file_contents(
         file_contents, prefix=prefix, postfix=postfix
     )
-    return json_loads(file_contents)
+    result = json_loads(file_contents)
+    process_variable_substitutions_insitu(result, prefix=prefix, postfix=postfix)
+    return result
 
 
 def load_jsonnet_file_with_variable_substitutions(
@@ -634,6 +636,8 @@ def process_variable_substitutions_in_file_contents(
         replacement_expression = process_variable_substitutions(
             v_expression, prefix=prefix, postfix=postfix
         )
+        if replacement_expression is _UNSET:
+            continue  # leave the token intact; dict-level processing will remove the key
         if isinstance(replacement_expression, str):
             file_contents = file_contents.replace(v_expression, replacement_expression)
         else:

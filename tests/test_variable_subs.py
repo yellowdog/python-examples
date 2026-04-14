@@ -385,6 +385,41 @@ class TestUnsetSuffix:
         var_module.process_variable_substitutions_insitu(data)
         assert data["items"] == ["keep", "also-keep"]
 
+    # JSON file content path
+
+    def test_unset_in_file_contents_leaves_token_intact(self):
+        """process_variable_substitutions_in_file_contents must not corrupt
+        unset tokens — they must survive for dict-level removal."""
+        import json
+
+        raw = '{"name": "job", "taskType": "{{::}}"}'
+        processed = var_module.process_variable_substitutions_in_file_contents(raw)
+        # Token left intact → JSON is still valid
+        data = json.loads(processed)
+        assert data["taskType"] == "{{::}}"
+
+    def test_unset_removed_after_json_parse(self):
+        """Full pipeline: file content → json.loads → insitu gives clean dict."""
+        import json
+
+        raw = '{"name": "job", "taskType": "{{::}}"}'
+        processed = var_module.process_variable_substitutions_in_file_contents(raw)
+        data = json.loads(processed)
+        var_module.process_variable_substitutions_insitu(data)
+        assert "taskType" not in data
+        assert data["name"] == "job"
+
+    def test_missing_var_unset_in_file_contents_leaves_token_intact(self):
+        """Same pipeline with a named-but-missing variable."""
+        import json
+
+        raw = '{"name": "job", "tag": "{{missing_var::}}"}'
+        processed = var_module.process_variable_substitutions_in_file_contents(raw)
+        data = json.loads(processed)
+        var_module.process_variable_substitutions_insitu(data)
+        assert "tag" not in data
+        assert data["name"] == "job"
+
 
 # ---------------------------------------------------------------------------
 # add_substitutions_without_overwriting
