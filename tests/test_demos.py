@@ -12,15 +12,15 @@ NEXTFLOW = "/Users/pwt/nextflow/nextflow"
 
 _STANDARD_DEMOS = [
     "bash",
-    "batch-allocation",
     "bash/gce-instance-groups",
-    "primes",
-    "image-montage",
-    "common-factors-csv",
-    "powershell",
-    "cmd.exe",
+    "batch-allocation",
     "blender-2",
+    "cmd.exe",
+    "common-factors-csv",
+    "image-montage",
     "montecarlo",
+    "powershell",
+    "primes",
 ]
 
 
