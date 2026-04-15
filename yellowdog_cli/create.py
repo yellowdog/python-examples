@@ -155,6 +155,7 @@ def create_resources(resources: list[dict] | None = None, show_secrets: bool = F
             " 'resource' property is removed."
         )
 
+    failed = 0
     for resource in cast(list[dict], resources):  # Keep typing happy
         try:
             resource_type = resource.pop(PROP_RESOURCE)
@@ -172,6 +173,7 @@ def create_resources(resources: list[dict] | None = None, show_secrets: bool = F
                 f"Missing required '{PROP_RESOURCE}' property in the following resource"
                 f" specification: {resource}"
             )
+            failed += 1
             continue
         try:
             if resource_type == RN_SOURCE_TEMPLATE:
@@ -207,10 +209,15 @@ def create_resources(resources: list[dict] | None = None, show_secrets: bool = F
                 create_namespace(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
+                failed += 1
         except Exception as e:
             print_error(f"Failed to create resource: {e}")
             # Allow resource creation to continue, if exceptions were not
             # already caught in the creation functions
+            failed += 1
+
+    if failed:
+        raise RuntimeError(f"{failed} resource(s) failed to create")
 
 
 def create_compute_source_template(resource: dict):
@@ -441,6 +448,7 @@ def create_keyring(resource: dict, show_secrets: bool = False):
             print(f"{keyring.id} {keyring_password}")
     except Exception as e:
         print_error(f"Failed to create Keyring '{name}': {e}")
+        raise
 
 
 def create_credential(resource: dict):
@@ -469,6 +477,7 @@ def create_credential(resource: dict):
             print_error(f"Keyring '{keyring_name}' not found")
         else:
             print_error(e)
+        raise
 
 
 def create_image_family(resource):
@@ -521,9 +530,10 @@ def create_image_family(resource):
             print_info(f"Created Machine Image Family '{fq_name}' ({image_family.id})")
             if ARGS_PARSER.quiet:
                 print(image_family.id)
+            return
         else:
             print_error(f"Failed to create/update Image Family '{fq_name}': {e}")
-        return
+            raise
 
     # This is an update, so Image Groups have been ignored
     image_groups: list[MachineImageGroup] = image_family.imageGroups
@@ -578,11 +588,12 @@ def _create_image_group(
             print_info(f"Created Machine Image Group '{image_group.name}'")
             if ARGS_PARSER.quiet:
                 print(image_group.id)
+            return
         else:
             print_error(
                 f"Failed to create/update Image Group '{image_group.name}': {e}"
             )
-        return
+            raise
 
     # This is an update, so Images have been ignored
     images: list[MachineImage] = image_group.images or []
@@ -624,6 +635,7 @@ def _create_image(image: MachineImage, image_group: MachineImageGroup):
             print_info(f"Created Machine Image '{image.name}'")
     except InvalidRequestException as e:
         print_error(f"Unable to create/update Image '{image.name}': {e}")
+        raise
 
     if ARGS_PARSER.quiet:
         print(image.id)
@@ -661,6 +673,7 @@ def create_configured_worker_pool(resource: dict):
 
     except Exception as e:
         print_error(f"Unable to created Configured Worker Pool '{name}': {e}")
+        raise
 
 
 def create_allowance(resource: dict):
@@ -785,7 +798,7 @@ def create_allowance(resource: dict):
             print_info(f"Created new Allowance '{description}' ({allowance.id})")
     except Exception as e:
         print_error(f"Unable to create Allowance: {e}")
-        return
+        raise
 
     if ARGS_PARSER.quiet and allowance.id is not None:
         print(allowance.id)
@@ -883,7 +896,7 @@ def create_namespace_policy(resource: dict):
         print_error(
             f"Unable to create or update Namespace Policy for '{namespace_policy.namespace}': {e}"
         )
-        return
+        raise
 
     print_info(
         f"Created or updated Namespace Policy '{namespace_policy.namespace}' with "
