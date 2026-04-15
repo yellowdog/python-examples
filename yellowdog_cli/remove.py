@@ -78,6 +78,7 @@ def remove_resources(resources: list[dict] | None = None):
     else:
         resources = deepcopy(resources)  # Avoid overwriting the input argument
 
+    failed = 0
     for resource in resources or []:
         try:
             resource_type = resource.pop(PROP_RESOURCE)
@@ -86,6 +87,7 @@ def remove_resources(resources: list[dict] | None = None):
                 "Missing required 'resource' property in the following resource"
                 f" specification: {resource}"
             )
+            failed += 1
             continue
         try:
             if resource_type == RN_SOURCE_TEMPLATE:
@@ -129,9 +131,14 @@ def remove_resources(resources: list[dict] | None = None):
                 remove_namespace(resource)
             else:
                 print_error(f"Unknown resource type '{resource_type}'")
+                failed += 1
         except Exception as e:
             print_error(f"Failed to remove resource: {e}")
             # Allow removal to continue
+            failed += 1
+
+    if failed:
+        raise RuntimeError(f"{failed} resource(s) failed to remove")
 
 
 def remove_compute_source_template(resource: dict):
@@ -218,6 +225,7 @@ def remove_keyring(resource: dict):
             print_warning(f"Cannot find Keyring '{name}'")
         else:
             print_error(f"Unable to remove Keyring '{name}': {e}")
+            raise
 
 
 def remove_credential(resource: dict):
@@ -251,6 +259,7 @@ def remove_credential(resource: dict):
             )
         else:
             print_error(f"Unable to remove Keyring '{keyring_name}': {e}")
+            raise
 
 
 def remove_image_family(resource: dict):
@@ -288,6 +297,7 @@ def remove_image_family(resource: dict):
         print_info(f"Removed Image Family '{fq_name}' ({image_family.id})")
     except Exception as e:
         print_error(f"Unable to remove Image Family '{fq_name}': {e}")
+        raise
 
 
 def remove_configured_worker_pool(resource: dict):
@@ -339,6 +349,7 @@ def remove_configured_worker_pool(resource: dict):
         return
     except Exception as e:
         print_error(f"Failed to shut down Configured Worker Pool: {e}")
+        raise
 
 
 def remove_allowance(resource: dict):
@@ -487,6 +498,7 @@ def remove_namespace_policy(resource: dict):
         print_info(f"Removed Namespace Policy '{namespace}'")
     except Exception as e:
         print_error(f"Unable to remove Namespace Policy '{namespace}': {e}")
+        raise
 
 
 def remove_group(resource: dict):
@@ -513,6 +525,7 @@ def remove_group(resource: dict):
         clear_group_caches()
     except Exception as e:
         print_error(f"Unable to remove Group '{group_name}' ({group_id}): {e}")
+        raise
 
 
 def remove_application(resource: dict):
@@ -539,6 +552,7 @@ def remove_application(resource: dict):
         clear_application_caches()
     except Exception as e:
         print_error(f"Unable to remove Application '{app_name}' ({app_id}): {e}")
+        raise
 
 
 def remove_namespace(resource: dict):
@@ -572,6 +586,7 @@ def remove_namespace(resource: dict):
             )
         else:
             print_error(f"Unable to remove Namespace '{name}': {e}")
+            raise
 
 
 # Entry point
