@@ -672,7 +672,7 @@ def create_configured_worker_pool(resource: dict):
             print(cwp_response.workerPool.id)
 
     except Exception as e:
-        print_error(f"Unable to created Configured Worker Pool '{name}': {e}")
+        print_error(f"Unable to create Configured Worker Pool '{name}': {e}")
         raise
 
 

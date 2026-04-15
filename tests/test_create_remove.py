@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from cli_test_helpers import shell
 
@@ -42,5 +44,7 @@ R = "tests/resource-examples"
     ],
 )
 def test_create_remove(create_args, remove_args):
-    assert shell(f"yd-create {create_args}").exit_code == 0
-    assert shell(f"yd-remove {remove_args}").exit_code == 0
+    suffix = uuid.uuid4().hex[:8]
+    env = f"YD_VAR_SUFFIX={suffix}"
+    assert shell(f"{env} yd-create {create_args}").exit_code == 0
+    assert shell(f"{env} yd-remove {remove_args}").exit_code == 0
