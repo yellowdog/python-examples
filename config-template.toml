@@ -69,11 +69,14 @@
     # Optional
     # taskType = "docker"
 
-    # Task template: sets default taskType, taskData, and/or environment for all
-    # Tasks in a Task Group. Applied by the back-end, allowing individual Tasks to
-    # be more compact. Any combination of the three fields may be specified.
+    # Task template: sets default taskType, taskData (or taskDataFile), and/or
+    # environment for all Tasks in a Task Group. Applied by the back-end, allowing
+    # individual Tasks to be more compact. Any combination of fields may be specified.
+    # If taskTemplate.taskType is set and taskTypes is absent, taskTypes is populated
+    # automatically from the template.
     # Optional
     # taskTemplate = {taskType = "docker", taskData = "input", environment = {MY_VAR = "value"}}
+    # taskTemplate = {taskType = "docker", taskDataFile = "default_input.txt"}
 
     # Command-line arguments passed to the task.
     # Optional — default: []
