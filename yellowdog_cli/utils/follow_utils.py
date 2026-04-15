@@ -142,11 +142,10 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
                     aborted_tasks += counts.get(TaskStatus.ABORTED, 0)
                     cancelled_tasks += counts.get(TaskStatus.CANCELLED, 0)
             wr_status = wr.status.value if wr.status else ""
-            done = completed_tasks + failed_tasks + aborted_tasks + cancelled_tasks
             progress.update(
                 bar_task,
                 total=total_tasks if total_tasks > 0 else None,
-                completed=done,
+                completed=completed_tasks,
                 description=_progress_desc(
                     wr_status,
                     total_tasks,
@@ -187,11 +186,10 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
         cancelled_tasks = new_cancelled
 
         wr_status = event_data.get("status", "")
-        done = completed_tasks + failed_tasks + aborted_tasks + cancelled_tasks
         progress.update(
             bar_task,
             total=total_tasks if total_tasks > 0 else None,
-            completed=done,
+            completed=completed_tasks,
             description=_progress_desc(
                 wr_status,
                 total_tasks,
