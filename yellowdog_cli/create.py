@@ -4,6 +4,7 @@
 A script to create or update YellowDog resources.
 """
 
+import dataclasses
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
@@ -1299,56 +1300,58 @@ def _get_model_object(class_name: str, resource: dict, **kwargs):
     Return a populated YellowDog model object for the resource.
     Discard unexpected keywords.
     """
+    cls = _get_model_class(class_name)
+    valid_keys = {f.name for f in dataclasses.fields(cls)}
+    unexpected = [k for k in resource if k not in valid_keys and k not in kwargs]
+    for key in unexpected:
+        print_warning(f"Ignoring unexpected property '{key}'")
+        resource.pop(key)
 
-    def _patch_aws_fleet_enums():
-        if isinstance(model_object, AwsFleetComputeSource):
-            try:
-                model_object.purchaseOption = AwsFleetPurchaseOption[
-                    str(model_object.purchaseOption)
-                ]
-            except KeyError:
-                raise ValueError(
-                    "Invalid AWS Fleet Compute Source Purchase Option property: "
-                    f"'{str(model_object.purchaseOption)}'"
-                )
+    missing = [
+        f.name
+        for f in dataclasses.fields(cls)
+        if f.name not in resource
+        and f.name not in kwargs
+        and f.default is dataclasses.MISSING
+        and f.default_factory is dataclasses.MISSING
+    ]
+    if missing:
+        raise KeyError(f"Missing expected property '{missing[0]}'")
 
-    def _patch_allowance_enums():
-        if (
-            isinstance(model_object, SourceAllowance)
-            or isinstance(model_object, SourcesAllowance)
-            or isinstance(model_object, RequirementsAllowance)
-            or isinstance(model_object, AccountAllowance)
-        ):
-            try:
-                model_object.limitEnforcement = AllowanceLimitEnforcement(
-                    model_object.limitEnforcement
-                )
-                model_object.resetType = AllowanceResetType(model_object.resetType)
-                model_object.monitoredStatuses = [
-                    InstanceStatus(status) for status in model_object.monitoredStatuses
-                ]
-            except KeyError as e:
-                raise KeyError(f"Invalid Allowance property: {e}")
+    model_object = cls(**resource, **kwargs)
+    _patch_aws_fleet_enums(model_object)
+    _patch_allowance_enums(model_object)
+    return model_object
 
-    while True:
+
+def _patch_aws_fleet_enums(model_object) -> None:
+    if isinstance(model_object, AwsFleetComputeSource):
         try:
-            model_object = _get_model_class(class_name)(**resource, **kwargs)
-            _patch_aws_fleet_enums()
-            _patch_allowance_enums()
-            return model_object
-        except Exception as e:
-            # Unexpected/missing keyword argument Exception of form:
-            # __init__() got an unexpected keyword argument 'keyword', or
-            # __init__() missing 1 required positional argument: 'credential'
-            if "unexpected" in str(e):
-                keyword = str(e).split("'")[1]
-                print_warning(f"Ignoring unexpected property '{keyword}'")
-                resource.pop(keyword)
-            elif "missing" in str(e):
-                keyword = str(e).split("'")[1]
-                raise KeyError(f"Missing expected property '{keyword}'")
-            else:
-                raise e
+            model_object.purchaseOption = AwsFleetPurchaseOption[
+                str(model_object.purchaseOption)
+            ]
+        except KeyError:
+            raise ValueError(
+                "Invalid AWS Fleet Compute Source Purchase Option property: "
+                f"'{str(model_object.purchaseOption)}'"
+            )
+
+
+def _patch_allowance_enums(model_object) -> None:
+    if isinstance(
+        model_object,
+        (SourceAllowance, SourcesAllowance, RequirementsAllowance, AccountAllowance),
+    ):
+        try:
+            model_object.limitEnforcement = AllowanceLimitEnforcement(
+                model_object.limitEnforcement
+            )
+            model_object.resetType = AllowanceResetType(model_object.resetType)
+            model_object.monitoredStatuses = [
+                InstanceStatus(status) for status in model_object.monitoredStatuses
+            ]
+        except KeyError as e:
+            raise KeyError(f"Invalid Allowance property: {e}")
 
 
 def _get_model_class(class_name: str):
