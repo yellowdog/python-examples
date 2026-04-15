@@ -57,3 +57,4 @@ update:
 
 no_op:
 	# Available targets are: build, clean, install, uninstall, black, pypi_upload, pypi_check
+	# For releases, use: ./release.sh (or ./release.sh --dry-run)
