@@ -8,7 +8,7 @@ pyinstaller
 pyqt6
 pytest
 pytest-xdist
-python-dispatch >= 0.2.2 # Eliminates pytest packaging warnings, but conflicts with SDK requirement
+python-dispatch
 pyupgrade
 setuptools
 twine
