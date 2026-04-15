@@ -118,17 +118,17 @@ def _resequence_resources(
         RN_EXTERNAL_USER,
     ]
 
-    try:
-        resources.sort(
-            key=lambda resource: resource_creation_order.index(resource["resource"]),
-            reverse=not creation_or_update,
-        )
-    except KeyError:
-        raise KeyError(
-            "Property 'resource' is not specified for one or more resource specifications"
-        )
-    except ValueError as e:
-        resource_type = str(e).split("'")[1]
-        raise ValueError(f"Unknown resource type: '{resource_type}'")
+    for r in resources:
+        if "resource" not in r:
+            raise KeyError(
+                "Property 'resource' is not specified for one or more resource specifications"
+            )
+        if r["resource"] not in resource_creation_order:
+            raise ValueError(f"Unknown resource type: '{r['resource']}'")
+
+    resources.sort(
+        key=lambda resource: resource_creation_order.index(resource["resource"]),
+        reverse=not creation_or_update,
+    )
 
     return resources
