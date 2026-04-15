@@ -4,11 +4,12 @@ Tests are run using [pytest](https://docs.pytest.org/).
 
 ## Test Categories
 
-Three categories of test exist, controlled by pytest flags:
+Five categories of test exist, controlled by pytest flags:
 
 | Flag | Marker | Description |
 |---|---|---|
-| *(none)* | — | Unit tests and dry-run tests; no platform connectivity required |
+| *(none)* | — | Unit tests; no platform connectivity required |
+| `--run-dryruns` | `dryruns` | Demo dry-runs (no platform calls); requires `../python-examples-demos` |
 | `--run-demos` | `demos` | Full live demo runs on the platform |
 | `--run-system` | `system` | System tests (resource CRUD, error handling, WR control); requires credentials |
 | `--run-system-compute` | `system_compute` | System tests that provision real cloud compute (implies `--run-system`) |
@@ -16,8 +17,11 @@ Three categories of test exist, controlled by pytest flags:
 ## Quick Reference
 
 ```shell
-# Unit and dry-run tests only (no credentials needed)
+# Unit tests only (no credentials needed)
 pytest -v
+
+# Add demo dry-runs (requires ../python-examples-demos)
+pytest -v --run-dryruns
 
 # Add system tests (credentials required)
 pytest -v --run-system
@@ -29,13 +33,14 @@ pytest -v --run-system-compute
 pytest -v --run-demos
 
 # Everything
-pytest -v --run-system-compute --run-demos
+pytest -v --run-dryruns --run-system-compute --run-demos
 
 # Run a single file or pattern
 pytest -v tests/test_ydid_utils.py
 pytest -v -k test_variable
 
 # Parallel execution
+pytest -v -n 4 --run-dryruns
 pytest -v -n 4 --run-demos
 ```
 
@@ -65,11 +70,16 @@ pytest -v -n 4 --run-demos
 | `test_variable_subs.py` | `utils/variables.py` — `{{variable}}` substitution engine |
 | `test_ydid_utils.py` | `utils/ydid_utils.py` — `get_ydid_type`, type constants |
 
-### Other No-Flag Tests (no credentials needed)
+### Dry-run Tests (`--run-dryruns`, requires `../python-examples-demos`)
 
 | File | What it tests |
 |---|---|
 | `test_dryruns.py` | All standard demos in `--dry-run` mode (no platform calls); GUI starts and stays up |
+
+### Other No-Flag Tests (no credentials needed)
+
+| File | What it tests |
+|---|---|
 | `test_entrypoints.py` | All `yd-*` CLI entry points are present and respond to `--help` |
 
 ### System Tests (`--run-system`, credentials required)
@@ -116,10 +126,13 @@ export YD_URL=...   # optional, defaults to production
 
 ## Parallel Execution
 
-Unit tests and demo tests support parallel execution via `pytest-xdist`:
+Unit, dry-run, and demo tests support parallel execution via `pytest-xdist`:
 
 ```shell
-pytest -v -n 4                              # 4 workers, unit/dry-run tests
-pytest -v -n 12 --run-demos tests/test_demos.py  # parallel demo runs (target file directly to avoid unit tests consuming workers first)
+pytest -v -n 4                                         # 4 workers, unit tests only
+pytest -v -n 4 --run-dryruns tests/test_dryruns.py    # parallel dry-runs (target file directly)
+pytest -v -n 12 --run-demos tests/test_demos.py       # parallel live demos (target file directly)
 pytest -v -n 4 --run-demos tests/test_demos.py -k 'bash or primes'
 ```
+
+> Targeting the test file directly avoids unit tests consuming all workers before the slower tests are scheduled.

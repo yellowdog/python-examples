@@ -26,12 +26,14 @@ _DEMOS = [
 ]
 
 
+@pytest.mark.dryruns
 @pytest.mark.parametrize("demo", _DEMOS)
 def test_dry_run_in_dir(demo):
     result = shell(f"cd {DEMO_DIR}/{demo} && {CMD_SEQ}")
     assert result.exit_code == 0
 
 
+@pytest.mark.dryruns
 def test_generic_gui():
     proc = subprocess.Popen(
         ["./yellow-gui.py"],
@@ -43,6 +45,7 @@ def test_generic_gui():
     proc.wait()
 
 
+@pytest.mark.dryruns
 @pytest.mark.parametrize("demo", _DEMOS)
 def test_dry_run_out_of_dir(demo):
     result = shell(

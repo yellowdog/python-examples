@@ -16,7 +16,13 @@ def pytest_addoption(parser):
         "--run-demos",
         action="store_true",
         default=False,
-        help="Run demos",
+        help="Run live demos",
+    )
+    parser.addoption(
+        "--run-dryruns",
+        action="store_true",
+        default=False,
+        help="Run demo dry-runs (requires ../python-examples-demos)",
     )
     parser.addoption(
         "--run-system",
@@ -41,6 +47,12 @@ def pytest_collection_modifyitems(config, items):
         skipper = pytest.mark.skip(reason="Only run when '--run-demos' is given")
         for item in items:
             if "demos" in item.keywords:
+                item.add_marker(skipper)
+
+    if not config.getoption("--run-dryruns"):
+        skipper = pytest.mark.skip(reason="Only run when '--run-dryruns' is given")
+        for item in items:
+            if "dryruns" in item.keywords:
                 item.add_marker(skipper)
 
     if not run_system:
@@ -119,6 +131,9 @@ def yd_list_row_matches(stdout: str, name: str, status: str) -> bool:
 def pytest_configure(config):
     config.addinivalue_line(
         "markers", "demos: mark test to run only when '--run-demos' is specified"
+    )
+    config.addinivalue_line(
+        "markers", "dryruns: mark test to run only when '--run-dryruns' is specified"
     )
     config.addinivalue_line(
         "markers",
