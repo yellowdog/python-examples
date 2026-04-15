@@ -315,8 +315,12 @@ def follow_ids(ydids: list[str], auto_cr: bool = False):
 
         signal.signal(signal.SIGINT, _on_sigint)
 
-    for thread in threads:
-        thread.join()
+    # Poll with a short sleep rather than a plain join() so that
+    # KeyboardInterrupt (Ctrl-C) is delivered promptly on Windows.
+    # sleep() releases the GIL and Python checks for pending signals on
+    # return, so Ctrl-C is handled within ~100ms on all platforms.
+    while any(t.is_alive() for t in threads):
+        sleep(0.1)
 
     if ARGS_PARSER.progress:
         signal.signal(signal.SIGINT, _original_sigint)
