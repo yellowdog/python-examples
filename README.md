@@ -445,15 +445,15 @@ For example, a variable substitution `{{format_name:ligand_name}}`, with variabl
 
 The `[common]` section of the configuration file can contain the following properties:
 
-| Property    | Description                                                                                        |
-|:------------|:---------------------------------------------------------------------------------------------------|
-| `key`       | The **key** of the YellowDog Application under which the commands will run                         |
-| `secret`    | The **secret** of the YellowDog Application under which the commands will run                      |
-| `namespace` | The **namespace** to be used for grouping resources                                                |
-| `tag`       | The **tag** to be used for tagging resources and naming objects                                    |
+| Property    | Description                                                                                 |
+|:------------|:--------------------------------------------------------------------------------------------|
+| `key`       | The **key ID** of the YellowDog Application under which the commands will run               |
+| `secret`    | The **key secret** of the YellowDog Application under which the commands will run           |
+| `namespace` | The **namespace** to be used for grouping resources                                         |
+| `tag`       | The **tag** to be used for tagging resources and naming objects                             |
 | `url`       | The **URL** of the YellowDog Platform API endpoint. Defaults to `https://api.yellowdog.ai`. |
-| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                                 |
-| `variables` | A table containing **variable substitutions** (see the Variables section below)                    |
+| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                          |
+| `variables` | A table containing **variable substitutions** (see the Variables section below)             |
 
 An example `common` section is shown below:
 
@@ -587,10 +587,12 @@ Substitutions can also be performed for non-string (number, boolean, array, and 
 
 ```shell
  yd-submit -v my_int=5 -v my_float=2.5 -v my_bool=true \
-           -v my_array="[1,2,3]" -v my_table="{'A': 100, 'B': 200}"
+           -v my_array="[1,2,3]" -v my_table='{"A": 100, "B": 200}'
 ```
 
 - In the processed JSON (or TOML), these values would become `5`, `2.5`, `true`, `[1,2,3]`, and `{"A": 100, "B": 200}`, respectively, converted from strings to their correct JSON types
+
+> **Note:** `array:` and `table:` values must be valid JSON. Use double-quoted strings, and `true`/`false`/`null` for booleans and null values.
 
 ## Default Variables
 
@@ -621,7 +623,24 @@ User-defined variables can be supplied using an option on the command line, by s
 
 ### Variable Naming
 
-User-defined variable names must not include spaces, but are otherwise unconstrained. When enclosing a variable name in curly brackets, don't insert spaces between the variable name and the brackets.
+User-defined variable names must not start with a reserved prefix. The implementation does not enforce any other restrictions on characters (including spaces), but by convention names should be simple identifiers without spaces. When enclosing a variable name in curly brackets, don't insert spaces between the variable name and the brackets.
+
+**Reserved prefixes** — the following prefixes have special meaning and must not be used as the start of a variable name:
+
+| Prefix         | Purpose                                          |
+|----------------|--------------------------------------------------|
+| `num:`         | Type tag: interpret value as a number            |
+| `bool:`        | Type tag: interpret value as a boolean           |
+| `array:`       | Type tag: interpret value as an array            |
+| `table:`       | Type tag: interpret value as a table (dict)      |
+| `format_name:` | Type tag: convert value to a YellowDog-safe name |
+| `env:`         | Look up a general environment variable           |
+
+**Other constraints:**
+
+- Variable names cannot contain `}}` (closing delimiter), `:=` (default-value separator), or `::` (unset suffix), as these are parsed as syntax.
+- `YD_VAR_` environment variables create variable names with the **exact case** of the suffix — `YD_VAR_SUFFIX` creates `SUFFIX`, not `suffix`. On Windows, environment variable names are uppercased by the OS, so use uppercase names only.
+- When defining variables in `[common.variables]` in TOML, names follow TOML bare-key rules (`a-z`, `A-Z`, `0-9`, `-`, `_`) unless quoted.
 
 ### Setting Variable Values
 
@@ -695,7 +714,7 @@ name = "{{name:=my_name}}"
 taskCount = "{{num:task_count:=5}}"
 finishIfAllTasksFinished = "{{bool:fiaft:=true}}"
 arguments = "{{array:args:=[1,2,3]}}"
-environment = "{{table:env:={'A':100,'B':200}}}"
+environment = '{{table:env:={"A":100,"B":200}}}'
 ```
 
 Default values can be used anywhere that variable substitutions are allowed.  In TOML files only, nested variable substitutions can be used inside default values, e.g.:
@@ -806,55 +825,55 @@ Overridden properties are also inherited at lower levels in the hierarchy. E.g.,
 The following table outlines all the properties available for defining Work Requirements, and the levels at which they are allowed to be used. So, for example, the `provider` property can be set in the TOML file, at the Work Requirement Level or at the Task Group Level, but not at the Task level, and property `dependentOn` can only be set at the Task Group level.
 
 
-| Property Name               | Description                                                                                                                                                                                                          | TOML | WR  | TGrp | Task |
-|:----------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
-| `addEnvironment`            | A table of environment variable key-value pairs merged into each Task's `environment`. Keys in `addEnvironment` override any matching keys already present in `environment`. E.g., `{EXTRA = "val", X = "1"}`.       | Yes  | Yes | Yes  |      |
-| `addYDEnvironment`          | Automatically add YellowDog environment variables to each Task's environment.                                                                                                                                        | Yes  | Yes | Yes  | Yes  |
-| `arguments`                 | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                                                              | Yes  | Yes | Yes  | Yes  |
-| `argumentsPostfix`          | A fixed list of arguments appended after `arguments` for every Task. Combined result is `argumentsPrefix` + `arguments` + `argumentsPostfix`. E.g.: `["--output", "results/"]`.                                      | Yes  | Yes | Yes  |      |
-| `argumentsPrefix`           | A fixed list of arguments prepended before `arguments` for every Task. Combined result is `argumentsPrefix` + `arguments` + `argumentsPostfix`. E.g.: `["--input", "data/"]`.                                        | Yes  | Yes | Yes  |      |
-| `completedTaskTtl`          | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                                                                 | Yes  | Yes | Yes  |      |
-| `csvFile`                   | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                                                             | Yes  |     |      |      |
-| `csvFiles`                  | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                                                                    | Yes  |     |      |      |
-| `dependencies`              | The names of other Task Groups within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `["task_group_1", "task_group_2"]`.                                       |      |     | Yes  |      |
-| `dependentOn`               | **Deprecated** — use `dependencies` instead (see above). Takes a single string rather than a list. Support for `dependentOn` will be removed in a future release.                                                    |      |     | Yes  |      |
-| `disablePreallocation`      | If `true`, tasks are only allocated to nodes as workers become idle and are not queued on the node. Default: `false`.                                                                                                | Yes  | Yes | Yes  |      |
-| `environment`               | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                              | Yes  | Yes | Yes  | Yes  |
-| `finishIfAllTasksFinished`  | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                     | Yes  | Yes | Yes  |      |
-| `finishIfAnyTaskFailed`     | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                   | Yes  | Yes | Yes  |      |
-| `instancePricingPreference` | The preferred instance pricing type for Tasks. One of: `SPOT_ONLY`, `ON_DEMAND_ONLY`, `SPOT_THEN_ON_DEMAND`, `ON_DEMAND_THEN_SPOT`. Default: no preference.                                                          | Yes  | Yes | Yes  |      |
-| `instanceTypes`             | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                                                                     | Yes  | Yes | Yes  |      |
-| `maximumTaskRetries`        | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                                                                    | Yes  | Yes | Yes  |      |
-| `maxWorkers`                | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                                                                         | Yes  | Yes | Yes  |      |
-| `minWorkers`                | The minimum number of Workers that the associated Task Group will retain even if this exceeds the current number of Tasks. E.g., `1`.                                                                                | Yes  | Yes | Yes  |      |
-| `name`                      | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                                                             | Yes  | Yes | Yes  | Yes  |
-| `namespaces`                | Only Workers whose Worker Pools match one of the namespaces in this list can be claimed by the Task Group. E.g., `["namespace_1", "namespace_2"]. Defaults to `None`.                                                | Yes  | Yes | Yes  |      |
-| `parallelBatches`           | The number of parallel threads to use when uploading batches of Tasks.                                                                                                                                               | Yes  |     |      |      |
-| `priority`                  | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. E.g., `0.0`.                                                                                            | Yes  | Yes | Yes  |      |
-| `providers`                 | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                                                                       | Yes  | Yes | Yes  |      |
-| `ram`                       | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                                                                | Yes  | Yes | Yes  |      |
-| `regions`                   | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                                                              | Yes  | Yes | Yes  |      |
-| `retryableErrors`           | A list of error condition combinations under which Tasks will be retried (up to `maximumTaskRetries`). Retries will always be attempted if the list is empty (the default). See the TOML/JSON section for examples.  | Yes  | Yes | Yes  |      |
-| `setTaskNames`              | Set this to `false` to suppress automatic generation of Task names. Defaults to `true`. Task names that are set by the user will still be observed. Note that Task names must be set if any outputs are specified.   | Yes  | Yes | Yes  | Yes  |
-| `tag`                       | A tag that can be associated with a Work Requirement, Task Group or Task. Note there is **no property inheritance** for these tags.                                                                                  | Yes  | Yes | Yes  | Yes  |
-| `taskBatchSize`             | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                                                                        | Yes  |     |      |      |
-| `taskCount`                 | The number of times to execute the Task.                                                                                                                                                                             | Yes  | Yes | Yes  |      |
-| `taskData`                  | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when the task executes.                                                  | Yes  | Yes | Yes  | Yes  |
-| `taskDataFile`              | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                                                                     | Yes  | Yes | Yes  | Yes  |
-| `taskDataInputs`            | A list of data inputs to be downloaded by the task E.g., JSON: `{"source": "src", "destination": "dest"}`, TOML: `{source = "src", destination = "dest"}`.                                                           | Yes  | Yes | Yes  | Yes  |
-| `taskDataOutputs`           | A list of data outputs to be uploaded at the conclusion of a task E.g., JSON: `{"source": "src", "destination": "dest", "alwaysUpload": true}`, TOML: `{source = "src", destination = "dest", alwaysUpload = true}`. | Yes  | Yes | Yes  | Yes  |
-| `taskName`                  | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                               | Yes  |     |      |      |
-| `taskGroupCount`            | Create `taskGroupCount` duplicates of a single Task Group.                                                                                                                                                           | Yes  | Yes |      |      |
-| `taskGroupName`             | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                      | Yes  |     |      |      |
-| `taskTemplate`              | Sets default `taskType`, `taskData` (or `taskDataFile`), and/or `environment` for all Tasks in a Task Group; applied by the platform, allowing Tasks to be more compact. E.g., `{"taskType": "docker", "environment": {"X": "1"}}`.      | Yes  | Yes | Yes  |      |
-| `taskTimeout`               | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. The default is no timeout.                                                                           | Yes  | Yes | Yes  |      |
-| `timeout`                   | As above, but set at the individual Task level, which overrides the group level `taskTimeout` property (if present).                                                                                                 | Yes  |     |      | Yes  |
-| `taskType`                  | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                           | Yes  |     |      | Yes  |
-| `taskTypes`                 | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", "bash"]`.                                                                                                                   |      | Yes | Yes  |      |
-| `tasksPerWorker`            | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                                                                  | Yes  | Yes | Yes  |      |
-| `vcpus`                     | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                                                                           | Yes  | Yes | Yes  |      |
-| `workerTags`                | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                         | Yes  | Yes | Yes  |      |
-| `workRequirementData`       | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                                                             | Yes  |     |      |      |
+| Property Name               | Description                                                                                                                                                                                                                         | TOML | WR  | TGrp | Task |
+|:----------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:----|:-----|:-----|
+| `addEnvironment`            | A table of environment variable key-value pairs merged into each Task's `environment`. Keys in `addEnvironment` override any matching keys already present in `environment`. E.g., `{EXTRA = "val", X = "1"}`.                      | Yes  | Yes | Yes  |      |
+| `addYDEnvironment`          | Automatically add YellowDog environment variables to each Task's environment.                                                                                                                                                       | Yes  | Yes | Yes  | Yes  |
+| `arguments`                 | The list of arguments to be passed to the Task when it is executed. E.g.: `[1, "Two"]`.                                                                                                                                             | Yes  | Yes | Yes  | Yes  |
+| `argumentsPostfix`          | A fixed list of arguments appended after `arguments` for every Task. Combined result is `argumentsPrefix` + `arguments` + `argumentsPostfix`. E.g.: `["--output", "results/"]`.                                                     | Yes  | Yes | Yes  |      |
+| `argumentsPrefix`           | A fixed list of arguments prepended before `arguments` for every Task. Combined result is `argumentsPrefix` + `arguments` + `argumentsPostfix`. E.g.: `["--input", "data/"]`.                                                       | Yes  | Yes | Yes  |      |
+| `completedTaskTtl`          | The time (in minutes) to live for completed Tasks. If set, Tasks that have been completed for longer than this period will be deleted. E.g.: `10.0`.                                                                                | Yes  | Yes | Yes  |      |
+| `csvFile`                   | The name of the CSV file used to derive Task data. An alternative to `csvFiles` that can be used when there's only a single CSV file. E.g. `"file.csv"`.                                                                            | Yes  |     |      |      |
+| `csvFiles`                  | A list of CSV files used to derive Task data. E.g. `["file.csv", "file_2.csv:2]`.                                                                                                                                                   | Yes  |     |      |      |
+| `dependencies`              | The names of other Task Groups within the same Work Requirement that must be successfully completed before the Task Group is started. E.g. `["task_group_1", "task_group_2"]`.                                                      |      |     | Yes  |      |
+| `dependentOn`               | **Deprecated** — use `dependencies` instead (see above). Takes a single string rather than a list. Support for `dependentOn` will be removed in a future release.                                                                   |      |     | Yes  |      |
+| `disablePreallocation`      | If `true`, tasks are only allocated to nodes as workers become idle and are not queued on the node. Default: `false`.                                                                                                               | Yes  | Yes | Yes  |      |
+| `environment`               | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                             | Yes  | Yes | Yes  | Yes  |
+| `finishIfAllTasksFinished`  | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                    | Yes  | Yes | Yes  |      |
+| `finishIfAnyTaskFailed`     | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                                  | Yes  | Yes | Yes  |      |
+| `instancePricingPreference` | The preferred instance pricing type for Tasks. One of: `SPOT_ONLY`, `ON_DEMAND_ONLY`, `SPOT_THEN_ON_DEMAND`, `ON_DEMAND_THEN_SPOT`. Default: no preference.                                                                         | Yes  | Yes | Yes  |      |
+| `instanceTypes`             | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                                                                                    | Yes  | Yes | Yes  |      |
+| `maximumTaskRetries`        | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                                                                                   | Yes  | Yes | Yes  |      |
+| `maxWorkers`                | The maximum number of Workers that can be claimed for the associated Task Group. E.g., `10`.                                                                                                                                        | Yes  | Yes | Yes  |      |
+| `minWorkers`                | The minimum number of Workers that the associated Task Group will retain even if this exceeds the current number of Tasks. E.g., `1`.                                                                                               | Yes  | Yes | Yes  |      |
+| `name`                      | The name of the Work Requirement, Task Group or Task. E.g., `"wr_name"`. Note that the `name` property is not inherited.                                                                                                            | Yes  | Yes | Yes  | Yes  |
+| `namespaces`                | Only Workers whose Worker Pools match one of the namespaces in this list can be claimed by the Task Group. E.g., `["namespace_1", "namespace_2"]. Defaults to `None`.                                                               | Yes  | Yes | Yes  |      |
+| `parallelBatches`           | The number of parallel threads to use when uploading batches of Tasks.                                                                                                                                                              | Yes  |     |      |      |
+| `priority`                  | The priority of Work Requirements and Task Groups. Higher priority acquires Workers ahead of lower priority. E.g., `0.0`.                                                                                                           | Yes  | Yes | Yes  |      |
+| `providers`                 | Constrains the YellowDog Scheduler only to execute tasks from the associated Task Group on the specified providers. E.g., `["AWS", "GOOGLE"]`.                                                                                      | Yes  | Yes | Yes  |      |
+| `ram`                       | Range constraint on GB of RAM that are required to execute Tasks. E.g., `[2.5, 4.0]`.                                                                                                                                               | Yes  | Yes | Yes  |      |
+| `regions`                   | Constrains the YellowDog Scheduler only to execute Tasks from the associated Task Group in the specified regions. E.g., `["eu-west-2]`.                                                                                             | Yes  | Yes | Yes  |      |
+| `retryableErrors`           | A list of error condition combinations under which Tasks will be retried (up to `maximumTaskRetries`). Retries will always be attempted if the list is empty (the default). See the TOML/JSON section for examples.                 | Yes  | Yes | Yes  |      |
+| `setTaskNames`              | Set this to `false` to suppress automatic generation of Task names. Defaults to `true`. Task names that are set by the user will still be observed. Note that Task names must be set if any outputs are specified.                  | Yes  | Yes | Yes  | Yes  |
+| `tag`                       | A tag that can be associated with a Work Requirement, Task Group or Task. Note there is **no property inheritance** for these tags.                                                                                                 | Yes  | Yes | Yes  | Yes  |
+| `taskBatchSize`             | Determines the batch size used to add Tasks to Task Groups. Default is 2,000.                                                                                                                                                       | Yes  |     |      |      |
+| `taskCount`                 | The number of times to execute the Task.                                                                                                                                                                                            | Yes  | Yes | Yes  |      |
+| `taskData`                  | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when the task executes.                                                                 | Yes  | Yes | Yes  | Yes  |
+| `taskDataFile`              | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `taskDataInputs`            | A list of data inputs to be downloaded by the task E.g., JSON: `{"source": "src", "destination": "dest"}`, TOML: `{source = "src", destination = "dest"}`.                                                                          | Yes  | Yes | Yes  | Yes  |
+| `taskDataOutputs`           | A list of data outputs to be uploaded at the conclusion of a task E.g., JSON: `{"source": "src", "destination": "dest", "alwaysUpload": true}`, TOML: `{source = "src", destination = "dest", alwaysUpload = true}`.                | Yes  | Yes | Yes  | Yes  |
+| `taskName`                  | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                                              | Yes  |     |      |      |
+| `taskGroupCount`            | Create `taskGroupCount` duplicates of a single Task Group.                                                                                                                                                                          | Yes  | Yes |      |      |
+| `taskGroupName`             | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                                     | Yes  |     |      |      |
+| `taskTemplate`              | Sets default `taskType`, `taskData` (or `taskDataFile`), and/or `environment` for all Tasks in a Task Group; applied by the platform, allowing Tasks to be more compact. E.g., `{"taskType": "docker", "environment": {"X": "1"}}`. | Yes  | Yes | Yes  |      |
+| `taskTimeout`               | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. The default is no timeout.                                                                                          | Yes  | Yes | Yes  |      |
+| `timeout`                   | As above, but set at the individual Task level, which overrides the group level `taskTimeout` property (if present).                                                                                                                | Yes  |     |      | Yes  |
+| `taskType`                  | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                                          | Yes  |     |      | Yes  |
+| `taskTypes`                 | The list of Task Types required by the range of Tasks in a Task Group. E.g., `["docker", "bash"]`.                                                                                                                                  |      | Yes | Yes  |      |
+| `tasksPerWorker`            | Determines the number of Worker claims based on splitting the number of unfinished Tasks across Workers. E.g., `1`.                                                                                                                 | Yes  | Yes | Yes  |      |
+| `vcpus`                     | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                                                                                          | Yes  | Yes | Yes  |      |
+| `workerTags`                | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                                        | Yes  | Yes | Yes  |      |
+| `workRequirementData`       | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                                                                            | Yes  |     |      |      |
 
 ## Merging Additional Environment Variables into Tasks
 

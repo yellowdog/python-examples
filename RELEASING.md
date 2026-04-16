@@ -123,3 +123,5 @@ Twine reads `~/.pypirc`. The entry name must match the `--repository` argument i
   username = __token__
   password = pypi-...
 ```
+
+The password can be found in BitWarden.

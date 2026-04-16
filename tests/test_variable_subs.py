@@ -68,7 +68,12 @@ class TestProcessTypedVariableSubstitution:
 
     @pytest.mark.parametrize(
         "s,expected",
-        [("[1, 2, 3]", [1, 2, 3]), ("['a', 'b', 'c']", ["a", "b", "c"]), ("[]", [])],
+        [
+            ("[1, 2, 3]", [1, 2, 3]),
+            ('["a", "b", "c"]', ["a", "b", "c"]),
+            ("[true, false]", [True, False]),
+            ("[]", []),
+        ],
     )
     def test_array_valid(self, s, expected):
         assert (
@@ -76,14 +81,18 @@ class TestProcessTypedVariableSubstitution:
             == expected
         )
 
-    @pytest.mark.parametrize("s", ["{'a': 1}", "not-a-list"])
+    @pytest.mark.parametrize("s", ['{"a": 1}', "not-a-list", "['single', 'quotes']"])
     def test_array_invalid_raises(self, s):
         with pytest.raises(Exception, match="array"):
             var_module.process_typed_variable_substitution(ARRAY_TYPE_TAG, s)
 
     @pytest.mark.parametrize(
         "s,expected",
-        [("{'a': 1}", {"a": 1}), ("{'x': {'y': 2}}", {"x": {"y": 2}})],
+        [
+            ('{"a": 1}', {"a": 1}),
+            ('{"x": {"y": 2}}', {"x": {"y": 2}}),
+            ('{"flag": true}', {"flag": True}),
+        ],
     )
     def test_table_valid(self, s, expected):
         assert (
@@ -91,7 +100,7 @@ class TestProcessTypedVariableSubstitution:
             == expected
         )
 
-    @pytest.mark.parametrize("s", ["[1, 2]", "not-a-dict"])
+    @pytest.mark.parametrize("s", ["[1, 2]", "not-a-dict", "{'single': 'quotes'}"])
     def test_table_invalid_raises(self, s):
         with pytest.raises(Exception, match="table"):
             var_module.process_typed_variable_substitution(TABLE_TYPE_TAG, s)

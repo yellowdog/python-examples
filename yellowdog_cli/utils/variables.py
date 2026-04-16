@@ -6,7 +6,6 @@ import os
 import re
 import sys
 import tempfile
-from ast import literal_eval
 from copy import deepcopy
 from getpass import getuser
 from json import loads as json_loads
@@ -500,7 +499,7 @@ def process_typed_variable_substitution(
 
     if type_string == ARRAY_TYPE_TAG:
         try:
-            return_value = literal_eval(input_string)
+            return_value = json_loads(input_string)
             if not isinstance(return_value, list):
                 raise TypeError("Not an array/list")
             return return_value
@@ -511,14 +510,14 @@ def process_typed_variable_substitution(
 
     if type_string == TABLE_TYPE_TAG:
         try:
-            return_value = literal_eval(input_string)
+            return_value = json_loads(input_string)
             if not isinstance(return_value, dict):
                 raise TypeError("Not a table/dict")
             return return_value
         except Exception as e:
             raise ValueError(
                 f"Property cannot be parsed as a table: '{input_string}' "
-                f"(Use JSON syntax?) ({e})"
+                f'(Use JSON syntax, e.g. {{"key": "value"}}) ({e})'
             )
 
     return None
