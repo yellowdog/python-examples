@@ -518,7 +518,7 @@ def process_typed_variable_substitution(
         except Exception as e:
             raise ValueError(
                 f"Property cannot be parsed as a table: '{input_string}' "
-                f"(Use JSON syntax?) ({e})"
+                f'(Use Python literal syntax, e.g. {{"key": "value"}}) ({e})'
             )
 
     return None

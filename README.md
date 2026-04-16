@@ -592,6 +592,8 @@ Substitutions can also be performed for non-string (number, boolean, array, and 
 
 - In the processed JSON (or TOML), these values would become `5`, `2.5`, `true`, `[1,2,3]`, and `{"A": 100, "B": 200}`, respectively, converted from strings to their correct JSON types
 
+> **Note:** `array:` and `table:` values are parsed using Python literal syntax (via `ast.literal_eval`), not JSON. This means booleans must be `True`/`False` (capitalised) rather than `true`/`false`, and `None` is accepted instead of `null`. Both single and double quotes are valid for strings.
+
 ## Default Variables
 
 The following substitutions are automatically created and can be used in any section of the configuration file, or in any JSON specification:
