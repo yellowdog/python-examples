@@ -717,6 +717,12 @@ arguments = "{{array:args:=[1,2,3]}}"
 environment = '{{table:env:={"A":100,"B":200}}}'
 ```
 
+When a JSON default contains double-quoted strings, use a TOML single-quoted (literal) string to avoid escaping:
+
+```toml
+workerTags = '{{array:worker_tags:=["tag1", "tag2"]}}'
+```
+
 Default values can be used anywhere that variable substitutions are allowed.  In TOML files only, nested variable substitutions can be used inside default values, e.g.:
 
 ```toml
