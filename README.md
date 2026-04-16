@@ -445,15 +445,15 @@ For example, a variable substitution `{{format_name:ligand_name}}`, with variabl
 
 The `[common]` section of the configuration file can contain the following properties:
 
-| Property    | Description                                                                                        |
-|:------------|:---------------------------------------------------------------------------------------------------|
-| `key`       | The **key** of the YellowDog Application under which the commands will run                         |
-| `secret`    | The **secret** of the YellowDog Application under which the commands will run                      |
-| `namespace` | The **namespace** to be used for grouping resources                                                |
-| `tag`       | The **tag** to be used for tagging resources and naming objects                                    |
+| Property    | Description                                                                                 |
+|:------------|:--------------------------------------------------------------------------------------------|
+| `key`       | The **key ID** of the YellowDog Application under which the commands will run               |
+| `secret`    | The **key secret** of the YellowDog Application under which the commands will run           |
+| `namespace` | The **namespace** to be used for grouping resources                                         |
+| `tag`       | The **tag** to be used for tagging resources and naming objects                             |
 | `url`       | The **URL** of the YellowDog Platform API endpoint. Defaults to `https://api.yellowdog.ai`. |
-| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                                 |
-| `variables` | A table containing **variable substitutions** (see the Variables section below)                    |
+| `usePAC`    | Use PAC (proxy autoconfiguration) if set to `true`                                          |
+| `variables` | A table containing **variable substitutions** (see the Variables section below)             |
 
 An example `common` section is shown below:
 
@@ -621,7 +621,24 @@ User-defined variables can be supplied using an option on the command line, by s
 
 ### Variable Naming
 
-User-defined variable names must not include spaces, but are otherwise unconstrained. When enclosing a variable name in curly brackets, don't insert spaces between the variable name and the brackets.
+User-defined variable names must not start with a reserved prefix. The implementation does not enforce any other restrictions on characters (including spaces), but by convention names should be simple identifiers without spaces. When enclosing a variable name in curly brackets, don't insert spaces between the variable name and the brackets.
+
+**Reserved prefixes** — the following prefixes have special meaning and must not be used as the start of a variable name:
+
+| Prefix | Purpose |
+|---|---|
+| `num:` | Type tag: interpret value as a number |
+| `bool:` | Type tag: interpret value as a boolean |
+| `array:` | Type tag: interpret value as an array |
+| `table:` | Type tag: interpret value as a table (dict) |
+| `format_name:` | Type tag: convert value to a YellowDog-safe name |
+| `env:` | Look up a general environment variable |
+
+**Other constraints:**
+
+- Variable names cannot contain `}}` (closing delimiter), `:=` (default-value separator), or `::` (unset suffix), as these are parsed as syntax.
+- `YD_VAR_` environment variables create variable names with the **exact case** of the suffix — `YD_VAR_SUFFIX` creates `SUFFIX`, not `suffix`. On Windows, environment variable names are uppercased by the OS, so use uppercase names only.
+- When defining variables in `[common.variables]` in TOML, names follow TOML bare-key rules (`a-z`, `A-Z`, `0-9`, `-`, `_`) unless quoted.
 
 ### Setting Variable Values
 
