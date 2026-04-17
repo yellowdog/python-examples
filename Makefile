@@ -2,7 +2,7 @@
 
 SRC = yellowdog_cli/*.py yellowdog_cli/utils/*.py
 TESTS = tests/*.py conftest.py
-MANIFEST = LICENSE README.md requirements.txt
+MANIFEST = LICENSE README.md
 BUILD_DIST = build dist yellowdog_cli.egg-info
 PYCACHE = __pycache__ yellowdog_cli/__pycache__ yellowdog_cli/utils/__pycache__
 TOC_BACKUP = README.md.* README_CLOUDWIZARD.md.*
@@ -46,7 +46,7 @@ toc_cloudwizard: README_CLOUDWIZARD.md
 	./gh-md-toc --insert README_CLOUDWIZARD.md
 
 update:
-	pip install -U pip -r requirements.txt -r requirements-dev.txt
+	pip install -U pip -e ".[dev,jsonnet,cloudwizard]"
 
 no_op:
 	# Available targets are: build, clean, install, uninstall, format, pypi_upload, pypi_check
