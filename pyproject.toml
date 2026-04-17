@@ -111,7 +111,8 @@
     line-length = 88
 
 [tool.ruff.lint]
-    select = ["F401", "I", "UP"]
+    select = ["E", "F401", "I", "RUF", "UP", "W"]
+    ignore = ["E501"]
 
 [tool.pytest.ini_options]
     filterwarnings = [

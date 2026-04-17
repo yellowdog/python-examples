@@ -11,7 +11,7 @@ Prerequisites: YD_KEY, YD_SECRET (and optionally YD_URL, CONFIG) must be set
 in the environment, or a config.toml must be present. The CONFIG variable
 selects which imported config to use (defaults to 'test').
 
-This test provisions a real cloud instance and may take 10–20 minutes.
+This test provisions a real cloud instance and may take 10-20 minutes.
 """
 
 import pytest

@@ -1343,7 +1343,7 @@ def _patch_aws_fleet_enums(model_object) -> None:
         except KeyError:
             raise ValueError(
                 "Invalid AWS Fleet Compute Source Purchase Option property: "
-                f"'{str(model_object.purchaseOption)}'"
+                f"'{model_object.purchaseOption!s}'"
             )
 
 

@@ -129,7 +129,7 @@ class TestByNameOrId:
         summary = _make_wr_summary(
             id_="ydid:wrkrq:test:abc", status=WorkRequirementStatus.HELD
         )
-        result, action_fn, mock_error, _ = self._call(
+        result, _action_fn, mock_error, _ = self._call(
             ["my-wr"], summary, action_raises=RuntimeError("API failure")
         )
         assert result == []
@@ -279,7 +279,7 @@ class TestTagBasedPath:
         summary = _make_wr_summary(
             id_="ydid:wrkrq:test:abc", status=WorkRequirementStatus.HELD
         )
-        result, action_fn, mock_error = self._call(
+        result, _action_fn, mock_error = self._call(
             filtered_summaries=[summary],
             action_raises=RuntimeError("fail"),
         )
@@ -312,7 +312,7 @@ class TestTagBasedPath:
             ),
         ]
         selected = [all_summaries[0]]  # user selected only the first
-        result, action_fn, _ = self._call(
+        _result, action_fn, _ = self._call(
             filtered_summaries=all_summaries, selected_summaries=selected
         )
         assert action_fn.call_count == 1

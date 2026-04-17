@@ -50,12 +50,12 @@ class TestParseRcloneConfig:
         assert config is not None
 
     def test_inline_config_section_header(self):
-        name, config = parse_rclone_config("S3,type=s3,provider=AWS")
+        _name, config = parse_rclone_config("S3,type=s3,provider=AWS")
         assert config is not None
         assert "[S3]" in config
 
     def test_inline_config_params_present(self):
-        name, config = parse_rclone_config("S3,type=s3,provider=AWS,env_auth=true")
+        _name, config = parse_rclone_config("S3,type=s3,provider=AWS,env_auth=true")
         assert config is not None
         assert "type = s3" in config
         assert "provider = AWS" in config
@@ -68,7 +68,7 @@ class TestParseRcloneConfig:
         assert "[myS3]" in config
 
     def test_inline_config_region_param(self):
-        name, config = parse_rclone_config(
+        _name, config = parse_rclone_config(
             "S3,type=s3,provider=AWS,env_auth=true,region=eu-west-2"
         )
         assert config is not None
@@ -96,11 +96,11 @@ class TestParseRcloneConfig:
     # ------------------------------------------------------------------
 
     def test_single_quoted_value_stripped(self):
-        name, config = parse_rclone_config("R,type='s3'")
+        _name, config = parse_rclone_config("R,type='s3'")
         assert config is not None
         assert "type = s3" in config
 
     def test_double_quoted_value_stripped(self):
-        name, config = parse_rclone_config('R2,type="s3"')
+        _name, config = parse_rclone_config('R2,type="s3"')
         assert config is not None
         assert "type = s3" in config

@@ -117,8 +117,8 @@ class TestPrintListingFlatMixed:
     def test_dirs_appear_before_files(self):
         listing = _listing(dirs=[_dir("d")], files=[_file("f.txt", size=1)])
         lines = _printed_lines(listing)
-        dir_idx = next(i for i, l in enumerate(lines) if "d/" in l)
-        file_idx = next(i for i, l in enumerate(lines) if "f.txt" in l)
+        dir_idx = next(i for i, line in enumerate(lines) if "d/" in line)
+        file_idx = next(i for i, line in enumerate(lines) if "f.txt" in line)
         assert dir_idx < file_idx
 
     def test_all_lines_indented(self):
@@ -178,16 +178,18 @@ class TestPrintListingTree:
 
     def test_nested_dir_is_indented_more_than_parent(self):
         lines = _printed_lines(_tree_listing(), recursive=True)
-        dir1_line = next(l for l in lines if "dir1/" in l and "dir1a" not in l)
-        dir1a_line = next(l for l in lines if "dir1a/" in l)
+        dir1_line = next(
+            line for line in lines if "dir1/" in line and "dir1a" not in line
+        )
+        dir1a_line = next(line for line in lines if "dir1a/" in line)
         # Depth is indicated by the position of the ── connector in the line;
         # a child always has a deeper (higher-index) connector than its parent.
         assert dir1a_line.index("──") > dir1_line.index("──")
 
     def test_file_inside_nested_dir_is_most_indented(self):
         lines = _printed_lines(_tree_listing(), recursive=True)
-        root_file_line = next(l for l in lines if "file_root.txt" in l)
-        nested_file_line = next(l for l in lines if "file_b.txt" in l)
+        root_file_line = next(line for line in lines if "file_root.txt" in line)
+        nested_file_line = next(line for line in lines if "file_b.txt" in line)
         assert nested_file_line.index("──") > root_file_line.index("──")
 
     def test_tree_uses_box_drawing_characters(self):
@@ -198,22 +200,24 @@ class TestPrintListingTree:
     def test_last_item_uses_corner_connector(self):
         lines = _printed_lines(_tree_listing(), recursive=True)
         # At least one line should use └──
-        assert any("└──" in l for l in lines)
+        assert any("└──" in line for line in lines)
 
     def test_non_last_item_uses_branch_connector(self):
         lines = _printed_lines(_tree_listing(), recursive=True)
         # At least one line should use ├──
-        assert any("├──" in l for l in lines)
+        assert any("├──" in line for line in lines)
 
     def test_file_size_appears_in_tree(self):
         lines = _printed_lines(_tree_listing(), recursive=True)
-        assert any("100" in l for l in lines)
+        assert any("100" in line for line in lines)
 
     def test_tree_dirs_before_files_at_each_level(self):
         lines = _printed_lines(_tree_listing(), recursive=True)
         # At root level: dir1 should appear before file_root.txt
         dir1_idx = next(
-            i for i, l in enumerate(lines) if "dir1/" in l and "dir1a" not in l
+            i for i, line in enumerate(lines) if "dir1/" in line and "dir1a" not in line
         )
-        root_file_idx = next(i for i, l in enumerate(lines) if "file_root.txt" in l)
+        root_file_idx = next(
+            i for i, line in enumerate(lines) if "file_root.txt" in line
+        )
         assert dir1_idx < root_file_idx

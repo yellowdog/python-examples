@@ -104,7 +104,7 @@ class PrintLogHighlighter(RegexHighlighter):
     """
 
     base_style = "pyexamples."
-    highlights = [  # type: ignore[assignment]
+    highlights = [  # type: ignore[assignment]  # noqa: RUF012
         re.compile(
             r"(?P<date_time>[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
             r" [0-9][0-9]:[0-9][0-9]:[0-9][0-9])"
@@ -112,7 +112,8 @@ class PrintLogHighlighter(RegexHighlighter):
         re.compile(r"(?P<quoted>'[a-zA-Z0-9-._=;,:/\\\[\]{}+#@$£%^&*()~`<>?]*')"),
         YDID_HIGHLIGHT_RE,
         re.compile(r"(?P<url>(https?):((//)|(\\\\))+[\w:#@%/;$~_?+=\\.&]*)"),
-    ] + HIGHLIGHTED_STATES
+        *HIGHLIGHTED_STATES,
+    ]
 
 
 class PrintTableHighlighter(RegexHighlighter):
@@ -122,11 +123,12 @@ class PrintTableHighlighter(RegexHighlighter):
 
     base_style = "pyexamples."
     table_outline_chars = "┌─┬│┼┐┤└┴┘├"
-    highlights = [  # type: ignore[assignment]
+    highlights = [  # type: ignore[assignment]  # noqa: RUF012
         re.compile(rf"(?P<table_outline>[{table_outline_chars}]*)"),
         re.compile(rf"(?P<table_content>[^{table_outline_chars}]*)"),
         YDID_HIGHLIGHT_RE,
-    ] + HIGHLIGHTED_STATES
+        *HIGHLIGHTED_STATES,
+    ]
 
 
 pyexamples_theme = Theme(DEFAULT_THEME)

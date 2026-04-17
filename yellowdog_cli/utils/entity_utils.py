@@ -190,7 +190,7 @@ def get_compute_requirement_id_by_name(
     try:
         # The CR must be unique for any given namespace/name
         # Ensure exact name match
-        return [cr for cr in search_client.list_all() if cr.name == name][0].id
+        return next(cr for cr in search_client.list_all() if cr.name == name).id
     except IndexError:
         return None
 

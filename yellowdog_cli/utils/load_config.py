@@ -27,9 +27,9 @@ from yellowdog_cli.utils.misc_utils import (
 # Load additional environment variables as early as possible
 load_dotenv_file()
 
-from yellowdog_cli.utils.printing import print_error, print_info
-from yellowdog_cli.utils.property_names import *
-from yellowdog_cli.utils.settings import (
+from yellowdog_cli.utils.printing import print_error, print_info  # noqa: E402
+from yellowdog_cli.utils.property_names import *  # noqa: E402
+from yellowdog_cli.utils.settings import (  # noqa: E402
     CR_BATCH_SIZE_DEFAULT,
     DEFAULT_URL,
     TASK_BATCH_SIZE_DEFAULT,
@@ -47,9 +47,9 @@ from yellowdog_cli.utils.settings import (
     YD_URL,
     YD_URL_ALT,
 )
-from yellowdog_cli.utils.type_check import check_list, check_str
-from yellowdog_cli.utils.validate_properties import validate_properties
-from yellowdog_cli.utils.variables import (
+from yellowdog_cli.utils.type_check import check_list, check_str  # noqa: E402
+from yellowdog_cli.utils.validate_properties import validate_properties  # noqa: E402
+from yellowdog_cli.utils.variables import (  # noqa: E402
     VARIABLE_SUBSTITUTIONS,
     add_or_update_substitution,
     add_substitutions_without_overwriting,
@@ -114,7 +114,7 @@ def _apply_property_overrides(config: dict, overrides: list[str]) -> None:
         for part in path[:-1]:
             target = target.setdefault(part, {})
         target[path[-1]] = value
-        display_section = ".".join([section] + path[:-1])
+        display_section = ".".join([section, *path[:-1]])
         print_info(f"Property override: [{display_section}] {path[-1]} = {value!r}")
 
 
