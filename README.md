@@ -176,7 +176,7 @@
    * [yd-upload](#yd-upload-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Apr 17 09:39:53 BST 2026 -->
+<!-- Added by: pwt, at: Fri Apr 17 09:55:55 BST 2026 -->
 
 <!--te-->
 
@@ -879,7 +879,6 @@ The following table outlines all the properties available for defining Work Requ
 | `environment`               | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                             | Yes  | Yes | Yes  | Yes  |
 | `finishIfAllTasksFinished`  | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                    | Yes  | Yes | Yes  |      |
 | `finishIfAnyTaskFailed`     | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                                  | Yes  | Yes | Yes  |      |
-| `fulfilOnSubmit`            | If `true`, the Work Requirement transitions to `FULFILLED` immediately after all Tasks have been submitted by the client, without waiting for them to be allocated to Workers. Default: `false`.                                    | Yes  | Yes |      |      |
 | `instancePricingPreference` | The preferred instance pricing type for Tasks. One of: `SPOT_ONLY`, `ON_DEMAND_ONLY`, `SPOT_THEN_ON_DEMAND`, `ON_DEMAND_THEN_SPOT`. Default: no preference.                                                                         | Yes  | Yes | Yes  |      |
 | `instanceTypes`             | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                                                                                    | Yes  | Yes | Yes  |      |
 | `maximumTaskRetries`        | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                                                                                   | Yes  | Yes | Yes  |      |
@@ -1114,7 +1113,6 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     environment = {MY_VAR = 100}
     finishIfAllTasksFinished = true
     finishIfAnyTaskFailed = false
-    fulfilOnSubmit = false
     instancePricingPreference = "SPOT_THEN_ON_DEMAND"
     instanceTypes = ["t3a.micro", "t3.micro"]
     namespaces = ["namespace_1", "namespace_2"]
