@@ -40,7 +40,7 @@
       * [Providing Default Values for User-Defined Variables](#providing-default-values-for-user-defined-variables)
       * [Removing Properties Using the Unset Suffix](#removing-properties-using-the-unset-suffix)
    * [Variable Substitutions in Worker Pool and Compute Requirement Specifications, and in User Data](#variable-substitutions-in-worker-pool-and-compute-requirement-specifications-and-in-user-data)
-* [Work Requirement Properties](#work-requirement-properties)
+* [Work Requirements](#work-requirements)
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
    * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
@@ -85,7 +85,8 @@
       * [Multiple Task Groups using Multiple CSV Files](#multiple-task-groups-using-multiple-csv-files)
       * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
       * [Inspecting the Results of CSV Variable Substitution](#inspecting-the-results-of-csv-variable-substitution)
-* [Worker Pool Properties](#worker-pool-properties)
+* [Worker Pools](#worker-pools)
+   * [Worker Pool Properties](#worker-pool-properties)
    * [Using Textual Names instead of IDs for Compute Requirement Templates and Image Families](#using-textual-names-instead-of-ids-for-compute-requirement-templates-and-image-families)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
@@ -106,13 +107,13 @@
       * [Checking Node Action Queue Status](#checking-node-action-queue-status)
       * [Following Progress](#following-progress)
 * [Data Client](#data-client)
-      * [Named Profiles](#named-profiles)
-      * [Variable Substitutions for Data Client Properties](#variable-substitutions-for-data-client-properties)
+   * [Named Profiles](#named-profiles)
+   * [Variable Substitutions for Data Client Properties](#variable-substitutions-for-data-client-properties)
    * [yd-upload](#yd-upload)
    * [yd-download](#yd-download)
    * [yd-delete](#yd-delete)
    * [yd-ls](#yd-ls)
-* [Creating, Updating and Removing Resources](#creating-updating-and-removing-resources)
+* [Creating, Updating and Removing YellowDog Resources](#creating-updating-and-removing-yellowdog-resources)
    * [Overview of Operation](#overview-of-operation)
       * [Resource Creation](#resource-creation)
       * [Resource Update](#resource-update)
@@ -172,7 +173,7 @@
    * [yd-upload](#yd-upload-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Tue Apr 14 10:45:02 BST 2026 -->
+<!-- Added by: pwt, at: Fri Apr 17 09:28:05 BST 2026 -->
 
 <!--te-->
 
@@ -772,7 +773,9 @@ Variable substitutions can also be used within **User Data** to be supplied to i
 
 The same prefix/postfix requirement applies to the content of files referenced by the `contentFile` and `contentFiles` properties in `writeFile` Node Actions — see [Node Actions](#node-actions).
 
-# Work Requirement Properties
+# Work Requirements
+
+A **Work Requirement** is the top-level unit of work submitted to the YellowDog platform. It contains one or more **Task Groups**, each of which contains one or more **Tasks**. Work Requirements are created and submitted using the **`yd-submit`** command, and can be updated after submission — adding Task Groups or Tasks — using the `--add-to` option.
 
 The `workRequirement` section of the configuration file is optional. It's used only by the `yd-submit` command, and controls the Work Requirement that is submitted to the Platform.
 
@@ -1735,38 +1738,44 @@ When `yd-submit` is run, it will expand the Task list to match the number of dat
 
 The `--process-csv-only` (or `-p`) option can be used with `yd-submit` to output the JSON Work Requirement after CSV variable substitutions only, prior to all other substitutions and property inheritance applied by `yd-submit`.
 
-# Worker Pool Properties
+# Worker Pools
+
+A Provisioned **Worker Pool** is a set of cloud-provisioned compute instances running the YellowDog agent, which claim and execute Tasks from Work Requirements. Worker Pools are created using the **`yd-provision`** command and are automatically scaled and shut down based on demand and configured timeout settings.
+
+**Jump to:** [Property Dictionary](#worker-pool-properties) · [TOML Example](#toml-properties-in-the-workerpool-section) · [JSON Spec](#worker-pool-specification-using-json-documents) · [Variable Substitutions](#variable-substitutions-in-worker-pool-properties) · [Dry-Running](#dry-running-worker-pool-provisioning) · [Node Actions](#node-actions)
 
 The `workerPool` section of the TOML file defines the properties of the Worker Pool to be created, and is used by the `yd-provision` command. A subset of the properties is also used by the `yd-instantiate` command, for creating standalone Compute Requirements that are not associated with Worker Pools. Note that `computeRequirement` may be used as a synonym for `workerPool`, and the two may be used simultaneously in the same TOML file provided that their contained properties are not duplicated.
 
 The only mandatory property is `templateId`. All other properties have defaults (or are not required). 
 The `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name.
 
+## Worker Pool Properties
+
 The following properties are available:
 
-| Property                | Description                                                                                                                                | Default                 |
-|:------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------|:------------------------|
-| `idleNodeTimeout`       | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.                                 | `5.0`                   |
-| `idlePoolTimeout`       | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.                          | `30.0`                  |
-| `imagesId`              | The Image ID, Image Family ID, Image Family name, or Image Group name to use when booting instances.                                       |                         |
-| `instanceTags`          | The dictionary of instance tags to apply to the instances. Tag names must be lower case.                                                   |                         |
-| `maintainInstanceCount` | Only used when instantiating Compute Requirements; attempt to maintain the requested number of instances.                                  | `False`                 |
-| `maxNodes`              | The maximum number of nodes to which the Worker Pool can be scaled up.                                                                     | `1`                     |
-| `metricsEnabled`        | Whether to enable performance metrics for nodes in the Worker Pool                                                                         | `false`                 |
-| `minNodes`              | The minimum number of nodes to which the Worker Pool can be scaled down.                                                                   | `0`                     |
-| `name`                  | The name of the Worker Pool.                                                                                                               | Automatically Generated |
-| `nodeBootTimeout`       | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.                            | `10.0`                  |
-| `requirementTag`        | The tag to apply to the Compute Requirement.                                                                                               | `tag` set in `common`   |
-| `targetInstanceCount`   | The initial number of nodes to create in the Worker Pool.                                                                                  | `1`                     |
-| `templateId`            | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**)                                              | No default provided     |
-| `userData`              | User Data to be supplied to instances on boot.                                                                                             |                         |
-| `userDataFile`          | As above, but read the User Data from the filename supplied in this property.                                                              |                         |
-| `userDataFiles`         | As above, but create the User Data by concatenating the contents of the list of filenames supplied in this property.                       |                         |
-| `workerPoolData`        | The name of a file containing a JSON specification of a Worker Pool.                                                                       |                         |
-| `workerTag`             | The Worker Tag to publish for the each of the Workers on the node(s).                                                                      |                         |
-| `workersPerNode`        | The number of Workers to establish on each node in the Worker Pool.                                                                        | `1`                     |
-| `workersPerVCPU`        | The number of Workers to establish per vCPU on each node in the Worker Pool. (Overrides `workersPerNode`.)                                 |                         |
-| `workersCustomCommand`  | The number of Workers to establish on each node in the Worker Pool, determined by a command run on the node. (Overrides `workersPerNode`.) |                         |
+| Property                | Description                                                                                                                                       | Default                 |
+|:------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------|
+| `idleNodeTimeout`       | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.                                        | `5.0`                   |
+| `idlePoolTimeout`       | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.                                 | `30.0`                  |
+| `imagesId`              | The Image ID, Image Family ID, Image Family name, or Image Group name to use when booting instances.                                              |                         |
+| `instanceTags`          | The dictionary of instance tags to apply to the instances. Tag names must be lower case.                                                          |                         |
+| `maintainInstanceCount` | Only used when instantiating Compute Requirements; attempt to maintain the requested number of instances.                                         | `false`                 |
+| `maxNodes`              | The maximum number of nodes to which the Worker Pool can be scaled up.                                                                            | `1`                     |
+| `metricsEnabled`        | Whether to enable performance metrics for nodes in the Worker Pool                                                                                | `false`                 |
+| `minNodes`              | The minimum number of nodes to which the Worker Pool can be scaled down.                                                                          | `0`                     |
+| `name`                  | The name of the Worker Pool.                                                                                                                      | Automatically Generated |
+| `nodeBootTimeout`       | The time in minutes allowed for a node to boot and register with the platform, otherwise it will be terminated.                                   | `10.0`                  |
+| `requirementTag`        | The tag to apply to the Compute Requirement.                                                                                                      | `tag` set in `common`   |
+| `targetInstanceCount`   | The initial number of nodes to create in the Worker Pool.                                                                                         | `1`                     |
+| `templateId`            | The YellowDog Compute Requirement Template ID or name to use for provisioning. (**Required**)                                                     | No default provided     |
+| `userData`              | User Data to be supplied to instances on boot.                                                                                                    |                         |
+| `userDataFile`          | As above, but read the User Data from the filename supplied in this property.                                                                     |                         |
+| `userDataFiles`         | As above, but create the User Data by concatenating the contents of the list of filenames supplied in this property.                              |                         |
+| `workerPoolData`        | The name of a file containing a JSON specification of a Worker Pool (see [Worker Pool JSON](#worker-pool-specification-using-json-documents)).    |                         |
+| `workerTag`             | The Worker Tag to publish for each of the Workers on the node(s).                                                                                 |                         |
+| `workersPerNode`        | The number of Workers to establish on each node in the Worker Pool. Mutually exclusive with `workersPerVCPU` and `workersCustomCommand`.          | `1`                     |
+| `workersPerVCPU`        | The number of Workers to establish per vCPU on each node in the Worker Pool. Mutually exclusive with `workersPerNode` and `workersCustomCommand`. |                         |
+| `workersCustomCommand`  | A command run on the node to determine the number of Workers to establish. Mutually exclusive with `workersPerNode` and `workersPerVCPU`.         |                         |
 
 ## Using Textual Names instead of IDs for Compute Requirement Templates and Image Families
 
@@ -1940,7 +1949,7 @@ When a JSON Worker Pool specification is used, the following properties from the
 
 - `imagesId`
 - `instanceTags`
-- `requirementName`: obtained from the `name` property in the `TOML` configuration. (The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
+- `requirementName`: obtained from the `name` property in the TOML configuration. (The name will be generated automatically if not supplied in either the TOML file or the JSON specification.)
 - `requirementNamespace`: obtained from the `namespace` property in the `TOML` configuration
 - `requirementTag`: obtained from the `requirementTag` property at the `workerPool` level, or the `tag` in the `common` configuration
 - `targetInstanceCount`
@@ -1978,6 +1987,8 @@ The generated JSON is produced after all processing (incorporating `config.toml`
 
 To suppress all output except for the JSON itself, add the `--quiet` (`-q`) command line option.
 
+Use `--follow` (`-f`) to track the provisioning progress after submission — `yd-provision` will report on node events and not return until the Worker Pool reaches a stable state.
+
 The JSON dry-run output could itself be used by `yd-provision`, if captured in a file, e.g.:
 
 ```shell
@@ -1987,7 +1998,7 @@ yd-provision my_worker_pool.json
 
 ## Node Actions
 
-Node Actions allow scripts and commands to be dispatched directly to running Worker Pool nodes. They can be used to start services (e.g., Slurm controllers), write configuration files, or create YellowDog Workers dynamically — without modifying the original Worker Pool specification.
+Node Actions allow scripts and commands to be dispatched directly to running Worker Pool nodes. They can be used to start services (e.g., Slurm controllers), write configuration files, or create YellowDog Workers dynamically — without modifying the original Worker Pool specification. Node Actions are submitted using the **`yd-nodeaction`** command.
 
 ### Action Types
 
@@ -2186,7 +2197,7 @@ The default prefix is `{{namespace}}/{{tag}}`, using the `namespace` and `tag` v
 
 > **Note on `bucket`:** The `bucket` property is named after S3/GCS terminology but applies equally to other rclone storage backends — use it to specify the container name (Azure Blob Storage), the root directory (SFTP, local, Google Drive), or the equivalent top-level path component for your storage target.
 
-### Named Profiles
+## Named Profiles
 
 Multiple named profiles can be defined as sub-tables of `[dataClient]`. A named profile overrides only the fields it specifies; any field not set in the profile inherits the corresponding value from the base `[dataClient]` section.
 
@@ -2215,7 +2226,7 @@ The active profile can also be set via the `YD_DATA_CLIENT` environment variable
 
 Profile names are free-form; the only reserved names are `remote`, `bucket`, and `prefix` (the scalar field names of `[dataClient]` itself).
 
-### Variable Substitutions for Data Client Properties
+## Variable Substitutions for Data Client Properties
 
 The `remote`, `bucket`, and `prefix` values from `[dataClient]` are available as variable substitutions in all spec files (TOML, JSON, Jsonnet) and in `userdata` scripts for every command — including `yd-submit`, `yd-provision`, and `yd-instantiate`:
 
@@ -2323,7 +2334,7 @@ Remote paths support `{{variable}}` substitution and may also contain wildcard c
 
 Example: `yd-ls -R 'results_*'` lists all items matching `results_*`, showing directory contents as trees.
 
-# Creating, Updating and Removing Resources
+# Creating, Updating and Removing YellowDog Resources
 
 The commands **yd-create** and **yd-remove** allow the creation, update and removal of the following YellowDog resources:
 
