@@ -17,7 +17,7 @@ DOCS_URL = f"https://github.com/yellowdog/yellowdog-cli/blob/v{__version__}/READ
 
 def _jsonnet_version() -> str:
     try:
-        from _jsonnet import evaluate_file, version
+        from _jsonnet import version
 
         # Strip the initial 'v' if present
         return version[1:] if version.startswith("v") else version

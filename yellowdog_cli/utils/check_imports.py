@@ -5,10 +5,9 @@ Handle optional imports.
 
 def check_jsonnet_import():
     # Jsonnet is not installed by default, due to a binary build requirement
-    # on some platforms. The 'jsonnet-binary' package can be used to overcome
-    # the requirement for build tools to be installed.
+    # on some platforms.
     try:
-        from _jsonnet import evaluate_file
+        from _jsonnet import evaluate_file  # noqa: F401
     except ImportError:
         raise ImportError(
             "Jsonnet support is not included by default. The 'jsonnet' Python package"
@@ -21,7 +20,7 @@ def check_jsonnet_import():
 def check_cloudwizard_imports():
     # The cloud provider SDKs for Cloud Wizard are not installed by default.
     try:
-        import boto3  # One example package required for Cloud Wizard
+        import boto3  # noqa: F401  # One example package required for Cloud Wizard
     except ImportError:
         raise ImportError(
             "The cloud provider SDKs needed for Cloud Wizard are not installed"

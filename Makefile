@@ -26,7 +26,10 @@ black: $(SRC) $(TESTS)
 isort: $(SRC)
 	isort --profile black $(SRC) $(TESTS)
 
-format: pyupgrade isort black
+autoflake: $(SRC) $(TESTS)
+	autoflake --in-place --remove-all-unused-imports $(SRC) $(TESTS)
+
+format: pyupgrade autoflake isort black
 
 #mypy: $(SRC) $(TESTS)
 #	mypy $(SRC) $(TESTS)

@@ -18,7 +18,7 @@ from yellowdog_cli.utils.printing import (
 )
 
 try:
-    import readline
+    import readline  # noqa: F401
 except ImportError:
     pass
 

@@ -8,7 +8,6 @@ Covers:
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from yellowdog_client.model import WorkRequirementStatus
 
 import yellowdog_cli.utils.start_hold_common as shc_module
