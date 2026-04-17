@@ -2,7 +2,7 @@
 
 SRC = yellowdog_cli/*.py yellowdog_cli/utils/*.py
 TESTS = tests/*.py conftest.py
-MANIFEST = LICENSE README.md requirements.txt
+MANIFEST = LICENSE README.md
 BUILD_DIST = build dist yellowdog_cli.egg-info
 PYCACHE = __pycache__ yellowdog_cli/__pycache__ yellowdog_cli/utils/__pycache__
 TOC_BACKUP = README.md.* README_CLOUDWIZARD.md.*
@@ -15,18 +15,14 @@ clean:
 	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP) $(PYINSTALLER)
 
 install: build
-	pip install -U -e ".[jsonnet,cloudwizard]"
+	uv pip install -U -e ".[jsonnet,cloudwizard]"
 
 uninstall:
-	pip uninstall -y yellowdog-cli
+	uv pip uninstall yellowdog-cli
 
-black: $(SRC) $(TESTS)
-	black --preview --target-version py310 $(SRC) $(TESTS)
-
-isort: $(SRC)
-	isort --profile black $(SRC) $(TESTS)
-
-format: pyupgrade isort black
+format: $(SRC) $(TESTS)
+	ruff check --fix $(SRC) $(TESTS)
+	ruff format $(SRC) $(TESTS)
 
 #mypy: $(SRC) $(TESTS)
 #	mypy $(SRC) $(TESTS)
@@ -41,9 +37,6 @@ pypi_test_upload: clean build
 pypi_check: build
 	twine check dist/*
 
-pyupgrade: $(SRC)
-	pyupgrade --exit-zero-even-if-changed --py310-plus $(SRC) $(TESTS)
-
 toc_all: toc toc_cloudwizard
 
 toc: README.md
@@ -53,8 +46,8 @@ toc_cloudwizard: README_CLOUDWIZARD.md
 	./gh-md-toc --insert README_CLOUDWIZARD.md
 
 update:
-	pip install -U pip -r requirements.txt -r requirements-dev.txt
+	uv pip install -U -e ".[dev,jsonnet,cloudwizard]"
 
 no_op:
-	# Available targets are: build, clean, install, uninstall, black, pypi_upload, pypi_check
+	# Available targets are: build, clean, install, uninstall, format, pypi_upload, pypi_check
 	# For releases, use: ./release.sh (or ./release.sh --dry-run)

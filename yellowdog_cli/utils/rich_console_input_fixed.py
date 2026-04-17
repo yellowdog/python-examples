@@ -31,7 +31,6 @@ from rich.text import TextType
 
 
 class ConsoleWithInputBackspaceFixed(Console):
-
     def input(
         self,
         prompt: TextType = "",

@@ -313,9 +313,7 @@ def _report_variables(variable_names: list[str]):
     max_var_name = max(len(name) for name in variables_sorted)
     for name, value in variables_sorted.items():
         print(
-            f"                      {name}"
-            f"{' '* (max_var_name - len(name))} "
-            f"= {value}"
+            f"                      {name}{' ' * (max_var_name - len(name))} = {value}"
         )
     return
 

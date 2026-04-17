@@ -62,7 +62,7 @@ class TestLargeContainers:
         assert "\n" not in result
 
     def test_list_over_max_width(self):
-        # 5 × 22-char strings → repr > MAX_WIDTH = 100 chars → multi-line
+        # 5 x 22-char strings -> repr > MAX_WIDTH = 100 chars -> multi-line
         data = ["x" * 22] * 5
         result = _enc(data)
         assert result.startswith("[\n")

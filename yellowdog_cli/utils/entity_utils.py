@@ -190,7 +190,7 @@ def get_compute_requirement_id_by_name(
     try:
         # The CR must be unique for any given namespace/name
         # Ensure exact name match
-        return [cr for cr in search_client.list_all() if cr.name == name][0].id
+        return next(cr for cr in search_client.list_all() if cr.name == name).id
     except IndexError:
         return None
 
@@ -549,7 +549,6 @@ def get_image_name_or_id(
     # Search for names of form 'namespace/image-family-name/image-group-name'
     # (the platform prevents duplicates)
     if len(split_name) == 3:
-
         # This will be tidied up when the Application can
         # query its properties
         if not image_family_summaries:  # Global search didn't work
@@ -1008,7 +1007,6 @@ def get_user_by_name_or_id(client: PlatformClient, user_name_or_id: str) -> User
     Get a user ID by name, username or ID.
     """
     for user in get_all_users(client):
-
         if user.id == user_name_or_id:
             return user
 

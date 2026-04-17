@@ -49,15 +49,15 @@ class TestSystemResize:
         # 1. Provision with 1 node (no -f: following runs to auto-shutdown).
         # --quiet returns just the Worker Pool YDID on stdout.
         result = shell(f"cd {SYSTEM_DIR} && yd-provision -q -t={tag}")
-        assert (
-            result.exit_code == 0
-        ), f"yd-provision failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-provision failed:\n{result.stdout}\n{result.stderr}"
+        )
         wp_id = result.stdout.strip()
 
         # 2. Resize to 2 nodes, retrying until the pool is no longer awaiting nodes.
-        assert _resize_with_retry(
-            wp_id, 2
-        ), f"yd-resize did not succeed within timeout for {wp_id}"
+        assert _resize_with_retry(wp_id, 2), (
+            f"yd-resize did not succeed within timeout for {wp_id}"
+        )
 
         # 3. Verify the target instance count changed to 2 in yd-list compute-requirements.
         # The compute requirement table shows "STATUS (target/expected/alive)",
@@ -66,6 +66,6 @@ class TestSystemResize:
             f"cd {SYSTEM_DIR} && yd-list compute-requirements --nf -n={NAMESPACE} -t={tag}"
         )
         assert result.exit_code == 0
-        assert (
-            "(2/" in result.stdout
-        ), f"Target instance count not updated to 2:\n{result.stdout}"
+        assert "(2/" in result.stdout, (
+            f"Target instance count not updated to 2:\n{result.stdout}"
+        )

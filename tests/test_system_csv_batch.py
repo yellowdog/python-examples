@@ -25,17 +25,17 @@ class TestSystemCsvBatch:
 
         # 1. Provision the worker pool
         result = shell(f"cd {SYSTEM_DIR} && yd-provision -t={tag}")
-        assert (
-            result.exit_code == 0
-        ), f"yd-provision failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-provision failed:\n{result.stdout}\n{result.stderr}"
+        )
 
         # 2. Submit 10-task CSV batch and follow to completion
         result = shell(
             f"cd {SYSTEM_DIR} && yd-submit -f wr_csv_batch.json -V tasks.csv -t={tag}"
         )
-        assert (
-            result.exit_code == 0
-        ), f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
+        )
 
         # 3. Verify all 10 tasks completed
         result = shell(

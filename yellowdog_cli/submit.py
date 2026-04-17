@@ -220,7 +220,6 @@ def main():
             )
 
     elif wr_data_file is not None:
-
         if ARGS_PARSER.jsonnet_dry_run and not wr_data_file.lower().endswith("jsonnet"):
             raise ValueError(
                 "Option '--jsonnet-dry-run' can only be used with files ending in '.jsonnet'"
@@ -1253,9 +1252,9 @@ def add_to_existing_work_requirement(
 
     # Partition spec TGs: those whose name matches an existing TG (add tasks
     # to existing TG) vs those that are new (add TG to WR first)
-    matched: list[tuple[int, TaskGroup, TaskGroup]] = (
-        []
-    )  # (spec_idx, spec_tg, existing_tg)
+    matched: list[
+        tuple[int, TaskGroup, TaskGroup]
+    ] = []  # (spec_idx, spec_tg, existing_tg)
     new_tgs: list[tuple[int, TaskGroup]] = []  # (spec_idx, spec_tg)
     for spec_idx, spec_tg in enumerate(spec_task_groups):
         matched_existing = next(
@@ -1393,8 +1392,7 @@ def submit_json_raw(wr_file: str):
             executors: list[Future] = []
             for batch_number in range(num_batches):
                 task_batch = task_list[
-                    batch_number
-                    * TASK_BATCH_SIZE : min(
+                    batch_number * TASK_BATCH_SIZE : min(
                         len(task_list), (batch_number + 1) * TASK_BATCH_SIZE
                     )
                 ]

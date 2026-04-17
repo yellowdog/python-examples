@@ -41,9 +41,9 @@ class TestSynonyms:
 
     def test_all_synonyms_are_single_uppercase_letters(self):
         for synonym in SYNONYMS:
-            assert (
-                len(synonym) == 1 and synonym.isupper()
-            ), f"Synonym {synonym!r} is not a single uppercase letter"
+            assert len(synonym) == 1 and synonym.isupper(), (
+                f"Synonym {synonym!r} is not a single uppercase letter"
+            )
 
     def test_lowercase_synonym_does_not_match(self):
         # 'w' is not a registered synonym; prefix matching finds 'work-requirements'

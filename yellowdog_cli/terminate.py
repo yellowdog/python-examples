@@ -105,7 +105,6 @@ def terminate_by_name_or_id(names_or_ids: list[str]):
     node_or_instance_cr_ids: list[str] = []
 
     for name_or_id in set(names_or_ids):  # Remove duplicates
-
         # Is this a cr_id.instance_id specification?
         if len(cr_id_instance_id := name_or_id.split(".")) == 2:
             if (

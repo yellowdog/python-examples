@@ -259,8 +259,7 @@ def load_dotenv_file():
 
     if dotenv_yd_substitutions:
         print_info(
-            "Adding 'YD' environment variable(s): "
-            f"{', '.join(dotenv_yd_substitutions)}"
+            f"Adding 'YD' environment variable(s): {', '.join(dotenv_yd_substitutions)}"
         )
 
     # Actually load the variables (including non-'YD' variables)

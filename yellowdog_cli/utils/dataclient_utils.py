@@ -8,8 +8,6 @@ import json
 from pathlib import Path
 from typing import cast
 
-_GLOB_CHARS = frozenset("*?[")
-
 from rclone_api import Config, Rclone
 from rclone_api.dir_listing import DirListing
 
@@ -17,6 +15,8 @@ from yellowdog_cli.utils.config_types import ConfigDataClient
 from yellowdog_cli.utils.printing import print_info, print_warning
 from yellowdog_cli.utils.rclone_utils import make_rclone, parse_rclone_config
 from yellowdog_cli.utils.variables import process_variable_substitutions
+
+_GLOB_CHARS = frozenset("*?[")
 
 
 def _require_remote(config: ConfigDataClient) -> str:

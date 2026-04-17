@@ -56,7 +56,7 @@ class TestCheckFloatOrInt:
         assert check_float_or_int(None) is None
 
     def test_string_raises(self):
-        with pytest.raises(Exception, match="Float.*Integer"):
+        with pytest.raises(Exception, match=r"Float.*Integer"):
             check_float_or_int("abc")
 
     def test_list_raises(self):

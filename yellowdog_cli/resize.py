@@ -113,8 +113,7 @@ def _resize_compute_requirement():
         CLIENT.compute_client.update_compute_requirement(cr, reprovision=False)
 
         print_info(
-            "Resizing complete: new target instance count ="
-            f" {cr.targetInstanceCount}"
+            f"Resizing complete: new target instance count = {cr.targetInstanceCount}"
         )
 
         if ARGS_PARSER.follow:

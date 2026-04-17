@@ -55,22 +55,22 @@ class TestWRControlCommands:
 
         # Submit a WR that will stay PENDING (no matching worker pool)
         result = shell(f"cd {SYSTEM_DIR} && yd-submit wr_trivial.json -t={tag}")
-        assert (
-            result.exit_code == 0
-        ), f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
+        )
 
         # Hold
         result = shell(f"cd {SYSTEM_DIR} && yd-hold -y -t={tag} -n={NAMESPACE}")
-        assert (
-            result.exit_code == 0
-        ), f"yd-hold failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-hold failed:\n{result.stdout}\n{result.stderr}"
+        )
         assert _wr_status(tag) == "HELD", f"Expected HELD, got: {_wr_status(tag)}"
 
         # Start (releases the hold)
         result = shell(f"cd {SYSTEM_DIR} && yd-start -y -t={tag} -n={NAMESPACE}")
-        assert (
-            result.exit_code == 0
-        ), f"yd-start failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-start failed:\n{result.stdout}\n{result.stderr}"
+        )
         status = _wr_status(tag)
         assert status in (
             "PENDING",
@@ -79,9 +79,9 @@ class TestWRControlCommands:
 
         # Cancel
         result = shell(f"cd {SYSTEM_DIR} && yd-cancel -y -t={tag} -n={NAMESPACE}")
-        assert (
-            result.exit_code == 0
-        ), f"yd-cancel failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-cancel failed:\n{result.stdout}\n{result.stderr}"
+        )
         status = _wr_status(tag)
         assert status in (
             "CANCELLING",
@@ -96,16 +96,16 @@ class TestWRControlCommands:
 
         # Submit
         result = shell(f"cd {SYSTEM_DIR} && yd-submit wr_trivial.json -t={tag}")
-        assert (
-            result.exit_code == 0
-        ), f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-submit failed:\n{result.stdout}\n{result.stderr}"
+        )
 
         # Finish — transitions WR to FINISHING (no new tasks dispatched).
         # With no workers, the WR may move directly to COMPLETING/COMPLETED.
         result = shell(f"cd {SYSTEM_DIR} && yd-finish -y -t={tag} -n={NAMESPACE}")
-        assert (
-            result.exit_code == 0
-        ), f"yd-finish failed:\n{result.stdout}\n{result.stderr}"
+        assert result.exit_code == 0, (
+            f"yd-finish failed:\n{result.stdout}\n{result.stderr}"
+        )
         status = _wr_status(tag)
         assert status not in (
             "PENDING",

@@ -1075,9 +1075,7 @@ class CLIParser:
                 type=str,
                 required=False,
                 action="append",
-                help=(
-                    "target a specific node by ID; " "can be specified multiple times"
-                ),
+                help=("target a specific node by ID; can be specified multiple times"),
                 metavar="<node-id>",
             )
             parser.add_argument(

@@ -4,7 +4,7 @@
 
 [project]
     name = "yellowdog-cli"
-    description = "Python-based CLI for interacting with the YellowDog Platform"
+    description = "Python-based CLI the YellowDog Platform"
     classifiers = [
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
@@ -15,8 +15,19 @@
         "Development Status :: 4 - Beta",
     ]
     requires-python = ">=3.10"
-    dynamic = ["version", "dependencies"]
+    dynamic = ["version"]
     license = "Apache-2.0"
+    dependencies = [
+        "PyPAC >= 0.16.4",
+        "dateparser",
+        "python-dotenv",
+        "requests",
+        "rclone-api",
+        "rich >= 13.9.4",
+        "tabulate >= 0.9.0",
+        "tomli >= 2.4.1",
+        "yellowdog-sdk >= 15.0.0",
+    ]
 
 [[project.authors]]
     name = "YellowDog Limited"
@@ -40,6 +51,22 @@
         "azure-mgmt-network",
         "azure-mgmt-storage",
         "azure-mgmt-subscription",
+    ]
+    dev = [
+        "build",
+        "cli-test-helpers",
+        "packaging",
+        "pipdeptree",
+        "pre-commit",
+        "pyinstaller",
+        "pyqt6",
+        "pytest",
+        "pytest-xdist",
+        "python-dispatch",
+        "ruff",
+        "setuptools",
+        "twine",
+        "wheel",
     ]
 
 [project.scripts]
@@ -79,10 +106,15 @@
 [tool.setuptools.dynamic.version]
     attr = "yellowdog_cli.__init__.__version__"
 
-[tool.setuptools.dynamic.dependencies]
-    file = ["requirements.txt"]
+[tool.ruff]
+    target-version = "py310"
+    line-length = 88
 
-[tool.pytest.ini_options]                                                                                                                                                                                                                                                                                                      
+[tool.ruff.lint]
+    select = ["E", "F401", "I", "RUF", "UP", "W"]
+    ignore = ["E501"]
+
+[tool.pytest.ini_options]
     filterwarnings = [
       "ignore::DeprecationWarning:pydispatch",
     ]

@@ -179,7 +179,7 @@ def generate_taskdata_object(
         )
     except TypeError as e:
         raise TypeError(
-            f"Unable to generate 'taskDataInputs' or 'taskDataOutputs' list: {str(e)}"
+            f"Unable to generate 'taskDataInputs' or 'taskDataOutputs' list: {e!s}"
         )
 
 
@@ -240,7 +240,6 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
     Generate a TaskErrorMatcher object.
     """
     try:
-
         exit_codes_str: list[int] | None = check_list(
             task_error_matcher_data.get(PROCESS_EXIT_CODES)
         )
@@ -338,7 +337,7 @@ class RcloneUploadedFiles:
 
         if not exists(local_file):
             raise FileNotFoundError(
-                f"File '{Path(self._files_directory)/local_file}' does not exist "
+                f"File '{Path(self._files_directory) / local_file}' does not exist "
                 "and cannot be uploaded"
             )
 
@@ -485,7 +484,7 @@ class RcloneUploadedFiles:
         Remove everything except the service, bucket name and object name.
         """
         try:
-            service, rclone_details, bucket_name_and_object = (
+            _service, _rclone_details, bucket_name_and_object = (
                 rclone_uploaded_file.upload_file_path.split(":")
             )
             return bucket_name_and_object

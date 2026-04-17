@@ -105,7 +105,6 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: list[str]):
     work_requirement_summaries: list[WorkRequirementSummary] = []
 
     for name_or_id in names_or_ids:
-
         work_requirement_summary = get_work_requirement_summary_by_name_or_id(
             CLIENT,
             name_or_id,
