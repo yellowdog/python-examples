@@ -4,7 +4,7 @@
 
 [project]
     name = "yellowdog-cli"
-    description = "Python-based CLI for interacting with the YellowDog Platform"
+    description = "Python-based CLI the YellowDog Platform"
     classifiers = [
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
