@@ -1,8 +1,5 @@
-autoflake
-black
 build
 cli-test-helpers
-isort
 packaging
 pipdeptree
 pyinstaller
@@ -10,7 +7,7 @@ pyqt6
 pytest
 pytest-xdist
 python-dispatch
-pyupgrade
+ruff
 setuptools
 twine
 wheel

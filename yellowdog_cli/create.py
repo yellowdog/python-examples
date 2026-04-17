@@ -288,8 +288,7 @@ def create_compute_source_template(resource: dict):
             compute_source_template
         )
         print_info(
-            f"Updated existing Compute Source Template '{name}'"
-            f" ({compute_source.id})"
+            f"Updated existing Compute Source Template '{name}' ({compute_source.id})"
         )
 
     global CLEAR_CST_CACHE
@@ -1246,16 +1245,14 @@ def update_user(resource: dict, internal_user: bool):
         for group_id in group_ids_to_remove:
             CLIENT.account_client.remove_user_from_group(group_id, user.id)
             print_info(
-                f"Removed Group '{get_group_name_by_id(CLIENT, group_id)}' "
-                f"({group_id})"
+                f"Removed Group '{get_group_name_by_id(CLIENT, group_id)}' ({group_id})"
             )
 
         group_ids_to_add = new_group_ids - current_group_ids
         for group_id in group_ids_to_add:
             CLIENT.account_client.add_user_to_group(group_id, user.id)
             print_info(
-                f"Added Group '{get_group_name_by_id(CLIENT, group_id)}' "
-                f"({group_id})"
+                f"Added Group '{get_group_name_by_id(CLIENT, group_id)}' ({group_id})"
             )
 
     # Main logic: try name, username, then ID if present; check for ID match

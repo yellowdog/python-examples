@@ -336,7 +336,7 @@ def remove_configured_worker_pool(resource: dict):
         return
 
     if not confirmed(
-        f"Shut down Configured Worker Pool '{fq_name}'" f" ({worker_pool.id})?"
+        f"Shut down Configured Worker Pool '{fq_name}' ({worker_pool.id})?"
     ):
         return
 

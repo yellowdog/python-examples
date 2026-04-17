@@ -159,7 +159,12 @@ def follow_work_requirement_with_progress(ydid: str) -> None:
             pass
 
     def on_event(event: str, ydid_type: YDIDType) -> None:
-        nonlocal total_tasks, completed_tasks, failed_tasks, aborted_tasks, cancelled_tasks
+        nonlocal \
+            total_tasks, \
+            completed_tasks, \
+            failed_tasks, \
+            aborted_tasks, \
+            cancelled_tasks
         if not event.startswith("data:"):
             return
         try:

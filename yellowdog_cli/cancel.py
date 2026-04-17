@@ -110,7 +110,6 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: list[str]):
     work_requirement_summaries: list[WorkRequirementSummary] = []
 
     for name_or_id in names_or_ids:
-
         # Handle a task ID
         if get_ydid_type(name_or_id) == YDIDType.TASK:
             if not confirmed(

@@ -1518,7 +1518,7 @@ def _truncate_text(description: str | None):
     if description is None:
         return ""
 
-    return f"{description[:MAX_TABLE_DESCRIPTION - 3] + '...' if len(description) > MAX_TABLE_DESCRIPTION else description}"
+    return f"{description[: MAX_TABLE_DESCRIPTION - 3] + '...' if len(description) > MAX_TABLE_DESCRIPTION else description}"
 
 
 def _yes_or_no(true_: bool) -> str:

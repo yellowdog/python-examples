@@ -20,16 +20,9 @@ install: build
 uninstall:
 	pip uninstall -y yellowdog-cli
 
-black: $(SRC) $(TESTS)
-	black --preview --target-version py310 $(SRC) $(TESTS)
-
-isort: $(SRC)
-	isort --profile black $(SRC) $(TESTS)
-
-autoflake: $(SRC) $(TESTS)
-	autoflake --in-place --remove-all-unused-imports $(SRC) $(TESTS)
-
-format: pyupgrade autoflake isort black
+format: $(SRC) $(TESTS)
+	ruff check --fix $(SRC) $(TESTS)
+	ruff format $(SRC) $(TESTS)
 
 #mypy: $(SRC) $(TESTS)
 #	mypy $(SRC) $(TESTS)
@@ -44,9 +37,6 @@ pypi_test_upload: clean build
 pypi_check: build
 	twine check dist/*
 
-pyupgrade: $(SRC)
-	pyupgrade --exit-zero-even-if-changed --py310-plus $(SRC) $(TESTS)
-
 toc_all: toc toc_cloudwizard
 
 toc: README.md
@@ -59,5 +49,5 @@ update:
 	pip install -U pip -r requirements.txt -r requirements-dev.txt
 
 no_op:
-	# Available targets are: build, clean, install, uninstall, black, pypi_upload, pypi_check
+	# Available targets are: build, clean, install, uninstall, format, pypi_upload, pypi_check
 	# For releases, use: ./release.sh (or ./release.sh --dry-run)

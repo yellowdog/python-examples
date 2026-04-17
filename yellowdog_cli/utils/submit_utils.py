@@ -240,7 +240,6 @@ def _generate_task_error_matcher(task_error_matcher_data: dict) -> TaskErrorMatc
     Generate a TaskErrorMatcher object.
     """
     try:
-
         exit_codes_str: list[int] | None = check_list(
             task_error_matcher_data.get(PROCESS_EXIT_CODES)
         )
@@ -338,7 +337,7 @@ class RcloneUploadedFiles:
 
         if not exists(local_file):
             raise FileNotFoundError(
-                f"File '{Path(self._files_directory)/local_file}' does not exist "
+                f"File '{Path(self._files_directory) / local_file}' does not exist "
                 "and cannot be uploaded"
             )
 
