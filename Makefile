@@ -45,9 +45,15 @@ toc: README.md
 toc_cloudwizard: README_CLOUDWIZARD.md
 	./gh-md-toc --insert README_CLOUDWIZARD.md
 
+test:
+	pytest -v
+
+tox:
+	tox
+
 update:
 	uv pip install -U -e ".[dev,jsonnet,cloudwizard]"
 
 no_op:
-	# Available targets are: build, clean, install, uninstall, format, pypi_upload, pypi_check
+	# Available targets are: build, clean, format, install, test, tox, uninstall, update, pypi_upload, pypi_check
 	# For releases, use: ./release.sh (or ./release.sh --dry-run)

@@ -65,6 +65,8 @@
         "python-dispatch",
         "ruff",
         "setuptools",
+        "tox",
+        "tox-uv",
         "twine",
         "wheel",
     ]
@@ -118,3 +120,11 @@
     filterwarnings = [
       "ignore::DeprecationWarning:pydispatch",
     ]
+
+[tool.tox]
+    env_list = ["py310", "py311", "py312", "py313", "py314"]
+
+[tool.tox.env_run_base]
+    runner = "uv-venv-runner"
+    extras = ["dev"]
+    commands = [["pytest", "{posargs}"]]

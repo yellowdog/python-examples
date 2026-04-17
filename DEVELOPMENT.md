@@ -72,6 +72,23 @@ pytest -v
 
 See [`tests/README.md`](tests/README.md) for the full test matrix — including dry-run, system, compute, and demo test categories, credentials setup, and parallel execution options.
 
+### Testing Across Python Versions
+
+To run the unit tests against all supported Python versions (3.10–3.14), use [tox](https://tox.wiki/) via:
+
+```shell
+make tox
+```
+
+tox is configured in `pyproject.toml` under `[tool.tox]` and uses `tox-uv` as its backend. uv will automatically download any Python version that isn't already installed — no manual setup required, and this works consistently on macOS, Linux, and Windows.
+
+To target a specific version or subset:
+
+```shell
+tox -e py310            # single version
+tox -e py310,py314      # just the bounds
+```
+
 ## Building
 
 ```shell
