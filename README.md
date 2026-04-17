@@ -21,6 +21,7 @@
       * [Update](#update-2)
       * [With Jsonnet support](#with-jsonnet-support-2)
 * [Usage](#usage)
+* [Typical Workflow](#typical-workflow)
 * [Configuration](#configuration)
 * [Naming Rules](#naming-rules)
 * [Common Properties](#common-properties)
@@ -44,6 +45,7 @@
    * [Work Requirement JSON File Structure](#work-requirement-json-file-structure)
    * [Property Inheritance](#property-inheritance)
    * [Work Requirement Property Dictionary](#work-requirement-property-dictionary)
+   * [Retryable Errors](#retryable-errors)
    * [Merging Additional Environment Variables into Tasks](#merging-additional-environment-variables-into-tasks)
       * [Example — TOML](#example--toml)
       * [Example — JSON](#example--json)
@@ -86,6 +88,7 @@
       * [Using CSV Data with Simple, TOML-Only Work Requirement Specifications](#using-csv-data-with-simple-toml-only-work-requirement-specifications)
       * [Inspecting the Results of CSV Variable Substitution](#inspecting-the-results-of-csv-variable-substitution)
 * [Worker Pools](#worker-pools)
+   * [Worker Pools vs. Compute Requirements](#worker-pools-vs-compute-requirements)
    * [Worker Pool Properties](#worker-pool-properties)
    * [Using Textual Names instead of IDs for Compute Requirement Templates and Image Families](#using-textual-names-instead-of-ids-for-compute-requirement-templates-and-image-families)
    * [Automatic Properties](#automatic-properties-1)
@@ -173,7 +176,7 @@
    * [yd-upload](#yd-upload-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Apr 17 09:28:05 BST 2026 -->
+<!-- Added by: pwt, at: Fri Apr 17 09:39:53 BST 2026 -->
 
 <!--te-->
 
@@ -405,6 +408,32 @@ options:
   --yes, -y             perform modifying/destructive actions without requiring user confirmation
   --raw-events          print the raw JSON event stream when following events
 ```
+
+# Typical Workflow
+
+A common pattern when using YellowDog is to submit a Work Requirement and provision a Worker Pool simultaneously, then follow both to completion. The `--quiet` flag returns just the YDID, making it easy to compose commands in shell scripts:
+
+```bash
+# Submit a Work Requirement and capture its YDID
+WR_ID=$(yd-submit --quiet)
+
+# Provision a Worker Pool and capture its YDID
+WP_ID=$(yd-provision --quiet)
+
+# Follow both until the Work Requirement finishes and the Worker Pool shuts down
+yd-follow "$WR_ID" "$WP_ID"
+```
+
+Alternatively, `yd-submit --follow` and `yd-provision` can be run in parallel, letting the Worker Pool pick up Tasks as they are submitted:
+
+```bash
+yd-provision &
+yd-submit --follow
+```
+
+When the Work Requirement is finished, the Worker Pool will scale down and shut itself down automatically based on the configured `idlePoolTimeout`.
+
+Note that there is no fixed 1:1 relationship between Work Requirements and Worker Pools. The YellowDog Scheduler matches Task Groups to Workers based on the Task Group's run specification (worker tags, instance types, providers, regions, etc.) — any Worker Pool whose Workers satisfy those constraints is a candidate. This means a single Worker Pool can serve Task Groups from multiple Work Requirements simultaneously, and a single Work Requirement's Task Groups can be distributed across multiple Worker Pools.
 
 # Configuration
 
@@ -850,6 +879,7 @@ The following table outlines all the properties available for defining Work Requ
 | `environment`               | The environment variables to set for a Task when it's executed. E.g., JSON: `{"VAR_1": "abc", "VAR_2": "def"}`, TOML: `{VAR_1 = "abc", VAR_2 = "def"}`.                                                                             | Yes  | Yes | Yes  | Yes  |
 | `finishIfAllTasksFinished`  | If true, the Task Group will finish automatically if all contained tasks finish. Default:`true`.                                                                                                                                    | Yes  | Yes | Yes  |      |
 | `finishIfAnyTaskFailed`     | If true, the Task Group will be failed automatically if any contained tasks fail. Default:`false`.                                                                                                                                  | Yes  | Yes | Yes  |      |
+| `fulfilOnSubmit`            | If `true`, the Work Requirement transitions to `FULFILLED` immediately after all Tasks have been submitted by the client, without waiting for them to be allocated to Workers. Default: `false`.                                    | Yes  | Yes |      |      |
 | `instancePricingPreference` | The preferred instance pricing type for Tasks. One of: `SPOT_ONLY`, `ON_DEMAND_ONLY`, `SPOT_THEN_ON_DEMAND`, `ON_DEMAND_THEN_SPOT`. Default: no preference.                                                                         | Yes  | Yes | Yes  |      |
 | `instanceTypes`             | The machine instance types that can be used to execute Tasks. E.g., `["t3.micro", "t3a.micro"]`.                                                                                                                                    | Yes  | Yes | Yes  |      |
 | `maximumTaskRetries`        | The maximum number of times a Task can be retried after it has failed. E.g.: `5`.                                                                                                                                                   | Yes  | Yes | Yes  |      |
@@ -883,6 +913,30 @@ The following table outlines all the properties available for defining Work Requ
 | `vcpus`                     | Range constraint on number of vCPUs that are required to execute Tasks E.g., `[2.0, 4.0]`.                                                                                                                                          | Yes  | Yes | Yes  |      |
 | `workerTags`                | The list of Worker Tags that will be used to match against the Worker Tag of a candidate Worker. E.g., `["tag_x", "tag_y"]`.                                                                                                        | Yes  | Yes | Yes  |      |
 | `workRequirementData`       | The name of the file containing the JSON document in which the Work Requirement is defined. E.g., `"test_workreq.json"`.                                                                                                            | Yes  |     |      |      |
+
+## Retryable Errors
+
+The `retryableErrors` property controls which failure conditions trigger a retry (up to `maximumTaskRetries`). It is a list of error condition objects; a Task is retried if it matches **any** entry in the list. If the list is empty (the default), **all** failures are retried.
+
+Each entry is an object with one or more of the following fields. Within an entry, all specified fields must match (AND logic). Fields omitted from an entry match any value.
+
+| Field               | Type             | Description                                                                 |
+|:--------------------|:-----------------|:----------------------------------------------------------------------------|
+| `processExitCodes`  | list of integers | The process exit code(s) at which the Task failed. E.g., `[1, 143]`.        |
+| `statusesAtFailure` | list of strings  | The Task status(es) at the time of failure. E.g., `["FAILED"]`.             |
+| `errorTypes`        | list of strings  | The error type(s) associated with the failure. E.g., `["ALLOCATION_LOST"]`. |
+
+The `ALLOCATION_LOST` error type indicates that the Worker or node was lost before the Task could complete — for example, a spot instance being reclaimed. This is a common case for retry: exit code `143` (SIGTERM) combined with `ALLOCATION_LOST` indicates an involuntary preemption rather than a Task logic failure.
+
+Example — retry only on spot preemption, not on Task logic failures:
+
+```toml
+[workRequirement]
+    maximumTaskRetries = 3
+    retryableErrors = [
+        {processExitCodes = [143], statusesAtFailure = ["FAILED"], errorTypes = ["ALLOCATION_LOST"]},
+    ]
+```
 
 ## Merging Additional Environment Variables into Tasks
 
@@ -1590,6 +1644,8 @@ When a Task is started by a worker, an ephemeral directory is created, e.g.:
 
 This is the directory into which downloaded objects are placed, and in which output files are created by default. The console output file, `taskoutput.txt`, containing combined `stderr` and `stdout` output will also be created in this directory.
 
+Note that the Task directory — including `taskoutput.txt` — is **ephemeral**: it is deleted once the Task completes and its outputs have been uploaded. To preserve console output beyond Task execution, add `taskoutput.txt` as a `taskDataOutputs` entry.
+
 ## Specifying Work Requirements using CSV Data
 
 CSV data files can be used to drive the generation of lists of Tasks, as follows:
@@ -1748,6 +1804,16 @@ The `workerPool` section of the TOML file defines the properties of the Worker P
 
 The only mandatory property is `templateId`. All other properties have defaults (or are not required). 
 The `templateId` property can use either the YellowDog ID ('YDID') for the Compute Requirement Template, or its name.
+
+## Worker Pools vs. Compute Requirements
+
+It is worth clarifying the distinction between the two related concepts:
+
+- A **Worker Pool** (created by `yd-provision`) is a managed set of cloud instances running the YellowDog agent. The platform automatically scales the pool up and down to meet Task demand, and shuts it down when idle. Worker Pool nodes claim Tasks from Work Requirements and execute them.
+
+- A **Compute Requirement** (created by `yd-instantiate`) is simply a set of cloud instances — there is no YellowDog Worker Pool associated with them. The instances are managed directly by the user. This is useful when you want to use YellowDog's provisioning capabilities but manage instances yourself.
+
+Both use the same `workerPool` / `computeRequirement` TOML section for configuration, and both are terminated using `yd-terminate`.
 
 ## Worker Pool Properties
 
@@ -3161,6 +3227,8 @@ By default, any Tasks that are currently running on Workers will continue to run
 
 The `yd-abort` command is used to abort Tasks that are currently running. The user interactively selects the Work Requirements to target, and then which Tasks within those Work Requirements to abort. The Work Requirements are not cancelled as part of this process.
 
+Aborting a Task sends `SIGTERM` to the Task's subprocess, giving it an opportunity to clean up. The Task is then reported as `FAILED`. If the Task Type has an `abort` clause configured in the Agent's `application.yaml`, that script takes over abort handling entirely.
+
 The `namespace` and `tag` values in the `config.toml` file are used to identify which Work Requirements to list for selection.
 
 ## yd-shutdown
@@ -3321,11 +3389,11 @@ yd-resize -C ydid:compreq:D9C548:600bef1f-7ccd-431c-afcc-b56208565aac 5
 
 ## yd-create
 
-The `yd-create` command is used to create or update YellowDog resources, specified in one or more JSON (or Jsonnet) files supplied on the command line. Each file can contain one or more resources.
+The `yd-create` command is used to create or update YellowDog resources, specified in one or more JSON (or Jsonnet) files supplied on the command line. Each file can contain one or more resources. See [Creating, Updating and Removing YellowDog Resources](#creating-updating-and-removing-yellowdog-resources) for the full resource specification reference.
 
 ## yd-remove
 
-The `yd-remove` command is used to remove YellowDog resources, specified in one or more JSON (or Jsonnet) files supplied on the command line. Each file can contain one or more resources.
+The `yd-remove` command is used to remove YellowDog resources, specified in one or more JSON (or Jsonnet) files supplied on the command line. Each file can contain one or more resources. See [Creating, Updating and Removing YellowDog Resources](#creating-updating-and-removing-yellowdog-resources) for details.
 
 ## yd-follow
 
@@ -3353,7 +3421,14 @@ It can optionally be supplied with a list of the names and/or YDIDs of the speci
 
 ## yd-boost
 
-The `yd-boost` command is used to boost Allowances by the specified number of hours.
+The `yd-boost` command adds hours to a YellowDog Allowance. Allowances are time-based compute budgets that limit how many CPU- or GPU-hours can be consumed by a namespace or application. Boosting is useful when a running job is approaching its limit and needs additional headroom.
+
+The allowance name or YDID and the number of hours to add are supplied as arguments:
+
+```shell
+yd-boost my-allowance 10
+yd-boost ydid:allowance:D9C548:... 10
+```
 
 ## yd-show
 
