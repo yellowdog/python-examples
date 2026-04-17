@@ -4,7 +4,7 @@
 
 - Python 3.10 or later
 - Git
-- [pipx](https://pipx.pypa.io/) or [uv](https://docs.astral.sh/uv/) recommended for managing tool installs
+- [uv](https://docs.astral.sh/uv/) — install via `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ## Getting Started
 
@@ -13,16 +13,29 @@ git clone https://github.com/yellowdog/yellowdog-cli
 cd yellowdog-cli
 git checkout next-version
 
+# Create and activate a virtual environment (Python 3.10+ required; uv will download it if not available)
+uv venv --python 3.14
+source .venv/bin/activate      # macOS/Linux
+# .venv\Scripts\activate       # Windows
+
 # Install in editable mode with all dev dependencies
-pip install -e ".[dev,jsonnet,cloudwizard]"
+uv pip install -e ".[dev,jsonnet,cloudwizard]"
 ```
 
-This installs the package in editable mode, making all `yd-*` commands available in your environment and reflecting any local code changes immediately.
+This installs the package in editable mode, making all `yd-*` commands available in your environment and reflecting any local code changes immediately. You may need to re-source the venv to access the commands immediately.
+
+PyCharm supports uv natively — point it at the `.venv` created above via `Settings → Project → Python Interpreter`.
 
 To update all dependencies to their latest versions:
 
 ```shell
 make update
+```
+
+A `uv.lock` lockfile is committed to the repository. To install from the lockfile exactly (for fully reproducible environments):
+
+```shell
+uv sync --extra dev --extra jsonnet --extra cloudwizard
 ```
 
 ## Code Formatting
@@ -34,6 +47,20 @@ make format
 ```
 
 This runs `ruff check --fix` (import sorting, pyupgrade, unused imports) followed by `ruff format` (Black-compatible formatting). Always run before committing. Ruff is configured in `pyproject.toml` under `[tool.ruff]`.
+
+### Pre-commit Hook
+
+A pre-commit hook is configured in `.pre-commit-config.yaml` to run ruff automatically on `git commit`. To activate it:
+
+```shell
+pre-commit install
+```
+
+This ensures formatting is always applied before a commit reaches the repository. To run it manually across all files:
+
+```shell
+pre-commit run --all-files
+```
 
 ## Testing
 
@@ -59,6 +86,7 @@ yellowdog_cli/          # One module per yd-* command
 yellowdog_cli/utils/    # Shared utilities (config, variables, printing, SDK wrappers, etc.)
 tests/                  # All tests (see tests/README.md)
 pyproject.toml          # Package metadata, dependencies, ruff config
+uv.lock                 # Locked dependency versions for reproducible installs
 Makefile                # format, build, install, update, toc, pypi targets
 config-template.toml    # Annotated template for all TOML configuration properties
 RELEASING.md            # Branch model, release process, PyPI credentials

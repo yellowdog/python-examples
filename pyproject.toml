@@ -57,6 +57,7 @@
         "cli-test-helpers",
         "packaging",
         "pipdeptree",
+        "pre-commit",
         "pyinstaller",
         "pyqt6",
         "pytest",

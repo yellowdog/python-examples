@@ -15,10 +15,10 @@ clean:
 	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP) $(PYINSTALLER)
 
 install: build
-	pip install -U -e ".[jsonnet,cloudwizard]"
+	uv pip install -U -e ".[jsonnet,cloudwizard]"
 
 uninstall:
-	pip uninstall -y yellowdog-cli
+	uv pip uninstall yellowdog-cli
 
 format: $(SRC) $(TESTS)
 	ruff check --fix $(SRC) $(TESTS)
@@ -46,7 +46,7 @@ toc_cloudwizard: README_CLOUDWIZARD.md
 	./gh-md-toc --insert README_CLOUDWIZARD.md
 
 update:
-	pip install -U pip -e ".[dev,jsonnet,cloudwizard]"
+	uv pip install -U -e ".[dev,jsonnet,cloudwizard]"
 
 no_op:
 	# Available targets are: build, clean, install, uninstall, format, pypi_upload, pypi_check
