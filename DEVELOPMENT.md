@@ -89,6 +89,18 @@ tox -e py310            # single version
 tox -e py310,py314      # just the bounds
 ```
 
+## Type Checking
+
+Static type checking is done with [pyright](https://github.com/microsoft/pyright) in basic mode:
+
+```shell
+make pyright
+```
+
+Pyright is configured in `pyproject.toml` under `[tool.pyright]`. It uses the active Python environment automatically — no extra setup is needed beyond the normal `uv pip install -e ".[dev,...]"` step.
+
+The codebase targets zero pyright errors. Where the SDK's type stubs are overly pessimistic (e.g. attributes typed `str | None` that are never `None` after an API call), or where CLI code accesses attributes defined on a concrete SDK subclass but not on its abstract base type (e.g. `sources` on `ComputeRequirementStaticTemplate`, provider-specific image properties on `ComputeSource` subclasses), the relevant lines carry a `# type: ignore[...]` comment with a specific error code.
+
 ## Building
 
 ```shell
@@ -104,7 +116,7 @@ yellowdog_cli/utils/    # Shared utilities (config, variables, printing, SDK wra
 tests/                  # All tests (see tests/README.md)
 pyproject.toml          # Package metadata, dependencies, ruff config
 uv.lock                 # Locked dependency versions for reproducible installs
-Makefile                # format, build, install, update, toc, pypi targets
+Makefile                # format, build, install, update, toc, pypi, pyright targets
 config-template.toml    # Annotated template for all TOML configuration properties
 RELEASING.md            # Branch model, release process, PyPI credentials
 ```

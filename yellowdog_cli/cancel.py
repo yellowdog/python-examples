@@ -67,10 +67,11 @@ def main():
             if work_summary.status != WorkRequirementStatus.CANCELLING:
                 try:
                     CLIENT.work_client.cancel_work_requirement_by_id(
-                        work_summary.id, ARGS_PARSER.abort
+                        work_summary.id,  # type: ignore[arg-type]
+                        ARGS_PARSER.abort,
                     )
                     work_requirement: WorkRequirement = (
-                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
+                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)  # type: ignore[arg-type]
                     )
                     cancelled_count += 1
                     print_info(
@@ -89,7 +90,7 @@ def main():
                     f"Work Requirement '{work_summary.name}' is already cancelling"
                 )
                 cancelling_count += 1
-            work_requirement_ids.append(work_summary.id)
+            work_requirement_ids.append(work_summary.id)  # type: ignore[arg-type]
 
         if cancelled_count > 1:
             print_info(f"Cancelled {cancelled_count} Work Requirement(s)")
@@ -160,7 +161,8 @@ def _cancel_work_requirements_by_name_or_id(names_or_ids: list[str]):
                 continue
             try:
                 CLIENT.work_client.cancel_work_requirement_by_id(
-                    work_requirement_summary.id, ARGS_PARSER.abort
+                    work_requirement_summary.id,  # type: ignore[arg-type]
+                    ARGS_PARSER.abort,
                 )
                 print_info(
                     f"Cancelled Work Requirement '{fq_name}' ({work_requirement_summary.id})"

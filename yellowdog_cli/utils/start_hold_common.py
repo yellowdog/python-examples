@@ -81,9 +81,9 @@ def _start_or_hold_work_requirements(
         for work_summary in selected_work_requirement_summaries:
             if work_summary.status == required_state:
                 try:
-                    action_function(work_summary.id)
+                    action_function(work_summary.id)  # type: ignore[arg-type]
                     work_requirement: WorkRequirement = (
-                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
+                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)  # type: ignore[arg-type]
                     )
                     count += 1
                     print_info(

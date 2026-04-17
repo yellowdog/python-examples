@@ -3,6 +3,7 @@ Functions focused on print outputs.
 """
 
 import re
+from collections.abc import Sequence
 from contextlib import redirect_stdout
 from dataclasses import dataclass
 from datetime import datetime
@@ -12,7 +13,7 @@ from os import get_terminal_size, getpid
 from sys import stderr
 from textwrap import fill
 from textwrap import indent as text_indent
-from typing import Any
+from typing import Any, TypeVar
 
 from rich.console import Console
 from rich.highlighter import JSONHighlighter, RegexHighlighter
@@ -90,6 +91,8 @@ from yellowdog_cli.utils.settings import (
     WARNING_STYLE,
 )
 from yellowdog_cli.utils.ydid_utils import YDID_HIGHLIGHT_RE, YDIDType
+
+_T = TypeVar("_T")
 
 try:
     LOG_WIDTH = get_terminal_size().columns
@@ -630,7 +633,7 @@ def nodes_table(
             continue
         row = [index + 1]
         if show_pool_name:
-            row.append(getattr(node, "workerPoolName", None))
+            row.append(getattr(node, "workerPoolName", None))  # type: ignore[union-attr]
         row += [
             node.details.provider,
             node.details.region,
@@ -934,7 +937,7 @@ def permissions_table(
 
 def print_numbered_object_list(
     client: PlatformClient,
-    objects: list[Item | str | dict],
+    objects: Sequence[Item | str | dict],
     object_type_name: str | None = None,
     override_quiet: bool = False,
     showing_all: bool = False,
@@ -1036,9 +1039,7 @@ def print_numbered_strings(objects: list[str], override_quiet: bool = False):
     print(flush=True)
 
 
-def sorted_objects(
-    objects: list[Item | str], reverse: bool = False
-) -> list[Item | str]:
+def sorted_objects(objects: list[_T], reverse: bool = False) -> list[_T]:
     """
     Sort objects by their 'name' property, or 'instanceType' in the case of
     Instances, etc.

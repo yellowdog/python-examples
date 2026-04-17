@@ -441,10 +441,10 @@ def create_keyring(resource: dict, show_secrets: bool = False):
             else "<REDACTED>"
         )
         print_info(
-            f"Created Keyring '{name}' ({keyring.id}): Password = {keyring_password}"
+            f"Created Keyring '{name}' ({keyring.id}): Password = {keyring_password}"  # type: ignore[union-attr]
         )
         if ARGS_PARSER.quiet:
-            print(f"{keyring.id} {keyring_password}")
+            print(f"{keyring.id} {keyring_password}")  # type: ignore[union-attr]
     except Exception as e:
         print_error(f"Failed to create Keyring '{name}': {e}")
         raise
@@ -539,7 +539,7 @@ def create_image_family(resource):
 
     # Delete Image Groups that have been removed from
     # the new resource specification
-    updated_image_group_names = [image_group[PROP_NAME] for image_group in image_groups]
+    updated_image_group_names = [image_group[PROP_NAME] for image_group in image_groups]  # type: ignore[index]
     for existing_image_group in existing_image_family.imageGroups or []:
         if existing_image_group.name not in updated_image_group_names:
             if confirmed(f"Remove existing Image Group '{existing_image_group.name}'?"):
@@ -549,7 +549,7 @@ def create_image_family(resource):
     # Update Image Groups
     for image_group in image_groups:
         # Ensure well-formed MachineImageGroup object
-        image_group = _get_model_object("MachineImageGroup", image_group)
+        image_group = _get_model_object("MachineImageGroup", image_group)  # type: ignore[arg-type]
         image_group.osType = ImageOsType[str(image_group.osType)]  # Replace with Enum
         _create_image_group(namespace, image_family, image_group)
 
@@ -599,7 +599,7 @@ def _create_image_group(
 
     # Delete Images that have been removed from
     # the new resource specification
-    updated_image_names = [image[PROP_NAME] for image in images]
+    updated_image_names = [image[PROP_NAME] for image in images]  # type: ignore[index]
     for existing_image in existing_image_group.images or []:
         if existing_image.name not in updated_image_names:
             if confirmed(f"Remove existing Image '{existing_image.name}'?"):
@@ -609,7 +609,7 @@ def _create_image_group(
     # Update Images
     for image in images:
         # Ensure well-formed MachineImage object
-        image = _get_model_object("MachineImage", image)
+        image = _get_model_object("MachineImage", image)  # type: ignore[arg-type]
         image.osType = ImageOsType[str(image.osType)]  # Replace with Enum
         image.provider = CloudProvider[str(image.provider)]  # Replace with Enum
         # Populate the Image ID (this could be made more efficient)
@@ -658,17 +658,17 @@ def create_configured_worker_pool(resource: dict):
             CLIENT.worker_pool_client.add_configured_worker_pool(cwp_request)
         )
         print_info(
-            f"Created Configured Worker Pool '{name}' ({cwp_response.workerPool.id})"
+            f"Created Configured Worker Pool '{name}' ({cwp_response.workerPool.id})"  # type: ignore[union-attr]
         )
         print_info(
-            f"                   Worker Pool Token = '{cwp_response.token.secret}'"
+            f"                   Worker Pool Token = '{cwp_response.token.secret}'"  # type: ignore[union-attr]
         )
         print_info(
             "                   Worker Pool Expiry Time = "
-            f"{str(cwp_response.token.expiryTime).split('.')[0]}"
+            f"{str(cwp_response.token.expiryTime).split('.')[0]}"  # type: ignore[union-attr]
         )
         if ARGS_PARSER.quiet:
-            print(cwp_response.workerPool.id)
+            print(cwp_response.workerPool.id)  # type: ignore[union-attr]
 
     except Exception as e:
         print_error(f"Unable to create Configured Worker Pool '{name}': {e}")
@@ -1086,7 +1086,7 @@ def create_group(resource: dict):
     group_id = get_group_id_by_name(CLIENT, name)
     if group_id is None:  # New group
         group = add_group()
-        add_or_update_roles(group.id, get_updated_role_specifications())
+        add_or_update_roles(group.id, get_updated_role_specifications())  # type: ignore[arg-type]
     else:  # Existing group
         group = update_group(group_id)
         if group is not None:
@@ -1132,7 +1132,7 @@ def create_application(resource: dict):
 
         group_ids_to_remove = current_group_ids - new_group_ids
         for group_id in group_ids_to_remove:
-            CLIENT.account_client.remove_application_from_group(group_id, app.id)
+            CLIENT.account_client.remove_application_from_group(group_id, app.id)  # type: ignore[arg-type]
             print_info(
                 f"Removed Group '{get_group_name_by_id(CLIENT, cast(str, group_id))}' "
                 f"from Application ({group_id})"
@@ -1140,7 +1140,7 @@ def create_application(resource: dict):
 
         group_ids_to_add = new_group_ids - current_group_ids
         for group_id in group_ids_to_add:
-            CLIENT.account_client.add_application_to_group(group_id, app.id)
+            CLIENT.account_client.add_application_to_group(group_id, app.id)  # type: ignore[arg-type]
             print_info(
                 f"Added Group '{get_group_name_by_id(CLIENT, group_id)}' "
                 f"to Application ({group_id})"
@@ -1161,10 +1161,10 @@ def create_application(resource: dict):
             _get_model_object(RN_ADD_APPLICATION_REQUEST, resource)
         )
         app = app_response.application
-        print_info(f"Created Application '{app.name}' ({app.id})")
-        show_key_and_secret(app_response.apiKey)
+        print_info(f"Created Application '{app.name}' ({app.id})")  # type: ignore[union-attr]
+        show_key_and_secret(app_response.apiKey)  # type: ignore[arg-type]
         clear_application_caches()
-        update_groups(app)
+        update_groups(app)  # type: ignore[arg-type]
 
     def update_application(app_id: str):
         """
@@ -1232,25 +1232,25 @@ def update_user(resource: dict, internal_user: bool):
         """
         Helper function to add/remove groups from a user.
         """
-        current_group_ids = {group.id for group in get_user_groups(CLIENT, user.id)}
+        current_group_ids = {group.id for group in get_user_groups(CLIENT, user.id)}  # type: ignore[union-attr]
 
         if current_group_ids == new_group_ids:
             print_info("No Group additions or deletions required")
             return
 
-        if not confirmed(f"Update Groups for User '{username}' ({user.id})?"):
+        if not confirmed(f"Update Groups for User '{username}' ({user.id})?"):  # type: ignore[union-attr]
             return
 
         group_ids_to_remove = current_group_ids - new_group_ids
         for group_id in group_ids_to_remove:
-            CLIENT.account_client.remove_user_from_group(group_id, user.id)
+            CLIENT.account_client.remove_user_from_group(group_id, user.id)  # type: ignore[union-attr]
             print_info(
                 f"Removed Group '{get_group_name_by_id(CLIENT, group_id)}' ({group_id})"
             )
 
         group_ids_to_add = new_group_ids - current_group_ids
         for group_id in group_ids_to_add:
-            CLIENT.account_client.add_user_to_group(group_id, user.id)
+            CLIENT.account_client.add_user_to_group(group_id, user.id)  # type: ignore[union-attr]
             print_info(
                 f"Added Group '{get_group_name_by_id(CLIENT, group_id)}' ({group_id})"
             )

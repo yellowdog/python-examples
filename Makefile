@@ -48,6 +48,9 @@ toc_cloudwizard: README_CLOUDWIZARD.md
 test:
 	pytest -v
 
+pyright:
+	pyright $(SRC)
+
 tox:
 	tox
 

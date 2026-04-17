@@ -3,11 +3,11 @@ User interaction processing utilities.
 """
 
 from os import getenv
+from typing import TypeVar
 
 from yellowdog_client import PlatformClient
 
 from yellowdog_cli.utils.args import ARGS_PARSER
-from yellowdog_cli.utils.items import Item
 from yellowdog_cli.utils.printing import (
     CONSOLE,
     print_error,
@@ -22,6 +22,8 @@ try:
 except ImportError:
     pass
 
+_T = TypeVar("_T")
+
 # Environment variable to use --yes by default
 # Set to any non-empty string
 YD_YES = "YD_YES"
@@ -29,7 +31,7 @@ YD_YES = "YD_YES"
 
 def select(
     client: PlatformClient,
-    objects: list[Item | str | dict],
+    objects: list[_T],
     object_type_name: str | None = None,
     override_quiet: bool = False,
     single_result: bool = False,
@@ -37,7 +39,7 @@ def select(
     force_interactive: bool = False,
     result_required: bool = False,
     sort_objects: bool = True,
-) -> list[Item | str | dict]:
+) -> list[_T]:
     """
     Print a numbered list of objects.
     Manually select objects from a list if --interactive is set.
@@ -53,7 +55,7 @@ def select(
     if not ARGS_PARSER.quiet or override_quiet or ARGS_PARSER.interactive:
         print_numbered_object_list(
             client,
-            objects,
+            objects,  # type: ignore[arg-type]
             override_quiet=override_quiet,
             showing_all=showing_all,
             object_type_name=object_type_name,

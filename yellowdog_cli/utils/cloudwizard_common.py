@@ -76,12 +76,12 @@ class CommonCloudConfig(ABC):
             client, self._namespace, partial_name_matches=True
         ):
             if (
-                compute_requirement_template_summary.name.startswith(name_prefix)
+                compute_requirement_template_summary.name.startswith(name_prefix)  # type: ignore[union-attr]
                 and compute_requirement_template_summary.namespace == self._namespace
             ):
                 counter += 1
                 try:
-                    remove_resource_by_id(compute_requirement_template_summary.id)
+                    remove_resource_by_id(compute_requirement_template_summary.id)  # type: ignore[arg-type]
                 except Exception as e:
                     print_error(f"Unable to remove Compute Requirement Template: {e}")
         if counter == 0:
@@ -94,12 +94,12 @@ class CommonCloudConfig(ABC):
             client, self._namespace
         ):
             if (
-                compute_source_template_summary.name.startswith(name_prefix)
+                compute_source_template_summary.name.startswith(name_prefix)  # type: ignore[union-attr]
                 and compute_source_template_summary.namespace == self._namespace
             ):
                 counter += 1
                 try:
-                    remove_resource_by_id(compute_source_template_summary.id)
+                    remove_resource_by_id(compute_source_template_summary.id)  # type: ignore[arg-type]
                 except Exception as e:
                     print_error(f"Unable to remove Compute Source Template: {e}")
         if counter == 0:
@@ -284,34 +284,34 @@ class CommonCloudConfig(ABC):
                 source_names=self._source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Split",
-                instance_type=self._instance_type,
+                instance_type=self._instance_type,  # type: ignore[arg-type]
                 name_prefix=resource_prefix,
             ),
             self._generate_static_compute_requirement_template(
                 source_names=self._source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Split",
-                instance_type=self._instance_type,
+                instance_type=self._instance_type,  # type: ignore[arg-type]
                 name_prefix=resource_prefix,
             ),
             self._generate_static_compute_requirement_template(
                 source_names=self._source_names_ondemand,
                 spot_or_ondemand="ondemand",
                 strategy="Waterfall",
-                instance_type=self._instance_type,
+                instance_type=self._instance_type,  # type: ignore[arg-type]
                 name_prefix=resource_prefix,
             ),
             self._generate_static_compute_requirement_template(
                 source_names=self._source_names_spot,
                 spot_or_ondemand="spot",
                 strategy="Waterfall",
-                instance_type=self._instance_type,
+                instance_type=self._instance_type,  # type: ignore[arg-type]
                 name_prefix=resource_prefix,
             ),
             self._generate_static_compute_requirement_template_spot_ondemand_waterfall(
                 source_names_spot=self._source_names_spot,
                 source_names_on_demand=self._source_names_ondemand,
-                instance_type=self._instance_type,
+                instance_type=self._instance_type,  # type: ignore[arg-type]
                 name_prefix=resource_prefix,
             ),
             self._generate_dynamic_compute_requirement_template(
@@ -324,7 +324,7 @@ class CommonCloudConfig(ABC):
 
         print_info("Creating YellowDog Compute Requirement Templates")
         create_resources(
-            process_variable_substitutions_insitu(
+            process_variable_substitutions_insitu(  # type: ignore[arg-type]
                 deepcopy(self._requirement_template_resources)
             )
         )
@@ -341,7 +341,7 @@ class CommonCloudConfig(ABC):
             )
             keyring = keyring_response.keyring
             self._keyring_password = keyring_response.keyringPassword
-            print_info(f"Created YellowDog Keyring '{keyring_name}' ({keyring.id})")
+            print_info(f"Created YellowDog Keyring '{keyring_name}' ({keyring.id})")  # type: ignore[union-attr]
             self._keyring_name = keyring_name
         except Exception as e:
             if "A keyring already exists" in str(e):

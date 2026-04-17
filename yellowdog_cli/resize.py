@@ -44,13 +44,15 @@ def _resize_worker_pool():
         worker_pool_id = ARGS_PARSER.worker_pool_name
     else:
         worker_pool_id = get_worker_pool_id_by_name(
-            CLIENT, ARGS_PARSER.worker_pool_name, namespace=CONFIG_COMMON.namespace
+            CLIENT,
+            ARGS_PARSER.worker_pool_name,  # type: ignore[arg-type]
+            namespace=CONFIG_COMMON.namespace,
         )
         if worker_pool_id is None:
             raise KeyError(f"Worker Pool '{ARGS_PARSER.worker_pool_name}' not found")
 
     worker_pool: WorkerPool = CLIENT.worker_pool_client.get_worker_pool_by_id(
-        worker_pool_id=worker_pool_id
+        worker_pool_id=worker_pool_id  # type: ignore[arg-type]
     )
     if not confirmed(
         f"Confirm resize Worker Pool to {ARGS_PARSER.worker_pool_size} node(s)?"
@@ -58,7 +60,8 @@ def _resize_worker_pool():
         return
 
     CLIENT.worker_pool_client.resize_worker_pool(
-        worker_pool=worker_pool, size=ARGS_PARSER.worker_pool_size
+        worker_pool=worker_pool,  # type: ignore[arg-type]
+        size=ARGS_PARSER.worker_pool_size,  # type: ignore[arg-type]
     )
 
     if ARGS_PARSER.follow:
@@ -107,9 +110,9 @@ def _resize_compute_requirement():
             return
 
         cr: ComputeRequirement = CLIENT.compute_client.get_compute_requirement_by_id(
-            cr_summary.id
+            cr_summary.id  # type: ignore[arg-type]
         )
-        cr.targetInstanceCount = ARGS_PARSER.worker_pool_size
+        cr.targetInstanceCount = ARGS_PARSER.worker_pool_size  # type: ignore[misc]
         CLIENT.compute_client.update_compute_requirement(cr, reprovision=False)
 
         print_info(

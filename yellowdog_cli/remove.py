@@ -322,13 +322,13 @@ def remove_configured_worker_pool(resource: dict):
         return
 
     # Shut down if a configured worker pool, in an appropriate state
-    if worker_pool.type.split(".")[-1] != "ConfiguredWorkerPool":
+    if worker_pool.type.split(".")[-1] != "ConfiguredWorkerPool":  # type: ignore[union-attr]
         print_warning(
             f"Worker Pool '{fq_name}' is not a Configured Pool ({worker_pool.id})"
         )
         return
 
-    if worker_pool.status.finished:
+    if worker_pool.status.finished:  # type: ignore[union-attr]
         print_info(
             f"Not shutting down already {worker_pool.status} Configured "
             f"Worker Pool '{fq_name}' ({worker_pool.id})"
@@ -341,7 +341,7 @@ def remove_configured_worker_pool(resource: dict):
         return
 
     try:
-        CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)
+        CLIENT.worker_pool_client.shutdown_worker_pool_by_id(worker_pool.id)  # type: ignore[arg-type]
         print_info(
             f"Shut down {worker_pool.status} Configured Worker Pool"
             f" '{fq_name}' ({worker_pool.id})"
@@ -417,7 +417,7 @@ def remove_resource_by_id(resource_id: str):
                 keyrings = CLIENT.keyring_client.find_all_keyrings()
                 for keyring in keyrings:
                     if keyring.id == resource_id:
-                        CLIENT.keyring_client.delete_keyring_by_name(keyring.name)
+                        CLIENT.keyring_client.delete_keyring_by_name(keyring.name)  # type: ignore[arg-type]
                         print_info(f"Removed Keyring {resource_id}")
                         return
                 print_warning(f"Cannot find Keyring {resource_id}")
@@ -575,7 +575,7 @@ def remove_namespace(resource: dict):
 
     try:
         CLIENT.namespaces_client.delete_namespace(
-            get_namespace_id_by_name(CLIENT, name)
+            get_namespace_id_by_name(CLIENT, name)  # type: ignore[arg-type]
         )
         print_info(f"Removed Namespace '{name}' ({namespace_id})")
     except Exception as e:
