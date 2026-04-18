@@ -90,6 +90,10 @@ git checkout next-version
 git push origin next-version
 ```
 
+## Pull Requests
+
+When a PR is required (e.g. for external contributions or review), it should target the `next-version` branch, not `main`.
+
 ## Feature Branch Workflow
 
 ```shell

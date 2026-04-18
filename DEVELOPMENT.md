@@ -91,6 +91,14 @@ tox -e py310            # single version
 tox -e py310,py314      # just the bounds
 ```
 
+To pass extra pytest arguments (e.g. to run demos or system tests), call `tox` directly using `--` as a separator — `make tox` cannot forward arguments this way:
+
+```shell
+tox -- --run-demos
+tox -- --run-system --run-demos
+tox -e py310,py314 -- --run-demos tests/test_demos.py -n 12
+```
+
 ## Type Checking
 
 Static type checking is done with [pyright](https://github.com/microsoft/pyright) in basic mode:

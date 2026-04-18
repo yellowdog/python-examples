@@ -24,9 +24,6 @@ format: $(SRC) $(TESTS)
 	ruff check --fix $(SRC) $(TESTS)
 	ruff format $(SRC) $(TESTS)
 
-#mypy: $(SRC) $(TESTS)
-#	mypy $(SRC) $(TESTS)
-
 pypi_upload: clean build
 	# '--repository yellowdog-cli' maps into the correct API token for yellowdog-cli uploads
 	python -m twine upload --repository yellowdog-cli dist/*
