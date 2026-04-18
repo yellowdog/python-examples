@@ -5,6 +5,8 @@
 - Python 3.10 or later
 - Git
 - [uv](https://docs.astral.sh/uv/) — install via `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- `make` — for formatting, building, and other development tasks
+- `bash` — required to run the release script (see [`RELEASING.md`](RELEASING.md))
 
 ## Getting Started
 
@@ -18,7 +20,7 @@ uv venv --python 3.14
 source .venv/bin/activate      # macOS/Linux
 # .venv\Scripts\activate       # Windows
 
-# Install in editable mode with all dev dependencies
+# Install in editable mode with all dev dependencies (or 'make install')
 uv pip install -e ".[dev,jsonnet,cloudwizard]"
 ```
 
