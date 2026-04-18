@@ -9,7 +9,7 @@ TOC_BACKUP = README.md.* README_CLOUDWIZARD.md.*
 PYINSTALLER = yellowdog_cli/*.spec yellowdog_cli/build yellowdog_cli/dist
 
 build: $(SRC) $(MANIFEST)
-	python -m build
+	uv build
 
 clean:
 	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP) $(PYINSTALLER)
