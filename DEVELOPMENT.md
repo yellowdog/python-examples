@@ -34,17 +34,6 @@ To update all dependencies to their latest versions:
 make update
 ```
 
-A `uv.lock` lockfile is committed to the repository. To install from the lockfile exactly (for fully reproducible environments):
-
-```shell
-uv sync --extra dev --extra jsonnet --extra cloudwizard
-```
-
-> **Note:** `uv sync` targets `.venv` in the project directory by default, ignoring any active virtualenv. If your environment has a different name (e.g. `yellow-dev`), add `--active` to target it instead:
-> ```shell
-> uv sync --active --extra dev --extra jsonnet --extra cloudwizard
-> ```
-
 ## Code Formatting
 
 All formatting is handled by [ruff](https://docs.astral.sh/ruff/):
