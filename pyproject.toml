@@ -55,7 +55,6 @@
     dev = [
         "cli-test-helpers",
         "pre-commit",
-        "pyinstaller",
         "pyqt6",
         "pytest",
         "pytest-xdist",

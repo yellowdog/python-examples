@@ -6,13 +6,12 @@ MANIFEST = LICENSE README.md
 BUILD_DIST = build dist yellowdog_cli.egg-info
 PYCACHE = __pycache__ yellowdog_cli/__pycache__ yellowdog_cli/utils/__pycache__
 TOC_BACKUP = README.md.* README_CLOUDWIZARD.md.*
-PYINSTALLER = yellowdog_cli/*.spec yellowdog_cli/build yellowdog_cli/dist
 
 build: $(SRC) $(MANIFEST)
 	uv build
 
 clean:
-	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP) $(PYINSTALLER)
+	rm -rf $(BUILD_DIST) $(PYCACHE) $(TOC_BACKUP)
 
 install: build
 	uv pip install -U -e ".[jsonnet,cloudwizard]"
@@ -56,4 +55,4 @@ update:
 
 no_op:
 	# Available targets are: build, clean, format, install, test, tox, uninstall, update, pypi_upload, pypi_check
-	# For releases, use: ./release.sh (or ./release.sh --dry-run)
+	# For releases, use: ./release.sh (or ./release.sh --release)
