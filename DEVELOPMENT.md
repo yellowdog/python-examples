@@ -20,7 +20,7 @@ uv venv --python 3.14
 source .venv/bin/activate      # macOS/Linux
 # .venv\Scripts\activate       # Windows
 
-# Install in editable mode with all dev dependencies (or 'make install')
+# Install in editable mode with all dev dependencies
 uv pip install -e ".[dev,jsonnet,cloudwizard]"
 ```
 

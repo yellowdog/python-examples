@@ -60,7 +60,6 @@
         "pytest-xdist",
         "python-dispatch",
         "ruff",
-        "setuptools",
         "pyright",
         "tox",
         "tox-uv",
