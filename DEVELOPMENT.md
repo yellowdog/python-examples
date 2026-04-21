@@ -2,9 +2,8 @@
 
 ## Prerequisites
 
-- Python 3.10 or later
-- Git
-- [uv](https://docs.astral.sh/uv/) — install via `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- [`uv`](https://docs.astral.sh/uv/) — install via `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- `git`
 - `make` — for formatting, building, and other development tasks
 - `bash` — required to run the release script (see [`RELEASING.md`](RELEASING.md))
 
