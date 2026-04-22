@@ -4,7 +4,7 @@ Configuration classes and constants.
 
 from dataclasses import dataclass, field
 
-from yellowdog_cli.utils.settings import CR_BATCH_SIZE_DEFAULT, TASK_BATCH_SIZE_DEFAULT
+from yellowdog_cli.utils.settings import CR_MAX_INSTANCES, TASK_BATCH_SIZE_DEFAULT
 
 
 @dataclass
@@ -73,7 +73,7 @@ class ConfigWorkRequirement:
 
 @dataclass
 class ConfigWorkerPool:
-    compute_requirement_batch_size: int = CR_BATCH_SIZE_DEFAULT
+    compute_requirement_batch_size: int = CR_MAX_INSTANCES
     compute_requirement_data_file: str | None = None
     cr_tag: str | None = None
     idle_node_timeout: float = 5.0

@@ -30,7 +30,7 @@ load_dotenv_file()
 from yellowdog_cli.utils.printing import print_error, print_info  # noqa: E402
 from yellowdog_cli.utils.property_names import *  # noqa: E402
 from yellowdog_cli.utils.settings import (  # noqa: E402
-    CR_BATCH_SIZE_DEFAULT,
+    CR_MAX_INSTANCES,
     DEFAULT_URL,
     TASK_BATCH_SIZE_DEFAULT,
     TOML_VAR_NESTED_DEPTH,
@@ -712,7 +712,7 @@ def load_config_worker_pool() -> ConfigWorkerPool:
 
         return ConfigWorkerPool(
             compute_requirement_batch_size=wp_section.get(
-                COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
+                COMPUTE_REQUIREMENT_BATCH_SIZE, CR_MAX_INSTANCES
             ),
             compute_requirement_data_file=compute_requirement_data_file,
             cr_tag=wp_section.get(CR_TAG),
