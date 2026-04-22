@@ -170,6 +170,7 @@
    * [yd-compare](#yd-compare)
    * [yd-finish](#yd-finish)
    * [yd-application](#yd-application)
+   * [yd-help](#yd-help)
    * [yd-jsonnet2json](#yd-jsonnet2json)
    * [yd-delete](#yd-delete-1)
    * [yd-download](#yd-download-1)
@@ -177,7 +178,7 @@
    * [yd-upload](#yd-upload-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed Apr 22 11:06:03 BST 2026 -->
+<!-- Added by: pwt, at: Wed Apr 22 11:28:15 BST 2026 -->
 
 <!--te-->
 
@@ -3486,6 +3487,14 @@ The `yd-finish` command moves work requirements into the `FINISHING` state, mean
 ## yd-application
 
 The `yd-application` command shows the details of the current Application, i.e., the Application represented by the `key` and `secret` being used.
+
+## yd-help
+
+The `yd-help` command lists all available `yd-*` commands and their purposes:
+
+```shell
+yd-help
+```
 
 ## yd-jsonnet2json
 

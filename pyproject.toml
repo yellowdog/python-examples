@@ -79,6 +79,7 @@
     yd-finish = "yellowdog_cli.finish:main"
     yd-follow = "yellowdog_cli.follow:main"
     yd-format-json = "yellowdog_cli.format_json:main"
+    yd-help = "yellowdog_cli.help:main"
     yd-hold = "yellowdog_cli.hold:main"
     yd-instantiate = "yellowdog_cli.instantiate:main"
     yd-jsonnet2json = "yellowdog_cli.jsonnet2json:main"

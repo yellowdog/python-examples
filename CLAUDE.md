@@ -43,7 +43,7 @@ make update           # uv pip install -U -e ".[dev,jsonnet,cloudwizard]"
 ```
 yellowdog_cli/
 ├── __init__.py                  # Version only
-├── *.py                         # ~28 command modules (one per yd-* command)
+├── *.py                         # ~29 command modules (one per yd-* command)
 └── utils/
     ├── wrapper.py               # Global CLIENT + CONFIG_COMMON; @main_wrapper decorator
     ├── args.py                  # CLIParser class (single shared instance: ARGS_PARSER)
@@ -93,6 +93,8 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+A small number of standalone commands (`yd-help`, `yd-version`, `yd-format-json`, `yd-jsonnet2json`) need neither credentials nor a config file — they just define a bare `main()` function with no decorator.
 
 Data client commands (`yd-upload`, `yd-download`, `yd-delete`, `yd-ls`) use `@dataclient_wrapper` instead — no SDK client is initialised:
 

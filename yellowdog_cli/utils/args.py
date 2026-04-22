@@ -2189,6 +2189,14 @@ def lookup_module_description(module_name: str) -> str | None:
         suffix = "terminating Compute Requirements, Instances or Nodes"
     elif "upload" in module_name:
         suffix = "uploading files to a remote data client"
+    elif "format" in module_name:
+        suffix = "formatting JSON files using a compact encoder"
+    elif "jsonnet" in module_name:
+        suffix = "converting a Jsonnet file to JSON"
+    elif "version" in module_name:
+        suffix = "reporting version information"
+    elif "help" in module_name:
+        suffix = "listing available yd-* commands and their purposes"
 
     return None if suffix is None else prefix + suffix
 
