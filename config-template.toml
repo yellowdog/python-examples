@@ -440,7 +440,13 @@
     # Optional — default: false
     # metricsEnabled = false
 
-    # Number of compute requirements submitted per API call (yd-provision -R).
+    # The platform limits each Compute Requirement / Worker Pool to 10,000
+    # instances/nodes. When 'targetInstanceCount' or 'maxNodes' exceeds this,
+    # yd-provision and yd-instantiate automatically split the request across
+    # multiple Compute Requirements. 'computeRequirementBatchSize' sets the
+    # maximum number of instances per batch and defaults to the platform
+    # maximum (10,000). Reduce it to submit smaller batches. Values above
+    # 10,000 are clamped to 10,000.
     # Optional — default: 10000
     # computeRequirementBatchSize = 10000
 

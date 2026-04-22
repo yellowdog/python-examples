@@ -91,6 +91,7 @@
    * [Worker Pools vs. Compute Requirements](#worker-pools-vs-compute-requirements)
    * [Worker Pool Properties](#worker-pool-properties)
    * [Using Textual Names instead of IDs for Compute Requirement Templates and Image Families](#using-textual-names-instead-of-ids-for-compute-requirement-templates-and-image-families)
+   * [Large-Scale Provisioning](#large-scale-provisioning)
    * [Automatic Properties](#automatic-properties-1)
    * [TOML Properties in the workerPool Section](#toml-properties-in-the-workerpool-section)
    * [Worker Pool Specification Using JSON Documents](#worker-pool-specification-using-json-documents)
@@ -176,7 +177,7 @@
    * [yd-upload](#yd-upload-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Fri Apr 17 09:55:55 BST 2026 -->
+<!-- Added by: pwt, at: Wed Apr 22 11:06:03 BST 2026 -->
 
 <!--te-->
 
@@ -1819,6 +1820,7 @@ The following properties are available:
 
 | Property                | Description                                                                                                                                       | Default                 |
 |:------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------|
+| `computeRequirementBatchSize` | The maximum number of instances per Compute Requirement batch (see [Large-Scale Provisioning](#large-scale-provisioning)). Values above 10,000 are clamped to 10,000. | `10000` |
 | `idleNodeTimeout`       | The timeout in minutes after which an idle node will be shut down. Set this to `0` to disable the timeout.                                        | `5.0`                   |
 | `idlePoolTimeout`       | The timeout in minutes after which an idle Worker Pool will be shut down. Set this to `0` to disable the timeout.                                 | `30.0`                  |
 | `imagesId`              | The Image ID, Image Family ID, Image Family name, or Image Group name to use when booting instances.                                              |                         |
@@ -1846,6 +1848,12 @@ The following properties are available:
 The `templateId` property can be directly populated with the YellowDog ID (YDID), or it can be populated with the textual name of the template, in the form `namespace/template_name`.
 
 Similarly, the `imagesId` property can be populated with the YDID of an Image Family, Image Group, Image, or a string representing the native name of a cloud provider image (e.g., an AWS AMI). It can also be populated with an Image Family name in the form `namespace/image_family_name`, or an Image Group name in the form `namespace/image_family_name/image_group_name` or `image_family_name/image_group_name`. Optionally, a `yd/` prefix can be supplied. The CLI will aim to map the provided name into an Image Family or Group YDID.
+
+## Large-Scale Provisioning
+
+The platform limits each Compute Requirement and Worker Pool to **10,000 instances/nodes**. When `targetInstanceCount` (for `yd-instantiate`) or `maxNodes` (for `yd-provision`) exceeds this limit, the CLI automatically splits the request across multiple Compute Requirements, distributing instances as evenly as possible.
+
+The `computeRequirementBatchSize` property controls the maximum number of instances per batch and defaults to 10,000 (the platform maximum). Set it to a smaller value to submit in smaller batches. Values above 10,000 are clamped to 10,000 with a warning.
 
 ## Automatic Properties
 
