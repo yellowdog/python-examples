@@ -30,7 +30,7 @@ The commands support:
 - **Uploading** files to a remote data store with the **`yd-upload`** command
 - **Cloud provider setup** (AWS, Azure, GCP) with the **`yd-cloudwizard`** command
 
-Utility commands are also provided: **`yd-format-json`**, **`yd-jsonnet2json`**, and **`yd-version`**.
+Utility commands are also provided: **`yd-format-json`**, **`yd-help`**, **`yd-jsonnet2json`**, and **`yd-version`**.
 
 ## Installation
 

@@ -998,7 +998,7 @@ def generate_batch_of_tasks_for_task_group(
         )
         # This will 'pop' any 'localFile' properties, required for the
         # following 'generate' call
-        RCLONE_UPLOADED_FILES.upload_dataclient_input_files(task_data_inputs)
+        RCLONE_UPLOADED_FILES.upload_dataclient_input_files(task_data_inputs)  # type: ignore[union-attr]
         task_data_inputs_and_outputs = generate_taskdata_object(
             task_data_inputs, task_data_outputs
         )
@@ -1157,7 +1157,7 @@ def cleanup_on_failure(work_requirement: WorkRequirement) -> None:
     CLIENT.work_client.cancel_work_requirement(work_requirement)
     print_warning(f"Cancelled Work Requirement '{work_requirement.name}'")
 
-    RCLONE_UPLOADED_FILES.delete()
+    RCLONE_UPLOADED_FILES.delete()  # type: ignore[union-attr]
 
 
 def add_to_existing_work_requirement(
@@ -1170,7 +1170,9 @@ def add_to_existing_work_requirement(
     by the --add-to argument (name or YellowDog ID).
     """
     wr_summary = get_work_requirement_summary_by_name_or_id(
-        CLIENT, ARGS_PARSER.add_to, CONFIG_COMMON.namespace
+        CLIENT,
+        ARGS_PARSER.add_to,  # type: ignore[arg-type]
+        CONFIG_COMMON.namespace,
     )
     if wr_summary is None:
         raise ValueError(
@@ -1179,7 +1181,7 @@ def add_to_existing_work_requirement(
         )
 
     if (
-        wr_summary.status.finished
+        wr_summary.status.finished  # type: ignore[union-attr]
         or wr_summary.status == WorkRequirementStatus.CANCELLING
     ):
         raise ValueError(

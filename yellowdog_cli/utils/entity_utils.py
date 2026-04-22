@@ -156,7 +156,8 @@ def get_worker_pool_id_by_name(
         if (fq_name := f"{namespace_}/{name}") != worker_pool_name:
             print_info(f"Finding Worker Pool ID for '{fq_name}'")
         worker_pool: WorkerPool = client.worker_pool_client.get_worker_pool_by_name(
-            namespace_, name
+            namespace_,
+            name,  # type: ignore[arg-type]
         )
         return worker_pool.id
     except Exception:  # Not found (404)
@@ -231,7 +232,7 @@ def get_compute_source_template_id_by_name(
     Compute Source Template names are unique within a namespace.
     Namespace included as part of a name overrides argument.
     """
-    namespace_, name = split_namespace_and_name(name)
+    namespace_, name = split_namespace_and_name(name)  # type: ignore[assignment]
     namespace_ = namespace if namespace_ is None else namespace_
 
     # Ensure exact name match
@@ -315,7 +316,7 @@ def get_compute_requirement_template_id_by_name(
     provided name and namespace. Namespace as a name prefix
     overrides namespace arg.
     """
-    namespace_, name = split_namespace_and_name(name)
+    namespace_, name = split_namespace_and_name(name)  # type: ignore[assignment]
     namespace_ = namespace if namespace_ is None else namespace_
 
     crts = get_compute_requirement_templates(
@@ -475,7 +476,7 @@ def get_image_name_or_id(
             ifs for ifs in image_family_summaries if ifs.name == split_name[0]
         ]
         if len(matching_image_families) > 1:
-            namespaces = [ifs.namespace for ifs in matching_image_families]
+            namespaces = [ifs.namespace or "" for ifs in matching_image_families]
             raise ValueError(
                 f"Ambiguous Images ID '{original_image_name_or_id}': please "
                 f"specify a namespace from: {', '.join(namespaces)}"
@@ -485,7 +486,7 @@ def get_image_name_or_id(
                 matching_image_families[0].access == ImageAccess.PUBLIC
                 or always_return_ydid
             ):
-                return _replaced(matching_image_families[0].id, True)
+                return _replaced(matching_image_families[0].id, True)  # type: ignore[arg-type]
             else:
                 return _replaced(
                     f"yd/{matching_image_families[0].namespace}/"
@@ -511,7 +512,7 @@ def get_image_name_or_id(
                 matching_image_families[0].access == ImageAccess.PUBLIC
                 or always_return_ydid
             ):
-                return _replaced(matching_image_families[0].id, True)
+                return _replaced(matching_image_families[0].id, True)  # type: ignore[arg-type]
             return _replaced(
                 f"yd/{matching_image_families[0].namespace}/"
                 f"{matching_image_families[0].name}"
@@ -532,7 +533,7 @@ def get_image_name_or_id(
                 if_group_matches[0][0].access == ImageAccess.PUBLIC
                 or always_return_ydid
             ):
-                return _replaced(if_group_matches[0][1].id, True)
+                return _replaced(if_group_matches[0][1].id, True)  # type: ignore[arg-type]
             else:
                 return _replaced(
                     f"yd/{if_group_matches[0][0].namespace}/"
@@ -540,7 +541,7 @@ def get_image_name_or_id(
                     f"{if_group_matches[0][1].name}"
                 )
         if len(if_group_matches) > 1:
-            namespaces = [match[0].namespace for match in if_group_matches]
+            namespaces = [match[0].namespace or "" for match in if_group_matches]
             raise ValueError(
                 f"Ambiguous image-family/image-group '{original_image_name_or_id}': "
                 f"please specify a namespace from: {', '.join(namespaces)}"
@@ -559,7 +560,7 @@ def get_image_name_or_id(
                 for ig in get_image_family_groups(client, ifs.id):
                     if ig.name == split_name[2]:
                         if ifs.access == ImageAccess.PUBLIC or always_return_ydid:
-                            return _replaced(ig.id, True)
+                            return _replaced(ig.id, True)  # type: ignore[arg-type]
                         else:
                             return _replaced(f"yd/{image_name_or_id}")
                 else:
@@ -606,7 +607,7 @@ def remove_allowances_matching_description(
 
     for allowance in allowances:
         if confirmed(f"Remove Allowance with YellowDog ID {allowance.id}?"):
-            client.allowances_client.delete_allowance_by_id(allowance.id)
+            client.allowances_client.delete_allowance_by_id(allowance.id)  # type: ignore[arg-type]
             print_info(f"Removed Allowance with YellowDog ID {allowance.id}")
 
     return len(allowances)
@@ -664,7 +665,7 @@ def substitute_ids_for_names_in_crt(
 
     # Source templates
     try:
-        for source in crt.sources:
+        for source in crt.sources:  # type: ignore[attr-defined]
             source.sourceTemplateId = _get_source_template_name_from_id(
                 client, source.sourceTemplateId
             )
@@ -697,8 +698,9 @@ def substitute_image_family_id_for_name_in_cst(
 
     try:
         # Google uses a different property name
-        cst.source.image = _get_image_family_or_group_name_from_id(
-            client, cst.source.image
+        cst.source.image = _get_image_family_or_group_name_from_id(  # type: ignore[attr-defined]
+            client,
+            cst.source.image,  # type: ignore[attr-defined]
         )
         return cst
     except Exception:
@@ -745,7 +747,7 @@ def _get_source_template_name_from_id(
         return cst_id
     try:
         cst: ComputeSourceTemplate = client.compute_client.get_compute_source_template(
-            cst_id
+            cst_id  # type: ignore[arg-type]
         )
         return f"{cst.namespace}/{cst.source.name}"
     except Exception:
@@ -764,7 +766,7 @@ def _get_requirement_template_name_from_id(
         return crt_id
     try:
         crt: ComputeRequirementTemplate = (
-            client.compute_client.get_compute_requirement_template(crt_id)
+            client.compute_client.get_compute_requirement_template(crt_id)  # type: ignore[arg-type]
         )
         return f"{crt.namespace}/{crt.name}"
     except Exception:
@@ -782,7 +784,7 @@ def _get_image_family_or_group_name_from_id(
     if (ydid_type := get_ydid_type(image_family_or_group_id)) == YDIDType.IMAGE_FAMILY:
         try:
             image_family: MachineImageFamily = (
-                client.images_client.get_image_family_by_id(image_family_or_group_id)
+                client.images_client.get_image_family_by_id(image_family_or_group_id)  # type: ignore[arg-type]
             )
             return f"yd/{image_family.namespace}/{image_family.name}"
         except Exception:
@@ -791,12 +793,12 @@ def _get_image_family_or_group_name_from_id(
     elif ydid_type == YDIDType.IMAGE_GROUP:
         try:
             image_group: MachineImageGroup = client.images_client.get_image_group_by_id(
-                image_family_or_group_id
+                image_family_or_group_id  # type: ignore[arg-type]
             )
             image_family: MachineImageFamily = (
                 client.images_client.get_image_family_by_id(
                     # The image family ID can be derived from the group ID
-                    image_family_or_group_id.replace(TYPE_IMGGRP, TYPE_IMGFAM).rsplit(
+                    image_family_or_group_id.replace(TYPE_IMGGRP, TYPE_IMGFAM).rsplit(  # type: ignore[union-attr]
                         ":", 1
                     )[0]
                 )
@@ -948,7 +950,7 @@ def get_application_groups(client: PlatformClient, app_id: str) -> list[Group]:
     Get the groups to which an application belongs.
     """
     return [
-        client.account_client.get_group(group_summary.id)
+        client.account_client.get_group(group_summary.id)  # type: ignore[arg-type]
         for group_summary in get_application_group_summaries(client, app_id)
     ]
 
@@ -966,7 +968,7 @@ def get_all_roles_and_namespaces_for_application(
     # Iterate through groups, roles, accumulate unique namespaces
     roles = dict()
     for group in get_application_groups(client, application_id):
-        for role in group.roles:
+        for role in group.roles:  # type: ignore[union-attr]
             if roles.get(role.role.name) is None:
                 # Set of namespaces to suppress duplicates
                 roles[role.role.name] = set()
@@ -974,7 +976,7 @@ def get_all_roles_and_namespaces_for_application(
                 roles[role.role.name].update(["GLOBAL"])
             else:
                 roles[role.role.name].update(
-                    [namespace.namespace for namespace in role.scope.namespaces]
+                    [namespace.namespace for namespace in role.scope.namespaces or []]
                 )
 
     return {
@@ -1054,7 +1056,7 @@ def get_compute_requirement_summaries(
     Optionally filter on statuses.
     """
     crs_search = ComputeRequirementSummarySearch(
-        namespaces=(None if namespace in [None, ""] else [namespace]),
+        namespaces=(None if namespace in [None, ""] else [namespace]),  # type: ignore[list-item]
         tag=tag,
         statuses=statuses,
     )
@@ -1114,7 +1116,9 @@ def get_image_family_groups(
     """
     Obtain and cache the list of image groups for an image family.
     """
-    return client.images_client.get_image_family_by_id(image_family_id).imageGroups
+    return (
+        client.images_client.get_image_family_by_id(image_family_id).imageGroups or []
+    )
 
 
 def clear_image_caches():
@@ -1135,7 +1139,7 @@ def get_instance_id_by_id(
     find the Instance ID object.
     """
     for instance in _get_instances(client, cr_id):
-        if instance.id.instanceId == instance_id:
+        if instance.id.instanceId == instance_id:  # type: ignore[union-attr]
             return instance
 
     return None

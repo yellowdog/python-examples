@@ -176,7 +176,7 @@ def main():
                         compute_requirement_template_usage
                     )
                 )
-                compute_requirement_ids.append(compute_requirement.id)
+                compute_requirement_ids.append(compute_requirement.id)  # type: ignore[arg-type]
                 if ARGS_PARSER.quiet:
                     print(compute_requirement.id)
                 print_info(

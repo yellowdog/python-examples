@@ -67,14 +67,14 @@ def main():
     if selected_compute_requirement_summaries and confirmed(
         f"Terminate {len(selected_compute_requirement_summaries)} Compute Requirement(s)?"
     ):
-        for compute_requirement_summary in selected_compute_requirement_summaries:
+        for compute_requirement_summary in selected_compute_requirement_summaries:  # type: ignore[assignment]
             try:
                 CLIENT.compute_client.terminate_compute_requirement_by_id(
-                    compute_requirement_summary.id
+                    compute_requirement_summary.id  # type: ignore[arg-type]
                 )
-                compute_requirement_summary: ComputeRequirement = (
+                compute_requirement_summary: ComputeRequirement = (  # type: ignore[assignment]
                     CLIENT.compute_client.get_compute_requirement_by_id(
-                        compute_requirement_summary.id
+                        compute_requirement_summary.id  # type: ignore[arg-type]
                     )
                 )
                 terminated_count += 1
@@ -199,7 +199,9 @@ def _terminate_node_instance_by_id(node_id: str) -> str | None:
         return None
 
     instance: Instance | None = get_instance_id_by_id(
-        CLIENT, cr_id, node.details.instanceId
+        CLIENT,
+        cr_id,
+        node.details.instanceId,  # type: ignore[union-attr]
     )
 
     if instance is None:
@@ -209,7 +211,7 @@ def _terminate_node_instance_by_id(node_id: str) -> str | None:
         )
         return None
 
-    return _terminate_instance(cr_id, instance.id.instanceId, node_id)
+    return _terminate_instance(cr_id, instance.id.instanceId, node_id)  # type: ignore[union-attr]
 
 
 def _terminate_instance(

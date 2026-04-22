@@ -27,10 +27,14 @@ from yellowdog_cli.utils.misc_utils import (
 # Load additional environment variables as early as possible
 load_dotenv_file()
 
-from yellowdog_cli.utils.printing import print_error, print_info  # noqa: E402
+from yellowdog_cli.utils.printing import (  # noqa: E402
+    print_error,
+    print_info,
+    print_warning,
+)
 from yellowdog_cli.utils.property_names import *  # noqa: E402
 from yellowdog_cli.utils.settings import (  # noqa: E402
-    CR_BATCH_SIZE_DEFAULT,
+    CR_MAX_INSTANCES,
     DEFAULT_URL,
     TASK_BATCH_SIZE_DEFAULT,
     TOML_VAR_NESTED_DEPTH,
@@ -710,10 +714,17 @@ def load_config_worker_pool() -> ConfigWorkerPool:
             else int(wp_section[WORKERS_PER_VCPU])
         )
 
+        cr_batch_size = wp_section.get(COMPUTE_REQUIREMENT_BATCH_SIZE, CR_MAX_INSTANCES)
+        if cr_batch_size > CR_MAX_INSTANCES:
+            print_warning(
+                f"'computeRequirementBatchSize' ({cr_batch_size:,d}) exceeds the"
+                f" platform maximum ({CR_MAX_INSTANCES:,d}); clamping to"
+                f" {CR_MAX_INSTANCES:,d}"
+            )
+            cr_batch_size = CR_MAX_INSTANCES
+
         return ConfigWorkerPool(
-            compute_requirement_batch_size=wp_section.get(
-                COMPUTE_REQUIREMENT_BATCH_SIZE, CR_BATCH_SIZE_DEFAULT
-            ),
+            compute_requirement_batch_size=cr_batch_size,
             compute_requirement_data_file=compute_requirement_data_file,
             cr_tag=wp_section.get(CR_TAG),
             idle_node_timeout=float(wp_section.get(IDLE_NODE_TIMEOUT, 5.0)),

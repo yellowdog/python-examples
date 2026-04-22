@@ -14,13 +14,8 @@ Current version: defined in `yellowdog_cli/__init__.py`.
 # Install in editable/development mode
 make install          # builds then pip install -U -e .
 
-# Format code (pyupgrade → isort → black)
+# Format code (ruff check --fix + ruff format)
 make format
-
-# Run individual formatters
-make black            # black --preview on all src + tests
-make isort            # isort --profile black
-make pyupgrade        # pyupgrade --py310-plus
 
 # Build distribution
 make build            # python -m build
@@ -31,11 +26,15 @@ pytest -v --run-demos               # include demo integration tests
 pytest -v -n 4 --run-demos tests/test_demos.py  # parallel demos (target file to avoid unit tests consuming workers first)
 pytest -v -k test_variable          # run a single test file/pattern
 
-# Update dependencies
-make update           # pip install -U pip -r requirements.txt -r requirements-dev.txt
-```
+# Run tests across all supported Python versions (3.10–3.14) via tox + uv
+make tox
 
-**Note:** mypy is intentionally disabled (commented out in Makefile).
+# Type checking
+make pyright
+
+# Update dependencies
+make update           # uv pip install -U -e ".[dev,jsonnet,cloudwizard]"
+```
 
 ## Architecture
 
@@ -44,7 +43,7 @@ make update           # pip install -U pip -r requirements.txt -r requirements-d
 ```
 yellowdog_cli/
 ├── __init__.py                  # Version only
-├── *.py                         # ~28 command modules (one per yd-* command)
+├── *.py                         # ~29 command modules (one per yd-* command)
 └── utils/
     ├── wrapper.py               # Global CLIENT + CONFIG_COMMON; @main_wrapper decorator
     ├── args.py                  # CLIParser class (single shared instance: ARGS_PARSER)
@@ -94,6 +93,8 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+A small number of standalone commands (`yd-help`, `yd-version`, `yd-format-json`, `yd-jsonnet2json`) need neither credentials nor a config file — they just define a bare `main()` function with no decorator.
 
 Data client commands (`yd-upload`, `yd-download`, `yd-delete`, `yd-ls`) use `@dataclient_wrapper` instead — no SDK client is initialised:
 

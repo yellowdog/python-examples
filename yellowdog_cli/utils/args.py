@@ -1572,7 +1572,7 @@ class CLIParser:
     # yd-finish, yd-shutdown, yd-terminate, yd-resize
     @property
     @allow_missing_attribute
-    def follow(self) -> bool | None:
+    def follow(self) -> bool:
         return self.args.follow
 
     @property
@@ -1650,7 +1650,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def abort(self) -> bool | None:
+    def abort(self) -> bool:
         return self.args.abort
 
     # -----------------------------------------------------------------------
@@ -1809,7 +1809,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def compute_requirements_instances_or_nodes(self) -> str | None:
+    def compute_requirements_instances_or_nodes(self) -> list[str]:
         return self.args.compute_reqs_instances_or_nodes
 
     # -----------------------------------------------------------------------
@@ -1818,7 +1818,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def work_requirement_names(self) -> str | None:
+    def work_requirement_names(self) -> list[str]:
         return self.args.work_requirements
 
     # -----------------------------------------------------------------------
@@ -1827,7 +1827,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def resource_specifications(self) -> list[str] | None:
+    def resource_specifications(self) -> list[str]:
         return self.args.resource_specifications
 
     @property
@@ -1864,7 +1864,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def yellowdog_ids(self) -> list[str] | None:
+    def yellowdog_ids(self) -> list[str]:
         return self.args.yellowdog_ids
 
     # -----------------------------------------------------------------------
@@ -1882,7 +1882,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def auto_cr(self) -> bool | None:
+    def auto_cr(self) -> bool:
         return self.args.auto_follow_compute_requirements
 
     # -----------------------------------------------------------------------
@@ -1926,7 +1926,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def show_secrets(self) -> bool | None:
+    def show_secrets(self) -> bool:
         return self.args.show_secrets
 
     # -----------------------------------------------------------------------
@@ -2001,7 +2001,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def report_variables(self) -> list[str] | None:
+    def report_variables(self) -> list[str]:
         return self.args.report_variable
 
     # -----------------------------------------------------------------------
@@ -2096,7 +2096,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def local_paths(self) -> list[str] | None:
+    def local_paths(self) -> list[str]:
         return self.args.local_paths
 
     @property
@@ -2125,7 +2125,7 @@ class CLIParser:
 
     @property
     @allow_missing_attribute
-    def remote_paths(self) -> list[str] | None:
+    def remote_paths(self) -> list[str]:
         return self.args.remote_paths
 
 
@@ -2189,6 +2189,14 @@ def lookup_module_description(module_name: str) -> str | None:
         suffix = "terminating Compute Requirements, Instances or Nodes"
     elif "upload" in module_name:
         suffix = "uploading files to a remote data client"
+    elif "format" in module_name:
+        suffix = "formatting JSON files using a compact encoder"
+    elif "jsonnet" in module_name:
+        suffix = "converting a Jsonnet file to JSON"
+    elif "version" in module_name:
+        suffix = "reporting version information"
+    elif "help" in module_name:
+        suffix = "listing available yd-* commands and their purposes"
 
     return None if suffix is None else prefix + suffix
 

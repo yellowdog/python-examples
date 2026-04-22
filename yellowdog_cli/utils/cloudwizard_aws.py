@@ -273,7 +273,7 @@ class AWSConfig(CommonCloudConfig):
         )
 
         for az in selected_azs:
-            if az.default_sec_grp.id == "":
+            if az.default_sec_grp.id == "":  # type: ignore[union-attr]
                 print_warning(
                     f"Cannot create Compute Source Template for {az.az}: no security"
                     " group ID"
@@ -734,7 +734,7 @@ class AWSConfig(CommonCloudConfig):
                 "limit": 0,
                 "name": name,
                 "region": f"{az.region}",
-                "securityGroupId": f"{az.default_sec_grp.id}",
+                "securityGroupId": f"{az.default_sec_grp.id}",  # type: ignore[union-attr]
                 "specifyMinimum": False,
                 "spot": spot,
                 "subnetId": f"{az.default_subnet_id}",

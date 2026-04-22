@@ -126,7 +126,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             compute_requirement = CLIENT.compute_client.get_compute_requirement_by_id(
                 ydid.rsplit(":", 1)[0].replace(TYPE_COMPSRC, TYPE_COMPREQ)
             )
-            for source in compute_requirement.provisionStrategy.sources:
+            for source in compute_requirement.provisionStrategy.sources or []:
                 if source.id == ydid:
                     print_yd_object(source)
                     return
@@ -163,7 +163,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             node = CLIENT.worker_pool_client.get_node_by_id(
                 ydid.rsplit(":", 1)[0].replace(TYPE_WRKR, TYPE_NODE)
             )
-            for worker in node.workers:
+            for worker in node.workers or []:
                 if worker.id == ydid:
                     print_yd_object(worker)
                     return
@@ -179,7 +179,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             work_requirement = CLIENT.work_client.get_work_requirement_by_id(
                 ydid.rsplit(":", 1)[0].replace(TYPE_TASKGRP, TYPE_WORKREQ)
             )
-            for task_group in work_requirement.taskGroups:
+            for task_group in work_requirement.taskGroups or []:
                 if task_group.id == ydid:
                     print_yd_object(task_group)
                     return
@@ -214,7 +214,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
                 if keyring.id == ydid:
                     # This fetches additional Keyring data: credentials and accessors
                     print_yd_object(
-                        get_keyring(keyring.name),
+                        get_keyring(keyring.name),  # type: ignore[arg-type]
                         initial_indent=initial_indent,
                         with_final_comma=with_final_comma,
                         add_fields=({RESOURCE_PROPERTY_NAME: RN_KEYRING}),
@@ -228,7 +228,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
             allowance = CLIENT.allowances_client.get_allowance_by_id(ydid)
             if ARGS_PARSER.substitute_ids:
                 print_info("Substituting ID with name")
-                allowance = substitute_id_for_name_in_allowance(CLIENT, allowance)
+                allowance = substitute_id_for_name_in_allowance(CLIENT, allowance)  # type: ignore[arg-type]
             print_yd_object(
                 allowance,
                 initial_indent=initial_indent,
@@ -287,7 +287,7 @@ def show_details(ydid: str, initial_indent: int = 0, with_final_comma: bool = Fa
 
     except Exception as e:
         if "404" in str(e):
-            print_error(f"{ydid_type.value} ID '{ydid}' not found")
+            print_error(f"{ydid_type.value} ID '{ydid}' not found")  # type: ignore[union-attr]
         else:
             print_error(f"Unable to show details for '{ydid}': {e}")
 

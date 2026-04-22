@@ -20,16 +20,16 @@ def main():
 
     check_cloudwizard_imports()
 
-    if ARGS_PARSER.cloud_provider.lower() in ["aws", "amazon"]:
+    if ARGS_PARSER.cloud_provider.lower() in ["aws", "amazon"]:  # type: ignore[union-attr]
         print_info("YellowDog automated cloud provider setup/teardown for 'AWS'")
         cloud_provider_config = AWSConfig(
             client=CLIENT,
             region_name=ARGS_PARSER.region_name,
             show_secrets=ARGS_PARSER.show_secrets,
-            instance_type=ARGS_PARSER.instance_type,
+            instance_type=ARGS_PARSER.instance_type,  # type: ignore[arg-type]
         )
 
-    elif ARGS_PARSER.cloud_provider.lower() in ["gcp", "gce", "google"]:
+    elif ARGS_PARSER.cloud_provider.lower() in ["gcp", "gce", "google"]:  # type: ignore[union-attr]
         print_info("YellowDog automated cloud provider setup/teardown for 'GCP'")
         if ARGS_PARSER.credentials_file is None:
             print_error(
@@ -39,17 +39,17 @@ def main():
         cloud_provider_config = GCPConfig(
             service_account_file=ARGS_PARSER.credentials_file,
             client=CLIENT,
-            instance_type=ARGS_PARSER.instance_type,
+            instance_type=ARGS_PARSER.instance_type,  # type: ignore[arg-type]
         )
 
-    elif ARGS_PARSER.cloud_provider.lower() in ["azure", "microsoft"]:
+    elif ARGS_PARSER.cloud_provider.lower() in ["azure", "microsoft"]:  # type: ignore[union-attr]
         print_info("YellowDog automated cloud provider setup/teardown for 'Azure'")
         cloud_provider_config = AzureConfig(
             client=CLIENT,
-            instance_type=ARGS_PARSER.instance_type,
+            instance_type=ARGS_PARSER.instance_type,  # type: ignore[arg-type]
         )
 
-    elif ARGS_PARSER.cloud_provider.lower() in [
+    elif ARGS_PARSER.cloud_provider.lower() in [  # type: ignore[union-attr]
         "oci",
         "oracle",
         "alibaba",

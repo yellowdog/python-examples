@@ -49,7 +49,7 @@ def main():
 
     selected_worker_pool_summaries: list[WorkerPoolSummary] = []
     for worker_pool_summary in worker_pool_summaries:
-        if not worker_pool_summary.status.finished:
+        if not worker_pool_summary.status.finished:  # type: ignore[union-attr]
             if (
                 worker_pool_summary.name is not None
                 and worker_pool_summary.namespace == CONFIG_COMMON.namespace
@@ -66,7 +66,7 @@ def main():
         for worker_pool_summary in selected_worker_pool_summaries:
             try:
                 CLIENT.worker_pool_client.shutdown_worker_pool_by_id(
-                    worker_pool_summary.id
+                    worker_pool_summary.id  # type: ignore[arg-type]
                 )
                 shutdown_count += 1
                 worker_pool: WorkerPool = get_worker_pool_by_id(
@@ -153,10 +153,10 @@ def optionally_terminate_compute_requirement(worker_pool_id: str):
 
     try:
         worker_pool: ProvisionedWorkerPool = (
-            CLIENT.worker_pool_client.get_worker_pool_by_id(worker_pool_id)
+            CLIENT.worker_pool_client.get_worker_pool_by_id(worker_pool_id)  # type: ignore[assignment]
         )
         CLIENT.compute_client.terminate_compute_requirement_by_id(
-            worker_pool.computeRequirementId
+            worker_pool.computeRequirementId  # type: ignore[arg-type]
         )
         print_info(
             f"Terminated associated Compute Requirement '{worker_pool.computeRequirementId}'"

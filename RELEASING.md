@@ -90,6 +90,10 @@ git checkout next-version
 git push origin next-version
 ```
 
+## Pull Requests
+
+When a PR is required (e.g. for external contributions or review), it should target the `next-version` branch, not `main`.
+
 ## Feature Branch Workflow
 
 ```shell
@@ -115,7 +119,9 @@ git push origin next-version
 
 ## PyPI Credentials
 
-Twine reads `~/.pypirc`. The entry name must match the `--repository` argument in the Makefile (`yellowdog-cli`):
+Twine reads `~/.pypirc`. The entry name must match the `--repository` argument in the Makefile.
+
+For production PyPI (`make pypi_upload`):
 
 ```ini
 [yellowdog-cli]
@@ -124,4 +130,13 @@ Twine reads `~/.pypirc`. The entry name must match the `--repository` argument i
   password = pypi-...
 ```
 
-The password can be found in BitWarden.
+For Test PyPI (`make pypi_test_upload`):
+
+```ini
+[yellowdog-testpypi]
+  repository = https://test.pypi.org/legacy/
+  username = __token__
+  password = pypi-...
+```
+
+Both passwords can be found in BitWarden.

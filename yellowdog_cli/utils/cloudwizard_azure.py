@@ -168,8 +168,9 @@ class AzureConfig(CommonCloudConfig):
 
             # Create the resource group
             try:
-                rg_result = self._resource_client.resource_groups.create_or_update(
-                    rg_name, {"location": region}
+                rg_result = self._resource_client.resource_groups.create_or_update(  # type: ignore[call-overload]
+                    rg_name,
+                    {"location": region},  # type: ignore[arg-type]
                 )
                 print_info(
                     f"Created (or updated) Azure resource group '{rg_result.name}' in"
@@ -214,14 +215,14 @@ class AzureConfig(CommonCloudConfig):
         resource_groups = self._resource_client.resource_groups.list()
         count = 0
         for resource_group in resource_groups:
-            if resource_group.name.startswith(RESOURCE_GROUP_PREFIX):
+            if resource_group.name.startswith(RESOURCE_GROUP_PREFIX):  # type: ignore[union-attr]
                 if confirmed(
                     f"Delete Azure resource group '{resource_group.name}' and all"
                     " contained resources?"
                 ):
                     try:
                         self._resource_client.resource_groups.begin_delete(
-                            resource_group.name
+                            resource_group.name  # type: ignore[arg-type]
                         )  # Deletion occurs asynchronously unless '.result()' is added
                         print_info(
                             "Requested deletion of Azure resource group"
@@ -287,10 +288,10 @@ class AzureConfig(CommonCloudConfig):
         vnet_name = self._generate_vnet_name(region)
         address_prefixes = [ADDRESS_PREFIX]
         try:
-            self._network_client.virtual_networks.begin_create_or_update(
+            self._network_client.virtual_networks.begin_create_or_update(  # type: ignore[call-overload]
                 resource_group_name,
                 vnet_name,
-                {
+                {  # type: ignore[arg-type]
                     "location": region,
                     "address_space": {"address_prefixes": address_prefixes},
                 },
@@ -336,11 +337,11 @@ class AzureConfig(CommonCloudConfig):
         address_prefix = ADDRESS_PREFIX
         security_rule_name = "https-outbound-rule"
         try:
-            self._network_client.security_rules.begin_create_or_update(
+            self._network_client.security_rules.begin_create_or_update(  # type: ignore[call-overload]
                 resource_group_name=resource_group_name,
                 network_security_group_name=security_group_name,
                 security_rule_name=security_rule_name,
-                security_rule_parameters={
+                security_rule_parameters={  # type: ignore[arg-type]
                     "properties": {
                         "access": "Allow",
                         "destinationAddressPrefix": "*",
@@ -376,11 +377,11 @@ class AzureConfig(CommonCloudConfig):
             f"networkSecurityGroups/{security_group_name}"
         )
         try:
-            self._network_client.subnets.begin_create_or_update(
+            self._network_client.subnets.begin_create_or_update(  # type: ignore[call-overload]
                 resource_group_name,
                 vnet_name,
                 subnet_name,
-                {
+                {  # type: ignore[arg-type]
                     "address_prefix": address_prefix,
                     "networkSecurityGroup": {
                         "id": security_group_id,
@@ -559,11 +560,11 @@ class AzureConfig(CommonCloudConfig):
                 f" '{security_group_name}'"
             )
             try:
-                self._network_client.security_rules.begin_create_or_update(
+                self._network_client.security_rules.begin_create_or_update(  # type: ignore[call-overload]
                     resource_group_name=resource_group_name,
                     network_security_group_name=security_group_name,
                     security_rule_name=security_rule_name,
-                    security_rule_parameters={
+                    security_rule_parameters={  # type: ignore[arg-type]
                         "properties": {
                             "access": "Allow",
                             "destinationAddressPrefix": address_prefix,
@@ -617,6 +618,7 @@ class AzureConfig(CommonCloudConfig):
                 for location in self._subscription_client.subscriptions.list_locations(
                     self._subscription_id
                 )
+                if location.name is not None
             ]
         except Exception as e:
             raise RuntimeError(f"Unable to obtain list of Azure regions: {e}")

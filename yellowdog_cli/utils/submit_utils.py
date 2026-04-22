@@ -660,7 +660,7 @@ def create_task(
     """
     Create a Task object.
     """
-    env_copy = deepcopy(env)  # Copy the environment property to prevent overwriting
+    env_copy: dict[str, str] = deepcopy(env) if env is not None else {}
     task_tag = task_data.get(TASK_TAG)
 
     # Optionally add Task details to the environment as a convenience

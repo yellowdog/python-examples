@@ -409,7 +409,7 @@ def create_worker_pool_from_toml():
                 )
                 print_info(f"Created {link_entity(CONFIG_COMMON.url, worker_pool)}")
                 print_info(f"YellowDog ID is '{worker_pool.id}'")
-                worker_pool_ids.append(worker_pool.id)
+                worker_pool_ids.append(worker_pool.id)  # type: ignore[arg-type]
                 if ARGS_PARSER.quiet:
                     print(worker_pool.id)
             else:

@@ -12,7 +12,7 @@ Two distinct failure modes exist in the CLI:
     The command processes a list of items (YDIDs, resource specs) and reports
     individual errors without aborting the overall run. Exit code is 0 even
     though something went wrong. Examples: unknown YDID type, nonexistent
-    resource, unknown resource type in a spec file.
+    resource.
 
 Tests that do NOT need platform connectivity are marked with a comment.
 Tests that DO need platform connectivity are noted separately.
@@ -72,6 +72,15 @@ class TestHardFailures:
         assert _has_error(result)
         assert "no_equals_sign" in _output(result)
 
+    def test_create_unknown_resource_type(self, tmp_path):
+        # No platform needed — resource type is checked client-side
+        spec = tmp_path / "unknown.json"
+        spec.write_text('[{"resource": "WibbleWobbleUnknown", "name": "test"}]')
+        result = shell(f"yd-create {spec}")
+        assert result.exit_code == 1
+        assert _has_error(result)
+        assert "WibbleWobbleUnknown" in _output(result)
+
 
 # ---------------------------------------------------------------------------
 # Soft failures (exit code 0, "Error:" in stderr)
@@ -84,15 +93,6 @@ class TestSoftFailures:
     Commands that process a list of items and report per-item errors without
     aborting. The process exits 0 even though errors occurred.
     """
-
-    def test_create_unknown_resource_type(self, tmp_path):
-        # No platform needed — resource type is checked client-side
-        spec = tmp_path / "unknown.json"
-        spec.write_text('[{"resource": "WibbleWobbleUnknown", "name": "test"}]')
-        result = shell(f"yd-create {spec}")
-        assert result.exit_code == 0
-        assert _has_error(result)
-        assert "WibbleWobbleUnknown" in _output(result)
 
     def test_show_unrecognised_ydid_format(self):
         # No platform needed — YDID type lookup is client-side

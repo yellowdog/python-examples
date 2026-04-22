@@ -64,9 +64,9 @@ def main():
         for work_summary in selected_work_requirement_summaries:
             if work_summary.status != WorkRequirementStatus.FINISHING:
                 try:
-                    CLIENT.work_client.finish_work_requirement_by_id(work_summary.id)
+                    CLIENT.work_client.finish_work_requirement_by_id(work_summary.id)  # type: ignore[arg-type]
                     work_requirement: WorkRequirement = (
-                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)
+                        CLIENT.work_client.get_work_requirement_by_id(work_summary.id)  # type: ignore[arg-type]
                     )
                     finished_count += 1
                     print_info(
@@ -84,7 +84,7 @@ def main():
                     f"Work Requirement '{work_summary.name}' is already finishing"
                 )
                 finishing_count += 1
-            work_requirement_ids.append(work_summary.id)
+            work_requirement_ids.append(work_summary.id)  # type: ignore[arg-type]
 
         if finished_count > 1:
             print_info(f"Finished {finished_count} Work Requirement(s)")
@@ -140,7 +140,7 @@ def _finish_work_requirements_by_name_or_id(names_or_ids: list[str]):
                 continue
             try:
                 CLIENT.work_client.finish_work_requirement_by_id(
-                    work_requirement_summary.id
+                    work_requirement_summary.id  # type: ignore[arg-type]
                 )
                 print_info(
                     f"Finished Work Requirement '{fq_name}' ({work_requirement_summary.id})"

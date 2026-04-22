@@ -211,7 +211,7 @@ def list_work_requirements():
         if ARGS_PARSER.details:
             print_yd_object_list(
                 [
-                    (CLIENT.work_client.get_work_requirement_by_id(wr_summary.id), None)
+                    (CLIENT.work_client.get_work_requirement_by_id(wr_summary.id), None)  # type: ignore[arg-type]
                     for wr_summary in select(CLIENT, work_requirement_summaries)
                 ]
             )
@@ -312,7 +312,7 @@ def list_worker_pools():
             [
                 (
                     CLIENT.worker_pool_client.get_worker_pool_by_id(
-                        worker_pool_summary.id
+                        worker_pool_summary.id  # type: ignore[arg-type]
                     ),
                     None,
                 )
@@ -362,7 +362,7 @@ def list_compute_requirements():
         for compute_requirement_summary in select(
             CLIENT, compute_requirement_summaries, single_result=True
         ):
-            list_instances(compute_requirement_summary.id)
+            list_instances(compute_requirement_summary.id)  # type: ignore[arg-type]
         return
 
     if ARGS_PARSER.details:
@@ -408,7 +408,7 @@ def list_instances(compute_requirement_id: str):
         )
     elif ARGS_PARSER.ids_only:
         for instance in instances:
-            print(instance.id.instanceId)
+            print(instance.id.instanceId)  # type: ignore[union-attr]
     else:
         print_numbered_object_list(CLIENT, instances)
 
@@ -426,7 +426,7 @@ def list_nodes(worker_pool_summaries: list[WorkerPoolSummary]):
         search_client = CLIENT.worker_pool_client.get_nodes(search=nodes_search)
         nodes: list[Node] = search_client.list_all()
         for node in nodes:
-            node.workerPoolName = worker_pool_summary.name
+            node.workerPoolName = worker_pool_summary.name  # type: ignore[attr-defined]
         nodes_all += nodes
 
     if not nodes_all:
@@ -463,9 +463,9 @@ def list_workers(nodes: list[Node]):
                     continue
             # Add extra info to the Worker object
             if node.details is not None:
-                worker.workerTag = node.details.workerTag
-                worker.taskTypes = node.details.supportedTaskTypes
-                worker.workerPoolName = (
+                worker.workerTag = node.details.workerTag  # type: ignore[attr-defined]
+                worker.taskTypes = node.details.supportedTaskTypes  # type: ignore[attr-defined]
+                worker.workerPoolName = (  # type: ignore[attr-defined]
                     node.workerPoolName  # type: ignore[attr-defined]
                 )  # This property is added by the caller
                 workers_all.append(worker)
@@ -530,14 +530,14 @@ def list_compute_requirement_templates():
         (
             substitute_ids_for_names_in_crt(
                 CLIENT,
-                CLIENT.compute_client.get_compute_requirement_template(cr_template.id),
+                CLIENT.compute_client.get_compute_requirement_template(cr_template.id),  # type: ignore[arg-type]
             ),
             {PROP_RESOURCE: RN_REQUIREMENT_TEMPLATE},
         )
         for cr_template in cr_templates
     ]
     print_yd_object_list(
-        cr_template_details,
+        cr_template_details,  # type: ignore[arg-type]
     )
 
 
@@ -576,14 +576,14 @@ def list_compute_source_templates():
         (
             substitute_image_family_id_for_name_in_cst(
                 CLIENT,
-                CLIENT.compute_client.get_compute_source_template(cs_template.id),
+                CLIENT.compute_client.get_compute_source_template(cs_template.id),  # type: ignore[arg-type]
             ),
             {PROP_RESOURCE: RN_SOURCE_TEMPLATE},
         )
         for cs_template in cs_templates
     ]
     print_yd_object_list(
-        cs_template_details,
+        cs_template_details,  # type: ignore[arg-type]
     )
 
 
@@ -658,13 +658,13 @@ def list_image_families():
     image_family_summaries = select(CLIENT, sorted_objects(image_family_summaries))
     image_families = [
         (
-            CLIENT.images_client.get_image_family_by_id(image_family_summary.id),
+            CLIENT.images_client.get_image_family_by_id(image_family_summary.id),  # type: ignore[arg-type]
             {PROP_RESOURCE: RN_IMAGE_FAMILY},
         )
         for image_family_summary in image_family_summaries
     ]
     print_yd_object_list(
-        image_families,
+        image_families,  # type: ignore[arg-type]
     )
 
 
@@ -698,7 +698,7 @@ def list_allowances():
     print_yd_object_list(
         [
             (
-                substitute_id_for_name_in_allowance(CLIENT, allowance),
+                substitute_id_for_name_in_allowance(CLIENT, allowance),  # type: ignore[arg-type]
                 {PROP_RESOURCE: RN_ALLOWANCE},
             )
             for allowance in select(CLIENT, allowances)
@@ -749,7 +749,7 @@ def list_attribute_definitions():
             sort_objects=False,
         )
     ]
-    print_yd_object_list(attribute_definition_list)
+    print_yd_object_list(attribute_definition_list)  # type: ignore[arg-type]
 
 
 def list_namespaces():
@@ -831,7 +831,8 @@ def list_users():
                 user,
                 {
                     PROP_GROUPS: [
-                        group.name for group in get_user_groups(CLIENT, user.id)
+                        group.name
+                        for group in get_user_groups(CLIENT, user.id)  # type: ignore[arg-type]
                     ],
                     PROP_RESOURCE: user.__class__.__name__,
                 },
@@ -887,10 +888,11 @@ def list_groups():
         print_info("No Groups to display")
         return
 
-    group_summaries.sort(key=lambda group: group.name if group.name is not None else "")
+    group_summaries.sort(key=lambda group: group.name if group.name is not None else "")  # type: ignore[arg-type]
 
     groups: list[Group] = [
-        CLIENT.account_client.get_group(group.id) for group in group_summaries
+        CLIENT.account_client.get_group(group.id)  # type: ignore[arg-type]
+        for group in group_summaries
     ]
 
     if ARGS_PARSER.ids_only:
@@ -922,7 +924,7 @@ def list_roles():
     role_summaries.sort(key=lambda role_: role_.name if role_.name is not None else "")
 
     print_info("Obtaining permissions for each role ...")
-    roles: list[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]
+    roles: list[Role] = [CLIENT.account_client.get_role(x.id) for x in role_summaries]  # type: ignore[arg-type]
 
     # Sort permissions alphabetically (contorting the type)
     for role in roles:
@@ -943,7 +945,7 @@ def list_permissions():
     List all permissions in the account.
     """
     permissions: list[PermissionDetail] = CLIENT.account_client.list_permissions()
-    permissions.sort(key=lambda permission_: permission_.name)
+    permissions.sort(key=lambda permission_: permission_.name)  # type: ignore[arg-type]
 
     if not ARGS_PARSER.details:
         print_numbered_object_list(CLIENT, permissions, object_type_name="Permission")
