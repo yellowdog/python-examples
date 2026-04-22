@@ -59,6 +59,7 @@ pytest -v -n 4 --run-demos
 | `test_interactive.py` | `utils/interactive.py` — `confirmed` (--yes / YD_YES shortcuts), `get_selected_list_items` (range parsing: comma, dash, `*`, error recovery) |
 | `test_ls_formatting.py` | `ls.py` — `_print_listing`, `_print_flat`, `_print_tree` output formatting |
 | `test_misc_utils.py` | `utils/misc_utils.py` — name formatting, ID generation, delimiter parsing, etc. |
+| `test_node_batching.py` | `provision.py`, `instantiate.py` — `_allocate_nodes_to_batches`: batch count, even distribution, remainder spreading, zero-node edge cases |
 | `test_printing.py` | `utils/printing.py` — `_truncate_text`, `_yes_or_no`, `indent`, `status_counts_msg`, `get_type_name`, `print_string`; table-building helpers |
 | `test_property_overrides.py` | `utils/load_config.py` — `_apply_property_overrides`, `_parse_property_value` (CLI `--property` flag) |
 | `test_rclone_utils.py` | `utils/rclone_utils.py` — `parse_rclone_config` (plain remotes and inline config strings) |
