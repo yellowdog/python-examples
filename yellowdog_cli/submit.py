@@ -79,6 +79,7 @@ from yellowdog_cli.utils.property_names import (
     TASK_COUNT,
     TASK_DATA,
     TASK_DATA_FILE,
+    TASK_DATA_FILES,
     TASK_DATA_INPUTS,
     TASK_DATA_OUTPUTS,
     TASK_GROUP_COUNT,
@@ -651,6 +652,7 @@ def create_task_group(
         except ValueError as e:
             raise ValueError(f"taskTemplate: {e}") from e
         tt.pop(TASK_DATA_FILE, None)
+        tt.pop(TASK_DATA_FILES, None)
         if task_data is not None:
             tt[TASK_DATA] = task_data
         task_template = TaskTemplate(**tt)

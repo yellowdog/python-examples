@@ -178,7 +178,7 @@
    * [yd-upload](#yd-upload-1)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: pwt, at: Wed Apr 22 11:28:15 BST 2026 -->
+<!-- Added by: pwt, at: Wed Apr 22 11:51:22 BST 2026 -->
 
 <!--te-->
 
@@ -900,12 +900,13 @@ The following table outlines all the properties available for defining Work Requ
 | `taskCount`                 | The number of times to execute the Task.                                                                                                                                                                                            | Yes  | Yes | Yes  |      |
 | `taskData`                  | The data to be passed to the Worker when the Task is started. E.g., `"mydata"`. Becomes file `taskdata.txt` in the Task's working directory when the task executes.                                                                 | Yes  | Yes | Yes  | Yes  |
 | `taskDataFile`              | Populate the `taskData` property above with the contents of the specified file. E.g., `"my_task_data_file.txt"`.                                                                                                                    | Yes  | Yes | Yes  | Yes  |
+| `taskDataFiles`             | Populate the `taskData` property above by concatenating the contents of a list of files. Mutually exclusive with `taskData` and `taskDataFile`. E.g., `["header.txt", "body.txt"]`.                                                | Yes  | Yes | Yes  | Yes  |
 | `taskDataInputs`            | A list of data inputs to be downloaded by the task E.g., JSON: `{"source": "src", "destination": "dest"}`, TOML: `{source = "src", destination = "dest"}`.                                                                          | Yes  | Yes | Yes  | Yes  |
 | `taskDataOutputs`           | A list of data outputs to be uploaded at the conclusion of a task E.g., JSON: `{"source": "src", "destination": "dest", "alwaysUpload": true}`, TOML: `{source = "src", destination = "dest", alwaysUpload = true}`.                | Yes  | Yes | Yes  | Yes  |
 | `taskName`                  | The name to use for the Task. Only usable in the TOML file. Mostly useful in conjunction with CSV Task data. E.g., `"my_task_number_{{task_number}}"`.                                                                              | Yes  |     |      |      |
 | `taskGroupCount`            | Create `taskGroupCount` duplicates of a single Task Group.                                                                                                                                                                          | Yes  | Yes |      |      |
 | `taskGroupName`             | The name to use for the Task Group. Only usable in the TOML file. E.g., `"my_tg_number_{{task_group_number}}"`.                                                                                                                     | Yes  |     |      |      |
-| `taskTemplate`              | Sets default `taskType`, `taskData` (or `taskDataFile`), and/or `environment` for all Tasks in a Task Group; applied by the platform, allowing Tasks to be more compact. E.g., `{"taskType": "docker", "environment": {"X": "1"}}`. | Yes  | Yes | Yes  |      |
+| `taskTemplate`              | Sets default `taskType`, `taskData` (or `taskDataFile`/`taskDataFiles`), and/or `environment` for all Tasks in a Task Group; applied by the platform, allowing Tasks to be more compact. E.g., `{"taskType": "docker", "environment": {"X": "1"}}`. | Yes  | Yes | Yes  |      |
 | `taskTimeout`               | The timeout in minutes after which an executing Task will be terminated and reported as `FAILED`. E.g. `120.0`. The default is no timeout.                                                                                          | Yes  | Yes | Yes  |      |
 | `timeout`                   | As above, but set at the individual Task level, which overrides the group level `taskTimeout` property (if present).                                                                                                                | Yes  |     |      | Yes  |
 | `taskType`                  | The Task Type of a Task. E.g., `"docker"`.                                                                                                                                                                                          | Yes  |     |      | Yes  |
@@ -1017,7 +1018,7 @@ The `taskTemplate` property on a Task Group optionally sets default values for `
 
 Any combination of the three fields can be specified; omitted fields are simply not defaulted. Values specified directly on an individual Task take precedence over the template.
 
-`taskDataFile` can be used inside `taskTemplate` as an alternative to `taskData`, exactly as it can at the Task level — the file contents are read client-side and used as the `taskData` value.
+`taskDataFile` or `taskDataFiles` can be used inside `taskTemplate` as an alternative to `taskData`, exactly as they can at the Task level — the file contents are read client-side and used as the `taskData` value. `taskDataFiles` concatenates multiple files in order.
 
 `taskTemplate` can be set in the TOML config (applying globally as a default), at the Work Requirement level, or at the Task Group level. More specific levels take precedence.
 
@@ -1136,6 +1137,7 @@ Here's an example of the `workRequirement` section of a TOML configuration file,
     taskCount = 100
     taskData = "my_data_string"
     taskDataFile = "my_data_file.txt"
+    taskDataFiles = ["header.txt", "body.txt"]
     taskDataInputs = [
       {source = "in_src_path_1", destination = "dest_path_1"},
       {localPath = "local_file", uploadPath = "in_src_path_2", source = "in_src_path_2", destination = "dest_path_2"},
@@ -1194,6 +1196,7 @@ Showing all possible properties at the Work Requirement level:
   "taskCount": 100,
   "taskData": "my_task_data_string",
   "taskDataFile": "my_data_file.txt",
+  "taskDataFiles": ["header.txt", "body.txt"],
   "taskDataInputs": [
     {"destination": "dest_path_1", "source": "in_src_path_1"},
     {"localPath": "local_file", "uploadPath": "in_src_path_2", "destination": "dest_path_2", "source": "in_src_path_2"}
@@ -1260,6 +1263,7 @@ Showing all possible properties at the Task Group level:
       "taskCount": 5,
       "taskData": "my_task_data_string",
       "taskDataFile": "my_data_file.txt",
+      "taskDataFiles": ["header.txt", "body.txt"],
       "taskDataInputs": [
         {"destination": "dest_path_1", "source": "in_src_path_1"},
         {"localPath": "local_file", "uploadPath": "in_src_path_2", "destination": "dest_path_2", "source": "in_src_path_2"}
@@ -1307,6 +1311,7 @@ Showing all possible properties at the Task level:
           "tag": "my_tag",
           "taskData": "my_task_data_string",
           "taskDataFile": "my_data_file.txt",
+          "taskDataFiles": ["header.txt", "body.txt"],
           "taskDataInputs": [
             {"destination": "dest_path_1", "source": "in_src_path_1"},
             {"localPath": "local_file", "uploadPath": "in_src_path_2", "destination": "dest_path_2", "source": "in_src_path_2"}
