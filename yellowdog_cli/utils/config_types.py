@@ -1,5 +1,5 @@
 """
-Configuration classes and constants.
+Configuration classes.
 """
 
 from dataclasses import dataclass, field
