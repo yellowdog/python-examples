@@ -34,6 +34,7 @@ from yellowdog_cli.utils.property_names import (
     STATUSES_AT_FAILURE,
     TASK_DATA,
     TASK_DATA_FILE,
+    TASK_DATA_FILES,
     TASK_DATA_SOURCE,
     TASK_GROUPS,
     TASK_TAG,
@@ -582,25 +583,36 @@ def resolve_task_data(
     files_directory: str = "",
     task_data_default: str | None = None,
     task_data_file_default: str | None = None,
+    task_data_files_default: list[str] | None = None,
 ) -> str | None:
     """
     Resolve 'taskData' from a single dict level.
 
-    Returns the task data string (reading from file if 'taskDataFile' is used),
-    or None if neither property is present at this level.
-    Raises ValueError if both 'taskData' and 'taskDataFile' are set.
+    Returns the task data string — inline, read from a single file, or
+    concatenated from a list of files. Returns None if none of the three
+    properties are present at this level. Raises ValueError if more than
+    one of 'taskData', 'taskDataFile', 'taskDataFiles' is set.
     """
     task_data = data.get(TASK_DATA, task_data_default)
     task_data_file = data.get(TASK_DATA_FILE, task_data_file_default)
-    if task_data and task_data_file:
+    task_data_files = data.get(TASK_DATA_FILES, task_data_files_default)
+    if sum(bool(x) for x in [task_data, task_data_file, task_data_files]) > 1:
         raise ValueError(
-            f"Properties '{TASK_DATA}' and '{TASK_DATA_FILE}' are both set"
+            f"Only one of '{TASK_DATA}', '{TASK_DATA_FILE}' or "
+            f"'{TASK_DATA_FILES}' should be set"
         )
     if task_data:
         return task_data
     if task_data_file:
         with open(resolve_filename(files_directory, task_data_file)) as f:
             return process_variable_substitutions_in_file_contents(f.read())
+    if task_data_files:
+        result = ""
+        for filename in task_data_files:
+            with open(resolve_filename(files_directory, filename)) as f:
+                result += process_variable_substitutions_in_file_contents(f.read())
+                result += "\n"
+        return result
     return None
 
 
@@ -617,19 +629,28 @@ def get_task_data_property(
     level in order. 'taskDataFile' is resolved to its file contents at whichever
     level it is found.
     """
-    for data, task_data_default, task_data_file_default in [
-        (task, None, None),
-        (task_group_data, None, None),
-        (wr_data, config_wr.task_data, config_wr.task_data_file),
+    for data, task_data_default, task_data_file_default, task_data_files_default in [
+        (task, None, None, None),
+        (task_group_data, None, None, None),
+        (
+            wr_data,
+            config_wr.task_data,
+            config_wr.task_data_file,
+            config_wr.task_data_files,
+        ),
     ]:
         try:
             result = resolve_task_data(
-                data, files_directory, task_data_default, task_data_file_default
+                data,
+                files_directory,
+                task_data_default,
+                task_data_file_default,
+                task_data_files_default,
             )
         except ValueError:
             raise ValueError(
-                f"Task '{task_name}': Properties '{TASK_DATA}' and "
-                f"'{TASK_DATA_FILE}' are both set"
+                f"Task '{task_name}': Only one of '{TASK_DATA}', "
+                f"'{TASK_DATA_FILE}' or '{TASK_DATA_FILES}' should be set"
             )
         if result is not None:
             return result

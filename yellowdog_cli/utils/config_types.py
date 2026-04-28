@@ -1,5 +1,5 @@
 """
-Configuration classes and constants.
+Configuration classes.
 """
 
 from dataclasses import dataclass, field
@@ -54,6 +54,7 @@ class ConfigWorkRequirement:
     task_count: int = 1
     task_data: str | None = None
     task_data_file: str | None = None
+    task_data_files: list[str] | None = None
     task_data_inputs: list[dict] | None = None
     task_data_outputs: list[dict] | None = None
     task_group_count: int = 1

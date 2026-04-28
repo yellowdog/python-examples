@@ -84,6 +84,7 @@ TASK_COUNT = "taskCount"  # Integer
 TASK_DATA = "taskData"  # String
 TASK_DATA_DESTINATION = "destination"  # String
 TASK_DATA_FILE = "taskDataFile"  # String
+TASK_DATA_FILES = "taskDataFiles"  # List of Strings
 TASK_DATA_INPUTS = "taskDataInputs"  # List of dictionaries
 TASK_DATA_OUTPUTS = "taskDataOutputs"  # List of dictionaries
 TASK_DATA_SOURCE = "source"  # String
@@ -200,6 +201,7 @@ ALL_KEYS = [
     TASK_DATA,
     TASK_DATA_DESTINATION,
     TASK_DATA_FILE,
+    TASK_DATA_FILES,
     TASK_DATA_INPUTS,
     TASK_DATA_OUTPUTS,
     TASK_DATA_SOURCE,

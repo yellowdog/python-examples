@@ -10,6 +10,7 @@ from typing import cast
 
 from requests import get
 from yellowdog_client.common import SearchClient
+from yellowdog_client.common.json import Json
 from yellowdog_client.model import (
     Allowance,
     AllowanceSearch,
@@ -620,7 +621,7 @@ def get_keyring(name: str) -> Keyring:
         headers={"Authorization": f"yd-key {CONFIG_COMMON.key}:{CONFIG_COMMON.secret}"},
     )
     if response.status_code == 200:
-        return Keyring(**response.json())
+        return Json.load(response.json(), Keyring)
     else:
         raise RuntimeError(f"Failed to get Keyring '{name}' ({response.text})")
 

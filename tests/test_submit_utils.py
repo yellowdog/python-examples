@@ -15,6 +15,7 @@ from yellowdog_cli.utils.config_types import ConfigWorkRequirement
 from yellowdog_cli.utils.property_names import (
     TASK_DATA,
     TASK_DATA_FILE,
+    TASK_DATA_FILES,
     TASK_GROUPS,
     TASK_TAG,
     TASKS,
@@ -166,8 +167,39 @@ class TestResolveTaskData:
         assert su.resolve_task_data({TASK_DATA_FILE: str(f)}) == "from-file"
 
     def test_raises_when_both_set(self):
-        with pytest.raises(ValueError, match="both set"):
+        with pytest.raises(ValueError, match="Only one of"):
             su.resolve_task_data({TASK_DATA: "x", TASK_DATA_FILE: "f.txt"})
+
+    def test_raises_when_task_data_and_files_both_set(self):
+        with pytest.raises(ValueError, match="Only one of"):
+            su.resolve_task_data({TASK_DATA: "x", TASK_DATA_FILES: ["f.txt"]})
+
+    def test_raises_when_task_data_file_and_files_both_set(self, tmp_path):
+        f = tmp_path / "a.txt"
+        f.write_text("a")
+        with pytest.raises(ValueError, match="Only one of"):
+            su.resolve_task_data({TASK_DATA_FILE: str(f), TASK_DATA_FILES: [str(f)]})
+
+    def test_concatenates_task_data_files(self, tmp_path):
+        f1 = tmp_path / "a.txt"
+        f1.write_text("hello")
+        f2 = tmp_path / "b.txt"
+        f2.write_text("world")
+        result = su.resolve_task_data({TASK_DATA_FILES: [str(f1), str(f2)]})
+        assert result == "hello\nworld\n"
+
+    def test_task_data_files_single_file(self, tmp_path):
+        f = tmp_path / "only.txt"
+        f.write_text("content")
+        result = su.resolve_task_data({TASK_DATA_FILES: [str(f)]})
+        assert result == "content\n"
+
+    def test_task_data_files_variable_substitution(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("_YD_TEST_TDF_VAR", "sub")
+        f = tmp_path / "t.txt"
+        f.write_text("{{env:_YD_TEST_TDF_VAR}}")
+        result = su.resolve_task_data({TASK_DATA_FILES: [str(f)]})
+        assert result == "sub\n"
 
     def test_variable_substitution_applied_to_file_contents(
         self, tmp_path, monkeypatch
@@ -218,7 +250,7 @@ class TestGetTaskDataProperty:
         self, empty_config_wr
     ):
         task = {TASK_DATA: "inline", TASK_DATA_FILE: "file.txt"}
-        with pytest.raises(ValueError, match="both set"):
+        with pytest.raises(ValueError, match="Only one of"):
             su.get_task_data_property(empty_config_wr, {}, {}, task, "t1")
 
     def test_task_data_file_read_from_disk(self, empty_config_wr, tmp_path):
@@ -234,6 +266,28 @@ class TestGetTaskDataProperty:
         config = ConfigWorkRequirement(task_data_file=str(data_file))
         result = su.get_task_data_property(config, {}, {}, {}, "t1")
         assert result == "cfg-file-contents"
+
+    def test_task_level_task_data_files_wins_over_wr(self, empty_config_wr, tmp_path):
+        f = tmp_path / "t.txt"
+        f.write_text("task-files")
+        task = {TASK_DATA_FILES: [str(f)]}
+        wr_data = {TASK_DATA: "wr-level"}
+        result = su.get_task_data_property(empty_config_wr, wr_data, {}, task, "t1")
+        assert result == "task-files\n"
+
+    def test_config_wr_task_data_files_used_as_final_fallback(self, tmp_path):
+        f1 = tmp_path / "a.txt"
+        f1.write_text("part1")
+        f2 = tmp_path / "b.txt"
+        f2.write_text("part2")
+        config = ConfigWorkRequirement(task_data_files=[str(f1), str(f2)])
+        result = su.get_task_data_property(config, {}, {}, {}, "t1")
+        assert result == "part1\npart2\n"
+
+    def test_raises_when_task_data_and_files_set_at_task_level(self, empty_config_wr):
+        task = {TASK_DATA: "inline", TASK_DATA_FILES: ["f.txt"]}
+        with pytest.raises(ValueError, match="Only one of"):
+            su.get_task_data_property(empty_config_wr, {}, {}, task, "t1")
 
 
 # ---------------------------------------------------------------------------

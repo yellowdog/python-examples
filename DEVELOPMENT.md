@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- [`uv`](https://docs.astral.sh/uv/) — install via `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- [`uv`](https://docs.astral.sh/uv/) — install via `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`; on Windows use `winget install --id=astral-sh.uv` or `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
 - `git`
 - `make` — for formatting, building, and other development tasks
 - `bash` — required to run the release script (see [`RELEASING.md`](RELEASING.md))

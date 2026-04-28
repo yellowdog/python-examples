@@ -380,6 +380,7 @@ def csv_expand_toml_tasks(
         (config_wr.set_task_names, SET_TASK_NAMES),
         (config_wr.task_data, TASK_DATA),
         (config_wr.task_data_file, TASK_DATA_FILE),
+        (config_wr.task_data_files, TASK_DATA_FILES),
         (config_wr.task_data_inputs, TASK_DATA_INPUTS),
         (config_wr.task_data_outputs, TASK_DATA_OUTPUTS),
         (config_wr.task_group_name, TASK_GROUP_NAME),  # Note: oddity
