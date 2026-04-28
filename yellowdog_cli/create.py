@@ -14,32 +14,24 @@ import yellowdog_client.model as model
 from dateparser import parse as date_parse
 from requests import post, put
 from requests.exceptions import HTTPError
+from yellowdog_client.common.json import Json
 from yellowdog_client.model import (
-    AccountAllowance,
     AddApplicationResponse,
     AddConfiguredWorkerPoolResponse,
     AddGroupRequest,
-    AllowanceLimitEnforcement,
-    AllowanceResetType,
     ApiKey,
     Application,
-    AwsFleetComputeSource,
-    AwsFleetPurchaseOption,
     CloudProvider,
     CreateNamespaceRequest,
     Group,
     GroupRole,
     ImageOsType,
-    InstanceStatus,
     InternalUser,
     MachineImage,
     MachineImageFamily,
     MachineImageGroup,
     NamespacePolicy,
-    RequirementsAllowance,
     RoleScope,
-    SourceAllowance,
-    SourcesAllowance,
     UpdateGroupRequest,
     User,
 )
@@ -1328,40 +1320,17 @@ def _get_model_object(class_name: str, resource: dict, **kwargs):
     if missing:
         raise KeyError(f"Missing expected property '{missing[0]}'")
 
-    model_object = cls(**resource, **kwargs)
-    _patch_aws_fleet_enums(model_object)
-    _patch_allowance_enums(model_object)
-    return model_object
-
-
-def _patch_aws_fleet_enums(model_object) -> None:
-    if isinstance(model_object, AwsFleetComputeSource):
-        try:
-            model_object.purchaseOption = AwsFleetPurchaseOption[
-                str(model_object.purchaseOption)
-            ]
-        except KeyError:
-            raise ValueError(
-                "Invalid AWS Fleet Compute Source Purchase Option property: "
-                f"'{model_object.purchaseOption!s}'"
-            )
-
-
-def _patch_allowance_enums(model_object) -> None:
-    if isinstance(
-        model_object,
-        (SourceAllowance, SourcesAllowance, RequirementsAllowance, AccountAllowance),
-    ):
-        try:
-            model_object.limitEnforcement = AllowanceLimitEnforcement(
-                model_object.limitEnforcement
-            )
-            model_object.resetType = AllowanceResetType(model_object.resetType)
-            model_object.monitoredStatuses = [
-                InstanceStatus(status) for status in model_object.monitoredStatuses
-            ]
-        except KeyError as e:
-            raise KeyError(f"Invalid Allowance property: {e}")
+    # Normalize all values to their JSON-compatible representations so that
+    # Json.load can properly structure nested typed fields (e.g. enums,
+    # timedeltas, and nested model objects) — necessary because the SDK's
+    # proxy now calls Json.dump on every outbound request.
+    merged = {}
+    for k, v in {**resource, **kwargs}.items():
+        if isinstance(v, (str, int, float, bool, type(None))):
+            merged[k] = v
+        else:
+            merged[k] = Json.dump(v)
+    return Json.load(merged, cls)
 
 
 def _get_model_class(class_name: str):
